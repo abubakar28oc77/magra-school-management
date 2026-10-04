@@ -1,0 +1,1 @@
+V96 release candidate checksum is generated for the ZIP artifact after packaging.

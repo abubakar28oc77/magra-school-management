@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+const root=new URL('..',import.meta.url).pathname;
+const server=fs.readFileSync(root+'/backend/src/server.js','utf8'); const jsx=fs.readFileSync(root+'/frontend/src/main.jsx','utf8');
+const checks=[['guardian summary',server.includes('data.guardianSummary=[]')],['attendance aggregation',server.includes("status='present'")],['result aggregation',server.includes('avg_marks')&&server.includes('avg_gpa')],['exam schedule',server.includes('data.examSchedule=')],['online exams',server.includes('data.onlineExams=')],['link scope',server.includes('guardian_student_links')],['performance UI',jsx.includes('উপস্থিতি ও পারফরম্যান্স')],['schedule UI',jsx.includes('পরীক্ষার সময়সূচি')],['online exam UI',jsx.includes('অনলাইন পরীক্ষা')],['communication UI',jsx.includes('শিক্ষক/বিদ্যালয় যোগাযোগ')],['fee UI',jsx.includes('ফি ও বকেয়া')],['assignment UI',jsx.includes('অ্যাসাইনমেন্ট')]];
+let pass=0; for(const [n,ok] of checks){console.log(`${ok?'PASS':'FAIL'} - ${n}`);if(ok)pass++;} console.log(`V45 QA: ${pass}/${checks.length} PASS`);if(pass!==checks.length)process.exit(1);

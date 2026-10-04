@@ -1,0 +1,5 @@
+import fs from 'node:fs';
+const root=new URL('..',import.meta.url).pathname;
+const f=fs.readFileSync(root+'/frontend/src/main.jsx','utf8'), c=fs.readFileSync(root+'/frontend/src/styles.css','utf8'), b=fs.readFileSync(root+'/backend/src/server.js','utf8');
+const checks=[['ReportsPanel',f.includes('function ReportsPanel()')],['analytics cards',f.includes('report-cards')],['attendance chart',f.includes('vertical-bars')&&f.includes('/reports/attendance-trend?days=30')],['class visual',f.includes('class-report-grid')],['finance visual',f.includes('finance-pair')],['admission',f.includes('/reports/admission-summary')],['risk',f.includes('risk-badge')],['print action',f.includes('Print / PDF')&&f.includes('window.print()')],['print css',c.includes('@media print')],['result report',f.includes('/reports/result-summary')],['report endpoints',b.includes('/reports/overview')&&b.includes('/reports/student-risk')],['V34 health',b.includes("version:'V34'")],['no placeholder',!f.includes('ModulePlaceholder')]];
+let ok=0;for(const [n,v] of checks){console.log(`${v?'PASS':'FAIL'} ${n}`);if(v)ok++}console.log(`QA ${ok}/${checks.length}`);if(ok!==checks.length)process.exit(1)

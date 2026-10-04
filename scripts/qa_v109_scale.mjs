@@ -1,0 +1,11 @@
+import fs from 'fs';
+import assert from 'assert';
+const root = new URL('..', import.meta.url).pathname;
+const server = fs.readFileSync(root + '/backend/src/server.js','utf8');
+const mig = fs.readFileSync(root + '/database/migrations/034_scale_operational_indexes.sql','utf8');
+assert(server.includes("version:'V109'"));
+for (const needle of ['idx_attendance_student_date_status','idx_attendance_date_status_student','idx_marks_student_exam_subject','idx_marks_exam_student','idx_fees_student_due','idx_fee_payments_fee_paid_at','idx_library_loans_student_returned','idx_audit_logs_created_user','idx_notifications_recipient_created','idx_guardian_links_student']) assert(mig.includes(needle), needle);
+assert(server.includes("app.get('/api/students'"));
+assert(server.includes('page_size'));
+assert(server.includes('total_pages'));
+console.log('V109 scale QA: 12/12 PASS');

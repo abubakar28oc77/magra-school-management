@@ -1,0 +1,25 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const checks = [];
+const ok=(name,pass,detail='')=>checks.push({name,pass,detail});
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const server=read('backend/src/server.js');
+const security=read('backend/src/security.js');
+const env=read('backend/.env.example');
+const fp=JSON.parse(read('frontend/package.json'));
+const migrations=fs.readdirSync(path.join(root,'database/migrations')).filter(f=>f.endsWith('.sql')).sort();
+ok('Backend production env validation', /validateProductionEnv\(\)/.test(server), 'security validation is invoked at startup');
+ok('DATABASE_URL required in production', /DATABASE_URL is required in production/.test(security));
+ok('Strong JWT secret required', /JWT_SECRET must be a strong 32\+ character secret/.test(security));
+ok('Explicit HTTPS CORS required', /CORS_ORIGIN must contain explicit HTTPS origins/.test(security));
+ok('Environment template present', /DATABASE_URL=/.test(env) && /JWT_SECRET=/.test(env) && /CORS_ORIGIN=/.test(env));
+ok('Frontend build script present', fp.scripts?.build === 'vite build');
+ok('No wildcard CORS in server', !/CORS_ORIGIN.*\*/.test(server));
+ok('Health endpoint V74 retained', /version:'V74'/.test(server));
+ok('Ready endpoint performs DB check', /app\.get\('\/ready'/.test(server) && /SELECT 1/.test(server));
+ok('Migration set includes document integrity', migrations.includes('025_document_integrity.sql'));
+ok('Migration filenames are unique', new Set(migrations).size === migrations.length, `${migrations.length} SQL migrations found`);
+let pass=0; for(const c of checks){console.log(`${c.pass?'PASS':'FAIL'} | ${c.name}${c.detail?' — '+c.detail:''}`); if(c.pass) pass++;}
+console.log(`RESULT ${pass}/${checks.length} PASS`); if(pass!==checks.length) process.exit(1);

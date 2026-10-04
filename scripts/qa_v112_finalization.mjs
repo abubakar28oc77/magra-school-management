@@ -1,0 +1,24 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd(); let pass=0,fail=0;
+function c(name,ok,detail=''){console.log(`${ok?'PASS':'FAIL'} | ${name}${detail?' — '+detail:''}`);ok?pass++:fail++;}
+const migDir=path.join(root,'database','migrations');
+const mig=fs.readdirSync(migDir).filter(f=>/^\d+_.+\.sql$/.test(f)).sort((a,b)=>Number(a.slice(0,3))-Number(b.slice(0,3)));
+const nums=mig.map(f=>Number(f.slice(0,3)));
+c('Migration chain 006-037', JSON.stringify(nums)===JSON.stringify(Array.from({length:32},(_,i)=>i+6)), nums.join(','));
+const server=fs.readFileSync(path.join(root,'backend/src/server.js'),'utf8');
+const main=fs.readFileSync(path.join(root,'frontend/src/main.jsx'),'utf8');
+const m35=fs.readFileSync(path.join(migDir,'035_public_contact_sync.sql'),'utf8');
+c('Dynamic public contact API',server.includes("/api/public/contact"));
+c('Four public contact roles', ['head_teacher','assistant_head_teacher','ict_teacher','office_assistant'].every(x=>m35.includes(x)||server.includes(x)));
+c('Contact uses active profiles',server.includes("status='active' AND public_contact_enabled=true"));
+c('Student scale indexes',fs.existsSync(path.join(migDir,'033_scale_indexes.sql')));
+c('Operational scale indexes',fs.existsSync(path.join(migDir,'034_scale_operational_indexes.sql')));
+c('Emergency service interface',main.includes('জরুরি ও গুরুত্বপূর্ণ সেবা') && main.includes("'333'") && main.includes("'999'"));
+c('Four educational clubs', ['বিজ্ঞান ক্লাব','আইসিটি ক্লাব','ভাষা ও সাহিত্য ক্লাব','ডিবেটিং ক্লাব'].every(x=>main.includes(x)));
+c('Student CSV import/update',server.includes('/api/students/bulk-import'));
+c('Teacher/staff CSV import',server.includes('/api/teachers/bulk-import') && server.includes('/api/staff/bulk-import'));
+c('Health version V115',server.includes("version:'V115'"));
+c('Frontend dashboard V115',main.includes('V115 সিস্টেম স্ট্যাটাস'));
+console.log(`\nV115 Finalization QA: ${pass}/${pass+fail} PASS`);
+process.exit(fail?1:0);

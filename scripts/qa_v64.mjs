@@ -1,0 +1,26 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd(); const checks=[];
+const ok=(name,pass)=>checks.push({name,pass});
+const read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const main=read('frontend/src/main.jsx');
+const nav=read('frontend/src/publicNavConfig.js');
+const css=read('frontend/src/styles.css');
+const server=read('backend/src/server.js');
+
+ok('Scholarship search keeps matching records', main.includes("!filter||[r.name_bn,r.student_id,r.scholarship_name,r.provider].filter(Boolean).join(' ').toLowerCase().includes(filter.toLowerCase())"));
+ok('Scholarship CRUD routes are wired', ['/api/scholarships','/api/scholarships/:id'].every(x=>server.includes(x)));
+ok('Event participant routes are wired', ['/api/events/:id/participants','/api/events/:id/participants/:participantId'].every(x=>server.includes(x)));
+ok('Public navigation is data-driven', main.includes('publicNavConfig.map'));
+ok('Dropdown navigation has menu semantics', main.includes('aria-haspopup="menu"')&&main.includes('role="menuitem"'));
+ok('Keyboard Escape closes public menu', main.includes("if(e.key==='Escape')closeNav()"));
+ok('Mobile navigation is provisioned', css.includes('.reference-shell .nav-toggle')&&css.includes('.reference-shell .nav-band nav.open'));
+ok('Public anchors remain provisioned', main.includes('public-anchor-shelf'));
+ok('Seven-image layout remains unlocked', nav.includes('final section order remains adjustable') && main.includes('public-anchor-shelf'));
+ok('School identity is correct', main.includes('EIIN: <b>114290</b>')&&!main.includes('EIIN: <b>114282</b>'));
+ok('Reference images retained', fs.existsSync(path.join(root,'docs/ui-reference/reference-01-top.jpg'))&&fs.existsSync(path.join(root,'docs/ui-reference/reference-02-notice-links.jpg')));
+ok('Backend health version V64', server.includes("version:'V64'"));
+const passed=checks.filter(x=>x.pass).length;
+for(const c of checks) console.log(`${c.pass?'PASS':'FAIL'} | ${c.name}`);
+console.log(`RESULT ${passed}/${checks.length}`);
+if(passed!==checks.length) process.exit(1);

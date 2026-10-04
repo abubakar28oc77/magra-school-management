@@ -1,0 +1,27 @@
+-- V6: Student & Staff management enhancement
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS gender VARCHAR(30);
+ALTER TABLE teachers ADD COLUMN IF NOT EXISTS designation_en VARCHAR(120);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_url TEXT;
+ALTER TABLE students ADD COLUMN IF NOT EXISTS blood_group VARCHAR(10);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS religion VARCHAR(50);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS father_name VARCHAR(180);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS mother_name VARCHAR(180);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_relation VARCHAR(80);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS guardian_email VARCHAR(180);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS previous_school VARCHAR(250);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS admission_class VARCHAR(30);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS birth_registration_no VARCHAR(80);
+ALTER TABLE students ADD COLUMN IF NOT EXISTS emergency_phone VARCHAR(40);
+CREATE TABLE IF NOT EXISTS staff(
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), employee_id VARCHAR(60) UNIQUE NOT NULL,
+ name_bn VARCHAR(180) NOT NULL, name_en VARCHAR(180), designation VARCHAR(120) NOT NULL,
+ phone VARCHAR(40), email VARCHAR(180), joining_date DATE, gender VARCHAR(30), address TEXT,
+ status VARCHAR(30) NOT NULL DEFAULT 'active', user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_staff_status ON staff(status);
+CREATE INDEX IF NOT EXISTS idx_teachers_status ON teachers(status);
+CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);

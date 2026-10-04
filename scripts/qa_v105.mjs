@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+const root=process.cwd(); let pass=0,fail=0;
+const ok=(name,cond)=>{if(cond){console.log('PASS | '+name);pass++}else{console.log('FAIL | '+name);fail++}};
+const server=fs.readFileSync(root+'/backend/src/server.js','utf8');
+const ui=fs.readFileSync(root+'/frontend/src/main.jsx','utf8');
+const cleanup=fs.readFileSync(root+'/scripts/pilot_cleanup.mjs','utf8');
+ok('bulk student import endpoint',server.includes("/api/students/bulk-import"));
+ok('bulk import limited to manager roles',server.includes("allow(...managerRoles)"));
+ok('bulk import capped at 500',server.includes('rows.length>500'));
+ok('CSV template available',ui.includes('magra-student-import-template.csv'));
+ok('CSV upload control available',ui.includes('শিক্ষার্থী CSV আপলোড'));
+ok('existing student edit retained',ui.includes("শিক্ষার্থী তথ্য সম্পাদনা") && ui.includes('edit(s)'));
+ok('pilot cleanup script present',fs.existsSync(root+'/scripts/pilot_cleanup.mjs'));
+ok('cleanup refuses production',cleanup.includes("NODE_ENV==='production'"));
+ok('cleanup removes PILOT students',cleanup.includes("student_id LIKE 'PILOT-%'"));
+ok('cleanup removes pilot users',cleanup.includes("login_id LIKE 'pilot-%'"));
+console.log(`V105 QA: ${pass}/${pass+fail} PASS`); process.exitCode=fail?1:0;

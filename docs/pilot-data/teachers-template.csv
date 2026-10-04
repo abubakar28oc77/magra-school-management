@@ -1,0 +1,4 @@
+employee_id,name_bn,name_en,designation,designation_en,subject,phone,email,joining_date,gender,address
+PILOT-T01,পরীক্ষামূলক শিক্ষক ১,Pilot Teacher 1,সহকারী শিক্ষক,Assistant Teacher,বাংলা,,,2026-01-01,পুরুষ,
+PILOT-T02,পরীক্ষামূলক শিক্ষক ২,Pilot Teacher 2,সহকারী শিক্ষক,Assistant Teacher,ইংরেজি,,,2026-01-01,পুরুষ,
+PILOT-T03,পরীক্ষামূলক শিক্ষক ৩,Pilot Teacher 3,সহকারী শিক্ষক,Assistant Teacher,গণিত,,,2026-01-01,নারী,

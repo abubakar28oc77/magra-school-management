@@ -1,0 +1,11 @@
+student_id,roll_no,name_bn,name_en,class_name,section,gender,date_of_birth,guardian_name,guardian_relation,guardian_phone,address,admission_date,status
+PILOT-06-01,1,পরীক্ষামূলক শিক্ষার্থী ৬-১,Pilot Student 6-1,6,A,পুরুষ,2014-01-01,পরীক্ষামূলক অভিভাবক,পিতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-06-02,2,পরীক্ষামূলক শিক্ষার্থী ৬-২,Pilot Student 6-2,6,A,নারী,2014-02-01,পরীক্ষামূলক অভিভাবক,মাতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-07-01,1,পরীক্ষামূলক শিক্ষার্থী ৭-১,Pilot Student 7-1,7,A,পুরুষ,2013-01-01,পরীক্ষামূলক অভিভাবক,পিতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-07-02,2,পরীক্ষামূলক শিক্ষার্থী ৭-২,Pilot Student 7-2,7,A,নারী,2013-02-01,পরীক্ষামূলক অভিভাবক,মাতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-08-01,1,পরীক্ষামূলক শিক্ষার্থী ৮-১,Pilot Student 8-1,8,A,পুরুষ,2012-01-01,পরীক্ষামূলক অভিভাবক,পিতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-08-02,2,পরীক্ষামূলক শিক্ষার্থী ৮-২,Pilot Student 8-2,8,A,নারী,2012-02-01,পরীক্ষামূলক অভিভাবক,মাতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-09-01,1,পরীক্ষামূলক শিক্ষার্থী ৯-১,Pilot Student 9-1,9,A,পুরুষ,2011-01-01,পরীক্ষামূলক অভিভাবক,পিতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-09-02,2,পরীক্ষামূলক শিক্ষার্থী ৯-২,Pilot Student 9-2,9,A,নারী,2011-02-01,পরীক্ষামূলক অভিভাবক,মাতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-10-01,1,পরীক্ষামূলক শিক্ষার্থী ১০-১,Pilot Student 10-1,10,A,পুরুষ,2010-01-01,পরীক্ষামূলক অভিভাবক,পিতা,01XXXXXXXXX,,2026-01-01,active
+PILOT-10-02,2,পরীক্ষামূলক শিক্ষার্থী ১০-২,Pilot Student 10-2,10,A,নারী,2010-02-01,পরীক্ষামূলক অভিভাবক,মাতা,01XXXXXXXXX,,2026-01-01,active

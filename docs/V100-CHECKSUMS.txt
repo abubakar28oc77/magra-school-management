@@ -1,0 +1,2 @@
+53352589ff8d55c1982905a773a62d992951b737b1e25a708bed24d55ce74c38  /mnt/data/magra_work_v100/magra_work_v99/backend/src/server.js
+a48872aac476de6686cd157a0103ea2406a973cfd6a2ad05fe626918e73bbef7  /mnt/data/magra_work_v100/magra_work_v99/frontend/src/main.jsx

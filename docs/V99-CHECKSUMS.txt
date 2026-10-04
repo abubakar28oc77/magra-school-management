@@ -1,0 +1,3 @@
+fda86b1ab524790d5a15b8a3d64f06aa3ef922cf1752fc0bce578194f0ca570e  /mnt/data/magra_work_v99/backend/src/server.js
+ded51ddb2b66be6883f8af21001e1a61691e43db16e95064d408d34a2a391883  /mnt/data/magra_work_v99/frontend/src/main.jsx
+d099ee2c86fc3fed18a82dc3dda1f44370c70a2661c5495999032131e8c9162b  /mnt/data/magra_work_v99/scripts/qa_v99.mjs

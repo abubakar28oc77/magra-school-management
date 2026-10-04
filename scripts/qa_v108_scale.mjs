@@ -1,0 +1,12 @@
+import fs from 'fs'; import assert from 'assert';
+const root=new URL('..',import.meta.url).pathname;
+const server=fs.readFileSync(root+'backend/src/server.js','utf8');
+const mig=fs.readFileSync(root+'database/migrations/033_scale_indexes.sql','utf8');
+assert(server.includes("version:'V108'"));
+assert(server.includes('page_size'));
+assert(server.includes('total_pages'));
+assert(server.includes('LIMIT $'));
+assert(mig.includes('idx_students_class_section_name'));
+assert(mig.includes('idx_students_status_class_roll'));
+assert(mig.includes('idx_students_student_id'));
+console.log('V108 scale QA: 7/7 PASS');

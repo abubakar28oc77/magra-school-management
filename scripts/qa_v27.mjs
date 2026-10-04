@@ -1,0 +1,28 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=process.cwd();
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+const checks=[];
+function check(name, ok, detail=''){checks.push({name,ok,detail});}
+const main=read('frontend/src/main.jsx');
+const css=read('frontend/src/styles.css');
+const server=read('backend/src/server.js');
+const pkg=JSON.parse(read('frontend/package.json'));
+check('Final public hero exists', main.includes('hero-modern') && main.includes('school-building.jpg'));
+check('Final login section exists', main.includes('SECURE SCHOOL PORTAL') && main.includes('password-field'));
+check('Responsive navigation exists', main.includes('nav-toggle') && main.includes('className={open?\'open\':\'\'}'));
+check('Leadership section uses school leadership data', main.includes('নেয়ামুল') || main.includes('নেয়ামুল') && main.includes('মুহাম্মদ শফিকুল ইসলাম'));
+check('Notice board is wired to API', main.includes("api('/notices')"));
+check('All core admin modules are wired', ['students','staff','admission','attendance','results','routine','finance','library','learning','question','assignment','online_exam','ai','reports','documents','users','notice','notifications'].every(k=>main.includes(`active==='${k}'`)));
+check('PWA dependency configured', Boolean(pkg.dependencies['vite-plugin-pwa']) && read('frontend/vite.config.js').includes('VitePWA'));
+check('Security middleware present', server.includes('helmet') && server.includes('cors') && server.includes('rateLimit'));
+check('Session revalidation present', server.includes('auth_token_version') && server.includes('token_version'));
+check('Health and readiness endpoints present', server.includes("app.get('/api/health") && server.includes("app.get('/ready"));
+check('Routine CRUD routes present', server.includes("app.get('/api/routines") && server.includes("app.post('/api/routines") && server.includes("app.put('/api/routines/:id") && server.includes("app.delete('/api/routines/:id"));
+check('Online exam timing/score hardening present', server.includes('duration_minutes') && server.includes('Math.min(score'));
+check('Backup and restore scripts present', fs.existsSync(path.join(root,'scripts/backup.sh')) && fs.existsSync(path.join(root,'scripts/restore.sh')));
+check('No placeholder fallback is wired into the admin renderer', !main.includes('ModulePlaceholder name={modules.find'));
+const failed=checks.filter(x=>!x.ok);
+for(const x of checks) console.log(`${x.ok?'PASS':'FAIL'} | ${x.name}${x.detail?` | ${x.detail}`:''}`);
+console.log(`RESULT ${checks.length-failed.length}/${checks.length} PASS`);
+process.exit(failed.length?1:0);
