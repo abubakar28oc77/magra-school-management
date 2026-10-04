@@ -23,7 +23,108 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
 
   const renderContent = () => {
     // 1. Institution submenus
+    if (menuKey.startsWith('public.nav.leadership') || title.includes('বাণী') || menuKey === 'public.nav.institution.message') {
+      const leaderInfo = {
+        'public.nav.leadership.president': {
+          badge: '👑 সভাপতির বাণী',
+          title: 'সভাপতির বাণী',
+          name: 'নেয়ামুল হক খান',
+          role: 'সভাপতি, ম্যানেজিং কমিটি',
+          speech: [
+            'বিসমিল্লাহির রাহমানির রাহিম। ঐতিহ্যবাহী মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সকল শিক্ষার্থী, অভিভাবক ও শুভানুধ্যায়ীদের প্রতি রইল আমার আন্তরিক শুভেচ্ছা ও অভিনন্দন।',
+            '১৯৪৬ সালে প্রতিষ্ঠিত এই বিদ্যাপীঠ দীর্ঘ সময় ধরে অত্র এলাকার শিক্ষার আলো ছড়িয়ে আসছে। শিক্ষার গুণগত মান নিশ্চিতকরণ, ডিজিটাল অবকাঠামো উন্নয়ন এবং শিক্ষার্থীদের দেশপ্রেম ও নৈতিক শিক্ষায় উদ্বুদ্ধ করাই আমাদের পরিচালনা কমিটির মূল লক্ষ্য।',
+            'বিদ্যালয়ের ধারাবাহিক সাফল্য ও সার্বিক অগ্রগতিতে শিক্ষক, অভিভাবক ও এলাকাবাসীর আন্তরিক সহযোগিতা কামনা করছি।'
+          ]
+        },
+        'public.nav.leadership.head': {
+          badge: '🎓 প্রধান শিক্ষকের বাণী',
+          title: 'প্রধান শিক্ষকের বাণী',
+          name: 'মুহাম্মদ শফিকুল ইসলাম',
+          role: 'প্রধান শিক্ষক',
+          speech: [
+            'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ডিজিটাল প্ল্যাটফর্মে সবাইকে স্বাগত জানাচ্ছি।',
+            'একবিংশ শতাব্দীর চ্যালেঞ্জ মোকাবেলায় শিক্ষার্থীদের শুধুমাত্র পাঠ্যপুস্তকের জ্ঞানে সীমাবদ্ধ না রেখে প্রযুক্তিগত দক্ষতা, সততা, শৃঙ্খলা ও নেতৃত্বের গুণাবলি অর্জনে আমরা নিরলসভাবে কাজ করে যাচ্ছি।',
+            'আমাদের অভিজ্ঞ শিক্ষকবৃন্দ প্রতিটি শিক্ষার্থীর সুপ্ত প্রতিভা বিকাশে সচেষ্ট। বিদ্যালয়টিকে একটি আদর্শ স্মার্ট শিক্ষা প্রতিষ্ঠানে রূপান্তরে আমরা প্রতিজ্ঞাবদ্ধ।'
+          ]
+        },
+        'public.nav.leadership.asst_head': {
+          badge: '👩‍🏫 সহকারী প্রধান শিক্ষকের বাণী',
+          title: 'সহকারী প্রধান শিক্ষকের বাণী',
+          name: 'তাপসী সরকার',
+          role: 'সহকারী প্রধান শিক্ষক',
+          speech: [
+            'প্রিয় শিক্ষার্থীবৃন্দ ও সম্মানিত অভিভাবকবৃন্দ,',
+            'একটি শিক্ষা প্রতিষ্ঠানের প্রাণ হলো এর সুশৃঙ্খল পরিবেশ ও শিক্ষার্থীদের নিয়মিত পড়াশোনার অভ্যাস। আমরা বিদ্যালয়ের একাডেমিক ক্যালেন্ডার, দৈনন্দিন শ্রেণি কার্যক্রম, উপস্থিতি এবং সহশিক্ষা কার্যক্রমের মান কঠোরভাবে বজায় রাখতে সচেষ্ট।',
+            'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার। সবার উজ্জ্বল ভবিষ্যৎ ও সার্বিক সাফল্য কামনা করি।'
+          ]
+        }
+      };
+
+      const selectedKey = menuKey in leaderInfo ? menuKey : (title.includes('সহকারী') ? 'public.nav.leadership.asst_head' : (title.includes('প্রধান শিক্ষক') ? 'public.nav.leadership.head' : (title.includes('সভাপতি') ? 'public.nav.leadership.president' : null)));
+
+      if (selectedKey && leaderInfo[selectedKey]) {
+        const leader = leaderInfo[selectedKey];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge">{leader.badge}</div>
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '16px', alignItems: 'center', margin: '16px 0', padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div className="avatar-circle" style={{ width: '56px', height: '56px', fontSize: '24px', background: '#2b6cb0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold' }}>
+                {leader.name.slice(0, 1)}
+              </div>
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', color: '#1a202c' }}>{leader.name}</h3>
+                <p style={{ margin: 0, color: '#4a5568', fontWeight: 600 }}>{leader.role}</p>
+                <small style={{ color: '#718096' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</small>
+              </div>
+            </div>
+            <div className="leader-speech" style={{ lineHeight: '1.8', color: '#2d3748', fontSize: '15px' }}>
+              {leader.speech.map((para, i) => (
+                <p key={i} style={{ marginBottom: '12px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // Show all 3 messages together if general 'বাণী' menu clicked
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">📜 সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
+            {Object.values(leaderInfo).map((leader, idx) => (
+              <div key={idx} style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                  <div className="avatar-circle" style={{ width: '44px', height: '44px', fontSize: '18px', background: '#2b6cb0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold' }}>
+                    {leader.name.slice(0, 1)}
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, color: '#1a202c', fontSize: '16px' }}>{leader.title}</h4>
+                    <p style={{ margin: 0, color: '#4a5568', fontSize: '13px', fontWeight: 600 }}>{leader.name} — {leader.role}</p>
+                  </div>
+                </div>
+                <div style={{ lineHeight: '1.7', color: '#2d3748', fontSize: '14px' }}>
+                  {leader.speech.map((para, i) => (
+                    <p key={i} style={{ marginBottom: '8px' }}>{para}</p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     if (menuKey === 'public.nav.institution.about') {
+      let liveSt = 0, liveTch = 0;
+      try {
+        const s = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+        const t = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+        const stf = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
+        liveSt = s.length;
+        liveTch = t.length + stf.length;
+      } catch {}
+      const toBn = n => String(n ?? 0).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">🏛️ বিদ্যালয় পরিচিতি</div>
@@ -37,8 +138,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
             <div className="info-stat-card"><b>৪২০৬০৭১৩০২</b><span>MPO কোড</span></div>
             <div className="info-stat-card"><b>১৯৪৬</b><span>প্রতিষ্ঠার সন</span></div>
             <div className="info-stat-card"><b>৬ষ্ঠ–১০ম</b><span>শ্রেণি পাঠদান</span></div>
-            <div className="info-stat-card"><b>৬৫৪ জন</b><span>বর্তমান শিক্ষার্থী</span></div>
-            <div className="info-stat-card"><b>২৪ জন</b><span>দক্ষ শিক্ষক ও কর্মচারী</span></div>
+            <div className="info-stat-card"><b>{toBn(liveSt)} জন</b><span>বর্তমান শিক্ষার্থী</span></div>
+            <div className="info-stat-card"><b>{toBn(liveTch)} জন</b><span>শিক্ষক ও কর্মচারী</span></div>
           </div>
           <h4>বিদ্যালয়ের লক্ষ্য ও উদ্দেশ্য</h4>
           <ul className="bullet-list">

@@ -236,10 +236,11 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/dashboard') {
     const students = getLocalStore('students', MOCK_STUDENTS);
     const teachers = getLocalStore('teachers', MOCK_TEACHERS);
+    const staff = getLocalStore('staff', MOCK_STAFF);
     const notices = getLocalStore('notices', MOCK_NOTICES);
     return {
-      students: students.length + 645,
-      teachers: teachers.length + 16,
+      students: students.length,
+      teachers: teachers.length + staff.length,
       notices: notices.length,
       users: 12
     };
@@ -320,24 +321,41 @@ function handleMockRequest(path, opts = {}) {
   }
 
   if (cleanPath === '/public/student-stats') {
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    const teachers = getLocalStore('teachers', MOCK_TEACHERS);
+    const staff = getLocalStore('staff', MOCK_STAFF);
+
+    // Calculate religion breakdown
+    const relMap = {};
+    students.forEach(s => {
+      const rel = s.religion || 'ইসলাম';
+      relMap[rel] = (relMap[rel] || 0) + 1;
+    });
+    const religion = Object.entries(relMap).map(([label, count]) => ({ label, count }));
+
+    // Calculate gender breakdown
+    const genMap = { 'ছাত্রী': 0, 'ছাত্র': 0 };
+    students.forEach(s => {
+      const g = (s.gender === 'female' || s.gender === 'নারী' || s.gender === 'ছাত্রী') ? 'ছাত্রী' : 'ছাত্র';
+      genMap[g] = (genMap[g] || 0) + 1;
+    });
+    const gender = Object.entries(genMap).map(([label, count]) => ({ label, count }));
+
+    // Calculate class-wise breakdown
+    const clsMap = { '৬ষ্ঠ': 0, '৭ম': 0, '৮ম': 0, '৯ম': 0, '১০ম': 0 };
+    students.forEach(s => {
+      const c = String(s.class_name || '6');
+      const clsKey = c === '6' ? '৬ষ্ঠ' : c === '7' ? '৭ম' : c === '8' ? '৮ম' : c === '9' ? '৯ম' : c === '10' ? '১০ম' : c + ' শ্রেণি';
+      clsMap[clsKey] = (clsMap[clsKey] || 0) + 1;
+    });
+    const classes = Object.entries(clsMap).map(([label, count]) => ({ label, count }));
+
     return {
-      total: 654,
-      teachers: 24,
-      religion: [
-        { label: 'ইসলাম', count: 590 },
-        { label: 'হিন্দু', count: 64 }
-      ],
-      gender: [
-        { label: 'ছাত্র', count: 320 },
-        { label: 'ছাত্রী', count: 334 }
-      ],
-      classes: [
-        { label: '৬ষ্ঠ', count: 140 },
-        { label: '৭ম', count: 135 },
-        { label: '৮ম', count: 130 },
-        { label: '৯ম', count: 125 },
-        { label: '১০ম', count: 124 }
-      ]
+      total: students.length,
+      teachers: teachers.length + staff.length,
+      religion: religion.length ? religion : [{ label: 'তথ্য সংযোজনযোগ্য', count: 0 }],
+      gender,
+      classes
     };
   }
 

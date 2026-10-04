@@ -85,20 +85,69 @@ function Header({ onOpenSubmenu }){
 
 function Home(){
  const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
+ const[customLinks,setCustomLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_important_links')||'[]')}catch{return []}});
+ const[showAddLink,setShowAddLink]=useState(false),[newLinkTitle,setNewLinkTitle]=useState(''),[newLinkUrl,setNewLinkUrl]=useState('');
  const nav=useNavigate();
- useEffect(()=>{api('/notices').then(setNotices).catch(()=>{});api('/public/content').then(setItems).catch(()=>{});api('/public/contact').then(d=>setContacts(d.contacts||[])).catch(()=>setContacts([]));api('/public/student-stats').then(setStats).catch(()=>setStats(null))},[]);
- const pct=(rows)=>{const total=(rows||[]).reduce((a,x)=>a+Number(x.count||0),0);if(!total)return '—';const top=[...(rows||[])].sort((a,b)=>Number(b.count)-Number(a.count))[0];return top?Math.round(Number(top.count)*100/total)+'%':'—'};
- const labels=(rows)=>rows&&rows.length?rows.slice(0,3).map(x=>`${x.label} ${x.count}`).join(' | '):'তথ্য সংযোজনযোগ্য';
+ 
+ const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+
+ useEffect(()=>{
+  api('/notices').then(setNotices).catch(()=>{});
+  api('/public/content').then(setItems).catch(()=>{});
+  api('/public/contact').then(d=>setContacts(d.contacts||[])).catch(()=>setContacts([]));
+  api('/public/student-stats').then(setStats).catch(()=>setStats(null));
+ },[]);
+
+ const pct=(rows)=>{const total=(rows||[]).reduce((a,x)=>a+Number(x.count||0),0);if(!total)return '—';const top=[...(rows||[])].sort((a,b)=>Number(b.count)-Number(a.count))[0];return top?toBn(Math.round(Number(top.count)*100/total))+'%':'—'};
+ const labels=(rows)=>rows&&rows.length?rows.filter(x=>x.count>0).slice(0,3).map(x=>`${x.label} ${toBn(x.count)}`).join(' | ')||'এন্ট্রি অনুযায়ী হালনাগাদ হবে':'এন্ট্রি অনুযায়ী হালনাগাদ হবে';
  const [lightbox,setLightbox]=useState(null); const gallery=items.filter(x=>x.content_type==='gallery'&&x.image_url).slice(0,8);
  const services=[
   ['🎓','অনলাইন ভর্তি','ভর্তি আবেদন, তথ্য ও প্রক্রিয়া'],['📊','অনলাইন ফলাফল','ফলাফল, GPA ও মার্কশিট'],['📚','ডিজিটাল শিক্ষা','সিলেবাস, নোট, MCQ ও CQ'],['🕘','স্মার্ট উপস্থিতি','দৈনিক উপস্থিতি ও অভিভাবক সতর্কতা'],
   ['🗓️','ডিজিটাল রুটিন','ক্লাস, পরীক্ষা ও শিক্ষক রুটিন'],['📢','নোটিশ ও যোগাযোগ','নোটিশ, ঘোষণা ও জরুরি তথ্য'],['📝','অনলাইন পরীক্ষা','কুইজ, মডেল টেস্ট ও অনলাইন পরীক্ষা'],['🏆','বৃত্তি ও অর্জন','বৃত্তি, পুরস্কার ও সাফল্যের তথ্য'],
   ['📖','লাইব্রেরি','বই, সদস্য ও পাঠাভ্যাস'],['👨‍🏫','শিক্ষক ও কর্মচারী','শিক্ষকবৃন্দ ও কর্মচারী তথ্য'],['⚽','ক্রীড়া ও সংস্কৃতি','ক্রীড়া, বিতর্ক ও সাংস্কৃতিক কার্যক্রম'],['🔬','বিজ্ঞান ক্লাব','বিজ্ঞানচর্চা, প্রকল্প, প্রদর্শনী ও বিজ্ঞান মেলা'],['💻','আইসিটি ক্লাব','প্রযুক্তি, প্রোগ্রামিং, ডিজিটাল দক্ষতা ও উদ্ভাবন'],['📚','ভাষা ও সাহিত্য ক্লাব','বাংলা-ইংরেজি ভাষা, সাহিত্যচর্চা, আবৃত্তি ও সৃজনশীল লেখা'],['🎤','ডিবেটিং ক্লাব','বিতর্কচর্চা, যুক্তি, উপস্থাপনা ও প্রতিযোগিতা'],['🖼️','ফটো ও ভিডিও গ্যালারি','বিদ্যালয়ের স্মরণীয় মুহূর্ত']
  ];
- const links=[['শিক্ষা মন্ত্রণালয়','https://moedu.gov.bd/'],['মাধ্যমিক ও উচ্চ শিক্ষা অধিদপ্তর','https://dshe.gov.bd/'],['বাংলাদেশ জাতীয় তথ্য বাতায়ন','https://bangladesh.gov.bd/'],['শিক্ষক বাতায়ন','https://teachers.gov.bd/'],['বাংলাদেশ জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড','https://nctb.gov.bd/'],['জাতীয় শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/']];
+
+ const defaultLinks=[
+  ['শিক্ষা মন্ত্রণালয়','https://moedu.gov.bd/'],
+  ['মাধ্যমিক ও উচ্চ শিক্ষা অধিদপ্তর','https://dshe.gov.bd/'],
+  ['ব্যানবেইস (BANBEIS)','https://www.banbeis.gov.bd/'],
+  ['এনটিআরসিএ (NTRCA)','http://www.ntrca.gov.bd/'],
+  ['বাংলাদেশ জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড','https://nctb.gov.bd/'],
+  ['শিক্ষক বাতায়ন','https://teachers.gov.bd/'],
+  ['বাংলাদেশ জাতীয় তথ্য বাতায়ন','https://bangladesh.gov.bd/'],
+  ['জাতীয় শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/']
+ ];
  const boardLinks=[['ঢাকা শিক্ষা বোর্ড','https://www.dhakaeducationboard.gov.bd/'],['রাজশাহী শিক্ষা বোর্ড','https://rajshahieducationboard.gov.bd/'],['চট্টগ্রাম শিক্ষা বোর্ড','https://bise-ctg.portal.gov.bd/'],['কুমিল্লা শিক্ষা বোর্ড','https://comillaboard.portal.gov.bd/'],['যশোর শিক্ষা বোর্ড','https://www.jessoreboard.gov.bd/'],['ময়মনসিংহ শিক্ষা বোর্ড','https://mymensingheducationboard.gov.bd/']];
- const leadershipCards=[['সভাপতি','নেয়ামুল হক খান'],['প্রধান শিক্ষক','মুহাম্মদ শফিকুল ইসলাম'],['সহকারী প্রধান শিক্ষক','তাপসী সরকার']];
+ 
+ const leadershipCards=[
+  { role:'সভাপতি', name:'নেয়ামুল হক খান', title:'সভাপতির বাণী', key:'public.nav.leadership.president', msg:'শিক্ষার গুণগত মান উন্নয়ন, নৈতিক মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে বিদ্যালয়ের অগ্রযাত্রায় সকলের সহযোগিতা কামনা করি।' },
+  { role:'প্রধান শিক্ষক', name:'মুহাম্মদ শফিকুল ইসলাম', title:'প্রধান শিক্ষকের বাণী', key:'public.nav.leadership.head', msg:'শিক্ষার্থীর জ্ঞান, দক্ষতা, শৃঙ্খলা ও সৃজনশীলতা বিকাশে বিদ্যালয় পরিবার নিরলসভাবে কাজ করে যাচ্ছে।' },
+  { role:'সহকারী প্রধান শিক্ষক', name:'তাপসী সরকার', title:'সহকারী প্রধান শিক্ষকের বাণী', key:'public.nav.leadership.asst_head', msg:'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার।' }
+ ];
  const emergencyServices=[['333','তথ্য ও সেবা','সরকারি তথ্য ও সেবা'],['999','জরুরি সেবা','জাতীয় জরুরি সেবা'],['109','নারী ও শিশু নির্যাতন প্রতিরোধে','সহায়তা ও প্রতিরোধ সেবা'],['106','দুদক হটলাইন','দুর্নীতি ও অনিয়মের অভিযোগ'],['1090','দুর্যোগের আগাম বার্তা','দুর্যোগ সংক্রান্ত আগাম তথ্য'],['1098','শিশুর সহায়তায় ফোন','চাইল্ড হেল্পলাইন']];
+
+ const handleAddLink=(e)=>{
+  e.preventDefault();
+  if(!newLinkTitle.trim()||!newLinkUrl.trim())return;
+  let url=newLinkUrl.trim();
+  if(!url.startsWith('http://')&&!url.startsWith('https://')){
+   url='https://'+url;
+  }
+  const updated=[...customLinks,[newLinkTitle.trim(),url,true]];
+  setCustomLinks(updated);
+  localStorage.setItem('magra_important_links',JSON.stringify(updated));
+  setNewLinkTitle('');
+  setNewLinkUrl('');
+  setShowAddLink(false);
+ };
+
+ const handleDeleteLink=(customIdx)=>{
+  const updated=customLinks.filter((_,i)=>i!==customIdx);
+  setCustomLinks(updated);
+  localStorage.setItem('magra_important_links',JSON.stringify(updated));
+ };
+
+ const allImportantLinks=[...defaultLinks,...customLinks];
 
  const handleServiceClick=(e, title)=>{
   const map={
@@ -130,30 +179,53 @@ function Home(){
    <section id="home" className="ref-hero-wrap"><div className="ref-container"><div className="ref-hero"><img src={building} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের ভবন"/><div className="ref-hero-caption"><h2>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h2><p>মগড়া, কালিহাতি, টাংগাইল • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</p></div></div><div className="ref-ticker"><b>সর্বশেষ:</b><div>{notices[0]?.title_bn||'বিদ্যালয়ের সর্বশেষ নোটিশ ও গুরুত্বপূর্ণ ঘোষণা এখানে প্রদর্শিত হবে।'}</div></div></div></section>
 
    <section className="ref-stats ref-container" aria-label="বিদ্যালয়ের পরিসংখ্যান">
-    <div className="ref-stat"><strong>{stats?.total??'৬৫৪'}</strong><span>শিক্ষার্থী</span></div>
-    <div className="ref-stat"><strong>{stats?.teachers??'২৪'}</strong><span>শিক্ষক ও কর্মচারী</span></div>
+    <div className="ref-stat"><strong>{toBn(stats?.total??0)}</strong><span>শিক্ষার্থী</span></div>
+    <div className="ref-stat"><strong>{toBn(stats?.teachers??0)}</strong><span>শিক্ষক ও কর্মচারী</span></div>
     <div className="ref-stat"><strong>৬–১০</strong><span>শ্রেণি</span></div>
     <div className="ref-stat"><strong>১৯৪৬</strong><span>প্রতিষ্ঠিত</span></div>
    </section>
 
    <section className="ref-demographic-stats ref-container" aria-label="শিক্ষার্থী পরিসংখ্যান">
-    <div className="ref-demographic-card religion"><h3>ধর্ম ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{stats?pct(stats.religion):'৯০%'}</strong></div><p>{stats?labels(stats.religion):'ইসলাম ৫৯০ | হিন্দু ৬৪'}</p></div>
-    <div className="ref-demographic-card gender"><h3>জেন্ডার ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{stats?pct(stats.gender):'৫১%'}</strong></div><p>{stats?labels(stats.gender):'ছাত্রী ৩৩৪ | ছাত্র ৩২০'}</p></div>
-    <div className="ref-demographic-card classwise"><h3>শ্রেণি ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{stats?.total??'৬৫৪'}</strong></div><p>{stats?(stats.classes||[]).map(x=>`শ্রেণি ${x.label}: ${x.count}`).slice(0,5).join(' | '):'৬ষ্ঠ: ১৪০ | ৭ম: ১৩৫ | ৮র্থ: ১৩০ | ৯ম: ১২৫ | ১০ম: ১২৪'}</p></div>
+    <div className="ref-demographic-card religion"><h3>ধর্ম ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{stats&&stats.total>0?pct(stats.religion):'—'}</strong></div><p>{stats&&stats.total>0?labels(stats.religion):'এন্ট্রি অনুযায়ী হালনাগাদ হবে'}</p></div>
+    <div className="ref-demographic-card gender"><h3>জেন্ডার ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{stats&&stats.total>0?pct(stats.gender):'—'}</strong></div><p>{stats&&stats.total>0?labels(stats.gender):'এন্ট্রি অনুযায়ী হালনাগাদ হবে'}</p></div>
+    <div className="ref-demographic-card classwise"><h3>শ্রেণি ভিত্তিক শিক্ষার্থী</h3><div className="stat-circle"><strong>{toBn(stats?.total??0)}</strong></div><p>{stats&&stats.total>0?(stats.classes||[]).filter(x=>x.count>0).map(x=>`${x.label}: ${toBn(x.count)}`).slice(0,5).join(' | ')||'এন্ট্রি অনুযায়ী হালনাগাদ হবে':'এন্ট্রি অনুযায়ী হালনাগাদ হবে'}</p></div>
    </section>
 
    <section className="ref-main ref-container"><div className="ref-layout"><div className="ref-primary">
     <section id="services" className="ref-section"><div className="ref-title"><h2>আমাদের বিভিন্ন শিক্ষা কার্যক্রম</h2><span></span></div><div className="service-grid">{services.map(([icon,title,desc])=><a className="service-card" href="#school-info" onClick={(e)=>handleServiceClick(e,title)} key={title}><div className="service-icon">{icon}</div><h3>{title}</h3><p>{desc}</p></a>)}</div></section>
 
-    <section id="clubs" className="ref-section"><div className="ref-title"><h2>বিজ্ঞান, আইসিটি, ভাষা ও বিতর্ক ক্লাব</h2><span></span></div><div className="club-grid">{[['🔬','বিজ্ঞান ক্লাব','বিজ্ঞান প্রকল্প, প্রদর্শনী, কুইজ ও বিজ্ঞান মেলা','public.nav.sport.clubs'],['💻','আইসিটি ক্লাব','প্রোগ্রামিং, ডিজিটাল দক্ষতা, রোবটিক্স ও উদ্ভাবন','public.nav.sport.lab'],['📚','ভাষা ও সাহিত্য ক্লাব','আবৃত্তি, রচনা, পাঠচক্র, গল্প ও সাহিত্যচর্চা','public.nav.sport.clubs'],['🎤','ডিবেটিং ক্লাব','যুক্তি, উপস্থাপনা, বিতর্কচর্চা ও প্রতিযোগিতা','public.nav.sport.debate']].map(([icon,title,desc,key])=><article className="club-card" key={title}><div className="club-icon">{icon}</div><div><h3>{title}</h3><p>{desc}</p></div><button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key,title})}>বিস্তারিত →</button></article>)}</div></section>
-
     <section id="notice" className="ref-section"><div className="ref-panel"><div className="panel-head"><h2>নোটিশবোর্ড</h2><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'বিদ্যালয়ের সকল নোটিশবোর্ড'});}}>🔗 সকল নোটিশ দেখুন</a></div><div className="notice-table"><div className="notice-row notice-head"><span>আইডি</span><span>টাইটেল</span><span>তারিখ</span><span>প্রকাশ</span></div>{notices.length?notices.slice(0,6).map((n,i)=><div className="notice-row" key={n.id}><span>{n.id?.toString().slice(-3)||i+1}</span><span>{n.title_bn}</span><span>{n.notice_date||'—'}</span><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:n.title_bn});}}>View</a></div>):<div className="notice-empty-row">এখনও কোনো নোটিশ প্রকাশিত হয়নি।</div>}</div></div></section>
 
-    <section className="ref-section link-panels"><div className="link-panel"><h2>গুরুত্বপূর্ণ লিংকসমূহ</h2>{links.map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div><div className="link-panel"><h2>শিক্ষা বোর্ডসমূহ</h2>{boardLinks.map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div><div className="link-panel"><h2>বোর্ড গুরুত্বপূর্ণ লিংকসমূহ</h2>{[['ভূমি মন্ত্রণালয়','https://land.gov.bd/'],['শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/'],['প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট','https://pmeat.gov.bd/'],['নৈমিত্তিক তথ্যসেবা','https://bangladesh.gov.bd/'],['MPO Teachers Verify','https://emis.gov.bd/']].map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div></section>
+    <section className="ref-section link-panels">
+     <div className="link-panel">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#cfe3fb',padding:'11px 13px',borderBottom:'2px solid #2874c6'}}>
+       <h2 style={{margin:0,padding:0,background:'none',border:'none',fontSize:'16px'}}>গুরুত্বপূর্ণ লিংকসমূহ</h2>
+       <button type="button" onClick={()=>setShowAddLink(!showAddLink)} style={{background:'#1d4ed8',color:'#fff',border:'none',borderRadius:'4px',padding:'3px 8px',fontSize:'11px',cursor:'pointer',fontWeight:'bold'}} title="নতুন লিংক যুক্ত করুন">+ লিংক যোগ</button>
+      </div>
+      {showAddLink && (
+       <form onSubmit={handleAddLink} style={{background:'#f1f5f9',padding:'10px 12px',borderBottom:'1px solid #cbd5e1',display:'flex',flexDirection:'column',gap:'6px'}}>
+        <input type="text" placeholder="লিংকের নাম (যেমন: কারিগরি শিক্ষা বোর্ড)" value={newLinkTitle} onChange={e=>setNewLinkTitle(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <input type="text" placeholder="ওয়েব ঠিকানা (URL যেমন: https://...)" value={newLinkUrl} onChange={e=>setNewLinkUrl(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <div style={{display:'flex',gap:'6px',justifyContent:'flex-end',marginTop:'2px'}}>
+         <button type="button" onClick={()=>setShowAddLink(false)} style={{background:'#64748b',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 10px',fontSize:'11px',cursor:'pointer'}}>বাতিল</button>
+         <button type="submit" style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 12px',fontSize:'11px',fontWeight:'bold',cursor:'pointer'}}>সেভ করুন</button>
+        </div>
+       </form>
+      )}
+      {allImportantLinks.map(([t,h,isCustom],idx)=>(
+       <div key={t+idx} style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:'8px'}}>
+        <a href={h} target="_blank" rel="noopener noreferrer" style={{flex:1}}>🔗 {t}</a>
+        {isCustom && <button type="button" onClick={()=>handleDeleteLink(idx-defaultLinks.length)} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'14px',padding:'0 4px'}} title="লিংকটি মুছে ফেলুন">✕</button>}
+       </div>
+      ))}
+     </div>
+     <div className="link-panel"><h2>শিক্ষা বোর্ডসমূহ</h2>{boardLinks.map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div>
+     <div className="link-panel"><h2>বোর্ড গুরুত্বপূর্ণ লিংকসমূহ</h2>{[['ভূমি মন্ত্রণালয়','https://land.gov.bd/'],['শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/'],['প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট','https://pmeat.gov.bd/'],['নৈমিত্তিক তথ্যসেবা','https://bangladesh.gov.bd/'],['MPO Teachers Verify','https://emis.gov.bd/']].map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div>
+    </section>
 
     <section id="school-info" className="ref-section about-panel"><div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div><div><h2>বিদ্যালয় সম্পর্কে</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p></div></section>
 
-    <section id="teachers" className="ref-section"><div className="ref-title"><h2>শিক্ষকবৃন্দ</h2><span></span></div><div className="people-grid">{leadershipCards.map(([role,name])=><article className="person-card" key={role} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">{name.slice(0,1)}</div><h3>{name}</h3><p>{role}</p></article>)}<article className="person-card muted-person" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">+</div><h3>শিক্ষকবৃন্দ</h3><p>পূর্ণ তালিকা দেখুন →</p></article></div></section>
+    <section id="teachers" className="ref-section"><div className="ref-title"><h2>শিক্ষকবৃন্দ</h2><span></span></div><div className="people-grid">{leadershipCards.map(leader=><article className="person-card" key={leader.role} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">{leader.name.slice(0,1)}</div><h3>{leader.name}</h3><p>{leader.role}</p></article>)}<article className="person-card muted-person" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">+</div><h3>শিক্ষকবৃন্দ</h3><p>পূর্ণ তালিকা দেখুন →</p></article></div></section>
 
     <section id="contact" className="ref-section contact-section"><div className="ref-title"><h2>যোগাযোগ</h2><span></span></div><div className="contact-grid">{contacts.map(c=>{const p=c.person;const name=p?.name_bn||'তথ্য সংযোজনযোগ্য';return <article className="contact-card" id={'contact-'+c.key} key={c.key}><div className="contact-avatar">{name.slice(0,1)}</div><div><span>{c.role}</span><h3>{name}</h3><p>{p?.designation||c.role}</p>{p?.phone&&<p>📱 <a href={`tel:${p.phone}`}>{p.phone}</a></p>}{p?.email&&<p>✉️ <a href={`mailto:${p.email}`}>{p.email}</a></p>}</div></article>})}</div><div className="contact-note">শিক্ষক/কর্মচারী ব্যবস্থাপনায় সক্রিয় প্রোফাইলের পদ, মোবাইল ও ই-মেইল পরিবর্তন হলে এই Contact অংশ স্বয়ংক্রিয়ভাবে আপডেট হবে।</div></section>
 
@@ -162,7 +234,7 @@ function Home(){
     <section id="gallery" className="ref-section"><div className="ref-title"><h2>ফটো ও ভিডিও গ্যালারি</h2><span></span></div><div className="gallery-tabs"><b>All</b><span>Photo</span><span>Video</span></div>{gallery.length?<div className="ref-gallery">{gallery.map(x=><button key={x.id} className="ref-gallery-item" onClick={()=>setLightbox(x)} aria-label={`${x.title_bn} বড় করে দেখুন`}><img src={x.image_url} alt={x.title_bn}/></button>)}</div>:<div className="gallery-placeholder"><span>🖼️</span><p>বিদ্যালয়ের ছবি ও ভিডিও এখানে প্রকাশিত হবে।</p></div>}</section>{lightbox&&<div className="ref-lightbox" role="dialog" aria-modal="true" aria-label="ছবির পূর্বরূপ" onClick={()=>setLightbox(null)}><div className="ref-lightbox-card" onClick={e=>e.stopPropagation()}><button className="ref-lightbox-close" onClick={()=>setLightbox(null)} aria-label="বন্ধ করুন">×</button><img src={lightbox.image_url} alt={lightbox.title_bn}/><h3>{lightbox.title_bn}</h3></div></div>}
    </div>
    <aside className="ref-sidebar">
-    {leadershipCards.slice(0,2).map(([role,name])=><article className="side-card leader-side" key={role}><h2>{role === 'সভাপতি'?'সভাপতির বাণী':'প্রধান শিক্ষকের বাণী'}</h2><div className="side-avatar">{name.slice(0,1)}</div><h3>{name}</h3><b>{role}</b><p>{role==='সভাপতি'?'শিক্ষার গুণগত মান উন্নয়ন, নৈতিক মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে বিদ্যালয়ের অগ্রযাত্রায় সকলের সহযোগিতা কামনা করি।':'শিক্ষার্থীর জ্ঞান, দক্ষতা, শৃঙ্খলা ও সৃজনশীলতা বিকাশে বিদ্যালয় পরিবার নিরলসভাবে কাজ করে যাচ্ছে।'}</p><button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.institution.about',title:role==='সভাপতি'?'সভাপতির বাণী':'প্রধান শিক্ষকের বাণী'})}>বিস্তারিত →</button></article>)}
+    {leadershipCards.map(leader=><article className="side-card leader-side" key={leader.role}><h2>{leader.title}</h2><div className="side-avatar">{leader.name.slice(0,1)}</div><h3>{leader.name}</h3><b>{leader.role}</b><p>{leader.msg}</p><button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:leader.key,title:leader.title})}>বিস্তারিত →</button></article>)}
     <article className="side-card quick-side"><h2>জরুরি ও গুরুত্বপূর্ণ সেবা</h2>{emergencyServices.map(([num,title,desc])=><a className="quick-service" href={`tel:${num}`} key={num}><b>📞 {num}</b><span>{title}</span><small>{desc}</small></a>)}</article><article className="side-card quick-side"><h2>বিদ্যালয়ের যোগাযোগ</h2><div className="quick-number"><b>✉️</b><span>ই-মেইল</span><strong>magrapuhs.46@gmail.com</strong></div><div className="quick-number"><b>📍</b><span>ঠিকানা</span><strong>মগড়া, কালিহাতি, টাংগাইল</strong></div></article>
    </aside></div></section>
 

@@ -2,7 +2,7 @@
 export const publicNavConfig = [
  {key:'public.nav.home',label:'হোম',href:'#home'},
  {key:'public.nav.institution',label:'প্রাতিষ্ঠানিক তথ্য',children:[
-  ['public.nav.institution.about','বিদ্যালয় পরিচিতি','#school-info'],['public.nav.institution.message','সভাপতি ও প্রধান শিক্ষকের বাণী','#leadership'],['public.nav.institution.committee','পরিচালনা কমিটি','#committee'],['public.nav.institution.rules','নিয়ম-কানুন','#rules'],['public.nav.institution.library','লাইব্রেরি','#library'],['public.nav.institution.curriculum','পাঠ্যক্রম ও পাঠ্যপুস্তক','#curriculum']
+  ['public.nav.institution.about','বিদ্যালয় পরিচিতি','#school-info'],['public.nav.institution.message','সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী','#leadership'],['public.nav.institution.committee','পরিচালনা কমিটি','#committee'],['public.nav.institution.rules','নিয়ম-কানুন','#rules'],['public.nav.institution.library','লাইব্রেরি','#library'],['public.nav.institution.curriculum','পাঠ্যক্রম ও পাঠ্যপুস্তক','#curriculum']
  ]},
  {key:'public.nav.sport',label:'ক্রীড়া ও সংস্কৃতি',children:[
   ['public.nav.sport.sports','বার্ষিক ক্রীড়া','#sports'],['public.nav.sport.clubs','ক্লাব ও সংগঠন','#clubs'],['public.nav.sport.culture','সাংস্কৃতিক অনুষ্ঠান','#culture'],['public.nav.sport.achievements','অর্জন ও পুরস্কার','#achievements'],['public.nav.sport.tour','শিক্ষা সফর','#tour'],['public.nav.sport.debate','বিতর্ক','#debate'],['public.nav.sport.lab','কম্পিউটার ল্যাব','#computer-lab'],['public.nav.sport.multimedia','মাল্টিমিডিয়া ক্লাস','#multimedia'],['public.nav.sport.scouts','স্কাউট/গার্লস গাইড','#scouts'],['public.nav.sport.inter','আন্তঃবিদ্যালয় ক্রীড়া','#inter-school-sports']
