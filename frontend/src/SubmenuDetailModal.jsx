@@ -204,21 +204,32 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     if (menuKey.startsWith('public.nav.staff')) {
       const isFormer = menuKey.includes('former');
       const isStaffOnly = menuKey.includes('employees') || menuKey.includes('formerEmployees');
+      let liveTeachers = [];
+      let liveStaff = [];
+      try {
+        liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+        liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
+      } catch {}
+      const list = isStaffOnly ? liveStaff : liveTeachers;
+
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">👨‍🏫 {isStaffOnly ? 'কর্মচারীবৃন্দ' : 'শিক্ষকবৃন্দ'}</div>
           <p className="lead-text">আমাদের অভিজ্ঞ, নিষ্ঠাবান ও প্রশিক্ষণপ্রাপ্ত শিক্ষক এবং কর্মচারীদের পরিচিতি:</p>
           <div className="people-grid-full">
-            {(isStaffOnly ? MOCK_STAFF : MOCK_TEACHERS).map(person => (
+            {list.map(person => (
               <div key={person.id} className="person-box-modal">
-                <div className="avatar-circle">{person.name_bn.slice(0, 1)}</div>
-                <h4>{person.name_bn}</h4>
-                <p className="person-desig">{person.designation}</p>
+                <div className="avatar-circle">{(person.name_bn || person.name_en || '?').slice(0, 1)}</div>
+                <h4>{person.name_bn || person.name_en}</h4>
+                <p className="person-desig">{person.designation || 'শিক্ষক'}</p>
                 {person.subject && <span className="subject-badge">বিষয়: {person.subject}</span>}
                 {person.phone && <p className="person-contact">📱 {person.phone}</p>}
                 {person.email && <p className="person-contact">✉️ {person.email}</p>}
               </div>
             ))}
+            {!list.length && (
+              <p className="lead-text" style={{gridColumn:'1/-1',textAlign:'center',color:'#718096'}}>এখনো কোনো {isStaffOnly ? 'কর্মচারী' : 'শিক্ষক'} এন্ট্রি করা হয়নি।</p>
+            )}
           </div>
         </div>
       );
@@ -265,9 +276,13 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       }
 
       if (menuKey === 'public.nav.students.scholarship') {
+        let liveScholarships = [];
+        try {
+          liveScholarships = JSON.parse(localStorage.getItem('magra_db_scholarships') || '[]');
+        } catch {}
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge">🎓 বৃত্তিপ্রাপ্ত ও মেধাবী শিক্ষার্থী</div>
+            <div className="modal-hero-badge">🎓 scholarship ও মেধাবী শিক্ষার্থী</div>
             <table className="modal-table">
               <thead>
                 <tr>
@@ -279,20 +294,28 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 </tr>
               </thead>
               <tbody>
-                {MOCK_SCHOLARSHIPS.map(s => (
+                {liveScholarships.map(s => (
                   <tr key={s.id}>
-                    <td><b>{s.name_bn}</b></td>
+                    <td><b>{s.name_bn || s.name_en}</b></td>
                     <td>{s.student_id} (শ্রেণি {s.class_name})</td>
                     <td>{s.scholarship_name}</td>
                     <td>{s.provider}</td>
-                    <td><b>৳ {s.amount.toLocaleString('bn-BD')}</b></td>
+                    <td><b>৳ {Number(s.amount || 0).toLocaleString('bn-BD')}</b></td>
                   </tr>
                 ))}
+                {!liveScholarships.length && (
+                  <tr><td colSpan={5} style={{textAlign:'center',padding:'18px',color:'#718096'}}>কোনো বৃত্তির তথ্য পাওয়া যায়নি।</td></tr>
+                )}
               </tbody>
             </table>
           </div>
         );
       }
+
+      let liveStudents = [];
+      try {
+        liveStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+      } catch {}
 
       return (
         <div className="submenu-content">
@@ -324,19 +347,26 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </tr>
             </thead>
             <tbody>
-              {MOCK_STUDENTS
-                .filter(s => filterClass === 'all' || s.class_name === filterClass)
-                .filter(s => !searchQuery || (s.name_bn + ' ' + s.student_id + ' ' + s.current_village).toLowerCase().includes(searchQuery.toLowerCase()))
+              {liveStudents
+                .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
+                .filter(s => {
+                  if (!searchQuery) return true;
+                  const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.current_village, s.permanent_village].filter(Boolean).map(String).join(' ').toLowerCase();
+                  return haystack.includes(searchQuery.toLowerCase());
+                })
                 .map(s => (
                   <tr key={s.id}>
                     <td><code>{s.student_id}</code></td>
-                    <td><b>{s.roll_no}</b></td>
-                    <td>{s.name_bn}</td>
-                    <td>শ্রেণি {s.class_name} ({s.section})</td>
-                    <td>{s.guardian_name || s.father_name}</td>
-                    <td>{s.current_village}</td>
+                    <td><b>{s.roll_no || '—'}</b></td>
+                    <td>{s.name_bn || s.name_en || '—'}</td>
+                    <td>শ্রেণি {s.class_name || '—'} ({s.section || '—'})</td>
+                    <td>{s.guardian_name || s.father_name || '—'}</td>
+                    <td>{s.current_village || s.permanent_village || '—'}</td>
                   </tr>
                 ))}
+              {!liveStudents.length && (
+                <tr><td colSpan={6} style={{textAlign:'center',padding:'18px',color:'#718096'}}>এখনো কোনো শিক্ষার্থী এন্ট্রি করা হয়নি।</td></tr>
+              )}
             </tbody>
           </table>
         </div>

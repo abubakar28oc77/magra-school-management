@@ -433,6 +433,7 @@ function StudentPanel({sub}){
    setMsg(editing?'শিক্ষার্থী তথ্য আপডেট হয়েছে':'নতুন শিক্ষার্থী সংরক্ষিত হয়েছে');
    setEditing(null);
    setForm({...emptyStudent,extended_profile:{education:[]}});
+   setView('list');
    load();
   }catch(e){setMsg(e.message)}
  };
@@ -441,17 +442,100 @@ function StudentPanel({sub}){
   setEditing(s.id);
   setForm({...emptyStudent,...s,admission_date:s.admission_date?.slice(0,10)||'',date_of_birth:s.date_of_birth?.slice(0,10)||'',extended_profile:s.extended_profile||{education:[]}});
   setStep(0);
+  setView('form');
   window.scrollTo({top:0,behavior:'smooth'});
  };
 
- return <div className="module-grid"><div className="form-card"><div className="toolbar"><div><span className="eyebrow">STUDENT PROFILE • V91</span><h2>{editing?'শিক্ষার্থী তথ্য সম্পাদনা':'নতুন শিক্ষার্থী এন্ট্রি'}</h2></div><div>{editing&&<button className="mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}})}}>বাতিল</button>} <span>ধাপ {step+1}/5</span></div></div><div className="wizard-steps">{['প্রাথমিক','পিতা-মাতা','ঠিকানা','অভিভাবক','ভর্তি ও শিক্ষা'].map((st,idx)=><button key={st} type="button" className={'wizard-step '+(step===idx?'active':step>idx?'completed':'')} onClick={()=>setStep(idx)}>{idx+1}. {st}</button>)}</div><form onSubmit={save} className="form-grid">
- {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div><div className="field"><label>Student ID *</label><input value={form.student_id} onChange={e=>change('student_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>শ্রেণি *</label><select value={form.class_name} onChange={e=>change('class_name',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>রোল নম্বর</label><input type="number" value={form.roll_no} onChange={e=>change('roll_no',e.target.value)}/></div><div className="field"><label>শাখা</label><input value={form.section} onChange={e=>change('section',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.date_of_birth} onChange={e=>change('date_of_birth',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><input value={form.religion} onChange={e=>change('religion',e.target.value)}/></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no} onChange={e=>change('birth_registration_no',e.target.value)}/></div><div className="field"><label>Student NID</label><input value={form.student_nid_no} onChange={e=>change('student_nid_no',e.target.value)}/></div></>}
- {step===1&&<><div className="form-section-title full"><b>পিতা ও মাতার বিবরণ</b></div>{[['father_name','পিতার নাম (বাংলা)'],['father_name_en','পিতার নাম (ইংরেজি)'],['father_nid_no','পিতার NID'],['father_profession','পিতার পেশা'],['father_mobile','পিতার মোবাইল'],['father_abroad_country','প্রবাসের দেশ (প্রযোজ্য ক্ষেত্রে)'],['mother_name','মাতার নাম (বাংলা)'],['mother_name_en','মাতার নাম (ইংরেজি)'],['mother_nid_no','মাতার NID'],['mother_profession','মাতার পেশা'],['mother_mobile','মাতার মোবাইল'],['mother_death_year','মাতার মৃত্যুর সন (যদি প্রযোজ্য)']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}</>}
- {step===2&&<><div className="form-section-title full"><b>বর্তমান ঠিকানা</b></div>{[['current_village','গ্রাম/মহল্লা'],['current_post_office','ডাকঘর'],['current_upazila','উপজেলা'],['current_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="form-section-title full"><b>স্থায়ী ঠিকানা</b></div>{[['permanent_village','গ্রাম/মহল্লা'],['permanent_post_office','ডাকঘর'],['permanent_upazila','উপজেলা'],['permanent_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="field full"><label>সম্পূর্ণ ঠিকানা বিবরণ</label><textarea rows="2" value={form.address} onChange={e=>change('address',e.target.value)}/></div></>}
- {step===3&&<><div className="form-section-title full"><b>অভিভাবকের তথ্য</b></div><div className="field"><label>অভিভাবকের নাম (বাংলা) *</label><input value={form.guardian_name} onChange={e=>change('guardian_name',e.target.value)} required/></div><div className="field"><label>অভিভাবকের নাম (ইংরেজি)</label><input value={form.guardian_name_en} onChange={e=>change('guardian_name_en',e.target.value)}/></div><div className="field"><label>সম্পর্ক</label><input value={form.guardian_relation} onChange={e=>change('guardian_relation',e.target.value)}/></div><div className="field"><label>অভিভাবকের মোবাইল *</label><input value={form.guardian_phone} onChange={e=>change('guardian_phone',e.target.value)} required/></div><div className="field"><label>অভিভাবকের NID</label><input value={form.guardian_nid_no} onChange={e=>change('guardian_nid_no',e.target.value)}/></div><div className="field"><label>অভিভাবকের ইমেইল</label><input value={form.guardian_email} onChange={e=>change('guardian_email',e.target.value)}/></div></>}
- {step===4&&<><div className="form-section-title full"><b>ভর্তি ও অতিরিক্ত তথ্য</b></div><div className="field"><label>ভর্তির শ্রেণি</label><select value={form.admission_class} onChange={e=>change('admission_class',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>ভর্তির তারিখ</label><input type="date" value={form.admission_date} onChange={e=>change('admission_date',e.target.value)}/></div><div className="field"><label>জরুরি মোবাইল</label><input value={form.emergency_phone} onChange={e=>change('emergency_phone',e.target.value)}/></div><div className="field"><label>বিশেষ চাহিদা/মন্তব্য</label><input value={form.special_needs} onChange={e=>change('special_needs',e.target.value)}/></div><div className="field"><label>অবস্থা</label><select value={form.status} onChange={e=>change('status',e.target.value)}><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option><option value="graduated">উত্তীর্ণ</option><option value="transferred">স্থানান্তরিত</option><option value="dropped_out">ঝরে পড়া</option></select></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div><div className="field full"><label>অতিরিক্ত নোট</label><textarea rows="3" value={form.additional_notes} onChange={e=>change('additional_notes',e.target.value)}/></div><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার ইতিহাস</b><button type="button" className="mini" onClick={addEdu}>+ নতুন রেকর্ড</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam} onChange={e=>updateEdu(i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution} onChange={e=>updateEdu(i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board} onChange={e=>updateEdu(i,'board',e.target.value)}/><input placeholder="পাশের সন" value={r.year} onChange={e=>updateEdu(i,'year',e.target.value)}/><input placeholder="ফলাফল" value={r.result} onChange={e=>updateEdu(i,'result',e.target.value)}/><input placeholder="বিষয়" value={r.subject} onChange={e=>updateEdu(i,'subject',e.target.value)}/><button type="button" className="mini" onClick={()=>removeEdu(i)}>মুছুন</button></div>)}{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="শিক্ষার্থীর ছবি"/>}</>}
- {step===4&&<CustomFields formKey="student" form={form} setForm={setForm}/>}
- <div className="form-actions full"><button type="button" className="mini" onClick={()=>setForm({...emptyStudent,extended_profile:{education:[]}})}>↺ ফর্ম রিসেট</button>{step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}{step<4?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}</button>}</div></form>{msg&&<p className="msg" role="status">{msg}</p>}</div><div className="table-card"><div className="toolbar"><div><span className="eyebrow">STUDENT DIRECTORY • V91</span><h2>শিক্ষার্থী তালিকা</h2></div><span>{students.length} জন</span></div><div className="filters"><input placeholder="নাম / ID / অভিভাবক খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/><select value={className} onChange={e=>setClassName(e.target.value)}><option value="">সব শ্রেণি</option>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select><input placeholder="শাখা" value={section} onChange={e=>setSection(e.target.value)}/><select value={status} onChange={e=>setStatus(e.target.value)}><option value="">সব অবস্থা</option><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option><option value="graduated">উত্তীর্ণ</option><option value="transferred">স্থানান্তরিত</option><option value="dropped_out">ঝরে পড়া</option></select>{customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}{customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}<button type="button" className="mini" onClick={exportStudents}>CSV রিপোর্ট</button></div><div className="table-wrap"><table><thead><tr><th>ID</th><th>নাম</th><th>শ্রেণি</th><th>রোল</th><th>অভিভাবক</th><th>মোবাইল</th><th>অবস্থা</th><th>কাজ</th></tr></thead><tbody>{students.map(s=><tr key={s.id}><td>{s.student_id}</td><td>{s.name_bn}</td><td>{s.class_name}</td><td>{s.roll_no||'—'}</td><td>{s.guardian_name||'—'}</td><td>{s.guardian_phone||'—'}</td><td>{statusBn(s.status)}</td><td><button className="mini" onClick={()=>edit(s)}>সম্পাদনা</button></td></tr>)}{!students.length&&<tr><td colSpan="8">কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
+ return <div>
+  <div className="tabs" style={{marginBottom:'16px'}}>
+   <button type="button" className={view==='list'?'active':''} onClick={()=>setView('list')}>📋 শিক্ষার্থী তালিকা ({students.length})</button>
+   <button type="button" className={view==='form'?'active':''} onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ {editing?'তথ্য সম্পাদনা':'নতুন শিক্ষার্থী এন্ট্রি'}</button>
+  </div>
+  {view==='form' && (
+   <div className="form-card full-form-v90">
+    <div className="toolbar">
+     <div>
+      <span className="eyebrow">STUDENT PROFILE • V91</span>
+      <h2>{editing?'শিক্ষার্থী তথ্য সম্পাদনা':'নতুন শিক্ষার্থী এন্ট্রি'}</h2>
+     </div>
+     <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+      <button className="mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setView('list');}}>📋 তালিকায় ফিরুন</button>
+      <span>ধাপ {step+1}/5</span>
+     </div>
+    </div>
+    <div className="wizard-steps">
+     {['প্রাথমিক','পিতা-মাতা','ঠিকানা','অভিভাবক','ভর্তি ও শিক্ষা'].map((st,idx)=><button key={st} type="button" className={'wizard-step '+(step===idx?'active':step>idx?'completed':'')} onClick={()=>setStep(idx)}>{idx+1}. {st}</button>)}
+    </div>
+    <form onSubmit={save} className="form-grid">
+     {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div><div className="field"><label>Student ID *</label><input value={form.student_id} onChange={e=>change('student_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>শ্রেণি *</label><select value={form.class_name} onChange={e=>change('class_name',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>রোল নম্বর</label><input type="number" value={form.roll_no} onChange={e=>change('roll_no',e.target.value)}/></div><div className="field"><label> শাখা</label><input value={form.section} onChange={e=>change('section',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.date_of_birth} onChange={e=>change('date_of_birth',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><input value={form.religion} onChange={e=>change('religion',e.target.value)}/></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no} onChange={e=>change('birth_registration_no',e.target.value)}/></div><div className="field"><label>Student NID</label><input value={form.student_nid_no} onChange={e=>change('student_nid_no',e.target.value)}/></div></>}
+     {step===1&&<><div className="form-section-title full"><b>পিতা ও মাতার বিবরণ</b></div>{[['father_name','পিতার নাম (বাংলা)'],['father_name_en','পিতার নাম (ইংরেজি)'],['father_nid_no','পিতার NID'],['father_profession','পিতার পেশা'],['father_mobile','পিতার মোবাইল'],['father_abroad_country','প্রবাসের দেশ (প্রযোজ্য ক্ষেত্রে)'],['mother_name','মাতার নাম (বাংলা)'],['mother_name_en','মাতার নাম (ইংরেজি)'],['mother_nid_no','মাতার NID'],['mother_profession','মাতার পেশা'],['mother_mobile','মাতার মোবাইল'],['mother_death_year','মাতার মৃত্যুর সন (যদি প্রযোজ্য)']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}</>}
+     {step===2&&<><div className="form-section-title full"><b>বর্তমান ঠিকানা</b></div>{[['current_village','গ্রাম/মহল্লা'],['current_post_office','ডাকঘর'],['current_upazila','উপজেলা'],['current_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="form-section-title full"><b>স্থায়ী ঠিকানা</b></div>{[['permanent_village','গ্রাম/মহল্লা'],['permanent_post_office','ডাকঘর'],['permanent_upazila','উপজেলা'],['permanent_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="field full"><label>সম্পূর্ণ ঠিকানা বিবরণ</label><textarea rows="2" value={form.address} onChange={e=>change('address',e.target.value)}/></div></>}
+     {step===3&&<><div className="form-section-title full"><b>অভিভাবকের তথ্য</b></div><div className="field"><label>অভিভাবকের নাম (বাংলা) *</label><input value={form.guardian_name} onChange={e=>change('guardian_name',e.target.value)} required/></div><div className="field"><label>অভিভাবকের নাম (ইংরেজি)</label><input value={form.guardian_name_en} onChange={e=>change('guardian_name_en',e.target.value)}/></div><div className="field"><label>সম্পর্ক</label><input value={form.guardian_relation} onChange={e=>change('guardian_relation',e.target.value)}/></div><div className="field"><label>অভিভাবকের মোবাইল *</label><input value={form.guardian_phone} onChange={e=>change('guardian_phone',e.target.value)} required/></div><div className="field"><label>অভিভাবকের NID</label><input value={form.guardian_nid_no} onChange={e=>change('guardian_nid_no',e.target.value)}/></div><div className="field"><label>অভিভাবকের ইমেইল</label><input value={form.guardian_email} onChange={e=>change('guardian_email',e.target.value)}/></div></>}
+     {step===4&&<><div className="form-section-title full"><b>ভর্তি ও অতিরিক্ত তথ্য</b></div><div className="field"><label>ভর্তির শ্রেণি</label><select value={form.admission_class} onChange={e=>change('admission_class',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>ভর্তির তারিখ</label><input type="date" value={form.admission_date} onChange={e=>change('admission_date',e.target.value)}/></div><div className="field"><label>জরুরি মোবাইল</label><input value={form.emergency_phone} onChange={e=>change('emergency_phone',e.target.value)}/></div><div className="field"><label>বিশেষ চাহিদা/মন্তব্য</label><input value={form.special_needs} onChange={e=>change('special_needs',e.target.value)}/></div><div className="field"><label>অবস্থা</label><select value={form.status} onChange={e=>change('status',e.target.value)}><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option><option value="graduated">উত্তীর্ণ</option><option value="transferred">স্থানান্তরিত</option><option value="dropped_out">ঝরে পড়া</option></select></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div><div className="field full"><label>অতিরিক্ত নোট</label><textarea rows="3" value={form.additional_notes} onChange={e=>change('additional_notes',e.target.value)}/></div><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার ইতিহাস</b><button type="button" className="mini" onClick={addEdu}>+ নতুন রেকর্ড</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam} onChange={e=>updateEdu(i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution} onChange={e=>updateEdu(i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board} onChange={e=>updateEdu(i,'board',e.target.value)}/><input placeholder="পাশের সন" value={r.year} onChange={e=>updateEdu(i,'year',e.target.value)}/><input placeholder="ফলাফল" value={r.result} onChange={e=>updateEdu(i,'result',e.target.value)}/><input placeholder="বিষয়" value={r.subject} onChange={e=>updateEdu(i,'subject',e.target.value)}/><button type="button" className="mini" onClick={()=>removeEdu(i)}>মুছুন</button></div>)}{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="শিক্ষার্থীর ছবি"/>}</>}
+     {step===4&&<CustomFields formKey="student" form={form} setForm={setForm}/>}
+     <div className="form-actions full">
+      <button type="button" className="mini" onClick={()=>setForm({...emptyStudent,extended_profile:{education:[]}})}>↺ ফর্ম রিসেট</button>
+      {step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}
+      {step<4?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}</button>}
+     </div>
+    </form>
+    {msg&&<p className="msg" role="status">{msg}</p>}
+   </div>
+  )}
+  {view==='list' && (
+   <div className="table-card">
+    <div className="toolbar">
+     <div>
+      <span className="eyebrow">STUDENT DIRECTORY • V91</span>
+      <h2>শিক্ষার্থী তালিকা</h2>
+     </div>
+     <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
+      <span>{students.length} জন</span>
+     </div>
+    </div>
+    <div className="filters">
+     <input placeholder="নাম / ID / অভিভাবক খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/>
+     <select value={className} onChange={e=>setClassName(e.target.value)}>
+      <option value="">সব শ্রেণি</option>
+      {classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}
+     </select>
+     <input placeholder="শাখা" value={section} onChange={e=>setSection(e.target.value)}/>
+     <select value={status} onChange={e=>setStatus(e.target.value)}>
+      <option value="">সব অবস্থা</option>
+      <option value="active">সক্রিয়</option>
+      <option value="inactive">নিষ্ক্রিয়</option>
+      <option value="graduated">উত্তীর্ণ</option>
+      <option value="transferred">স্থানান্তরিত</option>
+      <option value="dropped_out">ঝরে পড়া</option>
+     </select>
+     {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
+     {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
+     <button type="button" className="mini" onClick={exportStudents}>CSV রিপোর্ট</button>
+    </div>
+    <div className="table-wrap">
+     <table>
+      <thead>
+       <tr>
+        <th>ID</th>
+        <th>নাম</th>
+        <th>শ্রেণি</th>
+        <th>রোল</th>
+        <th>অভিভাবক</th>
+        <th>মোবাইল</th>
+        <th>অবস্থা</th>
+        <th>কাজ</th>
+       </tr>
+      </thead>
+      <tbody>
+       {students.map(s=><tr key={s.id}><td>{s.student_id}</td><td>{s.name_bn}</td><td>{s.class_name}</td><td>{s.roll_no||'—'}</td><td>{s.guardian_name||'—'}</td><td>{s.guardian_phone||'—'}</td><td>{statusBn(s.status)}</td><td><button className="mini" onClick={()=>edit(s)}>সম্পাদনা</button></td></tr>)}
+       {!students.length&&<tr><td colSpan="8">কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
+      </tbody>
+     </table>
+    </div>
+   </div>
+  )}
+ </div>;
 }
 function AdmissionPanel(){
  const [apps,setApps]=useState([]),[summary,setSummary]=useState({total:0,submitted:0,under_review:0,selected:0,admitted:0}),[q,setQ]=useState(''),[year,setYear]=useState(String(new Date().getFullYear())),[className,setClassName]=useState(''),[status,setStatus]=useState(''),[editing,setEditing]=useState(null),[form,setForm]=useState(emptyAdmission),[msg,setMsg]=useState('');
@@ -503,17 +587,42 @@ const emptyTeacher={public_contact_role:'',public_contact_enabled:true,employee_
 const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',current_post_joining_date:'',appointment_date:'',appointment_authority:'',permanent_address:'',extended_profile:{education:[],training:[],dob:'',professional_note:''}};
 
 function StaffPanel({sub}){
- const[tab,setTab]=useState(sub==='staff'||sub==='employees'?'staff':'teachers'),[teachers,setTeachers]=useState([]),[staff,setStaff]=useState([]),[q,setQ]=useState(''),[status,setStatus]=useState('active'),[editing,setEditing]=useState(null),[form,setForm]=useState({...emptyTeacher}),[msg,setMsg]=useState(''),[step,setStep]=useState(0),[customFields,setCustomFields]=useState([]),[customFieldKey,setCustomFieldKey]=useState(''),[customFieldValue,setCustomFieldValue]=useState('');
+ const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
+ const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : 'list';
+
+ const [tab, setTab] = useState(getInitialTab(sub));
+ const [view, setView] = useState(getInitialView(sub));
+ const [teachers,setTeachers]=useState([]);
+ const [staff,setStaff]=useState([]);
+ const [q,setQ]=useState('');
+ const [status,setStatus]=useState('active');
+ const [editing,setEditing]=useState(null);
+ const [form,setForm]=useState(getInitialTab(sub)==='staff'?{...emptyStaff}:{...emptyTeacher});
+ const [msg,setMsg]=useState('');
+ const [step,setStep]=useState(0);
+ const [customFields,setCustomFields]=useState([]);
+ const [customFieldKey,setCustomFieldKey]=useState('');
+ const [customFieldValue,setCustomFieldValue]=useState('');
  
  useEffect(()=>{
-  if(sub==='staff'||sub==='employees'){
+  if(sub==='staff_new'){
    setTab('staff');
-   if(!editing)setForm({...emptyStaff});
+   setView('form');
+   setEditing(null);
+   setForm({...emptyStaff});
    setStep(0);
-  }else if(sub==='teachers'){
+  } else if(sub==='staff_list'||sub==='staff'||sub==='employees'){
+   setTab('staff');
+   setView('list');
+  } else if(sub==='teacher_new'){
    setTab('teachers');
-   if(!editing)setForm({...emptyTeacher});
+   setView('form');
+   setEditing(null);
+   setForm({...emptyTeacher});
    setStep(0);
+  } else if(sub==='teachers_list'||sub==='teachers'){
+   setTab('teachers');
+   setView('list');
   }
  },[sub]);
 
@@ -593,6 +702,7 @@ function StaffPanel({sub}){
    setEditing(null);
    setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});
    setStep(0);
+   setView('list');
    load();
   }catch(e){
    setMsg(e.message||'সংরক্ষণ ব্যর্থ হয়েছে');
@@ -622,6 +732,7 @@ function StaffPanel({sub}){
    registration_date:item.registration_date?.slice(0,10)||''
   });
   setStep(0);
+  setView('form');
   window.scrollTo({top:0,behavior:'smooth'});
  };
 
@@ -637,8 +748,9 @@ function StaffPanel({sub}){
   }
  };
 
- const switchTab=t=>{
+ const switchTab=(t, v)=>{
   setTab(t);
+  if(v) setView(v);
   setEditing(null);
   setForm(t==='teachers'?{...emptyTeacher}:{...emptyStaff});
   setStep(0);
@@ -646,13 +758,87 @@ function StaffPanel({sub}){
 
  const steps=[['👤','পরিচয় ও পরিবার'],['💼','চাকরি ও MPO'],['🎓','শিক্ষাগত যোগ্যতা'],['📚','প্রশিক্ষণ'],['📝','নিবন্ধন/NTRCA'],['📞','যোগাযোগ']];
 
- return <div className="module-grid"><div className="form-card modern-form full-form-v90"><div className="tabs"><button type="button" className={isTeacher?'active':''} onClick={()=>switchTab('teachers')}>👨‍🏫 শিক্ষক</button><button type="button" className={!isTeacher?'active':''} onClick={()=>switchTab('staff')}>🧑‍💼 কর্মচারী</button></div><div className="form-head"><div><span className="eyebrow">TEACHER & STAFF MANAGEMENT • V91</span><h2>{editing?'তথ্য সম্পাদনা':isTeacher?'শিক্ষক এন্ট্রি ফরম':'কর্মচারী এন্ট্রি ফরম'}</h2><p>আপনার দেওয়া ১ নম্বর ফরমের field-গুলো ধাপে ধাপে সাজানো হয়েছে।</p></div>{editing&&<button className="mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0)}}>বাতিল</button>}<button className="mini" type="button" onClick={downloadPeopleTemplate}>⬇ Template CSV</button><label className="mini" style={{cursor:'pointer'}}>⬆ {isTeacher?'শিক্ষক':'কর্মচারী'} CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/></label></div><div className="step-tabs">{steps.map((x,i)=><button type="button" key={x[0]} className={step===i?'active':''} onClick={()=>setStep(i)}><span>{x[0]}</span>{i+1}. {x[1]}</button>)}</div><form onSubmit={save} className="form-grid">
-  {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত পরিচয়</b></div><div className="field"><label>Employee ID *</label><input value={form.employee_id||''} onChange={e=>change('employee_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn||''} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en||''} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.extended_profile?.dob||form.joining_date||''} onChange={e=>ext('dob',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender||''} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>জাতীয় পরিচয়পত্র নম্বর</label><input value={form.nid_no||''} onChange={e=>change('nid_no',e.target.value)}/></div><div className="field"><label>TIN নম্বর</label><input value={form.tin_no||''} onChange={e=>change('tin_no',e.target.value)}/></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no||''} onChange={e=>change('birth_registration_no',e.target.value)}/></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group||''} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><input value={form.religion||''} onChange={e=>change('religion',e.target.value)}/></div><div className="field"><label>বৈবাহিক অবস্থা</label><select value={form.marital_status||''} onChange={e=>change('marital_status',e.target.value)}><option value="">নির্বাচন করুন</option><option>অবিবাহিত</option><option>বিবাহিত</option><option>বিধবা/বিপত্নীক</option><option>তালাকপ্রাপ্ত</option></select></div><div className="field"><label>জাতীয়তা</label><input value={form.nationality||'বাংলাদেশী'} onChange={e=>change('nationality',e.target.value)}/></div><div className="form-section-title full"><b>পিতা ও মাতার তথ্য</b></div>{[['father_name_bn','পিতার নাম (বাংলা)'],['father_name_en','পিতার নাম (ইংরেজি)'],['mother_name_bn','মাতার নাম (বাংলা)'],['mother_name_en','মাতার নাম (ইংরেজি)']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}</>}
-  {step===1&&<><div className="form-section-title full"><b>পেশাগত/চাকরির তথ্য</b></div><div className="field"><label>পদবী *</label><input value={form.designation||''} onChange={e=>change('designation',e.target.value)} required/></div>{isTeacher&&<><div className="field"><label>English Designation</label><input value={form.designation_en||''} onChange={e=>change('designation_en',e.target.value)}/></div><div className="field"><label>মূল বিষয়</label><input value={form.subject||''} onChange={e=>change('subject',e.target.value)}/></div></>}<div className="field"><label>১ম যোগদানের তারিখ</label><input type="date" value={form.first_joining_date||''} onChange={e=>change('first_joining_date',e.target.value)}/></div><div className="field"><label>১ম এমপিওভুক্তির তারিখ</label><input type="date" value={form.first_mpo_date||''} onChange={e=>change('first_mpo_date',e.target.value)}/></div><div className="field"><label>বর্তমান পদে যোগদানের তারিখ</label><input type="date" value={form.current_post_joining_date||form.joining_date||''} onChange={e=>{change('current_post_joining_date',e.target.value);change('joining_date',e.target.value)}}/></div>{isTeacher&&<div className="field"><label>বর্তমান পদে এমপিও তারিখ</label><input type="date" value={form.current_mpo_date||''} onChange={e=>change('current_mpo_date',e.target.value)}/></div>}<div className="field"><label>পূর্ববর্তী প্রতিষ্ঠানে যোগদানের তারিখ</label><input type="date" value={form.previous_institution_joining_date||''} onChange={e=>change('previous_institution_joining_date',e.target.value)}/></div>{isTeacher&&<div className="field"><label>পূর্ববর্তী প্রতিষ্ঠানে এমপিও তারিখ</label><input type="date" value={form.previous_institution_mpo_date||''} onChange={e=>change('previous_institution_mpo_date',e.target.value)}/></div>}<div className="field"><label>নিয়োগের তারিখ</label><input type="date" value={form.appointment_date||''} onChange={e=>change('appointment_date',e.target.value)}/></div><div className="field"><label>নিয়োগকারী কর্তৃপক্ষ</label><input value={form.appointment_authority||''} onChange={e=>change('appointment_authority',e.target.value)}/></div>{isTeacher&&<div className="field"><label>এমপিও কোড/ইনডেক্স নম্বর</label><input value={form.mpo_index_no||''} onChange={e=>change('mpo_index_no',e.target.value)}/></div>}<div className="field"><label>অবস্থা</label><select value={form.status||'active'} onChange={e=>change('status',e.target.value)}>{(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}</select></div></>}
-  {step===2&&<><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার বিস্তারিত</b><button type="button" className="mini" onClick={()=>addRow('education')}>+ নতুন যোগ্যতা</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam||''} onChange={e=>updateRow('education',i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('education',i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board||''} onChange={e=>updateRow('education',i,'board',e.target.value)}/><input placeholder="বিষয়" value={r.subject||''} onChange={e=>updateRow('education',i,'subject',e.target.value)}/><input placeholder="পাশের সন" value={r.year||''} onChange={e=>updateRow('education',i,'year',e.target.value)}/><input placeholder="ফলাফল/GPA" value={r.result||''} onChange={e=>updateRow('education',i,'result',e.target.value)}/><button type="button" className="mini" onClick={()=>removeRow('education',i)}>মুছুন</button></div>)}{!(form.extended_profile?.education||[]).length&&<p className="portal-muted full">+ নতুন যোগ্যতা চাপলে SSC/HSC/স্নাতক/স্নাতকোত্তরসহ যত খুশি রেকর্ড যোগ করা যাবে।</p>}</>}
-  {step===3&&<><div className="form-section-title full"><b>প্রশিক্ষণ</b><button type="button" className="mini" onClick={()=>addRow('training')}>+ নতুন প্রশিক্ষণ</button></div>{(form.extended_profile?.training||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="প্রশিক্ষণের নাম" value={r.name||''} onChange={e=>updateRow('training',i,'name',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('training',i,'institution',e.target.value)}/><input placeholder="বিষয়" value={r.subject||''} onChange={e=>updateRow('training',i,'subject',e.target.value)}/><input placeholder="সময়কাল" value={r.duration||''} onChange={e=>updateRow('training',i,'duration',e.target.value)}/><input placeholder="ফলাফল/তারিখ" value={r.result||''} onChange={e=>updateRow('training',i,'result',e.target.value)}/><button type="button" className="mini" onClick={()=>removeRow('training',i)}>মুছুন</button></div>)}<div className="form-section-title full"><b>শিক্ষক বাতায়ন/অন্যান্য পেশাগত পরিচিতি</b></div>{isTeacher&&<div className="field"><label>শিক্ষক বাতায়ন ID</label><input value={form.teacher_portal_id||''} onChange={e=>change('teacher_portal_id',e.target.value)}/></div>}<div className="field"><label>অতিরিক্ত পেশাগত তথ্য</label><input value={form.extended_profile?.professional_note||''} onChange={e=>ext('professional_note',e.target.value)}/></div></>}
-  {step===4&&<><div className="form-section-title full"><b>NTRCA / নিবন্ধন তথ্য</b></div>{isTeacher&&<><div className="field"><label>শিক্ষক নিবন্ধন নম্বর</label><input value={form.teacher_registration_no||''} onChange={e=>change('teacher_registration_no',e.target.value)}/></div><div className="field"><label>নিবন্ধনের তারিখ</label><input type="date" value={form.registration_date||''} onChange={e=>change('registration_date',e.target.value)}/></div>{[['registered','NTRCA নিবন্ধিত?'],['recommended','NTRCA সুপারিশপ্রাপ্ত?'],['year','NTRCA নিবন্ধন/সুপারিশের সন'],['subject','NTRCA বিষয়'],['remarks','NTRCA মন্তব্য']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form.extended_profile?.ntrca?.[k]||''} onChange={e=>updateNtrca(k,e.target.value)}/></div>)}</>}<div className="form-section-title full"><b>যোগাযোগ ও ঠিকানা</b></div><div className="field"><label>মোবাইল</label><input value={form.phone||''} onChange={e=>change('phone',e.target.value)}/></div><div className="field"><label>WhatsApp</label><input value={form.whatsapp_no||''} onChange={e=>change('whatsapp_no',e.target.value)}/></div><div className="field"><label>ই-মেইল</label><input type="email" value={form.email||''} onChange={e=>change('email',e.target.value)}/></div><div className="field"><label>বর্তমান ঠিকানা</label><input value={form.address||''} onChange={e=>change('address',e.target.value)}/></div><div className="field"><label>স্থায়ী ঠিকানা</label><input value={form.permanent_address||''} onChange={e=>change('permanent_address',e.target.value)}/></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div>{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="প্রোফাইল ছবি"/>}</>}
-  {step===5&&<><div className="form-section-title full"><b>🌐 ওয়েবসাইটে যোগাযোগ</b><span>এই profile থেকে Home Page-এর Contact অংশ স্বয়ংক্রিয়ভাবে তথ্য নেবে।</span></div><div className="field"><label>Public Contact Role</label><select value={form.public_contact_role||''} onChange={e=>change('public_contact_role',e.target.value)}><option value="">স্বয়ংক্রিয়ভাবে পদবি/বিষয় দেখে নির্ধারণ</option>{isTeacher&&<><option value="head_teacher">প্রধান শিক্ষক</option><option value="assistant_head_teacher">সহকারী প্রধান শিক্ষক</option><option value="ict_teacher">আইসিটি শিক্ষক</option></>}{!isTeacher&&<option value="office_assistant">অফিস সহকারী</option>}</select></div><div className="field"><label className="check"><input type="checkbox" checked={form.public_contact_enabled!==false} onChange={e=>change('public_contact_enabled',e.target.checked)}/> ওয়েবসাইটের যোগাযোগ অংশে প্রদর্শনযোগ্য</label></div><CustomFields formKey={isTeacher?"teacher":"staff"} form={form} setForm={setForm}/></>}<div className="form-actions full"><button type="button" className="mini" onClick={()=>setForm(isTeacher?{...emptyTeacher}:{...emptyStaff})}>↻ ফর্ম রিসেট</button>{step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}{step<5?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'সংরক্ষণ করুন'}</button>}</div></form>{msg&&<p className="msg" role="status">{msg}</p>}</div><div className="table-card"><div className="toolbar"><div><span className="eyebrow">DIRECTORY • V91</span><h2>{isTeacher?'শিক্ষক তালিকা':'কর্মচারী তালিকা'}</h2></div><span>{(list||[]).length} জন</span></div><div className="filters"><input placeholder="নাম / ID / বিষয় / NID খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/><select value={status} onChange={e=>setStatus(e.target.value)}><option value="">সব অবস্থা</option>{(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}</select>{customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}{customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}<button type="button" className="mini" onClick={exportPeople}>CSV রিপোর্ট</button></div><div className="table-wrap"><table><thead><tr><th>Employee ID</th><th>নাম</th><th>পদবি</th>{isTeacher&&<th>বিষয়</th>}<th>মোবাইল</th><th>অবস্থা</th><th>কাজ</th></tr></thead><tbody>{(list||[]).map(x=><tr key={x.id}><td>{x.employee_id}</td><td>{x.name_bn}</td><td>{x.designation}</td>{isTeacher&&<td>{x.subject||'—'}</td>}<td>{x.phone||'—'}</td><td>{statusBn(x.status)}</td><td><button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button> <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button></td></tr>)}{!(list||[]).length&&<tr><td colSpan={isTeacher?7:6}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
+ return <div>
+  <div className="tabs" style={{marginBottom:'16px'}}>
+   <button type="button" className={isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('teachers','list')}>👨‍🏫 শিক্ষকবৃন্দ তালিকা ({teachers.length})</button>
+   <button type="button" className={isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('teachers','form')}>➕ {isTeacher&&editing?'শিক্ষক তথ্য সম্পাদনা':'নতুন শিক্ষক এন্ট্রি'}</button>
+   <button type="button" className={!isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('staff','list')}>🧑‍💼 কর্মচারীবৃন্দ তালিকা ({staff.length})</button>
+   <button type="button" className={!isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('staff','form')}>➕ {!isTeacher&&editing?'কর্মচারী তথ্য সম্পাদনা':'নতুন কর্মচারী এন্ট্রি'}</button>
+  </div>
+
+  {view==='form' && (
+   <div className="form-card modern-form full-form-v90">
+    <div className="form-head">
+     <div>
+      <span className="eyebrow">TEACHER & STAFF MANAGEMENT • V91</span>
+      <h2>{editing?'তথ্য সম্পাদনা':isTeacher?'নতুন শিক্ষক এন্ট্রি ফরম':'নতুন কর্মচারী এন্ট্রি ফরম'}</h2>
+      <p>আপনার দেওয়া ১ নম্বর ফরমের field-গুলো ধাপে ধাপে সাজানো হয়েছে।</p>
+     </div>
+     <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+      <button className="mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('list');}}>📋 তালিকায় ফিরুন</button>
+      <button className="mini" type="button" onClick={downloadPeopleTemplate}>⬇ Template CSV</button>
+      <label className="mini" style={{cursor:'pointer'}}>⬆ {isTeacher?'শিক্ষক':'কর্মচারী'} CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/></label>
+     </div>
+    </div>
+    <div className="step-tabs">
+     {steps.map((x,i)=><button type="button" key={x[0]} className={step===i?'active':''} onClick={()=>setStep(i)}><span>{x[0]}</span>{i+1}. {x[1]}</button>)}
+    </div>
+    <form onSubmit={save} className="form-grid">
+     {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত পরিচয়</b></div><div className="field"><label>Employee ID *</label><input value={form.employee_id||''} onChange={e=>change('employee_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn||''} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en||''} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.extended_profile?.dob||form.joining_date||''} onChange={e=>ext('dob',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender||''} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>জাতীয় পরিচয়পত্র নম্বর</label><input value={form.nid_no||''} onChange={e=>change('nid_no',e.target.value)}/></div><div className="field"><label>TIN নম্বর</label><input value={form.tin_no||''} onChange={e=>change('tin_no',e.target.value)}/></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no||''} onChange={e=>change('birth_registration_no',e.target.value)}/></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group||''} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><input value={form.religion||''} onChange={e=>change('religion',e.target.value)}/></div><div className="field"><label>বৈবাহিক অবস্থা</label><select value={form.marital_status||''} onChange={e=>change('marital_status',e.target.value)}><option value="">নির্বাচন করুন</option><option>অবিবাহিত</option><option>বিবাহিত</option><option>বিধবা/বিপত্নীক</option><option>তালাকপ্রাপ্ত</option></select></div><div className="field"><label>জাতীয়তা</label><input value={form.nationality||'বাংলাদেশী'} onChange={e=>change('nationality',e.target.value)}/></div><div className="form-section-title full"><b>পিতা ও মাতার তথ্য</b></div>{[['father_name_bn','পিতার নাম (বাংলা)'],['father_name_en','পিতার নাম (ইংরেজি)'],['mother_name_bn','মাতার নাম (বাংলা)'],['mother_name_en','মাতার নাম (ইংরেজি)']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}</>}
+     {step===1&&<><div className="form-section-title full"><b>পেশাগত/চাকরির তথ্য</b></div><div className="field"><label>পদবী *</label><input value={form.designation||''} onChange={e=>change('designation',e.target.value)} required/></div>{isTeacher&&<><div className="field"><label>English Designation</label><input value={form.designation_en||''} onChange={e=>change('designation_en',e.target.value)}/></div><div className="field"><label>মূল বিষয়</label><input value={form.subject||''} onChange={e=>change('subject',e.target.value)}/></div></>}<div className="field"><label>১ম যোগদানের তারিখ</label><input type="date" value={form.first_joining_date||''} onChange={e=>change('first_joining_date',e.target.value)}/></div><div className="field"><label>১ম এমপিওভুক্তির তারিখ</label><input type="date" value={form.first_mpo_date||''} onChange={e=>change('first_mpo_date',e.target.value)}/></div><div className="field"><label>বর্তমান পদে যোগদানের তারিখ</label><input type="date" value={form.current_post_joining_date||form.joining_date||''} onChange={e=>{change('current_post_joining_date',e.target.value);change('joining_date',e.target.value)}}/></div>{isTeacher&&<div className="field"><label>বর্তমান পদে এমপিও তারিখ</label><input type="date" value={form.current_mpo_date||''} onChange={e=>change('current_mpo_date',e.target.value)}/></div>}<div className="field"><label>পূর্ববর্তী প্রতিষ্ঠানে যোগদানের তারিখ</label><input type="date" value={form.previous_institution_joining_date||''} onChange={e=>change('previous_institution_joining_date',e.target.value)}/></div>{isTeacher&&<div className="field"><label>পূর্ববর্তী প্রতিষ্ঠানে এমপিও তারিখ</label><input type="date" value={form.previous_institution_mpo_date||''} onChange={e=>change('previous_institution_mpo_date',e.target.value)}/></div>}<div className="field"><label>নিয়োগের তারিখ</label><input type="date" value={form.appointment_date||''} onChange={e=>change('appointment_date',e.target.value)}/></div><div className="field"><label>নিয়োগকারী কর্তৃপক্ষ</label><input value={form.appointment_authority||''} onChange={e=>change('appointment_authority',e.target.value)}/></div>{isTeacher&&<div className="field"><label>এমপিও কোড/ইনডেক্স নম্বর</label><input value={form.mpo_index_no||''} onChange={e=>change('mpo_index_no',e.target.value)}/></div>}<div className="field"><label>অবস্থা</label><select value={form.status||'active'} onChange={e=>change('status',e.target.value)}>{(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}</select></div></>}
+     {step===2&&<><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার বিস্তারিত</b><button type="button" className="mini" onClick={()=>addRow('education')}>+ নতুন যোগ্যতা</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam||''} onChange={e=>updateRow('education',i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('education',i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board||''} onChange={e=>updateRow('education',i,'board',e.target.value)}/><input placeholder="বিষয়" value={r.subject||''} onChange={e=>updateRow('education',i,'subject',e.target.value)}/><input placeholder="পাশের সন" value={r.year||''} onChange={e=>updateRow('education',i,'year',e.target.value)}/><input placeholder="ফলাফল/GPA" value={r.result||''} onChange={e=>updateRow('education',i,'result',e.target.value)}/><button type="button" className="mini" onClick={()=>removeRow('education',i)}>মুছুন</button></div>)}{!(form.extended_profile?.education||[]).length&&<p className="portal-muted full">+ নতুন যোগ্যতা চাপলে SSC/HSC/স্নাতক/স্নাতকোত্তরসহ যত খুশি রেকর্ড যোগ করা যাবে।</p>}</>}
+     {step===3&&<><div className="form-section-title full"><b>প্রশিক্ষণ</b><button type="button" className="mini" onClick={()=>addRow('training')}>+ নতুন প্রশিক্ষণ</button></div>{(form.extended_profile?.training||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="প্রশিক্ষণের নাম" value={r.name||''} onChange={e=>updateRow('training',i,'name',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('training',i,'institution',e.target.value)}/><input placeholder="বিষয়" value={r.subject||''} onChange={e=>updateRow('training',i,'subject',e.target.value)}/><input placeholder="সময়কাল" value={r.duration||''} onChange={e=>updateRow('training',i,'duration',e.target.value)}/><input placeholder="ফলাফল/তারিখ" value={r.result||''} onChange={e=>updateRow('training',i,'result',e.target.value)}/><button type="button" className="mini" onClick={()=>removeRow('training',i)}>মুছুন</button></div>)}<div className="form-section-title full"><b>শিক্ষক বাতায়ন/অন্যান্য পেশাগত পরিচিতি</b></div>{isTeacher&&<div className="field"><label>শিক্ষক বাতায়ন ID</label><input value={form.teacher_portal_id||''} onChange={e=>change('teacher_portal_id',e.target.value)}/></div>}<div className="field"><label>অতিরিক্ত পেশাগত তথ্য</label><input value={form.extended_profile?.professional_note||''} onChange={e=>ext('professional_note',e.target.value)}/></div></>}
+     {step===4&&<><div className="form-section-title full"><b>NTRCA / নিবন্ধন তথ্য</b></div>{isTeacher&&<><div className="field"><label>শিক্ষক নিবন্ধন নম্বর</label><input value={form.teacher_registration_no||''} onChange={e=>change('teacher_registration_no',e.target.value)}/></div><div className="field"><label>নিবন্ধনের তারিখ</label><input type="date" value={form.registration_date||''} onChange={e=>change('registration_date',e.target.value)}/></div>{[['registered','NTRCA নিবন্ধিত?'],['recommended','NTRCA সুপারিশপ্রাপ্ত?'],['year','NTRCA নিবন্ধন/সুপারিশের সন'],['subject','NTRCA বিষয়'],['remarks','NTRCA মন্তব্য']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form.extended_profile?.ntrca?.[k]||''} onChange={e=>updateNtrca(k,e.target.value)}/></div>)}</>}<div className="form-section-title full"><b>যোগাযোগ ও ঠিকানা</b></div><div className="field"><label>মোবাইল</label><input value={form.phone||''} onChange={e=>change('phone',e.target.value)}/></div><div className="field"><label>WhatsApp</label><input value={form.whatsapp_no||''} onChange={e=>change('whatsapp_no',e.target.value)}/></div><div className="field"><label>ই-মেইল</label><input type="email" value={form.email||''} onChange={e=>change('email',e.target.value)}/></div><div className="field"><label>বর্তমান ঠিকানা</label><input value={form.address||''} onChange={e=>change('address',e.target.value)}/></div><div className="field"><label>স্থায়ী ঠিকানা</label><input value={form.permanent_address||''} onChange={e=>change('permanent_address',e.target.value)}/></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div>{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="প্রোফাইল ছবি"/>}</>}
+     {step===5&&<><div className="form-section-title full"><b>🌐 ওয়েবসাইটে যোগাযোগ</b><span>এই profile থেকে Home Page-এর Contact অংশ স্বয়ংক্রিয়ভাবে তথ্য নেবে।</span></div><div className="field"><label>Public Contact Role</label><select value={form.public_contact_role||''} onChange={e=>change('public_contact_role',e.target.value)}><option value="">স্বয়ংক্রিয়ভাবে পদবি/বিষয় দেখে নির্ধারণ</option>{isTeacher&&<><option value="head_teacher">প্রধান শিক্ষক</option><option value="assistant_head_teacher">সহকারী প্রধান শিক্ষক</option><option value="ict_teacher">আইসিটি শিক্ষক</option></>}{!isTeacher&&<option value="office_assistant">অফিস সহকারী</option>}</select></div><div className="field"><label className="check"><input type="checkbox" checked={form.public_contact_enabled!==false} onChange={e=>change('public_contact_enabled',e.target.checked)}/> ওয়েবসাইটের যোগাযোগ অংশে প্রদর্শনযোগ্য</label></div><CustomFields formKey={isTeacher?"teacher":"staff"} form={form} setForm={setForm}/></>}<div className="form-actions full"><button type="button" className="mini" onClick={()=>setForm(isTeacher?{...emptyTeacher}:{...emptyStaff})}>↻ ফর্ম রিসেট</button>{step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}{step<5?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'সংরক্ষণ করুন'}</button>}</div>
+    </form>
+    {msg&&<p className="msg" role="status">{msg}</p>}
+   </div>
+  )}
+
+  {view==='list' && (
+   <div className="table-card">
+    <div className="toolbar">
+     <div>
+      <span className="eyebrow">DIRECTORY • V91</span>
+      <h2>{isTeacher?'শিক্ষকবৃন্দের তালিকা':'কর্মচারীর তালিকা'}</h2>
+     </div>
+     <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('form');}}>➕ {isTeacher?'নতুন শিক্ষক এন্ট্রি':'নতুন কর্মচারী এন্ট্রি'}</button>
+      <span>{(list||[]).length} জন</span>
+     </div>
+    </div>
+    <div className="filters">
+     <input placeholder="নাম / ID / বিষয় / NID খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/>
+     <select value={status} onChange={e=>setStatus(e.target.value)}>
+      <option value="">সব অবস্থা</option>
+      {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}
+     </select>
+     {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
+     {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
+     <button type="button" className="mini" onClick={exportPeople}>CSV রিপোর্ট</button>
+    </div>
+    <div className="table-wrap">
+     <table>
+      <thead>
+       <tr>
+        <th>Employee ID</th>
+        <th>নাম</th>
+        <th>পদবি</th>
+        {isTeacher&&<th>বিষয়</th>}
+        <th>মোবাইল</th>
+        <th>অবস্থা</th>
+        <th>কাজ</th>
+       </tr>
+      </thead>
+      <tbody>
+       {(list||[]).map(x=><tr key={x.id}><td>{x.employee_id}</td><td>{x.name_bn}</td><td>{x.designation}</td>{isTeacher&&<td>{x.subject||'—'}</td>}<td>{x.phone||'—'}</td><td>{statusBn(x.status)}</td><td><button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button> <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button></td></tr>)}
+       {!(list||[]).length&&<tr><td colSpan={isTeacher?7:6}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
+      </tbody>
+     </table>
+    </div>
+   </div>
+  )}
+ </div>;
 }
 
 function SecuritySessionsPanel(){

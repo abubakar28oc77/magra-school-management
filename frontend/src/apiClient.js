@@ -20,7 +20,21 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Initialize local storage store if empty
+// Clean legacy mock databases once
+try {
+  if (typeof localStorage !== 'undefined') {
+    const isCleaned = localStorage.getItem('magra_cleaned_v3');
+    if (!isCleaned) {
+      localStorage.removeItem('magra_db_teachers');
+      localStorage.removeItem('magra_db_students');
+      localStorage.removeItem('magra_db_staff');
+      localStorage.removeItem('magra_db_fees');
+      localStorage.removeItem('magra_db_scholarships');
+      localStorage.setItem('magra_cleaned_v3', 'true');
+    }
+  }
+} catch {}
+
 function getLocalStore(key, defaultVal) {
   try {
     const raw = localStorage.getItem('magra_db_' + key);
@@ -28,7 +42,8 @@ function getLocalStore(key, defaultVal) {
       localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
       return defaultVal;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) || typeof parsed === 'object' ? parsed : defaultVal;
   } catch {
     return defaultVal;
   }
@@ -327,34 +342,81 @@ function handleMockRequest(path, opts = {}) {
   }
 
   if (cleanPath === '/public/contact') {
+    const teachers = getLocalStore('teachers', MOCK_TEACHERS);
+    const staff = getLocalStore('staff', MOCK_STAFF);
+    const head = teachers.find(t => t && (t.public_contact_role === 'head_teacher' || t.designation?.includes('প্রধান শিক্ষক'))) || { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', phone: '01712-345678', email: 'headteacher.magra@gmail.com', designation: 'প্রধান শিক্ষক' };
+    const assistant = teachers.find(t => t && (t.public_contact_role === 'assistant_head_teacher' || t.designation?.includes('সহকারী প্রধান শিক্ষক'))) || { name_bn: 'তাপসী সরকার', phone: '01713-456789', email: 'assthead.magra@gmail.com', designation: 'সহকারী প্রধান শিক্ষক' };
+    const ict = teachers.find(t => t && (t.public_contact_role === 'ict_teacher' || t.subject?.includes('আইসিটি') || t.designation?.includes('আইসিটি'))) || { name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক', phone: '01714-567890', email: 'ict.magra@gmail.com', designation: 'সহকারী শিক্ষক (আইসিটি)' };
+    const office = staff.find(s => s && (s.public_contact_role === 'office_assistant' || s.designation?.includes('অফিস'))) || { name_bn: 'মোঃ আলমগীর হোসেন', phone: '01722-345678', email: 'office.magra@gmail.com', designation: 'অফিস সহকারী' };
     return {
       contacts: [
-        { key: 'head', role: 'প্রধান শিক্ষক', person: MOCK_TEACHERS[0] },
-        { key: 'assistant', role: 'সহকারী প্রধান শিক্ষক', person: MOCK_TEACHERS[1] },
-        { key: 'ict', role: 'আইসিটি শিক্ষক', person: MOCK_TEACHERS[2] },
-        { key: 'office', role: 'অফিস সহকারী', person: MOCK_STAFF[2] }
+        { key: 'head', role: 'প্রধান শিক্ষক', person: head },
+        { key: 'assistant', role: 'সহকারী প্রধান শিক্ষক', person: assistant },
+        { key: 'ict', role: 'আইসিটি শিক্ষক', person: ict },
+        { key: 'office', role: 'অফিস সহকারী', person: office }
       ]
     };
   }
 
   // 4. Students
   if (cleanPath === '/students') {
+    if (method === 'POST') {
+      const allStudents = getLocalStore('students', MOCK_STUDENTS);
+      const newSt = { 
+        id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
+        student_id: body.student_id || ('STU-' + new Date().getFullYear() + '-' + String(allStudents.length + 1).padStart(4, '0')), 
+        status: body.status || 'active',
+        ...body 
+      };
+      allStudents.unshift(newSt);
+      setLocalStore('students', allStudents);
+      return newSt;
+    }
+
     let students = getLocalStore('students', MOCK_STUDENTS);
-    const q = params.get('q')?.toLowerCase();
+    const q = params.get('q')?.trim().toLowerCase();
     const c = params.get('class_name');
+    const sec = params.get('section');
+    const st = params.get('status');
+    const customKey = params.get('custom_field_key');
+    const customVal = params.get('custom_field_value')?.trim().toLowerCase();
+
     if (q) {
-      students = students.filter(s =>
-        (s.name_bn + ' ' + s.name_en + ' ' + s.student_id + ' ' + s.guardian_name + ' ' + s.current_village).toLowerCase().includes(q)
-      );
+      students = students.filter(s => {
+        if (!s) return false;
+        const haystack = [
+          s.student_id,
+          s.name_bn,
+          s.name_en,
+          s.roll_no,
+          s.guardian_name,
+          s.guardian_phone,
+          s.father_name,
+          s.mother_name,
+          s.current_village,
+          s.permanent_village,
+          s.class_name,
+          s.section,
+          s.birth_registration_no,
+          s.student_nid_no
+        ].filter(Boolean).map(String).join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
     }
     if (c) {
-      students = students.filter(s => String(s.class_name) === String(c));
+      students = students.filter(s => s && String(s.class_name) === String(c));
     }
-    if (method === 'POST') {
-      const newSt = { id: 's-' + Date.now(), student_id: body.student_id || 'STU-' + Date.now().toString().slice(-4), ...body };
-      students.unshift(newSt);
-      setLocalStore('students', students);
-      return newSt;
+    if (sec) {
+      students = students.filter(s => s && String(s.section || '').toLowerCase() === String(sec).toLowerCase());
+    }
+    if (st) {
+      students = students.filter(s => s && s.status === st);
+    }
+    if (customKey && customVal) {
+      students = students.filter(s => {
+        const val = s?.extended_profile?.custom_fields?.[customKey];
+        return val && String(val).toLowerCase().includes(customVal);
+      });
     }
     return students;
   }
@@ -377,7 +439,7 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/students/bulk-import') {
     const list = body.students || [];
     let students = getLocalStore('students', MOCK_STUDENTS);
-    const added = list.map((st, i) => ({ id: 's-' + (Date.now() + i), ...st }));
+    const added = list.map((st, i) => ({ id: 'std_' + (Date.now() + i), status: st.status || 'active', ...st }));
     students = [...added, ...students];
     setLocalStore('students', students);
     return { success: true, count: added.length, message: `${added.length} জন শিক্ষার্থী সফলভাবে ইমপোর্ট হয়েছে` };
@@ -389,13 +451,13 @@ function handleMockRequest(path, opts = {}) {
     let students = getLocalStore('students', MOCK_STUDENTS);
     if (q) {
       students = students.filter(s =>
-        (s.current_village || s.permanent_village || '').toLowerCase().includes(q)
+        s && (s.current_village || s.permanent_village || '').toLowerCase().includes(q)
       );
     }
     return students.map((s, idx) => ({
       id: s.id,
       voter_no: s.voter_no || ('V-' + (idx + 101)),
-      voter_name: s.voter_name || (s.father_name && !s.father_name.includes('মৃত') ? s.father_name : s.mother_name || s.guardian_name),
+      voter_name: s.voter_name || (s.father_name && !s.father_name.includes('মৃত') ? s.father_name : s.mother_name || s.guardian_name || s.name_bn),
       name_bn: s.name_bn,
       name_en: s.name_en,
       class_name: s.class_name,
@@ -423,7 +485,7 @@ function handleMockRequest(path, opts = {}) {
     const v = (params.get('village') || '').trim();
     const students = getLocalStore('students', MOCK_STUDENTS);
     const matched = students.filter(s =>
-      !v || (s.current_village || '').includes(v) || (s.permanent_village || '').includes(v)
+      s && (!v || (s.current_village || '').includes(v) || (s.permanent_village || '').includes(v))
     );
     const groups = { '6': [], '7': [], '8': [], '9': [], '10': [] };
     matched.forEach(s => {
@@ -439,20 +501,53 @@ function handleMockRequest(path, opts = {}) {
 
   // 7. Teachers & Staff
   if (cleanPath === '/teachers') {
+    if (method === 'POST') {
+      const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
+      const newT = { 
+        id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
+        employee_id: body.employee_id || ('EMP-' + String(allTeachers.length + 1).padStart(3, '0')), 
+        status: body.status || 'active',
+        ...body 
+      };
+      allTeachers.unshift(newT);
+      setLocalStore('teachers', allTeachers);
+      return newT;
+    }
+
     let teachers = getLocalStore('teachers', MOCK_TEACHERS);
-    const q = params.get('q')?.toLowerCase();
+    const q = params.get('q')?.trim().toLowerCase();
     const st = params.get('status');
+    const customKey = params.get('custom_field_key');
+    const customVal = params.get('custom_field_value')?.trim().toLowerCase();
+
     if (q) {
-      teachers = teachers.filter(t => (t.name_bn + ' ' + (t.name_en || '') + ' ' + (t.employee_id || '') + ' ' + (t.subject || '')).toLowerCase().includes(q));
+      teachers = teachers.filter(t => {
+        if (!t) return false;
+        const haystack = [
+          t.employee_id,
+          t.name_bn,
+          t.name_en,
+          t.designation,
+          t.designation_en,
+          t.subject,
+          t.phone,
+          t.email,
+          t.nid_no,
+          t.teacher_portal_id,
+          t.teacher_registration_no,
+          t.mpo_index_no
+        ].filter(Boolean).map(String).join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
     }
     if (st) {
-      teachers = teachers.filter(t => t.status === st);
+      teachers = teachers.filter(t => t && t.status === st);
     }
-    if (method === 'POST') {
-      const newT = { id: 't-' + Date.now(), employee_id: body.employee_id || 'EMP-' + Date.now().toString().slice(-3), ...body };
-      teachers.unshift(newT);
-      setLocalStore('teachers', teachers);
-      return newT;
+    if (customKey && customVal) {
+      teachers = teachers.filter(t => {
+        const val = t?.extended_profile?.custom_fields?.[customKey];
+        return val && String(val).toLowerCase().includes(customVal);
+      });
     }
     return teachers;
   }
@@ -475,27 +570,55 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/teachers/bulk-import') {
     const list = body.people || [];
     let teachers = getLocalStore('teachers', MOCK_TEACHERS);
-    const added = list.map((p, i) => ({ id: 't-' + (Date.now() + i), ...p }));
+    const added = list.map((p, i) => ({ id: 'tch_' + (Date.now() + i), status: p.status || 'active', ...p }));
     teachers = [...added, ...teachers];
     setLocalStore('teachers', teachers);
     return { success: true, count: added.length, message: `${added.length} জন শিক্ষক সফলভাবে ইমপোর্ট হয়েছে` };
   }
 
   if (cleanPath === '/staff') {
+    if (method === 'POST') {
+      const allStaff = getLocalStore('staff', MOCK_STAFF);
+      const newStf = { 
+        id: 'stf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
+        employee_id: body.employee_id || ('STF-' + String(allStaff.length + 1).padStart(3, '0')), 
+        status: body.status || 'active',
+        ...body 
+      };
+      allStaff.unshift(newStf);
+      setLocalStore('staff', allStaff);
+      return newStf;
+    }
+
     let staff = getLocalStore('staff', MOCK_STAFF);
-    const q = params.get('q')?.toLowerCase();
+    const q = params.get('q')?.trim().toLowerCase();
     const st = params.get('status');
+    const customKey = params.get('custom_field_key');
+    const customVal = params.get('custom_field_value')?.trim().toLowerCase();
+
     if (q) {
-      staff = staff.filter(s => (s.name_bn + ' ' + (s.name_en || '') + ' ' + (s.employee_id || '') + ' ' + (s.designation || '')).toLowerCase().includes(q));
+      staff = staff.filter(s => {
+        if (!s) return false;
+        const haystack = [
+          s.employee_id,
+          s.name_bn,
+          s.name_en,
+          s.designation,
+          s.phone,
+          s.email,
+          s.nid_no
+        ].filter(Boolean).map(String).join(' ').toLowerCase();
+        return haystack.includes(q);
+      });
     }
     if (st) {
-      staff = staff.filter(s => s.status === st);
+      staff = staff.filter(s => s && s.status === st);
     }
-    if (method === 'POST') {
-      const newStf = { id: 'st-' + Date.now(), employee_id: body.employee_id || 'STF-' + Date.now().toString().slice(-3), ...body };
-      staff.unshift(newStf);
-      setLocalStore('staff', staff);
-      return newStf;
+    if (customKey && customVal) {
+      staff = staff.filter(s => {
+        const val = s?.extended_profile?.custom_fields?.[customKey];
+        return val && String(val).toLowerCase().includes(customVal);
+      });
     }
     return staff;
   }
@@ -518,7 +641,7 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/staff/bulk-import') {
     const list = body.people || [];
     let staff = getLocalStore('staff', MOCK_STAFF);
-    const added = list.map((p, i) => ({ id: 'st-' + (Date.now() + i), ...p }));
+    const added = list.map((p, i) => ({ id: 'stf_' + (Date.now() + i), status: p.status || 'active', ...p }));
     staff = [...added, ...staff];
     setLocalStore('staff', staff);
     return { success: true, count: added.length, message: `${added.length} জন কর্মচারী সফলভাবে ইমপোর্ট হয়েছে` };
