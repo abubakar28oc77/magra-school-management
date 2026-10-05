@@ -242,9 +242,19 @@ function Home(){
   api('/public/content').then(setItems).catch(()=>{});
   api('/public/student-stats').then(setStats).catch(()=>setStats(null));
   api('/teachers?status=active').then(d=>{
-   if(Array.isArray(d)&&d.length) setTeachersList(d.filter(t=>t.status==='active'||!t.status));
-   else setTeachersList(MOCK_TEACHERS);
-  }).catch(()=>setTeachersList(MOCK_TEACHERS));
+   if(Array.isArray(d)&&d.length) setTeachersList(d);
+   else {
+     try {
+       const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
+       setTeachersList(local.length?local:MOCK_TEACHERS);
+     } catch { setTeachersList(MOCK_TEACHERS); }
+   }
+  }).catch(()=>{
+     try {
+       const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
+       setTeachersList(local.length?local:MOCK_TEACHERS);
+     } catch { setTeachersList(MOCK_TEACHERS); }
+  });
   api('/public/contact').then(d=>{
    if(d&&Array.isArray(d.contacts)&&d.contacts.length) setContacts(d.contacts);
   }).catch(()=>{});
@@ -346,17 +356,32 @@ function Home(){
  },[contacts,teachersList]);
 
  const activeTeachersToRoll=useMemo(()=>{
-  const list = teachersList.length ? teachersList : MOCK_TEACHERS;
-  return list.filter(t => {
+  let list=[];
+  try {
+    const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
+    if(Array.isArray(local)&&local.length>0) list=local;
+  } catch {}
+  if(!list.length) list=teachersList.length?teachersList:MOCK_TEACHERS;
+
+  const filtered=list.filter(t=>{
    if (!t) return false;
    const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
    const desig = (t.designation || '').toLowerCase();
    const role = (t.role || t.public_contact_role || '').toLowerCase();
    const empId = (t.employee_id || '').toUpperCase();
    const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
-   const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক');
+   const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক') || desig.includes('এমএলএসএস') || desig.includes('mlss') || role.includes('staff');
    return isAct && !isPresident && !isStaff;
   });
+
+  filtered.sort((a, b) => {
+   const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
+   const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
+   if (numA && numB && numA !== numB) return numA - numB;
+   return 0;
+  });
+
+  return filtered;
  },[teachersList]);
 
  const loopedTeachers=[...activeTeachersToRoll,...activeTeachersToRoll];

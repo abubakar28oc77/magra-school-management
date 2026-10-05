@@ -535,7 +535,7 @@ function handleMockRequest(path, opts = {}) {
         employee_id: body.employee_id || ('EMP-' + String(allTeachers.length + 1).padStart(3, '0')), 
         status: st
       };
-      allTeachers.unshift(newT);
+      allTeachers.push(newT);
       setLocalStore('teachers', allTeachers);
       return newT;
     }
@@ -580,6 +580,12 @@ function handleMockRequest(path, opts = {}) {
         return val && String(val).toLowerCase().includes(customVal);
       });
     }
+    teachers.sort((a, b) => {
+      const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
+      const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
+      if (numA && numB && numA !== numB) return numA - numB;
+      return 0;
+    });
     return teachers;
   }
 

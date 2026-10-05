@@ -706,6 +706,13 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         return isAct && !isPresident && !isStaff;
       });
 
+      listToDisplay.sort((a, b) => {
+        const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
+        const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
+        if (numA && numB && numA !== numB) return numA - numB;
+        return 0;
+      });
+
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">👨‍🏫 সম্মানিত শিক্ষকবৃন্দ ({listToDisplay.length} জন)</div>
