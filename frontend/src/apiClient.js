@@ -20,20 +20,7 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Clean legacy mock databases once
-try {
-  if (typeof localStorage !== 'undefined') {
-    const isCleaned = localStorage.getItem('magra_cleaned_v3');
-    if (!isCleaned) {
-      localStorage.removeItem('magra_db_teachers');
-      localStorage.removeItem('magra_db_students');
-      localStorage.removeItem('magra_db_staff');
-      localStorage.removeItem('magra_db_fees');
-      localStorage.removeItem('magra_db_scholarships');
-      localStorage.setItem('magra_cleaned_v3', 'true');
-    }
-  }
-} catch {}
+// Local storage database helpers
 
 function getLocalStore(key, defaultVal) {
   try {
@@ -380,11 +367,13 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/students') {
     if (method === 'POST') {
       const allStudents = getLocalStore('students', MOCK_STUDENTS);
+      const rawStatus = (body.status || '').trim().toLowerCase();
+      const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
       const newSt = { 
+        ...body,
         id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
         student_id: body.student_id || ('STU-' + new Date().getFullYear() + '-' + String(allStudents.length + 1).padStart(4, '0')), 
-        status: body.status || 'active',
-        ...body 
+        status: st
       };
       allStudents.unshift(newSt);
       setLocalStore('students', allStudents);
@@ -427,8 +416,13 @@ function handleMockRequest(path, opts = {}) {
     if (sec) {
       students = students.filter(s => s && String(s.section || '').toLowerCase() === String(sec).toLowerCase());
     }
-    if (st) {
-      students = students.filter(s => s && s.status === st);
+    if (st && st !== 'all') {
+      students = students.filter(s => {
+        if (!s) return false;
+        const curStatus = (s.status || 'active').trim().toLowerCase();
+        if (st === 'active') return curStatus === 'active' || curStatus === 'সক্রিয়' || !curStatus;
+        return curStatus === st.toLowerCase();
+      });
     }
     if (customKey && customVal) {
       students = students.filter(s => {
@@ -457,7 +451,15 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/students/bulk-import') {
     const list = body.students || [];
     let students = getLocalStore('students', MOCK_STUDENTS);
-    const added = list.map((st, i) => ({ id: 'std_' + (Date.now() + i), status: st.status || 'active', ...st }));
+    const added = list.map((st, i) => {
+      const rawStatus = (st.status || '').trim().toLowerCase();
+      const statusVal = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
+      return {
+        ...st,
+        id: 'std_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
+        status: statusVal
+      };
+    });
     students = [...added, ...students];
     setLocalStore('students', students);
     return { success: true, count: added.length, message: `${added.length} জন শিক্ষার্থী সফলভাবে ইমপোর্ট হয়েছে` };
@@ -521,11 +523,13 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/teachers') {
     if (method === 'POST') {
       const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
+      const rawStatus = (body.status || '').trim().toLowerCase();
+      const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
       const newT = { 
+        ...body,
         id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
         employee_id: body.employee_id || ('EMP-' + String(allTeachers.length + 1).padStart(3, '0')), 
-        status: body.status || 'active',
-        ...body 
+        status: st
       };
       allTeachers.unshift(newT);
       setLocalStore('teachers', allTeachers);
@@ -558,8 +562,13 @@ function handleMockRequest(path, opts = {}) {
         return haystack.includes(q);
       });
     }
-    if (st) {
-      teachers = teachers.filter(t => t && t.status === st);
+    if (st && st !== 'all') {
+      teachers = teachers.filter(t => {
+        if (!t) return false;
+        const curStatus = (t.status || 'active').trim().toLowerCase();
+        if (st === 'active') return curStatus === 'active' || curStatus === 'সক্রিয়' || !curStatus;
+        return curStatus === st.toLowerCase();
+      });
     }
     if (customKey && customVal) {
       teachers = teachers.filter(t => {
@@ -588,7 +597,18 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/teachers/bulk-import') {
     const list = body.people || [];
     let teachers = getLocalStore('teachers', MOCK_TEACHERS);
-    const added = list.map((p, i) => ({ id: 'tch_' + (Date.now() + i), status: p.status || 'active', ...p }));
+    const added = list.map((p, i) => {
+      const rawStatus = (p.status || '').trim().toLowerCase();
+      const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
+      return {
+        ...p,
+        id: 'tch_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
+        employee_id: p.employee_id || ('EMP-' + String(teachers.length + i + 1).padStart(3, '0')),
+        status: st,
+        name_bn: p.name_bn || p.name_en || 'শিক্ষক',
+        designation: p.designation || 'সহকারী শিক্ষক'
+      };
+    });
     teachers = [...added, ...teachers];
     setLocalStore('teachers', teachers);
     return { success: true, count: added.length, message: `${added.length} জন শিক্ষক সফলভাবে ইমপোর্ট হয়েছে` };
@@ -597,11 +617,13 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/staff') {
     if (method === 'POST') {
       const allStaff = getLocalStore('staff', MOCK_STAFF);
+      const rawStatus = (body.status || '').trim().toLowerCase();
+      const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
       const newStf = { 
+        ...body,
         id: 'stf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
         employee_id: body.employee_id || ('STF-' + String(allStaff.length + 1).padStart(3, '0')), 
-        status: body.status || 'active',
-        ...body 
+        status: st
       };
       allStaff.unshift(newStf);
       setLocalStore('staff', allStaff);
@@ -629,8 +651,13 @@ function handleMockRequest(path, opts = {}) {
         return haystack.includes(q);
       });
     }
-    if (st) {
-      staff = staff.filter(s => s && s.status === st);
+    if (st && st !== 'all') {
+      staff = staff.filter(s => {
+        if (!s) return false;
+        const curStatus = (s.status || 'active').trim().toLowerCase();
+        if (st === 'active') return curStatus === 'active' || curStatus === 'সক্রিয়' || !curStatus;
+        return curStatus === st.toLowerCase();
+      });
     }
     if (customKey && customVal) {
       staff = staff.filter(s => {
@@ -659,7 +686,18 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/staff/bulk-import') {
     const list = body.people || [];
     let staff = getLocalStore('staff', MOCK_STAFF);
-    const added = list.map((p, i) => ({ id: 'stf_' + (Date.now() + i), status: p.status || 'active', ...p }));
+    const added = list.map((p, i) => {
+      const rawStatus = (p.status || '').trim().toLowerCase();
+      const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
+      return {
+        ...p,
+        id: 'stf_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
+        employee_id: p.employee_id || ('STF-' + String(staff.length + i + 1).padStart(3, '0')),
+        status: st,
+        name_bn: p.name_bn || p.name_en || 'কর্মচারী',
+        designation: p.designation || 'কর্মচারী'
+      };
+    });
     staff = [...added, ...staff];
     setLocalStore('staff', staff);
     return { success: true, count: added.length, message: `${added.length} জন কর্মচারী সফলভাবে ইমপোর্ট হয়েছে` };
