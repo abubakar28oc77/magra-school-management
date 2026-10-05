@@ -694,27 +694,31 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       try {
         liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
       } catch {}
-      const listToDisplay = (liveTeachers.length ? liveTeachers : MOCK_TEACHERS).filter(t => {
+      const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+      const listToDisplay = rawList.filter(t => {
         if (!t) return false;
+        const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
         const desig = (t.designation || '').toLowerCase();
         const role = (t.role || t.public_contact_role || '').toLowerCase();
+        const empId = (t.employee_id || '').toUpperCase();
         const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
-        return !isPresident;
+        const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক') || desig.includes('এমএলএসএস') || desig.includes('mlss') || role.includes('staff');
+        return isAct && !isPresident && !isStaff;
       });
 
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">👨‍🏫 সম্মানিত শিক্ষক ও কর্মচারীবৃন্দ</div>
+          <div className="modal-hero-badge">👨‍🏫 সম্মানিত শিক্ষকবৃন্দ ({listToDisplay.length} জন)</div>
           <p className="lead-text">বিদ্যালয়ের অভিজ্ঞ, দক্ষ ও দায়িত্বশীল শিক্ষকমণ্ডলী:</p>
           <div className="teachers-modal-grid">
             {listToDisplay.map((t, idx) => (
               <div key={t.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2874c6' }}>
+                <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2874c6', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
                   <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
                 <div>
                   <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1d4ed8', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}</p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1d4ed8', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}{t.subject ? ` (${t.subject})` : ''}</p>
                   {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
                 </div>
               </div>

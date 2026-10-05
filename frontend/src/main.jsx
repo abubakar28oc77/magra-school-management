@@ -1240,7 +1240,24 @@ function StaffPanel({sub}){
        </tr>
       </thead>
       <tbody>
-       {(list||[]).map(x=><tr key={x.id}><td>{x.employee_id}</td><td>{x.name_bn}</td><td>{x.designation}</td>{isTeacher&&<td>{x.subject||'—'}</td>}<td>{x.phone||'—'}</td><td>{statusBn(x.status)}</td><td><button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button> <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button></td></tr>)}
+       {(list||[]).map(x=><tr key={x.id}>
+        <td>{x.employee_id}</td>
+        <td>
+         <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <img src={getTeacherPhoto(x)} alt="" style={{width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1px solid #cbd5e1',flexShrink:0}}/>
+          <span>{x.name_bn}</span>
+         </div>
+        </td>
+        <td>{x.designation}</td>
+        {isTeacher&&<td>{x.subject||'—'}</td>}
+        <td>{x.phone||'—'}</td>
+        <td>{statusBn(x.status)}</td>
+        <td>
+         <button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button>
+         <label className="mini" style={{marginLeft:4,cursor:'pointer',background:'#0b8050',color:'#fff',border:'none',display:'inline-block'}}>📷 ছবি<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}const r=new FileReader();r.onload=async()=>{try{const base=isTeacher?'teachers':'staff';await api(`/${base}/${x.id}`,{method:'PUT',body:JSON.stringify({...x,photo_url:r.result})});setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে`);load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত্রুটি');}};r.readAsDataURL(f);}}/></label>
+         <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button>
+        </td>
+       </tr>)}
        {!(list||[]).length&&<tr><td colSpan={isTeacher?7:6}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
