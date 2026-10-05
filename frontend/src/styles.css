@@ -256,31 +256,36 @@ button,.btn{touch-action:manipulation}
 
 .rolling-teacher-card{width:220px;min-width:220px;max-width:220px;background:#fff;border:1px solid #dce3eb;border-radius:10px;padding:14px 12px;text-align:center;box-shadow:0 3px 10px rgba(22,43,67,.04);transition:.2s transform,.2s box-shadow;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
 .rolling-teacher-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(22,43,67,.12);border-color:#0b8050}
-.rolling-teacher-avatar-wrap{width:68px;height:68px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#dce9f7;display:grid;place-items:center;border:2px solid #087b3d;position:relative}
-.rolling-teacher-avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.rolling-teacher-avatar-wrap{width:82px;height:82px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#dce9f7;display:block;border:3px solid #087b3d;position:relative;box-shadow:0 3px 8px rgba(8,123,61,.2);padding:0}
+.rolling-teacher-avatar-wrap img,.rolling-teacher-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .rolling-teacher-avatar-initial{font-size:26px;font-weight:800;color:#075c3a}
-.rolling-teacher-card h3{margin:0 0 4px;font-size:13px;color:#1e293b;line-height:1.35;font-weight:700}
-.rolling-teacher-desig{margin:0 0 6px;font-size:11px;color:#0b8050;font-weight:600}
+.rolling-teacher-card h3{margin:0 0 4px;font-size:14px;color:#1e293b;line-height:1.35;font-weight:700}
+.rolling-teacher-desig{margin:0 0 6px;font-size:12px;color:#0b8050;font-weight:600}
 .rolling-teacher-subject{display:inline-block;background:#eef7f2;color:#075c3a;font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:8px}
 .rolling-teacher-contact{font-size:11px;color:#475569;margin:2px 0}
 .rolling-teacher-contact a{color:#2563eb;text-decoration:none}
 .rolling-teacher-contact a:hover{text-decoration:underline}
 .rolling-teacher-status{display:inline-block;font-size:9px;background:#dcfce7;color:#166534;padding:2px 6px;border-radius:999px;font-weight:700;margin-top:6px}
 
-/* ==========================================================================
-   Online Student Admission Section & Documents Checklist
-   ========================================================================== */
-.ref-admission-section{margin-bottom:28px}
-.admission-banner{background:linear-gradient(135deg,#064e3b,#047857);color:#fff;border-radius:12px;padding:22px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 4px 16px rgba(6,78,59,.15)}
-.admission-banner h2{margin:0 0 6px;font-size:24px;color:#fff}
-.admission-banner p{margin:0;font-size:13px;color:#d1fae5;line-height:1.6}
-.admission-badge-pill{display:inline-block;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-bottom:8px;color:#fef08a}
+/* Header & Compact Admission Banner */
+.header-admission-btn{background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;padding:6px 13px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(16,185,129,.35);transition:.2s all;margin-right:6px;text-decoration:none}
+.header-admission-btn:hover{background:linear-gradient(135deg,#047857,#059669);transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,.5)}
 
-.admission-grid-container{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
-.admission-card-panel{background:#fff;border:1px solid #dce3eb;border-radius:12px;box-shadow:0 3px 12px rgba(22,43,67,.04);overflow:hidden}
-.admission-card-head{background:#f1f5f9;border-bottom:1px solid #e2e8f0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
-.admission-card-head h3{margin:0;font-size:16px;color:#0f172a;display:flex;align-items:center;gap:8px}
-.admission-card-body{padding:16px}
+.admission-compact-banner{background:linear-gradient(135deg,#064e3b 0%,#047857 100%);color:#fff;border-radius:10px;padding:16px 20px;margin-bottom:20px;box-shadow:0 4px 14px rgba(6,78,59,.18)}
+.admission-compact-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.admission-compact-info h3{margin:4px 0 2px;font-size:18px;color:#fff;font-weight:700}
+.admission-compact-info p{margin:0;font-size:12px;color:#a7f3d0}
+.admission-compact-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-adm-highlight{background:#facc15;color:#0f172a;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:800;cursor:pointer;transition:.15s all}
+.btn-adm-highlight:hover{background:#eab308;transform:translateY(-1px);box-shadow:0 4px 10px rgba(234,179,8,.4)}
+.btn-adm-outline{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);padding:8px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;transition:.15s all}
+.btn-adm-outline:hover{background:rgba(255,255,255,.3)}
+
+/* Modal Admission Tabs */
+.adm-modal-tabs{display:flex;gap:8px;border-bottom:2px solid #e2e8f0;margin-bottom:16px;overflow-x:auto;padding-bottom:6px}
+.adm-tab-btn{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.15s all}
+.adm-tab-btn.active{background:#065f46;color:#fff;border-color:#065f46;box-shadow:0 2px 6px rgba(6,95,70,.25)}
+.adm-tab-btn:hover:not(.active){background:#e2e8f0}
 
 /* Document Checklist */
 .doc-checklist{display:grid;gap:10px}
@@ -311,12 +316,12 @@ button,.btn{touch-action:manipulation}
 .admission-slip-details{text-align:left;background:#fff;border:1px solid #dcfce7;border-radius:8px;padding:12px;margin:12px 0;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px}
 .admission-slip-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
 
-/* Contact Cards Modernization */
+/* Contact Cards Modernization & Full Circle Avatar */
 .contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .contact-card{background:#fff;border:1px solid #dce3eb;border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:0 3px 10px rgba(22,43,67,.04);transition:.2s all}
 .contact-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(22,43,67,.08);border-color:#2563eb}
-.contact-avatar-wrap{width:62px;height:62px;border-radius:50%;overflow:hidden;background:#dce9f7;margin-bottom:8px;display:grid;place-items:center;border:2px solid #2563eb}
-.contact-avatar-img{width:100%;height:100%;object-fit:cover}
+.contact-avatar-wrap{width:76px;height:76px;min-width:76px;min-height:76px;border-radius:50%;overflow:hidden;background:#dce9f7;margin:0 auto 10px;display:block;border:3px solid #2563eb;box-shadow:0 3px 8px rgba(37,99,235,.2);padding:0}
+.contact-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .contact-avatar{font-size:24px;font-weight:800;color:#1d4ed8}
 .contact-role-badge{display:inline-block;background:#eff6ff;color:#1e40af;font-size:10px;padding:2px 8px;border-radius:12px;font-weight:700;margin-bottom:4px}
 .contact-card h3{margin:0 0 3px;font-size:13px;color:#0f172a}
@@ -324,14 +329,19 @@ button,.btn{touch-action:manipulation}
 .contact-card p a{color:#2563eb;text-decoration:none}
 .contact-card p a:hover{text-decoration:underline}
 
+/* Sidebar Leader Full Avatar */
+.side-avatar-wrap{width:78px;height:78px;border-radius:50%;overflow:hidden;margin:0 auto 10px;border:3px solid #2874c6;box-shadow:0 3px 10px rgba(0,0,0,.15);display:block;padding:0}
+.side-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+
 @media(max-width:950px){
-  .admission-grid-container{grid-template-columns:1fr}
   .contact-grid{grid-template-columns:repeat(2,1fr)}
+  .admission-compact-inner{flex-direction:column;align-items:flex-start}
 }
 @media(max-width:550px){
   .contact-grid{grid-template-columns:1fr}
   .adm-form-grid{grid-template-columns:1fr}
   .admission-slip-details{grid-template-columns:1fr}
 }
+
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   MOCK_SCHOOL,
   MOCK_COMMITTEE,
@@ -10,8 +10,15 @@ import {
   MOCK_NOTICES,
   MOCK_BOOKS,
   MOCK_SUBJECTS,
-  MOCK_ROUTINES
+  MOCK_ROUTINES,
+  PHOTO_PRESIDENT,
+  PHOTO_HEAD_TEACHER,
+  PHOTO_ASST_HEAD_TEACHER,
+  PHOTO_ICT_TEACHER,
+  PHOTO_OFFICE_ASSISTANT,
+  getTeacherPhoto
 } from './mockData';
+import { requestApi } from './apiClient';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   const [filterClass, setFilterClass] = useState('all');
@@ -19,10 +26,466 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
 
+  // Admission tab state
+  const initialTab = menuKey?.includes('docs') ? 'docs' : menuKey?.includes('rules') ? 'rules' : menuKey?.includes('tracking') ? 'tracking' : 'apply';
+  const [admTab, setAdmTab] = useState(initialTab);
+  const emptyAdm = {
+    academic_year: '2026',
+    applied_class: '৬',
+    applicant_name_bn: '',
+    applicant_name_en: '',
+    date_of_birth: '',
+    gender: 'পুরুষ',
+    religion: 'ইসলাম',
+    blood_group: 'A+',
+    birth_registration_no: '',
+    father_name: '',
+    father_phone: '',
+    mother_name: '',
+    mother_phone: '',
+    guardian_name: '',
+    guardian_phone: '',
+    address: '',
+    previous_school: '',
+    quota: 'সাধারণ',
+    notes: ''
+  };
+  const [admForm, setAdmForm] = useState(emptyAdm);
+  const [admReceipt, setAdmReceipt] = useState(null);
+  const [admSubmitting, setAdmSubmitting] = useState(false);
+  const [admMsg, setAdmMsg] = useState('');
+  const [trackingId, setTrackingId] = useState('');
+  const [trackingResult, setTrackingResult] = useState(null);
+  const [trackingMsg, setTrackingMsg] = useState('');
+
+  useEffect(() => {
+    if (menuKey?.includes('docs')) setAdmTab('docs');
+    else if (menuKey?.includes('rules')) setAdmTab('rules');
+    else if (menuKey?.includes('tracking')) setAdmTab('tracking');
+    else if (menuKey?.includes('apply') || menuKey?.startsWith('public.nav.admission')) setAdmTab('apply');
+  }, [menuKey]);
+
   if (!menuKey) return null;
 
+  const handleAdmSubmit = async (e) => {
+    e.preventDefault();
+    if (!admForm.applicant_name_bn.trim()) {
+      setAdmMsg('অনুগ্রহ করে শিক্ষার্থীর পুরো নাম লিখুন।');
+      return;
+    }
+    if (!admForm.guardian_phone.trim()) {
+      setAdmMsg('অনুগ্রহ করে অভিভাবকের সচল মোবাইল নম্বর প্রদান করুন।');
+      return;
+    }
+    setAdmSubmitting(true);
+    setAdmMsg('');
+    try {
+      const res = await requestApi('/admissions', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...admForm,
+          father_name: admForm.father_name || admForm.guardian_name,
+          application_date: new Date().toISOString().slice(0, 10),
+          status: 'submitted'
+        })
+      });
+      setAdmReceipt(res);
+      setAdmMsg('অভিনন্দন! আপনার অনলাইন ভর্তি আবেদন সফলভাবে গ্রহণ করা হয়েছে।');
+    } catch (err) {
+      setAdmMsg('আবেদন জমাদানে ত্রুটি: ' + err.message);
+    } finally {
+      setAdmSubmitting(false);
+    }
+  };
+
+  const handleTrackingSearch = async (e) => {
+    e.preventDefault();
+    if (!trackingId.trim()) return;
+    setTrackingMsg('');
+    setTrackingResult(null);
+    try {
+      const list = await requestApi('/admissions?q=' + encodeURIComponent(trackingId.trim()));
+      if (Array.isArray(list) && list.length > 0) {
+        setTrackingResult(list[0]);
+      } else {
+        setTrackingMsg('প্রদত্ত নম্বর বা আবেদন আইডিতে কোনো আবেদন পাওয়া যায়নি।');
+      }
+    } catch {
+      setTrackingMsg('তথ্য অনুসন্ধানে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    }
+  };
+
   const renderContent = () => {
-    // 1. Institution submenus
+    // 0. Online Admission Module & Submenus
+    if (menuKey.startsWith('public.nav.admission') || menuKey === 'public.nav.results.admission' || title.includes('ভর্তি')) {
+      return (
+        <div className="submenu-content admission-modal-flow">
+          <div className="modal-hero-badge">🎓 অনলাইন শিক্ষার্থী ভর্তি পোর্টাল — শিক্ষাবর্ষ ২০২৬</div>
+          
+          {/* Submenu Navigation Tabs */}
+          <div className="adm-modal-tabs">
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'apply' ? 'active' : ''}`}
+              onClick={() => setAdmTab('apply')}
+            >
+              📝 ভর্তির আবেদন ফরম
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'docs' ? 'active' : ''}`}
+              onClick={() => setAdmTab('docs')}
+            >
+              📑 প্রয়োজনীয় কাগজপত্র ও সনদ
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'rules' ? 'active' : ''}`}
+              onClick={() => setAdmTab('rules')}
+            >
+              📜 ভর্তি নিয়মাবলী ও যোগ্যতা
+            </button>
+            <button
+              type="button"
+              className={`adm-tab-btn ${admTab === 'tracking' ? 'active' : ''}`}
+              onClick={() => setAdmTab('tracking')}
+            >
+              🔍 আবেদন ট্র্যাকিং ও রসিদ
+            </button>
+          </div>
+
+          {/* TAB 1: Online Application Form */}
+          {admTab === 'apply' && (
+            <div className="adm-tab-content">
+              {admReceipt ? (
+                <div className="admission-slip">
+                  <span className="admission-slip-badge">✓ আবেদন সফলভাবে গৃহীত হয়েছে</span>
+                  <h3 className="admission-slip-title">{admReceipt.applicant_name_bn}</h3>
+                  <div className="admission-app-no">আবেদন নং: {admReceipt.application_no}</div>
+                  <p style={{ margin: '4px 0 10px', fontSize: '13px', color: '#475569' }}>
+                    শ্রেণি: <b>{admReceipt.applied_class}</b> • শিক্ষাবর্ষ: <b>{admReceipt.academic_year}</b>
+                  </p>
+                  <div className="admission-slip-details">
+                    <div><b>পিতা/অভিভাবক:</b> {admReceipt.guardian_name || admReceipt.father_name}</div>
+                    <div><b>মোবাইল:</b> {admReceipt.guardian_phone}</div>
+                    <div><b>জন্ম তারিখ:</b> {admReceipt.date_of_birth || '—'}</div>
+                    <div><b>আবেদনের তারিখ:</b> {admReceipt.application_date}</div>
+                    <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {admReceipt.address || '—'}</div>
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#166534', background: '#dcfce7', padding: '10px', borderRadius: '6px' }}>
+                    📌 অনুগ্রহ করে এই আবেদনপত্রটি প্রিন্ট করে সংরক্ষণ করুন এবং ভর্তির দিন উল্লেখিত সকল মূল সনদসহ বিদ্যালয়ে উপস্থিত হোন।
+                  </p>
+                  <div className="admission-slip-actions">
+                    <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
+                      🖨️ আবেদনপত্র ও রসিদ প্রিন্ট করুন
+                    </button>
+                    <button
+                      type="button"
+                      className="mini"
+                      style={{ background: '#e2e8f0', color: '#334155', border: 'none', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
+                      onClick={() => { setAdmReceipt(null); setAdmForm(emptyAdm); setAdmMsg(''); }}
+                    >
+                      + নতুন আবেদন
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleAdmSubmit} className="adm-form-grid">
+                  <div className="adm-form-field">
+                    <label>ভর্তির শ্রেণি *</label>
+                    <select value={admForm.applied_class} onChange={e => setAdmForm({ ...admForm, applied_class: e.target.value })} required>
+                      {['৬', '৭', '৮', '৯', '১০'].map(c => (
+                        <option key={c} value={c}>শ্রেণি {c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="adm-form-field">
+                    <label>শিক্ষাবর্ষ *</label>
+                    <select value={admForm.academic_year} onChange={e => setAdmForm({ ...admForm, academic_year: e.target.value })} required>
+                      <option value="2026">২০২৬</option>
+                      <option value="2027">২০২৭</option>
+                    </select>
+                  </div>
+                  <div className="adm-form-field full">
+                    <label>শিক্ষার্থীর পুরো নাম (বাংলায়) *</label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: মোঃ মাহির আহমেদ"
+                      value={admForm.applicant_name_bn}
+                      onChange={e => setAdmForm({ ...admForm, applicant_name_bn: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field full">
+                    <label>Applicant Full Name (English)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Md. Mahir Ahmed"
+                      value={admForm.applicant_name_en}
+                      onChange={e => setAdmForm({ ...admForm, applicant_name_en: e.target.value })}
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>জন্ম তারিখ *</label>
+                    <input
+                      type="date"
+                      value={admForm.date_of_birth}
+                      onChange={e => setAdmForm({ ...admForm, date_of_birth: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>লিঙ্গ *</label>
+                    <select value={admForm.gender} onChange={e => setAdmForm({ ...admForm, gender: e.target.value })} required>
+                      <option value="পুরুষ">পুরুষ</option>
+                      <option value="নারী">নারী</option>
+                      <option value="অন্যান্য">অন্যান্য</option>
+                    </select>
+                  </div>
+                  <div className="adm-form-field">
+                    <label>ধর্ম</label>
+                    <select value={admForm.religion} onChange={e => setAdmForm({ ...admForm, religion: e.target.value })}>
+                      <option value="ইসলাম">ইসলাম</option>
+                      <option value="হিন্দু">হিন্দু</option>
+                      <option value="বৌদ্ধ">বৌদ্ধ</option>
+                      <option value="খ্রিষ্টান">খ্রিষ্টান</option>
+                    </select>
+                  </div>
+                  <div className="adm-form-field">
+                    <label>রক্তের গ্রুপ</label>
+                    <select value={admForm.blood_group} onChange={e => setAdmForm({ ...admForm, blood_group: e.target.value })}>
+                      {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="adm-form-field full">
+                    <label>অনলাইন ডিজিটাল জন্ম নিবন্ধন নম্বর (১৭ ডিজিট) *</label>
+                    <input
+                      type="text"
+                      placeholder="অনলাইন ভেরিফায়েড ১৭ ডিজিট নম্বর"
+                      value={admForm.birth_registration_no}
+                      onChange={e => setAdmForm({ ...admForm, birth_registration_no: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>পিতার নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="পিতার নাম"
+                      value={admForm.father_name}
+                      onChange={e => setAdmForm({ ...admForm, father_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>মাতার নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="মাতার নাম"
+                      value={admForm.mother_name}
+                      onChange={e => setAdmForm({ ...admForm, mother_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>অভিভাবকের নাম *</label>
+                    <input
+                      type="text"
+                      placeholder="পিতা / মাতা / বৈধ অভিভাবক"
+                      value={admForm.guardian_name}
+                      onChange={e => setAdmForm({ ...admForm, guardian_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>অভিভাবকের সচল মোবাইল নম্বর *</label>
+                    <input
+                      type="tel"
+                      placeholder="017XXXXXXXX"
+                      value={admForm.guardian_phone}
+                      onChange={e => setAdmForm({ ...admForm, guardian_phone: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="adm-form-field full">
+                    <label>বর্তমান ঠিকানা (গ্রাম, ডাকঘর, উপজেলা, জেলা) *</label>
+                    <textarea
+                      rows="2"
+                      placeholder="যেমন: গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল"
+                      value={admForm.address}
+                      onChange={e => setAdmForm({ ...admForm, address: e.target.value })}
+                      required
+                    ></textarea>
+                  </div>
+                  <div className="adm-form-field">
+                    <label>পূর্ববর্তী বিদ্যালয়ের নাম</label>
+                    <input
+                      type="text"
+                      placeholder="পূর্বে যে বিদ্যালয়ে পড়ত"
+                      value={admForm.previous_school}
+                      onChange={e => setAdmForm({ ...admForm, previous_school: e.target.value })}
+                    />
+                  </div>
+                  <div className="adm-form-field">
+                    <label>কোটা (যদি থাকে)</label>
+                    <select value={admForm.quota} onChange={e => setAdmForm({ ...admForm, quota: e.target.value })}>
+                      <option value="সাধারণ">সাধারণ</option>
+                      <option value="মুক্তিযোদ্ধা">মুক্তিযোদ্ধা কোটা</option>
+                      <option value="ক্ষুদ্র নৃগোষ্ঠী">ক্ষুদ্র নৃগোষ্ঠী</option>
+                      <option value="বিশেষ চাহিদা সম্পন্ন">বিশেষ চাহিদা সম্পন্ন</option>
+                    </select>
+                  </div>
+                  <div className="adm-form-field full" style={{ marginTop: '8px' }}>
+                    <button type="submit" className="adm-submit-btn" disabled={admSubmitting}>
+                      {admSubmitting ? 'আবেদন জমা হচ্ছে...' : '✓ অনলাইনে ভর্তি আবেদন জমা দিন'}
+                    </button>
+                  </div>
+                </form>
+              )}
+              {admMsg && <p className="msg" style={{ marginTop: '10px', fontSize: '13px' }}>{admMsg}</p>}
+            </div>
+          )}
+
+          {/* TAB 2: Required Documents Checklist */}
+          {admTab === 'docs' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#065f46', fontSize: '16px' }}>
+                📑 ভর্তির সময় সাথে আনার প্রয়োজনীয় ৭টি আবশ্যক সনদ ও ডকুমেন্টস:
+              </h4>
+              <div className="doc-checklist">
+                <div className="doc-item">
+                  <div className="doc-num">১</div>
+                  <div className="doc-info">
+                    <h4>অনলাইন পূরণকৃত আবেদনপত্রের প্রিন্ট কপি</h4>
+                    <p>অনলাইনে ফরম পূরণের পর প্রিন্টকৃত অথবা ডাউনলোডকৃত আবেদন কপি (১ সেট)।</p>
+                    <span className="doc-tag">প্রিন্ট কপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">২</div>
+                  <div className="doc-info">
+                    <h4>সদ্য তোলা পাসপোর্ট সাইজের রঙিন ছবি</h4>
+                    <p>শিক্ষার্থীর ৪ কপি এবং পিতা ও মাতার ১ কপি করে স্পষ্ট রঙিন ছবি।</p>
+                    <span className="doc-tag">ছবি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৩</div>
+                  <div className="doc-info">
+                    <h4>ডিজিটাল জন্ম নিবন্ধন সনদের সত্যায়িত ফটোকপি</h4>
+                    <p>অনলাইন ভেরিফায়েড ১৭ ডিজিটের ডিজিটাল জন্ম নিবন্ধন সনদের মূল ও সত্যায়িত ফটোকপি।</p>
+                    <span className="doc-tag">অনলাইন ভেরিফায়েড</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৪</div>
+                  <div className="doc-info">
+                    <h4>পূর্ববর্তী শ্রেণি পাশের মূল মার্কশিট ও প্রশংসাপত্র/TC</h4>
+                    <p>পূর্ববর্তী বিদ্যালয়ের ছাড়পত্র (Transfer Certificate) ও একাডেমিক ট্রান্সক্রিপ্ট।</p>
+                    <span className="doc-tag">মূল কপি ও ফটোকপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৫</div>
+                  <div className="doc-info">
+                    <h4>পিতা ও মাতার জাতীয় পরিচয়পত্র (NID)-এর ফটোকপি</h4>
+                    <p>পিতা ও মাতার জাতীয় পরিচয়পত্রের স্পষ্ট ফটোকপি (১ কপি করে)।</p>
+                    <span className="doc-tag">NID ফটোকপি</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৬</div>
+                  <div className="doc-info">
+                    <h4>কোটা বা বিশেষ সুবিধা সংক্রান্ত সনদ (প্রযোজ্য ক্ষেত্রে)</h4>
+                    <p>মুক্তিযোদ্ধা, ক্ষুদ্র নৃগোষ্ঠী, প্রতিবন্ধী বা অন্যান্য কোটার সমর্থনে প্রমাণপত্র।</p>
+                    <span className="doc-tag">প্রযোজ্য ক্ষেত্রে</span>
+                  </div>
+                </div>
+                <div className="doc-item">
+                  <div className="doc-num">৭</div>
+                  <div className="doc-info">
+                    <h4>রক্তের গ্রুপ পরীক্ষার রিপোর্ট</h4>
+                    <p>শিক্ষার্থীর রক্তের গ্রুপ নিশ্চিতকরণে অনুমোদিত ল্যাবের পরীক্ষার রিপোর্ট।</p>
+                    <span className="doc-tag">মেডিকেল রিপোর্ট</span>
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <button type="button" className="adm-submit-btn" onClick={() => setAdmTab('apply')} style={{ maxWidth: '280px', margin: '0 auto' }}>
+                  📝 এখনই আবেদন ফরম পূরণ করুন →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Rules & Eligibility */}
+          {admTab === 'rules' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#1e3a8a', fontSize: '16px' }}>
+                📜 ২০২৬ শিক্ষাবর্ষের ভর্তি সংক্রান্ত নীতিমালা ও নির্দেশনা:
+              </h4>
+              <div className="rules-section" style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <ul className="bullet-list">
+                  <li><b>বয়সসীমা:</b> ৬ষ্ঠ শ্রেণিতে ভর্তির ক্ষেত্রে সরকারি নীতিমালা অনুযায়ী সর্বনিম্ন ১১+ বছর বয়স হতে হবে।</li>
+                  <li><b>আবেদন মাধ্যম:</b> অনলাইনে ঘরে বসে অথবা বিদ্যালয়ের ডিজিটাল সেবা কেন্দ্র থেকে ফরম পূরণ করা যাবে।</li>
+                  <li><b>ভর্তি নির্বাচন:</b> সরকারি নীতিমালা অনুযায়ী লটারি / একাডেমিক মূল্যায়নের মাধ্যমে চূড়ান্ত তালিকা প্রকাশ করা হবে।</li>
+                  <li><b>মোবাইল নোটিফিকেশন:</b> ফলাফল ও ভর্তির তারিখ অভিভাবকের প্রদত্ত সচল মোবাইল নম্বরে SMS-এ জানানো হবে।</li>
+                  <li><b>ভর্তি ফি:</b> সরকারি ও গভর্নিং বডি কর্তৃক নির্ধারিত সেশন চার্জ ও ফি পরিশোধ করে ভর্তি নিশ্চিত করতে হবে।</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: Application Tracking & Receipt Reprint */}
+          {admTab === 'tracking' && (
+            <div className="adm-tab-content">
+              <h4 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '16px' }}>
+                🔍 আবেদন ট্র্যাকিং ও রসিদ পুনর্মুদ্রণ:
+              </h4>
+              <form onSubmit={handleTrackingSearch} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="আবেদন নম্বর (ADM-2026-XXX) বা অভিভাবকের মোবাইল নম্বর দিন..."
+                  value={trackingId}
+                  onChange={e => setTrackingId(e.target.value)}
+                  style={{ flex: 1, padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }}
+                />
+                <button type="submit" className="adm-submit-btn" style={{ width: 'auto', padding: '10px 20px' }}>
+                  অনুসন্ধান করুন
+                </button>
+              </form>
+              {trackingMsg && <p className="msg" style={{ color: '#dc2626' }}>{trackingMsg}</p>}
+              {trackingResult && (
+                <div className="admission-slip">
+                  <span className="admission-slip-badge">✓ আবেদন বিদ্যমান</span>
+                  <h3 className="admission-slip-title">{trackingResult.applicant_name_bn}</h3>
+                  <div className="admission-app-no">আবেদন নং: {trackingResult.application_no}</div>
+                  <p style={{ margin: '4px 0 10px', fontSize: '13px', color: '#475569' }}>
+                    শ্রেণি: <b>{trackingResult.applied_class}</b> • শিক্ষাবর্ষ: <b>{trackingResult.academic_year}</b>
+                  </p>
+                  <div className="admission-slip-details">
+                    <div><b>পিতা/অভিভাবক:</b> {trackingResult.guardian_name || trackingResult.father_name}</div>
+                    <div><b>মোবাইল:</b> {trackingResult.guardian_phone}</div>
+                    <div><b>জন্ম তারিখ:</b> {trackingResult.date_of_birth || '—'}</div>
+                    <div><b>আবেদনের তারিখ:</b> {trackingResult.application_date}</div>
+                    <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {trackingResult.address || '—'}</div>
+                  </div>
+                  <div className="admission-slip-actions">
+                    <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
+                      🖨️ আবেদনপত্র ও রসিদ প্রিন্ট করুন
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 1. Leadership Speeches (President, Head Teacher, Assistant Head Teacher)
     if (menuKey.startsWith('public.nav.leadership') || title.includes('বাণী') || menuKey === 'public.nav.institution.message') {
       const leaderInfo = {
         'public.nav.leadership.president': {
@@ -30,6 +493,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           title: 'সভাপতির বাণী',
           name: 'নেয়ামুল হক খান',
           role: 'সভাপতি, ম্যানেজিং কমিটি',
+          photo: PHOTO_PRESIDENT,
           speech: [
             'বিসমিল্লাহির রাহমানির রাহিম। ঐতিহ্যবাহী মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সকল শিক্ষার্থী, অভিভাবক ও শুভানুধ্যায়ীদের প্রতি রইল আমার আন্তরিক শুভেচ্ছা ও অভিনন্দন।',
             '১৯৪৬ সালে প্রতিষ্ঠিত এই বিদ্যাপীঠ দীর্ঘ সময় ধরে অত্র এলাকার শিক্ষার আলো ছড়িয়ে আসছে। শিক্ষার গুণগত মান নিশ্চিতকরণ, ডিজিটাল অবকাঠামো উন্নয়ন এবং শিক্ষার্থীদের দেশপ্রেম ও নৈতিক শিক্ষায় উদ্বুদ্ধ করাই আমাদের পরিচালনা কমিটির মূল লক্ষ্য।',
@@ -41,6 +505,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           title: 'প্রধান শিক্ষকের বাণী',
           name: 'মুহাম্মদ শফিকুল ইসলাম',
           role: 'প্রধান শিক্ষক',
+          photo: PHOTO_HEAD_TEACHER,
           speech: [
             'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ডিজিটাল প্ল্যাটফর্মে সবাইকে স্বাগত জানাচ্ছি।',
             'একবিংশ শতাব্দীর চ্যালেঞ্জ মোকাবেলায় শিক্ষার্থীদের শুধুমাত্র পাঠ্যপুস্তকের জ্ঞানে সীমাবদ্ধ না রেখে প্রযুক্তিগত দক্ষতা, সততা, শৃঙ্খলা ও নেতৃত্বের গুণাবলি অর্জনে আমরা নিরলসভাবে কাজ করে যাচ্ছি।',
@@ -52,6 +517,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           title: 'সহকারী প্রধান শিক্ষকের বাণী',
           name: 'তাপসী সরকার',
           role: 'সহকারী প্রধান শিক্ষক',
+          photo: PHOTO_ASST_HEAD_TEACHER,
           speech: [
             'প্রিয় শিক্ষার্থীবৃন্দ ও সম্মানিত অভিভাবকবৃন্দ,',
             'একটি শিক্ষা প্রতিষ্ঠানের প্রাণ হলো এর সুশৃঙ্খল পরিবেশ ও শিক্ষার্থীদের নিয়মিত পড়াশোনার অভ্যাস। আমরা বিদ্যালয়ের একাডেমিক ক্যালেন্ডার, দৈনন্দিন শ্রেণি কার্যক্রম, উপস্থিতি এবং সহশিক্ষা কার্যক্রমের মান কঠোরভাবে বজায় রাখতে সচেষ্ট।',
@@ -67,14 +533,14 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         return (
           <div className="submenu-content">
             <div className="modal-hero-badge">{leader.badge}</div>
-            <div className="leader-modal-profile" style={{ display: 'flex', gap: '16px', alignItems: 'center', margin: '16px 0', padding: '14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div className="avatar-circle" style={{ width: '56px', height: '56px', fontSize: '24px', background: '#2b6cb0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold' }}>
-                {leader.name.slice(0, 1)}
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '18px', alignItems: 'center', margin: '16px 0', padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <div style={{ width: '84px', height: '84px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.15)', border: '3px solid #2874c6' }}>
+                <img src={leader.photo} alt={leader.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </div>
               <div>
-                <h3 style={{ margin: '0 0 4px 0', color: '#1a202c' }}>{leader.name}</h3>
-                <p style={{ margin: 0, color: '#4a5568', fontWeight: 600 }}>{leader.role}</p>
-                <small style={{ color: '#718096' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</small>
+                <h3 style={{ margin: '0 0 4px 0', color: '#1a202c', fontSize: '18px' }}>{leader.name}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#1d4ed8', fontWeight: 700, fontSize: '14px' }}>{leader.role}</p>
+                <small style={{ color: '#64748b', fontSize: '12px' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতি, টাঙ্গাইল</small>
               </div>
             </div>
             <div className="leader-speech" style={{ lineHeight: '1.8', color: '#2d3748', fontSize: '15px' }}>
@@ -92,14 +558,14 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           <div className="modal-hero-badge">📜 সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
             {Object.values(leaderInfo).map((leader, idx) => (
-              <div key={idx} style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                  <div className="avatar-circle" style={{ width: '44px', height: '44px', fontSize: '18px', background: '#2b6cb0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontWeight: 'bold' }}>
-                    {leader.name.slice(0, 1)}
+              <div key={idx} style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: '2px solid #2874c6' }}>
+                    <img src={leader.photo} alt={leader.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </div>
                   <div>
                     <h4 style={{ margin: 0, color: '#1a202c', fontSize: '16px' }}>{leader.title}</h4>
-                    <p style={{ margin: 0, color: '#4a5568', fontSize: '13px', fontWeight: 600 }}>{leader.name} — {leader.role}</p>
+                    <p style={{ margin: 0, color: '#1d4ed8', fontSize: '13px', fontWeight: 700 }}>{leader.name} — {leader.role}</p>
                   </div>
                 </div>
                 <div style={{ lineHeight: '1.7', color: '#2d3748', fontSize: '14px' }}>
@@ -159,7 +625,9 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           <div className="committee-grid">
             {MOCK_COMMITTEE.map((m, idx) => (
               <div key={idx} className="committee-card">
-                <div className="member-avatar">{m.name_bn.slice(0, 1)}</div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                  <img src={m.role === 'সভাপতি' ? PHOTO_PRESIDENT : m.role === 'সদস্য সচিব' ? PHOTO_HEAD_TEACHER : PHOTO_MALE_TEACHER} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <div className="member-info">
                   <span className="member-role">{m.role}</span>
                   <h4>{m.name_bn}</h4>
@@ -178,22 +646,14 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         <div className="submenu-content">
           <div className="modal-hero-badge">📜 বিদ্যালয়ের নিয়ম-কানুন ও আচরণবিধি</div>
           <div className="rules-section">
-            <div className="rule-card">
-              <h4>১. পোশাক ও সাজসজ্জা</h4>
-              <p>প্রতিটি শিক্ষার্থীকে নির্ধারিত স্কুল ড্রেস, ব্যাজ, কালো জুতো ও সাদা মোজা পরে বিদ্যালয়ে উপস্থিত হতে হবে।</p>
-            </div>
-            <div className="rule-card">
-              <h4>২. ক্লাসে উপস্থিতি ও সময়ানুবর্তিতা</h4>
-              <p>সকাল ৯:৪৫ মিনিটের মধ্যে জাতীয় সঙ্গীতে অংশ নিতে হবে। ৯০% উপস্থিতি বাধ্যতামূলক। বিনা অনুমতিতে অনুপস্থিতি গ্রহণযোগ্য নয়।</p>
-            </div>
-            <div className="rule-card">
-              <h4>৩. শৃঙ্খলা ও মোবাইল নিষিদ্ধকরণ</h4>
-              <p>শ্রেণিকক্ষে কোনো ধরনের স্মার্টফোন বা ইলেকট্রনিক ডিভাইস আনা সম্পূর্ণ নিষিদ্ধ। শিক্ষকদের নির্দেশ ও বিদ্যালয়ের সম্পত্তি রক্ষা করতে হবে।</p>
-            </div>
-            <div className="rule-card">
-              <h4>৪. পরীক্ষা ও মূল্যায়ন নীতি</h4>
-              <p>সকল অভ্যন্তরীণ সাময়িক ও মডেল পরীক্ষায় অংশগ্রহণ বাধ্যতামূলক। নকল বা অসদুপায় অবলম্বন করলে বহিষ্কারের বিধান রয়েছে।</p>
-            </div>
+            <h4>বিদ্যালয়ের সাধারণ আচরণবিধি:</h4>
+            <ul className="bullet-list">
+              <li>সকল শিক্ষার্থীকে প্রতিদিন সকাল ৯:৪০ এর মধ্যে নির্ধারিত স্কুল ড্রেস পরিধান করে বিদ্যালয়ে উপস্থিত হতে হবে।</li>
+              <li>বিদ্যালয় প্রাঙ্গণে কোনো ধরনের মোবাইল ফোন বা অপ্রয়োজনীয় ইলেকট্রনিক ডিভাইস ব্যবহার সম্পূর্ণ নিষিদ্ধ।</li>
+              <li>শ্রেণিকক্ষে শিক্ষকের পাঠদানের সময় পূর্ণ মনোযোগ দিতে হবে এবং বিদ্যালয়ের শৃঙ্খলা বজায় রাখতে হবে।</li>
+              <li>বিদ্যালয়ের আসবাবপত্র, কম্পিউটার ল্যাব, লাইব্রেরি ও বিজ্ঞানের যন্ত্রপাতি রক্ষণাবেক্ষণে সচেতন থাকতে হবে।</li>
+              <li>অভিভাবকের অনুমতি ছাড়া কোনো শিক্ষার্থী ক্লাস চলাকালীন ক্যাম্পাস ত্যাগ করতে পারবে না।</li>
+            </ul>
           </div>
         </div>
       );
@@ -202,49 +662,60 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     if (menuKey === 'public.nav.institution.library') {
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📚 কেন্দ্রীয় লাইব্রেরি ও বুক ব্যাংক</div>
-          <p className="lead-text">বিদ্যালয়ের লাইব্রেরিতে দেশি-বিদেশি সাহিত্য, পাঠ্যবই, মুক্তিযুদ্ধ, বিজ্ঞান ও রেফারেন্সের ৩,০০০+ বই রয়েছে।</p>
-          <div className="table-wrap">
-            <table className="modal-table">
-              <thead>
-                <tr>
-                  <th>বইয়ের নাম</th>
-                  <th>লেখক</th>
-                  <th>ক্যাটাগরি</th>
-                  <th>উপলভ্য কপি</th>
+          <div className="modal-hero-badge">📚 বিদ্যালয় লাইব্রেরি ও গ্রন্থসম্ভার</div>
+          <p className="lead-text">বিদ্যালয়ের সমৃদ্ধ লাইব্রেরিতে পাঠ্যবই, রেফারেন্স বই, সাহিত্য, বিজ্ঞান ও মুক্তিযুদ্ধ বিষয়ক সহস্রাধিক গ্রন্থ রয়েছে:</p>
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>বইয়ের নাম</th>
+                <th>লেখক</th>
+                <th>ক্যাটাগরি</th>
+                <th>সংগ্রহ সংখ্যা</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MOCK_BOOKS.map(b => (
+                <tr key={b.id}>
+                  <td><b>{b.title}</b></td>
+                  <td>{b.author}</td>
+                  <td><span className="badge">{b.category}</span></td>
+                  <td>{b.copies} টি</td>
                 </tr>
-              </thead>
-              <tbody>
-                {MOCK_BOOKS.map(b => (
-                  <tr key={b.id}>
-                    <td><b>{b.title}</b></td>
-                    <td>{b.author}</td>
-                    <td><span className="badge">{b.category}</span></td>
-                    <td><span className="status-green">{b.available_quantity} টি বাকি</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
     }
 
-    if (menuKey === 'public.nav.institution.curriculum') {
+    // 2. Staff / Teachers submenus
+    if (menuKey.startsWith('public.nav.staff')) {
+      let liveTeachers = [];
+      try {
+        liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+      } catch {}
+      const listToDisplay = (liveTeachers.length ? liveTeachers : MOCK_TEACHERS).filter(t => {
+        if (!t) return false;
+        const desig = (t.designation || '').toLowerCase();
+        const role = (t.role || t.public_contact_role || '').toLowerCase();
+        const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
+        return !isPresident;
+      });
+
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📖 জাতীয় পাঠ্যক্রম ও পাঠ্যপুস্তক (NCTB)</div>
-          <p className="lead-text">জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত ষষ্ঠ থেকে দশম শ্রেণির পাঠ্যতালিকা:</p>
-          <div className="curriculum-classes">
-            {['6', '7', '8', '9', '10'].map(cls => (
-              <div key={cls} className="class-curriculum-card">
-                <h4>শ্রেণি {cls} পাঠ্যতালিকা</h4>
-                <div className="subject-tags">
-                  {MOCK_SUBJECTS.filter(s => !s.class_name || s.class_name === cls).map(s => (
-                    <span key={s.id} className="subject-chip">✓ {s.name_bn}</span>
-                  ))}
-                  <span className="subject-chip">✓ শারীরিক শিক্ষা ও স্বাস্থ্য</span>
-                  <span className="subject-chip">✓ কর্ম ও জীবনমুখী শিক্ষা</span>
+          <div className="modal-hero-badge">👨‍🏫 সম্মানিত শিক্ষক ও কর্মচারীবৃন্দ</div>
+          <p className="lead-text">বিদ্যালয়ের অভিজ্ঞ, দক্ষ ও দায়িত্বশীল শিক্ষকমণ্ডলী:</p>
+          <div className="teachers-modal-grid">
+            {listToDisplay.map((t, idx) => (
+              <div key={t.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2874c6' }}>
+                  <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1d4ed8', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}</p>
+                  {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
                 </div>
               </div>
             ))}
@@ -253,166 +724,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    // 2. Sports & Culture submenus
-    if (menuKey.startsWith('public.nav.sport')) {
-      const sportTitles = {
-        'public.nav.sport.sports': 'বার্ষিক ক্রীড়া প্রতিযোগিতা',
-        'public.nav.sport.clubs': 'বিজ্ঞান, আইসিটি ও বিতর্ক ক্লাব',
-        'public.nav.sport.culture': 'সাংস্কৃতিক অনুষ্ঠান ও আবৃত্তি',
-        'public.nav.sport.achievements': 'বিদ্যালয়ের গৌরব ও অর্জন',
-        'public.nav.sport.tour': 'বার্ষিক শিক্ষা সফর ও ভ্রমণ',
-        'public.nav.sport.debate': 'বিতর্কচর্চা ও ডিবেটিং ক্লাব',
-        'public.nav.sport.lab': 'শেখ রাসেল কম্পিউটার ও ডিজিটাল ল্যাব',
-        'public.nav.sport.multimedia': 'স্মার্ট মাল্টিমিডিয়া ক্লাসরুম',
-        'public.nav.sport.scouts': 'স্কাউট ও গার্লস গাইড দল',
-        'public.nav.sport.inter': 'আন্তঃবিদ্যালয় ফুটবল ও ক্রিকেট প্রতিযোগিতা'
-      };
-      return (
-        <div className="submenu-content">
-          <div className="modal-hero-badge">⚽ {sportTitles[menuKey] || 'ক্রীড়া ও সহশিক্ষা'}</div>
-          <h3>{sportTitles[menuKey]}</h3>
-          <p className="lead-text">
-            মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে শিক্ষার্থীদের মেধা ও শারীরিক সক্ষমতা বিকাশে বছরব্যাপী সহশিক্ষা কার্যক্রম সচল থাকে।
-          </p>
-          <div className="activity-cards">
-            <div className="activity-card">
-              <span className="activity-icon">🏆</span>
-              <div>
-                <h4>নিয়মিত চর্চা ও প্রতিযোগিতা</h4>
-                <p>আন্তঃশ্রেণি ফুটবল, ক্রিকেট, ক্যারম, দাবা এবং বার্ষিক সাংস্কৃতিক সপ্তাহ অনুষ্ঠিত হয়।</p>
-              </div>
-            </div>
-            <div className="activity-card">
-              <span className="activity-icon">💻</span>
-              <div>
-                <h4>শেখ রাসেল ডিজিটাল ল্যাব</h4>
-                <p>আধুনিক কম্পিউটার, প্রজেক্টর এবং ইন্টারনেট সংযোগে সমৃদ্ধ ডিজিটাল ক্লাসরুম।</p>
-              </div>
-            </div>
-            <div className="activity-card">
-              <span className="activity-icon">🏕️</span>
-              <div>
-                <h4>স্কাউট ও গার্ল গাইড আন্দোলন</h4>
-                <p>বিদ্যালয়ের স্কাউট দল উপজেলা ও জেলা পর্যায়ের স্কাউট সমাবেশে শ্রেষ্ঠত্বের প্রমাণ রেখেছে।</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // 3. Staff & Teachers
-    if (menuKey.startsWith('public.nav.staff')) {
-      const isFormer = menuKey.includes('former');
-      const isStaffOnly = menuKey.includes('employees') || menuKey.includes('formerEmployees');
-      let liveTeachers = [];
-      let liveStaff = [];
-      try {
-        liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
-        liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
-      } catch {}
-      const list = isStaffOnly ? liveStaff : liveTeachers;
-
-      return (
-        <div className="submenu-content">
-          <div className="modal-hero-badge">👨‍🏫 {isStaffOnly ? 'কর্মচারীবৃন্দ' : 'শিক্ষকবৃন্দ'}</div>
-          <p className="lead-text">আমাদের অভিজ্ঞ, নিষ্ঠাবান ও প্রশিক্ষণপ্রাপ্ত শিক্ষক এবং কর্মচারীদের পরিচিতি:</p>
-          <div className="people-grid-full">
-            {list.map(person => (
-              <div key={person.id} className="person-box-modal">
-                <div className="avatar-circle">{(person.name_bn || person.name_en || '?').slice(0, 1)}</div>
-                <h4>{person.name_bn || person.name_en}</h4>
-                <p className="person-desig">{person.designation || 'শিক্ষক'}</p>
-                {person.subject && <span className="subject-badge">বিষয়: {person.subject}</span>}
-                {person.phone && <p className="person-contact">📱 {person.phone}</p>}
-                {person.email && <p className="person-contact">✉️ {person.email}</p>}
-              </div>
-            ))}
-            {!list.length && (
-              <p className="lead-text" style={{gridColumn:'1/-1',textAlign:'center',color:'#718096'}}>এখনো কোনো {isStaffOnly ? 'কর্মচারী' : 'শিক্ষক'} এন্ট্রি করা হয়নি।</p>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // 4. Students info
+    // 3. Students
     if (menuKey.startsWith('public.nav.students')) {
-      if (menuKey === 'public.nav.students.seats') {
-        return (
-          <div className="submenu-content">
-            <div className="modal-hero-badge">📊 শ্রেণি ও আসন তথ্য (২০২৬)</div>
-            <table className="modal-table">
-              <thead>
-                <tr>
-                  <th>শ্রেণি</th>
-                  <th>শাখা</th>
-                  <th>মোট আসন</th>
-                  <th>ভর্তি শিক্ষার্থী</th>
-                  <th>খালি আসন</th>
-                  <th>অবস্থা</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { cls: '৬ষ্ঠ', sec: 'ক ও খ', total: 150, filled: 140, open: 10 },
-                  { cls: '৭ম', sec: 'ক ও খ', total: 150, filled: 135, open: 15 },
-                  { cls: '৮ম', sec: 'ক ও খ', total: 140, filled: 130, open: 10 },
-                  { cls: '৯ম', sec: 'বিজ্ঞান ও মানবিক', total: 140, filled: 125, open: 15 },
-                  { cls: '১০ম', sec: 'বিজ্ঞান ও মানবিক', total: 140, filled: 124, open: 16 }
-                ].map((row, i) => (
-                  <tr key={i}>
-                    <td><b>শ্রেণি {row.cls}</b></td>
-                    <td>{row.sec}</td>
-                    <td>{row.total}</td>
-                    <td>{row.filled}</td>
-                    <td><b>{row.open}</b></td>
-                    <td><span className="status-green">ভর্তি সচল</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      }
-
-      if (menuKey === 'public.nav.students.scholarship') {
-        let liveScholarships = [];
-        try {
-          liveScholarships = JSON.parse(localStorage.getItem('magra_db_scholarships') || '[]');
-        } catch {}
-        return (
-          <div className="submenu-content">
-            <div className="modal-hero-badge">🎓 scholarship ও মেধাবী শিক্ষার্থী</div>
-            <table className="modal-table">
-              <thead>
-                <tr>
-                  <th>শিক্ষার্থীর নাম</th>
-                  <th>ID / শ্রেণি</th>
-                  <th>বৃত্তির নাম</th>
-                  <th>প্রদানকারী সংস্থা</th>
-                  <th>পরিমাণ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {liveScholarships.map(s => (
-                  <tr key={s.id}>
-                    <td><b>{s.name_bn || s.name_en}</b></td>
-                    <td>{s.student_id} (শ্রেণি {s.class_name})</td>
-                    <td>{s.scholarship_name}</td>
-                    <td>{s.provider}</td>
-                    <td><b>৳ {Number(s.amount || 0).toLocaleString('bn-BD')}</b></td>
-                  </tr>
-                ))}
-                {!liveScholarships.length && (
-                  <tr><td colSpan={5} style={{textAlign:'center',padding:'18px',color:'#718096'}}>কোনো বৃত্তির তথ্য পাওয়া যায়নি।</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        );
-      }
-
       let liveStudents = [];
       try {
         liveStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
@@ -466,7 +779,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                   </tr>
                 ))}
               {!liveStudents.length && (
-                <tr><td colSpan={6} style={{textAlign:'center',padding:'18px',color:'#718096'}}>এখনো কোনো শিক্ষার্থী এন্ট্রি করা হয়নি।</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>এখনো কোনো শিক্ষার্থী এন্ট্রি করা হয়নি।</td></tr>
               )}
             </tbody>
           </table>
@@ -474,7 +787,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    // 5. Results
+    // 4. Results
     if (menuKey.startsWith('public.nav.results')) {
       if (menuKey === 'public.nav.results.ssc') {
         return (
@@ -508,139 +821,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
 
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📊 পরীক্ষার ফলাফল ও মার্কশিট ভিউ</div>
-          <p className="lead-text">শিক্ষার্থীর Student ID ও পরীক্ষার তথ্য দিয়ে অনলাইন মার্কশিট ও প্রগ্রেস রিপোর্ট দেখুন:</p>
-          <div className="sample-marksheet-card">
-            <h4>১ম সাময়িক পরীক্ষা ২০২৬ — নমুনা মার্কশিট</h4>
-            <div className="student-quick-details">
-              <span><b>নাম:</b> মাহির আহমেদ</span>
-              <span><b>Student ID:</b> STU-2026-0601</span>
-              <span><b>শ্রেণি:</b> ৬ষ্ঠ (রোল ১)</span>
-              <span><b>GPA:</b> 5.00 (A+)</span>
-            </div>
-            <table className="modal-table">
-              <thead>
-                <tr>
-                  <th>বিষয়</th>
-                  <th>পূর্ণমান</th>
-                  <th>প্রাপ্ত নম্বর</th>
-                  <th>লেটার গ্রেড</th>
-                  <th>গ্রেড পয়েন্ট</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>বাংলা</td><td>১০০</td><td>৯০</td><td>A+</td><td>৫.০০</td></tr>
-                <tr><td>ইংরেজি</td><td>১০০</td><td>৮৪</td><td>A+</td><td>৫.০০</td></tr>
-                <tr><td>গণিত</td><td>১০০</td><td>৯৪</td><td>A+</td><td>৫.০০</td></tr>
-                <tr><td>বিজ্ঞান</td><td>১০০</td><td>৮০</td><td>A+</td><td>৫.০০</td></tr>
-                <tr><td>তথ্য ও যোগাযোগ প্রযুক্তি</td><td>৫০</td><td>৪৫</td><td>A+</td><td>৫.০০</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    }
-
-    // 6. Student Guide (Syllabus, Digital Learning, Online Exam, AI Tutor)
-    if (menuKey.startsWith('public.nav.guide')) {
-      if (menuKey === 'public.nav.guide.online') {
-        const questions = [
-          { id: 1, q: '১. কম্পিউটার মেমোরির ক্ষুদ্রতম একক কোনটি?', options: ['বিট (Bit)', 'বাইট (Byte)', 'কিলোবাইট (KB)', 'মেগাবাইট (MB)'], ans: 0 },
-          { id: 2, q: '২. মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় কত সালে প্রতিষ্ঠিত হয়?', options: ['১৯৪৭', '১৯৪৬', '১৯৭১', '১৯৫২'], ans: 1 },
-          { id: 3, q: '৩. আলোর গতি প্রতি সেকেন্ডে প্রায় কত?', options: ['৩ লাখ কিমি', '১ লাখ কিমি', '৫ লাখ কিমি', '১০ লাখ কিমি'], ans: 0 }
-        ];
-
-        const handleQuizSubmit = (e) => {
-          e.preventDefault();
-          let score = 0;
-          questions.forEach(q => {
-            if (quizAnswers[q.id] === q.ans) score++;
-          });
-          setExamScore({ score, total: questions.length });
-        };
-
-        return (
-          <div className="submenu-content">
-            <div className="modal-hero-badge">📝 অনলাইন মক পরীক্ষা ও কুইজ (Live Interactive Test)</div>
-            <form onSubmit={handleQuizSubmit} className="quiz-container">
-              {questions.map((q) => (
-                <div key={q.id} className="quiz-question-card">
-                  <h4>{q.q}</h4>
-                  <div className="quiz-options">
-                    {q.options.map((opt, optIdx) => (
-                      <label key={optIdx} className="quiz-option-label">
-                        <input
-                          type="radio"
-                          name={'q_' + q.id}
-                          checked={quizAnswers[q.id] === optIdx}
-                          onChange={() => setQuizAnswers({ ...quizAnswers, [q.id]: optIdx })}
-                          required
-                        />
-                        <span>{opt}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <button type="submit" className="btn btn-primary">✓ কুইজ সাবমিট ও ফলাফল দেখুন</button>
-            </form>
-            {examScore && (
-              <div className="quiz-result-card">
-                <h3>🎉 ফলাফল: {examScore.score} / {examScore.total}</h3>
-                <p>{examScore.score === examScore.total ? 'অভিনন্দন! আপনি শতভাগ সঠিক উত্তর দিয়েছেন।' : 'খুব ভালো চেষ্টা! আবার অনুশীলন করুন।'}</p>
-              </div>
-            )}
-          </div>
-        );
-      }
-
-      if (menuKey === 'public.nav.guide.ai') {
-        return (
-          <div className="submenu-content">
-            <div className="modal-hero-badge">🤖 AI শিক্ষা সহকারী (Smart AI Tutor)</div>
-            <p className="lead-text">
-              মগড়া স্কুলের শিক্ষার্থীদের পড়াশোনা, পড়ার রুটিন তৈরি, গণিত-বিজ্ঞান ও ভাষা শিক্ষায় সাহায্য করার জন্য সার্বক্ষণিক AI শিক্ষা সহকারী প্রস্তুত।
-            </p>
-            <div className="ai-features-grid">
-              <div className="ai-feature-card">
-                <b>📅 ব্যক্তিগত Study Plan</b>
-                <p>আপনার দুর্বল বিষয় চিহ্নিত করে সাপ্তাহিক পড়ার পরিকল্পনা তৈরি করে দেবে।</p>
-              </div>
-              <div className="ai-feature-card">
-                <b>💡 তাৎক্ষণিক সমাধান ও ব্যাখ্যা</b>
-                <p>যেকোনো অধ্যায়ের সূত্র, ব্যাকরণ বা ধারণার সহজ বাংলা ব্যাখ্যা দেবে।</p>
-              </div>
-            </div>
-            <div className="modal-action-box">
-              <p>AI শিক্ষা সহকারীর পূর্ণ চ্যাট সুবিধা পেতে শিক্ষার্থী বা শিক্ষক পোর্টালে লগইন করুন:</p>
-              <button className="btn btn-primary" onClick={() => { onClose(); onNavigateRole('student'); }}>
-                🧑‍🎓 শিক্ষার্থী পোর্টালে AI Tutor খুলুন →
-              </button>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="submenu-content">
-          <div className="modal-hero-badge">📚 শিক্ষার্থীর গাইড ও ডিজিটাল লার্নিং রিসোর্স</div>
-          <div className="guide-resources-grid">
-            <div className="guide-resource-card">
-              <h4>📄 সিলেবাস ও পাঠ পরিকল্পনা</h4>
-              <p>৬ষ্ঠ থেকে ১০ম শ্রেণির ২০২৬ শিক্ষাবর্ষের সকল বিষয়ের বার্ষিক সিলেবাস।</p>
-              <span className="badge">PDF ডাউনলোড প্রস্তুত</span>
-            </div>
-            <div className="guide-resource-card">
-              <h4>🎬 ডিজিটাল ভিডিও লেকচার</h4>
-              <p>গণিত, বিজ্ঞান ও ইংরেজি বিষয়ের বিষয়ভিত্তিক ভিডিও ক্লাস ও মাল্টিমিডিয়া প্রেজেন্টেশন।</p>
-              <span className="badge">অনলাইন ভিডিও</span>
-            </div>
-            <div className="guide-resource-card">
-              <h4>❓ প্রশ্নব্যাংক ও মডেল প্রশ্ন</h4>
-              <p>বিগত ৫ বছরের বোর্ড প্রশ্ন এবং স্কুলের বিগত সাময়িক পরীক্ষার প্রশ্নপত্র।</p>
-              <span className="badge">মডেল টেস্ট</span>
-            </div>
-          </div>
+          <div className="modal-hero-badge">📊 পরীক্ষার ফলাফল ও মূল্যায়ন</div>
+          <p className="lead-text">বিদ্যালয়ের অভ্যন্তরীণ ও পাবলিক পরীক্ষার ফলাফল সংক্রান্ত তথ্যাদি নিয়মিত হালনাগাদ করা হয়।</p>
         </div>
       );
     }
@@ -651,7 +833,6 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         <div className="modal-hero-badge">ℹ️ {title}</div>
         <h3>{title}</h3>
         <p className="lead-text">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের {title} সম্পর্কিত তথ্য ও আপডেট।</p>
-        <p>বিদ্যালয় প্রশাসন থেকে এই সংক্রান্ত সর্বশেষ তথ্য ও ফাইলসমূহ নিয়মিত হালনাগাদ করা হয়।</p>
       </div>
     );
   };
