@@ -341,12 +341,20 @@ function Home(){
 
  const displayContacts=useMemo(()=>{
   if(contacts&&contacts.length>0) return contacts;
-  const tList=teachersList.length?teachersList:MOCK_TEACHERS;
-  const sList=MOCK_STAFF;
+  let tList=[];
+  let sList=[];
+  try {
+    const localT = JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
+    if(Array.isArray(localT)&&localT.length>0) tList=localT;
+    const localS = JSON.parse(localStorage.getItem('magra_db_staff')||'[]');
+    if(Array.isArray(localS)&&localS.length>0) sList=localS;
+  } catch {}
+  if(!tList.length) tList=teachersList.length?teachersList:MOCK_TEACHERS;
+  if(!sList.length) sList=MOCK_STAFF;
   const head=tList.find(t=>t.public_contact_role==='head_teacher'||(t.designation&&t.designation.includes('প্রধান শিক্ষক')&&!t.designation.includes('সহকারী')))||tList[0];
   const asst=tList.find(t=>t.public_contact_role==='assistant_head_teacher'||(t.designation&&t.designation.includes('সহকারী প্রধান শিক্ষক')))||tList[1]||tList[0];
   const ict=tList.find(t=>t.public_contact_role==='ict_teacher'||(t.subject&&(t.subject.includes('আইসিটি')||t.subject.includes('ICT')))||(t.designation&&(t.designation.includes('আইসিটি')||t.designation.includes('ICT'))))||tList[2]||tList[0];
-  const office=sList.find(s=>s.public_contact_role==='office_assistant'||(s.designation&&s.designation.includes('অফিস')))||sList[0]||tList[3];
+  const office=(sList&&sList.find(s=>s.public_contact_role==='office_assistant'||(s.designation&&s.designation.includes('অফিস'))))||sList[0]||MOCK_STAFF[0];
   return [
    { key:'head', role:'প্রধান শিক্ষক', person:head },
    { key:'assistant', role:'সহকারী প্রধান শিক্ষক', person:asst },
@@ -553,7 +561,7 @@ function Home(){
        const email=p?.email||'';
        const photo=getTeacherPhoto(p);
        return (
-        <article className="contact-card" id={'contact-'+c.key} key={c.key}>
+        <article className="contact-card" id={'contact-'+c.key} key={c.key} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})} title={`${name} — ${desig}`}>
          <div className="contact-avatar-wrap">
           <img src={photo} alt={name} className="contact-avatar-img"/>
          </div>
@@ -562,12 +570,12 @@ function Home(){
          <p className="contact-desig">{desig}</p>
          {phone&&(
           <p className="contact-phone">
-           📱 <a href={`tel:${phone}`}>{phone}</a>
+           📱 <a href={`tel:${phone}`} onClick={e=>e.stopPropagation()}>{phone}</a>
           </p>
          )}
          {email&&(
           <p className="contact-email">
-           ✉️ <a href={`mailto:${email}`}>{email}</a>
+           ✉️ <a href={`mailto:${email}`} onClick={e=>e.stopPropagation()}>{email}</a>
           </p>
          )}
         </article>
