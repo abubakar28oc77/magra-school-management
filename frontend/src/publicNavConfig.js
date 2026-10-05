@@ -23,12 +23,5 @@ export const publicNavConfig = [
  {key:'public.nav.gallery',label:'গ্যালারি',href:'#gallery'},
  {key:'public.nav.contact',label:'যোগাযোগ',children:[
   ['public.nav.contact.head','প্রধান শিক্ষক','#contact-head'],['public.nav.contact.assistant','সহকারী প্রধান শিক্ষক','#contact-assistant'],['public.nav.contact.ict','আইসিটি শিক্ষক','#contact-ict'],['public.nav.contact.office','অফিস সহকারী','#contact-office'],['public.nav.contact.all','যোগাযোগ ও ঠিকানা','#contact']
- ]},
- {key:'public.nav.admission',label:'🎓 অনলাইন ভর্তি',children:[
-  ['public.nav.admission.apply','📝 ভর্তির আবেদন ফরম','#admission-apply'],
-  ['public.nav.admission.docs','📑 প্রয়োজনীয় কাগজপত্র ও সনদ','#admission-docs'],
-  ['public.nav.admission.rules','📜 ভর্তি নিয়মাবলী ও যোগ্যতা','#admission-rules'],
-  ['public.nav.admission.tracking','🔍 আবেদন ট্র্যাকিং ও রসিদ','#admission-tracking']
- ]},
- {key:'public.nav.login',label:'লগইন',href:'#/login',emphasis:true}
+ ]}
 ];

@@ -190,7 +190,7 @@ function Header({ onOpenSubmenu }){
 
  return <header className="site-header reference-shell">
   <div className="topbar"><div className="topbar-inner"><div className="topbar-info"><span>EIIN: <b>114290</b></span><span>MPO: <b>4206071302</b></span><span>Email: <b>magrapuhs.46@gmail.com</b></span></div><div className="topbar-social" aria-label="সামাজিক যোগাযোগ"><span aria-label="Facebook">f</span><span aria-label="YouTube">▶</span></div></div></div>
-  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন ভর্তি ২০২৬','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/><a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a><button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
+  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><LanguageSwitcher/><button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
   <div className="nav-band"><nav id="public-navigation" className={open?'open':''} aria-label="প্রধান নেভিগেশন">
    {nav.map((item,i)=>item.children ? <div className={'nav-dropdown '+(dropdown===i?'active':'')} key={item.key}>
     <button className="nav-drop-trigger" type="button" aria-expanded={dropdown===i} aria-haspopup="menu" onClick={()=>setDropdown(dropdown===i?null:i)}>{lang==='bi'?<>{item.label}<small className="lang-secondary">{NAV_EN[item.label]||''}</small></>:label(item.label,lang)}<span className="chevron">⌄</span></button>
@@ -415,28 +415,6 @@ function Home(){
     <section id="services" className="ref-section"><div className="ref-title"><h2>আমাদের বিভিন্ন শিক্ষা কার্যক্রম</h2><span></span></div><div className="service-grid">{services.map(([icon,title,desc])=><a className="service-card" href="#school-info" onClick={(e)=>handleServiceClick(e,title)} key={title}><div className="service-icon">{icon}</div><h3>{title}</h3><p>{desc}</p></a>)}</div></section>
 
     <section id="notice" className="ref-section"><div className="ref-panel"><div className="panel-head"><h2>নোটিশবোর্ড</h2><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'বিদ্যালয়ের সকল নোটিশবোর্ড'});}}>🔗 সকল নোটিশ দেখুন</a></div><div className="notice-table"><div className="notice-row notice-head"><span>আইডি</span><span>টাইটেল</span><span>তারিখ</span><span>প্রকাশ</span></div>{notices.length?notices.slice(0,6).map((n,i)=><div className="notice-row" key={n.id}><span>{n.id?.toString().slice(-3)||i+1}</span><span>{n.title_bn}</span><span>{n.notice_date||'—'}</span><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:n.title_bn});}}>View</a></div>):<div className="notice-empty-row">এখনও কোনো নোটিশ প্রকাশিত হয়নি।</div>}</div></div></section>
-
-    {/* ২. অনলাইন ভর্তি আকর্ষণীয় ব্যানার — সাবমেনু/মডাল হিসেবে খোলা হবে */}
-    <section id="admission" className="ref-section admission-compact-banner">
-     <div className="admission-compact-inner">
-      <div className="admission-compact-info">
-       <span className="admission-badge-pill">ভর্তি বিজ্ঞপ্তি ২০২৬</span>
-       <h3>🎓 ২০২৬ শিক্ষাবর্ষে ৬ষ্ঠ থেকে ১০ম শ্রেণিতে অনলাইন শিক্ষার্থী ভর্তি চলছে</h3>
-       <p>ঘরে বসেই অনলাইনে ভর্তি আবেদন সম্পন্ন করুন এবং প্রয়োজনীয় কাগজপত্রের তালিকা ও ফি নির্দেশিকা জানুন।</p>
-      </div>
-      <div className="admission-compact-btns">
-       <button type="button" className="btn-adm-highlight" onClick={()=>setActiveModal({key:'public.nav.admission.apply',title:'অনলাইন শিক্ষার্থী ভর্তি আবেদন'})}>
-        📝 অনলাইনে আবেদন করুন
-       </button>
-       <button type="button" className="btn-adm-outline" onClick={()=>setActiveModal({key:'public.nav.admission.docs',title:'ভর্তির প্রয়োজনীয় কাগজপত্র ও সনদ'})}>
-        📑 প্রয়োজনীয় কাগজপত্র
-       </button>
-       <button type="button" className="btn-adm-outline" onClick={()=>setActiveModal({key:'public.nav.admission.tracking',title:'আবেদন ট্র্যাকিং ও রসিদ'})}>
-        🔍 আবেদন ট্র্যাকিং
-       </button>
-      </div>
-     </div>
-    </section>
 
     <section className="ref-section link-panels">
      <div className="link-panel">
@@ -1856,7 +1834,7 @@ function App(){
  if(location.pathname==="/admin") return <><ObserverSwitcher/><Admin/></>;
  if(location.pathname==="/portal") return <><ObserverSwitcher/><Portal/></>;
  if(location.pathname==="/login") return <><ObserverSwitcher/><div className="login-page"><Header/><Login/></div></>;
- return <Home/>;
+ return <><ObserverSwitcher/><Home/></>;
 }
 
 const rootEl = document.getElementById("root");
