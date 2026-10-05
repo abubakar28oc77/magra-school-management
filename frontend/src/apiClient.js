@@ -30,6 +30,10 @@ function getLocalStore(key, defaultVal) {
       return defaultVal;
     }
     const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(defaultVal) && defaultVal.length > 0) {
+      localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
+      return defaultVal;
+    }
     return Array.isArray(parsed) || typeof parsed === 'object' ? parsed : defaultVal;
   } catch {
     return defaultVal;
@@ -801,10 +805,103 @@ function handleMockRequest(path, opts = {}) {
 
   // 14. Admissions
   if (cleanPath === '/admissions') {
-    return getLocalStore('admissions', MOCK_ADMISSIONS);
+    let admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
+    if (method === 'POST') {
+      const yr = body.academic_year || new Date().getFullYear();
+      const newAdm = {
+        ...body,
+        id: 'adm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        application_no: body.application_no || ('ADM-' + yr + '-' + String(admissions.length + 1).padStart(3, '0')),
+        application_date: body.application_date || new Date().toISOString().slice(0, 10),
+        status: body.status || 'submitted',
+        payment_status: body.payment_status || 'unpaid',
+        payment_amount: body.payment_amount || 0
+      };
+      admissions.unshift(newAdm);
+      setLocalStore('admissions', admissions);
+      return newAdm;
+    }
+    const q = params.get('q')?.trim().toLowerCase();
+    const yr = params.get('academic_year');
+    const cls = params.get('applied_class');
+    const st = params.get('status');
+    if (q) {
+      admissions = admissions.filter(a =>
+        a && ((a.application_no || '').toLowerCase().includes(q) ||
+        (a.applicant_name_bn || '').toLowerCase().includes(q) ||
+        (a.applicant_name_en || '').toLowerCase().includes(q) ||
+        (a.guardian_phone || '').includes(q))
+      );
+    }
+    if (yr) {
+      admissions = admissions.filter(a => a && String(a.academic_year) === String(yr));
+    }
+    if (cls) {
+      admissions = admissions.filter(a => a && String(a.applied_class) === String(cls));
+    }
+    if (st) {
+      admissions = admissions.filter(a => a && a.status === st);
+    }
+    return admissions;
   }
-  if (cleanPath === '/admissions/summary') {
-    return { total: 45, submitted: 8, under_review: 12, selected: 15, admitted: 10 };
+
+  if (cleanPath.startsWith('/admissions/')) {
+    const rest = cleanPath.replace('/admissions/', '');
+    let admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
+    if (rest === 'summary') {
+      const yr = params.get('academic_year');
+      const filtered = yr ? admissions.filter(a => String(a.academic_year) === String(yr)) : admissions;
+      return {
+        total: filtered.length,
+        submitted: filtered.filter(a => a.status === 'submitted').length,
+        under_review: filtered.filter(a => a.status === 'under_review').length,
+        selected: filtered.filter(a => a.status === 'selected').length,
+        admitted: filtered.filter(a => a.status === 'admitted').length
+      };
+    }
+    if (rest.endsWith('/convert') && method === 'POST') {
+      const admId = rest.replace('/convert', '');
+      const adm = admissions.find(a => String(a.id) === String(admId));
+      if (adm) {
+        adm.status = 'admitted';
+        setLocalStore('admissions', admissions);
+        const students = getLocalStore('students', MOCK_STUDENTS);
+        const newStudent = {
+          id: 'std_' + Date.now(),
+          student_id: 'STU-' + (adm.academic_year || new Date().getFullYear()) + '-' + String(students.length + 1).padStart(4, '0'),
+          name_bn: adm.applicant_name_bn,
+          name_en: adm.applicant_name_en || '',
+          class_name: adm.applied_class || '6',
+          section: 'A',
+          gender: adm.gender || '',
+          date_of_birth: adm.date_of_birth || '',
+          father_name: adm.father_name || '',
+          mother_name: adm.mother_name || '',
+          guardian_name: adm.guardian_name || adm.father_name || '',
+          guardian_phone: adm.guardian_phone || '',
+          guardian_email: adm.guardian_email || '',
+          address: adm.address || '',
+          birth_registration_no: adm.birth_registration_no || '',
+          previous_school: adm.previous_school || '',
+          admission_date: new Date().toISOString().slice(0, 10),
+          status: 'active'
+        };
+        students.unshift(newStudent);
+        setLocalStore('students', students);
+      }
+      return { success: true };
+    }
+    const admId = rest;
+    if (method === 'PUT') {
+      admissions = admissions.map(a => String(a.id) === String(admId) ? { ...a, ...body } : a);
+      setLocalStore('admissions', admissions);
+      return { success: true };
+    }
+    if (method === 'DELETE') {
+      admissions = admissions.filter(a => String(a.id) !== String(admId));
+      setLocalStore('admissions', admissions);
+      return { success: true };
+    }
   }
 
   // 15. Scholarships

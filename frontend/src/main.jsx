@@ -1,4 +1,4 @@
-import React,{useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {HashRouter,useNavigate,useLocation,Link} from 'react-router-dom';
 import './styles.css';
@@ -7,7 +7,7 @@ import {LanguageProvider,useLanguage,bilingual,LanguageSwitcher} from './i18n';
 import {requestApi} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
-import {MOCK_USERS} from './mockData';
+import {MOCK_USERS, MOCK_TEACHERS, MOCK_STAFF} from './mockData';
 import logo from '../public/school-logo.png';
 import building from '../public/school-building.jpg';
 
@@ -192,18 +192,52 @@ function Header({ onOpenSubmenu }){
 }
 
 function Home(){
- const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
+ const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[teachersList,setTeachersList]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
  const[customLinks,setCustomLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_important_links')||'[]')}catch{return []}});
  const[showAddLink,setShowAddLink]=useState(false),[newLinkTitle,setNewLinkTitle]=useState(''),[newLinkUrl,setNewLinkUrl]=useState('');
+ const[isRollingPaused,setIsRollingPaused]=useState(false);
+ const teachersTrackRef=useRef(null);
  const nav=useNavigate();
  
+ const emptyAdmissionForm={
+  academic_year:'2026',
+  applied_class:'৬',
+  applicant_name_bn:'',
+  applicant_name_en:'',
+  date_of_birth:'',
+  gender:'পুরুষ',
+  religion:'ইসলাম',
+  blood_group:'A+',
+  birth_registration_no:'',
+  father_name:'',
+  father_phone:'',
+  mother_name:'',
+  mother_phone:'',
+  guardian_name:'',
+  guardian_phone:'',
+  address:'',
+  previous_school:'',
+  quota:'সাধারণ',
+  notes:''
+ };
+ const[admissionForm,setAdmissionForm]=useState(emptyAdmissionForm);
+ const[admissionSubmitting,setAdmissionSubmitting]=useState(false);
+ const[admissionMsg,setAdmissionMsg]=useState('');
+ const[admissionReceipt,setAdmissionReceipt]=useState(null);
+
  const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 
  useEffect(()=>{
   api('/notices').then(setNotices).catch(()=>{});
   api('/public/content').then(setItems).catch(()=>{});
-  api('/public/contact').then(d=>setContacts(d.contacts||[])).catch(()=>setContacts([]));
   api('/public/student-stats').then(setStats).catch(()=>setStats(null));
+  api('/teachers?status=active').then(d=>{
+   if(Array.isArray(d)&&d.length) setTeachersList(d.filter(t=>t.status==='active'||!t.status));
+   else setTeachersList(MOCK_TEACHERS);
+  }).catch(()=>setTeachersList(MOCK_TEACHERS));
+  api('/public/contact').then(d=>{
+   if(d&&Array.isArray(d.contacts)&&d.contacts.length) setContacts(d.contacts);
+  }).catch(()=>{});
  },[]);
 
  const pct=(rows)=>{const total=(rows||[]).reduce((a,x)=>a+Number(x.count||0),0);if(!total)return '—';const top=[...(rows||[])].sort((a,b)=>Number(b.count)-Number(a.count))[0];return top?toBn(Math.round(Number(top.count)*100/total))+'%':'—'};
@@ -258,6 +292,16 @@ function Home(){
  const allImportantLinks=[...defaultLinks,...customLinks];
 
  const handleServiceClick=(e, title)=>{
+  if(title==='অনলাইন ভর্তি'){
+   e.preventDefault();
+   const el=document.getElementById('admission');
+   if(el){
+    el.scrollIntoView({behavior:'smooth'});
+   } else {
+    setActiveModal({key:'public.nav.results.admission',title:'অনলাইন ভর্তি আবেদন ও তথ্যাদি'});
+   }
+   return;
+  }
   const map={
    'অনলাইন ভর্তি':'public.nav.results.admission',
    'অনলাইন ফলাফল':'public.nav.results.analysis',
@@ -280,6 +324,56 @@ function Home(){
   }
  };
 
+ const displayContacts=useMemo(()=>{
+  if(contacts&&contacts.length>0) return contacts;
+  const tList=teachersList.length?teachersList:MOCK_TEACHERS;
+  const sList=MOCK_STAFF;
+  const head=tList.find(t=>t.public_contact_role==='head_teacher'||(t.designation&&t.designation.includes('প্রধান শিক্ষক')&&!t.designation.includes('সহকারী')))||tList[0];
+  const asst=tList.find(t=>t.public_contact_role==='assistant_head_teacher'||(t.designation&&t.designation.includes('সহকারী প্রধান শিক্ষক')))||tList[1]||tList[0];
+  const ict=tList.find(t=>t.public_contact_role==='ict_teacher'||(t.subject&&(t.subject.includes('আইসিটি')||t.subject.includes('ICT')))||(t.designation&&(t.designation.includes('আইসিটি')||t.designation.includes('ICT'))))||tList[2]||tList[0];
+  const office=sList.find(s=>s.public_contact_role==='office_assistant'||(s.designation&&s.designation.includes('অফিস')))||sList[0]||tList[3];
+  return [
+   { key:'head', role:'প্রধান শিক্ষক', person:head },
+   { key:'assistant', role:'সহকারী প্রধান শিক্ষক', person:asst },
+   { key:'ict', role:'আইসিটি শিক্ষক', person:ict },
+   { key:'office', role:'অফিস সহকারী', person:office }
+  ];
+ },[contacts,teachersList]);
+
+ const activeTeachersToRoll=teachersList.length?teachersList:MOCK_TEACHERS;
+ const loopedTeachers=[...activeTeachersToRoll,...activeTeachersToRoll];
+
+ const handleAdmissionSubmit=async(e)=>{
+  e.preventDefault();
+  if(!admissionForm.applicant_name_bn.trim()){
+   setAdmissionMsg('অনুগ্রহ করে শিক্ষার্থীর নাম লিখুন।');
+   return;
+  }
+  if(!admissionForm.guardian_phone.trim()){
+   setAdmissionMsg('অনুগ্রহ করে অভিভাবকের মোবাইল নম্বর প্রদান করুন।');
+   return;
+  }
+  setAdmissionSubmitting(true);
+  setAdmissionMsg('');
+  try{
+   const res=await api('/admissions',{
+    method:'POST',
+    body:JSON.stringify({
+     ...admissionForm,
+     father_name:admissionForm.father_name||admissionForm.guardian_name,
+     application_date:new Date().toISOString().slice(0,10),
+     status:'submitted'
+    })
+   });
+   setAdmissionReceipt(res);
+   setAdmissionMsg('অভিনন্দন! আপনার অনলাইন ভর্তি আবেদন সফলভাবে গ্রহণ করা হয়েছে।');
+  }catch(err){
+   setAdmissionMsg('আবেদন জমাদানে ত্রুটি: '+err.message);
+  }finally{
+   setAdmissionSubmitting(false);
+  }
+ };
+
  return <div className="reference-public">
   <a className="skip-link" href="#main-content">মূল কনটেন্টে যান</a>
   <Header onOpenSubmenu={(key, title) => setActiveModal({ key, title })} />
@@ -288,7 +382,7 @@ function Home(){
 
    <section className="ref-stats ref-container" aria-label="বিদ্যালয়ের পরিসংখ্যান">
     <div className="ref-stat"><strong>{toBn(stats?.total??0)}</strong><span>শিক্ষার্থী</span></div>
-    <div className="ref-stat"><strong>{toBn(stats?.teachers??0)}</strong><span>শিক্ষক ও কর্মচারী</span></div>
+    <div className="ref-stat"><strong>{toBn(stats?.teachers??(activeTeachersToRoll.length||8))}</strong><span>শিক্ষক ও কর্মচারী</span></div>
     <div className="ref-stat"><strong>৬–১০</strong><span>শ্রেণি</span></div>
     <div className="ref-stat"><strong>১৯৪৬</strong><span>প্রতিষ্ঠিত</span></div>
    </section>
@@ -303,6 +397,292 @@ function Home(){
     <section id="services" className="ref-section"><div className="ref-title"><h2>আমাদের বিভিন্ন শিক্ষা কার্যক্রম</h2><span></span></div><div className="service-grid">{services.map(([icon,title,desc])=><a className="service-card" href="#school-info" onClick={(e)=>handleServiceClick(e,title)} key={title}><div className="service-icon">{icon}</div><h3>{title}</h3><p>{desc}</p></a>)}</div></section>
 
     <section id="notice" className="ref-section"><div className="ref-panel"><div className="panel-head"><h2>নোটিশবোর্ড</h2><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'বিদ্যালয়ের সকল নোটিশবোর্ড'});}}>🔗 সকল নোটিশ দেখুন</a></div><div className="notice-table"><div className="notice-row notice-head"><span>আইডি</span><span>টাইটেল</span><span>তারিখ</span><span>প্রকাশ</span></div>{notices.length?notices.slice(0,6).map((n,i)=><div className="notice-row" key={n.id}><span>{n.id?.toString().slice(-3)||i+1}</span><span>{n.title_bn}</span><span>{n.notice_date||'—'}</span><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:n.title_bn});}}>View</a></div>):<div className="notice-empty-row">এখনও কোনো নোটিশ প্রকাশিত হয়নি।</div>}</div></div></section>
+
+    {/* ২. অনলাইন ভর্তি আবেদন ও প্রয়োজনীয় ডকুমেন্টস নির্দেশিকা */}
+    <section id="admission" className="ref-section ref-admission-section">
+     <div className="admission-banner">
+      <span className="admission-badge-pill">ONLINE ADMISSION 2026</span>
+      <h2>🎓 অনলাইন শিক্ষার্থী ভর্তি আবেদন ও নির্দেশিকা</h2>
+      <p>ঘরে বসেই বিদ্যালয়ে ভর্তির জন্য অনলাইনে আবেদন সম্পন্ন করুন এবং ভর্তির প্রয়োজনীয় সনদপত্র ও নিয়মাবলী জানুন।</p>
+     </div>
+
+     <div className="admission-grid-container">
+      {/* বাম কলাম: ভর্তির সময় সাথে আনার প্রয়োজনীয় ডকুমেন্টস */}
+      <div className="admission-card-panel">
+       <div className="admission-card-head" style={{background:'#ecfdf5',borderBottom:'1px solid #a7f3d0'}}>
+        <h3 style={{color:'#065f46'}}>📑 ভর্তির সময় সাথে আনার প্রয়োজনীয় ডকুমেন্টস</h3>
+        <span style={{fontSize:'11px',background:'#d1fae5',color:'#047857',padding:'2px 8px',borderRadius:'12px',fontWeight:700}}>৭টি আবশ্যক সনদ</span>
+       </div>
+       <div className="admission-card-body">
+        <div className="doc-checklist">
+         <div className="doc-item">
+          <div className="doc-num">১</div>
+          <div className="doc-info">
+           <h4>অনলাইন পূরণকৃত আবেদনপত্রের প্রিন্ট কপি</h4>
+           <p>অনলাইনে ফরম পূরণের পর প্রিন্টকৃত অথবা ডাউনলোডকৃত আবেদন কপি (১ সেট)।</p>
+           <span className="doc-tag">প্রিন্ট কপি</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">২</div>
+          <div className="doc-info">
+           <h4>সদ্য তোলা পাসপোর্ট সাইজের রঙিন ছবি</h4>
+           <p>শিক্ষার্থীর ২ কপি এবং পিতা/মাতা/আইনগত অভিভাবকের ১ কপি রঙিন ছবি।</p>
+           <span className="doc-tag">ছবি</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">৩</div>
+          <div className="doc-info">
+           <h4>ডিজিটাল জন্ম নিবন্ধন সনদের সত্যায়িত ফটোকপি</h4>
+           <p>অনলাইন ভেরিফায়েড ১৭ ডিজিটের ডিজিটাল জন্ম নিবন্ধন সনদের স্পষ্ট কপি।</p>
+           <span className="doc-tag">অনলাইন ভেরিফায়েড</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">৪</div>
+          <div className="doc-info">
+           <h4>পূর্ববর্তী শ্রেণি পাশের মূল মার্কশিট ও প্রশংসাপত্র/TC</h4>
+           <p>পূর্ববর্তী বিদ্যালয়ের ছাড়পত্র (Transfer Certificate) ও একাডেমিক ট্রান্সক্রিপ্ট।</p>
+           <span className="doc-tag">মূল কপি ও ফটোকপি</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">৫</div>
+          <div className="doc-info">
+           <h4>পিতা ও মাতার জাতীয় পরিচয়পত্র (NID)-এর ফটোকপি</h4>
+           <p>পিতা ও মাতার জাতীয় পরিচয়পত্রের স্পষ্ট ফটোকপি (১ কপি করে)।</p>
+           <span className="doc-tag">NID ফটোকপি</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">৬</div>
+          <div className="doc-info">
+           <h4>কোটা বা বিশেষ সুবিধা সংক্রান্ত সনদ (প্রযোজ্য ক্ষেত্রে)</h4>
+           <p>মুক্তিযোদ্ধা, ক্ষুদ্র নৃগোষ্ঠী, প্রতিবন্ধী বা অন্যান্য কোটার সমর্থনে প্রমাণপত্র।</p>
+           <span className="doc-tag">প্রযোজ্য ক্ষেত্রে</span>
+          </div>
+         </div>
+         <div className="doc-item">
+          <div className="doc-num">৭</div>
+          <div className="doc-info">
+           <h4>রক্তের গ্রুপ পরীক্ষার রিপোর্ট</h4>
+           <p>শিক্ষার্থীর রক্তের গ্রুপ নিশ্চিতকরণে অনুমোদিত ল্যাবের পরীক্ষার রিপোর্ট।</p>
+           <span className="doc-tag">মেডিকেল রিপোর্ট</span>
+          </div>
+         </div>
+        </div>
+
+        <div className="admission-instructions">
+         <strong>📌 গুরুত্বপূর্ণ ভর্তি নির্দেশনা:</strong>
+         <ul style={{margin:'6px 0 0',paddingLeft:'18px'}}>
+          <li>আবেদন যাচাই-বাছাই শেষে নির্বাচিত প্রার্থীদের অভিভাবকের মোবাইলে SMS-এ নিশ্চিত করা হবে।</li>
+          <li>ভর্তির চূড়ান্ত দিনে মূল কাগজপত্রসহ শিক্ষার্থী ও অভিভাবককে সশরীরে উপস্থিত হতে হবে।</li>
+         </ul>
+        </div>
+       </div>
+      </div>
+
+      {/* ডান কলাম: অনলাইন ভর্তি আবেদন ফরম বা প্রাপ্তিস্বীকার রসিদ */}
+      <div className="admission-card-panel">
+       <div className="admission-card-head">
+        <h3>📝 {admissionReceipt?'ভর্তি আবেদন প্রাপ্তিস্বীকার রসিদ':'অনলাইন ভর্তি আবেদন ফরম'}</h3>
+        {!admissionReceipt&&<span style={{fontSize:'11px',color:'#64748b'}}>সরাসরি ঘরে বসেই আবেদন</span>}
+       </div>
+       <div className="admission-card-body">
+        {admissionReceipt ? (
+         <div className="admission-slip">
+          <span className="admission-slip-badge">✓ আবেদন সফলভাবে গৃহীত হয়েছে</span>
+          <h3 className="admission-slip-title">{admissionReceipt.applicant_name_bn}</h3>
+          <div className="admission-app-no">আবেদন নং: {admissionReceipt.application_no}</div>
+          <p style={{margin:'4px 0 10px',fontSize:'12px',color:'#475569'}}>
+           শ্রেণি: <b>{admissionReceipt.applied_class}</b> • শিক্ষাবর্ষ: <b>{admissionReceipt.academic_year}</b>
+          </p>
+          <div className="admission-slip-details">
+           <div><b>পিতা/অভিভাবক:</b> {admissionReceipt.guardian_name||admissionReceipt.father_name}</div>
+           <div><b>মোবাইল:</b> {admissionReceipt.guardian_phone}</div>
+           <div><b>জন্ম তারিখ:</b> {admissionReceipt.date_of_birth||'—'}</div>
+           <div><b>আবেদনের তারিখ:</b> {admissionReceipt.application_date}</div>
+           <div style={{gridColumn:'1/-1'}}><b>ঠিকানা:</b> {admissionReceipt.address||'—'}</div>
+          </div>
+          <p style={{fontSize:'11px',color:'#166534',background:'#dcfce7',padding:'8px',borderRadius:'6px'}}>
+           অনুগ্রহ করে এই আবেদনপত্রটি প্রিন্ট করে সংরক্ষণ করুন এবং ভর্তির দিন উল্লেখিত সকল মূল সনদসহ বিদ্যালয়ে উপস্থিত হোন।
+          </p>
+          <div className="admission-slip-actions">
+           <button type="button" className="adm-submit-btn" onClick={()=>window.print()}>
+            🖨️ রসিদ ও আবেদন প্রিন্ট করুন
+           </button>
+           <button
+            type="button"
+            className="mini"
+            style={{background:'#e2e8f0',color:'#334155',border:'none',padding:'10px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}}
+            onClick={()=>{setAdmissionReceipt(null);setAdmissionForm(emptyAdmissionForm);setAdmissionMsg('');}}
+           >
+            + নতুন আবেদন
+           </button>
+          </div>
+         </div>
+        ) : (
+         <form onSubmit={handleAdmissionSubmit} className="adm-form-grid">
+          <div className="adm-form-field">
+           <label>ভর্তির শ্রেণি *</label>
+           <select value={admissionForm.applied_class} onChange={e=>setAdmissionForm({...admissionForm,applied_class:e.target.value})} required>
+            {['৬','৭','৮','৯','১০'].map(c=>(
+             <option key={c} value={c}>শ্রেণি {c}</option>
+            ))}
+           </select>
+          </div>
+          <div className="adm-form-field">
+           <label>শিক্ষাবর্ষ *</label>
+           <select value={admissionForm.academic_year} onChange={e=>setAdmissionForm({...admissionForm,academic_year:e.target.value})} required>
+            <option value="2026">২০২৬</option>
+            <option value="2027">২০২৭</option>
+           </select>
+          </div>
+          <div className="adm-form-field full">
+           <label>শিক্ষার্থীর পুরো নাম (বাংলায়) *</label>
+           <input
+            type="text"
+            placeholder="যেমন: মোঃ মাহির আহমেদ"
+            value={admissionForm.applicant_name_bn}
+            onChange={e=>setAdmissionForm({...admissionForm,applicant_name_bn:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field full">
+           <label>Applicant Full Name (English)</label>
+           <input
+            type="text"
+            placeholder="e.g. Md. Mahir Ahmed"
+            value={admissionForm.applicant_name_en}
+            onChange={e=>setAdmissionForm({...admissionForm,applicant_name_en:e.target.value})}
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>জন্ম তারিখ *</label>
+           <input
+            type="date"
+            value={admissionForm.date_of_birth}
+            onChange={e=>setAdmissionForm({...admissionForm,date_of_birth:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>লিঙ্গ *</label>
+           <select value={admissionForm.gender} onChange={e=>setAdmissionForm({...admissionForm,gender:e.target.value})} required>
+            <option value="পুরুষ">পুরুষ</option>
+            <option value="নারী">নারী</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+           </select>
+          </div>
+          <div className="adm-form-field">
+           <label>ধর্ম</label>
+           <select value={admissionForm.religion} onChange={e=>setAdmissionForm({...admissionForm,religion:e.target.value})}>
+            <option value="ইসলাম">ইসলাম</option>
+            <option value="হিন্দু">হিন্দু</option>
+            <option value="বৌদ্ধ">বৌদ্ধ</option>
+            <option value="খ্রিস্টান">খ্রিস্টান</option>
+            <option value="অন্যান্য">অন্যান্য</option>
+           </select>
+          </div>
+          <div className="adm-form-field">
+           <label>রক্তের গ্রুপ</label>
+           <select value={admissionForm.blood_group} onChange={e=>setAdmissionForm({...admissionForm,blood_group:e.target.value})}>
+            {['A+','A-','B+','B-','O+','O-','AB+','AB-'].map(b=>(
+             <option key={b} value={b}>{b}</option>
+            ))}
+           </select>
+          </div>
+          <div className="adm-form-field full">
+           <label>১৭ ডিজিটের ডিজিটাল জন্ম নিবন্ধন নম্বর *</label>
+           <input
+            type="text"
+            placeholder="অনলাইন ভেরিফায়েড ১৭ ডিজিট নম্বর"
+            value={admissionForm.birth_registration_no}
+            onChange={e=>setAdmissionForm({...admissionForm,birth_registration_no:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>পিতার নাম *</label>
+           <input
+            type="text"
+            placeholder="পিতার নাম"
+            value={admissionForm.father_name}
+            onChange={e=>setAdmissionForm({...admissionForm,father_name:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>মাতার নাম *</label>
+           <input
+            type="text"
+            placeholder="মাতার নাম"
+            value={admissionForm.mother_name}
+            onChange={e=>setAdmissionForm({...admissionForm,mother_name:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>অভিভাবকের নাম *</label>
+           <input
+            type="text"
+            placeholder="পিতা / মাতা / বৈধ অভিভাবক"
+            value={admissionForm.guardian_name}
+            onChange={e=>setAdmissionForm({...admissionForm,guardian_name:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>অভিভাবকের মোবাইল নম্বর *</label>
+           <input
+            type="tel"
+            placeholder="017XXXXXXXX"
+            value={admissionForm.guardian_phone}
+            onChange={e=>setAdmissionForm({...admissionForm,guardian_phone:e.target.value})}
+            required
+           />
+          </div>
+          <div className="adm-form-field full">
+           <label>বর্তমান ঠিকানা (গ্রাম, ডাকঘর, উপজেলা, জেলা) *</label>
+           <textarea
+            rows="2"
+            placeholder="যেমন: গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল"
+            value={admissionForm.address}
+            onChange={e=>setAdmissionForm({...admissionForm,address:e.target.value})}
+            required
+           ></textarea>
+          </div>
+          <div className="adm-form-field">
+           <label>পূর্ববর্তী বিদ্যালয়ের নাম</label>
+           <input
+            type="text"
+            placeholder="পূর্বে যে বিদ্যালয়ে পড়ত"
+            value={admissionForm.previous_school}
+            onChange={e=>setAdmissionForm({...admissionForm,previous_school:e.target.value})}
+           />
+          </div>
+          <div className="adm-form-field">
+           <label>কোটা (যদি থাকে)</label>
+           <select value={admissionForm.quota} onChange={e=>setAdmissionForm({...admissionForm,quota:e.target.value})}>
+            <option value="সাধারণ">সাধারণ</option>
+            <option value="মুক্তিযোদ্ধা">মুক্তিযোদ্ধা কোটা</option>
+            <option value="ক্ষুদ্র নৃগোষ্ঠী">ক্ষুদ্র নৃগোষ্ঠী</option>
+            <option value="বিশেষ চাহিদা সম্পন্ন">বিশেষ চাহিদা সম্পন্ন</option>
+           </select>
+          </div>
+          <div className="adm-form-field full" style={{marginTop:'8px'}}>
+           <button type="submit" className="adm-submit-btn" disabled={admissionSubmitting}>
+            {admissionSubmitting?'আবেদন জমা হচ্ছে...':'✓ অনলাইনে ভর্তি আবেদন জমা দিন'}
+           </button>
+          </div>
+         </form>
+        )}
+        {admissionMsg&&<p className="msg" style={{marginTop:'10px',fontSize:'12px'}}>{admissionMsg}</p>}
+       </div>
+      </div>
+     </div>
+    </section>
 
     <section className="ref-section link-panels">
      <div className="link-panel">
@@ -333,9 +713,122 @@ function Home(){
 
     <section id="school-info" className="ref-section about-panel"><div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div><div><h2>বিদ্যালয় সম্পর্কে</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p></div></section>
 
-    <section id="teachers" className="ref-section"><div className="ref-title"><h2>শিক্ষকবৃন্দ</h2><span></span></div><div className="people-grid">{leadershipCards.map(leader=><article className="person-card" key={leader.role} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">{leader.name.slice(0,1)}</div><h3>{leader.name}</h3><p>{leader.role}</p></article>)}<article className="person-card muted-person" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}><div className="person-avatar">+</div><h3>শিক্ষকবৃন্দ</h3><p>পূর্ণ তালিকা দেখুন →</p></article></div></section>
+    {/* ৩. সক্রিয় সকল শিক্ষকের ছবিসহ নাম, পদবী, মোবাইলসহ রোলিং ক্যারোসেল (সভাপতি বাদ) */}
+    <section id="teachers" className="ref-section rolling-teachers-section">
+     <div className="rolling-teachers-header">
+      <div className="ref-title" style={{margin:0,flex:1}}>
+       <h2>👨‍🏫 সক্রিয় শিক্ষকবৃন্দ</h2>
+       <span></span>
+      </div>
+      <div className="rolling-teachers-actions">
+       <button type="button" className="rolling-nav-btn" onClick={()=>{if(teachersTrackRef.current)teachersTrackRef.current.scrollLeft-=240;}} aria-label="পূর্ববর্তী শিক্ষক">◀</button>
+       <button type="button" className="rolling-nav-btn" onClick={()=>{if(teachersTrackRef.current)teachersTrackRef.current.scrollLeft+=240;}} aria-label="পরবর্তী শিক্ষক">▶</button>
+       <button type="button" className="rolling-nav-btn" onClick={()=>setIsRollingPaused(!isRollingPaused)} title={isRollingPaused?"রোলিং চালু করুন":"রোলিং থামান"}>
+        {isRollingPaused?"▶":"⏸"}
+       </button>
+       <button
+        type="button"
+        className="mini"
+        style={{background:'#0b8050',color:'#fff',border:'none',fontWeight:700,padding:'6px 12px',cursor:'pointer',borderRadius:'6px',marginLeft:'4px'}}
+        onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}
+       >
+        📋 সকল শিক্ষক পূর্ণতালিকা →
+       </button>
+      </div>
+     </div>
 
-    <section id="contact" className="ref-section contact-section"><div className="ref-title"><h2>যোগাযোগ</h2><span></span></div><div className="contact-grid">{contacts.map(c=>{const p=c.person;const name=p?.name_bn||'তথ্য সংযোজনযোগ্য';return <article className="contact-card" id={'contact-'+c.key} key={c.key}><div className="contact-avatar">{name.slice(0,1)}</div><div><span>{c.role}</span><h3>{name}</h3><p>{p?.designation||c.role}</p>{p?.phone&&<p>📱 <a href={`tel:${p.phone}`}>{p.phone}</a></p>}{p?.email&&<p>✉️ <a href={`mailto:${p.email}`}>{p.email}</a></p>}</div></article>})}</div><div className="contact-note">শিক্ষক/কর্মচারী ব্যবস্থাপনায় সক্রিয় প্রোফাইলের পদ, মোবাইল ও ই-মেইল পরিবর্তন হলে এই Contact অংশ স্বয়ংক্রিয়ভাবে আপডেট হবে।</div></section>
+     <div
+      className="rolling-teachers-viewport"
+      ref={teachersTrackRef}
+      onMouseEnter={()=>setIsRollingPaused(true)}
+      onMouseLeave={()=>setIsRollingPaused(false)}
+     >
+      <div
+       className="rolling-teachers-track"
+       style={{animationPlayState:isRollingPaused?'paused':'running'}}
+      >
+       {loopedTeachers.map((t,idx)=>(
+        <article
+         className="rolling-teacher-card"
+         key={(t.id||'tch')+'-'+idx}
+         onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})}
+         title={`${t.name_bn||t.name_en} — ${t.designation||'সহকারী শিক্ষক'}`}
+        >
+         <div>
+          <div className="rolling-teacher-avatar-wrap">
+           {t.photo_url ? (
+            <img src={t.photo_url} alt={t.name_bn}/>
+           ) : (
+            <span className="rolling-teacher-avatar-initial">{(t.name_bn||t.name_en||'?').slice(0,1)}</span>
+           )}
+          </div>
+          <h3>{t.name_bn||t.name_en}</h3>
+          <div className="rolling-teacher-desig">{t.designation||'সহকারী শিক্ষক'}</div>
+          {t.subject&&<span className="rolling-teacher-subject">বিষয়: {t.subject}</span>}
+         </div>
+         <div>
+          {t.phone&&(
+           <p className="rolling-teacher-contact">
+            📱 <a href={`tel:${t.phone}`} onClick={e=>e.stopPropagation()}>{t.phone}</a>
+           </p>
+          )}
+          {t.email&&(
+           <p className="rolling-teacher-contact">
+            ✉️ <a href={`mailto:${t.email}`} onClick={e=>e.stopPropagation()}>{t.email}</a>
+           </p>
+          )}
+          <span className="rolling-teacher-status">সক্রিয় শিক্ষক</span>
+         </div>
+        </article>
+       ))}
+      </div>
+     </div>
+    </section>
+
+    {/* ৪. যোগাযোগ অংশ — শিক্ষক ও কর্মচারী তালিকা থেকে স্বয়ংক্রিয়ভাবে যুক্ত */}
+    <section id="contact" className="ref-section contact-section">
+     <div className="ref-title">
+      <h2>📞 জরুরি যোগাযোগ ও দায়িত্বপ্রাপ্ত কর্মকর্তা</h2>
+      <span></span>
+     </div>
+     <div className="contact-grid">
+      {displayContacts.map(c=>{
+       const p=c.person;
+       const name=p?.name_bn||p?.name_en||'তথ্য সংযোজনযোগ্য';
+       const desig=p?.designation||c.role;
+       const phone=p?.phone||'';
+       const email=p?.email||'';
+       const photo=p?.photo_url||'';
+       return (
+        <article className="contact-card" id={'contact-'+c.key} key={c.key}>
+         <div className="contact-avatar-wrap">
+          {photo ? (
+           <img src={photo} alt={name} className="contact-avatar-img"/>
+          ) : (
+           <div className="contact-avatar">{name.slice(0,1)}</div>
+          )}
+         </div>
+         <span className="contact-role-badge">{c.role}</span>
+         <h3>{name}</h3>
+         <p className="contact-desig">{desig}</p>
+         {phone&&(
+          <p className="contact-phone">
+           📱 <a href={`tel:${phone}`}>{phone}</a>
+          </p>
+         )}
+         {email&&(
+          <p className="contact-email">
+           ✉️ <a href={`mailto:${email}`}>{email}</a>
+          </p>
+         )}
+        </article>
+       );
+      })}
+     </div>
+     <div className="contact-note">
+      ℹ️ শিক্ষক ও কর্মচারী প্রোফাইল এবং লগইন তালিকা থেকে এই যোগাযোগ তথ্য সার্বক্ষণিক স্বয়ংক্রিয়ভাবে হালনাগাদ থাকে।
+     </div>
+    </section>
 
     <section id="distinguished" className="ref-section distinguished"><div className="distinguished-head"><h2>কৃতি শিক্ষার্থী</h2><p>বিদ্যালয়ের মেধাবী ও কৃতিত্বপূর্ণ শিক্ষার্থীদের তথ্য</p></div><div className="distinguished-grid">{[1,2,3,4].map(n=><article key={n} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'})}><div className="student-silhouette">●</div><h3>কৃতি শিক্ষার্থী</h3><p>শিক্ষাবর্ষ ও অর্জনের তথ্য দেখুন</p></article>)}</div></section>
 
@@ -346,7 +839,7 @@ function Home(){
     <article className="side-card quick-side"><h2>জরুরি ও গুরুত্বপূর্ণ সেবা</h2>{emergencyServices.map(([num,title,desc])=><a className="quick-service" href={`tel:${num}`} key={num}><b>📞 {num}</b><span>{title}</span><small>{desc}</small></a>)}</article><article className="side-card quick-side"><h2>বিদ্যালয়ের যোগাযোগ</h2><div className="quick-number"><b>✉️</b><span>ই-মেইল</span><strong>magrapuhs.46@gmail.com</strong></div><div className="quick-number"><b>📍</b><span>ঠিকানা</span><strong>মগড়া, কালিহাতি, টাংগাইল</strong></div></article>
    </aside></div></section>
 
-   <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice">নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#services">ডিজিটাল শিক্ষা</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#school-info">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container">© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</div></div></section>
+   <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice">নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container">© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</div></div></section>
   </main>
   {activeModal && <SubmenuDetailModal menuKey={activeModal.key} title={activeModal.title} onClose={()=>setActiveModal(null)} onNavigateRole={(role)=>{ setActiveModal(null); const matched=MOCK_USERS.find(u=>u.role_name===role)||MOCK_USERS[0]; localStorage.setItem('magra_token','demo-'+Date.now()); localStorage.setItem('magra_user',JSON.stringify(matched)); nav(['student','guardian','teacher','head_teacher','assistant_head_teacher'].includes(matched.role_name)?'/portal':'/admin'); }} />}
  </div>
@@ -1606,7 +2099,7 @@ function App(){
  if(location.pathname==="/admin") return <><ObserverSwitcher/><Admin/></>;
  if(location.pathname==="/portal") return <><ObserverSwitcher/><Portal/></>;
  if(location.pathname==="/login") return <><ObserverSwitcher/><div className="login-page"><Header/><Login/></div></>;
- return <><ObserverSwitcher/><Home/></>;
+ return <Home/>;
 }
 
 const rootEl = document.getElementById("root");

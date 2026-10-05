@@ -30,9 +30,163 @@ export const MOCK_USERS = [
 
 export const MOCK_STUDENTS = [];
 
-export const MOCK_TEACHERS = [];
+export const MOCK_TEACHERS = [
+  {
+    id: 't-1',
+    employee_id: 'EMP-1001',
+    name_bn: 'মুহাম্মদ শফিকুল ইসলাম',
+    name_en: 'Muhammad Shafiqul Islam',
+    designation: 'প্রধান শিক্ষক',
+    designation_en: 'Head Teacher',
+    subject: 'গণিত ও প্রশাসন',
+    phone: '01712-345678',
+    email: 'headteacher.magra@gmail.com',
+    status: 'active',
+    joining_date: '2010-01-15',
+    public_contact_role: 'head_teacher',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-2',
+    employee_id: 'EMP-1002',
+    name_bn: 'তাপসী সরকার',
+    name_en: 'Tapasi Sarkar',
+    designation: 'সহকারী প্রধান শিক্ষক',
+    designation_en: 'Assistant Head Teacher',
+    subject: 'ইংরেজি',
+    phone: '01713-456789',
+    email: 'assthead.magra@gmail.com',
+    status: 'active',
+    joining_date: '2012-03-01',
+    public_contact_role: 'assistant_head_teacher',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-3',
+    employee_id: 'EMP-1003',
+    name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক',
+    name_en: 'Muhammad Abubakar Siddique',
+    designation: 'সহকারী শিক্ষক (আইসিটি)',
+    designation_en: 'Assistant Teacher (ICT)',
+    subject: 'তথ্য ও যোগাযোগ প্রযুক্তি',
+    phone: '01714-567890',
+    email: 'ict.magra@gmail.com',
+    status: 'active',
+    joining_date: '2016-08-10',
+    public_contact_role: 'ict_teacher',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-4',
+    employee_id: 'EMP-1004',
+    name_bn: 'মোঃ কামরুল হাসান',
+    name_en: 'Md. Kamrul Hasan',
+    designation: 'সহকারী শিক্ষক (বিজ্ঞান)',
+    designation_en: 'Assistant Teacher (Science)',
+    subject: 'পদার্থবিজ্ঞান ও রসায়ন',
+    phone: '01715-678901',
+    email: 'kamrul.magra@gmail.com',
+    status: 'active',
+    joining_date: '2015-05-12',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-5',
+    employee_id: 'EMP-1005',
+    name_bn: 'মোসাঃ রোকসানা খাতুন',
+    name_en: 'Mosammat Roksana Khatun',
+    designation: 'সহকারী শিক্ষক (গণিত)',
+    designation_en: 'Assistant Teacher (Mathematics)',
+    subject: 'সাধারণ গণিত ও উচ্চতর গণিত',
+    phone: '01716-789012',
+    email: 'roksana.magra@gmail.com',
+    status: 'active',
+    joining_date: '2017-02-18',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-6',
+    employee_id: 'EMP-1006',
+    name_bn: 'মোঃ রফিকুল ইসলাম',
+    name_en: 'Md. Rafiqul Islam',
+    designation: 'সহকারী শিক্ষক (বাংলা)',
+    designation_en: 'Assistant Teacher (Bangla)',
+    subject: 'বাংলা ১ম ও ২য় পত্র',
+    phone: '01717-890123',
+    email: 'rafiq.magra@gmail.com',
+    status: 'active',
+    joining_date: '2014-11-20',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-7',
+    employee_id: 'EMP-1007',
+    name_bn: 'মোঃ আশরাফুল আলম',
+    name_en: 'Md. Ashraful Alam',
+    designation: 'সহকারী শিক্ষক (সমাজবিজ্ঞান)',
+    designation_en: 'Assistant Teacher (Social Science)',
+    subject: 'বাংলাদেশ ও বিশ্বপরিচয়',
+    phone: '01718-901234',
+    email: 'ashraf.magra@gmail.com',
+    status: 'active',
+    joining_date: '2018-07-01',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-8',
+    employee_id: 'EMP-1008',
+    name_bn: 'মাওলানা মোঃ আব্দুল কাদের',
+    name_en: 'Mawlana Md. Abdul Kader',
+    designation: 'সহকারী শিক্ষক (ধর্ম)',
+    designation_en: 'Assistant Teacher (Religion)',
+    subject: 'ইসলাম ও নৈতিক শিক্ষা',
+    phone: '01719-012345',
+    email: 'kader.magra@gmail.com',
+    status: 'active',
+    joining_date: '2013-09-15',
+    public_contact_enabled: true
+  }
+];
 
-export const MOCK_STAFF = [];
+export const MOCK_STAFF = [
+  {
+    id: 's-1',
+    employee_id: 'STF-2001',
+    name_bn: 'মোঃ আলমগীর হোসেন',
+    name_en: 'Md. Alamgir Hossain',
+    designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
+    designation_en: 'Office Assistant',
+    phone: '01722-345678',
+    email: 'office.magra@gmail.com',
+    status: 'active',
+    public_contact_role: 'office_assistant',
+    public_contact_enabled: true
+  },
+  {
+    id: 's-2',
+    employee_id: 'STF-2002',
+    name_bn: 'মোঃ জালাল উদ্দিন',
+    name_en: 'Md. Jalal Uddin',
+    designation: 'হিসাব সহকারী',
+    designation_en: 'Accounts Assistant',
+    phone: '01723-456789',
+    email: 'accounts.magra@gmail.com',
+    status: 'active',
+    public_contact_enabled: true
+  },
+  {
+    id: 's-3',
+    employee_id: 'STF-2003',
+    name_bn: 'মোঃ জহিরুল ইসলাম',
+    name_en: 'Md. Zahirul Islam',
+    designation: 'অফিস সহায়ক',
+    designation_en: 'MLSS',
+    phone: '01724-567890',
+    email: 'staff.magra@gmail.com',
+    status: 'active',
+    public_contact_enabled: true
+  }
+];
 
 export const MOCK_COMMITTEE = [
   { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', tenure: '২০২৪–২০২৬' },
