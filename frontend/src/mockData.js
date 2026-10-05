@@ -118,45 +118,7 @@ export const MOCK_TEACHERS = [
   }
 ];
 
-export const MOCK_STAFF = [
-  {
-    id: 's-1',
-    employee_id: 'STF-2001',
-    name_bn: 'মোঃ আলমগীর হোসেন',
-    name_en: 'Md. Alamgir Hossain',
-    designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
-    designation_en: 'Office Assistant',
-    phone: '01722-345678',
-    email: 'office.magra@gmail.com',
-    status: 'active',
-    public_contact_role: 'office_assistant',
-    public_contact_enabled: true
-  },
-  {
-    id: 's-2',
-    employee_id: 'STF-2002',
-    name_bn: 'মোঃ জালাল উদ্দিন',
-    name_en: 'Md. Jalal Uddin',
-    designation: 'হিসাব সহকারী',
-    designation_en: 'Accounts Assistant',
-    phone: '01723-456789',
-    email: 'accounts.magra@gmail.com',
-    status: 'active',
-    public_contact_enabled: true
-  },
-  {
-    id: 's-3',
-    employee_id: 'STF-2003',
-    name_bn: 'মোঃ জহিরুল ইসলাম',
-    name_en: 'Md. Zahirul Islam',
-    designation: 'অফিস সহায়ক',
-    designation_en: 'MLSS',
-    phone: '01724-567890',
-    email: 'staff.magra@gmail.com',
-    status: 'active',
-    public_contact_enabled: true
-  }
-];
+export const MOCK_STAFF = [];
 
 export const MOCK_COMMITTEE = [
   { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', tenure: '২০২৪–২০২৬' },

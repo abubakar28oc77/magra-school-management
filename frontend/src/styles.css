@@ -321,17 +321,17 @@ button,.btn{touch-action:manipulation}
 .admission-slip-details{text-align:left;background:#fff;border:1px solid #dcfce7;border-radius:8px;padding:12px;margin:12px 0;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px}
 .admission-slip-actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
 
-/* Contact Cards Modernization & Full Circle Avatar */
+/* Contact Cards Modernization & Full Circle Avatar matching Rolling Cards */
 .contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.contact-card{background:#fff;border:1px solid #dce3eb;border-radius:12px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:0 3px 10px rgba(22,43,67,.04);transition:.2s all;cursor:pointer}
-.contact-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(22,43,67,.12);border-color:#2563eb}
-.contact-avatar-wrap{width:82px;height:82px;min-width:82px;min-height:82px;border-radius:50%;overflow:hidden;background:#dce9f7;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;border:3px solid #2563eb;box-shadow:0 4px 12px rgba(37,99,235,.2);padding:0;position:relative}
-.contact-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
-.contact-avatar{font-size:24px;font-weight:800;color:#1d4ed8}
-.contact-role-badge{display:inline-block;background:#eff6ff;color:#1e40af;font-size:11px;padding:3px 10px;border-radius:12px;font-weight:700;margin-bottom:6px;border:1px solid #bfdbfe}
-.contact-card h3{margin:0 0 4px;font-size:14px;color:#0f172a;font-weight:700;line-height:1.35}
-.contact-desig{margin:0 0 6px;font-size:12px;color:#475569;font-weight:500;line-height:1.4}
-.contact-phone,.contact-email{font-size:11px;color:#334155;margin:3px 0;display:flex;align-items:center;justify-content:center;gap:4px}
+.contact-card{background:#fff;border:1px solid #dce3eb;border-radius:10px;padding:14px 12px;text-align:center;box-shadow:0 3px 10px rgba(22,43,67,.04);transition:.2s transform,.2s box-shadow;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+.contact-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(22,43,67,.12);border-color:#0b8050}
+.contact-avatar-wrap{width:82px;height:82px;min-width:82px;min-height:82px;margin:0 auto 10px;border-radius:50%;overflow:hidden;background:#dce9f7;display:block;border:3px solid #087b3d;position:relative;box-shadow:0 3px 8px rgba(8,123,61,.2);padding:0}
+.contact-avatar-wrap img,.contact-avatar-img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.contact-avatar{font-size:24px;font-weight:800;color:#075c3a}
+.contact-role-badge{display:inline-block;background:#eef7f2;color:#075c3a;font-size:11px;padding:3px 10px;border-radius:12px;font-weight:700;margin-bottom:6px;border:1px solid #a7f3d0}
+.contact-card h3{margin:0 0 4px;font-size:14px;color:#1e293b;font-weight:700;line-height:1.35}
+.contact-desig{margin:0 0 6px;font-size:12px;color:#0b8050;font-weight:600;line-height:1.4}
+.contact-phone,.contact-email{font-size:11px;color:#475569;margin:3px 0;display:flex;align-items:center;justify-content:center;gap:4px}
 .contact-phone a,.contact-email a{color:#2563eb;text-decoration:none;font-weight:600}
 .contact-phone a:hover,.contact-email a:hover{text-decoration:underline}
 

@@ -22,19 +22,17 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Local storage database helpers
 
-function getLocalStore(key, defaultVal) {
+function getLocalStore(key, defaultVal = []) {
   try {
     const raw = localStorage.getItem('magra_db_' + key);
-    if (!raw) {
-      localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
+    if (raw === null || raw === undefined) {
+      if (defaultVal !== undefined) {
+        localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
+      }
       return defaultVal;
     }
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(defaultVal) && defaultVal.length > 0) {
-      localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
-      return defaultVal;
-    }
-    return Array.isArray(parsed) || typeof parsed === 'object' ? parsed : defaultVal;
+    return parsed !== null && parsed !== undefined ? parsed : defaultVal;
   } catch {
     return defaultVal;
   }

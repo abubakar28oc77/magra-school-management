@@ -340,7 +340,6 @@ function Home(){
  };
 
  const displayContacts=useMemo(()=>{
-  if(contacts&&contacts.length>0) return contacts;
   let tList=[];
   let sList=[];
   try {
@@ -351,17 +350,23 @@ function Home(){
   } catch {}
   if(!tList.length) tList=teachersList.length?teachersList:MOCK_TEACHERS;
   if(!sList.length) sList=MOCK_STAFF;
-  const head=tList.find(t=>t.public_contact_role==='head_teacher'||(t.designation&&t.designation.includes('প্রধান শিক্ষক')&&!t.designation.includes('সহকারী')))||tList[0];
-  const asst=tList.find(t=>t.public_contact_role==='assistant_head_teacher'||(t.designation&&t.designation.includes('সহকারী প্রধান শিক্ষক')))||tList[1]||tList[0];
-  const ict=tList.find(t=>t.public_contact_role==='ict_teacher'||(t.subject&&(t.subject.includes('আইসিটি')||t.subject.includes('ICT')))||(t.designation&&(t.designation.includes('আইসিটি')||t.designation.includes('ICT'))))||tList[2]||tList[0];
-  const office=(sList&&sList.find(s=>s.public_contact_role==='office_assistant'||(s.designation&&s.designation.includes('অফিস'))))||sList[0]||MOCK_STAFF[0];
+  const head=tList.find(t=>t.public_contact_role==='head_teacher'||(t.designation&&t.designation.includes('প্রধান শিক্ষক')&&!t.designation.includes('সহকারী')))||tList[0]||MOCK_TEACHERS[0];
+  const asst=tList.find(t=>t.public_contact_role==='assistant_head_teacher'||(t.designation&&t.designation.includes('সহকারী প্রধান শিক্ষক')))||tList[1]||MOCK_TEACHERS[1];
+  const ict=tList.find(t=>t.public_contact_role==='ict_teacher'||(t.subject&&(t.subject.includes('আইসিটি')||t.subject.includes('ICT')))||(t.designation&&(t.designation.includes('আইসিটি')||t.designation.includes('ICT'))))||tList.find(t=>(t.name_bn||'').includes('আবুবকর'))||tList[2]||MOCK_TEACHERS[2];
+  const office=(sList&&sList.find(s=>s.public_contact_role==='office_assistant'||(s.designation&&s.designation.includes('অফিস'))))||sList[0]||tList.find(t=>t.designation&&t.designation.includes('অফিস'))||{
+    name_bn: 'মো: আলমগীর হোসেন',
+    designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
+    phone: '01722-345678',
+    email: 'office.magra@gmail.com',
+    public_contact_role: 'office_assistant'
+  };
   return [
    { key:'head', role:'প্রধান শিক্ষক', person:head },
    { key:'assistant', role:'সহকারী প্রধান শিক্ষক', person:asst },
    { key:'ict', role:'আইসিটি শিক্ষক', person:ict },
    { key:'office', role:'অফিস সহকারী', person:office }
   ];
- },[contacts,teachersList]);
+ },[teachersList]);
 
  const activeTeachersToRoll=useMemo(()=>{
   let list=[];
