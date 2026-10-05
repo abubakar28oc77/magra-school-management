@@ -20,6 +20,114 @@ function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function downloadCsv(filename,rows,headers){const lines=[headers.map(csvCell).join(','),...rows.map(r=>headers.map(h=>csvCell(r[h])).join(','))];const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url)}
 function parseCsvText(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++;}else quoted=!quoted;}else if(ch===','&&!quoted){row.push(cell);cell='';}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);row=[];cell='';}else cell+=ch;}if(cell!==''||row.length){row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);}return rows;}
 function flattenCustom(row){const c=row?.extended_profile?.custom_fields||{};return Object.fromEntries(Object.entries(c).map(([k,v])=>['custom:'+k,Array.isArray(v)?v.join(' | '):typeof v==='object'?JSON.stringify(v):v]))}
+
+function CustomFields({ formKey, form, setForm }) {
+  const [fields, setFields] = useState([]);
+  useEffect(() => {
+    if (!formKey) return;
+    api(`/admin/form-fields?form_key=${encodeURIComponent(formKey)}`)
+      .then(data => {
+        if (Array.isArray(data)) {
+          setFields(data.filter(f => f && f.enabled !== false && !f.is_system));
+        } else {
+          setFields([]);
+        }
+      })
+      .catch(() => setFields([]));
+  }, [formKey]);
+
+  if (!fields.length) return null;
+
+  const updateCustom = (key, val) => {
+    setForm(prev => ({
+      ...prev,
+      extended_profile: {
+        ...(prev.extended_profile || {}),
+        custom_fields: {
+          ...((prev.extended_profile && prev.extended_profile.custom_fields) || {}),
+          [key]: val
+        }
+      }
+    }));
+  };
+
+  const customValues = (form && form.extended_profile && form.extended_profile.custom_fields) || {};
+
+  return (
+    <>
+      <div className="form-section-title full">
+        <b>অতিরিক্ত নির্ধারিত ফিল্ড (Custom Fields)</b>
+      </div>
+      {fields.map(f => {
+        const val = customValues[f.field_key] ?? '';
+        return (
+          <div className="field" key={f.field_key || f.id}>
+            <label>{f.label_bn || f.field_label || f.field_key} {f.required ? '*' : ''}</label>
+            {f.field_type === 'select' ? (
+              <select
+                value={val}
+                onChange={e => updateCustom(f.field_key, e.target.value)}
+                required={!!f.required}
+              >
+                <option value="">নির্বাচন করুন</option>
+                {(f.options || []).map((opt, idx) => (
+                  <option key={idx} value={typeof opt === 'string' ? opt : opt.value || opt.label}>
+                    {typeof opt === 'string' ? opt : opt.label || opt.value}
+                  </option>
+                ))}
+              </select>
+            ) : f.field_type === 'textarea' ? (
+              <textarea
+                value={val}
+                onChange={e => updateCustom(f.field_key, e.target.value)}
+                required={!!f.required}
+                rows={2}
+              />
+            ) : (
+              <input
+                type={f.field_type || 'text'}
+                value={val}
+                onChange={e => updateCustom(f.field_key, e.target.value)}
+                required={!!f.required}
+                placeholder={f.placeholder || ''}
+              />
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '30px', textAlign: 'center', background: '#fff', margin: '20px auto', maxWidth: '600px', borderRadius: '8px', border: '1px solid #fed7d7', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+          <h2 style={{ color: '#c53030', margin: '0 0 10px' }}>⚠️ কিছু সমস্যা হয়েছে</h2>
+          <p style={{ color: '#4a5568', margin: '0 0 16px' }}>নিচের বাটনে ক্লিক করে পেজটি আবার চালু করুন।</p>
+          <button 
+            style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+            onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
+          >
+            🔄 পেজ রিলোড করুন
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 const STATUS_BN = {
   active: 'সক্রিয়',
   inactive: 'নিষ্ক্রিয়',
@@ -1504,4 +1612,4 @@ const rootEl = document.getElementById("root");
 if (!window.__magra_root) {
  window.__magra_root = createRoot(rootEl);
 }
-window.__magra_root.render(<LanguageProvider><HashRouter><App/></HashRouter></LanguageProvider>);
+window.__magra_root.render(<ErrorBoundary><LanguageProvider><HashRouter><App/></HashRouter></LanguageProvider></ErrorBoundary>);
