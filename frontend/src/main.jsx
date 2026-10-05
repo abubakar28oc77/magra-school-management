@@ -190,7 +190,7 @@ function Header({ onOpenSubmenu }){
 
  return <header className="site-header reference-shell">
   <div className="topbar"><div className="topbar-inner"><div className="topbar-info"><span>EIIN: <b>114290</b></span><span>MPO: <b>4206071302</b></span><span>Email: <b>magrapuhs.46@gmail.com</b></span></div><div className="topbar-social" aria-label="সামাজিক যোগাযোগ"><span aria-label="Facebook">f</span><span aria-label="YouTube">▶</span></div></div></div>
-  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><LanguageSwitcher/><button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
+  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন শিক্ষার্থী ভর্তি আবেদন','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/><a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a><button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
   <div className="nav-band"><nav id="public-navigation" className={open?'open':''} aria-label="প্রধান নেভিগেশন">
    {nav.map((item,i)=>item.children ? <div className={'nav-dropdown '+(dropdown===i?'active':'')} key={item.key}>
     <button className="nav-drop-trigger" type="button" aria-expanded={dropdown===i} aria-haspopup="menu" onClick={()=>setDropdown(dropdown===i?null:i)}>{lang==='bi'?<>{item.label}<small className="lang-secondary">{NAV_EN[item.label]||''}</small></>:label(item.label,lang)}<span className="chevron">⌄</span></button>
@@ -1831,10 +1831,10 @@ function RoutinePanel(){
 
 function App(){
  const location = useLocation();
- if(location.pathname==="/admin") return <><ObserverSwitcher/><Admin/></>;
- if(location.pathname==="/portal") return <><ObserverSwitcher/><Portal/></>;
- if(location.pathname==="/login") return <><ObserverSwitcher/><div className="login-page"><Header/><Login/></div></>;
- return <><ObserverSwitcher/><Home/></>;
+ if(location.pathname==="/admin") return <Admin/>;
+ if(location.pathname==="/portal") return <Portal/>;
+ if(location.pathname==="/login") return <div className="login-page"><Header/><Login/></div>;
+ return <Home/>;
 }
 
 const rootEl = document.getElementById("root");
