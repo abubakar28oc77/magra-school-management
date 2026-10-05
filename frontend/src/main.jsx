@@ -201,6 +201,22 @@ function Header({ onOpenSubmenu }){
  </header>
 }
 
+try {
+  const rawS = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
+  if (Array.isArray(rawS)) {
+    const cleaned = rawS.filter(s => {
+      if (!s) return false;
+      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' || 
+                     s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
+                     (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
+      return !isMock;
+    });
+    if (cleaned.length !== rawS.length) {
+      localStorage.setItem('magra_db_staff', JSON.stringify(cleaned));
+    }
+  }
+} catch {}
+
 function Home(){
  const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[teachersList,setTeachersList]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
  const[customLinks,setCustomLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_important_links')||'[]')}catch{return []}});

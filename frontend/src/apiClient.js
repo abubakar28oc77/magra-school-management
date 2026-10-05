@@ -20,6 +20,23 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Purge legacy mock staff from localStorage on startup
+try {
+  const rawStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
+  if (Array.isArray(rawStaff)) {
+    const cleaned = rawStaff.filter(s => {
+      if (!s) return false;
+      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' || 
+                     s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
+                     (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
+      return !isMock;
+    });
+    if (cleaned.length !== rawStaff.length) {
+      localStorage.setItem('magra_db_staff', JSON.stringify(cleaned));
+    }
+  }
+} catch {}
+
 // Local storage database helpers
 
 function getLocalStore(key, defaultVal = []) {
@@ -638,8 +655,13 @@ function handleMockRequest(path, opts = {}) {
       return newStf;
     }
 
-    let staff = getLocalStore('staff', MOCK_STAFF);
-    const q = params.get('q')?.trim().toLowerCase();
+    let staff = getLocalStore('staff', []).filter(s => {
+      if (!s) return false;
+      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' || 
+                     s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
+                     (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
+      return !isMock;
+    });
     const st = params.get('status');
     const customKey = params.get('custom_field_key');
     const customVal = params.get('custom_field_value')?.trim().toLowerCase();
@@ -678,7 +700,7 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath.startsWith('/staff/')) {
     const id = cleanPath.replace('/staff/', '');
-    let staff = getLocalStore('staff', MOCK_STAFF);
+    let staff = getLocalStore('staff', []);
     if (method === 'PUT') {
       staff = staff.map(s => String(s.id) === String(id) ? { ...s, ...body } : s);
       setLocalStore('staff', staff);
@@ -693,7 +715,7 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/staff/bulk-import') {
     const list = body.people || [];
-    let staff = getLocalStore('staff', MOCK_STAFF);
+    let staff = getLocalStore('staff', []);
     const added = list.map((p, i) => {
       const rawStatus = (p.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
