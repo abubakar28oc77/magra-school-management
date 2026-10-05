@@ -61,46 +61,118 @@ function setLocalStore(key, val) {
   } catch {}
 }
 
-let backendState = 'probing'; // 'probing' | 'online' | 'offline'
+import { getSupabaseConfig, supabaseRequest } from './supabaseClient';
 
 export async function requestApi(path, opts = {}) {
   const token = localStorage.getItem('magra_token');
+  const method = (opts.method || 'GET').toUpperCase();
+  const [cleanPath, queryStr] = path.split('?');
+  const params = new URLSearchParams(queryStr || '');
+  const body = opts.body ? JSON.parse(opts.body) : {};
 
-  // If backend is known to be offline, return mock data in 0ms without network latency
-  if (backendState === 'offline') {
-    return handleMockRequest(path, opts);
-  }
-
-  try {
-    const controller = new AbortController();
-    const timeoutMs = backendState === 'online' ? 4000 : 350;
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    const res = await fetch(API_BASE + path, {
-      ...opts,
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(opts.headers || {}),
-        ...(token ? { Authorization: 'Bearer ' + token } : {})
+  // 1. Check if Supabase Cloud is configured
+  const { isConfigured } = getSupabaseConfig();
+  if (isConfigured) {
+    try {
+      if (cleanPath === '/teachers' && method === 'GET') {
+        const st = params.get('status');
+        let query = 'select=*&order=name_bn.asc';
+        if (st && st !== 'all') query += `&status=eq.${st}`;
+        const cloudTeachers = await supabaseRequest('teachers', { query });
+        if (Array.isArray(cloudTeachers) && cloudTeachers.length) {
+          localStorage.setItem('magra_db_teachers', JSON.stringify(cloudTeachers));
+          return cloudTeachers;
+        }
+      } else if (cleanPath === '/students' && method === 'GET') {
+        const cls = params.get('class_name');
+        let query = 'select=*&order=roll_no.asc';
+        if (cls) query += `&class_name=eq.${cls}`;
+        const cloudStudents = await supabaseRequest('students', { query });
+        if (Array.isArray(cloudStudents) && cloudStudents.length) {
+          localStorage.setItem('magra_db_students', JSON.stringify(cloudStudents));
+          return cloudStudents;
+        }
+      } else if (cleanPath === '/staff' && method === 'GET') {
+        const cloudStaff = await supabaseRequest('staff', { query: 'select=*&order=name_bn.asc' });
+        if (Array.isArray(cloudStaff)) {
+          localStorage.setItem('magra_db_staff', JSON.stringify(cloudStaff));
+          return cloudStaff;
+        }
+      } else if (cleanPath === '/notices' && method === 'GET') {
+        const cloudNotices = await supabaseRequest('notices', { query: 'select=*&order=id.desc' });
+        if (Array.isArray(cloudNotices) && cloudNotices.length) {
+          localStorage.setItem('magra_db_notices', JSON.stringify(cloudNotices));
+          return cloudNotices;
+        }
       }
-    });
-    clearTimeout(timer);
-    if (res.ok) {
-      backendState = 'online';
-      return await res.json();
-    }
-    if (res.status === 401) {
-      const err = await res.json().catch(() => ({ message: 'অননুমোদিত এক্সেস' }));
-      throw new Error(err.message || 'অননুমোদিত এক্সেস');
-    }
-  } catch (err) {
-    if (backendState !== 'online') {
-      backendState = 'offline';
+    } catch (e) {
+      console.warn('Supabase fetch failed, falling back to local storage:', e);
     }
   }
 
-  return handleMockRequest(path, opts);
+  // 2. Local Backend Express check (if running locally on PC)
+  if (backendState !== 'offline') {
+    try {
+      const controller = new AbortController();
+      const timeoutMs = backendState === 'online' ? 4000 : 350;
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      const res = await fetch(API_BASE + path, {
+        ...opts,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(opts.headers || {}),
+          ...(token ? { Authorization: 'Bearer ' + token } : {})
+        }
+      });
+      clearTimeout(timer);
+      if (res.ok) {
+        backendState = 'online';
+        return await res.json();
+      }
+      if (res.status === 401) {
+        const err = await res.json().catch(() => ({ message: 'অননুমোদিত এক্সেস' }));
+        throw new Error(err.message || 'অননুমোদিত এক্সেস');
+      }
+    } catch (err) {
+      if (backendState !== 'online') {
+        backendState = 'offline';
+      }
+    }
+  }
+
+  // 3. Handle via Mock / Local Client Engine
+  const localRes = handleMockRequest(path, opts);
+
+  // Background Cloud Sync on writes
+  if (isConfigured && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+    setTimeout(async () => {
+      try {
+        if (cleanPath === '/teachers' && method === 'POST') {
+          await supabaseRequest('teachers', { method: 'POST', body: localRes });
+        } else if (cleanPath.startsWith('/teachers/') && (method === 'PUT' || method === 'PATCH')) {
+          const id = cleanPath.replace('/teachers/', '');
+          await supabaseRequest('teachers', { method: 'PATCH', query: `id=eq.${id}`, body });
+        } else if (cleanPath.startsWith('/teachers/') && method === 'DELETE') {
+          const id = cleanPath.replace('/teachers/', '');
+          await supabaseRequest('teachers', { method: 'DELETE', query: `id=eq.${id}` });
+        } else if (cleanPath === '/students' && method === 'POST') {
+          await supabaseRequest('students', { method: 'POST', body: localRes });
+        } else if (cleanPath.startsWith('/students/') && (method === 'PUT' || method === 'PATCH')) {
+          const id = cleanPath.replace('/students/', '');
+          await supabaseRequest('students', { method: 'PATCH', query: `id=eq.${id}`, body });
+        } else if (cleanPath.startsWith('/students/') && method === 'DELETE') {
+          const id = cleanPath.replace('/students/', '');
+          await supabaseRequest('students', { method: 'DELETE', query: `id=eq.${id}` });
+        }
+      } catch (err) {
+        console.warn('Background Supabase write failed:', err);
+      }
+    }, 50);
+  }
+
+  return localRes;
 }
 
 function handleMockRequest(path, opts = {}) {
