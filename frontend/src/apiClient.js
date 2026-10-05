@@ -17,6 +17,7 @@ import {
   MOCK_PUBLIC_CONTENT,
   MOCK_SSC_RESULTS
 } from './mockData';
+import { getSupabaseConfig, supabaseRequest } from './supabaseClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -61,7 +62,7 @@ function setLocalStore(key, val) {
   } catch {}
 }
 
-import { getSupabaseConfig, supabaseRequest } from './supabaseClient';
+let backendState = 'probing'; // 'probing' | 'online' | 'offline'
 
 export async function requestApi(path, opts = {}) {
   const token = localStorage.getItem('magra_token');
