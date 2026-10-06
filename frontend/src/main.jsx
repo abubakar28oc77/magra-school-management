@@ -930,6 +930,63 @@ function StudentPanel({sub}){
  const [importing,setImporting]=useState(false);
  const [importMsg,setImportMsg]=useState('');
   const [sameAddress,setSameAddress]=useState(false);
+  const [selectedIds,setSelectedIds]=useState([]);
+
+  const remove=async(s)=>{
+    if(!confirm(`আপনি কি নিশ্চিত যে "${s.name_bn || s.student_id}" শিক্ষার্থীর সকল তথ্য স্থায়ীভাবে মুছে ফেলতে চান?`))return;
+    try{
+      await api(`/students/${s.id}`,{method:'DELETE'});
+      setMsg(`"${s.name_bn || 'শিক্ষার্থী'}" মুছে ফেলা হয়েছে`);
+      setSelectedIds(prev=>prev.filter(x=>x!==s.id));
+      load();
+    }catch(err){
+      setMsg(err.message||'শিক্ষার্থী মুছে ফেলা সম্ভব হয়নি');
+    }
+  };
+
+  const toggleSelectAll=(e)=>{
+    if(e.target.checked){
+      setSelectedIds(students.map(s=>s.id));
+    }else{
+      setSelectedIds([]);
+    }
+  };
+
+  const toggleSelectOne=(id)=>{
+    setSelectedIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]);
+  };
+
+  const deleteSelected=async()=>{
+    if(!selectedIds.length)return;
+    if(!confirm(`আপনি কি নির্বাচিত ${selectedIds.length} জন শিক্ষার্থীর তথ্য মুছে ফেলতে চান?`))return;
+    setMsg('নির্বাচিত রেকর্ড মুছে ফেলা হচ্ছে...');
+    try{
+      for(const id of selectedIds){
+        await api(`/students/${id}`,{method:'DELETE'});
+      }
+      setMsg(`সফলভাবে নির্বাচিত ${selectedIds.length} জন শিক্ষার্থী মুছে ফেলা হয়েছে`);
+      setSelectedIds([]);
+      load();
+    }catch(err){
+      setMsg(err.message||'শিক্ষার্থী মুছে ফেলা সম্ভব হয়নি');
+    }
+  };
+
+  const clearAllStudents=async()=>{
+    if(!students.length)return;
+    if(!confirm(`⚠️ চূড়ান্ত সতর্কবার্তা: আপনি কি বর্তমান তালিকার মোট ${students.length} জন শিক্ষার্থীর সম্পূর্ণ তথ্য মুছে ফেলতে চান? এটি আর ফিরিয়ে আনা যাবে না।`))return;
+    setMsg('সকল শিক্ষার্থীর তথ্য মুছে ফেলা হচ্ছে...');
+    try{
+      for(const s of students){
+        await api(`/students/${s.id}`,{method:'DELETE'});
+      }
+      setMsg('সকল শিক্ষার্থীর তালিকা সফলভাবে খালি করা হয়েছে');
+      setSelectedIds([]);
+      load();
+    }catch(err){
+      setMsg(err.message||'শিক্ষার্থী তালিকা খালি করা সম্ভব হয়নি');
+    }
+  };
 
  useEffect(()=>{
   if(sub==='new'){
@@ -1300,7 +1357,17 @@ function StudentPanel({sub}){
       <h2>শিক্ষার্থী তালিকা</h2>
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
+      {selectedIds.length > 0 && (
+        <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
+          🗑️ নির্বাচিত ({selectedIds.length}) মুছুন
+        </button>
+      )}
+      {students.length > 0 && (
+        <button className="mini" type="button" onClick={clearAllStudents} style={{background:'#fff1f2',color:'#be123c',border:'1px solid #fecdd3',fontWeight:600,cursor:'pointer',padding:'6px 12px',borderRadius:'6px'}}>
+          ⚠️ সব মুছুন / রিসেট
+        </button>
+      )}
+      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setSameAddress(false);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
       <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
       <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
       <span>{students.length} জন</span>
@@ -1329,6 +1396,7 @@ function StudentPanel({sub}){
      <table>
       <thead>
        <tr>
+        <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={students.length>0 && selectedIds.length===students.length} onChange={toggleSelectAll}/></th>
         <th>ID</th>
         <th>নাম</th>
         <th>শ্রেণি</th>
@@ -1336,12 +1404,27 @@ function StudentPanel({sub}){
         <th>অভিভাবক</th>
         <th>মোবাইল</th>
         <th>অবস্থা</th>
-        <th>কাজ</th>
+        <th style={{textAlign:'center',minWidth:'140px'}}>কাজ</th>
        </tr>
       </thead>
       <tbody>
-       {students.map(s=><tr key={s.id}><td>{s.student_id}</td><td>{s.name_bn}</td><td>{s.class_name}</td><td>{s.roll_no||'—'}</td><td>{getStudentGuardian(s)}</td><td>{getStudentPhone(s)}</td><td>{statusBn(s.status)}</td><td><button className="mini" onClick={()=>edit(s)}>সম্পাদনা</button></td></tr>)}
-       {!students.length&&<tr><td colSpan="8">কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
+       {students.map(s=>(
+         <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined}}>
+          <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
+          <td><code>{s.student_id}</code></td>
+          <td><b>{s.name_bn}</b>{s.name_en?<span style={{display:'block',fontSize:'11px',color:'#64748b'}}>{s.name_en}</span>:null}</td>
+          <td>{s.class_name}{s.group_name?<span style={{display:'block',fontSize:'11px',color:'#0284c7'}}>{s.group_name}</span>:null}</td>
+          <td>{s.roll_no||'—'}</td>
+          <td>{getStudentGuardian(s)}</td>
+          <td>{getStudentPhone(s)}</td>
+          <td>{statusBn(s.status)}</td>
+          <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+           <button className="mini" type="button" onClick={()=>edit(s)} style={{marginRight:'6px'}}>✏️ সম্পাদনা</button>
+           <button className="mini" type="button" onClick={()=>remove(s)} style={{background:'#fee2e2',color:'#b91c1c',border:'1px solid #fca5a5',fontWeight:600,cursor:'pointer'}}>🗑️ মুছুন</button>
+          </td>
+         </tr>
+       ))}
+       {!students.length&&<tr><td colSpan="9" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
     </div>
