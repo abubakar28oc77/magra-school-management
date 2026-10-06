@@ -17,7 +17,9 @@ import {
   PHOTO_ASST_HEAD_TEACHER,
   PHOTO_ICT_TEACHER,
   PHOTO_OFFICE_ASSISTANT,
-  getTeacherPhoto
+  getTeacherPhoto,
+  getLeadershipData,
+  DEFAULT_LEADERSHIP_DATA
 } from './mockData';
 import logo from '../public/school-logo.png';
 import building from '../public/school-building.jpg';
@@ -299,11 +301,29 @@ function Home(){
  ];
  const boardLinks=[['ঢাকা শিক্ষা বোর্ড','https://www.dhakaeducationboard.gov.bd/'],['রাজশাহী শিক্ষা বোর্ড','https://rajshahieducationboard.gov.bd/'],['চট্টগ্রাম শিক্ষা বোর্ড','https://bise-ctg.portal.gov.bd/'],['কুমিল্লা শিক্ষা বোর্ড','https://comillaboard.portal.gov.bd/'],['যশোর শিক্ষা বোর্ড','https://www.jessoreboard.gov.bd/'],['ময়মনসিংহ শিক্ষা বোর্ড','https://mymensingheducationboard.gov.bd/']];
  
- const leadershipCards=[
-  { role:'সভাপতি', name:'নেয়ামুল হক খান', title:'সভাপতির বাণী', key:'public.nav.leadership.president', photo: PHOTO_PRESIDENT, msg:'শিক্ষার গুণগত মান উন্নয়ন, নৈতিক মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে বিদ্যালয়ের অগ্রযাত্রায় সকলের সহযোগিতা কামনা করি।' },
-  { role:'প্রধান শিক্ষক', name:'মুহাম্মদ শফিকুল ইসলাম', title:'প্রধান শিক্ষকের বাণী', key:'public.nav.leadership.head', photo: PHOTO_HEAD_TEACHER, msg:'শিক্ষার্থীর জ্ঞান, দক্ষতা, শৃঙ্খলা ও সৃজনশীলতা বিকাশে বিদ্যালয় পরিবার নিরলসভাবে কাজ করে যাচ্ছে।' },
-  { role:'সহকারী প্রধান শিক্ষক', name:'তাপসী সরকার', title:'সহকারী প্রধান শিক্ষকের বাণী', key:'public.nav.leadership.asst_head', photo: PHOTO_ASST_HEAD_TEACHER, msg:'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার।' }
- ];
+ const [leadershipVer, setLeadershipVer] = useState(0);
+ useEffect(() => {
+  const handleLeadershipUpdate = () => {
+   setLeadershipVer(v => v + 1);
+   try {
+    const local = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+    if (Array.isArray(local) && local.length) setTeachersList(local);
+   } catch {}
+   api('/teachers?status=active').then(d => {
+    if (Array.isArray(d) && d.length) setTeachersList(d);
+   }).catch(() => {});
+  };
+  window.addEventListener('magra_leadership_updated', handleLeadershipUpdate);
+  window.addEventListener('storage', handleLeadershipUpdate);
+  return () => {
+   window.removeEventListener('magra_leadership_updated', handleLeadershipUpdate);
+   window.removeEventListener('storage', handleLeadershipUpdate);
+  };
+ }, []);
+
+ const leadershipCards = useMemo(() => {
+  return getLeadershipData(teachersList).cards;
+ }, [teachersList, leadershipVer]);
  const emergencyServices=[['333','তথ্য ও সেবা','সরকারি তথ্য ও সেবা'],['999','জরুরি সেবা','জাতীয় জরুরি সেবা'],['109','নারী ও শিশু নির্যাতন প্রতিরোধে','সহায়তা ও প্রতিরোধ সেবা'],['106','দুদক হটলাইন','দুর্নীতি ও অনিয়মের অভিযোগ'],['1090','দুর্যোগের আগাম বার্তা','দুর্যোগ সংক্রান্ত আগাম তথ্য'],['1098','শিশুর সহায়তায় ফোন','চাইল্ড হেল্পলাইন']];
 
  const handleAddLink=(e)=>{
@@ -456,7 +476,7 @@ function Home(){
 
    <section className="ref-stats ref-container" aria-label="বিদ্যালয়ের পরিসংখ্যান">
     <div className="ref-stat"><strong>{toBn(stats?.total??0)}</strong><span>শিক্ষার্থী</span></div>
-    <div className="ref-stat"><strong>{toBn(stats?.teachers??(activeTeachersToRoll.length||8))}</strong><span>শিক্ষক ও কর্মচারী</span></div>
+    <div className="ref-stat"><strong>{toBn(stats?.teachers ?? (activeTeachersToRoll.length || teachersList.length || 0))}</strong><span>শিক্ষক ও কর্মচারী</span></div>
     <div className="ref-stat"><strong>৬–১০</strong><span>শ্রেণি</span></div>
     <div className="ref-stat"><strong>১৯৪৬</strong><span>প্রতিষ্ঠিত</span></div>
    </section>
@@ -790,42 +810,42 @@ function ContentPanel(){
 function Admin(){
  const {lang}=useLanguage();
  const adminLabel=(bn)=>adminEn[bn]||bn;
- const nav=useNavigate(),[data,setData]=useState(null),[me,setMe]=useState(null),[active,setActive]=useState('dashboard'),[sub,setSub]=useState(null),[enabled,setEnabled]=useState(null),[expanded,setExpanded]=useState({students:true,results:true,feature_control:true});
+ const nav=useNavigate(),[data,setData]=useState(null),[me,setMe]=useState(null),[active,setActive]=useState('dashboard'),[sub,setSub]=useState(null),[enabled,setEnabled]=useState(null),[expanded,setExpanded]=useState({students:true,results:true,feature_control:true,settings:true});
  const [supabaseSyncOpen,setSupabaseSyncOpen]=useState(false);
  useEffect(()=>{api('/me').then(setMe).catch(()=>{localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/login')});api('/dashboard').then(setData).catch(()=>{});api('/admin/features').then(d=>{const m={};(d.features||[]).forEach(f=>m[f.feature_key]=f.enabled!==false);setEnabled(m)}).catch(()=>setEnabled(null))},[nav]);
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
  const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/login')};
- const choose=(k,s)=>{setActive(k);setSub(s||null);setExpanded(x=>({...x,[k]:!x[k]}));};
+ const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
  const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled[`admin.${x.k}.${sk}`]!==false)}))})).filter(g=>g.items.length);
- if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
- return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{x.subs?.length?<span className="side-caret">{expanded[x.k]?'▾':'▸'}</span>:null}</button>{x.subs?.length&&expanded[x.k]&&<div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div>}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<ChangePassword/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
-}
+  if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{x.subs?.length?<span className="side-caret">{expanded[x.k]?'▾':'▸'}</span>:null}</button>{x.subs?.length&&expanded[x.k]&&<div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div>}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+ }
 
-const adminEn={
-'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
-const ADMIN_NAV_GROUPS=[
- {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
- {group:'একাডেমিক',items:[
-  {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['search','শিক্ষার্থী অনুসন্ধান'],['voter','ভোটার তালিকা'],['village','গ্রামভিত্তিক তালিকা']]},
-  {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
-  {k:'admission',n:'ভর্তি',i:'📝',subs:[['applications','ভর্তি আবেদন'],['test','ভর্তি পরীক্ষা'],['selection','নির্বাচন ও ভর্তি']]},
-  {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
-  {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['setup','পরীক্ষা ও বিষয় সেটআপ'],['marks','মার্ক এন্ট্রি'],['processing','ফলাফল প্রসেসিং'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা']]},
-  {k:'routine',n:'রুটিন',i:'🗓️'}
- ]},
- {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳'},{k:'library',n:'লাইব্রেরি',i:'📚'}]},
- {group:'শিক্ষা',items:[
-  {k:'learning',n:'ডিজিটাল লার্নিং',i:'💻',subs:[['content','ডিজিটাল কনটেন্ট'],['syllabus','সিলেবাস'],['progress','শিক্ষার্থী অগ্রগতি']]},
-  {k:'question',n:'প্রশ্নব্যাংক',i:'❓',subs:[['bank','প্রশ্নব্যাংক'],['model','মডেল প্রশ্ন']]},
-  {k:'assignment',n:'অ্যাসাইনমেন্ট',i:'📘',subs:[['manage','অ্যাসাইনমেন্ট'],['review','মূল্যায়ন']]},
-  {k:'online_exam',n:'অনলাইন পরীক্ষা',i:'🧪',subs:[['setup','পরীক্ষা সেটআপ'],['results','পরীক্ষার ফলাফল']]},
-  {k:'ai',n:'AI শিক্ষা',i:'✨',subs:[['tutor','AI Tutor'],['analytics','AI বিশ্লেষণ']]}
- ]},
- {group:'রিপোর্ট ও ডকুমেন্ট',items:[{k:'reports',n:'রিপোর্ট',i:'📑'},{k:'documents',n:'ডকুমেন্ট ও প্রিন্ট',i:'🖨️',subs:[['id','ID Card'],['marksheet','Marksheet'],['certificate','Certificate'],['commendation_certificate','প্রশংসাপত্র'],['admit','Admit Card'],['tabulation','Tabulation'],['merit','Merit List']]}]},
- {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
- {group:'যোগাযোগ',items:[{k:'notice',n:'নোটিশ',i:'📢'},{k:'notifications',n:'নোটিফিকেশন',i:'🔔'}]},
- {group:'নিরাপত্তা',items:[{k:'users',n:'ইউজার ও রোল',i:'👥',subs:[['accounts','ব্যবহারকারী'],['roles','রোল ও অনুমতি'],['links','Student/Guardian Link'],['provision','Profile → Login'],['sessions','সেশন ও নিরাপত্তা']]},{k:'settings',n:'সেটিংস',i:'⚙️'},{k:'feature_control',n:'ফিচার কন্ট্রোল',i:'🧩',subs:[['system','সিস্টেম Feature ON/OFF'],['public','View Site Menu ON/OFF'],['custom','নতুন Feature যোগ']]}]}
-];
+ const adminEn={
+ 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
+ const ADMIN_NAV_GROUPS=[
+  {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
+  {group:'একাডেমিক',items:[
+   {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['search','শিক্ষার্থী অনুসন্ধান'],['voter','ভোটার তালিকা'],['village','গ্রামভিত্তিক তালিকা']]},
+   {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
+   {k:'admission',n:'ভর্তি',i:'📝',subs:[['applications','ভর্তি আবেদন'],['test','ভর্তি পরীক্ষা'],['selection','নির্বাচন ও ভর্তি']]},
+   {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
+   {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['setup','পরীক্ষা ও বিষয় সেটআপ'],['marks','মার্ক এন্ট্রি'],['processing','ফলাফল প্রসেসিং'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা']]},
+   {k:'routine',n:'রুটিন',i:'🗓️'}
+  ]},
+  {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳'},{k:'library',n:'লাইব্রেরি',i:'📚'}]},
+  {group:'শিক্ষা',items:[
+   {k:'learning',n:'ডিজিটাল লার্নিং',i:'💻',subs:[['content','ডিজিটাল কনটেন্ট'],['syllabus','সিলেবাস'],['progress','শিক্ষার্থী অগ্রগতি']]},
+   {k:'question',n:'প্রশ্নব্যাংক',i:'❓',subs:[['bank','প্রশ্নব্যাংক'],['model','মডেল প্রশ্ন']]},
+   {k:'assignment',n:'অ্যাসাইনমেন্ট',i:'📘',subs:[['manage','অ্যাসাইনমেন্ট'],['review','মূল্যায়ন']]},
+   {k:'online_exam',n:'অনলাইন পরীক্ষা',i:'🧪',subs:[['setup','পরীক্ষা সেটআপ'],['results','পরীক্ষার ফলাফল']]},
+   {k:'ai',n:'AI শিক্ষা',i:'✨',subs:[['tutor','AI Tutor'],['analytics','AI বিশ্লেষণ']]}
+  ]},
+  {group:'রিপোর্ট ও ডকুমেন্ট',items:[{k:'reports',n:'রিপোর্ট',i:'📑'},{k:'documents',n:'ডকুমেন্ট ও প্রিন্ট',i:'🖨️',subs:[['id','ID Card'],['marksheet','Marksheet'],['certificate','Certificate'],['commendation_certificate','প্রশংসাপত্র'],['admit','Admit Card'],['tabulation','Tabulation'],['merit','Merit List']]}]},
+  {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
+  {group:'যোগাযোগ',items:[{k:'notice',n:'নোটিশ',i:'📢'},{k:'notifications',n:'নোটিফিকেশন',i:'🔔'}]},
+  {group:'নিরাপত্তা',items:[{k:'users',n:'ইউজার ও রোল',i:'👥',subs:[['accounts','ব্যবহারকারী'],['roles','রোল ও অনুমতি'],['links','Student/Guardian Link'],['provision','Profile → Login'],['sessions','সেশন ও নিরাপত্তা']]},{k:'settings',n:'সেটিংস',i:'⚙️',subs:[['leadership','বাণী ও ফটো সেটিংস'],['password','পাসওয়ার্ড পরিবর্তন']]},{k:'feature_control',n:'ফিচার কন্ট্রোল',i:'🧩',subs:[['system','সিস্টেম Feature ON/OFF'],['public','View Site Menu ON/OFF'],['custom','নতুন Feature যোগ']]}]}
+ ];
 
 
 function AttendancePanel(){const today=new Date().toISOString().slice(0,10);const[d,setD]=useState(today),[c,setC]=useState('6'),[rows,setRows]=useState([]),[msg,setMsg]=useState('');const load=()=>api(`/attendance/roster?date=${d}&class_name=${c}`).then(setRows).catch(e=>setMsg(e.message));useEffect(load,[d,c]);const mark=(id,status)=>setRows(a=>a.map(x=>x.id===id?{...x,status}:x));const all=status=>setRows(a=>a.map(x=>({...x,status})));async function save(){try{const x=await api('/attendance/bulk',{method:'POST',body:JSON.stringify({date:d,records:rows.map(x=>({student_id:x.id,status:x.status}))})});setMsg(`${x.count} জনের উপস্থিতি সংরক্ষণ হয়েছে`)}catch(e){setMsg(e.message)}}return <div className="form-card"><div className="toolbar"><h2>Smart Attendance</h2><span>{rows.length} জন</span></div><div className="filters"><input type="date" value={d} onChange={e=>setD(e.target.value)}/><select value={c} onChange={e=>setC(e.target.value)}>{classes.map(x=><option key={x} value={x}>শ্রেণি {x}</option>)}</select></div><div className="attendance-actions"><button className="mini" onClick={()=>all('present')}>সবাই উপস্থিত</button><button className="mini" onClick={()=>all('absent')}>সবাই অনুপস্থিত</button><button className="btn" onClick={save}>সংরক্ষণ</button></div><div className="table-wrap"><table><thead><tr><th>রোল</th><th>Student ID</th><th>নাম</th><th>অবস্থা</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{x.roll_no||'—'}</td><td>{x.student_id}</td><td>{x.name_bn}</td><td>{['present','absent','late','leave'].map(v=><button key={v} className={x.status===v?'mini active':''} onClick={()=>mark(x.id,v)}>{v==='present'?'উপস্থিত':v==='absent'?'অনুপস্থিত':v==='late'?'দেরি':'ছুটি'}</button>)}</td></tr>)}</tbody></table></div>{msg&&<p className="success">{msg}</p>}</div>}
@@ -1173,6 +1193,7 @@ function StaffPanel({sub}){
    setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});
    setStep(0);
    setView('list');
+   window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
    load();
   }catch(e){
    setMsg(e.message||'সংরক্ষণ ব্যর্থ হয়েছে');
@@ -1315,7 +1336,24 @@ function StaffPanel({sub}){
         <td>{statusBn(x.status)}</td>
         <td>
          <button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button>
-         <label className="mini" style={{marginLeft:4,cursor:'pointer',background:'#0b8050',color:'#fff',border:'none',display:'inline-block'}}>📷 ছবি<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}const r=new FileReader();r.onload=async()=>{try{const base=isTeacher?'teachers':'staff';await api(`/${base}/${x.id}`,{method:'PUT',body:JSON.stringify({...x,photo_url:r.result})});setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে`);load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত্রুটি');}};r.readAsDataURL(f);}}/></label>
+         <label className="mini" style={{marginLeft:4,cursor:'pointer',background:'#0b8050',color:'#fff',border:'none',display:'inline-block'}}>📷 ছবি<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}const r=new FileReader();r.onload=async()=>{try{const base=isTeacher?'teachers':'staff';await api(`/${base}/${x.id}`,{method:'PUT',body:JSON.stringify({...x,photo_url:r.result})});
+try {
+  let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+  const dName = (x.designation || '').toLowerCase();
+  const nBn = (x.name_bn || '').toLowerCase();
+  if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
+    leaderStored.head = { ...(leaderStored.head || {}), photo: r.result, name: x.name_bn || leaderStored.head?.name };
+  } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
+    leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: r.result, name: x.name_bn || leaderStored.asst_head?.name };
+  } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
+    leaderStored.president = { ...(leaderStored.president || {}), photo: r.result, name: x.name_bn || leaderStored.president?.name };
+  }
+  localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
+} catch {}
+setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
+window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+window.dispatchEvent(new Event('storage'));
+load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত্রুটি');}};r.readAsDataURL(f);}}/></label>
          <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button>
         </td>
        </tr>)}
@@ -1741,6 +1779,300 @@ function UsersPanel({sub}){
   )}
  </div>;
 }
+
+function SettingsPanelWrapper({sub, setSub}){
+  const currentSub = sub === 'password' ? 'password' : 'leadership';
+  return <div>
+    <div className="tabs" style={{marginBottom:'20px',display:'flex',gap:'10px',flexWrap:'wrap'}}>
+      <button
+        type="button"
+        className={currentSub==='leadership'?'active':''}
+        onClick={()=>setSub('leadership')}
+        style={{padding:'10px 18px',fontSize:'15px',fontWeight:700,borderRadius:'8px',display:'flex',alignItems:'center',gap:'8px',cursor:'pointer'}}
+      >
+        <span>🖼️</span> বাণী ও ফটো সেটিংস (Leadership Speeches & Photos)
+      </button>
+      <button
+        type="button"
+        className={currentSub==='password'?'active':''}
+        onClick={()=>setSub('password')}
+        style={{padding:'10px 18px',fontSize:'15px',fontWeight:700,borderRadius:'8px',display:'flex',alignItems:'center',gap:'8px',cursor:'pointer'}}
+      >
+        <span>🔑</span> পাসওয়ার্ড পরিবর্তন (Change Password)
+      </button>
+    </div>
+    {currentSub==='password' ? <ChangePassword/> : <LeadershipSettingsPanel sub={sub}/>}
+  </div>;
+}
+
+function LeadershipSettingsPanel() {
+  const [data, setData] = useState(() => getLeadershipData());
+  const [msg, setMsg] = useState('');
+  const [activeLeaderKey, setActiveLeaderKey] = useState('head');
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    try {
+      const local = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+      if (Array.isArray(local) && local.length) setTeachers(local);
+    } catch {}
+    api('/teachers?status=active').then(d => {
+      if (Array.isArray(d) && d.length) {
+        setTeachers(d);
+        setData(getLeadershipData(d));
+      }
+    }).catch(() => {});
+  }, []);
+
+  const updateLeader = (roleKey, field, val) => {
+    setData(prev => ({
+      ...prev,
+      [roleKey]: {
+        ...prev[roleKey],
+        [field]: val
+      }
+    }));
+  };
+
+  const handleFileUpload = (roleKey, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2.5 * 1024 * 1024) {
+      setMsg('ছবির আকার সর্বোচ্চ 2.5 MB হতে হবে।');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateLeader(roleKey, 'photo', reader.result);
+      setMsg(`📷 ছবি নির্বাচন করা হয়েছে! পরিবর্তন সংরক্ষণ করতে নিচে "সংরক্ষণ ও লাইভ সাইটে আপডেট করুন" বাটনে ক্লিক করুন।`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const saveSettings = async (roleKey) => {
+    try {
+      const current = data[roleKey];
+      // 1. Save leadership custom settings to localStorage
+      let stored = {};
+      try {
+        stored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+      } catch {}
+      stored[roleKey] = {
+        name: current.name,
+        designation: current.designation || current.role,
+        photo: current.photo,
+        msg: current.msg,
+        speech: typeof current.speech === 'string' ? current.speech.split('\n\n').filter(Boolean) : current.speech
+      };
+      localStorage.setItem('magra_db_leadership_settings', JSON.stringify(stored));
+
+      // 2. Synchronize with teachers table if it's head or assistant head
+      let localT = [];
+      try {
+        localT = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+      } catch {}
+      if (!localT.length) localT = [...MOCK_TEACHERS];
+
+      let targetTeacher = null;
+      if (roleKey === 'head') {
+        targetTeacher = localT.find(t => 
+          t.public_contact_role === 'head_teacher' || 
+          (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
+          t.id === 't-1' ||
+          (t.name_bn && t.name_bn.includes('শফিকুল'))
+        );
+      } else if (roleKey === 'asst_head') {
+        targetTeacher = localT.find(t => 
+          t.public_contact_role === 'assistant_head_teacher' || 
+          (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
+          t.id === 't-2' ||
+          (t.name_bn && t.name_bn.includes('তাপসী'))
+        );
+      }
+
+      if (targetTeacher) {
+        const updatedTeacher = {
+          ...targetTeacher,
+          name_bn: current.name || targetTeacher.name_bn,
+          photo_url: current.photo || targetTeacher.photo_url
+        };
+        const updatedList = localT.map(t => t.id === targetTeacher.id ? updatedTeacher : t);
+        localStorage.setItem('magra_db_teachers', JSON.stringify(updatedList));
+        try {
+          await api(`/teachers/${targetTeacher.id}`, { method: 'PUT', body: JSON.stringify(updatedTeacher) });
+        } catch {}
+      }
+
+      // 3. Dispatch update event across tabs and public site
+      window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+      setMsg(`✅ ${current.role} (${current.name})-এর ছবি ও বাণী সফলভাবে আপডেট ও লাইভ ওয়েবসাইটে প্রকাশ হয়েছে!`);
+      setTimeout(() => setMsg(''), 6000);
+    } catch (err) {
+      setMsg('সংরক্ষণে ত্রুটি: ' + (err.message || 'অপ্রত্যাশিত সমস্যা'));
+    }
+  };
+
+  const leaders = [
+    { key: 'head', title: 'প্রধান শিক্ষক', icon: '🎓', desc: 'প্রধান শিক্ষকের ছবি ও বাণী' },
+    { key: 'asst_head', title: 'সহকারী প্রধান শিক্ষক', icon: '👩‍🏫', desc: 'সহকারী প্রধান শিক্ষকের ছবি ও বাণী' },
+    { key: 'president', title: 'সভাপতি', icon: '👑', desc: 'সভাপতি ম্যানেজিং কমিটির ছবি ও বাণী' }
+  ];
+
+  return (
+    <div className="module-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="form-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px' }}>
+        <div className="toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <span className="eyebrow" style={{ color: '#0b8050', fontWeight: 700, fontSize: '12px' }}>WEBSITE LEADERSHIP & SPEECHES</span>
+            <h2 style={{ margin: '4px 0', fontSize: '20px', color: '#0f172a' }}>বাণী ও ফটো ব্যবস্থাপনা (প্রধান শিক্ষক, সহকারী প্রধান শিক্ষক ও সভাপতি)</h2>
+            <p className="portal-muted" style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+              লগইন সাইট / অ্যাডমিন প্যানেল থেকে প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের ছবি সরাসরি যুক্ত করুন বা পরিবর্তন করুন। এটি সাথে সাথে মূল ওয়েবসাইটের সাইডবার ও বাণী মডালে সরাসরি যুক্ত হবে।
+            </p>
+          </div>
+          <span className="badge" style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '6px 12px', borderRadius: '20px', fontWeight: 600 }}>
+            🌐 সরাসরি লাইভ সাইটে যুক্ত
+          </span>
+        </div>
+
+        {msg && (
+          <div style={{ padding: '12px 16px', borderRadius: '8px', background: msg.startsWith('✅') ? '#ecfdf5' : '#fef2f2', color: msg.startsWith('✅') ? '#065f46' : '#991b1b', border: `1px solid ${msg.startsWith('✅') ? '#a7f3d0' : '#fecaca'}`, marginBottom: '18px', fontWeight: 600, fontSize: '14px' }}>
+            {msg}
+          </div>
+        )}
+
+        {/* Tab selection */}
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', borderBottom: '2px solid #f1f5f9', paddingBottom: '14px', flexWrap: 'wrap' }}>
+          {leaders.map(l => (
+            <button
+              key={l.key}
+              type="button"
+              onClick={() => setActiveLeaderKey(l.key)}
+              style={{
+                padding: '12px 20px',
+                borderRadius: '8px',
+                border: activeLeaderKey === l.key ? '2px solid #0b8050' : '1px solid #cbd5e1',
+                background: activeLeaderKey === l.key ? '#f0fdf4' : '#fff',
+                color: activeLeaderKey === l.key ? '#166534' : '#334155',
+                fontWeight: activeLeaderKey === l.key ? 700 : 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px'
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{l.icon}</span>
+              <div style={{ textAlign: 'left' }}>
+                <div style={{ fontWeight: 700 }}>{l.title}</div>
+                <small style={{ fontSize: '11px', opacity: 0.8 }}>{l.desc}</small>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Active leader form */}
+        {(() => {
+          const l = data[activeLeaderKey] || DEFAULT_LEADERSHIP_DATA[activeLeaderKey];
+          const speechText = Array.isArray(l.speech) ? l.speech.join('\n\n') : (l.speech || '');
+
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 310px) 1fr', gap: '24px', alignItems: 'start' }}>
+              {/* Photo & Preview column */}
+              <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 14px 0', color: '#1e293b', fontSize: '15px' }}>বর্তমান ছবি ও প্রোফাইল</h4>
+                <div style={{ width: '160px', height: '160px', margin: '0 auto 16px', borderRadius: '50%', overflow: 'hidden', border: '4px solid #0b8050', boxShadow: '0 8px 20px rgba(0,0,0,0.12)', background: '#fff' }}>
+                  <img src={l.photo} alt={l.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', color: '#0f172a' }}>{l.name}</h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#0b8050', fontWeight: 700 }}>{l.designation || l.role}</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <label style={{ cursor: 'pointer', background: '#0b8050', color: '#fff', padding: '10px 16px', borderRadius: '8px', fontWeight: 700, fontSize: '13px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(11,128,80,0.3)' }}>
+                    📷 ছবি আপলোড করুন
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/jpg" hidden onChange={(e) => handleFileUpload(activeLeaderKey, e)} />
+                  </label>
+                  <small style={{ color: '#64748b', fontSize: '11px' }}>JPG, PNG বা WEBP (সর্বোচ্চ 2.5 MB)</small>
+                </div>
+              </div>
+
+              {/* Information & Speeches column */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                  <div className="field">
+                    <label style={{ fontWeight: 600, fontSize: '13px', color: '#334155', display: 'block', marginBottom: '6px' }}>পূর্ণ নাম (বাংলা) *</label>
+                    <input
+                      value={l.name || ''}
+                      onChange={(e) => updateLeader(activeLeaderKey, 'name', e.target.value)}
+                      placeholder="নাম লিখুন"
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                    />
+                  </div>
+                  <div className="field">
+                    <label style={{ fontWeight: 600, fontSize: '13px', color: '#334155', display: 'block', marginBottom: '6px' }}>পদবী (Designation) *</label>
+                    <input
+                      value={l.designation || l.role || ''}
+                      onChange={(e) => updateLeader(activeLeaderKey, 'designation', e.target.value)}
+                      placeholder="পদবী লিখুন"
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                    />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label style={{ fontWeight: 600, fontSize: '13px', color: '#334155', display: 'block', marginBottom: '6px' }}>ছবির সরাসরি URL / ওয়েব লিংক (ঐচ্ছিক)</label>
+                  <input
+                    value={l.photo?.startsWith('data:') ? 'uploaded_base64_photo' : (l.photo || '')}
+                    onChange={(e) => {
+                      if (e.target.value !== 'uploaded_base64_photo') {
+                        updateLeader(activeLeaderKey, 'photo', e.target.value);
+                      }
+                    }}
+                    placeholder="https://... অথবা উপরের 'ছবি আপলোড করুন' বাটন ব্যবহার করুন"
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                  />
+                </div>
+
+                <div className="field">
+                  <label style={{ fontWeight: 600, fontSize: '13px', color: '#334155', display: 'block', marginBottom: '6px' }}>হোমপেজ সাইডবার সংক্ষিপ্ত বার্তা *</label>
+                  <textarea
+                    rows={2}
+                    value={l.msg || ''}
+                    onChange={(e) => updateLeader(activeLeaderKey, 'msg', e.target.value)}
+                    placeholder="ওয়েবসাইটের হোমপেজে সাইডবারে প্রদর্শিত ১-২ লাইনের সংক্ষিপ্ত বার্তা..."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                  />
+                </div>
+
+                <div className="field">
+                  <label style={{ fontWeight: 600, fontSize: '13px', color: '#334155', display: 'block', marginBottom: '6px' }}>পূর্ণাঙ্গ বাণী (Modal Speech) — প্যারাগ্রাফের মাঝে এক লাইন ফাঁকা রাখুন *</label>
+                  <textarea
+                    rows={6}
+                    value={speechText}
+                    onChange={(e) => updateLeader(activeLeaderKey, 'speech', e.target.value)}
+                    placeholder="বিস্তারিত দিকনির্দেশনামূলক বাণী লিখুন..."
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', lineHeight: '1.6' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => saveSettings(activeLeaderKey)}
+                    className="btn"
+                    style={{ background: '#0b8050', color: '#fff', padding: '12px 28px', borderRadius: '8px', fontWeight: 700, fontSize: '15px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(11,128,80,0.3)' }}
+                  >
+                    💾 সংরক্ষণ ও লাইভ সাইটে আপডেট করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+    </div>
+  );
+}
+
 function ChangePassword(){const[cur,setCur]=useState(''),[next,setNext]=useState(''),[msg,setMsg]=useState('');async function submit(e){e.preventDefault();try{const d=await api('/auth/change-password',{method:'POST',body:JSON.stringify({currentPassword:cur,newPassword:next})});setMsg(d.message);setCur('');setNext('');if(d.relogin_required){setTimeout(()=>{localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');window.location.hash='#/login'},700)}}catch(e){setMsg(e.message)}}return <div className="form-card narrow"><h2>নিজের Password পরিবর্তন</h2><form onSubmit={submit}><input type="password" placeholder="বর্তমান Password" value={cur} onChange={e=>setCur(e.target.value)} required/><input type="password" placeholder="নতুন Password (৮+)" minLength="8" value={next} onChange={e=>setNext(e.target.value)} required/><button className="btn">Password পরিবর্তন</button></form>{msg&&<p className="msg">{msg}</p>}</div>}
 function NoticePanel(){const[title,setTitle]=useState(''),[body,setBody]=useState(''),[urgent,setUrgent]=useState(false),[msg,setMsg]=useState('');async function submit(e){e.preventDefault();try{await api('/notices',{method:'POST',body:JSON.stringify({title_bn:title,body,published:true,urgent})});setTitle('');setBody('');setUrgent(false);setMsg('নোটিশ প্রকাশ হয়েছে')}catch(e){setMsg(e.message)}}return <div className="form-card"><h2>নতুন নোটিশ প্রকাশ</h2><form onSubmit={submit}><input placeholder="নোটিশের শিরোনাম" value={title} onChange={e=>setTitle(e.target.value)} required/><textarea placeholder="নোটিশের বিস্তারিত" value={body} onChange={e=>setBody(e.target.value)} rows="7"/><label className="check"><input type="checkbox" checked={urgent} onChange={e=>setUrgent(e.target.checked)}/> জরুরি নোটিশ</label><button className="btn">প্রকাশ করুন</button></form>{msg&&<p className="success">{msg}</p>}</div>}
 function NotificationPanel(){

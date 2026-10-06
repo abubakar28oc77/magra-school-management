@@ -38,6 +38,152 @@ export function getTeacherPhoto(teacher) {
   return PHOTO_MALE_TEACHER;
 }
 
+export const DEFAULT_LEADERSHIP_DATA = {
+  president: {
+    key: 'public.nav.leadership.president',
+    role: 'সভাপতি',
+    designation: 'সভাপতি, ম্যানেজিং কমিটি',
+    name: 'নেয়ামুল হক খান',
+    title: 'সভাপতির বাণী',
+    badge: '👑 সভাপতির বাণী',
+    photo: PHOTO_PRESIDENT,
+    msg: 'শিক্ষার গুণগত মান উন্নয়ন, নৈতিক মূল্যবোধ ও আধুনিক শিক্ষার সমন্বয়ে বিদ্যালয়ের অগ্রযাত্রায় সকলের সহযোগিতা কামনা করি।',
+    speech: [
+      'বিসমিল্লাহির রাহমানির রাহিম। ঐতিহ্যবাহী মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সকল শিক্ষার্থী, অভিভাবক ও শুভানুধ্যায়ীদের প্রতি রইল আমার আন্তরিক শুভেচ্ছা ও অভিনন্দন।',
+      '১৯৪৬ সালে প্রতিষ্ঠিত এই বিদ্যাপীঠ দীর্ঘ সময় ধরে অত্র এলাকার শিক্ষার আলো ছড়িয়ে আসছে। শিক্ষার গুণগত মান নিশ্চিতকরণ, ডিজিটাল অবকাঠামো উন্নয়ন এবং শিক্ষার্থীদের দেশপ্রেম ও নৈতিক শিক্ষায় উদ্বুদ্ধ করাই আমাদের পরিচালনা কমিটির মূল লক্ষ্য।',
+      'বিদ্যালয়ের ধারাবাহিক সাফল্য ও সার্বিক অগ্রগতিতে শিক্ষক, অভিভাবক ও এলাকাবাসীর আন্তরিক সহযোগিতা কামনা করছি।'
+    ]
+  },
+  head: {
+    key: 'public.nav.leadership.head',
+    role: 'প্রধান শিক্ষক',
+    designation: 'প্রধান শিক্ষক',
+    name: 'মুহাম্মদ শফিকুল ইসলাম',
+    title: 'প্রধান শিক্ষকের বাণী',
+    badge: '🎓 প্রধান শিক্ষকের বাণী',
+    photo: PHOTO_HEAD_TEACHER,
+    msg: 'শিক্ষার্থীর জ্ঞান, দক্ষতা, শৃঙ্খলা ও সৃজনশীলতা বিকাশে বিদ্যালয় পরিবার নিরলসভাবে কাজ করে যাচ্ছে।',
+    speech: [
+      'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ডিজিটাল প্ল্যাটফর্মে সবাইকে স্বাগত জানাচ্ছি।',
+      'একবিংশ শতাব্দীর চ্যালেঞ্জ মোকাবেলায় শিক্ষার্থীদের শুধুমাত্র পাঠ্যপুস্তকের জ্ঞানে সীমাবদ্ধ না রেখে প্রযুক্তিগত দক্ষতা, সততা, শৃঙ্খলা ও নেতৃত্বের গুণাবলি অর্জনে আমরা নিরলসভাবে কাজ করে যাচ্ছি।',
+      'আমাদের অভিজ্ঞ শিক্ষকবৃন্দ প্রতিটি শিক্ষার্থীর সুপ্ত প্রতিভা বিকাশে সচেষ্ট। বিদ্যালয়টিকে একটি আদর্শ স্মার্ট শিক্ষা প্রতিষ্ঠানে রূপান্তরে আমরা প্রতিজ্ঞাবদ্ধ।'
+    ]
+  },
+  asst_head: {
+    key: 'public.nav.leadership.asst_head',
+    role: 'সহকারী প্রধান শিক্ষক',
+    designation: 'সহকারী প্রধান শিক্ষক',
+    name: 'তাপসী সরকার',
+    title: 'সহকারী প্রধান শিক্ষকের বাণী',
+    badge: '👩‍🏫 সহকারী প্রধান শিক্ষকের বাণী',
+    photo: PHOTO_ASST_HEAD_TEACHER,
+    msg: 'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার।',
+    speech: [
+      'প্রিয় শিক্ষার্থীবৃন্দ ও সম্মানিত অভিভাবকবৃন্দ,',
+      'একটি শিক্ষা প্রতিষ্ঠানের প্রাণ হলো এর সুশৃঙ্খল পরিবেশ ও শিক্ষার্থীদের নিয়মিত পড়াশোনার অভ্যাস। আমরা বিদ্যালয়ের একাডেমিক ক্যালেন্ডার, দৈনন্দিন শ্রেণি কার্যক্রম, উপস্থিতি এবং সহশিক্ষা কার্যক্রমের মান কঠোরভাবে বজায় রাখতে সচেষ্ট।',
+      'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার। সবার উজ্জ্বল ভবিষ্যৎ ও সার্বিক সাফল্য কামনা করি।'
+    ]
+  }
+};
+
+export function getLeadershipData(teachersListInput) {
+  let custom = {};
+  try {
+    const raw = localStorage.getItem('magra_db_leadership_settings');
+    if (raw) custom = JSON.parse(raw);
+  } catch {}
+
+  let tList = [];
+  if (Array.isArray(teachersListInput) && teachersListInput.length) {
+    tList = [...teachersListInput];
+  }
+  try {
+    const local = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+    if (Array.isArray(local) && local.length) {
+      if (!tList.length) {
+        tList = local;
+      } else {
+        tList = tList.map(t => {
+          const matched = local.find(l => String(l.id) === String(t.id));
+          return matched ? { ...t, ...matched } : t;
+        });
+      }
+    }
+  } catch {}
+  if (!tList.length) tList = MOCK_TEACHERS;
+
+  // Find live teachers for Head Teacher & Assistant Head Teacher
+  const liveHead = tList.find(t => 
+    t && (
+      t.public_contact_role === 'head_teacher' || 
+      (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
+      t.id === 't-1' ||
+      (t.name_bn && t.name_bn.includes('শফিকুল'))
+    )
+  );
+
+  const liveAsst = tList.find(t => 
+    t && (
+      t.public_contact_role === 'assistant_head_teacher' || 
+      (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
+      t.id === 't-2' ||
+      (t.name_bn && t.name_bn.includes('তাপসী'))
+    )
+  );
+
+  const livePresidentTeacher = tList.find(t => 
+    t && (
+      t.public_contact_role === 'president' || 
+      (t.designation && t.designation.includes('সভাপতি')) ||
+      (t.role && t.role.includes('সভাপতি'))
+    )
+  );
+
+  // Build resolved entries
+  const presCustom = custom.president || {};
+  const president = {
+    ...DEFAULT_LEADERSHIP_DATA.president,
+    ...presCustom,
+    name: presCustom.name || livePresidentTeacher?.name_bn || DEFAULT_LEADERSHIP_DATA.president.name,
+    photo: presCustom.photo || livePresidentTeacher?.photo_url || PHOTO_PRESIDENT,
+    speech: (presCustom.speech && Array.isArray(presCustom.speech) && presCustom.speech.length) ? presCustom.speech : (typeof presCustom.speech === 'string' ? presCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.president.speech)
+  };
+
+  const headCustom = custom.head || {};
+  const headPhoto = headCustom.photo || (liveHead ? getTeacherPhoto(liveHead) : PHOTO_HEAD_TEACHER);
+  const headName = headCustom.name || liveHead?.name_bn || DEFAULT_LEADERSHIP_DATA.head.name;
+  const head = {
+    ...DEFAULT_LEADERSHIP_DATA.head,
+    ...headCustom,
+    name: headName,
+    photo: headPhoto,
+    speech: (headCustom.speech && Array.isArray(headCustom.speech) && headCustom.speech.length) ? headCustom.speech : (typeof headCustom.speech === 'string' ? headCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.head.speech)
+  };
+
+  const asstCustom = custom.asst_head || {};
+  const asstPhoto = asstCustom.photo || (liveAsst ? getTeacherPhoto(liveAsst) : PHOTO_ASST_HEAD_TEACHER);
+  const asstName = asstCustom.name || liveAsst?.name_bn || DEFAULT_LEADERSHIP_DATA.asst_head.name;
+  const asst_head = {
+    ...DEFAULT_LEADERSHIP_DATA.asst_head,
+    ...asstCustom,
+    name: asstName,
+    photo: asstPhoto,
+    speech: (asstCustom.speech && Array.isArray(asstCustom.speech) && asstCustom.speech.length) ? asstCustom.speech : (typeof asstCustom.speech === 'string' ? asstCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.asst_head.speech)
+  };
+
+  return {
+    map: {
+      'public.nav.leadership.president': president,
+      'public.nav.leadership.head': head,
+      'public.nav.leadership.asst_head': asst_head
+    },
+    cards: [president, head, asst_head],
+    president,
+    head,
+    asst_head
+  };
+}
+
 // Comprehensive Standalone Mock Data & Offline Observation Engine for Magra School Management ERP V118
 export const MOCK_SCHOOL = {
   nameBn: 'মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়',

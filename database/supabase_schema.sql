@@ -1,6 +1,6 @@
 -- ============================================================
--- Magra School Management ERP V118 - Supabase Cloud Database Schema
--- Run this script in your Supabase SQL Editor (supabase.com -> SQL Editor -> New query -> RUN)
+-- Magra School Management ERP V118 - Supabase Cloud Database Schema (Idempotent)
+-- Run this script in your Supabase SQL Editor
 -- ============================================================
 
 -- 1. Create Teachers Table
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS public.admissions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Enable Row Level Security (RLS) & Allow public read/write access for cloud sync
+-- Enable Row Level Security (RLS)
 ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
@@ -143,6 +143,23 @@ ALTER TABLE public.routines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admissions ENABLE ROW LEVEL SECURITY;
 
+-- Clean existing policies if re-running
+DROP POLICY IF EXISTS "Allow public read teachers" ON public.teachers;
+DROP POLICY IF EXISTS "Allow anon insert/update teachers" ON public.teachers;
+DROP POLICY IF EXISTS "Allow public read staff" ON public.staff;
+DROP POLICY IF EXISTS "Allow anon insert/update staff" ON public.staff;
+DROP POLICY IF EXISTS "Allow public read students" ON public.students;
+DROP POLICY IF EXISTS "Allow anon insert/update students" ON public.students;
+DROP POLICY IF EXISTS "Allow public read notices" ON public.notices;
+DROP POLICY IF EXISTS "Allow anon insert/update notices" ON public.notices;
+DROP POLICY IF EXISTS "Allow public read routines" ON public.routines;
+DROP POLICY IF EXISTS "Allow anon insert/update routines" ON public.routines;
+DROP POLICY IF EXISTS "Allow public read exams" ON public.exams;
+DROP POLICY IF EXISTS "Allow anon insert/update exams" ON public.exams;
+DROP POLICY IF EXISTS "Allow public read admissions" ON public.admissions;
+DROP POLICY IF EXISTS "Allow anon insert/update admissions" ON public.admissions;
+
+-- Re-apply policies
 CREATE POLICY "Allow public read teachers" ON public.teachers FOR SELECT USING (true);
 CREATE POLICY "Allow anon insert/update teachers" ON public.teachers FOR ALL USING (true) WITH CHECK (true);
 

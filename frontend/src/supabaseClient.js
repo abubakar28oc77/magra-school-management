@@ -92,14 +92,41 @@ export async function uploadLocalToSupabase() {
   if (!isConfigured) throw new Error('প্রথমে Supabase URL ও Anon Key সংরক্ষণ করুন');
 
   const results = { teachers: 0, students: 0, staff: 0, notices: 0 };
+  const errors = [];
+
+  // Helper to find data across possible localStorage keys
+  function findLocalStorageData(primaryKey, fallbackKeys = []) {
+    const allKeys = [primaryKey, ...fallbackKeys];
+    for (const k of allKeys) {
+      try {
+        const item = localStorage.getItem(k);
+        if (item) {
+          const parsed = JSON.parse(item);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    // Also scan all localStorage keys for partial matches if still not found
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.toLowerCase().includes(primaryKey.replace('magra_db_', ''))) {
+          const item = localStorage.getItem(k);
+          const parsed = JSON.parse(item);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
+    } catch {}
+    return [];
+  }
 
   // 1. Teachers
   try {
-    const teachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+    const teachers = findLocalStorageData('magra_db_teachers', ['teachers', 'magra_teachers', 'magra_db_teachers_list']);
     if (teachers.length) {
-      const cleanTeachers = teachers.map(t => ({
-        id: String(t.id || ('t_' + Date.now())),
-        employee_id: t.employee_id || null,
+      const cleanTeachers = teachers.map((t, idx) => ({
+        id: String(t.id || ('t_' + (idx + 1) + '_' + Date.now())),
+        employee_id: t.employee_id || ('EMP-' + (1000 + idx + 1)),
         name_bn: t.name_bn || t.name_en || 'শিক্ষক',
         name_en: t.name_en || null,
         designation: t.designation || null,
@@ -124,19 +151,22 @@ export async function uploadLocalToSupabase() {
         body: cleanTeachers,
         headers: { Prefer: 'resolution=merge-duplicates' }
       });
+      // Also ensure stored in standard local key
+      localStorage.setItem('magra_db_teachers', JSON.stringify(cleanTeachers));
       results.teachers = cleanTeachers.length;
     }
   } catch (e) {
     console.error('Teachers cloud upload error:', e);
+    errors.push('শিক্ষক: ' + (e.message || 'ত্রুটি'));
   }
 
   // 2. Staff
   try {
-    const staff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
+    const staff = findLocalStorageData('magra_db_staff', ['staff', 'magra_staff']);
     if (staff.length) {
-      const cleanStaff = staff.map(s => ({
-        id: String(s.id || ('stf_' + Date.now())),
-        employee_id: s.employee_id || null,
+      const cleanStaff = staff.map((s, idx) => ({
+        id: String(s.id || ('stf_' + (idx + 1) + '_' + Date.now())),
+        employee_id: s.employee_id || ('STF-' + (2000 + idx + 1)),
         name_bn: s.name_bn || s.name_en || 'কর্মচারী',
         name_en: s.name_en || null,
         designation: s.designation || null,
@@ -154,20 +184,22 @@ export async function uploadLocalToSupabase() {
         body: cleanStaff,
         headers: { Prefer: 'resolution=merge-duplicates' }
       });
+      localStorage.setItem('magra_db_staff', JSON.stringify(cleanStaff));
       results.staff = cleanStaff.length;
     }
   } catch (e) {
     console.error('Staff cloud upload error:', e);
+    errors.push('কর্মচারী: ' + (e.message || 'ত্রুটি'));
   }
 
   // 3. Students
   try {
-    const students = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+    const students = findLocalStorageData('magra_db_students', ['students', 'magra_students']);
     if (students.length) {
-      const cleanStudents = students.map(s => ({
-        id: String(s.id || ('st_' + Date.now())),
-        student_id: s.student_id || null,
-        roll_no: s.roll_no ? Number(s.roll_no) : null,
+      const cleanStudents = students.map((s, idx) => ({
+        id: String(s.id || ('st_' + (idx + 1) + '_' + Date.now())),
+        student_id: s.student_id || ('STU-' + (1000 + idx + 1)),
+        roll_no: s.roll_no ? Number(s.roll_no) : (idx + 1),
         name_bn: s.name_bn || s.name_en || 'শিক্ষার্থী',
         name_en: s.name_en || null,
         class_name: String(s.class_name || '6'),
@@ -197,10 +229,16 @@ export async function uploadLocalToSupabase() {
         body: cleanStudents,
         headers: { Prefer: 'resolution=merge-duplicates' }
       });
+      localStorage.setItem('magra_db_students', JSON.stringify(cleanStudents));
       results.students = cleanStudents.length;
     }
   } catch (e) {
     console.error('Students cloud upload error:', e);
+    errors.push('শিক্ষার্থী: ' + (e.message || 'ত্রুটি'));
+  }
+
+  if (errors.length && (results.teachers === 0 && results.students === 0 && results.staff === 0)) {
+    throw new Error(errors.join(', '));
   }
 
   return results;

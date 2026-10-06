@@ -16,7 +16,8 @@ import {
   PHOTO_ASST_HEAD_TEACHER,
   PHOTO_ICT_TEACHER,
   PHOTO_OFFICE_ASSISTANT,
-  getTeacherPhoto
+  getTeacherPhoto,
+  getLeadershipData
 } from './mockData';
 import { requestApi } from './apiClient';
 
@@ -487,44 +488,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
 
     // 1. Leadership Speeches (President, Head Teacher, Assistant Head Teacher)
     if (menuKey.startsWith('public.nav.leadership') || title.includes('বাণী') || menuKey === 'public.nav.institution.message') {
-      const leaderInfo = {
-        'public.nav.leadership.president': {
-          badge: '👑 সভাপতির বাণী',
-          title: 'সভাপতির বাণী',
-          name: 'নেয়ামুল হক খান',
-          role: 'সভাপতি, ম্যানেজিং কমিটি',
-          photo: PHOTO_PRESIDENT,
-          speech: [
-            'বিসমিল্লাহির রাহমানির রাহিম। ঐতিহ্যবাহী মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সকল শিক্ষার্থী, অভিভাবক ও শুভানুধ্যায়ীদের প্রতি রইল আমার আন্তরিক শুভেচ্ছা ও অভিনন্দন।',
-            '১৯৪৬ সালে প্রতিষ্ঠিত এই বিদ্যাপীঠ দীর্ঘ সময় ধরে অত্র এলাকার শিক্ষার আলো ছড়িয়ে আসছে। শিক্ষার গুণগত মান নিশ্চিতকরণ, ডিজিটাল অবকাঠামো উন্নয়ন এবং শিক্ষার্থীদের দেশপ্রেম ও নৈতিক শিক্ষায় উদ্বুদ্ধ করাই আমাদের পরিচালনা কমিটির মূল লক্ষ্য।',
-            'বিদ্যালয়ের ধারাবাহিক সাফল্য ও সার্বিক অগ্রগতিতে শিক্ষক, অভিভাবক ও এলাকাবাসীর আন্তরিক সহযোগিতা কামনা করছি।'
-          ]
-        },
-        'public.nav.leadership.head': {
-          badge: '🎓 প্রধান শিক্ষকের বাণী',
-          title: 'প্রধান শিক্ষকের বাণী',
-          name: 'মুহাম্মদ শফিকুল ইসলাম',
-          role: 'প্রধান শিক্ষক',
-          photo: PHOTO_HEAD_TEACHER,
-          speech: [
-            'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ডিজিটাল প্ল্যাটফর্মে সবাইকে স্বাগত জানাচ্ছি।',
-            'একবিংশ শতাব্দীর চ্যালেঞ্জ মোকাবেলায় শিক্ষার্থীদের শুধুমাত্র পাঠ্যপুস্তকের জ্ঞানে সীমাবদ্ধ না রেখে প্রযুক্তিগত দক্ষতা, সততা, শৃঙ্খলা ও নেতৃত্বের গুণাবলি অর্জনে আমরা নিরলসভাবে কাজ করে যাচ্ছি।',
-            'আমাদের অভিজ্ঞ শিক্ষকবৃন্দ প্রতিটি শিক্ষার্থীর সুপ্ত প্রতিভা বিকাশে সচেষ্ট। বিদ্যালয়টিকে একটি আদর্শ স্মার্ট শিক্ষা প্রতিষ্ঠানে রূপান্তরে আমরা প্রতিজ্ঞাবদ্ধ।'
-          ]
-        },
-        'public.nav.leadership.asst_head': {
-          badge: '👩‍🏫 সহকারী প্রধান শিক্ষকের বাণী',
-          title: 'সহকারী প্রধান শিক্ষকের বাণী',
-          name: 'তাপসী সরকার',
-          role: 'সহকারী প্রধান শিক্ষক',
-          photo: PHOTO_ASST_HEAD_TEACHER,
-          speech: [
-            'প্রিয় শিক্ষার্থীবৃন্দ ও সম্মানিত অভিভাবকবৃন্দ,',
-            'একটি শিক্ষা প্রতিষ্ঠানের প্রাণ হলো এর সুশৃঙ্খল পরিবেশ ও শিক্ষার্থীদের নিয়মিত পড়াশোনার অভ্যাস। আমরা বিদ্যালয়ের একাডেমিক ক্যালেন্ডার, দৈনন্দিন শ্রেণি কার্যক্রম, উপস্থিতি এবং সহশিক্ষা কার্যক্রমের মান কঠোরভাবে বজায় রাখতে সচেষ্ট।',
-            'শিক্ষার্থীদের নিয়মিত উপস্থিতি, শৃঙ্খলা ও মানসম্মত সহশিক্ষা কার্যক্রমের মাধ্যমে আদর্শ নাগরিক হিসেবে গড়ে তোলাই আমাদের অঙ্গীকার। সবার উজ্জ্বল ভবিষ্যৎ ও সার্বিক সাফল্য কামনা করি।'
-          ]
-        }
-      };
+      const leaderData = getLeadershipData();
+      const leaderInfo = leaderData.map;
 
       const selectedKey = menuKey in leaderInfo ? menuKey : (title.includes('সহকারী') ? 'public.nav.leadership.asst_head' : (title.includes('প্রধান শিক্ষক') ? 'public.nav.leadership.head' : (title.includes('সভাপতি') ? 'public.nav.leadership.president' : null)));
 
@@ -539,12 +504,12 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </div>
               <div>
                 <h3 style={{ margin: '0 0 4px 0', color: '#1a202c', fontSize: '18px' }}>{leader.name}</h3>
-                <p style={{ margin: '0 0 2px 0', color: '#1d4ed8', fontWeight: 700, fontSize: '14px' }}>{leader.role}</p>
+                <p style={{ margin: '0 0 2px 0', color: '#1d4ed8', fontWeight: 700, fontSize: '14px' }}>{leader.designation || leader.role}</p>
                 <small style={{ color: '#64748b', fontSize: '12px' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতি, টাঙ্গাইল</small>
               </div>
             </div>
             <div className="leader-speech" style={{ lineHeight: '1.8', color: '#2d3748', fontSize: '15px' }}>
-              {leader.speech.map((para, i) => (
+              {(Array.isArray(leader.speech) ? leader.speech : [leader.speech]).map((para, i) => (
                 <p key={i} style={{ marginBottom: '12px' }}>{para}</p>
               ))}
             </div>
@@ -565,11 +530,11 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                   </div>
                   <div>
                     <h4 style={{ margin: 0, color: '#1a202c', fontSize: '16px' }}>{leader.title}</h4>
-                    <p style={{ margin: 0, color: '#1d4ed8', fontSize: '13px', fontWeight: 700 }}>{leader.name} — {leader.role}</p>
+                    <p style={{ margin: 0, color: '#1d4ed8', fontSize: '13px', fontWeight: 700 }}>{leader.name} — {leader.designation || leader.role}</p>
                   </div>
                 </div>
                 <div style={{ lineHeight: '1.7', color: '#2d3748', fontSize: '14px' }}>
-                  {leader.speech.map((para, i) => (
+                  {(Array.isArray(leader.speech) ? leader.speech : [leader.speech]).map((para, i) => (
                     <p key={i} style={{ marginBottom: '8px' }}>{para}</p>
                   ))}
                 </div>
@@ -623,19 +588,23 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           <div className="modal-hero-badge">👥 পরিচালনা কমিটি (Managing Committee)</div>
           <p className="lead-text">বিদ্যালয়ের সার্বিক শিক্ষা, প্রশাসনিক ও ভৌত অবকাঠামোগত উন্নয়নের দায়িত্বে নিয়োজিত গভর্নিং বডি:</p>
           <div className="committee-grid">
-            {MOCK_COMMITTEE.map((m, idx) => (
-              <div key={idx} className="committee-card">
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
-                  <img src={m.role === 'সভাপতি' ? PHOTO_PRESIDENT : m.role === 'সদস্য সচিব' ? PHOTO_HEAD_TEACHER : PHOTO_MALE_TEACHER} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {MOCK_COMMITTEE.map((m, idx) => {
+              const ld = getLeadershipData();
+              const photoSrc = m.role === 'সভাপতি' ? ld.president.photo : m.role === 'সদস্য সচিব' ? ld.head.photo : PHOTO_MALE_TEACHER;
+              return (
+                <div key={idx} className="committee-card">
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                    <img src={photoSrc} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div className="member-info">
+                    <span className="member-role">{m.role}</span>
+                    <h4>{m.name_bn}</h4>
+                    <p>{m.designation}</p>
+                    <small>মেয়াদকাল: {m.tenure}</small>
+                  </div>
                 </div>
-                <div className="member-info">
-                  <span className="member-role">{m.role}</span>
-                  <h4>{m.name_bn}</h4>
-                  <p>{m.designation}</p>
-                  <small>মেয়াদকাল: {m.tenure}</small>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       );
