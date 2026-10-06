@@ -34,6 +34,32 @@ function downloadCsv(filename,rows,headers){const lines=[headers.map(csvCell).jo
 function parseCsvText(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++;}else quoted=!quoted;}else if(ch===','&&!quoted){row.push(cell);cell='';}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);row=[];cell='';}else cell+=ch;}if(cell!==''||row.length){row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);}return rows;}
 function flattenCustom(row){const c=row?.extended_profile?.custom_fields||{};return Object.fromEntries(Object.entries(c).map(([k,v])=>['custom:'+k,Array.isArray(v)?v.join(' | '):typeof v==='object'?JSON.stringify(v):v]))}
 
+export function getStudentGuardian(s){
+ if(!s) return '—';
+ const g = (s.guardian_name||'').trim();
+ if(g) return g;
+ const f = (s.father_name||'').trim();
+ if(f && !f.includes('মৃত')) return f;
+ const m = (s.mother_name||'').trim();
+ if(m && !m.includes('মৃত')) return m;
+ if(f) return f;
+ if(m) return m;
+ return '—';
+}
+
+export function getStudentPhone(s){
+ if(!s) return '—';
+ const gp = (s.guardian_phone||'').trim();
+ if(gp) return gp;
+ const fp = (s.father_mobile||'').trim();
+ if(fp) return fp;
+ const mp = (s.mother_mobile||'').trim();
+ if(mp) return mp;
+ const ep = (s.emergency_phone||'').trim();
+ if(ep) return ep;
+ return '—';
+}
+
 function CustomFields({ formKey, form, setForm }) {
   const [fields, setFields] = useState([]);
   useEffect(() => {
@@ -840,7 +866,7 @@ function Admin(){
  const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
  const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled[`admin.${x.k}.${sk}`]!==false)}))})).filter(g=>g.items.length);
   if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
-  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{x.subs?.length?<span className="side-caret">{expanded[x.k]?'▾':'▸'}</span>:null}</button>{x.subs?.length&&expanded[x.k]&&<div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div>}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
  }
 
  const adminEn={
@@ -848,7 +874,7 @@ function Admin(){
  const ADMIN_NAV_GROUPS=[
   {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
   {group:'একাডেমিক',items:[
-   {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['search','শিক্ষার্থী অনুসন্ধান'],['voter','ভোটার তালিকা'],['village','গ্রামভিত্তিক তালিকা']]},
+   {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['csv','CSV শিক্ষার্থী আপলোড'],['search','শিক্ষার্থী অনুসন্ধান'],['voter','ভোটার তালিকা'],['village','গ্রামভিত্তিক তালিকা']]},
    {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
    {k:'admission',n:'ভর্তি',i:'📝',subs:[['applications','ভর্তি আবেদন'],['test','ভর্তি পরীক্ষা'],['selection','নির্বাচন ও ভর্তি']]},
    {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
@@ -875,7 +901,7 @@ function Dashboard({data}){const d=data||{};return <><div className="stats admin
 const emptyStudent={student_id:'',roll_no:'',name_bn:'',name_en:'',class_name:'6',section:'',gender:'',date_of_birth:'',blood_group:'',religion:'',father_name:'',father_name_en:'',father_nid_no:'',father_profession:'',father_mobile:'',father_abroad_country:'',mother_name:'',mother_name_en:'',mother_nid_no:'',mother_profession:'',mother_mobile:'',mother_death_year:'',guardian_name:'',guardian_name_en:'',guardian_nid_no:'',guardian_relation:'',guardian_phone:'',guardian_email:'',address:'',current_village:'',current_post_office:'',current_upazila:'',current_district:'',permanent_village:'',permanent_post_office:'',permanent_upazila:'',permanent_district:'',admission_date:'',admission_class:'6',previous_school:'',birth_registration_no:'',student_nid_no:'',primary_school_name:'',primary_registration_no:'',primary_completion_year:'',emergency_phone:'',photo_url:'',special_needs:'',additional_notes:'',status:'active',extended_profile:{}};
 
 function StudentPanel({sub}){
- const [view, setView] = useState(sub==='new' ? 'form' : 'list');
+ const [view, setView] = useState(sub==='new' ? 'form' : sub==='csv' ? 'csv' : 'list');
  const [students,setStudents]=useState([]);
  const [form,setForm]=useState({...emptyStudent,extended_profile:{education:[],notes:''}});
  const [editing,setEditing]=useState(null);
@@ -914,10 +940,122 @@ function StudentPanel({sub}){
   const headers=['Student ID','Name','Class','Roll','Guardian','Mobile','Status',...custom.map(f=>'custom:'+f.field_key)];
   const rows=students.map(x=>{
    const c=flattenCustom(x);
-   return {'Student ID':x.student_id,Name:x.name_bn,Class:x.class_name,Roll:x.roll_no,Guardian:x.guardian_name,Mobile:x.guardian_phone,Status:statusBn(x.status),...c};
+   return {'Student ID':x.student_id,Name:x.name_bn,Class:x.class_name,Roll:x.roll_no,Guardian:getStudentGuardian(x),Mobile:getStudentPhone(x),Status:statusBn(x.status),...c};
   });
   downloadCsv('magra-students.csv',rows,headers);
  };
+
+ const studentImportHeaders=['student_id','roll_no','name_bn','name_en','class_name','section','gender','date_of_birth','blood_group','religion','birth_registration_no','student_nid_no','father_name','father_name_en','father_nid_no','father_profession','father_mobile','father_abroad_country','mother_name','mother_name_en','mother_nid_no','mother_profession','mother_mobile','mother_death_year','guardian_name','guardian_name_en','guardian_relation','guardian_phone','guardian_nid_no','guardian_email','address','current_village','current_post_office','current_upazila','current_district','permanent_village','permanent_post_office','permanent_upazila','permanent_district','admission_class','admission_date','previous_school','emergency_phone','special_needs','additional_notes','status','extended_profile_json'];
+
+ const downloadStudentTemplate=()=>downloadCsv('magra-student-import-template.csv',[{
+  student_id:'STU-2026-0001',
+  roll_no:'01',
+  name_bn:'আহনাফ সিদ্দিক',
+  name_en:'Ahnaf Siddique',
+  class_name:'6',
+  section:'A',
+  gender:'পুরুষ',
+  date_of_birth:'2014-01-01',
+  blood_group:'B+',
+  religion:'ইসলাম',
+  birth_registration_no:'20140000000000000',
+  student_nid_no:'',
+  father_name:'মোঃ রফিকুল ইসলাম',
+  father_name_en:'Md. Rafiqul Islam',
+  father_nid_no:'',
+  father_profession:'ব্যবসায়ী',
+  father_mobile:'01711000000',
+  father_abroad_country:'',
+  mother_name:'মোছাঃ ফাতেমা খাতুন',
+  mother_name_en:'Fatema Khatun',
+  mother_nid_no:'',
+  mother_profession:'গৃহিণী',
+  mother_mobile:'01722000000',
+  mother_death_year:'',
+  guardian_name:'',
+  guardian_name_en:'',
+  guardian_relation:'',
+  guardian_phone:'',
+  guardian_nid_no:'',
+  guardian_email:'',
+  address:'গ্রাম: মগড়া, কালিহাতি, টাঙ্গাইল',
+  current_village:'মগড়া',
+  current_post_office:'মগড়া',
+  current_upazila:'কালিহাতি',
+  current_district:'টাঙ্গাইল',
+  permanent_village:'মগড়া',
+  permanent_post_office:'মগড়া',
+  permanent_upazila:'কালিহাতি',
+  permanent_district:'টাঙ্গাইল',
+  admission_class:'6',
+  admission_date:'2026-01-01',
+  previous_school:'মগড়া সরকারি প্রাথমিক বিদ্যালয়',
+  emergency_phone:'01711000000',
+  special_needs:'',
+  additional_notes:'',
+  status:'active',
+  extended_profile_json:'{}'
+ }],studentImportHeaders);
+
+ const importStudents=async(e)=>{
+  const file=e.target.files?.[0];
+  e.target.value='';
+  if(!file)return;
+  setImporting(true);
+  setMsg('CSV ফাইল প্রসেস ও আপলোড হচ্ছে...');
+  try{
+   const text=await file.text();
+   const matrix=parseCsvText(text);
+   if(matrix.length<2)throw new Error('CSV-তে কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি');
+   const rawHeaders=matrix[0].map(x=>x.trim().toLowerCase());
+   const aliasMap={
+    'id':'student_id','student id':'student_id','studentid':'student_id',
+    'roll':'roll_no','roll no':'roll_no','roll_number':'roll_no',
+    'name':'name_bn','name (bangla)':'name_bn','নাম':'name_bn','name_bangla':'name_bn',
+    'name (english)':'name_en','name_english':'name_en',
+    'class':'class_name','class_name':'class_name','শ্রেণি':'class_name',
+    'section':'section','শাখা':'section',
+    'gender':'gender','লিঙ্গ':'gender',
+    'father name':'father_name','father_name':'father_name','পিতার নাম':'father_name',
+    'father phone':'father_mobile','father mobile':'father_mobile','father_mobile':'father_mobile','পিতার মোবাইল':'father_mobile',
+    'mother name':'mother_name','mother_name':'mother_name','মাতার নাম':'mother_name',
+    'mother mobile':'mother_mobile','mother_mobile':'mother_mobile','মাতার মোবাইল':'mother_mobile',
+    'guardian':'guardian_name','guardian name':'guardian_name','guardian_name':'guardian_name','অভিভাবক':'guardian_name',
+    'guardian phone':'guardian_phone','guardian mobile':'guardian_phone','guardian_phone':'guardian_phone','মোবাইল':'guardian_phone',
+    'village':'current_village','current_village':'current_village','গ্রাম':'current_village'
+   };
+   const headers=rawHeaders.map(h=>aliasMap[h]||h);
+   if(!headers.includes('name_bn')){
+    throw new Error('আবশ্যিক কলাম অনুপস্থিত: name_bn (বা নাম / Name)');
+   }
+   const rows=matrix.slice(1).map((r,rowIdx)=>{
+    const obj={};
+    headers.forEach((h,i)=>{
+     const val=(r[i]??'').trim();
+     if(val)obj[h]=val;
+    });
+    if(!obj.name_bn)return null;
+    if(!obj.class_name)obj.class_name='6';
+    if(!obj.student_id){
+     obj.student_id='STU-'+new Date().getFullYear()+'-'+String(Date.now()+rowIdx).slice(-5);
+    }
+    if(obj.extended_profile_json){
+     try{obj.extended_profile=JSON.parse(obj.extended_profile_json)}catch{}
+    }
+    return obj;
+   }).filter(Boolean);
+   if(!rows.length)throw new Error('কোনো বৈধ শিক্ষার্থী তথ্য পাওয়া যায়নি');
+   const result=await api('/students/bulk-import',{method:'POST',body:JSON.stringify({students:rows})});
+   setMsg(result.message||`${rows.length} জন শিক্ষার্থী সফলভাবে ইমপোর্ট হয়েছে`);
+   setView('list');
+   load();
+  }catch(err){
+   setMsg(err.message||'শিক্ষার্থী CSV আপলোড ব্যর্থ হয়েছে');
+  }finally{
+   setImporting(false);
+  }
+ };
+
 
  const change=(k,v)=>setForm(f=>({...f,[k]:v}));
  const ext=(k,v)=>setForm(f=>({...f,extended_profile:{...(f.extended_profile||{}),[k]:v}}));
@@ -958,10 +1096,135 @@ function StudentPanel({sub}){
  };
 
  return <div>
-  <div className="tabs" style={{marginBottom:'16px'}}>
-   <button type="button" className={view==='list'?'active':''} onClick={()=>setView('list')}>📋 শিক্ষার্থী তালিকা ({students.length})</button>
-   <button type="button" className={view==='form'?'active':''} onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ {editing?'তথ্য সম্পাদনা':'নতুন শিক্ষার্থী এন্ট্রি'}</button>
+  <div className="tabs" style={{marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
+   <div style={{display:'flex',gap:'8px'}}>
+    <button type="button" className={view==='list'?'active':''} onClick={()=>setView('list')}>📋 শিক্ষার্থী তালিকা ({students.length})</button>
+    <button type="button" className={view==='form'?'active':''} onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ {editing?'তথ্য সম্পাদনা':'নতুন শিক্ষার্থী এন্ট্রি'}</button>
+    <button type="button" className={view==='csv'?'active':''} onClick={()=>setView('csv')}>📁 CSV শিক্ষার্থী আপলোড</button>
+   </div>
+   <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+    <button className="mini" type="button" onClick={downloadStudentTemplate} style={{background:'#f0fdf4',border:'1px solid #16a34a',color:'#16a34a',fontWeight:700,padding:'6px 14px',borderRadius:'6px',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'13px'}}>⬇️ নমুনা CSV ডাউনলোড</button>
+    <label className="mini btn-upload" style={{background:'#16a34a',color:'#fff',fontWeight:700,padding:'6px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'13px',boxShadow:'0 2px 4px rgba(22,163,74,0.3)'}}>⬆️ শিক্ষার্থী CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
+   </div>
   </div>
+  
+  {view==='csv' && (
+   <div className="form-card full-form-v90" style={{maxWidth:'950px',margin:'0 auto'}}>
+    <div className="toolbar" style={{borderBottom:'1px solid #e2e8f0',paddingBottom:'16px',marginBottom:'20px'}}>
+     <div>
+      <span className="eyebrow" style={{color:'#16a34a',fontWeight:700}}>BULK IMPORT & EXPORT</span>
+      <h2 style={{fontSize:'22px',margin:'4px 0'}}>শিক্ষার্থী CSV আপলোড ও ব্যাকআপ</h2>
+      <p style={{color:'#64748b',fontSize:'14px',margin:0}}>এক্সেল বা সিএসভি ফাইলের মাধ্যমে একসাথে শত শত শিক্ষার্থীর তথ্য সহজে আপলোড করুন।</p>
+     </div>
+     <button className="mini" type="button" onClick={()=>setView('list')}>📋 তালিকায় ফিরুন</button>
+    </div>
+
+    {msg && <p className="msg" style={{marginBottom:'20px',padding:'12px 16px',borderRadius:'8px',background:msg.includes('ব্যর্থ')||msg.includes('ভুল')?'#fef2f2':'#ecfdf5',color:msg.includes('ব্যর্থ')||msg.includes('ভুল')?'#991b1b':'#065f46',border:msg.includes('ব্যর্থ')||msg.includes('ভুল')?'1px solid #fecaca':'1px solid #a7f3d0',fontWeight:600}}>{msg}</p>}
+
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))',gap:'20px',marginBottom:'28px'}}>
+     {/* Step 1: Download Template */}
+     <div style={{border:'2px dashed #cbd5e1',borderRadius:'12px',padding:'24px',textAlign:'center',background:'#f8fafc',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+      <div>
+       <div style={{fontSize:'36px',marginBottom:'10px'}}>📥</div>
+       <h3 style={{fontSize:'16px',fontWeight:700,marginBottom:'8px',color:'#1e293b'}}>ধাপ ১: নমুনা CSV ডাউনলোড করুন</h3>
+       <p style={{fontSize:'13px',color:'#64748b',marginBottom:'16px',lineHeight:'1.5'}}>প্রথমে আমাদের স্ট্যান্ডার্ড ফরম্যাটযুক্ত ডেমো ফাইলটি নামিয়ে নিন এবং শিক্ষার্থীদের তথ্য বসিয়ে সেভ করুন।</p>
+      </div>
+      <button type="button" onClick={downloadStudentTemplate} style={{background:'#0b6b43',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontWeight:700,border:'none',cursor:'pointer',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'8px',boxShadow:'0 2px 4px rgba(11,107,67,0.2)'}}>⬇️ Template CSV ডাউনলোড</button>
+     </div>
+
+     {/* Step 2: Upload CSV */}
+     <div style={{border:'2px dashed #86efac',borderRadius:'12px',padding:'24px',textAlign:'center',background:'#f0fdf4',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+      <div>
+       <div style={{fontSize:'36px',marginBottom:'10px'}}>📤</div>
+       <h3 style={{fontSize:'16px',fontWeight:700,marginBottom:'8px',color:'#166534'}}>ধাপ ২: CSV ফাইল আপলোড করুন</h3>
+       <p style={{fontSize:'13px',color:'#4b5563',marginBottom:'16px',lineHeight:'1.5'}}>আপনার প্রস্তুতকৃত .csv ফাইলটি এখানে নির্বাচন করুন। সিস্টেম স্বয়ংক্রিয়ভাবে ডাটা ভ্যালিডেট করে যোগ করবে।</p>
+      </div>
+      <label style={{background:'#16a34a',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontWeight:700,cursor:importing?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'8px',boxShadow:'0 2px 4px rgba(22,163,74,0.3)',opacity:importing?0.7:1}}>
+       {importing ? '⏳ প্রসেসিং হচ্ছে...' : '⬆️ ফাইল বাছাই ও আপলোড করুন'}
+       <input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/>
+      </label>
+     </div>
+
+     {/* Step 3: Export Existing */}
+     <div style={{border:'2px dashed #93c5fd',borderRadius:'12px',padding:'24px',textAlign:'center',background:'#eff6ff',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
+      <div>
+       <div style={{fontSize:'36px',marginBottom:'10px'}}>📊</div>
+       <h3 style={{fontSize:'16px',fontWeight:700,marginBottom:'8px',color:'#1e40af'}}>ব্যাকআপ: বর্তমান শিক্ষার্থী ডাটা</h3>
+       <p style={{fontSize:'13px',color:'#64748b',marginBottom:'16px',lineHeight:'1.5'}}>সিস্টেমে বর্তমানে থাকা মোট ({students.length}) জন শিক্ষার্থীর সম্পূর্ণ তালিকা CSV ফরম্যাটে ডাউনলোড করুন।</p>
+      </div>
+      <button type="button" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontWeight:700,border:'none',cursor:'pointer',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'8px',boxShadow:'0 2px 4px rgba(37,99,235,0.2)'}}>📋 সকল শিক্ষার্থী CSV রিপোর্ট</button>
+     </div>
+    </div>
+
+    {/* Column guidelines table */}
+    <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:'10px',padding:'20px'}}>
+     <h4 style={{fontSize:'15px',fontWeight:700,marginBottom:'12px',color:'#0f172a'}}>📌 CSV ফাইলের কলাম নির্দেশিকা:</h4>
+     <div style={{overflowX:'auto'}}>
+      <table style={{width:'100%',borderCollapse:'collapse',fontSize:'13px'}}>
+       <thead>
+        <tr style={{background:'#f1f5f9',textAlign:'left'}}>
+         <th style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>কলামের নাম (CSV Header)</th>
+         <th style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>বাংলা বিকল্প</th>
+         <th style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>বাধ্যতামূলক?</th>
+         <th style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>নমুনা মান / বিবরণ</th>
+        </tr>
+       </thead>
+       <tbody>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>name_bn</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>নাম, Name</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#dc2626',fontWeight:700}}>হ্যাঁ (আবশ্যক)</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>আহনাফ সিদ্দিক</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>class_name</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>শ্রেণি, Class</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#16a34a'}}>ঐচ্ছিক (ডিফল্ট: 6)</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>6, 7, 8, 9, 10</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>roll_no</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>রোল, Roll</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>01, 02, ...</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>section</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>শাখা, Section</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>A, B, পদ্মা, মেঘনা</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>gender</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>লিঙ্গ, Gender</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>পুরুষ / নারী</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>father_name</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>পিতার নাম</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>মোঃ রফিকুল ইসলাম</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>guardian_phone</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>মোবাইল, ফোন</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>01711000000</td>
+        </tr>
+        <tr>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',fontFamily:'monospace',color:'#0284c7'}}>current_village</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>গ্রাম, Village</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0',color:'#64748b'}}>ঐচ্ছিক</td>
+         <td style={{padding:'8px 12px',border:'1px solid #e2e8f0'}}>মগড়া</td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+  )}
+
   {view==='form' && (
    <div className="form-card full-form-v90">
     <div className="toolbar">
@@ -971,6 +1234,8 @@ function StudentPanel({sub}){
      </div>
      <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
       <button className="mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setView('list');}}>📋 তালিকায় ফিরুন</button>
+      <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
+      <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ শিক্ষার্থী CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
       <span>ধাপ {step+1}/5</span>
      </div>
     </div>
@@ -1002,6 +1267,8 @@ function StudentPanel({sub}){
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
       <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
+      <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
+      <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
       <span>{students.length} জন</span>
      </div>
     </div>
@@ -1039,7 +1306,7 @@ function StudentPanel({sub}){
        </tr>
       </thead>
       <tbody>
-       {students.map(s=><tr key={s.id}><td>{s.student_id}</td><td>{s.name_bn}</td><td>{s.class_name}</td><td>{s.roll_no||'—'}</td><td>{s.guardian_name||'—'}</td><td>{s.guardian_phone||'—'}</td><td>{statusBn(s.status)}</td><td><button className="mini" onClick={()=>edit(s)}>সম্পাদনা</button></td></tr>)}
+       {students.map(s=><tr key={s.id}><td>{s.student_id}</td><td>{s.name_bn}</td><td>{s.class_name}</td><td>{s.roll_no||'—'}</td><td>{getStudentGuardian(s)}</td><td>{getStudentPhone(s)}</td><td>{statusBn(s.status)}</td><td><button className="mini" onClick={()=>edit(s)}>সম্পাদনা</button></td></tr>)}
        {!students.length&&<tr><td colSpan="8">কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
@@ -2219,8 +2486,8 @@ function VillageStudentPanel(){
  const [village,setVillage]=useState(''),[data,setData]=useState(null),[msg,setMsg]=useState('');
  const t=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;
  const search=async()=>{try{setData(await api(`/students/village-wise?village=${encodeURIComponent(village)}`));setMsg('')}catch(e){setMsg(e.message)}};
- const print=()=>{if(!data)return;const w=window.open('','_blank','width=1000,height=800');if(!w)return;const esc=escapeHtml;const h=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;let body=`<h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN 114290</p><h2>${h('গ্রামভিত্তিক শিক্ষার্থী তালিকা','Village-wise Student List')}</h2><p>${h('গ্রাম','Village')}: ${esc(data.village)} • ${h('মোট','Total')}: ${data.count}</p>`;for(const c of classes){const rows=data.groups?.[c]||[];body+=`<h3>${h('শ্রেণি','Class')} ${esc(c)} — ${rows.length} ${h('জন','students')}</h3><table><thead><tr><th>${h('ক্রম','SL')}</th><th>${h('রোল','Roll')}</th><th>Student ID</th><th>${h('নাম','Name')}</th><th>${h('পিতা','Father')}</th><th>${h('মাতা','Mother')}</th><th>${h('মোবাইল','Mobile')}</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.roll_no||'')}</td><td>${esc(r.student_id)}</td><td>${esc(lang==='en'?(r.name_en||r.name_bn):r.name_bn)}</td><td>${esc(r.father_name||'')}</td><td>${esc(r.mother_name||'')}</td><td>${esc(r.guardian_phone||'')}</td></tr>`).join('')}</tbody></table>`}w.document.write(`<html><head><meta charset="utf-8"><style>body{font-family:Arial,'Noto Sans Bengali',sans-serif;margin:25px}table{width:100%;border-collapse:collapse;margin:8px 0 20px}th,td{border:1px solid #222;padding:5px;font-size:12px}h1,h2{text-align:center}</style></head><body>${body}<script>window.onload=()=>window.print()</script></body></html>`);w.document.close()};
- return <div className="module-grid"><div className="form-card"><span className="eyebrow">SMART QUERY</span><h2>{t('গ্রামভিত্তিক শিক্ষার্থী তালিকা','Village-wise Student List')}</h2><p className="portal-muted">{t('যে কোনো গ্রামের নাম লিখলে ৬ষ্ঠ থেকে ১০ম শ্রেণির শিক্ষার্থীদের শ্রেণিভিত্তিক আলাদা তালিকা পাওয়া যাবে। বর্তমান বা স্থায়ী ঠিকানার গ্রাম—দুটিই অনুসন্ধান করা হবে।','Search any village to list students from Classes 6-10 separately. Both present and permanent village addresses are searched.')}</p><div className="filters"><input placeholder={t('যেমন: মগড়া','Example: Magra')} value={village} onChange={e=>setVillage(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()}/><button className="btn" onClick={search}>🔎 {t('খুঁজুন','Search')}</button>{data&&<button className="btn" onClick={print}>🖨️ {t('প্রিন্ট / PDF','Print / PDF')}</button>}</div>{msg&&<p className="msg">{msg}</p>}</div>{data&&classes.map(c=>{const rows=data.groups?.[c]||[];return <div className="table-card" key={c}><div className="toolbar"><h2>{t('শ্রেণি','Class')} {c}</h2><span>{rows.length} {t('জন','students')}</span></div><div className="table-wrap"><table><thead><tr><th>{t('রোল','Roll')}</th><th>Student ID</th><th>{t('নাম','Name')}</th><th>{t('পিতা','Father')}</th><th>{t('মাতা','Mother')}</th><th>{t('অভিভাবকের মোবাইল','Guardian Mobile')}</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.roll_no||'—'}</td><td>{r.student_id}</td><td>{lang==='en'?(r.name_en||r.name_bn):r.name_bn}</td><td>{r.father_name||'—'}</td><td>{r.mother_name||'—'}</td><td>{r.guardian_phone||'—'}</td></tr>)}</tbody></table></div></div>})}</div>
+ const print=()=>{if(!data)return;const w=window.open('','_blank','width=1000,height=800');if(!w)return;const esc=escapeHtml;const h=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;let body=`<h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN 114290</p><h2>${h('গ্রামভিত্তিক শিক্ষার্থী তালিকা','Village-wise Student List')}</h2><p>${h('গ্রাম','Village')}: ${esc(data.village)} • ${h('মোট','Total')}: ${data.count}</p>`;for(const c of classes){const rows=data.groups?.[c]||[];body+=`<h3>${h('শ্রেণি','Class')} ${esc(c)} — ${rows.length} ${h('জন','students')}</h3><table><thead><tr><th>${h('ক্রম','SL')}</th><th>${h('রোল','Roll')}</th><th>Student ID</th><th>${h('নাম','Name')}</th><th>${h('পিতা','Father')}</th><th>${h('মাতা','Mother')}</th><th>${h('মোবাইল','Mobile')}</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.roll_no||'')}</td><td>${esc(r.student_id)}</td><td>${esc(lang==='en'?(r.name_en||r.name_bn):r.name_bn)}</td><td>${esc(r.father_name||'')}</td><td>${esc(r.mother_name||'')}</td><td>${esc(getStudentPhone(r))}</td></tr>`).join('')}</tbody></table>`}w.document.write(`<html><head><meta charset="utf-8"><style>body{font-family:Arial,'Noto Sans Bengali',sans-serif;margin:25px}table{width:100%;border-collapse:collapse;margin:8px 0 20px}th,td{border:1px solid #222;padding:5px;font-size:12px}h1,h2{text-align:center}</style></head><body>${body}<script>window.onload=()=>window.print()</script></body></html>`);w.document.close()};
+ return <div className="module-grid"><div className="form-card"><span className="eyebrow">SMART QUERY</span><h2>{t('গ্রামভিত্তিক শিক্ষার্থী তালিকা','Village-wise Student List')}</h2><p className="portal-muted">{t('যে কোনো গ্রামের নাম লিখলে ৬ষ্ঠ থেকে ১০ম শ্রেণির শিক্ষার্থীদের শ্রেণিভিত্তিক আলাদা তালিকা পাওয়া যাবে। বর্তমান বা স্থায়ী ঠিকানার গ্রাম—দুটিই অনুসন্ধান করা হবে।','Search any village to list students from Classes 6-10 separately. Both present and permanent village addresses are searched.')}</p><div className="filters"><input placeholder={t('যেমন: মগড়া','Example: Magra')} value={village} onChange={e=>setVillage(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()}/><button className="btn" onClick={search}>🔎 {t('খুঁজুন','Search')}</button>{data&&<button className="btn" onClick={print}>🖨️ {t('প্রিন্ট / PDF','Print / PDF')}</button>}</div>{msg&&<p className="msg">{msg}</p>}</div>{data&&classes.map(c=>{const rows=data.groups?.[c]||[];return <div className="table-card" key={c}><div className="toolbar"><h2>{t('শ্রেণি','Class')} {c}</h2><span>{rows.length} {t('জন','students')}</span></div><div className="table-wrap"><table><thead><tr><th>{t('রোল','Roll')}</th><th>Student ID</th><th>{t('নাম','Name')}</th><th>{t('পিতা','Father')}</th><th>{t('মাতা','Mother')}</th><th>{t('অভিভাবকের মোবাইল','Guardian Mobile')}</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.roll_no||'—'}</td><td>{r.student_id}</td><td>{lang==='en'?(r.name_en||r.name_bn):r.name_bn}</td><td>{r.father_name||'—'}</td><td>{r.mother_name||'—'}</td><td>{getStudentPhone(r)}</td></tr>)}</tbody></table></div></div>})}</div>
 }
 
 function DocumentPanel({sub}){
@@ -2241,7 +2508,7 @@ function DocumentPanel({sub}){
  }catch(e){setMsg(e.message)}};
  const issue=async()=>{if(!doc)return;try{const data_snapshot={type,school:doc.school,student:doc.student||null,exam:doc.exam||null,class_name:className,list:doc.list||null,marks:doc.marks||null,summary:doc.summary||null};const saved=await api('/documents/issue',{method:'POST',body:JSON.stringify({document_type:type,student_id:doc.student?.id||studentId||null,exam_id:doc.exam?.id||examId||null,data_snapshot})});setMsg(`ডকুমেন্ট ইস্যু হয়েছে: ${saved.document_no}`);loadIssued()}catch(e){setMsg(e.message)}};
  const print=()=>{if(!doc)return;const w=window.open('','_blank','width=1000,height=800');if(!w)return;const school=doc.school||{},student=doc.student||{},exam=doc.exam||{},esc=escapeHtml;const L=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;const val=(bn,en)=>lang==='en'?(en||bn):lang==='bi'?(bn||en):bn;const studentName=val(student.name_bn,student.name_en);const schoolName=val(school.nameBn,school.nameEn||school.name_bn);const examName=val(exam.name_bn,exam.name_en);const address=school.address||'Magra, Kalihati, Tangail';let body='';
- if(type==='id_card')body=`<div class="id"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h2>${esc(L('শিক্ষার্থী পরিচয়পত্র','Student ID Card'))}</h2><hr><div class="photo">${student.photo_url?`<img src="${esc(student.photo_url)}">`:esc(L('ছবি','Photo'))}</div><p><b>${esc(L('নাম','Name'))}:</b> ${esc(studentName)}</p><p><b>Student ID:</b> ${esc(student.student_id)} &nbsp; <b>${esc(L('রোল','Roll'))}:</b> ${esc(student.roll_no)}</p><p><b>${esc(L('শ্রেণি','Class'))}:</b> ${esc(student.class_name)} &nbsp; <b>${esc(L('শাখা','Section'))}:</b> ${esc(student.section||'—')}</p><p><b>${esc(L('অভিভাবক','Guardian'))}:</b> ${esc(student.guardian_name||student.father_name||'')}</p><p><b>${esc(L('মোবাইল','Mobile'))}:</b> ${esc(student.guardian_phone||'')}</p></div>`;
+ if(type==='id_card')body=`<div class="id"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h2>${esc(L('শিক্ষার্থী পরিচয়পত্র','Student ID Card'))}</h2><hr><div class="photo">${student.photo_url?`<img src="${esc(student.photo_url)}">`:esc(L('ছবি','Photo'))}</div><p><b>${esc(L('নাম','Name'))}:</b> ${esc(studentName)}</p><p><b>Student ID:</b> ${esc(student.student_id)} &nbsp; <b>${esc(L('রোল','Roll'))}:</b> ${esc(student.roll_no)}</p><p><b>${esc(L('শ্রেণি','Class'))}:</b> ${esc(student.class_name)} &nbsp; <b>${esc(L('শাখা','Section'))}:</b> ${esc(student.section||'—')}</p><p><b>${esc(L('অভিভাবক','Guardian'))}:</b> ${esc(getStudentGuardian(student))}</p><p><b>${esc(L('মোবাইল','Mobile'))}:</b> ${esc(getStudentPhone(student))}</p></div>`;
  else if(type==='certificate'||type==='commendation_certificate'){const title=type==='commendation_certificate'?L('প্রশংসাপত্র','Commendation Certificate'):L('সনদপত্র','Certificate');const intro=L('এই মর্মে প্রত্যয়ন করা যাচ্ছে যে','This is to certify that');const desc=type==='commendation_certificate'?L(`তাঁর শৃঙ্খলা, আচরণ, অধ্যবসায় ও কৃতিত্বের স্বীকৃতিস্বরূপ এই প্রশংসাপত্র প্রদান করা হলো।`,`This commendation is awarded in recognition of the student's discipline, conduct, diligence and achievement.`):L('এই প্রতিষ্ঠানের শ্রেণির শিক্ষার্থী হিসেবে তাঁর পরিচয় নথিভুক্ত আছে।','The student is duly recorded as a student of this institution.');body=`<div class="certificate"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h1>${esc(title)}</h1><p>${esc(intro)}</p><h2>${esc(studentName)}</h2><p>Student ID: ${esc(student.student_id)} • ${esc(L('রোল','Roll'))}: ${esc(student.roll_no)}</p><p>${esc(desc).replace('শ্রেণির',esc(student.class_name)+' শ্রেণির')}</p><div class="sign"><span>${esc(L('প্রধান শিক্ষক','Head Teacher'))}</span><span>${esc(L('সভাপতি','President'))}<br>${esc(school.president||'')}</span></div></div>`}
  else if(type==='admit_card')body=`<div class="doc admit"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h2>${esc(L('প্রবেশপত্র','Admit Card'))}</h2><h3>${esc(examName)}</h3><div class="admit-grid"><p><b>${esc(L('নাম','Name'))}:</b> ${esc(studentName)}</p><p><b>Student ID:</b> ${esc(student.student_id)}</p><p><b>${esc(L('রোল','Roll'))}:</b> ${esc(student.roll_no)}</p><p><b>${esc(L('শ্রেণি','Class'))}:</b> ${esc(student.class_name)} • <b>${esc(L('শাখা','Section'))}:</b> ${esc(student.section||'—')}</p><p><b>${esc(L('পরীক্ষার সময়','Exam Period'))}:</b> ${esc(exam.start_date||'—')} ${esc(L('থেকে','to'))} ${esc(exam.end_date||'—')}</p></div><div class="sign"><span>${esc(L('শ্রেণি শিক্ষক','Class Teacher'))}</span><span>${esc(L('প্রধান শিক্ষক','Head Teacher'))}</span></div></div>`;
  else if(type==='marksheet'||type==='progress_report')body=`<div class="doc"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h2>${esc(type==='marksheet'?L('মার্কশিট','Marksheet'):L('প্রগ্রেস রিপোর্ট','Progress Report'))}</h2><p><b>${esc(L('পরীক্ষা','Exam'))}:</b> ${esc(examName)}</p><p><b>${esc(L('নাম','Name'))}:</b> ${esc(studentName)} &nbsp; <b>${esc(L('রোল','Roll'))}:</b> ${esc(student.roll_no)} &nbsp; <b>${esc(L('শ্রেণি','Class'))}:</b> ${esc(student.class_name)}</p><table><thead><tr><th>${esc(L('বিষয়','Subject'))}</th><th>${esc(L('পূর্ণমান','Full Marks'))}</th><th>${esc(L('লিখিত','Written'))}</th><th>MCQ</th><th>${esc(L('ব্যবহারিক','Practical'))}</th><th>${esc(L('মোট','Total'))}</th><th>${esc(L('গ্রেড','Grade'))}</th><th>GPA</th></tr></thead><tbody>${(doc.marks||[]).map(m=>`<tr><td>${esc(lang==='en'?(m.subject_name_en||m.subject_name):m.subject_name)}</td><td>${esc(m.full_marks||100)}</td><td>${esc(m.written??0)}</td><td>${esc(m.mcq??0)}</td><td>${esc(m.practical??0)}</td><td>${esc(m.total??0)}</td><td>${esc(m.grade||'')}</td><td>${esc(m.gpa??'')}</td></tr>`).join('')}</tbody></table><div class="sign"><span>${esc(L('শ্রেণি শিক্ষক','Class Teacher'))}</span><span>${esc(L('প্রধান শিক্ষক','Head Teacher'))}</span></div></div>`;
