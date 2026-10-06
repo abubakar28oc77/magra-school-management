@@ -521,6 +521,25 @@ function Home(){
 
     <section id="school-info" className="ref-section about-panel"><div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div><div><h2>বিদ্যালয় সম্পর্কে</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p></div></section>
 
+    </div>
+   <aside className="ref-sidebar">
+    {leadershipCards.map(leader=>(
+     <article className="side-card leader-side" key={leader.role}>
+      <h2>{leader.title}</h2>
+      <div className="side-avatar-wrap">
+       <img src={leader.photo} alt={leader.name} className="side-avatar-img"/>
+      </div>
+      <h3>{leader.name}</h3>
+      <b>{leader.role}</b>
+      <p>{leader.msg}</p>
+      <button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:leader.key,title:leader.title})}>বিস্তারিত বাণী →</button>
+     </article>
+    ))}
+    <article className="side-card quick-side"><h2>জরুরি ও গুরুত্বপূর্ণ সেবা</h2>{emergencyServices.map(([num,title,desc])=><a className="quick-service" href={`tel:${num}`} key={num}><b>📞 {num}</b><span>{title}</span><small>{desc}</small></a>)}</article><article className="side-card quick-side"><h2>বিদ্যালয়ের যোগাযোগ</h2><div className="quick-number"><b>✉️</b><span>ই-মেইল</span><strong>magrapuhs.46@gmail.com</strong></div><div className="quick-number"><b>📍</b><span>ঠিকানা</span><strong>মগড়া, কালিহাতি, টাংগাইল</strong></div></article>
+   </aside></div>
+
+   {/* নিচের সেকশনগুলো উভয় পাশে সমান্তরালভাবে পুরো পেজ জুড়ে বিস্তৃত (Full Width 100%) */}
+   <div className="ref-fullwidth-sections" style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'24px'}}>
     {/* ৩. সক্রিয় সকল শিক্ষকের ছবিসহ নাম, পদবী, মোবাইলসহ রোলিং ক্যারোসেল (সভাপতি বাদ) */}
     <section id="teachers" className="ref-section rolling-teachers-section">
      <div className="rolling-teachers-header">
@@ -633,22 +652,7 @@ function Home(){
     <section id="distinguished" className="ref-section distinguished"><div className="distinguished-head"><h2>কৃতি শিক্ষার্থী</h2><p>বিদ্যালয়ের মেধাবী ও কৃতিত্বপূর্ণ শিক্ষার্থীদের তথ্য</p></div><div className="distinguished-grid">{[1,2,3,4].map(n=><article key={n} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'})}><div className="student-silhouette">●</div><h3>কৃতি শিক্ষার্থী</h3><p>শিক্ষাবর্ষ ও অর্জনের তথ্য দেখুন</p></article>)}</div></section>
 
     <section id="gallery" className="ref-section"><div className="ref-title"><h2>ফটো ও ভিডিও গ্যালারি</h2><span></span></div><div className="gallery-tabs"><b>All</b><span>Photo</span><span>Video</span></div>{gallery.length?<div className="ref-gallery">{gallery.map(x=><button key={x.id} className="ref-gallery-item" onClick={()=>setLightbox(x)} aria-label={`${x.title_bn} বড় করে দেখুন`}><img src={x.image_url} alt={x.title_bn}/></button>)}</div>:<div className="gallery-placeholder"><span>🖼️</span><p>বিদ্যালয়ের ছবি ও ভিডিও এখানে প্রকাশিত হবে।</p></div>}</section>{lightbox&&<div className="ref-lightbox" role="dialog" aria-modal="true" aria-label="ছবির পূর্বরূপ" onClick={()=>setLightbox(null)}><div className="ref-lightbox-card" onClick={e=>e.stopPropagation()}><button className="ref-lightbox-close" onClick={()=>setLightbox(null)} aria-label="বন্ধ করুন">×</button><img src={lightbox.image_url} alt={lightbox.title_bn}/><h3>{lightbox.title_bn}</h3></div></div>}
-   </div>
-   <aside className="ref-sidebar">
-    {leadershipCards.map(leader=>(
-     <article className="side-card leader-side" key={leader.role}>
-      <h2>{leader.title}</h2>
-      <div className="side-avatar-wrap">
-       <img src={leader.photo} alt={leader.name} className="side-avatar-img"/>
-      </div>
-      <h3>{leader.name}</h3>
-      <b>{leader.role}</b>
-      <p>{leader.msg}</p>
-      <button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:leader.key,title:leader.title})}>বিস্তারিত বাণী →</button>
-     </article>
-    ))}
-    <article className="side-card quick-side"><h2>জরুরি ও গুরুত্বপূর্ণ সেবা</h2>{emergencyServices.map(([num,title,desc])=><a className="quick-service" href={`tel:${num}`} key={num}><b>📞 {num}</b><span>{title}</span><small>{desc}</small></a>)}</article><article className="side-card quick-side"><h2>বিদ্যালয়ের যোগাযোগ</h2><div className="quick-number"><b>✉️</b><span>ই-মেইল</span><strong>magrapuhs.46@gmail.com</strong></div><div className="quick-number"><b>📍</b><span>ঠিকানা</span><strong>মগড়া, কালিহাতি, টাংগাইল</strong></div></article>
-   </aside></div></section>
+   </div></section>
 
    <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice">নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}><span>© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</span><button type="button" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',padding:'5px 12px',borderRadius:'6px',fontSize:'11px',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',fontWeight:600}}>☁️ ক্লাউড ডেটাবেস সিঙ্ক (Supabase)</button></div></div></section>
   </main>
