@@ -155,12 +155,25 @@ class ErrorBoundary extends React.Component {
         <div style={{ padding: '30px', textAlign: 'center', background: '#fff', margin: '20px auto', maxWidth: '600px', borderRadius: '8px', border: '1px solid #fed7d7', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
           <h2 style={{ color: '#c53030', margin: '0 0 10px' }}>⚠️ কিছু সমস্যা হয়েছে</h2>
           <p style={{ color: '#4a5568', margin: '0 0 16px' }}>নিচের বাটনে ক্লিক করে পেজটি আবার চালু করুন।</p>
-          <button 
-            style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-            onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
-          >
-            🔄 পেজ রিলোড করুন
-          </button>
+          {this.state.error?.message && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '10px', borderRadius: '6px', fontSize: '13px', margin: '10px 0 16px', textAlign: 'left', wordBreak: 'break-word', fontFamily: 'monospace' }}>
+              <strong>ত্রুটি বিবরণ:</strong> {this.state.error.message}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button 
+              style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+            >
+              🔄 পেজ রিলোড করুন
+            </button>
+            <button 
+              style={{ padding: '8px 18px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              onClick={() => { this.setState({ hasError: false, error: null }); }}
+            >
+              পুনরায় চেষ্টা করুন
+            </button>
+          </div>
         </div>
       );
     }
@@ -916,6 +929,7 @@ function StudentPanel({sub}){
  const [customFieldValue,setCustomFieldValue]=useState('');
  const [importing,setImporting]=useState(false);
  const [importMsg,setImportMsg]=useState('');
+  const [sameAddress,setSameAddress]=useState(false);
 
  useEffect(()=>{
   if(sub==='new'){
