@@ -34,16 +34,40 @@ function downloadCsv(filename,rows,headers){const lines=[headers.map(csvCell).jo
 function parseCsvText(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i],nx=text[i+1];if(ch==='"'){if(quoted&&nx==='"'){cell+='"';i++;}else quoted=!quoted;}else if(ch===','&&!quoted){row.push(cell);cell='';}else if((ch==='\n'||ch==='\r')&&!quoted){if(ch==='\r'&&nx==='\n')i++;row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);row=[];cell='';}else cell+=ch;}if(cell!==''||row.length){row.push(cell);if(row.some(v=>v.trim()!==''))rows.push(row);}return rows;}
 function flattenCustom(row){const c=row?.extended_profile?.custom_fields||{};return Object.fromEntries(Object.entries(c).map(([k,v])=>['custom:'+k,Array.isArray(v)?v.join(' | '):typeof v==='object'?JSON.stringify(v):v]))}
 
-export function getStudentGuardian(s){
+export function formatGroup(grp, lang = 'bn') {
+  if (!grp || grp === '—' || grp === 'none' || grp === '') return '—';
+  if (lang === 'en') {
+    if (grp.includes('বিজ্ঞান') || grp.toLowerCase().includes('science')) return 'Science';
+    if (grp.includes('মানবিক') || grp.toLowerCase().includes('humanities')) return 'Humanities';
+    if (grp.includes('ব্যবসায়') || grp.toLowerCase().includes('business') || grp.toLowerCase().includes('commerce')) return 'Business Studies';
+    return grp;
+  }
+  return grp;
+}
+
+export function getStudentGuardian(s, lang = 'bn'){
  if(!s) return '—';
- const g = (s.guardian_name||'').trim();
+ if(lang === 'en'){
+   const ge = (s.guardian_name_en || '').trim();
+   if(ge) return ge;
+   const fe = (s.father_name_en || '').trim();
+   if(fe && !fe.toLowerCase().includes('late') && !fe.toLowerCase().includes('deceased')) return fe;
+   const me = (s.mother_name_en || '').trim();
+   if(me && !me.toLowerCase().includes('late') && !me.toLowerCase().includes('deceased')) return me;
+   if(fe) return fe;
+   if(me) return me;
+ }
+ const g = (s.guardian_name || '').trim();
  if(g) return g;
- const f = (s.father_name||'').trim();
+ const f = (s.father_name || '').trim();
  if(f && !f.includes('মৃত')) return f;
- const m = (s.mother_name||'').trim();
+ const m = (s.mother_name || '').trim();
  if(m && !m.includes('মৃত')) return m;
  if(f) return f;
  if(m) return m;
+ if(s.guardian_name_en) return s.guardian_name_en;
+ if(s.father_name_en) return s.father_name_en;
+ if(s.mother_name_en) return s.mother_name_en;
  return '—';
 }
 
@@ -195,7 +219,25 @@ const STATUS_BN = {
   late: 'দেরি',
   leave: 'ছুটি'
 };
-function statusBn(s){ return STATUS_BN[s] || s || 'সক্রিয়'; }
+const STATUS_EN = {
+  active: 'Active',
+  inactive: 'Inactive',
+  retired: 'Retired',
+  former: 'Former',
+  graduated: 'Graduated',
+  transferred: 'Transferred',
+  dropped_out: 'Dropped Out',
+  draft: 'Draft',
+  published: 'Published',
+  present: 'Present',
+  absent: 'Absent',
+  late: 'Late',
+  leave: 'Leave'
+};
+function statusBn(s, lang = 'bn'){
+  if(lang === 'en') return STATUS_EN[s] || s || 'Active';
+  return STATUS_BN[s] || s || 'সক্রিয়';
+}
 function PWAStatus(){
  const[online,setOnline]=useState(navigator.onLine),[installEvent,setInstallEvent]=useState(null),[installed,setInstalled]=useState(false);
  useEffect(()=>{
@@ -1397,34 +1439,53 @@ function StudentPanel({sub}){
       <thead>
        <tr>
         <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={students.length>0 && selectedIds.length===students.length} onChange={toggleSelectAll}/></th>
-        <th>ID</th>
-        <th>নাম</th>
-        <th>শ্রেণি</th>
-        <th>রোল</th>
-        <th>অভিভাবক</th>
-        <th>মোবাইল</th>
-        <th>অবস্থা</th>
-        <th style={{textAlign:'center',minWidth:'140px'}}>কাজ</th>
+        <th>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
+        <th>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
+        <th>{lang==='en'?'Class':'শ্রেণি'}</th>
+        <th style={{color:'#0284c7'}}>{lang==='en'?'Department / Group':'বিভাগ'}</th>
+        <th>{lang==='en'?'Roll':'রোল'}</th>
+        <th>{lang==='en'?'Guardian':'অভিভাবক'}</th>
+        <th>{lang==='en'?'Mobile':'মোবাইল'}</th>
+        <th>{lang==='en'?'Status':'অবস্থা'}</th>
+        <th style={{textAlign:'center',minWidth:'140px'}}>{lang==='en'?'Actions':'কাজ'}</th>
        </tr>
       </thead>
       <tbody>
-       {students.map(s=>(
-         <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined}}>
-          <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
-          <td><code>{s.student_id}</code></td>
-          <td><b>{s.name_bn}</b>{s.name_en?<span style={{display:'block',fontSize:'11px',color:'#64748b'}}>{s.name_en}</span>:null}</td>
-          <td>{s.class_name}{s.group_name?<span style={{display:'block',fontSize:'11px',color:'#0284c7'}}>{s.group_name}</span>:null}</td>
-          <td>{s.roll_no||'—'}</td>
-          <td>{getStudentGuardian(s)}</td>
-          <td>{getStudentPhone(s)}</td>
-          <td>{statusBn(s.status)}</td>
-          <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
-           <button className="mini" type="button" onClick={()=>edit(s)} style={{marginRight:'6px'}}>✏️ সম্পাদনা</button>
-           <button className="mini" type="button" onClick={()=>remove(s)} style={{background:'#fee2e2',color:'#b91c1c',border:'1px solid #fca5a5',fontWeight:600,cursor:'pointer'}}>🗑️ মুছুন</button>
-          </td>
-         </tr>
-       ))}
-       {!students.length&&<tr><td colSpan="9" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
+       {students.map(s=>{
+         const isEn = lang === 'en';
+         const studentName = isEn ? (s.name_en || s.name_bn) : (s.name_bn || s.name_en);
+         const studentGuardian = getStudentGuardian(s, lang);
+         const studentGroup = formatGroup(s.group_name || s.group, lang);
+         const classDisplay = isEn ? `Class ${s.class_name}` : `শ্রেণি ${s.class_name}`;
+         const studentStatus = statusBn(s.status, lang);
+
+         return (
+           <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined}}>
+            <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
+            <td><code>{s.student_id}</code></td>
+            <td><b>{studentName || '—'}</b></td>
+            <td>{classDisplay}</td>
+            <td>
+              {s.group_name || s.group ? (
+                <span style={{background:'#e0f2fe',color:'#0369a1',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>
+                  {studentGroup}
+                </span>
+              ) : (
+                <span style={{color:'#94a3b8'}}>—</span>
+              )}
+            </td>
+            <td>{s.roll_no || '—'}</td>
+            <td>{studentGuardian}</td>
+            <td>{getStudentPhone(s)}</td>
+            <td><span style={{color: s.status==='active'?'#16a34a':'#dc2626', fontWeight:600}}>{studentStatus}</span></td>
+            <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+             <button className="mini" type="button" onClick={()=>edit(s)} style={{marginRight:'6px'}}>✏️ {isEn?'Edit':'সম্পাদনা'}</button>
+             <button className="mini" type="button" onClick={()=>remove(s)} style={{background:'#fee2e2',color:'#b91c1c',border:'1px solid #fca5a5',fontWeight:600,cursor:'pointer'}}>🗑️ {isEn?'Delete':'মুছুন'}</button>
+            </td>
+           </tr>
+         );
+       })}
+       {!students.length&&<tr><td colSpan="10" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
       </tbody>
      </table>
     </div>
