@@ -519,7 +519,7 @@ function Home(){
      <div className="link-panel"><h2>বোর্ড গুরুত্বপূর্ণ লিংকসমূহ</h2>{[['ভূমি মন্ত্রণালয়','https://land.gov.bd/'],['শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/'],['প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট','https://pmeat.gov.bd/'],['নৈমিত্তিক তথ্যসেবা','https://bangladesh.gov.bd/'],['MPO Teachers Verify','https://emis.gov.bd/']].map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div>
     </section>
 
-    <section id="school-info" className="ref-section about-panel"><div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div><div><h2>বিদ্যালয় সম্পর্কে</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p></div></section>
+
 
     </div>
    <aside className="ref-sidebar">
@@ -540,6 +540,24 @@ function Home(){
 
    {/* নিচের সেকশনগুলো উভয় পাশে সমান্তরালভাবে পুরো পেজ জুড়ে বিস্তৃত (Full Width 100%) */}
    <div className="ref-fullwidth-sections" style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'24px'}}>
+    {/* ১. বিদ্যালয় সম্পর্কে (পুরো পেজের প্রস্থ জুড়ে সমান্তরাল) */}
+    <section id="school-info" className="ref-section about-panel" style={{marginBottom:0,borderRadius:'10px'}}>
+     <div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div>
+     <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px',marginBottom:'6px'}}>
+       <h2 style={{margin:0}}>বিদ্যালয় সম্পর্কে</h2>
+       <button
+        type="button"
+        className="mini"
+        style={{background:'#0b8050',color:'#fff',border:'none',fontWeight:700,padding:'5px 12px',cursor:'pointer',borderRadius:'6px'}}
+        onClick={()=>setActiveModal({key:'public.nav.institution.about',title:'বিদ্যালয় পরিচিতি'})}
+       >
+        🏛️ বিস্তারিত পরিচিতি ও ইতিহাস →
+       </button>
+      </div>
+      <p style={{fontSize:'13px',lineHeight:'1.8',margin:0}}>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p>
+     </div>
+    </section>
     {/* ৩. সক্রিয় সকল শিক্ষকের ছবিসহ নাম, পদবী, মোবাইলসহ রোলিং ক্যারোসেল (সভাপতি বাদ) */}
     <section id="teachers" className="ref-section rolling-teachers-section">
      <div className="rolling-teachers-header">
