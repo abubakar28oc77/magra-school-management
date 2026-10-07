@@ -63,7 +63,7 @@ export function normalizeReligion(raw) {
 }
 
 // Initialize authentic student dataset & purge dummy synthetic names if present
-const AUTHENTIC_VERSION_TAG = 'magra_v135_perfect_english_and_addresses';
+const AUTHENTIC_VERSION_TAG = 'magra_v140_complete_parents_addresses_81st';
 try {
   const currentVer = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
