@@ -184,12 +184,28 @@ class ErrorBoundary extends React.Component {
               <strong>ত্রুটি বিবরণ:</strong> {this.state.error.message}
             </div>
           )}
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 
               style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+              onClick={() => { 
+                this.setState({ hasError: false, error: null }); 
+                window.location.reload(); 
+              }}
             >
               🔄 পেজ রিলোড করুন
+            </button>
+            <button 
+              style={{ padding: '8px 18px', background: '#0b8050', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              onClick={() => {
+                try {
+                  localStorage.setItem('magra_admin_active_tab', 'dashboard');
+                  localStorage.removeItem('magra_admin_active_sub');
+                } catch {}
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+            >
+              📊 ড্যাশবোর্ডে ফিরে যান
             </button>
             <button 
               style={{ padding: '8px 18px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -925,30 +941,71 @@ function EventParticipantsPanel(){
  async function remove(id){try{await api(`/events/${eventId}/participants/${id}`,{method:'DELETE'});setParticipants(x=>x.filter(p=>p.id!==id));setMsg('অংশগ্রহণকারী বাদ দেওয়া হয়েছে')}catch(e){setMsg(e.message)}}
  return <div className="module-grid"><div className="form-card"><span className="eyebrow">EVENT PARTICIPANTS</span><h2>ইভেন্ট নির্বাচন</h2><select value={eventId} onChange={e=>setEventId(e.target.value)}><option value="">ইভেন্ট নির্বাচন করুন</option>{events.map(x=><option key={x.id} value={x.id}>{x.title_bn} {x.event_date?`— ${x.event_date}`:''}</option>)}</select>{eventId&&<form onSubmit={add} className="form-grid"><select value={form.student_id} onChange={e=>setForm({...form,student_id:e.target.value})} required><option value="">শিক্ষার্থী *</option>{students.map(x=><option key={x.id} value={x.id}>{x.name_bn} — {x.student_id}</option>)}</select><input placeholder="ভূমিকা (যেমন: খেলোয়াড়)" value={form.role} onChange={e=>setForm({...form,role:e.target.value})}/><input placeholder="অবস্থান/পুরস্কার" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/><textarea className="full" placeholder="মন্তব্য" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/><button className="btn full">অংশগ্রহণকারী যোগ করুন</button></form>}{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>অংশগ্রহণকারীর তালিকা</h2><span>{participants.length} জন</span></div><div className="table-wrap"><table><thead><tr><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>ভূমিকা</th><th>অবস্থান/পুরস্কার</th><th></th></tr></thead><tbody>{participants.map(p=><tr key={p.id}><td>{p.name_bn}<small>{p.student_id}</small></td><td>{p.class_name}</td><td>{p.role||'—'}</td><td>{p.position||'—'}</td><td><button className="mini" onClick={()=>remove(p.id)}>বাদ দিন</button></td></tr>)}{!participants.length&&<tr><td colSpan="5">ইভেন্ট নির্বাচন করলে অংশগ্রহণকারীর তালিকা দেখা যাবে।</td></tr>}</tbody></table></div></div></div>
 }
-function ContentPanel(){
- const[tab,setTab]=useState('content');
+function ContentPanel({ sub }){
+ const[tab,setTab]=useState(sub==='achievements'||sub==='scholarships'?'scholarship':sub==='events'?'event_participants':'content');
  const types=[['institution','বিদ্যালয় পরিচিতি'],['event','অনুষ্ঠান/ইভেন্ট'],['sport','ক্রীড়া/সংস্কৃতি'],['achievement','অর্জন/পুরস্কার'],['facility','সুবিধা/অবকাঠামো'],['transport','পরিবহন'],['hostel','হোস্টেল'],['club','ক্লাব/সংগঠন'],['library_info','লাইব্রেরি তথ্য'],['gallery','গ্যালারি']];
  const empty={content_type:'event',title_bn:'',title_en:'',description:'',event_date:'',location:'',image_url:'',status:'published',sort_order:0};
  const[rows,setRows]=useState([]),[form,setForm]=useState(empty),[editing,setEditing]=useState(null),[msg,setMsg]=useState(''),[filter,setFilter]=useState(''),[typeFilter,setTypeFilter]=useState('');
+
+ useEffect(()=>{
+  if(sub==='achievements'||sub==='scholarships') setTab('scholarship');
+  else if(sub==='events') setTab('event_participants');
+  else if(sub==='clubs') { setTab('content'); setTypeFilter('club'); }
+  else if(sub==='school') { setTab('content'); setTypeFilter('institution'); }
+  else if(sub==='content') { setTab('content'); }
+ },[sub]);
+
  const load=()=>api('/content').then(setRows).catch(e=>setMsg(e.message));useEffect(load,[]);const visible=rows.filter(r=>(!typeFilter||r.content_type===typeFilter)&&(!filter||[r.title_bn,r.title_en,r.description,r.location].filter(Boolean).join(' ').toLowerCase().includes(filter.toLowerCase())));
  async function save(e){e.preventDefault();try{await api(editing?'/content/'+editing:'/content',{method:editing?'PUT':'POST',body:JSON.stringify(form)});setMsg(editing?'তথ্য আপডেট হয়েছে':'তথ্য প্রকাশ হয়েছে');setEditing(null);setForm(empty);load()}catch(e){setMsg(e.message)}}
  function edit(r){setEditing(r.id);setForm({content_type:r.content_type||'event',title_bn:r.title_bn||'',title_en:r.title_en||'',description:r.description||'',event_date:r.event_date?.slice(0,10)||'',location:r.location||'',image_url:r.image_url||'',status:r.status||'published',sort_order:r.sort_order||0});window.scrollTo({top:0,behavior:'smooth'})}
  async function remove(id){if(!confirm('এই কনটেন্ট মুছে ফেলবেন?'))return;try{await api('/content/'+id,{method:'DELETE'});setMsg('কনটেন্ট মুছে ফেলা হয়েছে');load()}catch(e){setMsg(e.message)}}
- return <div className="module-grid"><div className="form-card"><div className="toolbar"><h2>{editing?'কনটেন্ট সম্পাদনা':'নতুন কনটেন্ট যোগ'}</h2>{editing&&<button className="mini" onClick={()=>{setEditing(null);setForm(empty)}}>বাতিল</button>}</div><form onSubmit={save} className="form-grid"><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="শিরোনাম (বাংলা) *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="শিরোনাম (English)" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><input type="date" value={form.event_date} onChange={e=>setForm({...form,event_date:e.target.value})}/><input placeholder="স্থান/বিভাগ" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input placeholder="ছবির URL" value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})}/><textarea className="full" placeholder="বিস্তারিত বিবরণ" rows="4" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn full">{editing?'আপডেট করুন':'প্রকাশ করুন'}</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{visible.length} টি</span></div><div className="filters"><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="">সব ক্যাটাগরি</option>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="খুঁজুন..." value={filter} onChange={e=>setFilter(e.target.value)}/></div><div className="table-wrap"><table><thead><tr><th>টাইপ</th><th>শিরোনাম</th><th>তারিখ</th><th>স্থান</th><th></th></tr></thead><tbody>{visible.map(r=><tr key={r.id}><td>{types.find(t=>t[0]===r.content_type)?.[1]||r.content_type}</td><td><b>{r.title_bn}</b><br/><small>{r.title_en}</small></td><td>{r.event_date?.slice(0,10)||'—'}</td><td>{r.location||'—'}</td><td><button className="mini" onClick={()=>edit(r)}>সম্পাদনা</button> <button className="mini" onClick={()=>remove(r.id)}>মুছুন</button></td></tr>)}{!visible.length&&<tr><td colSpan="5">কোনো কনটেন্ট পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
+
+ if(tab==='scholarship') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div><ScholarshipPanel/></div>;
+ if(tab==='event_participants') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div><EventParticipantsPanel/></div>;
+
+ return <div className="module-grid"><div className="form-card full" style={{gridColumn:'1 / -1'}}><div className="tabs"><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div></div><div className="form-card"><div className="toolbar"><h2>{editing?'কনটেন্ট সম্পাদনা':'নতুন কনটেন্ট যোগ'}</h2>{editing&&<button className="mini" onClick={()=>{setEditing(null);setForm(empty)}}>বাতিল</button>}</div><form onSubmit={save} className="form-grid"><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="শিরোনাম (বাংলা) *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="শিরোনাম (English)" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><input type="date" value={form.event_date} onChange={e=>setForm({...form,event_date:e.target.value})}/><input placeholder="স্থান/বিভাগ" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input placeholder="ছবির URL" value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})}/><textarea className="full" placeholder="বিস্তারিত বিবরণ" rows="4" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn full">{editing?'আপডেট করুন':'প্রকাশ করুন'}</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{visible.length} টি</span></div><div className="filters"><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="">সব ক্যাটাগরি</option>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="খুঁজুন..." value={filter} onChange={e=>setFilter(e.target.value)}/></div><div className="table-wrap"><table><thead><tr><th>টাইপ</th><th>শিরোনাম</th><th>তারিখ</th><th>স্থান</th><th></th></tr></thead><tbody>{visible.map(r=><tr key={r.id}><td>{types.find(t=>t[0]===r.content_type)?.[1]||r.content_type}</td><td><b>{r.title_bn}</b><br/><small>{r.title_en}</small></td><td>{r.event_date?.slice(0,10)||'—'}</td><td>{r.location||'—'}</td><td><button className="mini" onClick={()=>edit(r)}>সম্পাদনা</button> <button className="mini" onClick={()=>remove(r.id)}>মুছুন</button></td></tr>)}{!visible.length&&<tr><td colSpan="5">কোনো কনটেন্ট পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
 }
 
 function Admin(){
  const {lang}=useLanguage();
  const adminLabel=(bn)=>adminEn[bn]||bn;
- const nav=useNavigate(),[data,setData]=useState(null),[me,setMe]=useState(null),[active,setActive]=useState('dashboard'),[sub,setSub]=useState(null),[enabled,setEnabled]=useState(null),[expanded,setExpanded]=useState({students:true,results:true,feature_control:true,settings:true});
+ const nav=useNavigate(),[data,setData]=useState(null),[me,setMe]=useState(null);
+ const [active,setActive]=useState(()=>{
+  try {
+   return localStorage.getItem('magra_admin_active_tab') || 'dashboard';
+  } catch { return 'dashboard'; }
+ });
+ const [sub,setSub]=useState(()=>{
+  try {
+   return localStorage.getItem('magra_admin_active_sub') || null;
+  } catch { return null; }
+ });
+ const [enabled,setEnabled]=useState(null);
+ const [expanded,setExpanded]=useState(()=>{
+  try {
+   const initTab = localStorage.getItem('magra_admin_active_tab') || 'dashboard';
+   return { students: true, results: true, feature_control: true, settings: true, [initTab]: true };
+  } catch {
+   return { students: true, results: true, feature_control: true, settings: true };
+  }
+ });
  const [supabaseSyncOpen,setSupabaseSyncOpen]=useState(false);
+
+ useEffect(()=>{
+  try {
+   localStorage.setItem('magra_admin_active_tab', active);
+   if(sub) localStorage.setItem('magra_admin_active_sub', sub);
+   else localStorage.removeItem('magra_admin_active_sub');
+  } catch {}
+ },[active, sub]);
+
  useEffect(()=>{api('/me').then(setMe).catch(()=>{localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/login')});api('/dashboard').then(setData).catch(()=>{});api('/admin/features').then(d=>{const m={};(d.features||[]).forEach(f=>m[f.feature_key]=f.enabled!==false);setEnabled(m)}).catch(()=>setEnabled(null))},[nav]);
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
- const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/login')};
- const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
- const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled[`admin.${x.k}.${sk}`]!==false)}))})).filter(g=>g.items.length);
+ const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');nav('/login')};
+ const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
+ const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled['admin.'+x.k+'.'+sk]!==false)}))})).filter(g=>g.items.length);
   if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
-  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div><ErrorBoundary>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='voter'?<VoterListPanel/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
  }
 
  const adminEn={
@@ -1067,6 +1124,8 @@ function StudentPanel({sub}){
    setView('form');
   } else if(sub==='list'||sub==='search'){
    setView('list');
+  } else if(sub==='csv'){
+   setView('csv');
   }
  },[sub]);
 
@@ -1526,8 +1585,13 @@ function StudentPanel({sub}){
   )}
  </div>;
 }
-function AdmissionPanel(){
+function AdmissionPanel({ sub }){
  const [apps,setApps]=useState([]),[summary,setSummary]=useState({total:0,submitted:0,under_review:0,selected:0,admitted:0}),[q,setQ]=useState(''),[year,setYear]=useState(String(new Date().getFullYear())),[className,setClassName]=useState(''),[status,setStatus]=useState(''),[editing,setEditing]=useState(null),[form,setForm]=useState(emptyAdmission),[msg,setMsg]=useState('');
+ useEffect(()=>{
+  if(sub==='test') setStatus('under_review');
+  else if(sub==='selection') setStatus('selected');
+  else if(sub==='applications') setStatus('');
+ },[sub]);
  const load=()=>{api(`/admissions?q=${encodeURIComponent(q)}&academic_year=${year}&applied_class=${encodeURIComponent(className)}&status=${status}`).then(setApps).catch(e=>setMsg(e.message));api(`/admissions/summary?academic_year=${year}`).then(setSummary).catch(()=>{})};
  useEffect(load,[q,year,className,status]);
  const change=(k,v)=>setForm(f=>({...f,[k]:v}));
@@ -2726,6 +2790,294 @@ function DocumentPanel({sub}){
  else {const title=type==='tabulation'?L('ট্যাবুলেশন শিট','Tabulation Sheet'):L('মেধা তালিকা','Merit List');body=`<div class="doc"><img src="/school-logo.png"><h1>${esc(schoolName)}</h1><p>${esc(address)} • EIIN ${esc(school.eiin)}</p><h2>${esc(title)}</h2><p>${esc(L('পরীক্ষা','Exam'))}: ${esc(examName)} • ${esc(L('শ্রেণি','Class'))}: ${esc(className)}</p><table><thead><tr><th>${esc(L('মেধা','Merit'))}</th><th>${esc(L('রোল','Roll'))}</th><th>${esc(L('নাম','Name'))}</th><th>${esc(L('বিষয়','Subject'))}</th><th>${esc(L('মোট','Total'))}</th><th>GPA</th><th>${esc(L('ফলাফল','Result'))}</th></tr></thead><tbody>${(doc.list||[]).map(r=>`<tr><td>${esc(r.merit)}</td><td>${esc(r.roll_no||'')}</td><td>${esc(lang==='en'?(r.name_en||r.name_bn):r.name_bn)}</td><td>${esc(r.subjects)}</td><td>${esc(r.total_marks)}</td><td>${esc(r.gpa)}</td><td>${esc(r.result_status)}</td></tr>`).join('')}</tbody></table></div>`}
  w.document.write(`<html><head><title>${esc(types.find(x=>x[0]===type)?.[1]||'Document')}</title><meta charset="utf-8"><style>body{font-family:Arial,'Noto Sans Bengali',sans-serif;margin:0;padding:30px;color:#17352a}.doc,.certificate,.id{max-width:900px;margin:auto;text-align:center;border:2px solid #176b4b;padding:28px;border-radius:14px}img{width:80px}.doc table{width:100%;border-collapse:collapse;margin-top:20px}.doc th,.doc td{border:1px solid #999;padding:8px}.certificate h1{font-size:38px}.certificate h2{font-size:30px}.photo{margin:15px auto;width:100px;height:120px;border:1px solid #aaa;display:grid;place-items:center}.photo img{width:100%;height:100%;object-fit:cover}.sign{display:flex;justify-content:space-between;margin-top:60px;padding:0 50px}.admit-grid{text-align:left;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:25px}@media(max-width:600px){.admit-grid{grid-template-columns:1fr}}@media print{body{padding:0}.doc,.certificate,.id{border:0}}</style></head><body>${body}<script>window.onload=()=>window.print()</script></body></html>`);w.document.close()};
  return <div className="documents-panel"><div className="form-card"><div className="tabs">{types.map(x=><button className={type===x[0]?'active':''} key={x[0]} onClick={()=>{setType(x[0]);setDoc(null);setMsg('')}}>{x[1]}</button>)}</div><h2>{docLabel('অফিশিয়াল ডকুমেন্ট জেনারেটর','Official Document Generator')}</h2><p className="portal-muted">{docLabel('প্রিভিউ, Print/PDF এবং Official Issue একই document workflow-এ পরিচালনা করুন।','Preview, Print/PDF and Official Issue are handled in one document workflow.')}</p><div className="form-grid">{!classBased.includes(type)&&<select value={studentId} onChange={e=>setStudentId(e.target.value)}><option value="">{docLabel('শিক্ষার্থী নির্বাচন','Select Student')}</option>{students.map(s=><option key={s.id} value={s.id}>{s.roll_no||'—'} • {s.name_bn}</option>)}</select>}{classBased.includes(type)&&<select value={className} onChange={e=>setClassName(e.target.value)}><option value="">{docLabel('শ্রেণি নির্বাচন','Select Class')}</option>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select>}{examBased.includes(type)&&<select value={examId} onChange={e=>setExamId(e.target.value)}><option value="">{docLabel('পরীক্ষা নির্বাচন','Select Exam')}</option>{exams.map(e=><option key={e.id} value={e.id}>{e.name_bn}</option>)}</select>}<button className="btn full" onClick={load}>{docLabel('Preview তৈরি করুন','Create Preview')}</button></div>{msg&&<p className="msg" role="status">{msg}</p>}</div>{doc&&<div className="table-card document-preview"><div className="toolbar"><h2>{types.find(x=>x[0]===type)?.[1]}</h2><div><button className="btn" onClick={print}>🖨️ {docLabel('প্রিন্ট / PDF','Print / PDF')}</button> <button className="btn" onClick={issue}>✓ {docLabel('অফিশিয়ালি ইস্যু','Officially Issue')}</button></div></div><div className="preview-sheet"><img src="/school-logo.png"/><h2>{doc.school?.nameBn}</h2><p>{doc.school?.address} • EIIN {doc.school?.eiin}</p><h3>{types.find(x=>x[0]===type)?.[1]}</h3>{type==='id_card'&&<p><b>{lang==='en'?(doc.student?.name_en||doc.student?.name_bn):doc.student?.name_bn}</b><br/>{docLabel('Student ID','Student ID')}: {doc.student?.student_id} • {docLabel('রোল','Roll')}: {doc.student?.roll_no}<br/>{docLabel('শ্রেণি','Class')}: {doc.student?.class_name} • {docLabel('শাখা','Section')}: {doc.student?.section||'—'}</p>}{(type==='certificate'||type==='commendation_certificate')&&<p>{docLabel('এই মর্মে প্রত্যয়ন করা যাচ্ছে যে','This is to certify that')} <b>{lang==='en'?(doc.student?.name_en||doc.student?.name_bn):doc.student?.name_bn}</b> {docLabel(`এই প্রতিষ্ঠানের ${doc.student?.class_name} শ্রেণির শিক্ষার্থী।`,`is a student of Class ${doc.student?.class_name} at this institution.`)} {type==='commendation_certificate'&&docLabel('তাঁর শৃঙ্খলা, আচরণ, অধ্যবসায় ও কৃতিত্বের স্বীকৃতিস্বরূপ এই প্রশংসাপত্র প্রদান করা হলো।','This commendation is awarded in recognition of the student’s discipline, conduct, diligence and achievement.')}</p>}{type==='admit_card'&&doc.exam&&<p><b>{lang==='en'?(doc.exam.name_en||doc.exam.name_bn):doc.exam.name_bn}</b><br/>{docLabel('পরীক্ষা','Exam')}: {doc.exam.start_date||'—'} → {doc.exam.end_date||'—'}<br/>{docLabel('রোল','Roll')}: {doc.student?.roll_no||'—'}</p>}{(type==='marksheet'||type==='progress_report')&&doc.summary&&<div className="document-summary"><b>{docLabel('মোট','Total')}: {doc.summary.total_marks} / {doc.summary.full_marks}</b><span>{docLabel('শতকরা','Percentage')}: {doc.summary.percentage}%</span><span>GPA: {doc.summary.gpa??'—'}</span><span>{docLabel('ফলাফল','Result')}: {doc.summary.result_status}</span></div>}{(type==='marksheet'||type==='progress_report')&&<div className="table-wrap"><table><thead><tr><th>{docLabel('বিষয়','Subject')}</th><th>{docLabel('পূর্ণমান','Full Marks')}</th><th>{docLabel('মোট','Total')}</th><th>{docLabel('গ্রেড','Grade')}</th><th>GPA</th></tr></thead><tbody>{(doc.marks||[]).map(m=><tr key={m.id}><td>{m.subject_name}</td><td>{m.full_marks||100}</td><td>{m.total}</td><td>{m.grade}</td><td>{m.gpa}</td></tr>)}</tbody></table></div>}{(type==='tabulation'||type==='merit_list')&&<div className="table-wrap"><table><thead><tr><th>{docLabel('মেধা','Merit')}</th><th>{docLabel('রোল','Roll')}</th><th>{docLabel('নাম','Name')}</th><th>{docLabel('মোট','Total')}</th><th>GPA</th><th>{docLabel('ফলাফল','Result')}</th></tr></thead><tbody>{(doc.list||[]).map(r=><tr key={r.id}><td>{r.merit}</td><td>{r.roll_no}</td><td>{r.name_bn}</td><td>{r.total_marks}</td><td>{r.gpa}</td><td>{r.result_status}</td></tr>)}</tbody></table></div>}</div></div>}{<div className="table-card"><div className="toolbar"><h2>{docLabel('ইস্যু করা ডকুমেন্ট','Issued Documents')}</h2><span>{issued.length} {docLabel('টি','items')}</span></div><div className="table-wrap"><table><thead><tr><th>{docLabel('ডকুমেন্ট নং','Document No.')}</th><th>{docLabel('তারিখ','Date')}</th><th>{docLabel('ধরন','Type')}</th><th>{docLabel('শিক্ষার্থী','Student')}</th><th>{docLabel('পরীক্ষা','Exam')}</th></tr></thead><tbody>{issued.map(d=><tr key={d.id}><td>{d.document_no}</td><td>{d.issue_date}</td><td>{types.find(x=>x[0]===d.document_type)?.[1]||d.document_type}</td><td>{d.name_bn||'—'}</td><td>{d.exam_id||'—'}</td></tr>)}</tbody></table></div></div>}</div>}
+
+function FeatureControlPanel({ sub }){
+ const [tab, setTab] = useState(sub === 'public' ? 'public' : sub === 'custom' ? 'custom' : 'system');
+ const [features, setFeatures] = useState([]);
+ const [customList, setCustomList] = useState([]);
+ const [loading, setLoading] = useState(false);
+ const [msg, setMsg] = useState('');
+ const [filter, setFilter] = useState('');
+ 
+ const [customForm, setCustomForm] = useState({ title_bn: '', title_en: '', icon: '⭐', target_url: '', placement: 'both', description: '' });
+ const [editingCustomId, setEditingCustomId] = useState(null);
+
+ useEffect(() => {
+  if (sub === 'public') setTab('public');
+  else if (sub === 'custom') setTab('custom');
+  else if (sub === 'system') setTab('system');
+ }, [sub]);
+
+ const load = async () => {
+  setLoading(true);
+  try {
+   const d = await api('/admin/features');
+   if (d) {
+    setFeatures(d.features || []);
+    setCustomList(d.custom || []);
+   }
+   setMsg('');
+  } catch(e) {
+   setMsg(e.message || 'ফিচার লোড করা সম্ভব হয়নি');
+  } finally {
+   setLoading(false);
+  }
+ };
+
+ useEffect(() => { load(); }, []);
+
+ const toggleFeature = async (f) => {
+  const nextEnabled = f.enabled === false ? true : false;
+  try {
+   await api('/admin/features/' + encodeURIComponent(f.feature_key), {
+    method: 'PATCH',
+    body: JSON.stringify({ enabled: nextEnabled })
+   });
+   setFeatures(prev => prev.map(x => x.feature_key === f.feature_key ? { ...x, enabled: nextEnabled } : x));
+   setMsg('"' + (f.label_bn || f.feature_key) + '" ফিচারটি ' + (nextEnabled ? 'সক্রিয় (ON)' : 'নিষ্ক্রিয় (OFF)') + ' করা হয়েছে');
+  } catch(e) {
+   setMsg(e.message || 'ফিচার স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে');
+  }
+ };
+
+ const saveCustom = async (e) => {
+  e.preventDefault();
+  try {
+   if (editingCustomId) {
+    await api('/admin/custom-features/' + editingCustomId, {
+     method: 'PATCH',
+     body: JSON.stringify(customForm)
+    });
+    setMsg('কাস্টম ফিচার আপডেট হয়েছে');
+   } else {
+    await api('/admin/custom-features', {
+     method: 'POST',
+     body: JSON.stringify(customForm)
+    });
+    setMsg('নতুন কাস্টম ফিচার যোগ করা হয়েছে');
+   }
+   setCustomForm({ title_bn: '', title_en: '', icon: '⭐', target_url: '', placement: 'both', description: '' });
+   setEditingCustomId(null);
+   load();
+  } catch(e) {
+   setMsg(e.message || 'কাস্টম ফিচার সংরক্ষণ ব্যর্থ হয়েছে');
+  }
+ };
+
+ const toggleCustom = async (cf) => {
+  const nextEnabled = cf.enabled === false ? true : false;
+  try {
+   await api('/admin/custom-features/' + cf.id, {
+    method: 'PATCH',
+    body: JSON.stringify({ enabled: nextEnabled })
+   });
+   setCustomList(prev => prev.map(x => x.id === cf.id ? { ...x, enabled: nextEnabled } : x));
+   setMsg('"' + cf.title_bn + '" ' + (nextEnabled ? 'সক্রিয়' : 'নিষ্ক্রিয়') + ' করা হয়েছে');
+  } catch(e) {
+   setMsg(e.message || 'পরিবর্তন ব্যর্থ');
+  }
+ };
+
+ const deleteCustom = async (id) => {
+  if (!confirm('আপনি কি নিশ্চিত যে এই কাস্টম ফিচারটি মুছে ফেলতে চান?')) return;
+  try {
+   await api('/admin/custom-features/' + id, { method: 'DELETE' });
+   setMsg('কাস্টম ফিচার মুছে ফেলা হয়েছে');
+   load();
+  } catch(e) {
+   setMsg(e.message || 'মুছে ফেলা ব্যর্থ');
+  }
+ };
+
+ const editCustom = (cf) => {
+  setEditingCustomId(cf.id);
+  setCustomForm({
+   title_bn: cf.title_bn || '',
+   title_en: cf.title_en || '',
+   icon: cf.icon || '⭐',
+   target_url: cf.target_url || '',
+   placement: cf.placement || 'both',
+   description: cf.description || ''
+  });
+  setTab('custom');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+ };
+
+ const systemFeatures = features.filter(f => !f.feature_key?.startsWith('public.') && (f.scope === 'admin' || f.feature_type === 'system' || !f.scope));
+ const publicFeatures = features.filter(f => f.feature_key?.startsWith('public.') || f.scope === 'public');
+
+ const filteredFeatures = (tab === 'public' ? publicFeatures : systemFeatures).filter(f => {
+  if (!filter) return true;
+  const q = filter.toLowerCase();
+  return (f.label_bn && f.label_bn.toLowerCase().includes(q)) ||
+         (f.label_en && f.label_en.toLowerCase().includes(q)) ||
+         (f.feature_key && f.feature_key.toLowerCase().includes(q)) ||
+         (f.group_name && f.group_name.toLowerCase().includes(q));
+ });
+
+ return (
+  <div className="module-grid feature-control-panel">
+   <div className="form-card full" style={{ gridColumn: '1 / -1' }}>
+    <div className="tabs">
+     <button className={tab === 'system' ? 'active' : ''} onClick={() => setTab('system')}>⚙️ সিস্টেম Feature ON/OFF ({systemFeatures.length})</button>
+     <button className={tab === 'public' ? 'active' : ''} onClick={() => setTab('public')}>🌐 View Site Menu ON/OFF ({publicFeatures.length})</button>
+     <button className={tab === 'custom' ? 'active' : ''} onClick={() => setTab('custom')}>➕ নতুন Feature যোগ ({customList.length})</button>
+    </div>
+    {msg && <p className="msg" role="status">{msg}</p>}
+   </div>
+
+   {tab === 'custom' ? (
+    <>
+     <div className="form-card">
+      <div className="toolbar">
+       <div>
+        <span className="eyebrow">CUSTOM NAVIGATION & FEATURES</span>
+        <h2>{editingCustomId ? 'কাস্টম ফিচার সম্পাদনা' : 'নতুন কাস্টম লিঙ্ক / ফিচার যোগ'}</h2>
+       </div>
+       {editingCustomId && (
+        <button className="mini" onClick={() => { setEditingCustomId(null); setCustomForm({ title_bn: '', title_en: '', icon: '⭐', target_url: '', placement: 'both', description: '' }); }}>বাতিল</button>
+       )}
+      </div>
+      <form onSubmit={saveCustom} className="form-grid">
+       <input placeholder="ফিচারের নাম (বাংলা) *" value={customForm.title_bn} onChange={e => setCustomForm({ ...customForm, title_bn: e.target.value })} required />
+       <input placeholder="Feature Name (English)" value={customForm.title_en} onChange={e => setCustomForm({ ...customForm, title_en: e.target.value })} />
+       <input placeholder="আইকন / ইমোজি (যেমন: 🔗, 🚀, 📚)" value={customForm.icon} onChange={e => setCustomForm({ ...customForm, icon: e.target.value })} />
+       <select value={customForm.placement} onChange={e => setCustomForm({ ...customForm, placement: e.target.value })}>
+        <option value="both">পাবলিক সাইট ও অ্যাডমিন উভয় জায়গায় (Both)</option>
+        <option value="public">শুধুমাত্র পাবলিক ওয়েবসাইটে (Public Site)</option>
+        <option value="admin">শুধুমাত্র অ্যাডমিন প্যানেলে (Admin Panel)</option>
+       </select>
+       <input className="full" placeholder="টার্গেট লিঙ্ক / URL (যেমন: #notice বা https://moedu.gov.bd) *" value={customForm.target_url} onChange={e => setCustomForm({ ...customForm, target_url: e.target.value })} required />
+       <textarea className="full" placeholder="সংক্ষিপ্ত বিবরণ (ঐচ্ছিক)" rows={2} value={customForm.description} onChange={e => setCustomForm({ ...customForm, description: e.target.value })} />
+       <button className="btn full">{editingCustomId ? 'আপডেট করুন' : 'যোগ করুন'}</button>
+      </form>
+     </div>
+
+     <div className="table-card">
+      <div className="toolbar">
+       <h2>কাস্টম ফিচারের তালিকা</h2>
+       <span>{customList.length} টি</span>
+      </div>
+      <div className="table-wrap">
+       <table>
+        <thead>
+         <tr>
+          <th>আইকন</th>
+          <th>নাম</th>
+          <th>অবস্থান</th>
+          <th>লিঙ্ক</th>
+          <th>অবস্থা</th>
+          <th>কাজ</th>
+         </tr>
+        </thead>
+        <tbody>
+         {customList.map(cf => (
+          <tr key={cf.id}>
+           <td style={{ fontSize: '18px' }}>{cf.icon || '⭐'}</td>
+           <td><b>{cf.title_bn}</b>{cf.title_en && <><br/><small>{cf.title_en}</small></>}</td>
+           <td><span className="badge">{cf.placement === 'both' ? 'উভয়' : cf.placement === 'public' ? 'পাবলিক' : 'অ্যাডমিন'}</span></td>
+           <td><a href={cf.target_url} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: '#0b8050' }}>{cf.target_url}</a></td>
+           <td>
+            <button className={'mini ' + (cf.enabled !== false ? 'active' : '')} style={{ background: cf.enabled !== false ? '#0b8050' : '#94a3b8', color: '#fff' }} onClick={() => toggleCustom(cf)}>
+             {cf.enabled !== false ? '✓ চালু (ON)' : '✕ বন্ধ (OFF)'}
+            </button>
+           </td>
+           <td>
+            <button className="mini" onClick={() => editCustom(cf)}>সম্পাদনা</button>{' '}
+            <button className="mini" onClick={() => deleteCustom(cf.id)} style={{ color: '#dc2626' }}>মুছুন</button>
+           </td>
+          </tr>
+         ))}
+         {!customList.length && (
+          <tr>
+           <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+            কোনো কাস্টম ফিচার বা লিঙ্ক এখনো যোগ করা হয়নি। বামপাশের ফর্ম থেকে যুক্ত করুন।
+           </td>
+          </tr>
+         )}
+        </tbody>
+       </table>
+      </div>
+     </div>
+    </>
+   ) : (
+    <div className="table-card full" style={{ gridColumn: '1 / -1' }}>
+     <div className="toolbar">
+      <div>
+       <h2>{tab === 'public' ? '🌐 পাবলিক ওয়েবসাইট মেনু ও ফিচার নিয়ন্ত্রণ' : '⚙️ অ্যাডমিন ERP মডিউল ও ফিচার নিয়ন্ত্রণ'}</h2>
+       <p className="portal-muted">যেকোনো মডিউল বন্ধ (OFF) করলে তা সংশ্লিষ্ট মেনু বা প্যানেলে আর প্রদর্শিত হবে না।</p>
+      </div>
+      <div className="filters" style={{ margin: 0 }}>
+       <input placeholder="ফিচার অনুসন্ধান..." value={filter} onChange={e => setFilter(e.target.value)} />
+       <button className="mini" onClick={load}>🔄 রিফ্রেশ</button>
+      </div>
+     </div>
+
+     <div className="table-wrap">
+      <table>
+       <thead>
+        <tr>
+         <th>গ্রুপ / বিভাগ</th>
+         <th>ফিচারের নাম</th>
+         <th>Feature Key</th>
+         <th>বর্তমান অবস্থা</th>
+         <th>অ্যাকশন</th>
+        </tr>
+       </thead>
+       <tbody>
+        {filteredFeatures.map(f => {
+         const isAct = f.enabled !== false;
+         return (
+          <tr key={f.feature_key || f.id}>
+           <td><b>{f.group_name || 'সাধারণ'}</b></td>
+           <td>
+            <strong>{f.label_bn || f.feature_key}</strong>
+            {f.label_en && <><br/><small style={{ color: '#64748b' }}>{f.label_en}</small></>}
+           </td>
+           <td><code style={{ fontSize: '11px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{f.feature_key}</code></td>
+           <td>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 600, color: isAct ? '#0b8050' : '#dc2626' }}>
+             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isAct ? '#0b8050' : '#dc2626' }} />
+             {isAct ? 'সক্রিয় (ON)' : 'নিষ্ক্রিয় (OFF)'}
+            </span>
+           </td>
+           <td>
+            <button
+             type="button"
+             onClick={() => toggleFeature(f)}
+             className={'mini ' + (isAct ? 'active' : '')}
+             style={{
+              background: isAct ? '#0b8050' : '#64748b',
+              color: '#fff',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              border: 'none',
+              transition: 'all 0.2s'
+             }}
+            >
+             {isAct ? '✓ সক্রিয় (ON)' : '✕ বন্ধ (OFF)'}
+            </button>
+           </td>
+          </tr>
+         );
+        })}
+        {!filteredFeatures.length && (
+         <tr>
+          <td colSpan={5} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+           {loading ? 'লোড হচ্ছে...' : 'কোনো ফিচার পাওয়া যায়নি। ডেটাবেস সিঙ্ক বা টেবিল সক্রিয় রয়েছে কিনা যাচাই করুন।'}
+          </td>
+         </tr>
+        )}
+       </tbody>
+      </table>
+     </div>
+    </div>
+   )}
+  </div>
+ );
+}
 
 function RoutinePanel(){
  const days=[['1','শনিবার'],['2','রবিবার'],['3','সোমবার'],['4','মঙ্গলবার'],['5','বুধবার'],['6','বৃহস্পতিবার'],['7','শুক্রবার']];
