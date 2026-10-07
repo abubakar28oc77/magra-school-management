@@ -1329,29 +1329,109 @@ function StudentPanel({sub}){
     load();
   }, [q, className, section, groupFilter, genderFilter, status, religionFilter, customFieldKey, customFieldValue]);
 
-  const exportStudents=()=>{
-   const custom=customFields.filter(f=>f.enabled&&!f.is_system);
-   const headers=['Student ID','Name','Class','Department','Roll','Religion','Gender','Guardian','Mobile','Status',...custom.map(f=>'custom:'+f.field_key)];
-   const rows=studentList.map(x=>{
-    const c=flattenCustom(x);
-    return {
-      'Student ID':x.student_id,
-      Name:x.name_bn,
-      Class:x.class_name,
-      Department:x.group_name||x.group||'—',
-      Roll:x.roll_no,
-      Religion:x.religion||'ইসলাম',
-      Gender:x.gender==='female'?'ছাত্রী':'ছাত্র',
-      Guardian:getStudentGuardian(x),
-      Mobile:getStudentPhone(x),
-      Status:statusBn(x.status),
-      ...c
-    };
-   });
-   downloadCsv('magra-students.csv',rows,headers);
+  const exportStudents = () => {
+    const custom = customFields.filter(f => f.enabled && !f.is_system);
+    const headers = [
+      'Student ID',
+      'Roll',
+      'Name (Bangla)',
+      'Name (English)',
+      'Class',
+      'Department',
+      'Section',
+      'Gender',
+      'Religion',
+      'Date of Birth',
+      'Blood Group',
+      'Birth Registration No',
+      'Student NID',
+      'Father Name (Bangla)',
+      'Father Name (English)',
+      'Father NID',
+      'Father Profession',
+      'Father Mobile',
+      'Mother Name (Bangla)',
+      'Mother Name (English)',
+      'Mother NID',
+      'Mother Profession',
+      'Mother Mobile',
+      'Guardian Name',
+      'Guardian Relation',
+      'Guardian Mobile',
+      'Guardian NID',
+      'Guardian Email',
+      'Current Village',
+      'Current Post Office',
+      'Current Upazila',
+      'Current District',
+      'Permanent Village',
+      'Permanent Post Office',
+      'Permanent Upazila',
+      'Permanent District',
+      'Full Address',
+      'Admission Class',
+      'Admission Date',
+      'Previous School',
+      'Emergency Phone',
+      'Special Needs / Notes',
+      'Status',
+      ...custom.map(f => 'custom:' + f.field_key)
+    ];
+
+    const rows = studentList.map(x => {
+      const c = flattenCustom(x);
+      return {
+        'Student ID': x.student_id || '',
+        'Roll': x.roll_no || '',
+        'Name (Bangla)': x.name_bn || '',
+        'Name (English)': x.name_en || '',
+        'Class': x.class_name || '',
+        'Department': x.department || x.group_name || x.group || (['9','10','৯','১০'].includes(String(x.class_name)) ? 'সাধারণ' : '—'),
+        'Section': x.section || '',
+        'Gender': x.gender === 'female' || x.gender === 'ছাত্রী' || x.gender === 'নারী' ? 'নারী (ছাত্রী)' : 'পুরুষ (ছাত্র)',
+        'Religion': x.religion || 'ইসলাম',
+        'Date of Birth': x.date_of_birth || '',
+        'Blood Group': x.blood_group || '',
+        'Birth Registration No': x.birth_registration_no || '',
+        'Student NID': x.student_nid_no || '',
+        'Father Name (Bangla)': x.father_name || '',
+        'Father Name (English)': x.father_name_en || '',
+        'Father NID': x.father_nid_no || '',
+        'Father Profession': x.father_profession || '',
+        'Father Mobile': x.father_mobile || '',
+        'Mother Name (Bangla)': x.mother_name || '',
+        'Mother Name (English)': x.mother_name_en || '',
+        'Mother NID': x.mother_nid_no || '',
+        'Mother Profession': x.mother_profession || '',
+        'Mother Mobile': x.mother_mobile || '',
+        'Guardian Name': x.guardian_name || getStudentGuardian(x),
+        'Guardian Relation': x.guardian_relation || (x.guardian_name ? 'অভিভাবক' : 'পিতা'),
+        'Guardian Mobile': x.guardian_phone || getStudentPhone(x),
+        'Guardian NID': x.guardian_nid_no || '',
+        'Guardian Email': x.guardian_email || '',
+        'Current Village': x.current_village || '',
+        'Current Post Office': x.current_post_office || '',
+        'Current Upazila': x.current_upazila || '',
+        'Current District': x.current_district || '',
+        'Permanent Village': x.permanent_village || '',
+        'Permanent Post Office': x.permanent_post_office || '',
+        'Permanent Upazila': x.permanent_upazila || '',
+        'Permanent District': x.permanent_district || '',
+        'Full Address': x.address || '',
+        'Admission Class': x.admission_class || x.class_name || '',
+        'Admission Date': x.admission_date || '',
+        'Previous School': x.previous_school || '',
+        'Emergency Phone': x.emergency_phone || x.guardian_phone || '',
+        'Special Needs / Notes': x.special_needs || x.additional_notes || '',
+        'Status': x.status === 'inactive' ? 'নিষ্ক্রিয়' : 'সক্রিয়',
+        ...c
+      };
+    });
+    const filename = `magra_students_full_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    downloadCsv(filename, rows, headers);
   };
 
- const studentImportHeaders=['student_id','roll_no','name_bn','name_en','class_name','section','gender','date_of_birth','blood_group','religion','birth_registration_no','student_nid_no','father_name','father_name_en','father_nid_no','father_profession','father_mobile','father_abroad_country','mother_name','mother_name_en','mother_nid_no','mother_profession','mother_mobile','mother_death_year','guardian_name','guardian_name_en','guardian_relation','guardian_phone','guardian_nid_no','guardian_email','address','current_village','current_post_office','current_upazila','current_district','permanent_village','permanent_post_office','permanent_upazila','permanent_district','admission_class','admission_date','previous_school','emergency_phone','special_needs','additional_notes','status','extended_profile_json'];
+ const studentImportHeaders=['student_id','roll_no','name_bn','name_en','class_name','department','section','gender','date_of_birth','blood_group','religion','birth_registration_no','student_nid_no','father_name','father_name_en','father_nid_no','father_profession','father_mobile','father_abroad_country','mother_name','mother_name_en','mother_nid_no','mother_profession','mother_mobile','mother_death_year','guardian_name','guardian_name_en','guardian_relation','guardian_phone','guardian_nid_no','guardian_email','address','current_village','current_post_office','current_upazila','current_district','permanent_village','permanent_post_office','permanent_upazila','permanent_district','admission_class','admission_date','previous_school','emergency_phone','special_needs','additional_notes','status','extended_profile_json'];
 
  const downloadStudentTemplate=()=>downloadCsv('magra-student-import-template.csv',[{
   student_id:'STU-2026-0001',
@@ -1359,6 +1439,7 @@ function StudentPanel({sub}){
   name_bn:'আহনাফ সিদ্দিক',
   name_en:'Ahnaf Siddique',
   class_name:'6',
+  department:'সাধারণ',
   section:'A',
   gender:'পুরুষ',
   date_of_birth:'2014-01-01',
@@ -1416,20 +1497,47 @@ function StudentPanel({sub}){
    const rawHeaders=matrix[0].map(x=>x.trim().toLowerCase());
    const aliasMap={
     'id':'student_id','student id':'student_id','studentid':'student_id',
-    'roll':'roll_no','roll no':'roll_no','roll_number':'roll_no',
-    'name':'name_bn','name (bangla)':'name_bn','নাম':'name_bn','name_bangla':'name_bn',
-    'name (english)':'name_en','name_english':'name_en',
+    'roll':'roll_no','roll no':'roll_no','roll_number':'roll_no','রোল':'roll_no',
+    'name':'name_bn','name (bangla)':'name_bn','নাম':'name_bn','name_bangla':'name_bn','শিক্ষার্থীর নাম':'name_bn',
+    'name (english)':'name_en','name_english':'name_en','নাম (ইংরেজি)':'name_en',
     'class':'class_name','class_name':'class_name','শ্রেণি':'class_name',
+    'department':'department','group':'department','group_name':'department','বিভাগ':'department','বিভাগ / গ্রুপ':'department',
     'section':'section','শাখা':'section',
-    'gender':'gender','লিঙ্গ':'gender',
-     'religion':'religion','ধর্ম':'religion','religion_name':'religion',
-    'father name':'father_name','father_name':'father_name','পিতার নাম':'father_name',
+    'gender':'gender','লিঙ্গ':'gender','জেন্ডার':'gender',
+    'religion':'religion','ধর্ম':'religion','religion_name':'religion',
+    'date of birth':'date_of_birth','date_of_birth':'date_of_birth','জন্ম তারিখ':'date_of_birth','dob':'date_of_birth',
+    'blood group':'blood_group','blood_group':'blood_group','রক্তের গ্রুপ':'blood_group',
+    'birth registration no':'birth_registration_no','birth_registration_no':'birth_registration_no','জন্ম নিবন্ধন':'birth_registration_no','জন্ম নিবন্ধন নম্বর':'birth_registration_no',
+    'student nid':'student_nid_no','student_nid_no':'student_nid_no','student_nid':'student_nid_no','শিক্ষার্থী nid':'student_nid_no',
+    'father name':'father_name','father_name':'father_name','father name (bangla)':'father_name','পিতার নাম':'father_name','পিতার নাম (বাংলা)':'father_name',
+    'father name (english)':'father_name_en','father_name_en':'father_name_en','পিতার নাম (ইংরেজি)':'father_name_en',
+    'father nid':'father_nid_no','father_nid_no':'father_nid_no','পিতার nid':'father_nid_no',
+    'father profession':'father_profession','father_profession':'father_profession','পিতার পেশা':'father_profession',
     'father phone':'father_mobile','father mobile':'father_mobile','father_mobile':'father_mobile','পিতার মোবাইল':'father_mobile',
-    'mother name':'mother_name','mother_name':'mother_name','মাতার নাম':'mother_name',
+    'mother name':'mother_name','mother_name':'mother_name','mother name (bangla)':'mother_name','মাতার নাম':'mother_name','মাতার নাম (বাংলা)':'mother_name',
+    'mother name (english)':'mother_name_en','mother_name_en':'mother_name_en','মাতার নাম (ইংরেজি)':'mother_name_en',
+    'mother nid':'mother_nid_no','mother_nid_no':'mother_nid_no','মাতার nid':'mother_nid_no',
+    'mother profession':'mother_profession','mother_profession':'mother_profession','মাতার পেশা':'mother_profession',
     'mother mobile':'mother_mobile','mother_mobile':'mother_mobile','মাতার মোবাইল':'mother_mobile',
-    'guardian':'guardian_name','guardian name':'guardian_name','guardian_name':'guardian_name','অভিভাবক':'guardian_name',
-    'guardian phone':'guardian_phone','guardian mobile':'guardian_phone','guardian_phone':'guardian_phone','মোবাইল':'guardian_phone',
-    'village':'current_village','current_village':'current_village','গ্রাম':'current_village'
+    'guardian':'guardian_name','guardian name':'guardian_name','guardian_name':'guardian_name','অভিভাবক':'guardian_name','অভিভাবকের নাম':'guardian_name',
+    'guardian relation':'guardian_relation','guardian_relation':'guardian_relation','সম্পর্ক':'guardian_relation',
+    'guardian phone':'guardian_phone','guardian mobile':'guardian_phone','guardian_phone':'guardian_phone','মোবাইল':'guardian_phone','অভিভাবকের মোবাইল':'guardian_phone',
+    'guardian nid':'guardian_nid_no','guardian_nid_no':'guardian_nid_no','অভিভাবকের nid':'guardian_nid_no',
+    'guardian email':'guardian_email','guardian_email':'guardian_email','অভিভাবকের ইমেইল':'guardian_email',
+    'village':'current_village','current_village':'current_village','current village':'current_village','বর্তমান গ্রাম':'current_village','গ্রাম':'current_village',
+    'current post office':'current_post_office','current_post_office':'current_post_office','বর্তমান ডাকঘর':'current_post_office','ডাকঘর':'current_post_office',
+    'current upazila':'current_upazila','current_upazila':'current_upazila','বর্তমান উপজেলা':'current_upazila','উপজেলা':'current_upazila',
+    'current district':'current_district','current_district':'current_district','বর্তমান জেলা':'current_district','জেলা':'current_district',
+    'permanent village':'permanent_village','permanent_village':'permanent_village','স্থায়ী গ্রাম':'permanent_village',
+    'permanent post office':'permanent_post_office','permanent_post_office':'permanent_post_office','স্থায়ী ডাকঘর':'permanent_post_office',
+    'permanent upazila':'permanent_upazila','permanent_upazila':'permanent_upazila','স্থায়ী উপজেলা':'permanent_upazila',
+    'permanent district':'permanent_district','permanent_district':'permanent_district','স্থায়ী জেলা':'permanent_district',
+    'address':'address','full address':'address','ঠিকানা':'address','পূর্ণ ঠিকানা':'address',
+    'admission class':'admission_class','admission_class':'admission_class','ভর্তির শ্রেণি':'admission_class',
+    'admission date':'admission_date','admission_date':'admission_date','ভর্তির তারিখ':'admission_date',
+    'previous school':'previous_school','previous_school':'previous_school','পূর্ববর্তী বিদ্যালয়':'previous_school',
+    'emergency phone':'emergency_phone','emergency_phone':'emergency_phone','জরুরি মোবাইল':'emergency_phone','জরুরি ফোন':'emergency_phone',
+    'status':'status','অবস্থা':'status'
    };
    const headers=rawHeaders.map(h=>aliasMap[h]||h);
    if(!headers.includes('name_bn')){
