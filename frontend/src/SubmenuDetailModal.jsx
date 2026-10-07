@@ -718,8 +718,12 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
         .filter(s => {
           if (filterGroup === 'all') return true;
-          const grp = (s.group_name || s.group || s.section || '').trim();
-          return grp === filterGroup;
+          const grp = (s.department || s.group_name || s.group || s.section || '').trim().toLowerCase();
+          const target = filterGroup.trim().toLowerCase();
+          if (target.includes('বিজ্ঞান')) return grp.includes('বিজ্ঞান');
+          if (target.includes('মানবিক')) return grp.includes('মানবিক');
+          if (target.includes('ব্যবসা')) return grp.includes('ব্যবসা');
+          return grp === target;
         })
         .filter(s => {
           if (filterReligion === 'all') return true;

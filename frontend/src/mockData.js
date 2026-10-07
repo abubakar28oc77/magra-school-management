@@ -223,7 +223,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আহনাফ সিদ্দিক",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মুহাম্মদ আবুবকর সিদ্দিক",
@@ -237,7 +237,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-2",
@@ -247,7 +249,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শিহাব উদ্দিন",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "আব্দুর রাজ্জাক",
@@ -261,7 +263,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-3",
@@ -271,7 +275,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শাওন আহমেদ",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃআব্দুল আলীম",
@@ -285,7 +289,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-4",
@@ -295,7 +301,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ ফাইয়ান ইসলাম ফাহাদ",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আব্দুল মান্নান",
@@ -309,7 +315,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-5",
@@ -319,7 +327,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মানিক",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আব্দুল কাদের",
@@ -333,7 +341,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-6",
@@ -343,7 +353,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ তামিম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "শহিদুল ইসলাম",
@@ -357,7 +367,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-7",
@@ -367,7 +379,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোনায়েম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ শহিদুল ইসলাম",
@@ -381,7 +393,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-8",
@@ -391,7 +405,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সাকিব আল হাসান",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "নুর মোহাম্মদ মনি",
@@ -405,7 +419,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-9",
@@ -415,7 +431,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রাকিবুল ইসলাম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ মনিরুজ্জামান",
@@ -429,7 +445,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-10",
@@ -439,7 +457,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রাজীব কুমার শীল",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "উত্তম কুমার শীল",
@@ -453,7 +471,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-11",
@@ -463,7 +483,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শীপন রবি দাস",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "নিরঞ্জন রবি দাস",
@@ -477,7 +497,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-12",
@@ -487,7 +509,7 @@ export const MOCK_STUDENTS = [
     "name_en": "প্রীতম কর্মকার",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "গোবিন্দ কর্মকার",
@@ -501,7 +523,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-13",
@@ -511,7 +535,7 @@ export const MOCK_STUDENTS = [
     "name_en": "প্রীয়ন্ত ঘোষ তীর্থ",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "প্রদীপ ঘোষ",
@@ -525,7 +549,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-14",
@@ -535,7 +561,7 @@ export const MOCK_STUDENTS = [
     "name_en": "দিপ্ত চন্দ্র মালো",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "সুকুমার চন্দ্র মালো",
@@ -549,7 +575,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-15",
@@ -559,7 +587,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মনির",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "বকুল হোসেন",
@@ -573,7 +601,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-16",
@@ -583,7 +613,7 @@ export const MOCK_STUDENTS = [
     "name_en": "তামিম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ শফিকুল ইসলাম",
@@ -597,7 +627,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-17",
@@ -607,7 +639,7 @@ export const MOCK_STUDENTS = [
     "name_en": "তানজিলা জাহান",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আজিজুর রহমান উজ্জ্বল",
@@ -621,7 +653,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-18",
@@ -631,7 +665,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ রিফাদুল ইসলাম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ রুবেল মিয়া",
@@ -645,7 +679,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-19",
@@ -655,7 +691,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মৃদুল",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সেলিম",
@@ -669,7 +705,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-20",
@@ -679,7 +717,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মামুন আল মাহিম",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ নজরুল ইসলাম",
@@ -693,7 +731,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-21",
@@ -703,7 +743,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আরহাম সিদ্দিক",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মুহাম্মদ আবুবকর সিদ্দিক",
@@ -717,7 +757,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-22",
@@ -727,7 +769,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ আকাশ",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ মাখন",
@@ -741,7 +783,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-23",
@@ -751,7 +795,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আবু তালহা",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "হামিদা বেগম",
@@ -765,7 +809,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-24",
@@ -775,7 +821,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ ছামি",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ রফিকুল ইসলাম",
@@ -789,7 +835,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-25",
@@ -799,7 +847,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আল রাফি",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "আনিছ রহমান",
@@ -813,7 +861,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-26",
@@ -823,7 +873,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ সিয়াম হোসেন",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আশরাফ হোসেন",
@@ -837,7 +887,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-27",
@@ -847,7 +899,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রিফাত খান",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "রনজু খান",
@@ -861,7 +913,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-sci-28",
@@ -871,7 +925,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ সিফাত মিয়া",
     "class_name": "10",
     "department": "বিজ্ঞান",
-    "section": "A",
+    "section": "বিজ্ঞান বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সিদ্দিকুর রহমান",
@@ -885,7 +939,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ"
   },
   {
     "id": "stu-10-hum-1",
@@ -895,7 +951,7 @@ export const MOCK_STUDENTS = [
     "name_en": "তানজিনা আকতার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আব্দুর রশিদ",
@@ -909,7 +965,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-2",
@@ -919,7 +977,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আসাদুজ্জামান নূর",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ কবির হোসেন",
@@ -933,7 +991,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-3",
@@ -943,7 +1003,7 @@ export const MOCK_STUDENTS = [
     "name_en": "স্বীকৃতি মণ্ডল জবা",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "সুবাশ চন্দ্র মণ্ডল",
@@ -957,7 +1017,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-4",
@@ -967,7 +1029,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সম্পা",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "শ্যামল চন্দ্র মালো",
@@ -981,7 +1043,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-5",
@@ -991,7 +1055,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শিরোপা সরকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আকবর হোসেন",
@@ -1005,7 +1069,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-6",
@@ -1015,7 +1081,7 @@ export const MOCK_STUDENTS = [
     "name_en": "জিহাদ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ নজরুল ইসলাম",
@@ -1029,7 +1095,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-7",
@@ -1039,7 +1107,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আকাশ মিয়া",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ ছানোয়ার হোসেন",
@@ -1053,7 +1121,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-8",
@@ -1063,7 +1133,7 @@ export const MOCK_STUDENTS = [
     "name_en": "বৃষ্টি মালো",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "জুড়ান চন্দ্র মালো",
@@ -1077,7 +1147,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-9",
@@ -1087,7 +1159,7 @@ export const MOCK_STUDENTS = [
     "name_en": "গোলাপী মালো",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "পামুছা চন্দ্র মালো",
@@ -1101,7 +1173,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-10",
@@ -1111,7 +1185,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ ফরমান হাসান সবুজ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ শহিদ",
@@ -1125,7 +1199,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-11",
@@ -1135,7 +1211,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আঃ আহাদ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ রিপন খলিফা",
@@ -1149,7 +1225,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-12",
@@ -1159,7 +1237,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আব্দুল আওয়াল ইসলাম",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ ছানোয়ার হোসেন",
@@ -1173,7 +1251,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-13",
@@ -1183,7 +1263,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মেহেদী হাসান",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ শরিফুল ইসলাম",
@@ -1197,7 +1277,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-14",
@@ -1207,7 +1289,7 @@ export const MOCK_STUDENTS = [
     "name_en": "জ্বিহাদ হোসেন",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ জালাল",
@@ -1221,7 +1303,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-15",
@@ -1231,7 +1315,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সিয়াম হোসেন",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ শফিকুল ইসলাম",
@@ -1245,7 +1329,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-16",
@@ -1255,7 +1341,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রনক কর্মকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "কৃষ্ণ গোপাল কর্মকার",
@@ -1269,7 +1355,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-17",
@@ -1279,7 +1367,7 @@ export const MOCK_STUDENTS = [
     "name_en": "দীননাথ কর্মকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "কালাচান কর্মকার",
@@ -1293,7 +1381,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-18",
@@ -1303,7 +1393,7 @@ export const MOCK_STUDENTS = [
     "name_en": "অর্পন কর্মকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "বৃন্দাবন কর্মকার",
@@ -1317,7 +1407,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-19",
@@ -1327,7 +1419,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রাকিব হোসেন",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "জাহাঙ্গীর হোসেন",
@@ -1341,7 +1433,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-20",
@@ -1351,7 +1445,7 @@ export const MOCK_STUDENTS = [
     "name_en": "দৃশ্য কুমার দেব",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "লক্ষন হাওলাদার",
@@ -1365,7 +1459,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-21",
@@ -1375,7 +1471,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মেরাজ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ নাসির উদ্দিন",
@@ -1389,7 +1485,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-22",
@@ -1399,7 +1497,7 @@ export const MOCK_STUDENTS = [
     "name_en": "হৃদয় কর্মকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "সুমন কর্মকার",
@@ -1413,7 +1511,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-23",
@@ -1423,7 +1523,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রাসেল",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ রুপচান আলী",
@@ -1437,7 +1537,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-24",
@@ -1447,7 +1549,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আতিকুর রহমান",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আব্দুল লতিফ",
@@ -1461,7 +1563,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-25",
@@ -1471,7 +1575,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সুমাইয়া জাহান",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ গোলাম নবি",
@@ -1485,7 +1589,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-26",
@@ -1495,7 +1601,7 @@ export const MOCK_STUDENTS = [
     "name_en": "ইতি আকতার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোতালেব হোসেন",
@@ -1509,7 +1615,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-27",
@@ -1519,7 +1627,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শরিফ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ বাবু",
@@ -1533,7 +1641,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-28",
@@ -1543,7 +1653,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সেজ্যোথী সুত্রধর",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "গৌড় চন্দ্র সূত্রধর",
@@ -1557,7 +1667,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-29",
@@ -1567,7 +1679,7 @@ export const MOCK_STUDENTS = [
     "name_en": "লামিয়া আক্তার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মহারানী বেগম",
@@ -1581,7 +1693,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-30",
@@ -1591,7 +1705,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রিমন",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "আব্দুল লতিফ",
@@ -1605,7 +1719,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-31",
@@ -1615,7 +1731,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ রিহাদ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "আব্দুল জলিল",
@@ -1629,7 +1745,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-32",
@@ -1639,7 +1757,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শাহেদ",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "জুব্বার",
@@ -1653,7 +1771,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-33",
@@ -1663,7 +1783,7 @@ export const MOCK_STUDENTS = [
     "name_en": "প্রত্যয় চন্দ্র মন্ডল",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "জয়দেব চন্দ্র মন্ডল",
@@ -1677,7 +1797,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-34",
@@ -1687,7 +1809,7 @@ export const MOCK_STUDENTS = [
     "name_en": "হিমেল",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সিদ্দিক আলী",
@@ -1701,7 +1823,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-35",
@@ -1711,7 +1835,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ রাকিব হাসান",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ বাবুল হোসেন",
@@ -1725,7 +1849,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-36",
@@ -1735,7 +1861,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আখি আক্তার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আশরাফ আলী ব্যাপারী",
@@ -1749,7 +1875,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-37",
@@ -1759,7 +1887,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ আতিকুর রহমান",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সুরুত আলী",
@@ -1773,7 +1901,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-38",
@@ -1783,7 +1913,7 @@ export const MOCK_STUDENTS = [
     "name_en": "যূথী",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আব্দুল জলিল",
@@ -1797,7 +1927,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-39",
@@ -1807,7 +1939,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আজাদ মিয়া",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "শফিকুল ইসলাম",
@@ -1821,7 +1953,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-40",
@@ -1831,7 +1965,7 @@ export const MOCK_STUDENTS = [
     "name_en": "রনি শিকদার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ উজ্জ্বল শিকদার",
@@ -1845,7 +1979,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-41",
@@ -1855,7 +1991,7 @@ export const MOCK_STUDENTS = [
     "name_en": "শাহিন শাহরিয়ার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ আক্কাস আলী",
@@ -1869,7 +2005,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-42",
@@ -1879,7 +2017,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সিয়াম মন্ডল",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "মোঃ আব্দুল কাদের",
@@ -1893,7 +2031,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-43",
@@ -1903,7 +2043,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মাহিম",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ ছানোয়ার হোসেন",
@@ -1917,7 +2057,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-44",
@@ -1927,7 +2069,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সোনালী",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "নারী",
     "religion": "হিন্দু",
     "guardian_name": "জয়দেব চন্দ্র দাস",
@@ -1941,7 +2083,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-45",
@@ -1951,7 +2095,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোস্তাফিজুর রহমান সিয়াম",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সোহেল রানা",
@@ -1965,7 +2109,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-46",
@@ -1975,7 +2121,7 @@ export const MOCK_STUDENTS = [
     "name_en": "নুর-ই-হাবিব",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ সাইদুর রহমান",
@@ -1989,7 +2135,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-47",
@@ -1999,7 +2147,7 @@ export const MOCK_STUDENTS = [
     "name_en": "বিজয় কর্মকার",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "হিন্দু",
     "guardian_name": "কর্মকার পরিবার",
@@ -2013,7 +2161,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-48",
@@ -2023,7 +2173,7 @@ export const MOCK_STUDENTS = [
     "name_en": "নিরব ইসলাম মৃদুল",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মৃদুল পরিবার",
@@ -2037,7 +2187,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-hum-49",
@@ -2047,7 +2199,7 @@ export const MOCK_STUDENTS = [
     "name_en": "মোঃ নাঈম হোসেন",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "নাঈম পরিবার",
@@ -2061,7 +2213,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   },
   {
     "id": "stu-10-bs-1",
@@ -2071,7 +2225,7 @@ export const MOCK_STUDENTS = [
     "name_en": "সিহাব",
     "class_name": "10",
     "department": "ব্যবসায় শিক্ষা",
-    "section": "A",
+    "section": "ব্যবসায় শিক্ষা শাখা",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ জয়েন উদ্দিন",
@@ -2085,7 +2239,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "ব্যবসায় শিক্ষা শাখা",
+    "group": "ব্যবসায় শিক্ষা শাখা"
   },
   {
     "id": "stu-10-bs-2",
@@ -2095,7 +2251,7 @@ export const MOCK_STUDENTS = [
     "name_en": "আজমীর",
     "class_name": "10",
     "department": "ব্যবসায় শিক্ষা",
-    "section": "A",
+    "section": "ব্যবসায় শিক্ষা শাখা",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ লাল মাহমুদ",
@@ -2109,7 +2265,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "ব্যবসায় শিক্ষা শাখা",
+    "group": "ব্যবসায় শিক্ষা শাখা"
   },
   {
     "id": "stu-10-bs-3",
@@ -2119,7 +2277,7 @@ export const MOCK_STUDENTS = [
     "name_en": "স্বাধীন",
     "class_name": "10",
     "department": "ব্যবসায় শিক্ষা",
-    "section": "A",
+    "section": "ব্যবসায় শিক্ষা শাখা",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "সিদ্দিক",
@@ -2133,7 +2291,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "active"
+    "status": "active",
+    "group_name": "ব্যবসায় শিক্ষা শাখা",
+    "group": "ব্যবসায় শিক্ষা শাখা"
   },
   {
     "id": "stu-10-inact-1",
@@ -2143,7 +2303,7 @@ export const MOCK_STUDENTS = [
     "name_en": "Tahmid Hasan",
     "class_name": "10",
     "department": "মানবিক",
-    "section": "A",
+    "section": "মানবিক বিভাগ",
     "gender": "পুরুষ",
     "religion": "ইসলাম",
     "guardian_name": "মোঃ জাহিদ হাসান",
@@ -2155,7 +2315,9 @@ export const MOCK_STUDENTS = [
     "permanent_upazila": "কালিহাতি",
     "current_district": "টাঙ্গাইল",
     "permanent_district": "টাঙ্গাইল",
-    "status": "inactive"
+    "status": "inactive",
+    "group_name": "মানবিক বিভাগ",
+    "group": "মানবিক বিভাগ"
   }
 ];
 

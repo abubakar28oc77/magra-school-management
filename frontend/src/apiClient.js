@@ -62,11 +62,13 @@ export function normalizeReligion(raw) {
   return raw.trim();
 }
 
-// Initialize authentic student dataset
-const AUTHENTIC_VERSION_TAG = 'magra_v125_user_authentic_81students';
+// Initialize authentic student dataset & purge dummy synthetic names if present
+const AUTHENTIC_VERSION_TAG = 'magra_v130_authentic_user_students_81';
 try {
   const currentVer = localStorage.getItem('magra_data_version');
-  if (currentVer !== AUTHENTIC_VERSION_TAG) {
+  const rawSt = localStorage.getItem('magra_db_students');
+  const hasOldDummyNames = rawSt && (rawSt.includes('সৌরভ পাল') || rawSt.includes('সুজন দাস') || rawSt.includes('পার্থ চক্রবর্তী') || rawSt.includes('চন্দন কুমার শীল') || rawSt.includes('দীপক বর্মণ') || rawSt.includes('সুব্রত পাল') || rawSt.includes('বিজয় সরকার'));
+  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
     localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
   }
