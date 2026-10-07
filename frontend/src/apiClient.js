@@ -574,14 +574,20 @@ function handleMockRequest(path, opts = {}) {
       students = students.filter(s => s && normalizeReligion(s.religion) === normalizeReligion(relFilter));
     }
     const groupFilter = params.get('group') || params.get('group_name') || params.get('department');
-    if (groupFilter) {
+    if (groupFilter && groupFilter !== 'all' && groupFilter !== '') {
       students = students.filter(s => {
         if (!s) return false;
-        const g = String(s.group_name || s.group || s.section || '').toLowerCase();
-        const gf = groupFilter.toLowerCase();
-        if (gf.includes('বিজ্ঞান') || gf.includes('science')) return g.includes('বিজ্ঞান') || g.includes('science');
-        if (gf.includes('মানবিক') || gf.includes('humanities')) return g.includes('মানবিক') || g.includes('humanities');
-        if (gf.includes('ব্যবসায়') || gf.includes('বাণিজ্য') || gf.includes('business') || gf.includes('commerce')) return g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce');
+        const g = String(s.department || s.group_name || s.group || s.section || '').toLowerCase();
+        const gf = groupFilter.trim().toLowerCase();
+        if (gf.includes('বিজ্ঞান') || gf.includes('science') || gf.includes('sci')) {
+          return g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci') || String(s.student_id || '').toLowerCase().includes('sci') || String(s.id || '').toLowerCase().includes('sci');
+        }
+        if (gf.includes('মানবিক') || gf.includes('humanities') || gf.includes('hum') || gf.includes('arts')) {
+          return g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts') || String(s.student_id || '').toLowerCase().includes('hum') || String(s.id || '').toLowerCase().includes('hum');
+        }
+        if (gf.includes('ব্যবসা') || gf.includes('ব্যবসায়') || gf.includes('ব্যবসায়') || gf.includes('বাণিজ্য') || gf.includes('business') || gf.includes('commerce') || gf.includes('bs')) {
+          return g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs') || String(s.student_id || '').toLowerCase().includes('bs') || String(s.id || '').toLowerCase().includes('bs');
+        }
         return g.includes(gf) || gf.includes(g);
       });
     }

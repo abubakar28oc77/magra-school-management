@@ -1160,8 +1160,8 @@ function StudentPanel({sub}){
         const title = `শ্রেণি ${c} (${num === 6 ? '৬ষ্ঠ শ্রেণি' : num === 7 ? '৭ম শ্রেণি' : '৮ম শ্রেণি'})`;
         return { key: `class_${num}`, title, type: 'class', classNum: num, order: num };
       } else {
-        const rawGrp = (s.group_name || s.group || s.section || 'সাধারণ').trim();
-        const grpClean = rawGrp.includes('বিজ্ঞান') ? 'বিজ্ঞান বিভাগ' : rawGrp.includes('মানবিক') ? 'মানবিক বিভাগ' : (rawGrp.includes('ব্যবসায়') || rawGrp.includes('বাণিজ্য')) ? 'ব্যবসায় শিক্ষা শাখা' : rawGrp;
+        const rawGrp = (s.department || s.group_name || s.group || s.section || 'সাধারণ').trim();
+        const grpClean = rawGrp.includes('বিজ্ঞান') ? 'বিজ্ঞান বিভাগ' : rawGrp.includes('মানবিক') ? 'মানবিক বিভাগ' : (rawGrp.includes('ব্যবসা') || rawGrp.includes('বাণিজ্য')) ? 'ব্যবসায় শিক্ষা শাখা' : rawGrp;
         const title = `শ্রেণি ${c} (${num === 9 ? '৯ম শ্রেণি' : '১০ম শ্রেণি'}) • ${grpClean}`;
         const deptOrder = grpClean.includes('বিজ্ঞান') ? 1 : grpClean.includes('মানবিক') ? 2 : 3;
         return { key: `class_${num}_${grpClean}`, title, type: 'dept', classNum: num, dept: grpClean, order: num * 10 + deptOrder };
@@ -1194,7 +1194,7 @@ function StudentPanel({sub}){
           <td style="text-align:center;font-weight:700;">${s.roll_no || '—'}</td>
           <td style="font-weight:600;">${s.name_bn || s.name_en || '—'}</td>
           <td style="text-align:center;">শ্রেণি ${s.class_name || '—'}</td>
-          <td style="text-align:center;font-weight:600;color:#0369a1;">${s.group_name || s.group || s.section || '—'}</td>
+          <td style="text-align:center;font-weight:600;color:#0369a1;">${s.department || s.group_name || s.group || s.section || '—'}</td>
           <td style="text-align:center;">${s.religion || 'ইসলাম'}</td>
           <td style="text-align:center;">${s.gender === 'female' || s.gender === 'ছাত্রী' || s.gender === 'নারী' ? 'ছাত্রী' : 'ছাত্র'}</td>
           <td>${s.guardian_name || s.father_name || '—'}</td>
@@ -1773,7 +1773,7 @@ function StudentPanel({sub}){
          const isEn = lang === 'en';
          const studentName = isEn ? (s.name_en || s.name_bn) : (s.name_bn || s.name_en);
          const studentGuardian = getStudentGuardian(s, lang);
-         const studentGroup = formatGroup(s.group_name || s.group, lang);
+         const studentGroup = formatGroup(s.department || s.group_name || s.group, lang);
          const classDisplay = isEn ? `Class ${s.class_name}` : `শ্রেণি ${s.class_name}`;
          const studentStatus = statusBn(s.status, lang);
 
@@ -1784,7 +1784,7 @@ function StudentPanel({sub}){
             <td><b>{studentName || '—'}</b></td>
             <td>{classDisplay}</td>
             <td>
-              {s.group_name || s.group ? (
+              {s.department || s.group_name || s.group ? (
                 <span style={{background:'#e0f2fe',color:'#0369a1',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>
                   {studentGroup}
                 </span>
