@@ -575,6 +575,7 @@ function handleMockRequest(path, opts = {}) {
         if (!s) return false;
         const curStatus = (s.status || 'active').trim().toLowerCase();
         if (st === 'active') return curStatus === 'active' || curStatus === 'সক্রিয়' || !curStatus;
+        if (st === 'inactive') return curStatus === 'inactive' || curStatus === 'নিষ্ক্রিয়';
         return curStatus === st.toLowerCase();
       });
     }
@@ -587,6 +588,9 @@ function handleMockRequest(path, opts = {}) {
         if (!s) return false;
         const g = String(s.group_name || s.group || s.section || '').toLowerCase();
         const gf = groupFilter.toLowerCase();
+        if (gf.includes('বিজ্ঞান') || gf.includes('science')) return g.includes('বিজ্ঞান') || g.includes('science');
+        if (gf.includes('মানবিক') || gf.includes('humanities')) return g.includes('মানবিক') || g.includes('humanities');
+        if (gf.includes('ব্যবসায়') || gf.includes('বাণিজ্য') || gf.includes('business') || gf.includes('commerce')) return g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce');
         return g.includes(gf) || gf.includes(g);
       });
     }
@@ -596,8 +600,8 @@ function handleMockRequest(path, opts = {}) {
         if (!s) return false;
         const g = (s.gender || '').toLowerCase();
         const gf = genderFilter.toLowerCase();
-        if (gf.includes('female') || gf.includes('ছাত্রী') || gf.includes('নারী')) {
-          return g === 'female' || g === 'ছাত্রী' || g === 'নারী';
+        if (gf.includes('female') || gf.includes('ছাত্রী') || gf.includes('নারী') || gf.includes('মহিলা')) {
+          return g === 'female' || g === 'ছাত্রী' || g === 'নারী' || g === 'মহিলা';
         }
         if (gf.includes('male') || gf.includes('ছাত্র') || gf.includes('পুরুষ')) {
           return g === 'male' || g === 'ছাত্র' || g === 'পুরুষ';
