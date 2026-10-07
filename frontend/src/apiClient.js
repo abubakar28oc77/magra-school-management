@@ -94,15 +94,15 @@ export function enrichStudentProfile(s) {
   }
 
   const baseObj = base || {};
-  const currentVill = s.current_village || baseObj.current_village || 'মগড়া';
-  const currentPost = s.current_post_office || baseObj.current_post_office || 'মগড়া';
-  const currentUp = s.current_upazila || baseObj.current_upazila || 'কালিহাতি';
+  const currentVill = s.current_village || baseObj.current_village || '';
+  const currentPost = s.current_post_office || baseObj.current_post_office || '';
+  const currentUp = s.current_upazila || baseObj.current_upazila || 'টাঙ্গাইল সদর';
   const currentDist = s.current_district || baseObj.current_district || 'টাঙ্গাইল';
   const permVill = s.permanent_village || baseObj.permanent_village || currentVill;
   const permPost = s.permanent_post_office || baseObj.permanent_post_office || currentPost;
   const permUp = s.permanent_upazila || baseObj.permanent_upazila || currentUp;
   const permDist = s.permanent_district || baseObj.permanent_district || currentDist;
-  const defaultAddress = `গ্রাম: ${currentVill}, ডাকঘর: ${currentPost}, উপজেলা: ${currentUp}, জেলা: ${currentDist}`;
+  const defaultAddress = currentVill ? `গ্রাম: ${currentVill}, ডাকঘর: ${currentPost}, উপজেলা: ${currentUp}, জেলা: ${currentDist}` : `উপজেলা: ${currentUp}, জেলা: ${currentDist}`;
 
   return {
     ...baseObj,
@@ -123,7 +123,7 @@ export function enrichStudentProfile(s) {
     mother_name: s.mother_name || baseObj.mother_name || '',
     mother_name_en: s.mother_name_en || baseObj.mother_name_en || '',
     mother_mobile: s.mother_mobile || baseObj.mother_mobile || '',
-    mother_profession: s.mother_profession || baseObj.mother_profession || 'গৃহিণী',
+    mother_profession: s.mother_profession || baseObj.mother_profession || '',
     mother_nid_no: s.mother_nid_no || baseObj.mother_nid_no || '',
     guardian_name: s.guardian_name || baseObj.guardian_name || s.father_name || baseObj.father_name || '',
     guardian_name_en: s.guardian_name_en || baseObj.guardian_name_en || s.father_name_en || baseObj.father_name_en || '',
@@ -145,33 +145,19 @@ export function enrichStudentProfile(s) {
 }
 
 // Initialize authentic student dataset & purge dummy synthetic names if present
-const AUTHENTIC_VERSION_TAG = 'magra_v180_complete_authentic_all_fields_2026_final';
+const AUTHENTIC_VERSION_TAG = 'magra_v200_tangail_sadar_clean_authentic_students';
 try {
   const currentVer = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
-  const hasOldDummyNames = rawSt && (rawSt.includes('সৌরভ পাল') || rawSt.includes('সুজন দাস') || rawSt.includes('পার্থ চক্রবর্তী') || rawSt.includes('চন্দন কুমার শীল') || rawSt.includes('দীপক বর্মণ') || rawSt.includes('সুব্রত পাল') || rawSt.includes('বিজয় সরকার'));
-  
-  let isMissingFields = false;
-  if (rawSt) {
-    try {
-      const parsed = JSON.parse(rawSt);
-      if (Array.isArray(parsed)) {
-        isMissingFields = parsed.some(s => s && (!s.father_name_en || !s.mother_name || !s.mother_name_en || !s.current_village));
-      }
-    } catch {}
-  }
+  const hasOldDummyNames = rawSt && (
+    rawSt.includes('সৌরভ পাল') || rawSt.includes('সুজন দাস') || rawSt.includes('পার্থ চক্রবর্তী') || 
+    rawSt.includes('চন্দন কুমার শীল') || rawSt.includes('দীপক বর্মণ') || rawSt.includes('সুব্রত পাল') || 
+    rawSt.includes('বিজয় সরকার') || rawSt.includes('ঘোষ পাড়া') || rawSt.includes('মালোপাড়া') || 
+    rawSt.includes('কালিহাতি')
+  );
 
-  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt || isMissingFields) {
-    let freshList = MOCK_STUDENTS;
-    if (rawSt && !hasOldDummyNames) {
-      try {
-        const parsed = JSON.parse(rawSt);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          freshList = parsed.map(enrichStudentProfile);
-        }
-      } catch {}
-    }
-    localStorage.setItem('magra_db_students', JSON.stringify(freshList));
+  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt) {
+    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
     localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
   }
 } catch {}
