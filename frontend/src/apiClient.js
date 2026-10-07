@@ -62,6 +62,16 @@ export function normalizeReligion(raw) {
   return raw.trim();
 }
 
+// Initialize authentic student dataset
+const AUTHENTIC_VERSION_TAG = 'magra_v125_user_authentic_81students';
+try {
+  const currentVer = localStorage.getItem('magra_data_version');
+  if (currentVer !== AUTHENTIC_VERSION_TAG) {
+    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+    localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
+  }
+} catch {}
+
 // Local storage database helpers (preserves user data completely)
 function getLocalStore(key, defaultVal = []) {
   try {
