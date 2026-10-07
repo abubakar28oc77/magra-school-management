@@ -63,14 +63,11 @@ export function normalizeReligion(raw) {
 }
 
 // Local storage database helpers & Automatic Version Migration
-const DATA_VERSION_TAG = 'magra_v119_81st_15tc';
+const DATA_VERSION_TAG = 'magra_v120_actual_class10_81st';
 try {
   const currentVer = localStorage.getItem('magra_data_version');
   if (currentVer !== DATA_VERSION_TAG) {
-    const rawS = localStorage.getItem('magra_db_students');
-    if (!rawS || JSON.parse(rawS).length < 80) {
-      localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
-    }
+    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
     const rawT = localStorage.getItem('magra_db_teachers');
     if (!rawT || JSON.parse(rawT).length < 15) {
       localStorage.setItem('magra_db_teachers', JSON.stringify(MOCK_TEACHERS));
@@ -481,13 +478,13 @@ function handleMockRequest(path, opts = {}) {
     const gender = Object.entries(genMap).map(([label, count]) => ({ label, count }));
 
     // Calculate class-wise breakdown
-    const clsMap = { '৬ষ্ঠ': 0, '৭ম': 0, '৮ম': 0, '৯ম': 0, '১০ম': 0 };
+    const clsMap = {};
     students.forEach(s => {
-      const c = String(s.class_name || '6');
-      const clsKey = c === '6' ? '৬ষ্ঠ' : c === '7' ? '৭ম' : c === '8' ? '৮ম' : c === '9' ? '৯ম' : c === '10' ? '১০ম' : c + ' শ্রেণি';
+      const c = String(s.class_name || '10').trim();
+      const clsKey = c === '6' ? '৬ষ্ঠ' : c === '7' ? '৭ম' : c === '8' ? '৮ম' : c === '9' ? '৯ম' : (c === '10' || c === '১০' || c === '১০ম') ? '১০ম' : c + ' শ্রেণি';
       clsMap[clsKey] = (clsMap[clsKey] || 0) + 1;
     });
-    const classes = Object.entries(clsMap).map(([label, count]) => ({ label, count }));
+    const classes = Object.entries(clsMap).filter(([_, count]) => count > 0).map(([label, count]) => ({ label, count }));
 
     return {
       total: students.length,
