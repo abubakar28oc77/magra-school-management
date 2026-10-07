@@ -1048,6 +1048,8 @@ function StudentPanel({sub}){
  const [q,setQ]=useState('');
  const [className,setClassName]=useState('');
  const [section,setSection]=useState('');
+ const [groupFilter,setGroupFilter]=useState('');
+ const [genderFilter,setGenderFilter]=useState('');
  const [status,setStatus]=useState('active');
  const [religionFilter,setReligionFilter]=useState('');
  const [msg,setMsg]=useState('');
@@ -1116,6 +1118,116 @@ function StudentPanel({sub}){
     }
   };
 
+  const printStudentReport=()=>{
+    const printWindow=window.open('','_blank');
+    if(!printWindow){
+      alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      return;
+    }
+    const filterInfo=[];
+    if(className) filterInfo.push(`শ্রেণি: শ্রেণি ${className}`);
+    if(groupFilter) filterInfo.push(`বিভাগ: ${groupFilter}`);
+    if(religionFilter) filterInfo.push(`ধর্ম: ${religionFilter}`);
+    if(genderFilter) filterInfo.push(`জেন্ডার: ${genderFilter==='male'?'ছাত্র':genderFilter==='female'?'ছাত্রী':genderFilter}`);
+    if(status) filterInfo.push(`অবস্থা: ${status==='active'?'সক্রিয়':status==='inactive'?'নিষ্ক্রিয়':status}`);
+    const filterText=filterInfo.length?filterInfo.join(' | '):'সকল শিক্ষার্থী (ফিল্টারহীন)';
+
+    const rowsHtml=students.map((s,idx)=>`
+      <tr>
+        <td style="text-align:center;font-weight:600;">${idx+1}</td>
+        <td style="text-align:center;font-family:monospace;font-weight:600;">${s.student_id||'—'}</td>
+        <td style="text-align:center;font-weight:700;">${s.roll_no||'—'}</td>
+        <td style="font-weight:600;">${s.name_bn||s.name_en||'—'}</td>
+        <td style="text-align:center;">শ্রেণি ${s.class_name||'১০'}</td>
+        <td style="text-align:center;">${s.group_name||s.group||s.section||'—'}</td>
+        <td style="text-align:center;">${s.religion||'ইসলাম'}</td>
+        <td style="text-align:center;">${s.gender==='female'||s.gender==='ছাত্রী'||s.gender==='নারী'?'ছাত্রী':'ছাত্র'}</td>
+        <td>${s.guardian_name||s.father_name||'—'}</td>
+        <td style="text-align:center;font-family:monospace;">${s.guardian_phone||s.father_mobile||'—'}</td>
+        <td style="text-align:center;font-weight:600;color:${s.status==='inactive'?'#dc2626':'#16a34a'};">${s.status==='inactive'?'নিষ্ক্রিয়':'সক্রিয়'}</td>
+      </tr>
+    `).join('');
+
+    const htmlContent=`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>শিক্ষার্থী তালিকা প্রতিবেদন - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 12px; color: #0f172a; background: #fff; font-size: 13px; }
+          .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 10px; }
+          .school-title { font-size: 22px; font-weight: 800; color: #047857; margin: 0; }
+          .school-sub { font-size: 13px; color: #475569; margin: 3px 0 0 0; }
+          .report-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 8px 0 2px 0; background: #f1f5f9; display: inline-block; padding: 3px 16px; border-radius: 4px; border: 1px solid #cbd5e1; }
+          .meta-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: #334155; font-weight: 600; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+          th { background: #f1f5f9; color: #0f172a; font-weight: 700; border: 1px solid #64748b; padding: 6px 8px; font-size: 12px; }
+          td { border: 1px solid #cbd5e1; padding: 5px 8px; font-size: 12px; }
+          tr:nth-child(even) { background-color: #f8fafc; }
+          .footer-signs { display: flex; justify-content: space-between; margin-top: 45px; padding: 0 30px; }
+          .sign-box { text-align: center; border-top: 1px solid #334155; width: 180px; padding-top: 5px; font-size: 12px; font-weight: 700; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 12px; display: flex; gap: 10px; justify-content: flex-end; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; border: 1px solid #86efac;">
+          <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">🖨️ প্রিন্ট করুন / Save as PDF</button>
+          <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">✕ বন্ধ করুন</button>
+        </div>
+        <div class="header">
+          <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</div>
+          <div class="report-title">📋 শিক্ষার্থী তালিকা প্রতিবেদন</div>
+        </div>
+        <div class="meta-bar">
+          <div><b>🔍 ফিল্টার কুয়েরি:</b> ${filterText}</div>
+          <div><b>📊 মোট শিক্ষার্থী:</b> ${students.length} জন | <b>তারিখ:</b> ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;">ক্র.নং</th>
+              <th style="width:65px;">আইডি</th>
+              <th style="width:40px;">রোল</th>
+              <th>শিক্ষার্থীর নাম</th>
+              <th style="width:60px;">শ্রেণি</th>
+              <th style="width:110px;">বিভাগ/ শাখা</th>
+              <th style="width:60px;">ধর্ম</th>
+              <th style="width:50px;">লিঙ্গ</th>
+              <th>অভিভাবকের নাম</th>
+              <th style="width:95px;">মোবাইল</th>
+              <th style="width:55px;">অবস্থা</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml || '<tr><td colspan="11" style="text-align:center;padding:20px;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</td></tr>'}
+          </tbody>
+        </table>
+        <div class="footer-signs">
+          <div class="sign-box">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+          <div class="sign-box">যাচাইকারীর স্বাক্ষর</div>
+          <div class="sign-box">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
  useEffect(()=>{
   if(sub==='new'){
    setEditing(null);
@@ -1133,8 +1245,8 @@ function StudentPanel({sub}){
   api('/admin/form-fields?form_key=student').then(setCustomFields).catch(()=>setCustomFields([]));
  },[]);
 
- const load=()=>api(`/students?q=${encodeURIComponent(q)}&class_name=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}&status=${encodeURIComponent(status)}&religion=${encodeURIComponent(religionFilter)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`).then(setStudents).catch(e=>setMsg(e.message));
- useEffect(load,[q,className,section,status,religionFilter,customFieldKey,customFieldValue]);
+ const load=()=>api(`/students?q=${encodeURIComponent(q)}&class_name=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}&group=${encodeURIComponent(groupFilter)}&gender=${encodeURIComponent(genderFilter)}&status=${encodeURIComponent(status)}&religion=${encodeURIComponent(religionFilter)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`).then(setStudents).catch(e=>setMsg(e.message));
+ useEffect(load,[q,className,section,groupFilter,genderFilter,status,religionFilter,customFieldKey,customFieldValue]);
 
  const exportStudents=()=>{
   const custom=customFields.filter(f=>f.enabled&&!f.is_system);
@@ -1487,7 +1599,10 @@ function StudentPanel({sub}){
       <span className="eyebrow">STUDENT DIRECTORY • V91</span>
       <h2>শিক্ষার্থী তালিকা</h2>
      </div>
-     <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
+     <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
+      <button className="mini" type="button" onClick={printStudentReport} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
+        🖨️ প্রিন্ট / PDF রিপোর্ট
+      </button>
       {selectedIds.length > 0 && (
         <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
           🗑️ নির্বাচিত ({selectedIds.length}) মুছুন
@@ -1501,18 +1616,36 @@ function StudentPanel({sub}){
       <button className="btn mini" type="button" onClick={()=>{setEditing(null);setSameAddress(false);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
       <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
       <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
-      <span>{students.length} জন</span>
+      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{students.length} জন</span>
      </div>
     </div>
-    <div className="filters">
-     <input placeholder="নাম / ID / অভিভাবক খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/>
-     <select value={className} onChange={e=>setClassName(e.target.value)}>
-      <option value="">সব শ্রেণি</option>
+    <div className="filters" style={{display:'flex',flexWrap:'wrap',gap:'8px',alignItems:'center',background:'#f8fafc',padding:'12px',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'16px'}}>
+     <input placeholder="🔍 নাম / ID / অভিভাবক / মোবাইল খুঁজুন" style={{minWidth:'220px',flex:1}} value={q} onChange={e=>setQ(e.target.value)}/>
+     <select value={className} onChange={e=>setClassName(e.target.value)} style={{fontWeight:600}}>
+      <option value="">🏫 সব শ্রেণি</option>
       {classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}
      </select>
-     <input placeholder=" শাখা" value={section} onChange={e=>setSection(e.target.value)}/>
-      <select value={religionFilter} onChange={e=>setReligionFilter(e.target.value)}><option value="">সব ধর্ম</option><option value="ইসলাম">ইসলাম</option><option value="হিন্দু">হিন্দু</option><option value="বৌদ্ধ">বৌদ্ধ</option><option value="খ্রিষ্টান">খ্রিষ্টান</option><option value="অন্যান্য">অন্যান্য</option></select>
-     <select value={status} onChange={e=>setStatus(e.target.value)}>
+     <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={{fontWeight:600,color:groupFilter?'#0284c7':undefined}}>
+      <option value="">📚 সব বিভাগ / গ্রুপ</option>
+      <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
+      <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
+      <option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option>
+     </select>
+     <input placeholder="শাখা (Section)" style={{maxWidth:'110px'}} value={section} onChange={e=>setSection(e.target.value)}/>
+     <select value={religionFilter} onChange={e=>setReligionFilter(e.target.value)} style={{fontWeight:600,color:religionFilter?'#059669':undefined}}>
+      <option value="">☪️ 🕉️ সব ধর্ম</option>
+      <option value="ইসলাম">ইসলাম</option>
+      <option value="হিন্দু">হিন্দু</option>
+      <option value="বৌদ্ধ">বৌদ্ধ</option>
+      <option value="খ্রিষ্টান">খ্রিষ্টান</option>
+      <option value="অন্যান্য">অন্যান্য</option>
+     </select>
+     <select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} style={{fontWeight:600}}>
+      <option value="">👥 সব জেন্ডার</option>
+      <option value="male">ছাত্র (পুরুষ)</option>
+      <option value="female">ছাত্রী (নারী)</option>
+     </select>
+     <select value={status} onChange={e=>setStatus(e.target.value)} style={{fontWeight:600,color:status==='active'?'#16a34a':status==='inactive'?'#dc2626':undefined}}>
       <option value="">সব অবস্থা</option>
       <option value="active">সক্রিয়</option>
       <option value="inactive">নিষ্ক্রিয়</option>
@@ -1522,7 +1655,8 @@ function StudentPanel({sub}){
      </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
-     <button type="button" className="mini" onClick={exportStudents}>CSV রিপোর্ট</button>
+     <button type="button" className="mini" onClick={printStudentReport} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
+     <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
     </div>
     <div className="table-wrap">
      <table>

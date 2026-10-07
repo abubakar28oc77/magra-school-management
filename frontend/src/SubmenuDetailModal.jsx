@@ -23,6 +23,9 @@ import { requestApi } from './apiClient';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   const [filterClass, setFilterClass] = useState('all');
+  const [filterGroup, setFilterGroup] = useState('all');
+  const [filterReligion, setFilterReligion] = useState('all');
+  const [filterGender, setFilterGender] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
@@ -711,22 +714,195 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         liveStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
       } catch {}
 
+      const filteredList = liveStudents
+        .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
+        .filter(s => {
+          if (filterGroup === 'all') return true;
+          const grp = (s.group_name || s.group || s.section || '').trim();
+          return grp === filterGroup;
+        })
+        .filter(s => {
+          if (filterReligion === 'all') return true;
+          const rel = (s.religion || 'ইসলাম').trim();
+          return rel === filterReligion;
+        })
+        .filter(s => {
+          if (filterGender === 'all') return true;
+          const gen = (s.gender || 'male').toLowerCase();
+          if (filterGender === 'male') return gen.includes('পুরুষ') || gen.includes('male') || gen.includes('ছাত্র') || gen === 'm';
+          if (filterGender === 'female') return gen.includes('নারী') || gen.includes('female') || gen.includes('মহিলা') || gen.includes('ছাত্রী') || gen === 'f';
+          return true;
+        })
+        .filter(s => {
+          if (!searchQuery) return true;
+          const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.group_name, s.group, s.current_village, s.permanent_village].filter(Boolean).map(String).join(' ').toLowerCase();
+          return haystack.includes(searchQuery.toLowerCase());
+        });
+
+      const handlePrintPublicStudents = () => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+          alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+          return;
+        }
+        const filterInfo = [];
+        if (filterClass !== 'all') filterInfo.push(`শ্রেণি: শ্রেণি ${filterClass}`);
+        if (filterGroup !== 'all') filterInfo.push(`বিভাগ: ${filterGroup}`);
+        if (filterReligion !== 'all') filterInfo.push(`ধর্ম: ${filterReligion}`);
+        if (filterGender !== 'all') filterInfo.push(`জেন্ডার: ${filterGender === 'male' ? 'ছাত্র' : 'ছাত্রী'}`);
+        const filterText = filterInfo.length ? filterInfo.join(' | ') : 'সকল শিক্ষার্থী (ফিল্টারহীন)';
+
+        const rowsHtml = filteredList.map((s, idx) => `
+          <tr>
+            <td style="text-align:center;font-weight:600;">${idx + 1}</td>
+            <td style="text-align:center;font-family:monospace;font-weight:600;">${s.student_id || '—'}</td>
+            <td style="text-align:center;font-weight:700;">${s.roll_no || '—'}</td>
+            <td style="font-weight:600;">${s.name_bn || s.name_en || '—'}</td>
+            <td style="text-align:center;">শ্রেণি ${s.class_name || '১০'}</td>
+            <td style="text-align:center;">${s.group_name || s.group || s.section || '—'}</td>
+            <td style="text-align:center;">${s.religion || 'ইসলাম'}</td>
+            <td style="text-align:center;">${s.gender === 'female' || s.gender === 'ছাত্রী' || s.gender === 'নারী' ? 'ছাত্রী' : 'ছাত্র'}</td>
+            <td>${s.guardian_name || s.father_name || '—'}</td>
+            <td style="text-align:center;font-family:monospace;">${s.guardian_phone || s.father_mobile || '—'}</td>
+          </tr>
+        `).join('');
+
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html lang="bn">
+          <head>
+            <meta charset="utf-8">
+            <title>শিক্ষার্থী তালিকা প্রতিবেদন - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+            <style>
+              @page { size: A4 landscape; margin: 10mm; }
+              body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 12px; color: #0f172a; background: #fff; font-size: 13px; }
+              .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 10px; }
+              .school-title { font-size: 22px; font-weight: 800; color: #047857; margin: 0; }
+              .school-sub { font-size: 13px; color: #475569; margin: 3px 0 0 0; }
+              .report-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 8px 0 2px 0; background: #f1f5f9; display: inline-block; padding: 3px 16px; border-radius: 4px; border: 1px solid #cbd5e1; }
+              .meta-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: #334155; font-weight: 600; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+              th { background: #f1f5f9; color: #0f172a; font-weight: 700; border: 1px solid #64748b; padding: 6px 8px; font-size: 12px; }
+              td { border: 1px solid #cbd5e1; padding: 5px 8px; font-size: 12px; }
+              tr:nth-child(even) { background-color: #f8fafc; }
+              .footer-signs { display: flex; justify-content: space-between; margin-top: 45px; padding: 0 30px; }
+              .sign-box { text-align: center; border-top: 1px solid #334155; width: 180px; padding-top: 5px; font-size: 12px; font-weight: 700; }
+              @media print {
+                .no-print { display: none !important; }
+                body { padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="no-print" style="margin-bottom: 12px; display: flex; gap: 10px; justify-content: flex-end; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; border: 1px solid #86efac;">
+              <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">🖨️ প্রিন্ট করুন / Save as PDF</button>
+              <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">✕ বন্ধ করুন</button>
+            </div>
+            <div class="header">
+              <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+              <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</div>
+              <div class="report-title">📋 শিক্ষার্থী তালিকা প্রতিবেদন</div>
+            </div>
+            <div class="meta-bar">
+              <div><b>🔍 ফিল্টার কুয়েরি:</b> ${filterText}</div>
+              <div><b>📊 মোট শিক্ষার্থী:</b> ${filteredList.length} জন | <b>তারিখ:</b> ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:30px;">ক্র.নং</th>
+                  <th style="width:65px;">আইডি</th>
+                  <th style="width:40px;">রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th style="width:60px;">শ্রেণি</th>
+                  <th style="width:110px;">বিভাগ/ শাখা</th>
+                  <th style="width:60px;">ধর্ম</th>
+                  <th style="width:50px;">লিঙ্গ</th>
+                  <th>অভিভাবকের নাম</th>
+                  <th style="width:95px;">মোবাইল</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || '<tr><td colspan="10" style="text-align:center;padding:20px;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</td></tr>'}
+              </tbody>
+            </table>
+            <div class="footer-signs">
+              <div class="sign-box">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+              <div class="sign-box">যাচাইকারীর স্বাক্ষর</div>
+              <div class="sign-box">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.print();
+                }, 300);
+              };
+            </script>
+          </body>
+          </html>
+        `;
+        printWindow.document.open();
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+      };
+
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">👥 শিক্ষার্থী তালিকা ও পরিসংখ্যান</div>
-          <div className="filter-bar-modal">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0 }}>👥 শিক্ষার্থী তালিকা ও পরিসংখ্যান ({filteredList.length} জন)</div>
+            <button
+              type="button"
+              onClick={handlePrintPublicStudents}
+              style={{
+                background: '#047857',
+                color: '#fff',
+                border: 'none',
+                padding: '7px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                boxShadow: '0 2px 4px rgba(4,120,87,0.2)'
+              }}
+            >
+              🖨️ প্রিন্ট / PDF রিপোর্ট
+            </button>
+          </div>
+          <div className="filter-bar-modal" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
             <input
-              placeholder="শিক্ষার্থীর নাম / Student ID / গ্রাম খুঁজুন..."
+              placeholder="শিক্ষার্থীর নাম / Student ID / পিতা / গ্রাম খুঁজুন..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '180px' }}
             />
             <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
-              <option value="all">সকল শ্রেণি</option>
+              <option value="all">🏫 সকল শ্রেণি</option>
               <option value="6">শ্রেণি ৬</option>
               <option value="7">শ্রেণি ৭</option>
               <option value="8">শ্রেণি ৮</option>
               <option value="9">শ্রেণি ৯</option>
               <option value="10">শ্রেণি ১০</option>
+            </select>
+            <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)}>
+              <option value="all">📚 সকল বিভাগ</option>
+              <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
+              <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
+              <option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option>
+            </select>
+            <select value={filterReligion} onChange={e => setFilterReligion(e.target.value)}>
+              <option value="all">☪️ 🕉️ সকল ধর্ম</option>
+              <option value="ইসলাম">ইসলাম</option>
+              <option value="হিন্দু">হিন্দু</option>
+              <option value="বৌদ্ধ">বৌদ্ধ</option>
+              <option value="খ্রিষ্টান">খ্রিষ্টান</option>
+            </select>
+            <select value={filterGender} onChange={e => setFilterGender(e.target.value)}>
+              <option value="all">👥 সকল জেন্ডার</option>
+              <option value="male">ছাত্র (পুরুষ)</option>
+              <option value="female">ছাত্রী (নারী)</option>
             </select>
           </div>
           <table className="modal-table">
@@ -736,30 +912,27 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 <th>রোল</th>
                 <th>নাম</th>
                 <th>শ্রেণি</th>
+                <th>বিভাগ</th>
+                <th>ধর্ম</th>
                 <th>পিতা / অভিভাবক</th>
                 <th>গ্রাম</th>
               </tr>
             </thead>
             <tbody>
-              {liveStudents
-                .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
-                .filter(s => {
-                  if (!searchQuery) return true;
-                  const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.current_village, s.permanent_village].filter(Boolean).map(String).join(' ').toLowerCase();
-                  return haystack.includes(searchQuery.toLowerCase());
-                })
-                .map(s => (
-                  <tr key={s.id}>
-                    <td><code>{s.student_id}</code></td>
-                    <td><b>{s.roll_no || '—'}</b></td>
-                    <td>{s.name_bn || s.name_en || '—'}</td>
-                    <td>শ্রেণি {s.class_name || '—'} ({s.section || '—'})</td>
-                    <td>{s.guardian_name || s.father_name || '—'}</td>
-                    <td>{s.current_village || s.permanent_village || '—'}</td>
-                  </tr>
-                ))}
-              {!liveStudents.length && (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>এখনো কোনো শিক্ষার্থী এন্ট্রি করা হয়নি।</td></tr>
+              {filteredList.map(s => (
+                <tr key={s.id}>
+                  <td><code>{s.student_id}</code></td>
+                  <td><b>{s.roll_no || '—'}</b></td>
+                  <td>{s.name_bn || s.name_en || '—'}</td>
+                  <td>শ্রেণি {s.class_name || '—'}</td>
+                  <td>{s.group_name || s.group || s.section || '—'}</td>
+                  <td>{s.religion || 'ইসলাম'}</td>
+                  <td>{s.guardian_name || s.father_name || '—'}</td>
+                  <td>{s.current_village || s.permanent_village || '—'}</td>
+                </tr>
+              ))}
+              {!filteredList.length && (
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি।</td></tr>
               )}
             </tbody>
           </table>

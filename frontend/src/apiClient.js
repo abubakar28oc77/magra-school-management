@@ -581,6 +581,30 @@ function handleMockRequest(path, opts = {}) {
     if (relFilter) {
       students = students.filter(s => s && normalizeReligion(s.religion) === normalizeReligion(relFilter));
     }
+    const groupFilter = params.get('group') || params.get('group_name') || params.get('department');
+    if (groupFilter) {
+      students = students.filter(s => {
+        if (!s) return false;
+        const g = String(s.group_name || s.group || s.section || '').toLowerCase();
+        const gf = groupFilter.toLowerCase();
+        return g.includes(gf) || gf.includes(g);
+      });
+    }
+    const genderFilter = params.get('gender');
+    if (genderFilter) {
+      students = students.filter(s => {
+        if (!s) return false;
+        const g = (s.gender || '').toLowerCase();
+        const gf = genderFilter.toLowerCase();
+        if (gf.includes('female') || gf.includes('ছাত্রী') || gf.includes('নারী')) {
+          return g === 'female' || g === 'ছাত্রী' || g === 'নারী';
+        }
+        if (gf.includes('male') || gf.includes('ছাত্র') || gf.includes('পুরুষ')) {
+          return g === 'male' || g === 'ছাত্র' || g === 'পুরুষ';
+        }
+        return true;
+      });
+    }
     if (customKey && customVal) {
       students = students.filter(s => {
         const val = s?.extended_profile?.custom_fields?.[customKey];
