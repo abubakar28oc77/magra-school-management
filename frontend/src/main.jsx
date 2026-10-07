@@ -1118,42 +1118,151 @@ function StudentPanel({sub}){
     }
   };
 
-  const printStudentReport=()=>{
-    const printWindow=window.open('','_blank');
-    if(!printWindow){
+  const studentList = Array.isArray(students) ? students : (students?.items || []);
+
+  const printStudentReport = (filterMode = 'active') => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
       alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
       return;
     }
-    const filterInfo=[];
-    if(className) filterInfo.push(`শ্রেণি: শ্রেণি ${className}`);
-    if(groupFilter) filterInfo.push(`বিভাগ: ${groupFilter}`);
-    if(religionFilter) filterInfo.push(`ধর্ম: ${religionFilter}`);
-    if(genderFilter) filterInfo.push(`জেন্ডার: ${genderFilter==='male'?'ছাত্র':genderFilter==='female'?'ছাত্রী':genderFilter}`);
-    if(status) filterInfo.push(`অবস্থা: ${status==='active'?'সক্রিয়':status==='inactive'?'নিষ্ক্রিয়':status}`);
-    const filterText=filterInfo.length?filterInfo.join(' | '):'সকল শিক্ষার্থী (ফিল্টারহীন)';
 
-    const rowsHtml=students.map((s,idx)=>`
-      <tr>
-        <td style="text-align:center;font-weight:600;">${idx+1}</td>
-        <td style="text-align:center;font-family:monospace;font-weight:600;">${s.student_id||'—'}</td>
-        <td style="text-align:center;font-weight:700;">${s.roll_no||'—'}</td>
-        <td style="font-weight:600;">${s.name_bn||s.name_en||'—'}</td>
-        <td style="text-align:center;">শ্রেণি ${s.class_name||'১০'}</td>
-        <td style="text-align:center;">${s.group_name||s.group||s.section||'—'}</td>
-        <td style="text-align:center;">${s.religion||'ইসলাম'}</td>
-        <td style="text-align:center;">${s.gender==='female'||s.gender==='ছাত্রী'||s.gender==='নারী'?'ছাত্রী':'ছাত্র'}</td>
-        <td>${s.guardian_name||s.father_name||'—'}</td>
-        <td style="text-align:center;font-family:monospace;">${s.guardian_phone||s.father_mobile||'—'}</td>
-        <td style="text-align:center;font-weight:600;color:${s.status==='inactive'?'#dc2626':'#16a34a'};">${s.status==='inactive'?'নিষ্ক্রিয়':'সক্রিয়'}</td>
-      </tr>
-    `).join('');
+    let listToPrint = [...studentList];
+    let reportHeading = 'শিক্ষার্থী তালিকা প্রতিবেদন';
+    let filterLabel = 'ফিল্টারকৃত তালিকা';
 
-    const htmlContent=`
+    if (filterMode === 'class_6_8') {
+      listToPrint = studentList.filter(s => ['6', '7', '8', '৬', '৭', '৮'].includes(String(s.class_name).trim()));
+      reportHeading = '৬ষ্ঠ থেকে ৮ম শ্রেণি ভিত্তিক শিক্ষার্থী তালিকা';
+      filterLabel = '৬ষ্ঠ-৮ম শ্রেণি ভিত্তিক';
+    } else if (filterMode === 'dept_9_10') {
+      listToPrint = studentList.filter(s => ['9', '10', '৯', '১০'].includes(String(s.class_name).trim()));
+      reportHeading = '৯ম ও ১০ম শ্রেণি বিভাগ ভিত্তিক শিক্ষার্থী তালিকা';
+      filterLabel = '৯ম-১০ম বিভাগ ভিত্তিক (বিজ্ঞান, মানবিক, ব্যবসায় শিক্ষা)';
+    } else if (filterMode === 'science') {
+      listToPrint = studentList.filter(s => String(s.group_name || s.group || '').includes('বিজ্ঞান'));
+      reportHeading = 'বিজ্ঞান বিভাগ শিক্ষার্থী তালিকা';
+      filterLabel = 'বিজ্ঞান বিভাগ';
+    } else if (filterMode === 'humanities') {
+      listToPrint = studentList.filter(s => String(s.group_name || s.group || '').includes('মানবিক'));
+      reportHeading = 'মানবিক বিভাগ শিক্ষার্থী তালিকা';
+      filterLabel = 'মানবিক বিভাগ';
+    } else if (filterMode === 'business') {
+      listToPrint = studentList.filter(s => String(s.group_name || s.group || '').includes('ব্যবসায়') || String(s.group_name || s.group || '').includes('বাণিজ্য'));
+      reportHeading = 'ব্যবসায় শিক্ষা শাখা শিক্ষার্থী তালিকা';
+      filterLabel = 'ব্যবসায় শিক্ষা শাখা';
+    } else {
+      const filterInfo = [];
+      if (className) filterInfo.push(`শ্রেণি: শ্রেণি ${className}`);
+      if (groupFilter) filterInfo.push(`বিভাগ: ${groupFilter}`);
+      if (religionFilter) filterInfo.push(`ধর্ম: ${religionFilter}`);
+      if (genderFilter) filterInfo.push(`জেন্ডার: ${genderFilter === 'male' ? 'ছাত্র' : 'ছাত্রী'}`);
+      if (status) filterInfo.push(`অবস্থা: ${status === 'active' ? 'সক্রিয়' : status === 'inactive' ? 'নিষ্ক্রিয়' : status}`);
+      filterLabel = filterInfo.length ? filterInfo.join(' | ') : 'সকল শিক্ষার্থী';
+      reportHeading = className ? `শ্রেণি ${className} শিক্ষার্থী তালিকা` : groupFilter ? `${groupFilter} শিক্ষার্থী তালিকা` : 'শিক্ষার্থী তালিকা প্রতিবেদন';
+    }
+
+    // Grouping helper:
+    // Classes 6, 7, 8 -> Group by Class (শ্রেণি ভিত্তিক)
+    // Classes 9, 10 -> Group by Class + Department (বিভাগ ভিত্তিক)
+    const groups = {};
+    const groupOrder = [];
+
+    const getGroupKey = (s) => {
+      const c = String(s.class_name || '10').trim();
+      const num = parseInt(c) || 10;
+      if (num <= 8) {
+        const title = `শ্রেণি ${c} (${num === 6 ? '৬ষ্ঠ শ্রেণি' : num === 7 ? '৭ম শ্রেণি' : '৮ম শ্রেণি'})`;
+        return { key: `class_${num}`, title, type: 'class', classNum: num, order: num };
+      } else {
+        const rawGrp = (s.group_name || s.group || s.section || 'সাধারণ').trim();
+        const grpClean = rawGrp.includes('বিজ্ঞান') ? 'বিজ্ঞান বিভাগ' : rawGrp.includes('মানবিক') ? 'মানবিক বিভাগ' : (rawGrp.includes('ব্যবসায়') || rawGrp.includes('বাণিজ্য')) ? 'ব্যবসায় শিক্ষা শাখা' : rawGrp;
+        const title = `শ্রেণি ${c} (${num === 9 ? '৯ম শ্রেণি' : '১০ম শ্রেণি'}) • ${grpClean}`;
+        const deptOrder = grpClean.includes('বিজ্ঞান') ? 1 : grpClean.includes('মানবিক') ? 2 : 3;
+        return { key: `class_${num}_${grpClean}`, title, type: 'dept', classNum: num, dept: grpClean, order: num * 10 + deptOrder };
+      }
+    };
+
+    listToPrint.forEach(s => {
+      const g = getGroupKey(s);
+      if (!groups[g.key]) {
+        groups[g.key] = { ...g, students: [] };
+        groupOrder.push(g.key);
+      }
+      groups[g.key].students.push(s);
+    });
+
+    // Sort groups
+    groupOrder.sort((a, b) => (groups[a].order || 0) - (groups[b].order || 0));
+
+    // Sort students within each group by roll_no
+    groupOrder.forEach(k => {
+      groups[k].students.sort((a, b) => (parseInt(a.roll_no) || 9999) - (parseInt(b.roll_no) || 9999));
+    });
+
+    const sectionsHtml = groupOrder.map((k, gIdx) => {
+      const grp = groups[k];
+      const rowsHtml = grp.students.map((s, idx) => `
+        <tr>
+          <td style="text-align:center;font-weight:600;">${idx + 1}</td>
+          <td style="text-align:center;font-family:monospace;font-weight:600;">${s.student_id || '—'}</td>
+          <td style="text-align:center;font-weight:700;">${s.roll_no || '—'}</td>
+          <td style="font-weight:600;">${s.name_bn || s.name_en || '—'}</td>
+          <td style="text-align:center;">শ্রেণি ${s.class_name || '—'}</td>
+          <td style="text-align:center;font-weight:600;color:#0369a1;">${s.group_name || s.group || s.section || '—'}</td>
+          <td style="text-align:center;">${s.religion || 'ইসলাম'}</td>
+          <td style="text-align:center;">${s.gender === 'female' || s.gender === 'ছাত্রী' || s.gender === 'নারী' ? 'ছাত্রী' : 'ছাত্র'}</td>
+          <td>${s.guardian_name || s.father_name || '—'}</td>
+          <td style="text-align:center;font-family:monospace;">${s.guardian_phone || s.father_mobile || '—'}</td>
+          <td style="text-align:center;font-weight:600;color:${s.status === 'inactive' ? '#dc2626' : '#16a34a'};">${s.status === 'inactive' ? 'নিষ্ক্রিয়' : 'সক্রিয়'}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="report-group-section" style="${gIdx > 0 ? 'page-break-before: always; margin-top: 30px;' : ''}">
+          <div style="background: #f1f5f9; border-left: 5px solid #047857; padding: 8px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px;">
+            <div style="font-size: 15px; font-weight: 800; color: #0f172a;">
+              ${grp.type === 'class' ? '🏫 শ্রেণি ভিত্তিক তালিকা:' : '📚 বিভাগ ভিত্তিক তালিকা:'} ${grp.title}
+            </div>
+            <div style="font-size: 13px; font-weight: 700; color: #047857; background: #fff; padding: 3px 10px; border-radius: 4px; border: 1px solid #cbd5e1;">
+              মোট: ${grp.students.length} জন
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px;">ক্র.নং</th>
+                <th style="width:65px;">আইডি</th>
+                <th style="width:40px;">রোল</th>
+                <th>শিক্ষার্থীর নাম</th>
+                <th style="width:55px;">শ্রেণি</th>
+                <th style="width:110px;">বিভাগ/শাখা</th>
+                <th style="width:60px;">ধর্ম</th>
+                <th style="width:50px;">লিঙ্গ</th>
+                <th>অভিভাবকের নাম</th>
+                <th style="width:95px;">মোবাইল</th>
+                <th style="width:55px;">অবস্থা</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="footer-signs" style="display: flex; justify-content: space-between; margin-top: 40px; padding: 0 20px;">
+            <div class="sign-box" style="text-align: center; border-top: 1px solid #334155; width: 170px; padding-top: 4px; font-size: 11px; font-weight: 700;">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            <div class="sign-box" style="text-align: center; border-top: 1px solid #334155; width: 170px; padding-top: 4px; font-size: 11px; font-weight: 700;">যাচাইকারীর স্বাক্ষর</div>
+            <div class="sign-box" style="text-align: center; border-top: 1px solid #334155; width: 170px; padding-top: 4px; font-size: 11px; font-weight: 700;">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const htmlContent = `
       <!DOCTYPE html>
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>শিক্ষার্থী তালিকা প্রতিবেদন - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <title>${reportHeading} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
         <style>
           @page { size: A4 landscape; margin: 10mm; }
           body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 12px; color: #0f172a; background: #fff; font-size: 13px; }
@@ -1161,16 +1270,15 @@ function StudentPanel({sub}){
           .school-title { font-size: 22px; font-weight: 800; color: #047857; margin: 0; }
           .school-sub { font-size: 13px; color: #475569; margin: 3px 0 0 0; }
           .report-title { font-size: 15px; font-weight: 700; color: #1e293b; margin: 8px 0 2px 0; background: #f1f5f9; display: inline-block; padding: 3px 16px; border-radius: 4px; border: 1px solid #cbd5e1; }
-          .meta-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: #334155; font-weight: 600; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
+          .meta-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #334155; font-weight: 600; border-bottom: 1px dashed #cbd5e1; padding-bottom: 4px; }
           table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-          th { background: #f1f5f9; color: #0f172a; font-weight: 700; border: 1px solid #64748b; padding: 6px 8px; font-size: 12px; }
+          th { background: #f8fafc; color: #0f172a; font-weight: 700; border: 1px solid #64748b; padding: 6px 8px; font-size: 12px; }
           td { border: 1px solid #cbd5e1; padding: 5px 8px; font-size: 12px; }
           tr:nth-child(even) { background-color: #f8fafc; }
-          .footer-signs { display: flex; justify-content: space-between; margin-top: 45px; padding: 0 30px; }
-          .sign-box { text-align: center; border-top: 1px solid #334155; width: 180px; padding-top: 5px; font-size: 12px; font-weight: 700; }
           @media print {
             .no-print { display: none !important; }
             body { padding: 0; }
+            .report-group-section { page-break-inside: avoid; }
           }
         </style>
       </head>
@@ -1182,37 +1290,13 @@ function StudentPanel({sub}){
         <div class="header">
           <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
           <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</div>
-          <div class="report-title">📋 শিক্ষার্থী তালিকা প্রতিবেদন</div>
+          <div class="report-title">📋 ${reportHeading}</div>
         </div>
         <div class="meta-bar">
-          <div><b>🔍 ফিল্টার কুয়েরি:</b> ${filterText}</div>
-          <div><b>📊 মোট শিক্ষার্থী:</b> ${students.length} জন | <b>তারিখ:</b> ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          <div><b>🔍 প্রতিবেদন টাইপ / ফিল্টার:</b> ${filterLabel}</div>
+          <div><b>📊 মোট শিক্ষার্থী:</b> ${listToPrint.length} জন | <b>তারিখ:</b> ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width:30px;">ক্র.নং</th>
-              <th style="width:65px;">আইডি</th>
-              <th style="width:40px;">রোল</th>
-              <th>শিক্ষার্থীর নাম</th>
-              <th style="width:60px;">শ্রেণি</th>
-              <th style="width:110px;">বিভাগ/ শাখা</th>
-              <th style="width:60px;">ধর্ম</th>
-              <th style="width:50px;">লিঙ্গ</th>
-              <th>অভিভাবকের নাম</th>
-              <th style="width:95px;">মোবাইল</th>
-              <th style="width:55px;">অবস্থা</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml || '<tr><td colspan="11" style="text-align:center;padding:20px;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</td></tr>'}
-          </tbody>
-        </table>
-        <div class="footer-signs">
-          <div class="sign-box">শ্রেণি শিক্ষকের স্বাক্ষর</div>
-          <div class="sign-box">যাচাইকারীর স্বাক্ষর</div>
-          <div class="sign-box">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
-        </div>
+        ${sectionsHtml || '<p style="text-align:center;padding:30px;color:#64748b;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</p>'}
         <script>
           window.onload = function() {
             setTimeout(function() {
@@ -1228,35 +1312,55 @@ function StudentPanel({sub}){
     printWindow.document.close();
   };
 
- useEffect(()=>{
-  if(sub==='new'){
-   setEditing(null);
-   setForm({...emptyStudent,extended_profile:{education:[]}});
-   setStep(0);
-   setView('form');
-  } else if(sub==='list'||sub==='search'){
-   setView('list');
-  } else if(sub==='csv'){
-   setView('csv');
-  }
- },[sub]);
+  useEffect(()=>{
+   if(sub==='new'){
+    setEditing(null);
+    setForm({...emptyStudent,extended_profile:{education:[]}});
+    setStep(0);
+    setView('form');
+   } else if(sub==='list'||sub==='search'){
+    setView('list');
+   } else if(sub==='csv'){
+    setView('csv');
+   }
+  },[sub]);
 
- useEffect(()=>{
-  api('/admin/form-fields?form_key=student').then(setCustomFields).catch(()=>setCustomFields([]));
- },[]);
+  useEffect(()=>{
+   api('/admin/form-fields?form_key=student').then(setCustomFields).catch(()=>setCustomFields([]));
+  },[]);
 
- const load=()=>api(`/students?q=${encodeURIComponent(q)}&class_name=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}&group=${encodeURIComponent(groupFilter)}&gender=${encodeURIComponent(genderFilter)}&status=${encodeURIComponent(status)}&religion=${encodeURIComponent(religionFilter)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`).then(setStudents).catch(e=>setMsg(e.message));
- useEffect(load,[q,className,section,groupFilter,genderFilter,status,religionFilter,customFieldKey,customFieldValue]);
+  const load=()=>api(`/students?q=${encodeURIComponent(q)}&class_name=${encodeURIComponent(className)}&section=${encodeURIComponent(section)}&group=${encodeURIComponent(groupFilter)}&gender=${encodeURIComponent(genderFilter)}&status=${encodeURIComponent(status)}&religion=${encodeURIComponent(religionFilter)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
+    .then(data => {
+      setStudents(Array.isArray(data) ? data : (data?.items || []));
+    })
+    .catch(e => {
+      setStudents([]);
+      setMsg(e.message || 'ডাটা লোড ব্যর্থ হয়েছে');
+    });
 
- const exportStudents=()=>{
-  const custom=customFields.filter(f=>f.enabled&&!f.is_system);
-  const headers=['Student ID','Name','Class','Roll','Guardian','Mobile','Status',...custom.map(f=>'custom:'+f.field_key)];
-  const rows=students.map(x=>{
-   const c=flattenCustom(x);
-   return {'Student ID':x.student_id,Name:x.name_bn,Class:x.class_name,Roll:x.roll_no,Guardian:getStudentGuardian(x),Mobile:getStudentPhone(x),Status:statusBn(x.status),...c};
-  });
-  downloadCsv('magra-students.csv',rows,headers);
- };
+  useEffect(load,[q,className,section,groupFilter,genderFilter,status,religionFilter,customFieldKey,customFieldValue]);
+
+  const exportStudents=()=>{
+   const custom=customFields.filter(f=>f.enabled&&!f.is_system);
+   const headers=['Student ID','Name','Class','Department','Roll','Religion','Gender','Guardian','Mobile','Status',...custom.map(f=>'custom:'+f.field_key)];
+   const rows=studentList.map(x=>{
+    const c=flattenCustom(x);
+    return {
+      'Student ID':x.student_id,
+      Name:x.name_bn,
+      Class:x.class_name,
+      Department:x.group_name||x.group||'—',
+      Roll:x.roll_no,
+      Religion:x.religion||'ইসলাম',
+      Gender:x.gender==='female'?'ছাত্রী':'ছাত্র',
+      Guardian:getStudentGuardian(x),
+      Mobile:getStudentPhone(x),
+      Status:statusBn(x.status),
+      ...c
+    };
+   });
+   downloadCsv('magra-students.csv',rows,headers);
+  };
 
  const studentImportHeaders=['student_id','roll_no','name_bn','name_en','class_name','section','gender','date_of_birth','blood_group','religion','birth_registration_no','student_nid_no','father_name','father_name_en','father_nid_no','father_profession','father_mobile','father_abroad_country','mother_name','mother_name_en','mother_nid_no','mother_profession','mother_mobile','mother_death_year','guardian_name','guardian_name_en','guardian_relation','guardian_phone','guardian_nid_no','guardian_email','address','current_village','current_post_office','current_upazila','current_district','permanent_village','permanent_post_office','permanent_upazila','permanent_district','admission_class','admission_date','previous_school','emergency_phone','special_needs','additional_notes','status','extended_profile_json'];
 
@@ -1484,7 +1588,7 @@ function StudentPanel({sub}){
       <div>
        <div style={{fontSize:'36px',marginBottom:'10px'}}>📊</div>
        <h3 style={{fontSize:'16px',fontWeight:700,marginBottom:'8px',color:'#1e40af'}}>ব্যাকআপ: বর্তমান শিক্ষার্থী ডাটা</h3>
-       <p style={{fontSize:'13px',color:'#64748b',marginBottom:'16px',lineHeight:'1.5'}}>সিস্টেমে বর্তমানে থাকা মোট ({students.length}) জন শিক্ষার্থীর সম্পূর্ণ তালিকা CSV ফরম্যাটে ডাউনলোড করুন।</p>
+       <p style={{fontSize:'13px',color:'#64748b',marginBottom:'16px',lineHeight:'1.5'}}>সিস্টেমে বর্তমানে থাকা মোট ({studentList.length}) জন শিক্ষার্থীর সম্পূর্ণ তালিকা CSV ফরম্যাটে ডাউনলোড করুন।</p>
       </div>
       <button type="button" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',padding:'10px 18px',borderRadius:'8px',fontWeight:700,border:'none',cursor:'pointer',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'8px',boxShadow:'0 2px 4px rgba(37,99,235,0.2)'}}>📋 সকল শিক্ষার্থী CSV রিপোর্ট</button>
      </div>
@@ -1600,15 +1704,29 @@ function StudentPanel({sub}){
       <h2>শিক্ষার্থী তালিকা</h2>
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-      <button className="mini" type="button" onClick={printStudentReport} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
-        🖨️ প্রিন্ট / PDF রিপোর্ট
-      </button>
+      <div style={{display:'inline-flex',borderRadius:'6px',overflow:'hidden',boxShadow:'0 2px 4px rgba(11,107,67,0.2)'}}>
+        <button className="mini" type="button" onClick={()=>printStudentReport('active')} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 12px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px'}}>
+          🖨️ প্রিন্ট / PDF রিপোর্ট
+        </button>
+        <button className="mini" type="button" onClick={()=>printStudentReport('class_6_8')} style={{background:'#047857',color:'#fff',fontWeight:600,border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',padding:'7px 10px',cursor:'pointer'}} title="৬ষ্ঠ থেকে ৮ম শ্রেণি ভিত্তিক আলাদা তালিকা প্রিন্ট">
+          🏫 ৬ষ্ঠ-৮ম শ্রেণি
+        </button>
+        <button className="mini" type="button" onClick={()=>printStudentReport('science')} style={{background:'#0284c7',color:'#fff',fontWeight:600,border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',padding:'7px 10px',cursor:'pointer'}} title="১০ম শ্রেণি বিজ্ঞান বিভাগ (২৮ জন)">
+          🔬 বিজ্ঞান (২৮)
+        </button>
+        <button className="mini" type="button" onClick={()=>printStudentReport('humanities')} style={{background:'#d97706',color:'#fff',fontWeight:600,border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',padding:'7px 10px',cursor:'pointer'}} title="১০ম শ্রেণি মানবিক বিভাগ (৪৯ জন)">
+          📖 মানবিক (৪৯)
+        </button>
+        <button className="mini" type="button" onClick={()=>printStudentReport('business')} style={{background:'#7c3aed',color:'#fff',fontWeight:600,border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',padding:'7px 10px',cursor:'pointer'}} title="১০ম শ্রেণি ব্যবসায় শিক্ষা শাখা (০৩ জন)">
+          💼 ব্যবসায় শিক্ষা (৩)
+        </button>
+      </div>
       {selectedIds.length > 0 && (
         <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
           🗑️ নির্বাচিত ({selectedIds.length}) মুছুন
         </button>
       )}
-      {students.length > 0 && (
+      {studentList.length > 0 && (
         <button className="mini" type="button" onClick={clearAllStudents} style={{background:'#fff1f2',color:'#be123c',border:'1px solid #fecdd3',fontWeight:600,cursor:'pointer',padding:'6px 12px',borderRadius:'6px'}}>
           ⚠️ সব মুছুন / রিসেট
         </button>
@@ -1616,7 +1734,7 @@ function StudentPanel({sub}){
       <button className="btn mini" type="button" onClick={()=>{setEditing(null);setSameAddress(false);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
       <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
       <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
-      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{students.length} জন</span>
+      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{studentList.length} জন</span>
      </div>
     </div>
     <div className="filters" style={{display:'flex',flexWrap:'wrap',gap:'8px',alignItems:'center',background:'#f8fafc',padding:'12px',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'16px'}}>
@@ -1627,9 +1745,9 @@ function StudentPanel({sub}){
      </select>
      <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={{fontWeight:600,color:groupFilter?'#0284c7':undefined}}>
       <option value="">📚 সব বিভাগ / গ্রুপ</option>
-      <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
-      <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
-      <option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option>
+      <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ (২৮)</option>
+      <option value="মানবিক বিভাগ">মানবিক বিভাগ (৪৯)</option>
+      <option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা (৩)</option>
      </select>
      <input placeholder="শাখা (Section)" style={{maxWidth:'110px'}} value={section} onChange={e=>setSection(e.target.value)}/>
      <select value={religionFilter} onChange={e=>setReligionFilter(e.target.value)} style={{fontWeight:600,color:religionFilter?'#059669':undefined}}>
@@ -1647,22 +1765,22 @@ function StudentPanel({sub}){
      </select>
      <select value={status} onChange={e=>setStatus(e.target.value)} style={{fontWeight:600,color:status==='active'?'#16a34a':status==='inactive'?'#dc2626':undefined}}>
       <option value="">সব অবস্থা</option>
-      <option value="active">সক্রিয়</option>
-      <option value="inactive">নিষ্ক্রিয়</option>
+      <option value="active">সক্রিয় (৮০ জন)</option>
+      <option value="inactive">নিষ্ক্রিয় (০১ জন)</option>
       <option value="graduated">উত্তীর্ণ</option>
       <option value="transferred">স্থানান্তরিত</option>
       <option value="dropped_out">ঝরে পড়া</option>
      </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
-     <button type="button" className="mini" onClick={printStudentReport} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
+     <button type="button" className="mini" onClick={()=>printStudentReport('active')} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
      <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
     </div>
     <div className="table-wrap">
      <table>
       <thead>
        <tr>
-        <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={students.length>0 && selectedIds.length===students.length} onChange={toggleSelectAll}/></th>
+        <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={studentList.length>0 && selectedIds.length===studentList.length} onChange={toggleSelectAll}/></th>
         <th>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
         <th>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
         <th>{lang==='en'?'Class':'শ্রেণি'}</th>
@@ -1676,7 +1794,7 @@ function StudentPanel({sub}){
        </tr>
       </thead>
       <tbody>
-       {students.map(s=>{
+       {studentList.map(s=>{
          const isEn = lang === 'en';
          const studentName = isEn ? (s.name_en || s.name_bn) : (s.name_bn || s.name_en);
          const studentGuardian = getStudentGuardian(s, lang);
@@ -1711,7 +1829,7 @@ function StudentPanel({sub}){
            </tr>
          );
        })}
-       {!students.length&&<tr><td colSpan="11" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
+       {!studentList.length&&<tr><td colSpan="11" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
       </tbody>
      </table>
     </div>
