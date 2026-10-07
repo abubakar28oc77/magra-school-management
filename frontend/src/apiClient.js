@@ -62,7 +62,22 @@ export function normalizeReligion(raw) {
   return raw.trim();
 }
 
-// Local storage database helpers
+// Local storage database helpers & Automatic Version Migration
+const DATA_VERSION_TAG = 'magra_v119_81st_15tc';
+try {
+  const currentVer = localStorage.getItem('magra_data_version');
+  if (currentVer !== DATA_VERSION_TAG) {
+    const rawS = localStorage.getItem('magra_db_students');
+    if (!rawS || JSON.parse(rawS).length < 80) {
+      localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+    }
+    const rawT = localStorage.getItem('magra_db_teachers');
+    if (!rawT || JSON.parse(rawT).length < 15) {
+      localStorage.setItem('magra_db_teachers', JSON.stringify(MOCK_TEACHERS));
+    }
+    localStorage.setItem('magra_data_version', DATA_VERSION_TAG);
+  }
+} catch {}
 
 function getLocalStore(key, defaultVal = []) {
   try {
@@ -75,11 +90,18 @@ function getLocalStore(key, defaultVal = []) {
     }
     const parsed = JSON.parse(raw);
     if (key === 'students' && Array.isArray(parsed)) {
-      if (parsed.length === 0 && Array.isArray(defaultVal) && defaultVal.length > 0) {
+      if (parsed.length < 80 && Array.isArray(defaultVal) && defaultVal.length >= 80) {
         localStorage.setItem('magra_db_students', JSON.stringify(defaultVal));
         return defaultVal.map(s => s ? { ...s, religion: normalizeReligion(s.religion) } : s);
       }
       return parsed.map(s => s ? { ...s, religion: normalizeReligion(s.religion) } : s);
+    }
+    if (key === 'teachers' && Array.isArray(parsed)) {
+      if (parsed.length < 15 && Array.isArray(defaultVal) && defaultVal.length >= 15) {
+        localStorage.setItem('magra_db_teachers', JSON.stringify(defaultVal));
+        return defaultVal;
+      }
+      return parsed;
     }
     return parsed !== null && parsed !== undefined ? parsed : defaultVal;
   } catch {

@@ -363,13 +363,13 @@ function Home(){
    else {
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(local.length?local:MOCK_TEACHERS);
+       setTeachersList(local.length>=15?local:MOCK_TEACHERS);
      } catch { setTeachersList(MOCK_TEACHERS); }
    }
   }).catch(()=>{
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(local.length?local:MOCK_TEACHERS);
+       setTeachersList(local.length>=15?local:MOCK_TEACHERS);
      } catch { setTeachersList(MOCK_TEACHERS); }
   });
   api('/public/contact').then(d=>{
