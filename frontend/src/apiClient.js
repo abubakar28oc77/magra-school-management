@@ -62,14 +62,116 @@ export function normalizeReligion(raw) {
   return raw.trim();
 }
 
+// Fast lookup map for authentic mock students
+const mockMap = new Map();
+MOCK_STUDENTS.forEach(s => {
+  if (!s) return;
+  if (s.student_id) mockMap.set(String(s.student_id).toLowerCase().trim(), s);
+  if (s.id) mockMap.set(String(s.id).toLowerCase().trim(), s);
+  if (s.roll_no && s.name_bn) {
+    mockMap.set(`${s.class_name || '10'}_${s.roll_no}_${(s.name_bn || '').trim()}`, s);
+  }
+  if (s.roll_no && (s.department || s.group_name)) {
+    mockMap.set(`${s.class_name || '10'}_${s.roll_no}_${(s.department || s.group_name || '').trim().toLowerCase()}`, s);
+  }
+});
+
+export function enrichStudentProfile(s) {
+  if (!s || typeof s !== 'object') return s;
+  
+  // Find authentic baseline
+  let base = null;
+  if (s.student_id) base = mockMap.get(String(s.student_id).toLowerCase().trim());
+  if (!base && s.id) base = mockMap.get(String(s.id).toLowerCase().trim());
+  if (!base && s.roll_no && s.name_bn) {
+    base = mockMap.get(`${s.class_name || '10'}_${s.roll_no}_${(s.name_bn || '').trim()}`);
+  }
+  if (!base && s.roll_no && (s.department || s.group_name)) {
+    base = mockMap.get(`${s.class_name || '10'}_${s.roll_no}_${(s.department || s.group_name || '').trim().toLowerCase()}`);
+  }
+  if (!base && s.name_bn) {
+    base = MOCK_STUDENTS.find(m => m && (m.name_bn === s.name_bn || (s.roll_no && m.roll_no == s.roll_no && (m.department === s.department || m.group_name === s.group_name))));
+  }
+
+  const baseObj = base || {};
+  const currentVill = s.current_village || baseObj.current_village || 'মগড়া';
+  const currentPost = s.current_post_office || baseObj.current_post_office || 'মগড়া';
+  const currentUp = s.current_upazila || baseObj.current_upazila || 'কালিহাতি';
+  const currentDist = s.current_district || baseObj.current_district || 'টাঙ্গাইল';
+  const permVill = s.permanent_village || baseObj.permanent_village || currentVill;
+  const permPost = s.permanent_post_office || baseObj.permanent_post_office || currentPost;
+  const permUp = s.permanent_upazila || baseObj.permanent_upazila || currentUp;
+  const permDist = s.permanent_district || baseObj.permanent_district || currentDist;
+  const defaultAddress = `গ্রাম: ${currentVill}, ডাকঘর: ${currentPost}, উপজেলা: ${currentUp}, জেলা: ${currentDist}`;
+
+  return {
+    ...baseObj,
+    ...s,
+    name_bn: s.name_bn || baseObj.name_bn || '',
+    name_en: s.name_en || baseObj.name_en || '',
+    class_name: s.class_name || baseObj.class_name || '10',
+    department: s.department || baseObj.department || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান' : 'সাধারণ'),
+    group_name: s.group_name || baseObj.group_name || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
+    group: s.group || baseObj.group || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
+    section: s.section || baseObj.section || (s.department ? `${s.department} বিভাগ` : 'A'),
+    gender: s.gender || baseObj.gender || 'পুরুষ',
+    father_name: s.father_name || baseObj.father_name || '',
+    father_name_en: s.father_name_en || baseObj.father_name_en || '',
+    father_mobile: s.father_mobile || baseObj.father_mobile || '',
+    father_profession: s.father_profession || baseObj.father_profession || 'কৃষি ও ব্যবসা',
+    father_nid_no: s.father_nid_no || baseObj.father_nid_no || '',
+    mother_name: s.mother_name || baseObj.mother_name || '',
+    mother_name_en: s.mother_name_en || baseObj.mother_name_en || '',
+    mother_mobile: s.mother_mobile || baseObj.mother_mobile || '',
+    mother_profession: s.mother_profession || baseObj.mother_profession || 'গৃহিণী',
+    mother_nid_no: s.mother_nid_no || baseObj.mother_nid_no || '',
+    guardian_name: s.guardian_name || baseObj.guardian_name || s.father_name || baseObj.father_name || '',
+    guardian_name_en: s.guardian_name_en || baseObj.guardian_name_en || s.father_name_en || baseObj.father_name_en || '',
+    guardian_relation: s.guardian_relation || baseObj.guardian_relation || 'পিতা',
+    guardian_phone: s.guardian_phone || baseObj.guardian_phone || s.father_mobile || baseObj.father_mobile || '',
+    emergency_phone: s.emergency_phone || baseObj.emergency_phone || s.guardian_phone || s.father_mobile || baseObj.father_mobile || '',
+    current_village: currentVill,
+    current_post_office: currentPost,
+    current_upazila: currentUp,
+    current_district: currentDist,
+    permanent_village: permVill,
+    permanent_post_office: permPost,
+    permanent_upazila: permUp,
+    permanent_district: permDist,
+    address: s.address || baseObj.address || defaultAddress,
+    religion: normalizeReligion(s.religion || baseObj.religion || 'ইসলাম'),
+    status: (s.status || baseObj.status || 'active').trim().toLowerCase()
+  };
+}
+
 // Initialize authentic student dataset & purge dummy synthetic names if present
-const AUTHENTIC_VERSION_TAG = 'magra_v140_complete_parents_addresses_81st';
+const AUTHENTIC_VERSION_TAG = 'magra_v180_complete_authentic_all_fields_2026_final';
 try {
   const currentVer = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
   const hasOldDummyNames = rawSt && (rawSt.includes('সৌরভ পাল') || rawSt.includes('সুজন দাস') || rawSt.includes('পার্থ চক্রবর্তী') || rawSt.includes('চন্দন কুমার শীল') || rawSt.includes('দীপক বর্মণ') || rawSt.includes('সুব্রত পাল') || rawSt.includes('বিজয় সরকার'));
-  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt) {
-    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+  
+  let isMissingFields = false;
+  if (rawSt) {
+    try {
+      const parsed = JSON.parse(rawSt);
+      if (Array.isArray(parsed)) {
+        isMissingFields = parsed.some(s => s && (!s.father_name_en || !s.mother_name || !s.mother_name_en || !s.current_village));
+      }
+    } catch {}
+  }
+
+  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt || isMissingFields) {
+    let freshList = MOCK_STUDENTS;
+    if (rawSt && !hasOldDummyNames) {
+      try {
+        const parsed = JSON.parse(rawSt);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          freshList = parsed.map(enrichStudentProfile);
+        }
+      } catch {}
+    }
+    localStorage.setItem('magra_db_students', JSON.stringify(freshList));
     localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
   }
 } catch {}
@@ -86,7 +188,8 @@ function getLocalStore(key, defaultVal = []) {
     }
     const parsed = JSON.parse(raw);
     if (key === 'students' && Array.isArray(parsed)) {
-      return parsed.map(s => s ? { ...s, religion: normalizeReligion(s.religion) } : s);
+      const enriched = parsed.map(enrichStudentProfile);
+      return enriched;
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       return parsed;
@@ -99,6 +202,9 @@ function getLocalStore(key, defaultVal = []) {
 
 function setLocalStore(key, val) {
   try {
+    if (key === 'students' && Array.isArray(val)) {
+      val = val.map(enrichStudentProfile);
+    }
     localStorage.setItem('magra_db_' + key, JSON.stringify(val));
   } catch {}
 }
