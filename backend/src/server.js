@@ -124,7 +124,15 @@ app.get('/api/public/student-stats',async(req,res)=>{
    pool.query("SELECT COUNT(*)::int AS count FROM students WHERE status='active'"),
    pool.query("SELECT COUNT(*)::int AS count FROM teachers WHERE status='active'"),
    pool.query("SELECT COALESCE(NULLIF(TRIM(gender),''),'অনির্দিষ্ট') label, COUNT(*)::int count FROM students WHERE status='active' GROUP BY 1 ORDER BY count DESC"),
-   pool.query("SELECT COALESCE(NULLIF(TRIM(religion),''),'অনির্দিষ্ট') label, COUNT(*)::int count FROM students WHERE status='active' GROUP BY 1 ORDER BY count DESC"),
+   pool.query(`SELECT 
+      CASE 
+        WHEN religion ILIKE '%ইসলাম%' OR religion ILIKE '%islam%' OR religion ILIKE '%মুসলিম%' OR religion ILIKE '%muslim%' THEN 'ইসলাম'
+        WHEN religion ILIKE '%হিন্দু%' OR religion ILIKE '%hindu%' OR religion ILIKE '%সনাতন%' OR religion ILIKE '%sanatan%' THEN 'হিন্দু'
+        WHEN religion ILIKE '%বৌদ্ধ%' OR religion ILIKE '%buddhist%' OR religion ILIKE '%buddhism%' THEN 'বৌদ্ধ'
+        WHEN religion ILIKE '%খ্রিষ্টান%' OR religion ILIKE '%খ্রিস্টান%' OR religion ILIKE '%christian%' THEN 'খ্রিষ্টান'
+        WHEN religion ILIKE '%অন্যান্য%' OR religion ILIKE '%other%' THEN 'অন্যান্য'
+        ELSE COALESCE(NULLIF(TRIM(religion),''),'ইসলাম')
+      END label, COUNT(*)::int count FROM students WHERE status='active' GROUP BY 1 ORDER BY count DESC`),
    pool.query("SELECT class_name label, COUNT(*)::int count FROM students WHERE status='active' GROUP BY class_name ORDER BY class_name")
   ]);
   const make=(rows)=>rows.map(x=>({label:x.label,count:x.count}));

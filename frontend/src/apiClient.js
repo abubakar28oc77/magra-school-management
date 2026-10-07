@@ -16,8 +16,8 @@ import {
   MOCK_SCHOLARSHIPS,
   MOCK_PUBLIC_CONTENT,
   MOCK_SSC_RESULTS
-} from './mockData';
-import { getSupabaseConfig, supabaseRequest } from './supabaseClient';
+} from './mockData.js';
+import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -38,6 +38,30 @@ try {
   }
 } catch {}
 
+// Religion normalization helper
+export function normalizeReligion(raw) {
+  if (!raw || typeof raw !== 'string') return 'ইসলাম';
+  const val = raw.trim().toLowerCase();
+  if (!val) return 'ইসলাম';
+  
+  if (val.includes('ইসলাম') || val.includes('islam') || val.includes('মুসলিম') || val.includes('muslim') || val.includes('mus')) {
+    return 'ইসলাম';
+  }
+  if (val.includes('হিন্দু') || val.includes('hindu') || val.includes('সনাতন') || val.includes('sanatan') || val.includes('hin')) {
+    return 'হিন্দু';
+  }
+  if (val.includes('বৌদ্ধ') || val.includes('buddhist') || val.includes('buddhism') || val.includes('bouddho') || val.includes('buddha')) {
+    return 'বৌদ্ধ';
+  }
+  if (val.includes('খ্রিষ্টান') || val.includes('খ্রিস্টান') || val.includes('christian') || val.includes('christianity') || val.includes('isai')) {
+    return 'খ্রিষ্টান';
+  }
+  if (val.includes('অন্যান্য') || val.includes('other')) {
+    return 'অন্যান্য';
+  }
+  return raw.trim();
+}
+
 // Local storage database helpers
 
 function getLocalStore(key, defaultVal = []) {
@@ -50,6 +74,13 @@ function getLocalStore(key, defaultVal = []) {
       return defaultVal;
     }
     const parsed = JSON.parse(raw);
+    if (key === 'students' && Array.isArray(parsed)) {
+      if (parsed.length === 0 && Array.isArray(defaultVal) && defaultVal.length > 0) {
+        localStorage.setItem('magra_db_students', JSON.stringify(defaultVal));
+        return defaultVal.map(s => s ? { ...s, religion: normalizeReligion(s.religion) } : s);
+      }
+      return parsed.map(s => s ? { ...s, religion: normalizeReligion(s.religion) } : s);
+    }
     return parsed !== null && parsed !== undefined ? parsed : defaultVal;
   } catch {
     return defaultVal;
@@ -404,13 +435,20 @@ function handleMockRequest(path, opts = {}) {
     const teachers = getLocalStore('teachers', MOCK_TEACHERS);
     const staff = getLocalStore('staff', MOCK_STAFF);
 
-    // Calculate religion breakdown
+    // Calculate religion breakdown with proper normalization
+    const relOrder = ['ইসলাম', 'হিন্দু', 'বৌদ্ধ', 'খ্রিষ্টান', 'অন্যান্য'];
     const relMap = {};
+    relOrder.forEach(r => { relMap[r] = 0; });
+
     students.forEach(s => {
-      const rel = s.religion || 'ইসলাম';
+      const rel = normalizeReligion(s.religion);
       relMap[rel] = (relMap[rel] || 0) + 1;
     });
-    const religion = Object.entries(relMap).map(([label, count]) => ({ label, count }));
+
+    const religion = Object.entries(relMap)
+      .filter(([_, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count]) => ({ label, count }));
 
     // Calculate gender breakdown
     const genMap = { 'ছাত্রী': 0, 'ছাত্র': 0 };
@@ -465,6 +503,7 @@ function handleMockRequest(path, opts = {}) {
         ...body,
         id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
         student_id: body.student_id || ('STU-' + new Date().getFullYear() + '-' + String(allStudents.length + 1).padStart(4, '0')), 
+        religion: normalizeReligion(body.religion),
         status: st
       };
       allStudents.unshift(newSt);
@@ -477,6 +516,7 @@ function handleMockRequest(path, opts = {}) {
     const c = params.get('class_name');
     const sec = params.get('section');
     const st = params.get('status');
+    const relFilter = params.get('religion');
     const customKey = params.get('custom_field_key');
     const customVal = params.get('custom_field_value')?.trim().toLowerCase();
 
@@ -519,6 +559,9 @@ function handleMockRequest(path, opts = {}) {
         return curStatus === st.toLowerCase();
       });
     }
+    if (relFilter) {
+      students = students.filter(s => s && normalizeReligion(s.religion) === normalizeReligion(relFilter));
+    }
     if (customKey && customVal) {
       students = students.filter(s => {
         const val = s?.extended_profile?.custom_fields?.[customKey];
@@ -532,7 +575,7 @@ function handleMockRequest(path, opts = {}) {
     const id = cleanPath.replace('/students/', '');
     let students = getLocalStore('students', MOCK_STUDENTS);
     if (method === 'PUT') {
-      students = students.map(s => String(s.id) === String(id) ? { ...s, ...body } : s);
+      students = students.map(s => String(s.id) === String(id) ? { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) } : s);
       setLocalStore('students', students);
       return { success: true };
     }
@@ -552,6 +595,7 @@ function handleMockRequest(path, opts = {}) {
       return {
         ...st,
         id: 'std_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
+        religion: normalizeReligion(st.religion),
         status: statusVal
       };
     });
