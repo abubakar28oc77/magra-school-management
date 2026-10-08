@@ -1,3 +1,51 @@
+
+export function getStudentGroupPriority(s) {
+  if (!s) return 99;
+  const g = [
+    s.department,
+    s.group_name,
+    s.group,
+    s.section,
+    s.student_id,
+    s.id
+  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+
+  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 1;
+  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 2;
+  if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) return 3;
+  return 4;
+}
+
+export function sortStudentsList(list) {
+  if (!Array.isArray(list)) return [];
+  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+  const parseNum = (val) => {
+    if (!val) return 99999;
+    const str = String(val).trim();
+    const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+    const m = converted.match(/\d+/);
+    return m ? parseInt(m[0], 10) : 99999;
+  };
+
+  return [...list].sort((a, b) => {
+    const ca = parseNum(a.class_name);
+    const cb = parseNum(b.class_name);
+    if (ca !== cb) return ca - cb;
+
+    if (ca === 9 || ca === 10 || String(a.class_name).includes('9') || String(a.class_name).includes('10') || String(a.class_name).includes('৯') || String(a.class_name).includes('১০')) {
+      const pa = getStudentGroupPriority(a);
+      const pb = getStudentGroupPriority(b);
+      if (pa !== pb) return pa - pb;
+    }
+
+    const ra = parseNum(a.roll_no);
+    const rb = parseNum(b.roll_no);
+    if (ra !== rb) return ra - rb;
+
+    return String(a.student_id || a.name_bn || '').localeCompare(String(b.student_id || b.name_bn || ''));
+  });
+}
+
 import {
   MOCK_SCHOOL,
   MOCK_USERS,
@@ -704,7 +752,7 @@ function handleMockRequest(path, opts = {}) {
         return val && String(val).toLowerCase().includes(customVal);
       });
     }
-    return students;
+    return sortStudentsList(students);
   }
 
   if (cleanPath.startsWith('/students/') && !cleanPath.includes('village-wise')) {
