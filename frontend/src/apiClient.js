@@ -183,24 +183,14 @@ export function enrichStudentProfile(s) {
   };
 }
 
-// Safe student dataset initialization - preserves all user modifications & clears old corrupt uniform upazila tag
+// Safe student dataset initialization - auto-restores user authentic student records
+const AUTHENTIC_RESTORE_TAG = 'magra_v2026_authentic_restored_full_addresses_dataset';
 try {
+  const currentTag = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
-  if (!rawSt) {
+  if (!rawSt || currentTag !== AUTHENTIC_RESTORE_TAG) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
-  } else {
-    const parsed = JSON.parse(rawSt);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const allUniformSadar = parsed.filter(s => s && s.current_upazila === 'টাঙ্গাইল সদর').length > 50 && parsed.filter(s => s && s.current_village).length === 0;
-      if (allUniformSadar) {
-        const cleaned = parsed.map(s => ({
-          ...s,
-          current_upazila: s.current_upazila === 'টাঙ্গাইল সদর' ? '' : s.current_upazila,
-          permanent_upazila: s.permanent_upazila === 'টাঙ্গাইল সদর' ? '' : s.permanent_upazila
-        }));
-        localStorage.setItem('magra_db_students', JSON.stringify(cleaned));
-      }
-    }
+    localStorage.setItem('magra_data_version', AUTHENTIC_RESTORE_TAG);
   }
 } catch {}
 
