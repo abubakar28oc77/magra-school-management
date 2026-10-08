@@ -8,7 +8,7 @@ import {requestApi} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
-import {StudentAgeQueryModal, calculateStudentAge, matchesAgeFilter} from './StudentAgeQueryModal';
+import {StudentAgeQueryModal, calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
 import {
   MOCK_USERS,
@@ -1251,7 +1251,7 @@ function StudentPanel({sub}){
 
     const getGroupKey = (s) => {
       const c = String(s.class_name || '10').trim();
-      const num = parseInt(c) || 10;
+      const num = parseNum(c, 10);
       if (num <= 8) {
         const title = `শ্রেণি ${c} (${num === 6 ? '৬ষ্ঠ শ্রেণি' : num === 7 ? '৭ম শ্রেণি' : '৮ম শ্রেণি'})`;
         return { key: `class_${num}`, title, type: 'class', classNum: num, order: num };
@@ -1278,7 +1278,7 @@ function StudentPanel({sub}){
 
     // Sort students within each group by roll_no
     groupOrder.forEach(k => {
-      groups[k].students.sort((a, b) => (parseInt(a.roll_no) || 9999) - (parseInt(b.roll_no) || 9999));
+      groups[k].students.sort((a, b) => (parseNum(a.roll_no, 9999) - parseNum(b.roll_no, 9999)));
     });
 
     const sectionsHtml = groupOrder.map((k, gIdx) => {

@@ -22,6 +22,14 @@ function formatGroup(grp) {
   return grp;
 }
 
+export function parseNum(val, fallback = 0) {
+  if (val === null || val === undefined || val === '') return fallback;
+  const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  const s = String(val).replace(/[০-৯]/g, d => bnMap[d]).replace(/[^\d-]/g, '');
+  const n = parseInt(s, 10);
+  return isNaN(n) ? fallback : n;
+}
+
 // Default clean student avatar for cases where photo_url is not set
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='%2394a3b8'%3E%3Ccircle cx='40' cy='30' r='18'/%3E%3Cpath d='M14 70 C14 52 26 48 40 48 C54 48 66 52 66 70 Z'/%3E%3C/svg%3E";
 
@@ -40,8 +48,12 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
   const filteredStudents = useMemo(() => {
     return rawList.filter(s => {
       // Class filter
-      if (selectedClass && selectedClass !== 'all' && String(s.class_name) !== String(selectedClass)) {
-        return false;
+      if (selectedClass && selectedClass !== 'all') {
+        const selC = parseNum(selectedClass, -1);
+        const stuC = parseNum(s.class_name, -2);
+        if (selC !== stuC && String(s.class_name).trim() !== String(selectedClass).trim()) {
+          return false;
+        }
       }
 
       // Group filter
@@ -77,11 +89,11 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
 
       return true;
     }).sort((a, b) => {
-      const ca = parseInt(a.class_name) || 99;
-      const cb = parseInt(b.class_name) || 99;
+      const ca = parseNum(a.class_name, 99);
+      const cb = parseNum(b.class_name, 99);
       if (ca !== cb) return ca - cb;
-      const ra = parseInt(a.roll_no) || 999;
-      const rb = parseInt(b.roll_no) || 999;
+      const ra = parseNum(a.roll_no, 999);
+      const rb = parseNum(b.roll_no, 999);
       return ra - rb;
     });
   }, [rawList, selectedClass, selectedGroup, selectedSection, searchQuery]);
@@ -122,7 +134,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
       const motherName = s.mother_name || s.mother_name_en || '—';
       const village = s.current_village || s.permanent_village || s.address || 'মগড়া';
       const mobile = getStudentPhone(s);
-      const groupText = s.department || s.group_name || s.group || (parseInt(s.class_name) <= 8 ? 'সাধারণ' : '—');
+      const groupText = s.department || s.group_name || s.group || (parseNum(s.class_name, 10) <= 8 ? 'সাধারণ' : '—');
 
       return `
         <tr>

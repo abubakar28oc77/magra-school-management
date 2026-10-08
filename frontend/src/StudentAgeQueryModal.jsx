@@ -35,6 +35,14 @@ function formatGroup(grp) {
   return grp;
 }
 
+export function parseNum(val, fallback = 0) {
+  if (val === null || val === undefined || val === '') return fallback;
+  const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  const s = String(val).replace(/[০-৯]/g, d => bnMap[d]).replace(/[^\d-]/g, '');
+  const n = parseInt(s, 10);
+  return isNaN(n) ? fallback : n;
+}
+
 export function parseDateOfBirth(val) {
   if (!val) return null;
   let s = String(val).trim();
@@ -67,24 +75,24 @@ export function parseDateOfBirth(val) {
 }
 
 export function calculateStudentAge(student, asOfDate = new Date()) {
-  if (!student) return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
+  if (!student) return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '', isEstimated: false };
 
-  let dobStr = student.date_of_birth || student.dob || '';
+  let dobStr = student.date_of_birth || student.dob || student.birth_date || (student.extended_profile && student.extended_profile.date_of_birth) || '';
   let isEstimated = false;
   let birthDate = parseDateOfBirth(dobStr);
 
   // If student doesn't have an explicit DOB, estimate based on Class:
   // Class 6 ~ 11-12 yrs, Class 7 ~ 12-13, Class 8 ~ 13-14, Class 9 ~ 14-15, Class 10 ~ 15-16
   if (!birthDate && student.class_name) {
-    const cNum = parseInt(student.class_name) || 10;
+    const cNum = parseNum(student.class_name, 6);
     const estAge = cNum + 5; // Class 6 -> 11, Class 7 -> 12, Class 8 -> 13, Class 9 -> 14, Class 10 -> 15
     const estBirthYear = asOfDate.getFullYear() - estAge;
-    birthDate = new Date(estBirthYear, 0, 1);
+    birthDate = new Date(estBirthYear, asOfDate.getMonth(), asOfDate.getDate());
     isEstimated = true;
   }
 
   if (!birthDate) {
-    return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
+    return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '', isEstimated: false };
   }
 
   let years = asOfDate.getFullYear() - birthDate.getFullYear();
@@ -116,7 +124,7 @@ export function calculateStudentAge(student, asOfDate = new Date()) {
     months,
     text,
     exactYears: years + (months / 12),
-    hasDob: !!student.date_of_birth,
+    hasDob: !!(student.date_of_birth || student.dob || student.birth_date),
     isEstimated,
     dobFormatted,
     dobRaw: student.date_of_birth ? String(student.date_of_birth).slice(0, 10) : ''
@@ -263,11 +271,11 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
 
       return true;
     }).sort((a, b) => {
-      const ca = parseInt(a.class_name) || 99;
-      const cb = parseInt(b.class_name) || 99;
+      const ca = parseNum(a.class_name, 99);
+      const cb = parseNum(b.class_name, 99);
       if (ca !== cb) return ca - cb;
-      const ra = parseInt(a.roll_no) || 999;
-      const rb = parseInt(b.roll_no) || 999;
+      const ra = parseNum(a.roll_no, 999);
+      const rb = parseNum(b.roll_no, 999);
       return ra - rb;
     });
   }, [studentsWithAge, ageFilter, classFilter, groupFilter, genderFilter, statusFilter, searchQuery]);
