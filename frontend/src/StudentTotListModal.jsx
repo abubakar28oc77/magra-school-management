@@ -1,11 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { getStudentPhone, formatGroup } from './main.jsx';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
   if (num === null || num === undefined) return '';
   return String(num).replace(/\d/g, (d) => BN_DIGITS[d]);
 };
+
+function getStudentPhone(s) {
+  if (!s) return '—';
+  const gp = (s.guardian_phone || '').trim();
+  if (gp) return gp;
+  const fp = (s.father_mobile || '').trim();
+  if (fp) return fp;
+  const mp = (s.mother_mobile || '').trim();
+  if (mp) return mp;
+  return (s.emergency_phone || '—').trim();
+}
+
+function formatGroup(grp) {
+  if (!grp || grp === '—' || grp === 'none' || grp === '') return '—';
+  return grp;
+}
 
 // Default clean student avatar for cases where photo_url is not set
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='%2394a3b8'%3E%3Ccircle cx='40' cy='30' r='18'/%3E%3Cpath d='M14 70 C14 52 26 48 40 48 C54 48 66 52 66 70 Z'/%3E%3C/svg%3E";
@@ -189,7 +204,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
             </tr>
           </thead>
           <tbody>
-            ${rowsHtml || '<tr><td colspan="11" style="text-align:center;padding:24px;color:#64748b;">কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি</td></tr>'}
+            ${rowsHtml || '<tr><td colspan="11" style="text-align:center;padding:24px;color:#64748b;">কোনো শিক্ষার্থী record পাওয়া যায়নি</td></tr>'}
           </tbody>
         </table>
         <div style="display:flex;justify-content:space-between;margin-top:45px;padding:0 20px;">
@@ -242,7 +257,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
       'Mother Name': s.mother_name || s.mother_name_en || '',
       'Mobile Number': getStudentPhone(s),
       'Village': s.current_village || s.permanent_village || s.address || '',
-      'Date of Birth': s.date_of_birth ? s.date_of_birth.slice(0, 10) : '',
+      'Date of Birth': s.date_of_birth ? String(s.date_of_birth).slice(0, 10) : '',
       'Gender': s.gender || '',
       'Religion': s.religion || 'ইসলাম'
     }));
@@ -339,7 +354,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
             </select>
 
             <input
-              placeholder="শাখা (Section)"
+              placeholder=" শাখা (Section)"
               value={selectedSection}
               onChange={e => setSelectedSection(e.target.value)}
               style={{ width: '110px', padding: '7px 10px', borderRadius: '6px', border: '1px solid #93c5fd', fontSize: '13px', background: '#fff' }}

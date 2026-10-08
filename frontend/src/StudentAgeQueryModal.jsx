@@ -1,11 +1,39 @@
 import React, { useState, useMemo } from 'react';
-import { getStudentGuardian, getStudentPhone, formatGroup } from './main.jsx';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
   if (num === null || num === undefined) return '';
   return String(num).replace(/\d/g, (d) => BN_DIGITS[d]);
 };
+
+function getStudentGuardian(s) {
+  if (!s) return '—';
+  const g = (s.guardian_name || '').trim();
+  if (g) return g;
+  const f = (s.father_name || '').trim();
+  if (f && !f.includes('মৃত')) return f;
+  const m = (s.mother_name || '').trim();
+  if (m && !m.includes('মৃত')) return m;
+  if (f) return f;
+  if (m) return m;
+  return '—';
+}
+
+function getStudentPhone(s) {
+  if (!s) return '—';
+  const gp = (s.guardian_phone || '').trim();
+  if (gp) return gp;
+  const fp = (s.father_mobile || '').trim();
+  if (fp) return fp;
+  const mp = (s.mother_mobile || '').trim();
+  if (mp) return mp;
+  return (s.emergency_phone || '—').trim();
+}
+
+function formatGroup(grp) {
+  if (!grp || grp === '—' || grp === 'none' || grp === '') return '—';
+  return grp;
+}
 
 export function calculateStudentAge(student, asOfDate = new Date()) {
   if (!student) return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
@@ -63,7 +91,7 @@ export function calculateStudentAge(student, asOfDate = new Date()) {
     hasDob: !!student.date_of_birth,
     isEstimated,
     dobFormatted,
-    dobRaw: student.date_of_birth ? student.date_of_birth.slice(0, 10) : ''
+    dobRaw: student.date_of_birth ? String(student.date_of_birth).slice(0, 10) : ''
   };
 }
 
@@ -151,7 +179,6 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
 
       return true;
     }).sort((a, b) => {
-      // Sort by class, then roll
       const ca = parseInt(a.class_name) || 99;
       const cb = parseInt(b.class_name) || 99;
       if (ca !== cb) return ca - cb;
@@ -545,7 +572,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
                   <th style={{ width: '35px', textAlign: 'center' }}>#</th>
                   <th>আইডি (ID)</th>
                   <th>শিক্ষার্থীর নাম</th>
-                  <th style="width: 60px;">শ্রেণি</th>
+                  <th style={{ width: '60px' }}>শ্রেণি</th>
                   <th>বিভাগ / শাখা</th>
                   <th style={{ width: '40px', textAlign: 'center' }}>রোল</th>
                   <th>জন্ম তারিখ</th>
