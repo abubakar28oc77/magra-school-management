@@ -183,14 +183,14 @@ export function enrichStudentProfile(s) {
   };
 }
 
-// Safe student dataset initialization - auto-restores user authentic student records
-const AUTHENTIC_RESTORE_TAG = 'magra_v2026_authentic_restored_full_addresses_dataset';
+// Safe student dataset initialization - strictly genuine data without any synthetic villages
+const AUTHENTIC_VERSION_TAG = 'magra_v2026_authentic_clean_user_students_v3';
 try {
   const currentTag = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
-  if (!rawSt || currentTag !== AUTHENTIC_RESTORE_TAG) {
+  if (!rawSt || currentTag !== AUTHENTIC_VERSION_TAG) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
-    localStorage.setItem('magra_data_version', AUTHENTIC_RESTORE_TAG);
+    localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
   }
 } catch {}
 
