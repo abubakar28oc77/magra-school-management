@@ -127,29 +127,14 @@ MOCK_STUDENTS.forEach(s => {
 export function enrichStudentProfile(s) {
   if (!s || typeof s !== 'object') return s;
   
-  // Find authentic baseline
-  let base = null;
-  if (s.student_id) base = mockMap.get(String(s.student_id).toLowerCase().trim());
-  if (!base && s.id) base = mockMap.get(String(s.id).toLowerCase().trim());
-  if (!base && s.roll_no && s.name_bn) {
-    base = mockMap.get(`${s.class_name || '10'}_${s.roll_no}_${(s.name_bn || '').trim()}`);
-  }
-  if (!base && s.roll_no && (s.department || s.group_name)) {
-    base = mockMap.get(`${s.class_name || '10'}_${s.roll_no}_${(s.department || s.group_name || '').trim().toLowerCase()}`);
-  }
-  if (!base && s.name_bn) {
-    base = MOCK_STUDENTS.find(m => m && (m.name_bn === s.name_bn || (s.roll_no && m.roll_no == s.roll_no && (m.department === s.department || m.group_name === s.group_name))));
-  }
-
-  const baseObj = base || {};
-  const currentVill = s.current_village !== undefined ? s.current_village : (baseObj.current_village || '');
-  const currentPost = s.current_post_office !== undefined ? s.current_post_office : (baseObj.current_post_office || '');
-  const currentUp = s.current_upazila !== undefined ? s.current_upazila : (baseObj.current_upazila || '');
-  const currentDist = s.current_district !== undefined ? s.current_district : (baseObj.current_district || '');
-  const permVill = s.permanent_village !== undefined ? s.permanent_village : (baseObj.permanent_village || currentVill);
-  const permPost = s.permanent_post_office !== undefined ? s.permanent_post_office : (baseObj.permanent_post_office || currentPost);
-  const permUp = s.permanent_upazila !== undefined ? s.permanent_upazila : (baseObj.permanent_upazila || currentUp);
-  const permDist = s.permanent_district !== undefined ? s.permanent_district : (baseObj.permanent_district || currentDist);
+  const currentVill = s.current_village !== undefined ? s.current_village : '';
+  const currentPost = s.current_post_office !== undefined ? s.current_post_office : '';
+  const currentUp = s.current_upazila !== undefined ? s.current_upazila : '';
+  const currentDist = s.current_district !== undefined ? s.current_district : '';
+  const permVill = s.permanent_village !== undefined ? s.permanent_village : currentVill;
+  const permPost = s.permanent_post_office !== undefined ? s.permanent_post_office : currentPost;
+  const permUp = s.permanent_upazila !== undefined ? s.permanent_upazila : currentUp;
+  const permDist = s.permanent_district !== undefined ? s.permanent_district : currentDist;
   
   const addressParts = [
     currentVill ? `গ্রাম: ${currentVill}` : '',
@@ -157,34 +142,33 @@ export function enrichStudentProfile(s) {
     currentUp ? `উপজেলা: ${currentUp}` : '',
     currentDist ? `জেলা: ${currentDist}` : ''
   ].filter(Boolean);
-  const defaultAddress = addressParts.length ? addressParts.join(', ') : (s.address || baseObj.address || '');
+  const defaultAddress = addressParts.length ? addressParts.join(', ') : (s.address || '');
 
   return {
-    ...baseObj,
     ...s,
-    name_bn: s.name_bn || baseObj.name_bn || '',
-    name_en: s.name_en || baseObj.name_en || '',
-    class_name: s.class_name || baseObj.class_name || '10',
-    department: s.department || baseObj.department || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান' : 'সাধারণ'),
-    group_name: s.group_name || baseObj.group_name || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
-    group: s.group || baseObj.group || (['9','10','৯','১০'].includes(String(s.class_name || baseObj.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
-    section: s.section || baseObj.section || (s.department ? `${s.department} বিভাগ` : 'A'),
-    gender: s.gender || baseObj.gender || 'পুরুষ',
-    father_name: s.father_name || baseObj.father_name || '',
-    father_name_en: s.father_name_en || baseObj.father_name_en || '',
-    father_mobile: s.father_mobile || baseObj.father_mobile || '',
-    father_profession: s.father_profession || baseObj.father_profession || '',
-    father_nid_no: s.father_nid_no || baseObj.father_nid_no || '',
-    mother_name: s.mother_name || baseObj.mother_name || '',
-    mother_name_en: s.mother_name_en || baseObj.mother_name_en || '',
-    mother_mobile: s.mother_mobile || baseObj.mother_mobile || '',
-    mother_profession: s.mother_profession || baseObj.mother_profession || '',
-    mother_nid_no: s.mother_nid_no || baseObj.mother_nid_no || '',
-    guardian_name: s.guardian_name || baseObj.guardian_name || s.father_name || baseObj.father_name || '',
-    guardian_name_en: s.guardian_name_en || baseObj.guardian_name_en || s.father_name_en || baseObj.father_name_en || '',
-    guardian_relation: s.guardian_relation || baseObj.guardian_relation || 'পিতা',
-    guardian_phone: s.guardian_phone || baseObj.guardian_phone || s.father_mobile || baseObj.father_mobile || '',
-    emergency_phone: s.emergency_phone || baseObj.emergency_phone || s.guardian_phone || s.father_mobile || baseObj.father_mobile || '',
+    name_bn: s.name_bn || '',
+    name_en: s.name_en || '',
+    class_name: s.class_name || '10',
+    department: s.department || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান' : 'সাধারণ'),
+    group_name: s.group_name || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
+    group: s.group || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
+    section: s.section || (s.department ? `${s.department} বিভাগ` : 'A'),
+    gender: s.gender || 'পুরুষ',
+    father_name: s.father_name || '',
+    father_name_en: s.father_name_en || '',
+    father_mobile: s.father_mobile || '',
+    father_profession: s.father_profession || '',
+    father_nid_no: s.father_nid_no || '',
+    mother_name: s.mother_name || '',
+    mother_name_en: s.mother_name_en || '',
+    mother_mobile: s.mother_mobile || '',
+    mother_profession: s.mother_profession || '',
+    mother_nid_no: s.mother_nid_no || '',
+    guardian_name: s.guardian_name || s.father_name || '',
+    guardian_name_en: s.guardian_name_en || s.father_name_en || '',
+    guardian_relation: s.guardian_relation || 'পিতা',
+    guardian_phone: s.guardian_phone || s.father_mobile || '',
+    emergency_phone: s.emergency_phone || s.guardian_phone || s.father_mobile || '',
     current_village: currentVill,
     current_post_office: currentPost,
     current_upazila: currentUp,
@@ -194,8 +178,8 @@ export function enrichStudentProfile(s) {
     permanent_upazila: permUp,
     permanent_district: permDist,
     address: s.address || defaultAddress,
-    religion: normalizeReligion(s.religion || baseObj.religion || 'ইসলাম'),
-    status: (s.status || baseObj.status || 'active').trim().toLowerCase()
+    religion: normalizeReligion(s.religion || 'ইসলাম'),
+    status: (s.status || 'active').trim().toLowerCase()
   };
 }
 
@@ -816,14 +800,8 @@ function handleMockRequest(path, opts = {}) {
       class_name: s.class_name,
       father_name: s.father_name,
       mother_name: s.mother_name,
-      current_village: s.current_village || '',
-      current_post_office: s.current_post_office || '',
-      current_upazila: s.current_upazila || '',
-      current_district: s.current_district || '',
-      permanent_village: s.permanent_village || s.current_village || '',
-      permanent_post_office: s.permanent_post_office || s.current_post_office || '',
-      permanent_upazila: s.permanent_upazila || s.current_upazila || '',
-      permanent_district: s.permanent_district || s.current_district || ''
+      current_village: s.current_village || s.permanent_village || '',
+      current_upazila: s.current_upazila || s.permanent_upazila || ''
     }));
   }
 
