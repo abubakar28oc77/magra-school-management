@@ -142,15 +142,22 @@ export function enrichStudentProfile(s) {
   }
 
   const baseObj = base || {};
-  const currentVill = s.current_village || baseObj.current_village || '';
-  const currentPost = s.current_post_office || baseObj.current_post_office || '';
-  const currentUp = s.current_upazila || baseObj.current_upazila || 'টাঙ্গাইল সদর';
-  const currentDist = s.current_district || baseObj.current_district || 'টাঙ্গাইল';
-  const permVill = s.permanent_village || baseObj.permanent_village || currentVill;
-  const permPost = s.permanent_post_office || baseObj.permanent_post_office || currentPost;
-  const permUp = s.permanent_upazila || baseObj.permanent_upazila || currentUp;
-  const permDist = s.permanent_district || baseObj.permanent_district || currentDist;
-  const defaultAddress = currentVill ? `গ্রাম: ${currentVill}, ডাকঘর: ${currentPost}, উপজেলা: ${currentUp}, জেলা: ${currentDist}` : `উপজেলা: ${currentUp}, জেলা: ${currentDist}`;
+  const currentVill = s.current_village !== undefined ? s.current_village : (baseObj.current_village || '');
+  const currentPost = s.current_post_office !== undefined ? s.current_post_office : (baseObj.current_post_office || '');
+  const currentUp = s.current_upazila !== undefined ? s.current_upazila : (baseObj.current_upazila || '');
+  const currentDist = s.current_district !== undefined ? s.current_district : (baseObj.current_district || '');
+  const permVill = s.permanent_village !== undefined ? s.permanent_village : (baseObj.permanent_village || currentVill);
+  const permPost = s.permanent_post_office !== undefined ? s.permanent_post_office : (baseObj.permanent_post_office || currentPost);
+  const permUp = s.permanent_upazila !== undefined ? s.permanent_upazila : (baseObj.permanent_upazila || currentUp);
+  const permDist = s.permanent_district !== undefined ? s.permanent_district : (baseObj.permanent_district || currentDist);
+  
+  const addressParts = [
+    currentVill ? `গ্রাম: ${currentVill}` : '',
+    currentPost ? `ডাকঘর: ${currentPost}` : '',
+    currentUp ? `উপজেলা: ${currentUp}` : '',
+    currentDist ? `জেলা: ${currentDist}` : ''
+  ].filter(Boolean);
+  const defaultAddress = addressParts.length ? addressParts.join(', ') : (s.address || baseObj.address || '');
 
   return {
     ...baseObj,
@@ -166,7 +173,7 @@ export function enrichStudentProfile(s) {
     father_name: s.father_name || baseObj.father_name || '',
     father_name_en: s.father_name_en || baseObj.father_name_en || '',
     father_mobile: s.father_mobile || baseObj.father_mobile || '',
-    father_profession: s.father_profession || baseObj.father_profession || 'কৃষি ও ব্যবসা',
+    father_profession: s.father_profession || baseObj.father_profession || '',
     father_nid_no: s.father_nid_no || baseObj.father_nid_no || '',
     mother_name: s.mother_name || baseObj.mother_name || '',
     mother_name_en: s.mother_name_en || baseObj.mother_name_en || '',
@@ -186,27 +193,17 @@ export function enrichStudentProfile(s) {
     permanent_post_office: permPost,
     permanent_upazila: permUp,
     permanent_district: permDist,
-    address: s.address || baseObj.address || defaultAddress,
+    address: s.address || defaultAddress,
     religion: normalizeReligion(s.religion || baseObj.religion || 'ইসলাম'),
     status: (s.status || baseObj.status || 'active').trim().toLowerCase()
   };
 }
 
-// Initialize authentic student dataset & purge dummy synthetic names if present
-const AUTHENTIC_VERSION_TAG = 'magra_v200_tangail_sadar_clean_authentic_students';
+// Safe student dataset initialization - preserves all user modifications
 try {
-  const currentVer = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
-  const hasOldDummyNames = rawSt && (
-    rawSt.includes('সৌরভ পাল') || rawSt.includes('সুজন দাস') || rawSt.includes('পার্থ চক্রবর্তী') || 
-    rawSt.includes('চন্দন কুমার শীল') || rawSt.includes('দীপক বর্মণ') || rawSt.includes('সুব্রত পাল') || 
-    rawSt.includes('বিজয় সরকার') || rawSt.includes('ঘোষ পাড়া') || rawSt.includes('মালোপাড়া') || 
-    rawSt.includes('কালিহাতি')
-  );
-
-  if (currentVer !== AUTHENTIC_VERSION_TAG || hasOldDummyNames || !rawSt) {
+  if (!rawSt) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
-    localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
   }
 } catch {}
 
@@ -806,12 +803,14 @@ function handleMockRequest(path, opts = {}) {
       class_name: s.class_name,
       father_name: s.father_name,
       mother_name: s.mother_name,
-      current_village: s.current_village || 'মগড়া',
-      current_upazila: s.current_upazila || 'কালিহাতি',
-      current_district: s.current_district || 'টাঙ্গাইল',
-      permanent_village: s.permanent_village || 'মগড়া',
-      permanent_upazila: s.permanent_upazila || 'কালিহাতি',
-      permanent_district: s.permanent_district || 'টাঙ্গাইল'
+      current_village: s.current_village || '',
+      current_post_office: s.current_post_office || '',
+      current_upazila: s.current_upazila || '',
+      current_district: s.current_district || '',
+      permanent_village: s.permanent_village || s.current_village || '',
+      permanent_post_office: s.permanent_post_office || s.current_post_office || '',
+      permanent_upazila: s.permanent_upazila || s.current_upazila || '',
+      permanent_district: s.permanent_district || s.current_district || ''
     }));
   }
 

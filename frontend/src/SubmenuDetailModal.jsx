@@ -787,7 +787,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         })
         .filter(s => {
           if (!searchQuery) return true;
-          const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.group_name, s.group, s.current_village, s.permanent_village].filter(Boolean).map(String).join(' ').toLowerCase();
+          const haystack = [s.student_id, s.name_bn, s.name_en, s.roll_no, s.guardian_name, s.father_name, s.mother_name, s.group_name, s.group, s.current_village, s.current_post_office, s.current_upazila, s.current_district, s.permanent_village, s.permanent_post_office, s.permanent_upazila, s.permanent_district, s.address].filter(Boolean).map(String).join(' ').toLowerCase();
           return haystack.includes(searchQuery.toLowerCase());
         });
 
@@ -813,8 +813,10 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
             <td style="text-align:center;">শ্রেণি ${s.class_name || '১০'}</td>
             <td style="text-align:center;">${s.group_name || s.group || s.section || '—'}</td>
             <td style="text-align:center;">${s.religion || 'ইসলাম'}</td>
-            <td style="text-align:center;">${s.gender === 'female' || s.gender === 'ছাত্রী' || s.gender === 'নারী' ? 'ছাত্রী' : 'ছাত্র'}</td>
             <td>${s.guardian_name || s.father_name || '—'}</td>
+            <td>${s.current_village || s.permanent_village || '—'}</td>
+            <td>${s.current_post_office || s.permanent_post_office || '—'}</td>
+            <td>${s.current_upazila || s.permanent_upazila || '—'}</td>
             <td style="text-align:center;font-family:monospace;">${s.guardian_phone || s.father_mobile || '—'}</td>
           </tr>
         `).join('');
@@ -968,6 +970,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 <th>ধর্ম</th>
                 <th>পিতা / অভিভাবক</th>
                 <th>গ্রাম</th>
+                <th>ডাকঘর</th>
+                <th>উপজেলা</th>
               </tr>
             </thead>
             <tbody>
@@ -981,10 +985,12 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                   <td>{s.religion || 'ইসলাম'}</td>
                   <td>{s.guardian_name || s.father_name || '—'}</td>
                   <td>{s.current_village || s.permanent_village || '—'}</td>
+                  <td>{s.current_post_office || s.permanent_post_office || '—'}</td>
+                  <td>{s.current_upazila || s.permanent_upazila || '—'}</td>
                 </tr>
               ))}
               {!filteredList.length && (
-                <tr><td colSpan={8} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি।</td></tr>
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: '18px', color: '#718096' }}>কোনো শিক্ষার্থী রেকর্ড পাওয়া যায়নি।</td></tr>
               )}
             </tbody>
           </table>
