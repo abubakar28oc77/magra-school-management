@@ -8,6 +8,8 @@ import {requestApi} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
+import {StudentAgeQueryModal, calculateStudentAge} from './StudentAgeQueryModal';
+import {StudentTotListModal} from './StudentTotListModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -1147,6 +1149,9 @@ function StudentPanel({sub}){
  const [customFieldValue,setCustomFieldValue]=useState('');
  const [importing,setImporting]=useState(false);
  const [importMsg,setImportMsg]=useState('');
+ const [showAgeModal,setShowAgeModal]=useState(false);
+ const [showTotListModal,setShowTotListModal]=useState(false);
+ const [ageFilter,setAgeFilter]=useState('');
   const [sameAddress,setSameAddress]=useState(false);
   const [selectedIds,setSelectedIds]=useState([]);
 
@@ -1206,7 +1211,20 @@ function StudentPanel({sub}){
     }
   };
 
-  const studentList = sortStudentsList(Array.isArray(students) ? students : (students?.items || []));
+  const studentList = sortStudentsList(Array.isArray(students) ? students : (students?.items || [])).filter(s => {
+    if (!ageFilter) return true;
+    const ageInfo = calculateStudentAge(s);
+    const y = ageInfo.years;
+    if (ageFilter === '11_plus') return y >= 11;
+    if (ageFilter === '12_plus') return y >= 12;
+    if (ageFilter === '13_plus') return y >= 13;
+    if (ageFilter === '14_plus') return y >= 14;
+    if (ageFilter === '15_plus') return y >= 15;
+    if (ageFilter === '16_plus') return y >= 16;
+    if (ageFilter === '17_plus') return y >= 17;
+    if (ageFilter === 'under_11') return y < 11;
+    return true;
+  });
 
   const printStudentReport = () => {
     const printWindow = window.open('', '_blank');
@@ -1515,7 +1533,7 @@ function StudentPanel({sub}){
         ...c
       };
     });
-    const filename = `magra_students_full_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    const filename = 'magra-students.csv';
     downloadCsv(filename, rows, headers);
   };
 
@@ -1924,6 +1942,12 @@ function StudentPanel({sub}){
       <button className="mini" type="button" onClick={()=>printStudentReport()} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
         🖨️ প্রিন্ট / PDF রিপোর্ট
       </button>
+      <button className="mini" type="button" onClick={()=>setShowAgeModal(true)} style={{background:'#f5f3ff',border:'1.5px solid #7c3aed',color:'#7c3aed',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(124,58,237,0.15)'}}>
+        🎂 বয়স ভিত্তিক কুয়েরি
+      </button>
+      <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
+        📑 শ্রেণি ভিত্তিক টট লিস্ট
+      </button>
       {selectedIds.length > 0 && (
         <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
           🗑️ নির্বাচিত ({selectedIds.length}) মুছুন
@@ -1974,10 +1998,26 @@ function StudentPanel({sub}){
       <option value="transferred">স্থানান্তরিত</option>
       <option value="dropped_out">ঝরে পড়া</option>
      </select>
+     <select value={ageFilter} onChange={e=>setAgeFilter(e.target.value)} style={{fontWeight:600,color:ageFilter?'#7c3aed':undefined}}>
+      <option value="">🎂 সব বয়স</option>
+      <option value="11_plus">১১ বছরের উপরে (১১+)</option>
+      <option value="12_plus">১২ বছরের উপরে (১২+)</option>
+      <option value="13_plus">১৩ বছরের উপরে (১৩+)</option>
+      <option value="14_plus">১৪ বছরের উপরে (১৪+)</option>
+      <option value="15_plus">১৫ বছরের উপরে (১৫+)</option>
+      <option value="16_plus">১৬ বছরের উপরে (১৬+)</option>
+      <option value="17_plus">১৭ বছরের উপরে (১৭+)</option>
+      <option value="under_11">১১ বছরের নিচে (&lt;১১)</option>
+      <option value="11_13">১১ - ১৩ বছর</option>
+      <option value="14_15">১৪ - ১৫ বছর</option>
+      <option value="16_18">১৬ - ১৮ বছর</option>
+     </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
      <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
+     <button type="button" className="mini" onClick={()=>setShowAgeModal(true)} style={{background:'#7c3aed',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(124,58,237,0.2)'}}>🎂 বয়স ভিত্তিক কুয়েরি</button>
+     <button type="button" className="mini" onClick={()=>setShowTotListModal(true)} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📑 শ্রেণি ভিত্তিক টট লিস্ট</button>
     </div>
     <div className="table-wrap">
      <table>
@@ -2038,6 +2078,8 @@ function StudentPanel({sub}){
     </div>
    </div>
   )}
+    <StudentAgeQueryModal isOpen={showAgeModal} onClose={()=>setShowAgeModal(false)} students={students}/>
+   <StudentTotListModal isOpen={showTotListModal} onClose={()=>setShowTotListModal(false)} students={students}/>
  </div>;
 }
 function AdmissionPanel({ sub }){
