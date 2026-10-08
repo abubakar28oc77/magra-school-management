@@ -35,27 +35,55 @@ function formatGroup(grp) {
   return grp;
 }
 
+export function parseDateOfBirth(val) {
+  if (!val) return null;
+  let s = String(val).trim();
+  const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  s = s.replace(/[০-৯]/g, d => bnMap[d]);
+
+  // YYYY-MM-DD
+  if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}/.test(s)) {
+    const parts = s.split(/[-/T ]/);
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+
+  // DD/MM/YYYY or DD-MM-YYYY
+  if (/^\d{1,2}[/-]\d{1,2}[/-]\d{4}/.test(s)) {
+    const parts = s.split(/[/-]/);
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const y = parseInt(parts[2], 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+
+  const dt = new Date(s);
+  if (!isNaN(dt.getTime())) return dt;
+  return null;
+}
+
 export function calculateStudentAge(student, asOfDate = new Date()) {
   if (!student) return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
 
   let dobStr = student.date_of_birth || student.dob || '';
   let isEstimated = false;
+  let birthDate = parseDateOfBirth(dobStr);
 
   // If student doesn't have an explicit DOB, estimate based on Class:
   // Class 6 ~ 11-12 yrs, Class 7 ~ 12-13, Class 8 ~ 13-14, Class 9 ~ 14-15, Class 10 ~ 15-16
-  if (!dobStr && student.class_name) {
+  if (!birthDate && student.class_name) {
     const cNum = parseInt(student.class_name) || 10;
-    const estBirthYear = asOfDate.getFullYear() - (cNum + 5);
-    dobStr = `${estBirthYear}-01-01`;
+    const estAge = cNum + 5; // Class 6 -> 11, Class 7 -> 12, Class 8 -> 13, Class 9 -> 14, Class 10 -> 15
+    const estBirthYear = asOfDate.getFullYear() - estAge;
+    birthDate = new Date(estBirthYear, 0, 1);
     isEstimated = true;
   }
 
-  if (!dobStr) {
-    return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
-  }
-
-  const birthDate = new Date(dobStr);
-  if (isNaN(birthDate.getTime())) {
+  if (!birthDate) {
     return { years: 0, months: 0, text: '—', exactYears: 0, hasDob: false, dobFormatted: '—', dobRaw: '' };
   }
 
@@ -79,9 +107,9 @@ export function calculateStudentAge(student, asOfDate = new Date()) {
     text += ` ${toBengaliDigits(months)} মাস`;
   }
 
-  const dobFormatted = student.date_of_birth
-    ? new Date(student.date_of_birth).toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' })
-    : (isEstimated ? `আনুমানিক ${toBengaliDigits(years)} বছর` : '—');
+  const dobFormatted = student.date_of_birth && !isEstimated
+    ? birthDate.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' })
+    : (isEstimated ? `শ্রেণি অনুযায়ী (${toBengaliDigits(years)} বছর)` : '—');
 
   return {
     years,
@@ -94,6 +122,57 @@ export function calculateStudentAge(student, asOfDate = new Date()) {
     dobRaw: student.date_of_birth ? String(student.date_of_birth).slice(0, 10) : ''
   };
 }
+
+export function matchesAgeFilter(student, ageFilter) {
+  if (!ageFilter || ageFilter === 'all') return true;
+  const ageInfo = calculateStudentAge(student);
+  const y = ageInfo.years;
+  const ey = ageInfo.exactYears;
+
+  switch (ageFilter) {
+    case 'under_11':
+      return y < 11;
+    case 'above_11':
+    case '11_plus':
+      return y >= 12 || ey > 11.5;
+    case 'above_12':
+    case '12_plus':
+      return y >= 13 || ey > 12.5;
+    case 'above_13':
+    case '13_plus':
+      return y >= 14 || ey > 13.5;
+    case 'above_14':
+    case '14_plus':
+      return y >= 15 || ey > 14.5;
+    case 'above_15':
+    case '15_plus':
+      return y >= 16 || ey > 15.5;
+    case 'above_16':
+    case '16_plus':
+      return y >= 17 || ey > 16.5;
+    case 'above_17':
+    case '17_plus':
+      return y >= 18 || ey > 17.5;
+    case 'above_18':
+    case '18_plus':
+      return y >= 18;
+    default:
+      return true;
+  }
+}
+
+export const AGE_FILTER_PILLS = [
+  { key: 'all', label: 'সব বয়স' },
+  { key: 'under_11', label: '১১ বছরের নীচে (<১১)' },
+  { key: 'above_11', label: '১১ বছরের উপরে (>১২)' },
+  { key: 'above_12', label: '১২ বছরের উপরে (>১৩)' },
+  { key: 'above_13', label: '১৩ বছরের উপরে (>১৪)' },
+  { key: 'above_14', label: '১৪ বছরের উপরে (>১৫)' },
+  { key: 'above_15', label: '১৫ বছরের উপরে (>১৬)' },
+  { key: 'above_16', label: '১৬ বছরের উপরে (>১৭)' },
+  { key: 'above_17', label: '১৭ বছরের উপরে (>১৮)' },
+  { key: 'above_18', label: '১৮ বছরের উপরে (১৮+)' }
+];
 
 export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
   const [ageFilter, setAgeFilter] = useState('all');
@@ -121,18 +200,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
   const filteredStudents = useMemo(() => {
     return studentsWithAge.filter(s => {
       // Age filter
-      const y = s.ageInfo.years;
-      if (ageFilter === '11_plus' && y < 11) return false;
-      if (ageFilter === '12_plus' && y < 12) return false;
-      if (ageFilter === '13_plus' && y < 13) return false;
-      if (ageFilter === '14_plus' && y < 14) return false;
-      if (ageFilter === '15_plus' && y < 15) return false;
-      if (ageFilter === '16_plus' && y < 16) return false;
-      if (ageFilter === '17_plus' && y < 17) return false;
-      if (ageFilter === 'under_11' && y >= 11) return false;
-      if (ageFilter === '11_13' && (y < 11 || y > 13)) return false;
-      if (ageFilter === '14_15' && (y < 14 || y > 15)) return false;
-      if (ageFilter === '16_18' && (y < 16 || y > 18)) return false;
+      if (!matchesAgeFilter(s, ageFilter)) return false;
 
       // Class filter
       if (classFilter && String(s.class_name) !== String(classFilter)) return false;
@@ -197,14 +265,14 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
     let min = 999;
     let max = 0;
     const dist = {
-      '১১ এর নিচে': 0,
-      '১১ বছর': 0,
-      '১২ বছর': 0,
-      '১৩ বছর': 0,
-      '১৪ বছর': 0,
-      '১৫ বছর': 0,
-      '১৬ বছর': 0,
-      '১৭+ বছর': 0
+      '< ১১ বছর': 0,
+      '১১-১২ বছর': 0,
+      '১২-১৩ বছর': 0,
+      '১৩-১৪ বছর': 0,
+      '১৪-১৫ বছর': 0,
+      '১৫-১৬ বছর': 0,
+      '১৬-১৭ বছর': 0,
+      '১৮+ বছর': 0
     };
 
     filteredStudents.forEach(s => {
@@ -213,14 +281,14 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
       if (y < min) min = y;
       if (y > max) max = y;
 
-      if (y < 11) dist['১১ এর নিচে']++;
-      else if (y === 11) dist['১১ বছর']++;
-      else if (y === 12) dist['১২ বছর']++;
-      else if (y === 13) dist['১৩ বছর']++;
-      else if (y === 14) dist['১৪ বছর']++;
-      else if (y === 15) dist['১৫ বছর']++;
-      else if (y === 16) dist['১৬ বছর']++;
-      else dist['১৭+ বছর']++;
+      if (y < 11) dist['< ১১ বছর']++;
+      else if (y === 11) dist['১১-১২ বছর']++;
+      else if (y === 12) dist['১২-১৩ বছর']++;
+      else if (y === 13) dist['১৩-১৪ বছর']++;
+      else if (y === 14) dist['১৪-১৫ বছর']++;
+      else if (y === 15) dist['১৫-১৬ বছর']++;
+      else if (y === 16) dist['১৬-১৭ বছর']++;
+      else dist['১৮+ বছর']++;
     });
 
     return {
@@ -240,20 +308,8 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
       return;
     }
 
-    const ageLabelMap = {
-      all: 'সকল বয়স',
-      '11_plus': '১১ বছরের উপরে (১১+)',
-      '12_plus': '১২ বছরের উপরে (১২+)',
-      '13_plus': '১৩ বছরের উপরে (১৩+)',
-      '14_plus': '১৪ বছরের উপরে (১৪+)',
-      '15_plus': '১৫ বছরের উপরে (১৫+)',
-      '16_plus': '১৬ বছরের উপরে (১৬+)',
-      '17_plus': '১৭ বছরের উপরে (১৭+)',
-      under_11: '১১ বছরের নিচে (< ১১)',
-      '11_13': '১১ থেকে ১৩ বছর',
-      '14_15': '১৪ থেকে ১৫ বছর',
-      '16_18': '১৬ থেকে ১৮ বছর'
-    };
+    const currentPill = AGE_FILTER_PILLS.find(p => p.key === ageFilter);
+    const filterTitle = currentPill ? currentPill.label : 'সকল বয়স';
 
     const rowsHtml = filteredStudents.map((s, idx) => `
       <tr>
@@ -316,7 +372,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
           <div class="report-title">🎂 শিক্ষার্থীদের বয়স ভিত্তিক কুয়েরি ও পরিসংখ্যান প্রতিবেদন</div>
         </div>
         <div class="meta-bar">
-          <div><b>🔍 বয়সের মানদণ্ড:</b> ${ageLabelMap[ageFilter] || ageFilter} ${classFilter ? `| <b>শ্রেণি:</b> শ্রেণি ${classFilter}` : ''} ${groupFilter ? `| <b>বিভাগ:</b> ${groupFilter}` : ''}</div>
+          <div><b>🔍 বয়সের মানদণ্ড:</b> ${filterTitle} ${classFilter ? `| <b>শ্রেণি:</b> শ্রেণি ${classFilter}` : ''} ${groupFilter ? `| <b>বিভাগ:</b> ${groupFilter}` : ''}</div>
           <div><b>📊 মোট শিক্ষার্থী:</b> ${toBengaliDigits(filteredStudents.length)} জন | <b>গড় বয়স:</b> ${toBengaliDigits(stats.avgAge)} বছর | <b>তারিখ:</b> ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
         </div>
         <div class="dist-grid">
@@ -423,18 +479,6 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
     URL.revokeObjectURL(url);
   };
 
-  const quickPills = [
-    { key: 'all', label: 'সব বয়স' },
-    { key: '11_plus', label: '১১ বছরের উপরে' },
-    { key: '12_plus', label: '১২ বছরের উপরে' },
-    { key: '13_plus', label: '১৩ বছরের উপরে' },
-    { key: '14_plus', label: '১৪ বছরের উপরে' },
-    { key: '15_plus', label: '১৫ বছরের উপরে' },
-    { key: '16_plus', label: '১৬ বছরের উপরে' },
-    { key: '17_plus', label: '১৭ বছরের উপরে' },
-    { key: 'under_11', label: '১১ এর নিচে' }
-  ];
-
   return (
     <div className="submenu-modal-overlay" onClick={onClose}>
       <div className="submenu-modal-card" style={{ maxWidth: '1050px', width: '96%' }} onClick={e => e.stopPropagation()}>
@@ -451,7 +495,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
         <div className="modal-body" style={{ padding: '16px' }}>
           {/* Quick Filter Badges */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
-            {quickPills.map(p => (
+            {AGE_FILTER_PILLS.map(p => (
               <button
                 key={p.key}
                 type="button"
@@ -487,18 +531,11 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
               onChange={e => setAgeFilter(e.target.value)}
               style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#7c3aed', fontSize: '13px' }}
             >
-              <option value="all">🎂 সব বয়স</option>
-              <option value="11_plus">১১ বছরের উপরে (১১+)</option>
-              <option value="12_plus">১২ বছরের উপরে (১২+)</option>
-              <option value="13_plus">১৩ বছরের উপরে (১৩+)</option>
-              <option value="14_plus">১৪ বছরের উপরে (১৪+)</option>
-              <option value="15_plus">১৫ বছরের উপরে (১৫+)</option>
-              <option value="16_plus">১৬ বছরের উপরে (১৬+)</option>
-              <option value="17_plus">১৭ বছরের উপরে (১৭+)</option>
-              <option value="under_11">১১ বছরের নিচে (&lt;১১)</option>
-              <option value="11_13">১১ - ১৩ বছর</option>
-              <option value="14_15">১৪ - ১৫ বছর</option>
-              <option value="16_18">১৬ - ১৮ বছর</option>
+              {AGE_FILTER_PILLS.map(p => (
+                <option key={p.key} value={p.key}>
+                  {p.key === 'all' ? '🎂 ' : ''}{p.label}
+                </option>
+              ))}
             </select>
 
             <select

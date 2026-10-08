@@ -8,7 +8,7 @@ import {requestApi} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
-import {StudentAgeQueryModal, calculateStudentAge} from './StudentAgeQueryModal';
+import {StudentAgeQueryModal, calculateStudentAge, matchesAgeFilter} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
 import {
   MOCK_USERS,
@@ -1212,18 +1212,8 @@ function StudentPanel({sub}){
   };
 
   const studentList = sortStudentsList(Array.isArray(students) ? students : (students?.items || [])).filter(s => {
-    if (!ageFilter) return true;
-    const ageInfo = calculateStudentAge(s);
-    const y = ageInfo.years;
-    if (ageFilter === '11_plus') return y >= 11;
-    if (ageFilter === '12_plus') return y >= 12;
-    if (ageFilter === '13_plus') return y >= 13;
-    if (ageFilter === '14_plus') return y >= 14;
-    if (ageFilter === '15_plus') return y >= 15;
-    if (ageFilter === '16_plus') return y >= 16;
-    if (ageFilter === '17_plus') return y >= 17;
-    if (ageFilter === 'under_11') return y < 11;
-    return true;
+    if (!ageFilter || ageFilter === 'all') return true;
+    return matchesAgeFilter(s, ageFilter);
   });
 
   const printStudentReport = () => {
@@ -1999,19 +1989,17 @@ function StudentPanel({sub}){
       <option value="dropped_out">ঝরে পড়া</option>
      </select>
      <select value={ageFilter} onChange={e=>setAgeFilter(e.target.value)} style={{fontWeight:600,color:ageFilter?'#7c3aed':undefined}}>
-      <option value="">🎂 সব বয়স</option>
-      <option value="11_plus">১১ বছরের উপরে (১১+)</option>
-      <option value="12_plus">১২ বছরের উপরে (১২+)</option>
-      <option value="13_plus">১৩ বছরের উপরে (১৩+)</option>
-      <option value="14_plus">১৪ বছরের উপরে (১৪+)</option>
-      <option value="15_plus">১৫ বছরের উপরে (১৫+)</option>
-      <option value="16_plus">১৬ বছরের উপরে (১৬+)</option>
-      <option value="17_plus">১৭ বছরের উপরে (১৭+)</option>
-      <option value="under_11">১১ বছরের নিচে (&lt;১১)</option>
-      <option value="11_13">১১ - ১৩ বছর</option>
-      <option value="14_15">১৪ - ১৫ বছর</option>
-      <option value="16_18">১৬ - ১৮ বছর</option>
-     </select>
+       <option value="">🎂 সব বয়স</option>
+       <option value="under_11">১১ বছরের নীচে (&lt;১১)</option>
+       <option value="above_11">১১ বছরের উপরে (&gt;১২)</option>
+       <option value="above_12">১২ বছরের উপরে (&gt;১৩)</option>
+       <option value="above_13">১৩ বছরের উপরে (&gt;১৪)</option>
+       <option value="above_14">১৪ বছরের উপরে (&gt;১৫)</option>
+       <option value="above_15">১৫ বছরের উপরে (&gt;১৬)</option>
+       <option value="above_16">১৬ বছরের উপরে (&gt;১৭)</option>
+       <option value="above_17">১৭ বছরের উপরে (&gt;১৮)</option>
+       <option value="above_18">১৮ বছরের উপরে (১৮+)</option>
+      </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
