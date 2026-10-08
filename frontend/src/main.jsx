@@ -1989,17 +1989,17 @@ function StudentPanel({sub}){
       <option value="dropped_out">ঝরে পড়া</option>
      </select>
      <select value={ageFilter} onChange={e=>setAgeFilter(e.target.value)} style={{fontWeight:600,color:ageFilter?'#7c3aed':undefined}}>
-       <option value="">🎂 সব বয়স</option>
-       <option value="under_11">১১ বছরের নীচে (&lt;১১)</option>
-       <option value="range_11_12">১১ বছরের উপরে (১১&lt;১২)</option>
-       <option value="range_12_13">১২ বছরের উপরে (১২&lt;১৩)</option>
-       <option value="range_13_14">১৩ বছরের উপরে (১৩&lt;১৪)</option>
-       <option value="range_14_15">১৪ বছরের উপরে (১৪&lt;১৫)</option>
-       <option value="range_15_16">১৫ বছরের উপরে (১৫&lt;১৬)</option>
-       <option value="range_16_17">১৬ বছরের উপরের (১৬&lt;১৭)</option>
-       <option value="range_17_18">১৭ বছরের উপরে (১৭&lt;১৮)</option>
-       <option value="above_18">১৮ বছরের উপরে (১৮&lt;)</option>
-      </select>
+        <option value="">🎂 সব বয়স</option>
+        <option value="under_11">১১ বছরের নীচে (&lt;১১)</option>
+        <option value="range_11_12">১১-১২ বছর</option>
+        <option value="range_12_13">১২-১৩ বছর</option>
+        <option value="range_13_14">১৩-১৪ বছর</option>
+        <option value="range_14_15">১৪-১৫ বছর</option>
+        <option value="range_15_16">১৫-১৬ বছর</option>
+        <option value="range_16_17">১৬-১৭ বছর</option>
+        <option value="range_17_18">১৭-১৮ বছর</option>
+        <option value="above_18">১৮ বছরের উপরে (১৮+)</option>
+       </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
