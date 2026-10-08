@@ -199,11 +199,24 @@ export function enrichStudentProfile(s) {
   };
 }
 
-// Safe student dataset initialization - preserves all user modifications
+// Safe student dataset initialization - preserves all user modifications & clears old corrupt uniform upazila tag
 try {
   const rawSt = localStorage.getItem('magra_db_students');
   if (!rawSt) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+  } else {
+    const parsed = JSON.parse(rawSt);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const allUniformSadar = parsed.filter(s => s && s.current_upazila === 'টাঙ্গাইল সদর').length > 50 && parsed.filter(s => s && s.current_village).length === 0;
+      if (allUniformSadar) {
+        const cleaned = parsed.map(s => ({
+          ...s,
+          current_upazila: s.current_upazila === 'টাঙ্গাইল সদর' ? '' : s.current_upazila,
+          permanent_upazila: s.permanent_upazila === 'টাঙ্গাইল সদর' ? '' : s.permanent_upazila
+        }));
+        localStorage.setItem('magra_db_students', JSON.stringify(cleaned));
+      }
+    }
   }
 } catch {}
 

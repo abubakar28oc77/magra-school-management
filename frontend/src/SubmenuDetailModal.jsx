@@ -759,8 +759,11 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     if (menuKey.startsWith('public.nav.students')) {
       let liveStudents = [];
       try {
-        liveStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
-      } catch {}
+        const raw = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+        liveStudents = Array.isArray(raw) && raw.length ? raw : (Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : []);
+      } catch {
+        liveStudents = Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : [];
+      }
 
       const filteredList = sortStudentsList(liveStudents)
         .filter(s => filterClass === 'all' || String(s.class_name) === String(filterClass))
