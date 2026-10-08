@@ -1991,14 +1991,14 @@ function StudentPanel({sub}){
      <select value={ageFilter} onChange={e=>setAgeFilter(e.target.value)} style={{fontWeight:600,color:ageFilter?'#7c3aed':undefined}}>
        <option value="">🎂 সব বয়স</option>
        <option value="under_11">১১ বছরের নীচে (&lt;১১)</option>
-       <option value="above_11">১১ বছরের উপরে (&gt;১২)</option>
-       <option value="above_12">১২ বছরের উপরে (&gt;১৩)</option>
-       <option value="above_13">১৩ বছরের উপরে (&gt;১৪)</option>
-       <option value="above_14">১৪ বছরের উপরে (&gt;১৫)</option>
-       <option value="above_15">১৫ বছরের উপরে (&gt;১৬)</option>
-       <option value="above_16">১৬ বছরের উপরে (&gt;১৭)</option>
-       <option value="above_17">১৭ বছরের উপরে (&gt;১৮)</option>
-       <option value="above_18">১৮ বছরের উপরে (১৮+)</option>
+       <option value="range_11_12">১১ বছরের উপরে (১১&gt;১২)</option>
+       <option value="range_12_13">১২ বছরের উপরে (১২&gt;১৩)</option>
+       <option value="range_13_14">১৩ বছরের উপরে (১৩&gt;১৪)</option>
+       <option value="range_14_15">১৪ বছরের উপরে (১৪&gt;১৫)</option>
+       <option value="range_15_16">১৫ বছরের উপরে (১৫&gt;১৬)</option>
+       <option value="range_16_17">১৬ বছরের উপরের (১৬&gt;১৭)</option>
+       <option value="range_17_18">১৭ বছরের উপরে (১৭&gt;১৮)</option>
+       <option value="above_18">১৮ বছরের উপরে (১৮&lt;)</option>
       </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}

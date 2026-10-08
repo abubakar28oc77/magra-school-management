@@ -131,30 +131,46 @@ export function matchesAgeFilter(student, ageFilter) {
 
   switch (ageFilter) {
     case 'under_11':
+    case '<11':
       return y < 11;
+    case 'range_11_12':
+    case '11_12':
     case 'above_11':
     case '11_plus':
-      return y >= 12 || ey > 11.5;
+      return y === 11 || (ey >= 11 && ey < 12);
+    case 'range_12_13':
+    case '12_13':
     case 'above_12':
     case '12_plus':
-      return y >= 13 || ey > 12.5;
+      return y === 12 || (ey >= 12 && ey < 13);
+    case 'range_13_14':
+    case '13_14':
     case 'above_13':
     case '13_plus':
-      return y >= 14 || ey > 13.5;
+      return y === 13 || (ey >= 13 && ey < 14);
+    case 'range_14_15':
+    case '14_15':
     case 'above_14':
     case '14_plus':
-      return y >= 15 || ey > 14.5;
+      return y === 14 || (ey >= 14 && ey < 15);
+    case 'range_15_16':
+    case '15_16':
     case 'above_15':
     case '15_plus':
-      return y >= 16 || ey > 15.5;
+      return y === 15 || (ey >= 15 && ey < 16);
+    case 'range_16_17':
+    case '16_17':
     case 'above_16':
     case '16_plus':
-      return y >= 17 || ey > 16.5;
+      return y === 16 || (ey >= 16 && ey < 17);
+    case 'range_17_18':
+    case '17_18':
     case 'above_17':
     case '17_plus':
-      return y >= 18 || ey > 17.5;
+      return y === 17 || (ey >= 17 && ey < 18);
     case 'above_18':
     case '18_plus':
+    case '18<':
       return y >= 18;
     default:
       return true;
@@ -164,14 +180,14 @@ export function matchesAgeFilter(student, ageFilter) {
 export const AGE_FILTER_PILLS = [
   { key: 'all', label: 'সব বয়স' },
   { key: 'under_11', label: '১১ বছরের নীচে (<১১)' },
-  { key: 'above_11', label: '১১ বছরের উপরে (>১২)' },
-  { key: 'above_12', label: '১২ বছরের উপরে (>১৩)' },
-  { key: 'above_13', label: '১৩ বছরের উপরে (>১৪)' },
-  { key: 'above_14', label: '১৪ বছরের উপরে (>১৫)' },
-  { key: 'above_15', label: '১৫ বছরের উপরে (>১৬)' },
-  { key: 'above_16', label: '১৬ বছরের উপরে (>১৭)' },
-  { key: 'above_17', label: '১৭ বছরের উপরে (>১৮)' },
-  { key: 'above_18', label: '১৮ বছরের উপরে (১৮+)' }
+  { key: 'range_11_12', label: '১১ বছরের উপরে (১১>১২)' },
+  { key: 'range_12_13', label: '১২ বছরের উপরে (১২>১৩)' },
+  { key: 'range_13_14', label: '১৩ বছরের উপরে (১৩>১৪)' },
+  { key: 'range_14_15', label: '১৪ বছরের উপরে (১৪>১৫)' },
+  { key: 'range_15_16', label: '১৫ বছরের উপরে (১৫>১৬)' },
+  { key: 'range_16_17', label: '১৬ বছরের উপরের (১৬>১৭)' },
+  { key: 'range_17_18', label: '১৭ বছরের উপরে (১৭>১৮)' },
+  { key: 'above_18', label: '১৮ বছরের উপরে (১৮<)' }
 ];
 
 export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
@@ -272,6 +288,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
       '১৪-১৫ বছর': 0,
       '১৫-১৬ বছর': 0,
       '১৬-১৭ বছর': 0,
+      '১৭-১৮ বছর': 0,
       '১৮+ বছর': 0
     };
 
@@ -288,6 +305,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
       else if (y === 14) dist['১৪-১৫ বছর']++;
       else if (y === 15) dist['১৫-১৬ বছর']++;
       else if (y === 16) dist['১৬-১৭ বছর']++;
+      else if (y === 17) dist['১৭-১৮ বছর']++;
       else dist['১৮+ বছর']++;
     });
 
@@ -385,7 +403,7 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
               <th style="width:75px;">আইডি (ID)</th>
               <th>শিক্ষার্থীর নাম</th>
               <th style="width:55px;">শ্রেণি</th>
-              <th style="width:90px;">বিভাগ/শাখা</th>
+              <th style="width:90px;">বিভাগ/ শাখা</th>
               <th style="width:40px;">রোল</th>
               <th style="width:90px;">জন্ম তারিখ</th>
               <th style="width:95px;background:#e6f4ea;color:#0b6b43;">বর্তমান বয়স</th>
