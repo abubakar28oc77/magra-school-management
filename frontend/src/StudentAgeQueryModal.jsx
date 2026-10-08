@@ -180,13 +180,13 @@ export function matchesAgeFilter(student, ageFilter) {
 export const AGE_FILTER_PILLS = [
   { key: 'all', label: 'সব বয়স' },
   { key: 'under_11', label: '১১ বছরের নীচে (<১১)' },
-  { key: 'range_11_12', label: '১১ বছরের উপরে (১১>১২)' },
-  { key: 'range_12_13', label: '১২ বছরের উপরে (১২>১৩)' },
-  { key: 'range_13_14', label: '১৩ বছরের উপরে (১৩>১৪)' },
-  { key: 'range_14_15', label: '১৪ বছরের উপরে (১৪>১৫)' },
-  { key: 'range_15_16', label: '১৫ বছরের উপরে (১৫>১৬)' },
-  { key: 'range_16_17', label: '১৬ বছরের উপরের (১৬>১৭)' },
-  { key: 'range_17_18', label: '১৭ বছরের উপরে (১৭>১৮)' },
+  { key: 'range_11_12', label: '১১ বছরের উপরে (১১<১২)' },
+  { key: 'range_12_13', label: '১২ বছরের উপরে (১২<১৩)' },
+  { key: 'range_13_14', label: '১৩ বছরের উপরে (১৩<১৪)' },
+  { key: 'range_14_15', label: '১৪ বছরের উপরে (১৪<১৫)' },
+  { key: 'range_15_16', label: '১৫ বছরের উপরে (১৫<১৬)' },
+  { key: 'range_16_17', label: '১৬ বছরের উপরের (১৬<১৭)' },
+  { key: 'range_17_18', label: '১৭ বছরের উপরে (১৭<১৮)' },
   { key: 'above_18', label: '১৮ বছরের উপরে (১৮<)' }
 ];
 
