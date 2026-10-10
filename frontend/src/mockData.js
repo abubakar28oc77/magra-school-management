@@ -295,7 +295,10 @@ export const MOCK_STUDENTS = [
     "address": "",
     "admission_class": "10",
     "admission_date": "2026-01-01",
-    "status": "active"
+    "status": "active",
+    "is_special_needs": "হ্যাঁ",
+    "disability_type": "দৃষ্টি প্রতিবন্ধিতা",
+    "special_needs": "দৃষ্টি প্রতিবন্ধিতা"
   },
   {
     "id": "stu-10-sci-3",
@@ -377,7 +380,10 @@ export const MOCK_STUDENTS = [
     "address": "",
     "admission_class": "10",
     "admission_date": "2026-01-01",
-    "status": "active"
+    "status": "active",
+    "is_special_needs": "হ্যাঁ",
+    "disability_type": "শারীরিক প্রতিবন্ধিতা",
+    "special_needs": "শারীরিক প্রতিবন্ধিতা"
   },
   {
     "id": "stu-10-sci-5",

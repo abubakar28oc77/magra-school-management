@@ -10,6 +10,7 @@ import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
+import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -1163,6 +1164,8 @@ function StudentPanel({sub}){
  const [importing,setImporting]=useState(false);
  const [importMsg,setImportMsg]=useState('');
  const [showTotListModal,setShowTotListModal]=useState(false);
+ const [showDisabilityQueryModal,setShowDisabilityQueryModal]=useState(false);
+ const [disabilityFilter,setDisabilityFilter]=useState('');
  const [ageFilter,setAgeFilter]=useState('');
   const [sameAddress,setSameAddress]=useState(false);
   const [selectedIds,setSelectedIds]=useState([]);
@@ -1224,6 +1227,14 @@ function StudentPanel({sub}){
   };
 
   const studentList = sortStudentsList(Array.isArray(students) ? students : (students?.items || [])).filter(s => {
+    if (disabilityFilter) {
+      if (disabilityFilter === 'special_only') {
+        if (!isSpecialNeedsStudent(s)) return false;
+      } else {
+        const dt = getDisabilityType(s);
+        if (!dt || !dt.includes(disabilityFilter)) return false;
+      }
+    }
     if (!ageFilter || ageFilter === 'all') return true;
     return matchesAgeFilter(s, ageFilter);
   });
@@ -1242,6 +1253,7 @@ function StudentPanel({sub}){
     const filterInfo = [];
     if (className) filterInfo.push(`শ্রেণি: শ্রেণি ${className}`);
     if (groupFilter) filterInfo.push(`বিভাগ: ${groupFilter.includes('বিজ্ঞান') ? 'বিজ্ঞান বিভাগ' : groupFilter.includes('মানবিক') ? 'মানবিক বিভাগ' : groupFilter.includes('ব্যবসায়') ? 'ব্যবসায় শিক্ষা শাখা' : groupFilter}`);
+    if (disabilityFilter) filterInfo.push(`প্রতিবন্ধিতা: ${disabilityFilter === 'special_only' ? 'সকল বিশেষ চাহিদা' : disabilityFilter}`);
     if (religionFilter) filterInfo.push(`ধর্ম: ${religionFilter}`);
     if (genderFilter) filterInfo.push(`জেন্ডার: ${genderFilter === 'female' ? 'ছাত্রী (নারী)' : genderFilter === 'male' ? 'ছাত্র (পুরুষ)' : genderFilter}`);
     if (status) filterInfo.push(`অবস্থা: ${status === 'active' ? 'সক্রিয়' : status === 'inactive' ? 'নিষ্ক্রিয়' : status}`);
@@ -2036,6 +2048,9 @@ function StudentPanel({sub}){
       <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
         📑 শ্রেণি ভিত্তিক টট লিস্ট
       </button>
+      <button className="mini" type="button" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
+        ♿ প্রতিবন্ধিতা কুয়েরি ও রিপোর্ট
+      </button>
       <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
         🗳️ ভোটার তালিকা
       </button>
@@ -2101,12 +2116,27 @@ function StudentPanel({sub}){
         <option value="range_17_18">১৭-১৮ বছর</option>
         <option value="above_18">১৮ বছরের উপরে (১৮+)</option>
        </select>
+     <select value={disabilityFilter} onChange={e=>setDisabilityFilter(e.target.value)} style={{fontWeight:600,color:disabilityFilter?'#d97706':undefined,borderColor:disabilityFilter?'#d97706':undefined,backgroundColor:disabilityFilter?'#fffbeb':undefined}}>
+        <option value="">♿ সব প্রতিবন্ধিতা</option>
+        <option value="special_only">♿ সকল বিশেষ চাহিদা</option>
+        <option value="অটিস্টিক">অটিস্টিক</option>
+        <option value="শারীরিক প্রতিবন্ধিতা">শারীরিক প্রতিবন্ধিতা</option>
+        <option value="মানসিক অসুস্থতাজনিত প্রতিবন্ধিতা">মানসিক অসুস্থতাজনিত প্রতিবন্ধিতা</option>
+        <option value="দৃষ্টি প্রতিবন্ধিতা">দৃষ্টি প্রতিবন্ধিতা</option>
+        <option value="বাক প্রতিবন্ধিতা">বাক প্রতিবন্ধিতা</option>
+        <option value="বুদ্ধি প্রতিবন্ধিতা">বুদ্ধি প্রতিবন্ধিতা</option>
+        <option value="শ্রবণ প্রতিবন্ধিতা">শ্রবণ প্রতিবন্ধিতা</option>
+        <option value="শ্রবণ-দৃষ্টি প্রতিবন্ধিতা">শ্রবণ-দৃষ্টি প্রতিবন্ধিতা</option>
+        <option value="ডাউন সিন্ড্রোম">ডাউন সিন্ড্রোম</option>
+        <option value="অন্যান্য">অন্যান্য</option>
+       </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
      <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
      <button type="button" className="mini" onClick={()=>setShowTotListModal(true)} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📑 শ্রেণি ভিত্তিক টট লিস্ট</button>
-      <button type="button" className="mini" onClick={()=>setView('voter')} style={{background:'#c026d3',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(192,38,211,0.2)'}}>🗳️ ভোটার তালিকা</button>
+     <button type="button" className="mini" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#d97706',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(217,119,6,0.2)'}}>♿ প্রতিবন্ধিতা কুয়েরি</button>
+     <button type="button" className="mini" onClick={()=>setView('voter')} style={{background:'#c026d3',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(192,38,211,0.2)'}}>🗳️ ভোটার তালিকা</button>
     </div>
     <div className="table-wrap">
      <table>
@@ -2168,6 +2198,7 @@ function StudentPanel({sub}){
    </div>
   )}
    <StudentTotListModal isOpen={showTotListModal} onClose={()=>setShowTotListModal(false)} students={students}/>
+   <StudentDisabilityQueryModal isOpen={showDisabilityQueryModal} onClose={()=>setShowDisabilityQueryModal(false)} students={students}/>
  </div>;
 }
 function AdmissionPanel({ sub }){
