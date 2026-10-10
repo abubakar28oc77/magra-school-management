@@ -206,8 +206,6 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
   const [statusFilter, setStatusFilter] = useState('active');
   const [searchQuery, setSearchQuery] = useState('');
 
-  if (!isOpen) return null;
-
   // Calculate age for each student
   const studentsWithAge = useMemo(() => {
     const list = Array.isArray(students) ? students : (students?.items || []);
@@ -505,7 +503,11 @@ export function StudentAgeQueryModal({ isOpen, onClose, students = [] }) {
     URL.revokeObjectURL(url);
   };
 
+  if (!isOpen) return null;
+
+
   return (
+
     <div className="submenu-modal-overlay" onClick={onClose}>
       <div className="submenu-modal-card" style={{ maxWidth: '1050px', width: '96%' }} onClick={e => e.stopPropagation()}>
         <div className="modal-header" style={{ background: '#7c3aed' }}>

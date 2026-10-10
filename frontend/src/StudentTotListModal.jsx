@@ -40,8 +40,6 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'grid'
 
-  if (!isOpen) return null;
-
   const rawList = Array.isArray(students) ? students : (students?.items || []);
 
   // Filter students for Tot List
@@ -305,7 +303,11 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
     { key: '10', label: 'শ্রেণি ১০' }
   ];
 
+  if (!isOpen) return null;
+
+
   return (
+
     <div className="submenu-modal-overlay" onClick={onClose}>
       <div className="submenu-modal-card" style={{ maxWidth: '1150px', width: '96%' }} onClick={e => e.stopPropagation()}>
         <div className="modal-header" style={{ background: '#0284c7' }}>
