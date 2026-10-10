@@ -2761,7 +2761,7 @@ function StaffPanel({sub}){
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })}
          title="শিক্ষাগত যোগ্যতা (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
-         🎓 শিক্ষাগত যোগ্যতা
+         🎓 শিক্ষাগত যোগ্যতা কুয়েরি
        </button>
        <button 
          type="button" 
@@ -2770,7 +2770,7 @@ function StaffPanel({sub}){
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })}
          title="পেশাগত ডিগ্রী (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
-         📜 পেশাগত ডিগ্রী
+         📜 পেশাগত ডিগ্রী কুয়েরি
        </button>
        <button 
          type="button" 
@@ -2779,7 +2779,7 @@ function StaffPanel({sub}){
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })}
          title="আইসিটি প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
-         💻 আইসিটি প্রশিক্ষণ
+         💻 আইসিটি প্রশিক্ষণ কুয়েরি
        </button>
        <button 
          type="button" 
@@ -2788,7 +2788,7 @@ function StaffPanel({sub}){
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })}
          title="কর্মকালীন প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
-         📚 কর্মকালীন প্রশিক্ষণ
+         📚 কর্মকালীন প্রশিক্ষণ কুয়েরি
        </button>
       </div>
      )}

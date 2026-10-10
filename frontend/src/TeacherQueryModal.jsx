@@ -579,7 +579,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
               whiteSpace: 'nowrap'
             }}
           >
-            🎓 ১. শিক্ষাগত যোগ্যতা
+            🎓 ১. শিক্ষাগত যোগ্যতা কুয়েরি
           </button>
           <button
             type="button"
@@ -600,7 +600,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
               whiteSpace: 'nowrap'
             }}
           >
-            📜 ২. পেশাগত ডিগ্রী
+            📜 ২. পেশাগত ডিগ্রী কুয়েরি
           </button>
           <button
             type="button"
@@ -621,7 +621,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
               whiteSpace: 'nowrap'
             }}
           >
-            💻 ৩. আইসিটি প্রশিক্ষণ
+            💻 ৩. আইসিটি প্রশিক্ষণ কুয়েরি
           </button>
           <button
             type="button"
@@ -642,7 +642,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
               whiteSpace: 'nowrap'
             }}
           >
-            📚 ৪. কর্মকালীন প্রশিক্ষণ
+            📚 ৪. কর্মকালীন প্রশিক্ষণ কুয়েরি
           </button>
         </div>
 
