@@ -1030,12 +1030,12 @@ function Admin(){
  }
 
  const adminEn={
- 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
+ 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','শিক্ষক ভোটার তালিকা':'Teacher Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
  const ADMIN_NAV_GROUPS=[
   {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
   {group:'একাডেমিক',items:[
    {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['csv','CSV শিক্ষার্থী আপলোড']]},
-   {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
+   {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['teacher_voters','শিক্ষক ভোটার তালিকা'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
    {k:'admission',n:'ভর্তি',i:'📝',subs:[['applications','ভর্তি আবেদন'],['test','ভর্তি পরীক্ষা'],['selection','নির্বাচন ও ভর্তি']]},
    {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
    {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['setup','পরীক্ষা ও বিষয় সেটআপ'],['marks','মার্ক এন্ট্রি'],['processing','ফলাফল প্রসেসিং'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা']]},
@@ -2291,7 +2291,7 @@ const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id
 
 function StaffPanel({sub}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
- const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : 'list';
+ const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
 
  const [tab, setTab] = useState(getInitialTab(sub));
  const [view, setView] = useState(getInitialView(sub));
@@ -2306,6 +2306,146 @@ function StaffPanel({sub}){
  const [customFields,setCustomFields]=useState([]);
  const [customFieldKey,setCustomFieldKey]=useState('');
  const [customFieldValue,setCustomFieldValue]=useState('');
+ const [voterQuery, setVoterQuery] = useState('');
+ const [voterRemarks, setVoterRemarks] = useState({});
+
+ const isExcludedVoter = (t) => {
+   const d = (t?.designation || '').trim();
+   const dEn = (t?.designation_en || '').toLowerCase();
+   const r = (t?.public_contact_role || '').toLowerCase();
+   if (d.includes('প্রধান শিক্ষক') || d.includes('সহকারী প্রধান শিক্ষক')) return true;
+   if (dEn.includes('head teacher') || dEn.includes('assistant head') || dEn.includes('headmaster') || dEn.includes('principal')) return true;
+   if (r === 'head_teacher' || r === 'assistant_head_teacher') return true;
+   if (t?.id === 't-1' || t?.id === 't-2') return true;
+   return false;
+ };
+
+ const voterTeachers = useMemo(() => {
+   return (teachers || []).filter(t => {
+     const status = (t.status || 'active').toLowerCase();
+     return status === 'active' && !isExcludedVoter(t);
+   });
+ }, [teachers]);
+
+ const filteredVoters = useMemo(() => {
+   if (!voterQuery.trim()) return voterTeachers;
+   const qLower = voterQuery.toLowerCase();
+   return voterTeachers.filter(t => 
+     (t.name_bn || '').toLowerCase().includes(qLower) ||
+     (t.name_en || '').toLowerCase().includes(qLower) ||
+     (t.employee_id || '').toLowerCase().includes(qLower) ||
+     (t.designation || '').toLowerCase().includes(qLower) ||
+     (t.mpo_index_no || '').toLowerCase().includes(qLower) ||
+     (t.phone || '').includes(qLower)
+   );
+ }, [voterTeachers, voterQuery]);
+
+ const printTeacherVoterList = () => {
+   const w = window.open('', '_blank');
+   if (!w) { alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে অনুমতি দিন।'); return; }
+   const printRows = filteredVoters;
+   const content = `<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="utf-8">
+ <title>শিক্ষক ভোটার তালিকা ২০২৬</title>
+ <style>
+   @page { size: A4 portrait; margin: 12mm; }
+   body { font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif; margin: 15px; color: #111; font-size: 11px; }
+   .print-header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #0f4c3a; padding-bottom: 8px; }
+   .print-header h1 { font-size: 20px; margin: 0 0 3px; color: #0f4c3a; font-weight: 800; }
+   .print-header p { font-size: 11px; margin: 0 0 4px; color: #444; }
+   .print-header h2 { font-size: 15px; margin: 4px 0 6px; color: #1e293b; text-decoration: underline; }
+   .meta-line { display: flex; justify-content: space-between; font-weight: 700; font-size: 11px; margin-top: 6px; }
+   .voter-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+   .voter-table th, .voter-table td { border: 1px solid #475569; padding: 6px 8px; font-size: 11px; }
+   .voter-table th { background: #e2e8f0; color: #0f172a; text-align: left; }
+   .signature-area { margin-top: 50px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; font-size: 10.5px; page-break-inside: avoid; }
+   .signature-line { border-top: 1px dashed #333; padding-top: 4px; }
+ </style>
+</head>
+<body>
+ <div class="print-header">
+   <h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+   <p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN: 114290</p>
+   <h2>শিক্ষক প্রতিনিধি নির্বাচনের চূড়ান্ত ভোটার তালিকা - ২০২৬</h2>
+   <div class="meta-line">
+     <span><b>যোগ্যতা:</b> প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দ</span>
+     <span><b>মোট ভোটার:</b> ${printRows.length} জন</span>
+   </div>
+ </div>
+ <table class="voter-table">
+   <thead>
+     <tr>
+       <th style="width:65px;text-align:center">ভোটার নং</th>
+       <th style="width:180px">ভোটারের নাম</th>
+       <th style="width:140px">পদবী</th>
+       <th style="width:130px;text-align:center">অত্র প্রতিষ্ঠানে যোগদানের তারিখ</th>
+       <th style="width:130px;text-align:center">এমপিও কোড/ইনডেক্স নম্বর</th>
+       <th style="width:110px;text-align:center">মন্তব্য</th>
+     </tr>
+   </thead>
+   <tbody>
+     ${printRows.map((r, idx) => `
+       <tr>
+         <td style="text-align:center;font-weight:700">${idx + 1}</td>
+         <td><b>${r.name_bn || '—'}</b>${r.name_en ? `<br><span style="font-size:10px;color:#475569">${r.name_en}</span>` : ''}</td>
+         <td>${r.designation || 'সহকারী শিক্ষক'}${r.subject ? ` (${r.subject})` : ''}</td>
+         <td style="text-align:center">${r.current_post_joining_date || r.joining_date || r.first_joining_date || '—'}</td>
+         <td style="text-align:center;font-weight:600">${r.mpo_index_no || '—'}</td>
+         <td style="text-align:center">${voterRemarks[r.id] || (r.status === 'active' ? 'যোগ্য ভোটার' : '—')}</td>
+       </tr>
+     `).join('')}
+   </tbody>
+ </table>
+ <div class="signature-area">
+   <div>
+     <br><br>
+     <div class="signature-line">প্রস্তুতকারীর স্বাক্ষর</div>
+   </div>
+   <div>
+     <br><br>
+     <div class="signature-line">যাচাইকারীর স্বাক্ষর</div>
+   </div>
+   <div>
+     <br><br>
+     <div class="signature-line">প্রধান শিক্ষক</div>
+   </div>
+   <div>
+     <br><br>
+     <div class="signature-line">নির্বাচন কমিশনার / প্রিজাইডিং অফিসার</div>
+   </div>
+ </div>
+ <script>
+   window.onload = function() { window.print(); };
+ </script>
+</body>
+</html>`;
+   w.document.write(content);
+   w.document.close();
+ };
+
+ const exportTeacherVoterCSV = () => {
+   const headers = ['ভোটার নং', 'ভোটারের নাম (বাংলা)', 'ভোটারের নাম (ইংরেজি)', 'পদবী', 'মূল বিষয়', 'অত্র প্রতিষ্ঠানে যোগদানের তারিখ', 'এমপিও কোড/ইনডেক্স নম্বর', 'মন্তব্য'];
+   const rows = filteredVoters.map((r, idx) => [
+     idx + 1,
+     `"${(r.name_bn || '').replace(/"/g, '""')}"`,
+     `"${(r.name_en || '').replace(/"/g, '""')}"`,
+     `"${(r.designation || '').replace(/"/g, '""')}"`,
+     `"${(r.subject || '').replace(/"/g, '""')}"`,
+     `"${r.current_post_joining_date || r.joining_date || r.first_joining_date || ''}"`,
+     `"${r.mpo_index_no || ''}"`,
+     `"${voterRemarks[r.id] || (r.status === 'active' ? 'যোগ্য ভোটার' : '')}"`
+   ]);
+   const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+   const encodedUri = encodeURI(csvContent);
+   const link = document.createElement('a');
+   link.setAttribute('href', encodedUri);
+   link.setAttribute('download', `Teacher_Voter_List_${new Date().toISOString().slice(0, 10)}.csv`);
+   document.body.appendChild(link);
+   link.click();
+   document.body.removeChild(link);
+ };
 
  const getNextEmployeeId = (arr) => {
    const max = (arr || []).reduce((acc, curr) => {
@@ -2341,6 +2481,9 @@ function StaffPanel({sub}){
   } else if(sub==='teachers_list'||sub==='teachers'){
    setTab('teachers');
    setView('list');
+  } else if(sub==='teacher_voters'||sub==='teacher_voter_list'){
+   setTab('teachers');
+   setView('voter');
   }
  },[sub]);
 
@@ -2529,6 +2672,7 @@ function StaffPanel({sub}){
   <div className="tabs" style={{marginBottom:'16px'}}>
    <button type="button" className={isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('teachers','list')}>👨‍🏫 শিক্ষকবৃন্দ তালিকা ({teachers.length})</button>
    <button type="button" className={isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('teachers','form')}>➕ {isTeacher&&editing?'শিক্ষক তথ্য সম্পাদনা':'নতুন শিক্ষক এন্ট্রি'}</button>
+    <button type="button" className={isTeacher&&view==='voter'?'active':''} onClick={()=>switchTab('teachers','voter')}>🗳️ শিক্ষক ভোটার তালিকা ({voterTeachers.length})</button>
    <button type="button" className={!isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('staff','list')}>🧑‍💼 কর্মচারীবৃন্দ তালিকা ({staff.length})</button>
    <button type="button" className={!isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('staff','form')}>➕ {!isTeacher&&editing?'কর্মচারী তথ্য সম্পাদনা':'নতুন কর্মচারী এন্ট্রি'}</button>
   </div>
@@ -2640,6 +2784,130 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
     </div>
    </div>
   )}
+
+   {view==='voter' && (
+    <div className="table-card" style={{borderTop:'4px solid #16a34a'}}>
+     <div className="toolbar" style={{borderBottom:'1px solid #e2e8f0',paddingBottom:'14px',marginBottom:'16px'}}>
+      <div>
+       <span className="eyebrow" style={{color:'#16a34a',fontWeight:700}}>ELECTION & VOTER LIST • V118</span>
+       <h2 style={{display:'flex',alignItems:'center',gap:'8px',margin:'4px 0'}}>🗳️ শিক্ষক ভোটার তালিকা</h2>
+       <p className="portal-muted" style={{margin:0,fontSize:'13px'}}>
+        প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দের চূড়ান্ত ভোটার তালিকা।
+       </p>
+      </div>
+      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
+       <span style={{background:'#dcfce7',color:'#166534',fontWeight:700,padding:'6px 12px',borderRadius:'20px',fontSize:'13px'}}>
+        মোট ভোটার: {filteredVoters.length} জন
+       </span>
+       <button className="btn mini" type="button" style={{background:'#16a34a',color:'#fff',display:'inline-flex',alignItems:'center',gap:'6px'}} onClick={printTeacherVoterList}>
+        🖨️ ভোটার তালিকা প্রিন্ট / PDF
+       </button>
+       <button className="mini" type="button" onClick={exportTeacherVoterCSV} style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
+        📥 CSV ডাউনলোড
+       </button>
+       <button className="mini" type="button" onClick={()=>switchTab('teachers','list')}>
+        📋 মূল তালিকায় ফিরুন
+       </button>
+      </div>
+     </div>
+
+     <div className="filters" style={{marginBottom:'16px',display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
+      <input 
+       placeholder="ভোটারের নাম / পদবী / ইনডেক্স নম্বর খুঁজুন..." 
+       value={voterSearch} 
+       onChange={e=>setVoterSearch(e.target.value)}
+       style={{minWidth:'280px',flex:1}}
+      />
+      {voterSearch && (
+       <button className="mini" type="button" onClick={()=>setVoterSearch('')}>রিসেট</button>
+      )}
+     </div>
+
+     <div className="table-wrap" style={{border:'1px solid #cbd5e1',borderRadius:'8px',overflowX:'auto'}}>
+      <table>
+       <thead>
+        <tr style={{background:'#f8fafc',borderBottom:'2px solid #cbd5e1'}}>
+         <th style={{width:'80px',textAlign:'center',padding:'12px 8px',fontWeight:700}}>ভোটার নং</th>
+         <th style={{minWidth:'200px',textAlign:'left',padding:'12px 10px'}}>ভোটারের নাম</th>
+         <th style={{minWidth:'150px',textAlign:'left',padding:'12px 10px'}}>পদবী</th>
+         <th style={{minWidth:'140px',textAlign:'center',padding:'12px 10px'}}>অত্র প্রতিষ্ঠানে যোগদানের তারিখ</th>
+         <th style={{minWidth:'140px',textAlign:'center',padding:'12px 10px'}}>এমপিও কোড/ইনডেক্স নম্বর</th>
+         <th style={{minWidth:'180px',textAlign:'left',padding:'12px 10px'}}>মন্তব্য</th>
+        </tr>
+       </thead>
+       <tbody>
+        {filteredVoters.map((t, idx) => {
+         const voterNo = idx + 1;
+         const joiningDate = t.current_post_joining_date || t.joining_date || t.first_joining_date || '—';
+         const mpoIndex = t.mpo_index_no || '—';
+         const remarkVal = voterRemarks[t.id] ?? (t.status === 'active' ? 'যোগ্য ভোটার' : '');
+
+         return (
+          <tr key={t.id} style={{borderBottom:'1px solid #e2e8f0',background:idx%2===0?'#ffffff':'#fbfcfe'}}>
+           <td style={{textAlign:'center',fontWeight:700,color:'#166534',fontSize:'14px',padding:'10px 8px'}}>
+            <span style={{background:'#dcfce7',padding:'4px 10px',borderRadius:'12px',display:'inline-block',minWidth:'32px'}}>
+             {voterNo}
+            </span>
+           </td>
+           <td style={{padding:'10px 10px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+             <img 
+              src={getTeacherPhoto(t)} 
+              alt="" 
+              style={{width:34,height:34,borderRadius:'50%',objectFit:'cover',border:'1.5px solid #bbf7d0',flexShrink:0}}
+             />
+             <div>
+              <div style={{fontWeight:600,color:'#0f172a'}}>{t.name_bn}</div>
+              {t.name_en && <div style={{fontSize:'12px',color:'#64748b'}}>{t.name_en}</div>}
+             </div>
+            </div>
+           </td>
+           <td style={{padding:'10px 10px'}}>
+            <div style={{fontWeight:500,color:'#334155'}}>{t.designation || 'সহকারী শিক্ষক'}</div>
+            {t.subject && <div style={{fontSize:'12px',color:'#0284c7'}}>{t.subject}</div>}
+           </td>
+           <td style={{textAlign:'center',padding:'10px 10px',color:'#334155',fontWeight:500}}>
+            {joiningDate}
+           </td>
+           <td style={{textAlign:'center',padding:'10px 10px'}}>
+            <span style={{fontFamily:'monospace',fontWeight:600,color:'#0369a1',background:'#f0f9ff',padding:'3px 8px',borderRadius:'4px',border:'1px solid #bae6fd'}}>
+             {mpoIndex}
+            </span>
+           </td>
+           <td style={{padding:'10px 10px'}}>
+            <input 
+             type="text"
+             value={remarkVal}
+             placeholder="মন্তব্য লিখুন..."
+             onChange={e => setVoterRemarks(prev => ({ ...prev, [t.id]: e.target.value }))}
+             style={{width:'100%',padding:'6px 10px',fontSize:'12.5px',borderRadius:'6px',border:'1px solid #cbd5e1',background:'#fff'}}
+            />
+           </td>
+          </tr>
+         );
+        })}
+        {!filteredVoters.length && (
+         <tr>
+          <td colSpan="6" style={{padding:'30px',textAlign:'center',color:'#64748b'}}>
+           কোনো ভোটার তথ্য পাওয়া যায়নি।
+          </td>
+         </tr>
+        )}
+       </tbody>
+      </table>
+     </div>
+
+     <div style={{marginTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'12px',color:'#64748b',flexWrap:'wrap',gap:'8px'}}>
+      <div>
+       ℹ️ <strong>শর্তাবলী:</strong> প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দ এই ভোটার তালিকায় অন্তর্ভুক্ত।
+      </div>
+      <div style={{display:'flex',gap:'8px'}}>
+       <button className="mini" type="button" onClick={printTeacherVoterList}>🖨️ প্রিন্ট করুন</button>
+       <button className="mini" type="button" onClick={exportTeacherVoterCSV}>📥 CSV এক্সপোর্ট</button>
+      </div>
+     </div>
+    </div>
+   )}
  </div>;
 }
 
