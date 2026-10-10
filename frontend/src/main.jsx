@@ -2781,6 +2781,15 @@ function StaffPanel({sub}){
        >
          💻 আইসিটি প্রশিক্ষণ
        </button>
+       <button 
+         type="button" 
+         className="mini" 
+         style={{background:'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(2,132,199,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })}
+         title="কর্মকালীন প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
+       >
+         📚 কর্মকালীন প্রশিক্ষণ
+       </button>
       </div>
      )}
      <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
