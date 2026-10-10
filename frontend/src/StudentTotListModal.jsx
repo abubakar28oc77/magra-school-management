@@ -33,6 +33,24 @@ export function parseNum(val, fallback = 0) {
 // Default clean student avatar for cases where photo_url is not set
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='%2394a3b8'%3E%3Ccircle cx='40' cy='30' r='18'/%3E%3Cpath d='M14 70 C14 52 26 48 40 48 C54 48 66 52 66 70 Z'/%3E%3C/svg%3E";
 
+
+export function getStudentGroupPriority(s) {
+  if (!s) return 99;
+  const g = [
+    s.department,
+    s.group_name,
+    s.group,
+    s.section,
+    s.student_id,
+    s.id
+  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+
+  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 1;
+  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 2;
+  if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) return 3;
+  return 4;
+}
+
 export function StudentTotListModal({ isOpen, onClose, students = [] }) {
   const [selectedClass, setSelectedClass] = useState('10');
   const [selectedGroup, setSelectedGroup] = useState('');
@@ -90,9 +108,20 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
       const ca = parseNum(a.class_name, 99);
       const cb = parseNum(b.class_name, 99);
       if (ca !== cb) return ca - cb;
-      const ra = parseNum(a.roll_no, 999);
-      const rb = parseNum(b.roll_no, 999);
-      return ra - rb;
+
+      // ৯ ও ১০ম শ্রেণিতে প্রথমে বিজ্ঞান বিভাগ (১), এরপর মানবিক বিভাগ (২), এরপর ব্যবসায় শিক্ষা শাখা (৩)
+      if (ca === 9 || ca === 10 || String(a.class_name).includes('9') || String(a.class_name).includes('10') || String(a.class_name).includes('৯') || String(a.class_name).includes('১০')) {
+        const pa = getStudentGroupPriority(a);
+        const pb = getStudentGroupPriority(b);
+        if (pa !== pb) return pa - pb;
+      }
+
+      // ৬ষ্ঠ থেকে ৮ম শ্রেণি এবং ৯ম-১০ম শ্রেণির প্রতিটি বিভাগের অভ্যন্তরে রোল নম্বর অনুযায়ী
+      const ra = parseNum(a.roll_no, 9999);
+      const rb = parseNum(b.roll_no, 9999);
+      if (ra !== rb) return ra - rb;
+
+      return String(a.student_id || a.name_bn || '').localeCompare(String(b.student_id || b.name_bn || ''));
     });
   }, [rawList, selectedClass, selectedGroup, selectedSection, searchQuery]);
 
