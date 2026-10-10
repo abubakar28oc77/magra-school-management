@@ -33,6 +33,7 @@ import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQuery
 import {StudentTotListModal} from './StudentTotListModal';
 import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
 import {StudentProfessionQueryModal, ALL_PROFESSIONS_LIST, matchesStudentProfession} from './StudentProfessionQueryModal';
+import {TeacherQueryModal} from './TeacherQueryModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -2320,6 +2321,7 @@ function StaffPanel({sub}){
  const [customFieldValue,setCustomFieldValue]=useState('');
  const [voterSearch, setVoterSearch] = useState('');
  const [voterRemarks, setVoterRemarks] = useState({});
+ const [teacherQueryModal, setTeacherQueryModal] = useState({ isOpen: false, mode: 'education' });
 
  const isExcludedVoter = (t) => {
    if (!t) return true;
@@ -2750,6 +2752,37 @@ function StaffPanel({sub}){
       <span className="eyebrow">DIRECTORY • V91</span>
       <h2>{isTeacher?'শিক্ষকবৃন্দের তালিকা':'কর্মচারীর তালিকা'}</h2>
      </div>
+     {isTeacher && (
+      <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap',margin:'4px 0'}}>
+       <button 
+         type="button" 
+         className="mini" 
+         style={{background:'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(79,70,229,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })}
+         title="শিক্ষাগত যোগ্যতা (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
+       >
+         🎓 শিক্ষাগত যোগ্যতা
+       </button>
+       <button 
+         type="button" 
+         className="mini" 
+         style={{background:'linear-gradient(135deg, #0d9488 0%, #059669 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(13,148,136,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })}
+         title="পেশাগত ডিগ্রী (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
+       >
+         📜 পেশাগত ডিগ্রী
+       </button>
+       <button 
+         type="button" 
+         className="mini" 
+         style={{background:'linear-gradient(135deg, #d97706 0%, #b45309 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(217,119,6,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })}
+         title="আইসিটি প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
+       >
+         💻 আইসিটি প্রশিক্ষণ
+       </button>
+      </div>
+     )}
      <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
       <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('form');}}>➕ {isTeacher?'নতুন শিক্ষক এন্ট্রি':'নতুন কর্মচারী এন্ট্রি'}</button>
       <span>{(list||[]).length} জন</span>
@@ -2944,7 +2977,14 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
      </div>
     </div>
    )}
- </div>;
+ 
+   <TeacherQueryModal
+    isOpen={teacherQueryModal.isOpen}
+    onClose={() => setTeacherQueryModal(prev => ({ ...prev, isOpen: false }))}
+    teachers={allTeachers && allTeachers.length ? allTeachers : teachers}
+    initialMode={teacherQueryModal.mode}
+   />
+</div>;
 }
 
 function SecuritySessionsPanel(){
