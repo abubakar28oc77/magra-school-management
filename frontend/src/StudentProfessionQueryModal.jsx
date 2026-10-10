@@ -253,6 +253,9 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
 
     const groupLabel = selectedGroup ? selectedGroup : 'সকল বিভাগ / শাখা';
 
+    const showFatherCol = selectedScope === 'any' || selectedScope === 'father';
+    const showMotherCol = selectedScope === 'any' || selectedScope === 'mother';
+
     const rowsHtml = filteredStudents.map((s, idx) => {
       const photoSrc = s.photo_url || DEFAULT_AVATAR;
       const fatherName = s.father_name || s.father_name_en || '—';
@@ -285,14 +288,16 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
           <td style="text-align:center;vertical-align:middle;font-size:12px;">
             ${(s.gender === 'female' || s.gender === 'ছাত্রী' || s.gender === 'নারী') ? '<span style="color:#b91c1c;font-weight:700;">ছাত্রী</span>' : '<span style="color:#1e40af;font-weight:700;">ছাত্র</span>'}
           </td>
+          ${showFatherCol ? `
           <td style="vertical-align:middle;">
             <div style="font-weight:700;font-size:12px;color:#1e293b;">${fatherName}</div>
             <div style="font-size:11px;color:#b45309;font-weight:600;background:#fef3c7;display:inline-block;padding:1px 6px;border-radius:4px;margin-top:2px;">পেশা: ${fatherProf}</div>
-          </td>
+          </td>` : ''}
+          ${showMotherCol ? `
           <td style="vertical-align:middle;">
             <div style="font-weight:700;font-size:12px;color:#1e293b;">${motherName}</div>
             <div style="font-size:11px;color:#4338ca;font-weight:600;background:#e0e7ff;display:inline-block;padding:1px 6px;border-radius:4px;margin-top:2px;">পেশা: ${motherProf}</div>
-          </td>
+          </td>` : ''}
           <td style="vertical-align:middle;font-size:11.5px;color:#334155;">
             <div>${village}</div>
           </td>
@@ -303,11 +308,14 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
       `;
     }).join('');
 
-    const topProfSummary = Object.entries(stats.fatherProfCounts)
-      .filter(([k]) => k !== 'অনির্দিষ্ট / উল্লেখ নেই')
+    const activeCounts = selectedScope === 'mother' ? stats.motherProfCounts : stats.fatherProfCounts;
+    const topProfSummary = Object.entries(activeCounts)
+      .filter(([k]) => k !== 'অনির্দিষ্ট / উল্লেখ নেই' && k !== 'গৃহিনী / উল্লেখ নেই')
       .slice(0, 6)
       .map(([k, v]) => `<b>${k}:</b> ${v} জন`)
       .join(' | ');
+
+    const colCount = 9 + (showFatherCol ? 1 : 0) + (showMotherCol ? 1 : 0);
 
     const html = `
       <!DOCTYPE html>
@@ -502,7 +510,7 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
 
         ${topProfSummary ? `
         <div style="font-size:11px;color:#475569;margin-bottom:8px;padding:3px 8px;background:#f1f5f9;border-radius:4px;">
-          📊 <b>পিতার পেশা সারাংশ:</b> ${topProfSummary}
+          📊 <b>${selectedScope === 'mother' ? 'মাতার পেশা' : 'পিতার পেশা'} সারাংশ:</b> ${topProfSummary}
         </div>
         ` : ''}
 
@@ -513,17 +521,17 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
               <th style="width:46px;">ছবি</th>
               <th style="width:38px;">রোল</th>
               <th style="width:65px;">আইডি</th>
-              <th style="width:130px;">শিক্ষার্থীর নাম</th>
-              <th style="width:65px;">শ্রেণি ও বিভাগ</th>
+              <th style="width:140px;">শিক্ষার্থীর নাম</th>
+              <th style="width:70px;">শ্রেণি ও বিভাগ</th>
               <th style="width:40px;">জেন্ডার</th>
-              <th style="width:130px;">পিতার নাম ও পেশা</th>
-              <th style="width:130px;">মাতার নাম ও পেশা</th>
+              ${showFatherCol ? '<th style="width:140px;">পিতার নাম ও পেশা</th>' : ''}
+              ${showMotherCol ? '<th style="width:140px;">মাতার নাম ও পেশা</th>' : ''}
               <th>ঠিকানা (গ্রাম)</th>
-              <th style="width:90px;">অভিভাবকের মোবাইল</th>
+              <th style="width:95px;">অভিভাবকের মোবাইল</th>
             </tr>
           </thead>
           <tbody>
-            ${rowsHtml.length ? rowsHtml : `<tr><td colspan="11" style="text-align:center;padding:30px;color:#64748b;font-weight:700;">নির্বাচিত শ্রেণি ও পেশার কোনো শিক্ষার্থী পাওয়া যায়নি</td></tr>`}
+            ${rowsHtml.length ? rowsHtml : `<tr><td colspan="${colCount}" style="text-align:center;padding:30px;color:#64748b;font-weight:700;">নির্বাচিত শ্রেণি ও পেশার কোনো শিক্ষার্থী পাওয়া যায়নি</td></tr>`}
           </tbody>
         </table>
 
@@ -556,6 +564,9 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
       return;
     }
 
+    const showFatherCol = selectedScope === 'any' || selectedScope === 'father';
+    const showMotherCol = selectedScope === 'any' || selectedScope === 'mother';
+
     const headers = [
       'ক্র.নং',
       'Student ID',
@@ -567,12 +578,8 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
       'শাখা',
       'লিঙ্গ',
       'ধর্ম',
-      'পিতার নাম',
-      'পিতার পেশা',
-      'পিতার মোবাইল',
-      'মাতার নাম',
-      'মাতার পেশা',
-      'মাতার মোবাইল',
+      ...(showFatherCol ? ['পিতার নাম', 'পিতার পেশা', 'পিতার মোবাইল'] : []),
+      ...(showMotherCol ? ['মাতার নাম', 'মাতার পেশা', 'মাতার মোবাইল'] : []),
       'অভিভাবকের নাম',
       'অভিভাবকের সম্পর্ক',
       'অভিভাবকের মোবাইল',
@@ -593,12 +600,8 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
       s.section || '',
       s.gender || '',
       s.religion || 'ইসলাম',
-      s.father_name || '',
-      s.father_profession || '',
-      s.father_mobile || '',
-      s.mother_name || '',
-      s.mother_profession || '',
-      s.mother_mobile || '',
+      ...(showFatherCol ? [s.father_name || '', s.father_profession || '', s.father_mobile || ''] : []),
+      ...(showMotherCol ? [s.mother_name || '', s.mother_profession || '', s.mother_mobile || ''] : []),
       s.guardian_name || '',
       s.guardian_relation || '',
       s.guardian_phone || '',
@@ -624,6 +627,9 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
   };
 
   if (!isOpen) return null;
+
+  const showFatherCol = selectedScope === 'any' || selectedScope === 'father';
+  const showMotherCol = selectedScope === 'any' || selectedScope === 'mother';
 
   return (
     <div style={{
@@ -807,13 +813,13 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
               style={{
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: '1.5px solid #cbd5e1',
+                border: '1.5px solid #2563eb',
                 fontWeight: 700,
                 color: '#1e3a8a',
                 fontSize: '13px',
                 backgroundColor: '#eff6ff',
                 cursor: 'pointer',
-                minWidth: '150px'
+                minWidth: '160px'
               }}
             >
               <option value="any">👨‍👩‍👧‍👦 পিতা বা মাতা (উভয়)</option>
@@ -977,9 +983,11 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
           <div style={{ height: '16px', width: '1px', backgroundColor: '#bfdbfe' }} />
 
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600 }}>শীর্ষ পিতার পেশা:</span>
-            {Object.entries(stats.fatherProfCounts)
-              .filter(([k]) => k !== 'অনির্দিষ্ট / উল্লেখ নেই')
+            <span style={{ fontSize: '11.5px', color: '#475569', fontWeight: 600 }}>
+              {selectedScope === 'mother' ? 'শীর্ষ মাতার পেশা:' : 'শীর্ষ পিতার পেশা:'}
+            </span>
+            {Object.entries(selectedScope === 'mother' ? stats.motherProfCounts : stats.fatherProfCounts)
+              .filter(([k]) => k !== 'অনির্দিষ্ট / উল্লেখ নেই' && k !== 'গৃহিনী / উল্লেখ নেই')
               .slice(0, 5)
               .map(([cat, count]) => (
                 <span
@@ -1044,8 +1052,8 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
                     <th style={{ padding: '10px 12px' }}>শিক্ষার্থীর নাম</th>
                     <th style={{ padding: '10px 10px', textAlign: 'center', width: '85px' }}>শ্রেণি/গ্রুপ</th>
                     <th style={{ padding: '10px 10px', textAlign: 'center', width: '65px' }}>জেন্ডার</th>
-                    <th style={{ padding: '10px 12px' }}>পিতার নাম ও পেশা</th>
-                    <th style={{ padding: '10px 12px' }}>মাতার নাম ও পেশা</th>
+                    {showFatherCol && <th style={{ padding: '10px 12px' }}>পিতার নাম ও পেশা</th>}
+                    {showMotherCol && <th style={{ padding: '10px 12px' }}>মাতার নাম ও পেশা</th>}
                     <th style={{ padding: '10px 12px' }}>ঠিকানা (গ্রাম)</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center', width: '110px' }}>মোবাইল নম্বর</th>
                   </tr>
@@ -1121,36 +1129,40 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
                             {isFemale ? 'ছাত্রী' : 'ছাত্র'}
                           </span>
                         </td>
-                        <td style={{ padding: '8px 12px' }}>
-                          <div style={{ fontWeight: 700, color: '#1e293b' }}>{fatherName}</div>
-                          <div style={{
-                            display: 'inline-block',
-                            backgroundColor: '#fef3c7',
-                            color: '#92400e',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            marginTop: '2px'
-                          }}>
-                            💼 {fatherProf}
-                          </div>
-                        </td>
-                        <td style={{ padding: '8px 12px' }}>
-                          <div style={{ fontWeight: 700, color: '#1e293b' }}>{motherName}</div>
-                          <div style={{
-                            display: 'inline-block',
-                            backgroundColor: '#e0e7ff',
-                            color: '#4338ca',
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            marginTop: '2px'
-                          }}>
-                            💼 {motherProf}
-                          </div>
-                        </td>
+                        {showFatherCol && (
+                          <td style={{ padding: '8px 12px' }}>
+                            <div style={{ fontWeight: 700, color: '#1e293b' }}>{fatherName}</div>
+                            <div style={{
+                              display: 'inline-block',
+                              backgroundColor: '#fef3c7',
+                              color: '#92400e',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              marginTop: '2px'
+                            }}>
+                              💼 {fatherProf}
+                            </div>
+                          </td>
+                        )}
+                        {showMotherCol && (
+                          <td style={{ padding: '8px 12px' }}>
+                            <div style={{ fontWeight: 700, color: '#1e293b' }}>{motherName}</div>
+                            <div style={{
+                              display: 'inline-block',
+                              backgroundColor: '#e0e7ff',
+                              color: '#4338ca',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              marginTop: '2px'
+                            }}>
+                              💼 {motherProf}
+                            </div>
+                          </td>
+                        )}
                         <td style={{ padding: '8px 12px', fontSize: '12px', color: '#475569' }}>
                           {village}
                         </td>
@@ -1229,18 +1241,22 @@ export function StudentProfessionQueryModal({ isOpen, onClose, students = [] }) 
                       flexDirection: 'column',
                       gap: '6px'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b' }}>পিতার পেশা:</span>
-                        <span style={{ fontWeight: 700, color: '#92400e', background: '#fef3c7', padding: '1px 6px', borderRadius: '4px' }}>
-                          {fatherProf} ({fatherName})
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#64748b' }}>মাতার পেশা:</span>
-                        <span style={{ fontWeight: 700, color: '#4338ca', background: '#e0e7ff', padding: '1px 6px', borderRadius: '4px' }}>
-                          {motherProf} ({motherName})
-                        </span>
-                      </div>
+                      {showFatherCol && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#64748b' }}>পিতার পেশা:</span>
+                          <span style={{ fontWeight: 700, color: '#92400e', background: '#fef3c7', padding: '1px 6px', borderRadius: '4px' }}>
+                            {fatherProf} ({fatherName})
+                          </span>
+                        </div>
+                      )}
+                      {showMotherCol && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#64748b' }}>মাতার পেশা:</span>
+                          <span style={{ fontWeight: 700, color: '#4338ca', background: '#e0e7ff', padding: '1px 6px', borderRadius: '4px' }}>
+                            {motherProf} ({motherName})
+                          </span>
+                        </div>
+                      )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ color: '#64748b' }}>মোবাইল:</span>
                         <span style={{ fontWeight: 700, color: '#047857', fontFamily: 'monospace' }}>
