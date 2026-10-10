@@ -927,12 +927,6 @@ function handleMockRequest(path, opts = {}) {
         return val && String(val).toLowerCase().includes(customVal);
       });
     }
-    teachers.sort((a, b) => {
-      const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
-      const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
-      if (numA && numB && numA !== numB) return numA - numB;
-      return 0;
-    });
     return sortPeopleByEmployeeId(teachers);
   }
 

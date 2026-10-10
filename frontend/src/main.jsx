@@ -574,14 +574,7 @@ function Home(){
    return isAct && !isPresident && !isStaff;
   });
 
-  filtered.sort((a, b) => {
-   const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
-   const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
-   if (numA && numB && numA !== numB) return numA - numB;
-   return 0;
-  });
-
-  return filtered;
+  return sortPeopleByEmployeeId(filtered);
  },[teachersList]);
 
  const loopedTeachers=[...activeTeachersToRoll,...activeTeachersToRoll];
@@ -751,6 +744,9 @@ function Home(){
          <div>
           <div className="rolling-teacher-avatar-wrap">
            <img src={getTeacherPhoto(t)} alt={t.name_bn||t.name_en} className="rolling-teacher-avatar-img"/>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginBottom: '2px' }}>
+            <span style={{ background: '#1d4ed8', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>Employee ID: {t.employee_id}</span>
           </div>
           <h3>{t.name_bn||t.name_en}</h3>
           <div className="rolling-teacher-desig">{t.designation||'সহকারী শিক্ষক'}</div>

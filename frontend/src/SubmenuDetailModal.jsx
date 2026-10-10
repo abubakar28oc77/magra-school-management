@@ -1,4 +1,27 @@
 
+function parseEmployeeIdNum(raw) {
+  if (!raw) return 999999;
+  const s = String(raw).trim();
+  const bnMap = { '০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9' };
+  const converted = s.replace(/[০-৯]/g, d => bnMap[d] || d);
+  const digits = converted.replace(/\D/g, '');
+  if (digits) {
+    const n = parseInt(digits, 10);
+    if (!isNaN(n)) return n;
+  }
+  return 999999;
+}
+
+function sortPeopleByEmployeeId(list = []) {
+  if (!Array.isArray(list)) return [];
+  return [...list].sort((a, b) => {
+    const na = parseEmployeeIdNum(a?.employee_id || a?.id);
+    const nb = parseEmployeeIdNum(b?.employee_id || b?.id);
+    if (na !== nb) return na - nb;
+    return String(a?.employee_id || a?.name_bn || '').localeCompare(String(b?.employee_id || b?.name_bn || ''), undefined, { numeric: true });
+  });
+}
+
 function getStudentGroupPriority(s) {
   if (!s) return 99;
   const g = [
@@ -715,7 +738,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
       } catch {}
       const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
-      const listToDisplay = rawList.filter(t => {
+      let listToDisplay = rawList.filter(t => {
         if (!t) return false;
         const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
         const desig = (t.designation || '').toLowerCase();
@@ -726,12 +749,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         return isAct && !isPresident && !isStaff;
       });
 
-      listToDisplay.sort((a, b) => {
-        const numA = parseInt(String(a.employee_id || a.id || '').replace(/\D/g, '')) || 0;
-        const numB = parseInt(String(b.employee_id || b.id || '').replace(/\D/g, '')) || 0;
-        if (numA && numB && numA !== numB) return numA - numB;
-        return 0;
-      });
+      listToDisplay = sortPeopleByEmployeeId(listToDisplay);
 
       return (
         <div className="submenu-content">
@@ -744,7 +762,10 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                   <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
                 <div>
-                  <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                    <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>Employee ID: {t.employee_id}</span>
+                    <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
+                  </div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1d4ed8', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}{t.subject ? ` (${t.subject})` : ''}</p>
                   {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
                 </div>
