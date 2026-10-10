@@ -1127,7 +1127,20 @@ function sortStudentsList(list) {
   });
 }
 
-const emptyStudent={student_id:'',roll_no:'',name_bn:'',name_en:'',class_name:'6',group_name:'',group:'',section:'',gender:'',date_of_birth:'',blood_group:'',religion:'ইসলাম',father_name:'',father_name_en:'',father_nid_no:'',father_profession:'',father_mobile:'',father_abroad_country:'',mother_name:'',mother_name_en:'',mother_nid_no:'',mother_profession:'',mother_mobile:'',mother_death_year:'',guardian_name:'',guardian_name_en:'',guardian_nid_no:'',guardian_relation:'',guardian_phone:'',guardian_email:'',address:'',current_village:'',current_post_office:'',current_upazila:'',current_district:'',permanent_village:'',permanent_post_office:'',permanent_upazila:'',permanent_district:'',admission_date:'',admission_class:'6',admission_group:'',previous_school:'',birth_registration_no:'',student_nid_no:'',primary_school_name:'',primary_registration_no:'',primary_completion_year:'',emergency_phone:'',photo_url:'',special_needs:'',additional_notes:'',status:'active',extended_profile:{}};
+const DISABILITY_OPTIONS = [
+  'অটিস্টিক',
+  'শারীরিক প্রতিবন্ধিতা',
+  'মানসিক অসুস্থতাজনিত প্রতিবন্ধিতা',
+  'দৃষ্টি প্রতিবন্ধিতা',
+  'বাক প্রতিবন্ধিতা',
+  'বুদ্ধি প্রতিবন্ধিতা',
+  'শ্রবণ প্রতিবন্ধিতা',
+  'শ্রবণ-দৃষ্টি প্রতিবন্ধিতা',
+  'ডাউন সিন্ড্রোম',
+  'অন্যান্য'
+];
+
+const emptyStudent={student_id:'',roll_no:'',name_bn:'',name_en:'',class_name:'6',group_name:'',group:'',section:'',gender:'',date_of_birth:'',blood_group:'',religion:'ইসলাম',is_special_needs:'না',disability_type:'',father_name:'',father_name_en:'',father_nid_no:'',father_profession:'',father_mobile:'',father_abroad_country:'',mother_name:'',mother_name_en:'',mother_nid_no:'',mother_profession:'',mother_mobile:'',mother_death_year:'',guardian_name:'',guardian_name_en:'',guardian_nid_no:'',guardian_relation:'',guardian_phone:'',guardian_email:'',address:'',current_village:'',current_post_office:'',current_upazila:'',current_district:'',permanent_village:'',permanent_post_office:'',permanent_upazila:'',permanent_district:'',admission_date:'',admission_class:'6',admission_group:'',previous_school:'',birth_registration_no:'',student_nid_no:'',primary_school_name:'',primary_registration_no:'',primary_completion_year:'',emergency_phone:'',photo_url:'',special_needs:'',additional_notes:'',status:'active',extended_profile:{}};
 
 function StudentPanel({sub}){
  const { lang } = useLanguage();
@@ -1706,11 +1719,22 @@ function StudentPanel({sub}){
 
  const save=async e=>{
   e.preventDefault();
+  if (form.is_special_needs === 'হ্যাঁ' && !form.disability_type) {
+    setMsg('অনুগ্রহ করে বিশেষ চাহিদাসম্পন্ন শিক্ষার্থীর প্রতিবন্ধিতার ধরন নির্বাচন করুন');
+    setStep(0);
+    return;
+  }
   setMsg('সংরক্ষণ হচ্ছে...');
   try{
    const method=editing?'PUT':'POST';
    const path=editing?`/students/${editing}`:'/students';
-   await api(path,{method,body:JSON.stringify(form)});
+   const payload = {
+     ...form,
+     is_special_needs: form.is_special_needs || 'না',
+     disability_type: form.is_special_needs === 'হ্যাঁ' ? form.disability_type : '',
+     special_needs: form.is_special_needs === 'হ্যাঁ' ? (form.disability_type || form.special_needs || 'হ্যাঁ') : ''
+   };
+   await api(path,{method,body:JSON.stringify(payload)});
    setMsg(editing?'শিক্ষার্থী তথ্য আপডেট হয়েছে':'নতুন শিক্ষার্থী সংরক্ষিত হয়েছে');
    setEditing(null);
    setForm({...emptyStudent,extended_profile:{education:[]}});
@@ -1721,7 +1745,17 @@ function StudentPanel({sub}){
 
  const edit=s=>{
   setEditing(s.id);
-  setForm({...emptyStudent,...s,admission_date:s.admission_date?.slice(0,10)||'',date_of_birth:s.date_of_birth?.slice(0,10)||'',extended_profile:s.extended_profile||{education:[]}});
+  const isSpecial = s.is_special_needs ? s.is_special_needs : (s.disability_type || (s.special_needs && s.special_needs !== 'না') ? 'হ্যাঁ' : 'না');
+  const disType = s.disability_type || (isSpecial === 'হ্যাঁ' ? (s.special_needs || '') : '');
+  setForm({
+    ...emptyStudent,
+    ...s,
+    is_special_needs: isSpecial,
+    disability_type: disType,
+    admission_date: s.admission_date?.slice(0,10)||'',
+    date_of_birth: s.date_of_birth?.slice(0,10)||'',
+    extended_profile: s.extended_profile||{education:[]}
+  });
   setStep(0);
   setView('form');
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1880,7 +1914,61 @@ function StudentPanel({sub}){
      {['প্রাথমিক','পিতা-মাতা','ঠিকানা','অভিভাবক','ভর্তি ও শিক্ষা'].map((st,idx)=><button key={st} type="button" className={'wizard-step '+(step===idx?'active':step>idx?'completed':'')} onClick={()=>setStep(idx)}>{idx+1}. {st}</button>)}
     </div>
     <form onSubmit={save} className="form-grid">
-     {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div><div className="field"><label>Student ID *</label><input value={form.student_id} onChange={e=>change('student_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>শ্রেণি *</label><select value={form.class_name} onChange={e=>change('class_name',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>বিভাগ {['9','10','৯','১০'].includes(String(form.class_name).trim())?'* (৯ম/১০ম শ্রেণির জন্য)':'(৯ম ও ১০ম শ্রেণির জন্য)'}</label><select value={form.group_name||form.group||''} onChange={e=>{change('group_name',e.target.value);change('group',e.target.value)}} style={{borderColor:['9','10','৯','১০'].includes(String(form.class_name).trim())?'#16a34a':undefined,fontWeight:['9','10','৯','১০'].includes(String(form.class_name).trim())?600:'normal'}}><option value="">{['9','10','৯','১০'].includes(String(form.class_name).trim())?'বিভাগ নির্বাচন করুন *':'প্রযোজ্য নয় / সাধারণ (৬ষ্ঠ-৮ম)'}</option><option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option><option value="মানবিক বিভাগ">মানবিক বিভাগ</option><option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option></select></div><div className="field"><label>রোল নম্বর</label><input type="number" value={form.roll_no} onChange={e=>change('roll_no',e.target.value)}/></div><div className="field"><label> শাখা</label><input value={form.section} onChange={e=>change('section',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.date_of_birth} onChange={e=>change('date_of_birth',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><select value={form.religion||'ইসলাম'} onChange={e=>change('religion',e.target.value)}><option value="ইসলাম">ইসলাম</option><option value="হিন্দু">হিন্দু</option><option value="বৌদ্ধ">বৌদ্ধ</option><option value="খ্রিষ্টান">খ্রিষ্টান</option><option value="অন্যান্য">অন্যান্য</option></select></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no} onChange={e=>change('birth_registration_no',e.target.value)}/></div></>}
+     {step===0&&<>
+       <div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div>
+       <div className="field"><label>Student ID *</label><input value={form.student_id} onChange={e=>change('student_id',e.target.value)} required disabled={!!editing}/></div>
+       <div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn} onChange={e=>change('name_bn',e.target.value)} required/></div>
+       <div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en} onChange={e=>change('name_en',e.target.value)}/></div>
+       <div className="field"><label>শ্রেণি *</label><select value={form.class_name} onChange={e=>change('class_name',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div>
+       <div className="field"><label>বিভাগ {['9','10','৯','১০'].includes(String(form.class_name).trim())?'* (৯ম/১০ম শ্রেণির জন্য)':'(৯ম ও ১০ম শ্রেণির জন্য)'}</label><select value={form.group_name||form.group||''} onChange={e=>{change('group_name',e.target.value);change('group',e.target.value)}} style={{borderColor:['9','10','৯','১০'].includes(String(form.class_name).trim())?'#16a34a':undefined,fontWeight:['9','10','৯','১০'].includes(String(form.class_name).trim())?600:'normal'}}><option value="">{['9','10','৯','১০'].includes(String(form.class_name).trim())?'বিভাগ নির্বাচন করুন *':'প্রযোজ্য নয় / সাধারণ (৬ষ্ঠ-৮ম)'}</option><option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option><option value="মানবিক বিভাগ">মানবিক বিভাগ</option><option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option></select></div>
+       <div className="field"><label>রোল নম্বর</label><input type="number" value={form.roll_no} onChange={e=>change('roll_no',e.target.value)}/></div>
+       <div className="field"><label> শাখা</label><input value={form.section} onChange={e=>change('section',e.target.value)}/></div>
+       <div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.date_of_birth} onChange={e=>change('date_of_birth',e.target.value)}/></div>
+       <div className="field"><label>লিঙ্গ</label><select value={form.gender} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div>
+       <div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group} onChange={e=>change('blood_group',e.target.value)}/></div>
+       <div className="field"><label>ধর্ম</label><select value={form.religion||'ইসলাম'} onChange={e=>change('religion',e.target.value)}><option value="ইসলাম">ইসলাম</option><option value="হিন্দু">হিন্দু</option><option value="বৌদ্ধ">বৌদ্ধ</option><option value="খ্রিষ্টান">খ্রিষ্টান</option><option value="অন্যান্য">অন্যান্য</option></select></div>
+       <div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no} onChange={e=>change('birth_registration_no',e.target.value)}/></div>
+       <div className="field">
+         <label>বিশেষ চাহিদাসম্পন্ন কিনা</label>
+         <select
+           value={form.is_special_needs || 'না'}
+           onChange={e=>{
+             const val=e.target.value;
+             change('is_special_needs',val);
+             if(val!=='হ্যাঁ'){
+               change('disability_type','');
+               change('special_needs','');
+             }
+           }}
+           style={{borderColor: form.is_special_needs === 'হ্যাঁ' ? '#0284c7' : undefined, fontWeight: form.is_special_needs === 'হ্যাঁ' ? 600 : 'normal'}}
+         >
+           <option value="না">না</option>
+           <option value="হ্যাঁ">হ্যাঁ</option>
+         </select>
+       </div>
+       <div className="field">
+         <label>প্রতিবন্ধিতার ধরন {form.is_special_needs === 'হ্যাঁ' ? <span style={{color:'#dc2626'}}>* (আবশ্যক)</span> : <span style={{color:'#94a3b8',fontSize:'11px'}}>(হ্যাঁ হলে প্রযোজ্য)</span>}</label>
+         <select
+           value={form.disability_type || ''}
+           onChange={e=>{
+             const val=e.target.value;
+             change('disability_type',val);
+             change('special_needs',val);
+           }}
+           disabled={form.is_special_needs !== 'হ্যাঁ'}
+           required={form.is_special_needs === 'হ্যাঁ'}
+           style={{
+             borderColor: form.is_special_needs === 'হ্যাঁ' ? (!form.disability_type ? '#f59e0b' : '#16a34a') : undefined,
+             backgroundColor: form.is_special_needs === 'হ্যাঁ' ? '#f0f9ff' : '#f8fafc',
+             color: form.is_special_needs === 'হ্যাঁ' ? '#0f172a' : '#94a3b8',
+             cursor: form.is_special_needs === 'হ্যাঁ' ? 'pointer' : 'not-allowed'
+           }}
+         >
+           <option value="">{form.is_special_needs === 'হ্যাঁ' ? 'প্রতিবন্ধিতার ধরন নির্বাচন করুন *' : 'প্রযোজ্য নয় (না নির্বাচিত)'}</option>
+           {DISABILITY_OPTIONS.map(d=><option key={d} value={d}>{d}</option>)}
+         </select>
+       </div>
+     </>}
      {step===1&&<>
         <div className="form-section-title full"><b>পিতা ও মাতার বিবরণ</b></div>
         <div className="field"><label>পিতার নাম (বাংলা)</label><input value={form.father_name||''} onChange={e=>change('father_name',e.target.value)}/></div>
@@ -1921,7 +2009,14 @@ function StudentPanel({sub}){
      <div className="form-actions full">
       <button type="button" className="mini" onClick={()=>setForm({...emptyStudent,extended_profile:{education:[]}})}>↺ ফর্ম রিসেট</button>
       {step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}
-      {step<4?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}</button>}
+      {step<4?<button type="button" className="btn" onClick={()=>{
+        if(step===0 && form.is_special_needs==='হ্যাঁ' && !form.disability_type){
+          setMsg('অনুগ্রহ করে বিশেষ চাহিদাসম্পন্ন শিক্ষার্থীর প্রতিবন্ধিতার ধরন নির্বাচন করুন');
+          return;
+        }
+        setMsg('');
+        setStep(step+1);
+      }}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}</button>}
      </div>
     </form>
     {msg&&<p className="msg" role="status">{msg}</p>}
