@@ -8,7 +8,7 @@ import {requestApi} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
-import {StudentAgeQueryModal, calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
+import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
 import {
   MOCK_USERS,
@@ -1149,7 +1149,6 @@ function StudentPanel({sub}){
  const [customFieldValue,setCustomFieldValue]=useState('');
  const [importing,setImporting]=useState(false);
  const [importMsg,setImportMsg]=useState('');
- const [showAgeModal,setShowAgeModal]=useState(false);
  const [showTotListModal,setShowTotListModal]=useState(false);
  const [ageFilter,setAgeFilter]=useState('');
   const [sameAddress,setSameAddress]=useState(false);
@@ -1932,9 +1931,6 @@ function StudentPanel({sub}){
       <button className="mini" type="button" onClick={()=>printStudentReport()} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
         🖨️ প্রিন্ট / PDF রিপোর্ট
       </button>
-      <button className="mini" type="button" onClick={()=>setShowAgeModal(true)} style={{background:'#f5f3ff',border:'1.5px solid #7c3aed',color:'#7c3aed',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(124,58,237,0.15)'}}>
-        🎂 বয়স ভিত্তিক কুয়েরি
-      </button>
       <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
         📑 শ্রেণি ভিত্তিক টট লিস্ট
       </button>
@@ -2004,7 +2000,6 @@ function StudentPanel({sub}){
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
      <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
-     <button type="button" className="mini" onClick={()=>setShowAgeModal(true)} style={{background:'#7c3aed',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(124,58,237,0.2)'}}>🎂 বয়স ভিত্তিক কুয়েরি</button>
      <button type="button" className="mini" onClick={()=>setShowTotListModal(true)} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📑 শ্রেণি ভিত্তিক টট লিস্ট</button>
     </div>
     <div className="table-wrap">
@@ -2066,7 +2061,6 @@ function StudentPanel({sub}){
     </div>
    </div>
   )}
-    <StudentAgeQueryModal isOpen={showAgeModal} onClose={()=>setShowAgeModal(false)} students={students}/>
    <StudentTotListModal isOpen={showTotListModal} onClose={()=>setShowTotListModal(false)} students={students}/>
  </div>;
 }
