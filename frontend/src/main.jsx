@@ -3357,14 +3357,14 @@ function VoterListPanel({ onBack }){
       <table class="voter-table">
         <thead>
           <tr>
-            <th style="width:75px">${h('১ম কলাম<br>ভোটার নং', 'Col 1<br>Voter No.')}</th>
-            <th style="width:160px">${h('২য় কলাম<br>ভোটারের নাম', 'Col 2<br>Voter Name')}</th>
-            <th style="width:160px">${h('৩য় কলাম<br>শিক্ষার্থীর নাম', 'Col 3<br>Student Name')}</th>
-            <th style="width:100px">${h('৪র্থ কলাম<br>শ্রেণি রোল নং', 'Col 4<br>Class Roll No.')}</th>
-            <th style="width:110px">${h('৫ম কলাম<br>বিভাগ', 'Col 5<br>Department')}</th>
-            <th style="width:130px">${h('৬ষ্ঠ কলাম<br>গ্রাম', 'Col 6<br>Village')}</th>
-            <th style="width:100px">${h('৭ম কলাম<br>উপজেলা', 'Col 7<br>Upazila')}</th>
-            <th style="width:90px">${h('৮ম কলাম<br>জেলা', 'Col 8<br>District')}</th>
+            <th style="width:75px">${h('ভোটার নং', 'Voter No.')}</th>
+            <th style="width:160px">${h('ভোটারের নাম', 'Voter Name')}</th>
+            <th style="width:160px">${h('শিক্ষার্থীর নাম', 'Student Name')}</th>
+            <th style="width:100px">${h('শ্রেণি রোল নং', 'Class Roll No.')}</th>
+            <th style="width:110px">${h('বিভাগ', 'Department')}</th>
+            <th style="width:130px">${h('গ্রাম', 'Village')}</th>
+            <th style="width:100px">${h('উপজেলা', 'Upazila')}</th>
+            <th style="width:90px">${h('জেলা', 'District')}</th>
           </tr>
         </thead>
         <tbody>
@@ -3435,14 +3435,14 @@ function VoterListPanel({ onBack }){
 
   const exportCSV = () => {
     const headers = [
-      '১ম কলাম: ভোটার নং',
-      '২য় কলাম: ভোটারের নাম',
-      '৩য় কলাম: শিক্ষার্থীর নাম',
-      '৪র্থ কলাম: শ্রেণি রোল নং',
-      '৫ম কলাম: বিভাগ',
-      '৬ষ্ঠ কলাম: গ্রাম',
-      '৭ম কলাম: উপজেলা',
-      '৮ম কলাম: জেলা'
+      'ভোটার নং',
+      'ভোটারের নাম',
+      'শিক্ষার্থীর নাম',
+      'শ্রেণি রোল নং',
+      'বিভাগ',
+      'গ্রাম',
+      'উপজেলা',
+      'জেলা'
     ];
     const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
     const rowsCsv = sortedRows.map((r, idx) => [
@@ -3472,7 +3472,7 @@ function VoterListPanel({ onBack }){
         <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px' }}>
           <div>
             <span className="eyebrow">STUDENT &amp; GUARDIAN DATABASE</span>
-            <h2>🗳️ {t('শ্রেণিভিত্তিক ভোটার তালিকা (৮ কলাম)', 'Class-wise Voter List (8 Columns)')}</h2>
+            <h2>🗳️ {t('শ্রেণিভিত্তিক ভোটার তালিকা', 'Class-wise Voter List')}</h2>
           </div>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             {onBack && (
@@ -3577,7 +3577,7 @@ function VoterListPanel({ onBack }){
       <div className="table-card full" style={{ gridColumn: '1 / -1' }}>
         <div className="toolbar">
           <div>
-            <h2>{t('ভোটার তালিকা (৮টি নির্ধারিত কলাম)', 'Voter List (8 Standard Columns)')}</h2>
+            <h2>{t('ভোটার তালিকা', 'Voter List')}</h2>
             <p className="portal-muted" style={{ margin: 0, fontSize: '12px' }}>
               {selectedClass === 'all' ? t('৬ষ্ঠ থেকে ১০ম শ্রেণি', 'Classes 6-10') : `${t('শ্রেণি', 'Class')} ${selectedClass}`}
               {selectedGroup !== 'all' ? ` • ${selectedGroup === 'science' ? 'বিজ্ঞান বিভাগ' : selectedGroup === 'humanities' ? 'মানবিক বিভাগ' : 'ব্যবসায় শিক্ষা শাখা'}` : ''}
@@ -3592,15 +3592,15 @@ function VoterListPanel({ onBack }){
           <table>
             <thead>
               <tr style={{ background: '#f8fafc' }}>
-                <th style={{ width: '90px' }}>{t('১ম: ভোটার নং', 'Col 1: Voter No.')}</th>
-                <th>{t('২য়: ভোটারের নাম', 'Col 2: Voter Name')}</th>
-                <th>{t('৩য়: শিক্ষার্থীর নাম', 'Col 3: Student Name')}</th>
-                <th style={{ width: '130px', textAlign: 'center' }}>{t('৪র্থ: শ্রেণি রোল নং', 'Col 4: Class Roll')}</th>
-                <th style={{ width: '130px', textAlign: 'center' }}>{t('৫ম: বিভাগ', 'Col 5: Department')}</th>
-                <th>{t('৬ষ্ঠ: গ্রাম', 'Col 6: Village')}</th>
-                <th>{t('৭ম: উপজেলা', 'Col 7: Upazila')}</th>
-                <th>{t('৮ম: জেলা', 'Col 8: District')}</th>
-                <th style={{ width: '90px', textAlign: 'center' }}>{t('অ্যাকশন', 'Action')}</th>
+                <th style={{ width: '90px', textAlign: 'center' }}>{t('ভোটার নং', 'Voter No.')}</th>
+                <th>{t('ভোটারের নাম', 'Voter Name')}</th>
+                <th>{t('শিক্ষার্থীর নাম', 'Student Name')}</th>
+                <th style={{ width: '130px', textAlign: 'center' }}>{t('শ্রেণি রোল নং', 'Class Roll No.')}</th>
+                <th style={{ width: '130px', textAlign: 'center' }}>{t('বিভাগ', 'Department')}</th>
+                <th>{t('গ্রাম', 'Village')}</th>
+                <th>{t('উপজেলা', 'Upazila')}</th>
+                <th>{t('জেলা', 'District')}</th>
+                <th style={{ width: '90px', textAlign: 'center' }}>{t('সম্পাদনা', 'Edit')}</th>
               </tr>
             </thead>
             <tbody>
