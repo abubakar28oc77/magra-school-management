@@ -2293,9 +2293,21 @@ function StaffPanel({sub}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
  const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
 
+ const getInitialTeachers = () => {
+   try {
+     const raw = localStorage.getItem('magra_db_teachers');
+     if (raw) {
+       const parsed = JSON.parse(raw);
+       if (Array.isArray(parsed) && parsed.length) return sortPeopleByEmployeeId(parsed);
+     }
+   } catch {}
+   return Array.isArray(MOCK_TEACHERS) ? sortPeopleByEmployeeId(MOCK_TEACHERS) : [];
+ };
+
  const [tab, setTab] = useState(getInitialTab(sub));
  const [view, setView] = useState(getInitialView(sub));
- const [teachers,setTeachers]=useState([]);
+ const [teachers,setTeachers]=useState(getInitialTeachers);
+ const [allTeachers,setAllTeachers]=useState(getInitialTeachers);
  const [staff,setStaff]=useState([]);
  const [q,setQ]=useState('');
  const [status,setStatus]=useState('active');
@@ -2310,31 +2322,51 @@ function StaffPanel({sub}){
  const [voterRemarks, setVoterRemarks] = useState({});
 
  const isExcludedVoter = (t) => {
+   if (!t) return true;
    const d = (t?.designation || '').trim();
-   const dEn = (t?.designation_en || '').toLowerCase();
-   const r = (t?.public_contact_role || '').toLowerCase();
-   if (d.includes('প্রধান শিক্ষক') || d.includes('সহকারী প্রধান শিক্ষক')) return true;
-   if (dEn.includes('head teacher') || dEn.includes('assistant head') || dEn.includes('headmaster') || dEn.includes('principal')) return true;
-   if (r === 'head_teacher' || r === 'assistant_head_teacher') return true;
-   if (t?.id === 't-1' || t?.id === 't-2') return true;
+   const dEn = (t?.designation_en || '').toLowerCase().trim();
+   const r = (t?.public_contact_role || '').toLowerCase().trim();
+
+   // Exclude Head Teacher
+   if (r === 'head_teacher') return true;
+   if (d === 'প্রধান শিক্ষক' || d.startsWith('প্রধান শিক্ষক')) return true;
+   if (dEn === 'head teacher' || dEn.startsWith('head teacher') || dEn.includes('headmaster') || dEn.includes('principal')) return true;
+
+   // Exclude Assistant Head Teacher
+   if (r === 'assistant_head_teacher') return true;
+   if (d.includes('সহকারী প্রধান শিক্ষক') || d.includes('সহ: প্রধান শিক্ষক') || d.includes('সহ-প্রধান শিক্ষক')) return true;
+   if (dEn.includes('assistant head') || dEn.includes('asst head') || dEn.includes('asst. head') || dEn.includes('assistant headmaster')) return true;
+
+   // Exclude known default seed IDs if designation matches head/asst head
+   if ((t?.id === 't-1' || t?.employee_id === '1') && (d.includes('প্রধান') || dEn.includes('head') || !d)) return true;
+   if ((t?.id === 't-2' || t?.employee_id === '2') && (d.includes('সহকারী প্রধান') || dEn.includes('assistant head') || !d)) return true;
+
    return false;
  };
 
  const voterTeachers = useMemo(() => {
-   return (teachers || []).filter(t => {
-     const status = (t.status || 'active').toLowerCase();
-     return status === 'active' && !isExcludedVoter(t);
+   const list = (allTeachers && allTeachers.length)
+     ? allTeachers
+     : (teachers && teachers.length)
+       ? teachers
+       : getInitialTeachers();
+
+   return list.filter(t => {
+     const s = (t.status || 'active').toLowerCase().trim();
+     const isActive = s === 'active' || s === 'সক্রিয়' || !s;
+     return isActive && !isExcludedVoter(t);
    });
- }, [teachers]);
+ }, [allTeachers, teachers]);
 
  const filteredVoters = useMemo(() => {
    if (!voterSearch.trim()) return voterTeachers;
-   const qLower = voterSearch.toLowerCase();
+   const qLower = voterSearch.toLowerCase().trim();
    return voterTeachers.filter(t => 
      (t.name_bn || '').toLowerCase().includes(qLower) ||
      (t.name_en || '').toLowerCase().includes(qLower) ||
      (t.employee_id || '').toLowerCase().includes(qLower) ||
      (t.designation || '').toLowerCase().includes(qLower) ||
+     (t.subject || '').toLowerCase().includes(qLower) ||
      (t.mpo_index_no || '').toLowerCase().includes(qLower) ||
      (t.phone || '').includes(qLower)
    );
@@ -2386,16 +2418,20 @@ function StaffPanel({sub}){
      </tr>
    </thead>
    <tbody>
-     ${printRows.map((r, idx) => `
+     ${printRows.map((r, idx) => {
+       const jDate = r.current_post_joining_date || r.joining_date || r.first_joining_date || r.appointment_date || r.extended_profile?.joining_date || '—';
+       const mpo = r.mpo_index_no || r.mpo_code || r.index_no || r.extended_profile?.mpo_index_no || '—';
+       const rem = voterRemarks[r.id] ?? r.remarks ?? ((r.status === 'active' || !r.status) ? 'যোগ্য ভোটার' : '—');
+       return `
        <tr>
          <td style="text-align:center;font-weight:700">${idx + 1}</td>
-         <td><b>${r.name_bn || '—'}</b>${r.name_en ? `<br><span style="font-size:10px;color:#475569">${r.name_en}</span>` : ''}</td>
+         <td><b>${r.name_bn || r.name || '—'}</b>${r.name_en ? `<br><span style="font-size:10px;color:#475569">${r.name_en}</span>` : ''}</td>
          <td>${r.designation || 'সহকারী শিক্ষক'}${r.subject ? ` (${r.subject})` : ''}</td>
-         <td style="text-align:center">${r.current_post_joining_date || r.joining_date || r.first_joining_date || '—'}</td>
-         <td style="text-align:center;font-weight:600">${r.mpo_index_no || '—'}</td>
-         <td style="text-align:center">${voterRemarks[r.id] || (r.status === 'active' ? 'যোগ্য ভোটার' : '—')}</td>
+         <td style="text-align:center">${jDate}</td>
+         <td style="text-align:center;font-weight:600">${mpo}</td>
+         <td style="text-align:center">${rem}</td>
        </tr>
-     `).join('')}
+     `;}).join('')}
    </tbody>
  </table>
  <div class="signature-area">
@@ -2429,13 +2465,13 @@ function StaffPanel({sub}){
    const headers = ['ভোটার নং', 'ভোটারের নাম (বাংলা)', 'ভোটারের নাম (ইংরেজি)', 'পদবী', 'মূল বিষয়', 'অত্র প্রতিষ্ঠানে যোগদানের তারিখ', 'এমপিও কোড/ইনডেক্স নম্বর', 'মন্তব্য'];
    const rows = filteredVoters.map((r, idx) => [
      idx + 1,
-     `"${(r.name_bn || '').replace(/"/g, '""')}"`,
+     `"${(r.name_bn || r.name || '').replace(/"/g, '""')}"`,
      `"${(r.name_en || '').replace(/"/g, '""')}"`,
-     `"${(r.designation || '').replace(/"/g, '""')}"`,
+     `"${(r.designation || 'সহকারী শিক্ষক').replace(/"/g, '""')}"`,
      `"${(r.subject || '').replace(/"/g, '""')}"`,
-     `"${r.current_post_joining_date || r.joining_date || r.first_joining_date || ''}"`,
-     `"${r.mpo_index_no || ''}"`,
-     `"${voterRemarks[r.id] || (r.status === 'active' ? 'যোগ্য ভোটার' : '')}"`
+     `"${r.current_post_joining_date || r.joining_date || r.first_joining_date || r.appointment_date || ''}"`,
+     `"${r.mpo_index_no || r.mpo_code || r.index_no || ''}"`,
+     `"${voterRemarks[r.id] ?? r.remarks ?? ((r.status === 'active' || !r.status) ? 'যোগ্য ভোটার' : '')}"`
    ]);
    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
    const encodedUri = encodeURI(csvContent);
@@ -2838,9 +2874,9 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
        <tbody>
         {filteredVoters.map((t, idx) => {
          const voterNo = idx + 1;
-         const joiningDate = t.current_post_joining_date || t.joining_date || t.first_joining_date || '—';
-         const mpoIndex = t.mpo_index_no || '—';
-         const remarkVal = voterRemarks[t.id] ?? (t.status === 'active' ? 'যোগ্য ভোটার' : '');
+         const joiningDate = t.current_post_joining_date || t.joining_date || t.first_joining_date || t.appointment_date || t.extended_profile?.joining_date || '—';
+         const mpoIndex = t.mpo_index_no || t.mpo_code || t.index_no || t.extended_profile?.mpo_index_no || '—';
+         const remarkVal = voterRemarks[t.id] ?? t.remarks ?? ((t.status === 'active' || !t.status) ? 'যোগ্য ভোটার' : '');
 
          return (
           <tr key={t.id} style={{borderBottom:'1px solid #e2e8f0',background:idx%2===0?'#ffffff':'#fbfcfe'}}>
