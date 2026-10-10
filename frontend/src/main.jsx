@@ -2753,11 +2753,11 @@ function StaffPanel({sub}){
       <h2>{isTeacher?'শিক্ষকবৃন্দের তালিকা':'কর্মচারীর তালিকা'}</h2>
      </div>
      {isTeacher && (
-      <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap',margin:'4px 0'}}>
+      <div style={{display:'inline-flex',gap:'8px',alignItems:'center',flexWrap:'nowrap',overflowX:'auto',maxWidth:'100%',padding:'2px 0'}}>
        <button 
          type="button" 
          className="mini" 
-         style={{background:'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(79,70,229,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         style={{background:'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(79,70,229,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })}
          title="শিক্ষাগত যোগ্যতা (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
@@ -2766,7 +2766,7 @@ function StaffPanel({sub}){
        <button 
          type="button" 
          className="mini" 
-         style={{background:'linear-gradient(135deg, #0d9488 0%, #059669 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(13,148,136,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         style={{background:'linear-gradient(135deg, #0d9488 0%, #059669 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(13,148,136,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })}
          title="পেশাগত ডিগ্রী (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
@@ -2775,7 +2775,7 @@ function StaffPanel({sub}){
        <button 
          type="button" 
          className="mini" 
-         style={{background:'linear-gradient(135deg, #d97706 0%, #b45309 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(217,119,6,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         style={{background:'linear-gradient(135deg, #d97706 0%, #b45309 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(217,119,6,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })}
          title="আইসিটি প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
@@ -2784,7 +2784,7 @@ function StaffPanel({sub}){
        <button 
          type="button" 
          className="mini" 
-         style={{background:'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',color:'#fff',fontWeight:600,padding:'7px 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(2,132,199,0.25)',display:'inline-flex',alignItems:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px'}} 
+         style={{background:'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(2,132,199,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })}
          title="কর্মকালীন প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
        >
