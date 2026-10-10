@@ -2306,7 +2306,7 @@ function StaffPanel({sub}){
  const [customFields,setCustomFields]=useState([]);
  const [customFieldKey,setCustomFieldKey]=useState('');
  const [customFieldValue,setCustomFieldValue]=useState('');
- const [voterQuery, setVoterQuery] = useState('');
+ const [voterSearch, setVoterSearch] = useState('');
  const [voterRemarks, setVoterRemarks] = useState({});
 
  const isExcludedVoter = (t) => {
@@ -2328,8 +2328,8 @@ function StaffPanel({sub}){
  }, [teachers]);
 
  const filteredVoters = useMemo(() => {
-   if (!voterQuery.trim()) return voterTeachers;
-   const qLower = voterQuery.toLowerCase();
+   if (!voterSearch.trim()) return voterTeachers;
+   const qLower = voterSearch.toLowerCase();
    return voterTeachers.filter(t => 
      (t.name_bn || '').toLowerCase().includes(qLower) ||
      (t.name_en || '').toLowerCase().includes(qLower) ||
@@ -2338,7 +2338,7 @@ function StaffPanel({sub}){
      (t.mpo_index_no || '').toLowerCase().includes(qLower) ||
      (t.phone || '').includes(qLower)
    );
- }, [voterTeachers, voterQuery]);
+ }, [voterTeachers, voterSearch]);
 
  const printTeacherVoterList = () => {
    const w = window.open('', '_blank');
