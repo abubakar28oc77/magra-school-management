@@ -11,6 +11,7 @@ import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
 import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
+import {StudentProfessionQueryModal, ALL_PROFESSIONS_LIST, matchesStudentProfession} from './StudentProfessionQueryModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -1165,7 +1166,10 @@ function StudentPanel({sub}){
  const [importMsg,setImportMsg]=useState('');
  const [showTotListModal,setShowTotListModal]=useState(false);
  const [showDisabilityQueryModal,setShowDisabilityQueryModal]=useState(false);
+ const [showProfessionQueryModal,setShowProfessionQueryModal]=useState(false);
  const [disabilityFilter,setDisabilityFilter]=useState('');
+ const [professionFilter,setProfessionFilter]=useState('');
+ const [professionScope,setProfessionScope]=useState('any');
  const [ageFilter,setAgeFilter]=useState('');
   const [sameAddress,setSameAddress]=useState(false);
   const [selectedIds,setSelectedIds]=useState([]);
@@ -1235,6 +1239,9 @@ function StudentPanel({sub}){
         if (!dt || !dt.includes(disabilityFilter)) return false;
       }
     }
+    if (professionFilter && !matchesStudentProfession(s, professionFilter, professionScope)) {
+      return false;
+    }
     if (!ageFilter || ageFilter === 'all') return true;
     return matchesAgeFilter(s, ageFilter);
   });
@@ -1254,6 +1261,7 @@ function StudentPanel({sub}){
     if (className) filterInfo.push(`শ্রেণি: শ্রেণি ${className}`);
     if (groupFilter) filterInfo.push(`বিভাগ: ${groupFilter.includes('বিজ্ঞান') ? 'বিজ্ঞান বিভাগ' : groupFilter.includes('মানবিক') ? 'মানবিক বিভাগ' : groupFilter.includes('ব্যবসায়') ? 'ব্যবসায় শিক্ষা শাখা' : groupFilter}`);
     if (disabilityFilter) filterInfo.push(`প্রতিবন্ধিতা: ${disabilityFilter === 'special_only' ? 'সকল বিশেষ চাহিদা' : disabilityFilter}`);
+    if (professionFilter) filterInfo.push(`পেশা: ${professionFilter} (${professionScope==='father'?'পিতা':professionScope==='mother'?'মাতা':'অভিভাবক'})`);
     if (religionFilter) filterInfo.push(`ধর্ম: ${religionFilter}`);
     if (genderFilter) filterInfo.push(`জেন্ডার: ${genderFilter === 'female' ? 'ছাত্রী (নারী)' : genderFilter === 'male' ? 'ছাত্র (পুরুষ)' : genderFilter}`);
     if (status) filterInfo.push(`অবস্থা: ${status === 'active' ? 'সক্রিয়' : status === 'inactive' ? 'নিষ্ক্রিয়' : status}`);
@@ -2051,6 +2059,9 @@ function StudentPanel({sub}){
       <button className="mini" type="button" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
         ♿ প্রতিবন্ধিতা কুয়েরি ও রিপোর্ট
       </button>
+      <button className="mini" type="button" onClick={()=>setShowProfessionQueryModal(true)} style={{background:'#eff6ff',border:'1.5px solid #2563eb',color:'#1d4ed8',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(37,99,235,0.15)'}}>
+        💼 অভিভাবকের পেশা কুয়েরি ও রিপোর্ট
+      </button>
       <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
         🗳️ ভোটার তালিকা
       </button>
@@ -2130,12 +2141,17 @@ function StudentPanel({sub}){
         <option value="ডাউন সিন্ড্রোম">ডাউন সিন্ড্রোম</option>
         <option value="অন্যান্য">অন্যান্য</option>
        </select>
+      <select value={professionFilter} onChange={e=>setProfessionFilter(e.target.value)} style={{fontWeight:600,color:professionFilter?'#1d4ed8':undefined,borderColor:professionFilter?'#2563eb':undefined,backgroundColor:professionFilter?'#eff6ff':undefined}}>
+         <option value="">💼 সব অভিভাবক পেশা</option>
+         {ALL_PROFESSIONS_LIST.map(p=><option key={p} value={p}>{p}</option>)}
+      </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
      <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
      <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
      <button type="button" className="mini" onClick={()=>setShowTotListModal(true)} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📑 শ্রেণি ভিত্তিক টট লিস্ট</button>
      <button type="button" className="mini" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#d97706',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(217,119,6,0.2)'}}>♿ প্রতিবন্ধিতা কুয়েরি</button>
+      <button type="button" className="mini" onClick={()=>setShowProfessionQueryModal(true)} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(37,99,235,0.2)'}}>💼 পেশা কুয়েরি</button>
      <button type="button" className="mini" onClick={()=>setView('voter')} style={{background:'#c026d3',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(192,38,211,0.2)'}}>🗳️ ভোটার তালিকা</button>
     </div>
     <div className="table-wrap">
@@ -2199,6 +2215,7 @@ function StudentPanel({sub}){
   )}
    <StudentTotListModal isOpen={showTotListModal} onClose={()=>setShowTotListModal(false)} students={students}/>
    <StudentDisabilityQueryModal isOpen={showDisabilityQueryModal} onClose={()=>setShowDisabilityQueryModal(false)} students={students}/>
+   <StudentProfessionQueryModal isOpen={showProfessionQueryModal} onClose={()=>setShowProfessionQueryModal(false)} students={students}/>
  </div>;
 }
 function AdmissionPanel({ sub }){
