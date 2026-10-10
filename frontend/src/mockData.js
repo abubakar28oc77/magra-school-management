@@ -3547,7 +3547,7 @@ export const MOCK_STUDENTS = [
 export const MOCK_TEACHERS = [
   {
     id: 't-1',
-    employee_id: 'EMP-1001',
+    employee_id: '1',
     name_bn: 'মুহাম্মদ শফিকুল ইসলাম',
     name_en: 'Muhammad Shafiqul Islam',
     designation: 'প্রধান শিক্ষক',
@@ -3563,7 +3563,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-2',
-    employee_id: 'EMP-1002',
+    employee_id: '2',
     name_bn: 'তাপসী সরকার',
     name_en: 'Tapasi Sarkar',
     designation: 'সহকারী প্রধান শিক্ষক',
@@ -3579,7 +3579,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-3',
-    employee_id: 'EMP-1003',
+    employee_id: '3',
     name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক',
     name_en: 'Muhammad Abubakar Siddique',
     designation: 'সহকারী শিক্ষক (আইসিটি)',
@@ -3595,7 +3595,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-4',
-    employee_id: 'EMP-1004',
+    employee_id: '4',
     name_bn: 'মোহাঃ মজিবর রহমান',
     name_en: 'Moha Mojibor Rahman',
     designation: 'সহকারী শিক্ষক (বাংলা)',
@@ -3610,7 +3610,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-5',
-    employee_id: 'EMP-1005',
+    employee_id: '5',
     name_bn: 'মোঃ শফিকুল ইসলাম',
     name_en: 'Md Shafiqul Islam',
     designation: 'সহকারী শিক্ষক (ইংরেজি)',
@@ -3625,7 +3625,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-6',
-    employee_id: 'EMP-1006',
+    employee_id: '6',
     name_bn: 'মোঃ জাহাঙ্গীর আলম',
     name_en: 'Md Jahangir Alam',
     designation: 'সহকারী শিক্ষক (গণিত)',
@@ -3640,7 +3640,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-7',
-    employee_id: 'EMP-1007',
+    employee_id: '7',
     name_bn: 'মোঃ আব্দুল মান্নান',
     name_en: 'Md Abdul Mannan',
     designation: 'সহকারী শিক্ষক (বিজ্ঞান)',
@@ -3655,7 +3655,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-8',
-    employee_id: 'EMP-1008',
+    employee_id: '8',
     name_bn: 'মোঃ সাইদুর রহমান',
     name_en: 'Md Saidur Rahman',
     designation: 'সহকারী শিক্ষক (সমাজবিজ্ঞান)',
@@ -3670,7 +3670,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-9',
-    employee_id: 'EMP-1009',
+    employee_id: '9',
     name_bn: 'মোছাঃ পারভীন আক্তার',
     name_en: 'Mst Parvin Akter',
     designation: 'সহকারী শিক্ষিকা (গার্হস্থ্য অর্থনীতি)',
@@ -3685,7 +3685,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-10',
-    employee_id: 'EMP-1010',
+    employee_id: '10',
     name_bn: 'মোঃ হাফিজুর রহমান',
     name_en: 'Md Hafizur Rahman',
     designation: 'সহকারী শিক্ষক (ধর্ম ও নৈতিক শিক্ষা)',
@@ -3700,7 +3700,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-11',
-    employee_id: 'EMP-1011',
+    employee_id: '11',
     name_bn: 'সুজিত কুমার পাল',
     name_en: 'Sujit Kumar Paul',
     designation: 'সহকারী শিক্ষক (চারু ও কারুকলা)',
@@ -3715,7 +3715,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-12',
-    employee_id: 'EMP-1012',
+    employee_id: '12',
     name_bn: 'মোঃ মোস্তফা কামাল',
     name_en: 'Md Mostafa Kamal',
     designation: 'সহকারী শিক্ষক (শারীরিক শিক্ষা)',
@@ -3730,7 +3730,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-13',
-    employee_id: 'EMP-1013',
+    employee_id: '13',
     name_bn: 'মোছাঃ সেলিনা আক্তার',
     name_en: 'Mst Selina Akter',
     designation: 'সহকারী শিক্ষিকা (কৃষি শিক্ষা)',
@@ -3745,7 +3745,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-14',
-    employee_id: 'EMP-1014',
+    employee_id: '14',
     name_bn: 'মোঃ রফিকুল ইসলাম',
     name_en: 'Md Rafiqul Islam',
     designation: 'সহকারী শিক্ষক (ভূগোল ও পরিবেশ)',
@@ -3760,7 +3760,7 @@ export const MOCK_TEACHERS = [
   },
   {
     id: 't-15',
-    employee_id: 'EMP-1015',
+    employee_id: '15',
     name_bn: 'মোঃ আলমগীর হোসেন',
     name_en: 'Md Alamgir Hossain',
     designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
@@ -3776,7 +3776,69 @@ export const MOCK_TEACHERS = [
   }
 ];
 
-export const MOCK_STAFF = [];
+export const MOCK_STAFF = [
+  {
+    id: 'stf-1',
+    employee_id: '1',
+    name_bn: 'মোঃ আলমগীর হোসেন',
+    name_en: 'Md Alamgir Hossain',
+    designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
+    designation_en: 'Office Assistant & Computer Operator',
+    subject: 'অফিস প্রশাসন ও হিসাব',
+    phone: '01726-223355',
+    email: 'alamgir.staff.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2016-02-15',
+    public_contact_role: 'office_assistant',
+    public_contact_enabled: true
+  },
+  {
+    id: 'stf-2',
+    employee_id: '2',
+    name_bn: 'মোঃ আনোয়ার হোসেন',
+    name_en: 'Md Anwar Hossain',
+    designation: 'অফিস সহায়ক / পিয়ন',
+    designation_en: 'Office Attendant',
+    subject: 'সাধারণ অফিস সহায়ক',
+    phone: '01727-334466',
+    email: 'anwar.staff.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2018-05-10',
+    public_contact_enabled: true
+  },
+  {
+    id: 'stf-3',
+    employee_id: '3',
+    name_bn: 'মোঃ মোবারক আলী',
+    name_en: 'Md Mobarak Ali',
+    designation: 'নিরাপত্তা প্রহরী / নৈশপ্রহরী',
+    designation_en: 'Security Guard',
+    subject: 'নিরাপত্তা ও পাহারা',
+    phone: '01728-445577',
+    email: 'mobarak.staff.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2017-03-01',
+    public_contact_enabled: true
+  },
+  {
+    id: 'stf-4',
+    employee_id: '4',
+    name_bn: 'মোছাঃ আয়েশা খাতুন',
+    name_en: 'Mst Ayesha Khatun',
+    designation: 'আয়া / পরিচ্ছন্নতাকর্মী',
+    designation_en: 'Cleaner & Caretaker',
+    subject: 'পরিচ্ছন্নতা ও সেবা',
+    phone: '01729-556688',
+    email: 'ayesha.staff.magra@gmail.com',
+    status: 'active',
+    gender: 'female',
+    joining_date: '2019-07-15',
+    public_contact_enabled: true
+  }
+];
 
 export const MOCK_COMMITTEE = [
   { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', tenure: '২০২৪–২০২৬' },

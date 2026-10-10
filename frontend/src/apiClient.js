@@ -1,3 +1,24 @@
+export function parseEmployeeIdNum(empId, fallback = 999999) {
+  if (empId === null || empId === undefined || empId === '') return fallback;
+  const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  const s = String(empId).replace(/[০-৯]/g, d => bnMap[d]);
+  const matches = s.match(/\d+/g);
+  if (matches && matches.length) {
+    const num = parseInt(matches[matches.length - 1], 10);
+    return isNaN(num) ? fallback : num;
+  }
+  return fallback;
+}
+
+export function sortPeopleByEmployeeId(list = []) {
+  return [...(list || [])].sort((a, b) => {
+    const na = parseEmployeeIdNum(a?.employee_id || a?.id);
+    const nb = parseEmployeeIdNum(b?.employee_id || b?.id);
+    if (na !== nb) return na - nb;
+    return String(a?.employee_id || a?.name_bn || '').localeCompare(String(b?.employee_id || b?.name_bn || ''), undefined, { numeric: true });
+  });
+}
+
 
 export function getStudentGroupPriority(s) {
   if (!s) return 99;
@@ -858,7 +879,7 @@ function handleMockRequest(path, opts = {}) {
       const newT = { 
         ...body,
         id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
-        employee_id: body.employee_id || ('EMP-' + String(allTeachers.length + 1).padStart(3, '0')), 
+        employee_id: body.employee_id || String(allTeachers.length + 1), 
         status: st
       };
       allTeachers.push(newT);
@@ -912,7 +933,7 @@ function handleMockRequest(path, opts = {}) {
       if (numA && numB && numA !== numB) return numA - numB;
       return 0;
     });
-    return teachers;
+    return sortPeopleByEmployeeId(teachers);
   }
 
   if (cleanPath.startsWith('/teachers/')) {
@@ -958,7 +979,7 @@ function handleMockRequest(path, opts = {}) {
       const newStf = { 
         ...body,
         id: 'stf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
-        employee_id: body.employee_id || ('STF-' + String(allStaff.length + 1).padStart(3, '0')), 
+        employee_id: body.employee_id || String(allStaff.length + 1), 
         status: st
       };
       allStaff.unshift(newStf);
@@ -966,13 +987,8 @@ function handleMockRequest(path, opts = {}) {
       return newStf;
     }
 
-    let staff = getLocalStore('staff', []).filter(s => {
-      if (!s) return false;
-      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' || 
-                     s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
-                     (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
-      return !isMock;
-    });
+    let staff = getLocalStore('staff', MOCK_STAFF);
+    const q = params.get('q')?.trim().toLowerCase();
     const st = params.get('status');
     const customKey = params.get('custom_field_key');
     const customVal = params.get('custom_field_value')?.trim().toLowerCase();
@@ -1006,7 +1022,7 @@ function handleMockRequest(path, opts = {}) {
         return val && String(val).toLowerCase().includes(customVal);
       });
     }
-    return staff;
+    return sortPeopleByEmployeeId(staff);
   }
 
   if (cleanPath.startsWith('/staff/')) {

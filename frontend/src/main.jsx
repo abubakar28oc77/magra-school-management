@@ -1,3 +1,24 @@
+export function parseEmployeeIdNum(empId, fallback = 999999) {
+  if (empId === null || empId === undefined || empId === '') return fallback;
+  const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  const s = String(empId).replace(/[০-৯]/g, d => bnMap[d]);
+  const matches = s.match(/\d+/g);
+  if (matches && matches.length) {
+    const num = parseInt(matches[matches.length - 1], 10);
+    return isNaN(num) ? fallback : num;
+  }
+  return fallback;
+}
+
+export function sortPeopleByEmployeeId(list = []) {
+  return [...(list || [])].sort((a, b) => {
+    const na = parseEmployeeIdNum(a?.employee_id || a?.id);
+    const nb = parseEmployeeIdNum(b?.employee_id || b?.id);
+    if (na !== nb) return na - nb;
+    return String(a?.employee_id || a?.name_bn || '').localeCompare(String(b?.employee_id || b?.name_bn || ''), undefined, { numeric: true });
+  });
+}
+
 import React,{useEffect,useMemo,useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {HashRouter,useNavigate,useLocation,Link} from 'react-router-dom';
@@ -2289,13 +2310,28 @@ function StaffPanel({sub}){
  const [customFields,setCustomFields]=useState([]);
  const [customFieldKey,setCustomFieldKey]=useState('');
  const [customFieldValue,setCustomFieldValue]=useState('');
- 
+
+ const getNextEmployeeId = (arr) => {
+   const max = (arr || []).reduce((acc, curr) => {
+     const n = parseEmployeeIdNum(curr?.employee_id || curr?.id);
+     return n > acc ? n : acc;
+   }, 0);
+   return String(max + 1);
+ };
+
+ const initNewForm = (t = tab) => {
+   const targetIsTeacher = t === 'teachers';
+   const targetList = targetIsTeacher ? teachers : staff;
+   const base = targetIsTeacher ? emptyTeacher : emptyStaff;
+   return { ...base, employee_id: getNextEmployeeId(targetList) };
+ };
+
  useEffect(()=>{
   if(sub==='staff_new'){
    setTab('staff');
    setView('form');
    setEditing(null);
-   setForm({...emptyStaff});
+   setForm(initNewForm('staff'));
    setStep(0);
   } else if(sub==='staff_list'||sub==='staff'||sub==='employees'){
    setTab('staff');
@@ -2304,7 +2340,7 @@ function StaffPanel({sub}){
    setTab('teachers');
    setView('form');
    setEditing(null);
-   setForm({...emptyTeacher});
+   setForm(initNewForm('teachers'));
    setStep(0);
   } else if(sub==='teachers_list'||sub==='teachers'){
    setTab('teachers');
@@ -2312,14 +2348,17 @@ function StaffPanel({sub}){
   }
  },[sub]);
 
- const isTeacher=tab==='teachers',list=isTeacher?teachers:staff,blank=isTeacher?emptyTeacher:emptyStaff;
+ const isTeacher = tab === 'teachers';
+  const rawList = isTeacher ? teachers : staff;
+  const list = useMemo(() => sortPeopleByEmployeeId(rawList), [rawList]);
+  const blank = isTeacher ? emptyTeacher : emptyStaff;
  
  const load=()=>{
   api(`/teachers?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
-   .then(data=>setTeachers(Array.isArray(data)?data:[]))
+    .then(data => setTeachers(sortPeopleByEmployeeId(Array.isArray(data) ? data : [])))
    .catch(e=>setMsg(e.message));
   api(`/staff?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
-   .then(data=>setStaff(Array.isArray(data)?data:[]))
+    .then(data => setStaff(sortPeopleByEmployeeId(Array.isArray(data) ? data : [])))
    .catch(()=>{});
  };
 
@@ -2387,7 +2426,7 @@ function StaffPanel({sub}){
    await api(editing?`/${base}/${editing}`:`/${base}`,{method:editing?'PUT':'POST',body:JSON.stringify(form)});
    setMsg(editing?'তথ্য আপডেট হয়েছে':(isTeacher?'শিক্ষক সফলভাবে যুক্ত হয়েছে':'কর্মচারী সফলভাবে যুক্ত হয়েছে'));
    setEditing(null);
-   setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});
+   setForm(initNewForm(tab));
    setStep(0);
    setView('list');
    window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
@@ -2440,7 +2479,7 @@ function StaffPanel({sub}){
   setTab(t);
   if(v) setView(v);
   setEditing(null);
-  setForm(t==='teachers'?{...emptyTeacher}:{...emptyStaff});
+  setForm(initNewForm(t));
   setStep(0);
  };
 
@@ -2520,7 +2559,7 @@ function StaffPanel({sub}){
       </thead>
       <tbody>
        {(list||[]).map(x=><tr key={x.id}>
-        <td>{x.employee_id}</td>
+        <td><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
         <td>
          <div style={{display:'flex',alignItems:'center',gap:8}}>
           <img src={getTeacherPhoto(x)} alt="" style={{width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1px solid #cbd5e1',flexShrink:0}}/>
