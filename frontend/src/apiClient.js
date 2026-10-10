@@ -775,23 +775,50 @@ function handleMockRequest(path, opts = {}) {
   // 5. Voter List
   if (cleanPath === '/voter-list') {
     const q = (params.get('q') || '').trim().toLowerCase();
+    const className = (params.get('class_name') || '').trim();
     let students = getLocalStore('students', MOCK_STUDENTS);
+    if (className && className !== 'all') {
+      students = students.filter(s => String(s.class_name).trim() === String(className).trim());
+    }
     if (q) {
-      students = students.filter(s =>
-        s && (s.current_village || s.permanent_village || '').toLowerCase().includes(q)
-      );
+      students = students.filter(s => {
+        const h = [
+          s.current_village,
+          s.permanent_village,
+          s.name_bn,
+          s.name_en,
+          s.roll_no,
+          s.voter_no,
+          s.voter_name,
+          s.father_name,
+          s.mother_name,
+          s.guardian_name
+        ].filter(Boolean).map(String).join(' ').toLowerCase();
+        return h.includes(q);
+      });
     }
     return students.map((s, idx) => ({
       id: s.id,
-      voter_no: s.voter_no || ('V-' + (idx + 101)),
-      voter_name: s.voter_name || (s.father_name && !s.father_name.includes('মৃত') ? s.father_name : s.mother_name || s.guardian_name || s.name_bn),
+      student_id: s.student_id,
+      roll_no: s.roll_no,
+      voter_no: s.voter_no || '',
+      voter_name: s.voter_name || (s.father_name && !s.father_name.includes('মৃত') ? s.father_name : s.mother_name && !s.mother_name.includes('মৃত') ? s.mother_name : s.guardian_name || s.name_bn),
+      voter_name_override: s.voter_name_override || '',
       name_bn: s.name_bn,
       name_en: s.name_en,
       class_name: s.class_name,
+      department: s.department || s.group_name || s.group || '',
+      section: s.section || '',
       father_name: s.father_name,
       mother_name: s.mother_name,
-      current_village: s.current_village || s.permanent_village || '',
-      current_upazila: s.current_upazila || s.permanent_upazila || ''
+      guardian_name: s.guardian_name,
+      guardian_phone: s.guardian_phone || s.father_mobile || s.mother_mobile || '',
+      current_village: s.current_village || s.permanent_village || s.address || 'মগড়া',
+      current_upazila: s.current_upazila || s.permanent_upazila || 'কালিহাতি',
+      current_district: s.current_district || s.permanent_district || 'টাঙ্গাইল',
+      permanent_village: s.permanent_village || '',
+      permanent_upazila: s.permanent_upazila || 'কালিহাতি',
+      permanent_district: s.permanent_district || 'টাঙ্গাইল'
     }));
   }
 

@@ -3235,16 +3235,485 @@ function AIPanel(){const[msg,setMsg]=useState(''),[conversation,setConversation]
 
 function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]))}
 
+function getVoterDepartmentName(r, lang) {
+  const p = getStudentGroupPriority(r);
+  if (p === 1) return lang === 'en' ? 'Science' : 'বিজ্ঞান বিভাগ';
+  if (p === 2) return lang === 'en' ? 'Humanities' : 'মানবিক বিভাগ';
+  if (p === 3) return lang === 'en' ? 'Business Studies' : 'ব্যবসায় শিক্ষা শাখা';
+  const raw = (r.department || r.group_name || r.group || '').trim();
+  if (raw && raw !== 'null' && raw !== 'undefined') return raw;
+  return lang === 'en' ? 'General' : 'সাধারণ';
+}
+
 function VoterListPanel({ onBack }){
-  const {lang}=useLanguage();
- const [q,setQ]=useState(''),[rows,setRows]=useState([]),[msg,setMsg]=useState(''),[editing,setEditing]=useState(null),[draft,setDraft]=useState({voter_no:'',voter_name_override:''});
- const t=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;
- const load=async()=>{try{setRows(await api(`/voter-list?q=${encodeURIComponent(q)}`));setMsg('')}catch(e){setMsg(e.message)}};
- useEffect(()=>{load()},[]);
- const begin=r=>{setEditing(r.id);setDraft({voter_no:r.voter_no||'',voter_name_override:r.voter_name_override||''})};
- const save=async r=>{try{await api(`/voter-list/${r.id}`,{method:'PATCH',body:JSON.stringify(draft)});setEditing(null);setMsg(t('ভোটার তথ্য সংরক্ষিত হয়েছে','Voter information saved'));load()}catch(e){setMsg(e.message)}};
- const print=()=>{const w=window.open('','_blank','width=1000,height=800');if(!w)return;const esc=escapeHtml;const h=(bn,en)=>lang==='en'?en:lang==='bi'?`${bn} / ${en}`:bn;const body=`<h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN 114290</p><h2>${h('খসড়া/ভোটার তালিকা- ২০২৬','Draft/Voter List - 2026')}</h2><p>${h('গ্রাম','Village')}: ${esc(q||h('সকল গ্রাম','All Villages'))} • ${h('৬ষ্ঠ-১০ম শ্রেণি','Classes 6-10')}</p><table><thead><tr><th>${h('ভোটার নং','Voter No.')}</th><th>${h('ভোটারের নাম','Voter Name')}</th><th>${h('শিক্ষার্থীর নাম','Student Name')}</th><th>${h('শ্রেণি','Class')}</th><th>${h('পিতা/মাতা','Father/Mother')}</th><th>${h('গ্রাম','Village')}</th><th>${h('উপজেলা','Upazila')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.voter_no||'')}</td><td>${esc(r.voter_name||'')}</td><td>${esc(lang==='en'?(r.name_en||r.name_bn):r.name_bn)}</td><td>${esc(r.class_name)}</td><td>${esc(r.father_name||'')}<br>${esc(r.mother_name||'')}</td><td>${esc(r.current_village||r.permanent_village||'—')}</td><td>${esc(r.current_upazila||r.permanent_upazila||'—')}</td></tr>`).join('')}</tbody></table>`;w.document.write(`<html><head><meta charset="utf-8"><style>body{font-family:Arial,'Noto Sans Bengali',sans-serif;margin:24px;text-align:center}table{width:100%;border-collapse:collapse;margin-top:15px}th,td{border:1px solid #222;padding:5px;font-size:12px}th{font-weight:700}</style></head><body>${body}<script>window.onload=()=>window.print()</script></body></html>`);w.document.close()};
- return <div className="module-grid"><div className="form-card"><div className="toolbar"><div><span className="eyebrow">STUDENT DATABASE</span><h2>{t('ভোটার তালিকা','Voter List')}</h2></div><div style={{display:'flex',gap:'8px',alignItems:'center'}}>{onBack && <button type="button" className="mini" onClick={onBack} style={{background:'#f1f5f9',color:'#334155',border:'1px solid #cbd5e1',fontWeight:700,cursor:'pointer',padding:'6px 12px',borderRadius:'6px'}}>📋 {t('তালিকায় ফিরুন','Back to List')}</button>}<button className="btn" onClick={print}>🖨️ {t('প্রিন্ট / PDF','Print / PDF')}</button></div></div><p className="portal-muted">{t('শিক্ষার্থীর তথ্য থেকে ৬ষ্ঠ-১০ম শ্রেণির ভোটার তালিকা তৈরি হবে। পিতার নামে “মৃত” থাকলে মাতার নাম স্বয়ংক্রিয়ভাবে ভোটার নামে আসবে।','The list is generated from Classes 6-10. If the father name contains “মৃত”, the mother name is used automatically.')}</p><div className="filters"><input placeholder={t('গ্রাম লিখে খুঁজুন','Search by village')} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&load()}/><button className="btn" onClick={load}>🔎 {t('অনুসন্ধান','Search')}</button></div>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>{t('ভোটার তালিকা','Voter List')}</h2><span>{rows.length} {t('জন','students')}</span></div><div className="table-wrap"><table><thead><tr><th>{t('ভোটার নং','Voter No.')}</th><th>{t('ভোটারের নাম','Voter Name')}</th><th>{t('শিক্ষার্থীর নাম','Student Name')}</th><th>{t('শ্রেণি','Class')}</th><th>{t('গ্রাম','Village')}</th><th>{t('উপজেলা','Upazila')}</th><th>{t('সম্পাদনা','Edit')}</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{editing===r.id?<input className="inline-edit" value={draft.voter_no} onChange={e=>setDraft(d=>({...d,voter_no:e.target.value}))}/>:r.voter_no||'—'}</td><td>{editing===r.id?<input className="inline-edit" value={draft.voter_name_override} placeholder={t('স্বয়ংক্রিয় নাম রাখতে খালি রাখুন','Leave blank for automatic name')} onChange={e=>setDraft(d=>({...d,voter_name_override:e.target.value}))}/>:r.voter_name||'—'}</td><td>{lang==='en'?(r.name_en||r.name_bn):r.name_bn}</td><td>{r.class_name}</td><td>{r.current_village||r.permanent_village||'—'}</td><td>{r.current_upazila||r.permanent_upazila||'—'}</td><td>{editing===r.id?<><button className="mini" onClick={()=>save(r)}>✓ {t('সংরক্ষণ','Save')}</button> <button className="mini" onClick={()=>setEditing(null)}>× {t('বাতিল','Cancel')}</button></>:<button className="mini" onClick={()=>begin(r)}>✎ {t('সম্পাদনা','Edit')}</button>}</td></tr>)}</tbody></table></div></div></div>
+  const { lang } = useLanguage();
+  const [q, setQ] = useState('');
+  const [selectedClass, setSelectedClass] = useState('all');
+  const [selectedGroup, setSelectedGroup] = useState('all');
+  const [rows, setRows] = useState([]);
+  const [msg, setMsg] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [draft, setDraft] = useState({ voter_no: '', voter_name_override: '' });
+
+  const t = (bn, en) => lang === 'en' ? en : lang === 'bi' ? `${bn} / ${en}` : bn;
+
+  const load = async () => {
+    try {
+      const data = await api(`/voter-list?q=${encodeURIComponent(q)}`);
+      setRows(Array.isArray(data) ? data : []);
+      setMsg('');
+    } catch(e) {
+      setMsg(e.message);
+    }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const begin = (r) => {
+    setEditing(r.id);
+    setDraft({
+      voter_no: r.voter_no || '',
+      voter_name_override: r.voter_name_override || ''
+    });
+  };
+
+  const save = async (r) => {
+    try {
+      await api(`/voter-list/${r.id}`, { method: 'PATCH', body: JSON.stringify(draft) });
+      setEditing(null);
+      setMsg(t('ভোটার তথ্য সংরক্ষিত হয়েছে', 'Voter information saved successfully'));
+      load();
+    } catch(e) {
+      setMsg(e.message);
+    }
+  };
+
+  // Filter & Sort according to requirement:
+  // 1. Class 6 to 8: sorted by class roll number
+  // 2. Class 9 & 10: sorted by 1st: Science (বিজ্ঞান), 2nd: Humanities (মানবিক), 3rd: Business Studies (ব্যবসায় শিক্ষা), then Roll No.
+  const filteredRows = rows.filter(r => {
+    if (selectedClass !== 'all' && String(r.class_name).trim() !== String(selectedClass).trim()) {
+      return false;
+    }
+    if (selectedGroup !== 'all') {
+      const p = getStudentGroupPriority(r);
+      if (selectedGroup === 'science' && p !== 1) return false;
+      if (selectedGroup === 'humanities' && p !== 2) return false;
+      if (selectedGroup === 'business' && p !== 3) return false;
+    }
+    if (q.trim()) {
+      const needle = q.trim().toLowerCase();
+      const haystack = [
+        r.voter_no,
+        r.voter_name,
+        r.voter_name_override,
+        r.name_bn,
+        r.name_en,
+        r.roll_no,
+        r.class_name,
+        r.father_name,
+        r.mother_name,
+        r.guardian_name,
+        r.current_village,
+        r.permanent_village,
+        r.current_upazila,
+        r.permanent_upazila,
+        r.current_district,
+        r.permanent_district
+      ].filter(Boolean).map(String).join(' ').toLowerCase();
+      if (!haystack.includes(needle)) return false;
+    }
+    return true;
+  });
+
+  const sortedRows = sortStudentsList(filteredRows);
+
+  const print = () => {
+    const w = window.open('', '_blank', 'width=1100,height=850');
+    if (!w) return;
+    const esc = escapeHtml;
+    const h = (bn, en) => lang === 'en' ? en : lang === 'bi' ? `${bn} / ${en}` : bn;
+
+    const classSubtitle = selectedClass === 'all'
+      ? h('৬ষ্ঠ থেকে ১০ম শ্রেণি', 'Classes 6-10')
+      : `${h('শ্রেণি', 'Class')}: ${esc(selectedClass)}`;
+
+    const groupSubtitle = selectedGroup === 'all'
+      ? ''
+      : ` • ${h('বিভাগ', 'Group')}: ${selectedGroup === 'science' ? h('বিজ্ঞান বিভাগ', 'Science') : selectedGroup === 'humanities' ? h('মানবিক বিভাগ', 'Humanities') : h('ব্যবসায় শিক্ষা শাখা', 'Business Studies')}`;
+
+    const villageSubtitle = q ? ` • ${h('অনুসন্ধান', 'Search')}: ${esc(q)}` : '';
+
+    const body = `
+      <div class="print-header">
+        <h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+        <p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN: 114290</p>
+        <h2>${h('খসড়া / চূড়ান্ত ভোটার তালিকা - ২০২৬', 'Draft / Final Voter List - 2026')}</h2>
+        <div class="meta-line">
+          <span>${classSubtitle}${groupSubtitle}${villageSubtitle}</span>
+          <span>${h('মোট ভোটার সংখ্যা', 'Total Voters')}: ${sortedRows.length} ${h('জন', 'persons')}</span>
+        </div>
+      </div>
+      <table class="voter-table">
+        <thead>
+          <tr>
+            <th style="width:75px">${h('১ম কলাম<br>ভোটার নং', 'Col 1<br>Voter No.')}</th>
+            <th style="width:160px">${h('২য় কলাম<br>ভোটারের নাম', 'Col 2<br>Voter Name')}</th>
+            <th style="width:160px">${h('৩য় কলাম<br>শিক্ষার্থীর নাম', 'Col 3<br>Student Name')}</th>
+            <th style="width:100px">${h('৪র্থ কলাম<br>শ্রেণি রোল নং', 'Col 4<br>Class Roll No.')}</th>
+            <th style="width:110px">${h('৫ম কলাম<br>বিভাগ', 'Col 5<br>Department')}</th>
+            <th style="width:130px">${h('৬ষ্ঠ কলাম<br>গ্রাম', 'Col 6<br>Village')}</th>
+            <th style="width:100px">${h('৭ম কলাম<br>উপজেলা', 'Col 7<br>Upazila')}</th>
+            <th style="width:90px">${h('৮ম কলাম<br>জেলা', 'Col 8<br>District')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sortedRows.map((r, idx) => `
+            <tr>
+              <td style="text-align:center;font-weight:700">${esc(r.voter_no || (idx + 1))}</td>
+              <td><b>${esc(r.voter_name || r.father_name || r.mother_name || r.guardian_name || r.name_bn)}</b></td>
+              <td>${esc(lang === 'en' ? (r.name_en || r.name_bn) : r.name_bn)}</td>
+              <td style="text-align:center">${esc(r.class_name)} (${esc(r.roll_no || '—')})</td>
+              <td style="text-align:center">${esc(getVoterDepartmentName(r, lang))}</td>
+              <td>${esc(r.current_village || r.permanent_village || '—')}</td>
+              <td>${esc(r.current_upazila || r.permanent_upazila || 'কালিহাতি')}</td>
+              <td>${esc(r.current_district || r.permanent_district || 'টাঙ্গাইল')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div class="signature-area">
+        <div>
+          <br><br>
+          <div style="border-top:1px dashed #333;padding-top:4px">${h('প্রস্তুতকারীর স্বাক্ষর', 'Prepared By')}</div>
+        </div>
+        <div>
+          <br><br>
+          <div style="border-top:1px dashed #333;padding-top:4px">${h('যাচাইকারীর স্বাক্ষর', 'Verified By')}</div>
+        </div>
+        <div>
+          <br><br>
+          <div style="border-top:1px dashed #333;padding-top:4px">${h('প্রধান শিক্ষক', 'Head Teacher')}</div>
+        </div>
+        <div>
+          <br><br>
+          <div style="border-top:1px dashed #333;padding-top:4px">${h('নির্বাচন কমিশনার / সভাপতি', 'Election Commissioner / President')}</div>
+        </div>
+      </div>
+    `;
+
+    w.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${h('ভোটার তালিকা ২০২৬', 'Voter List 2026')}</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    body { font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif; margin: 15px; color: #111; font-size: 11px; }
+    .print-header { text-align: center; margin-bottom: 12px; }
+    .print-header h1 { font-size: 19px; margin: 0 0 3px; color: #0f4c3a; }
+    .print-header p { font-size: 11px; margin: 0 0 4px; color: #444; }
+    .print-header h2 { font-size: 14px; margin: 4px 0 6px; text-decoration: underline; }
+    .meta-line { display: flex; justify-content: space-between; font-weight: 700; font-size: 11px; margin-top: 6px; padding: 3px 0; border-bottom: 1px solid #333; }
+    table.voter-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    table.voter-table th, table.voter-table td { border: 1px solid #333; padding: 4px 6px; font-size: 10.5px; }
+    table.voter-table th { background: #f0f3f2; font-weight: 700; text-align: center; }
+    .signature-area { display: flex; justify-content: space-between; margin-top: 45px; text-align: center; font-size: 10.5px; }
+    @media print {
+      body { margin: 0; }
+      table.voter-table th { background: #e8ecea !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  ${body}
+  <script>window.onload = () => window.print();</script>
+</body>
+</html>`);
+    w.document.close();
+  };
+
+  const exportCSV = () => {
+    const headers = [
+      '১ম কলাম: ভোটার নং',
+      '২য় কলাম: ভোটারের নাম',
+      '৩য় কলাম: শিক্ষার্থীর নাম',
+      '৪র্থ কলাম: শ্রেণি রোল নং',
+      '৫ম কলাম: বিভাগ',
+      '৬ষ্ঠ কলাম: গ্রাম',
+      '৭ম কলাম: উপজেলা',
+      '৮ম কলাম: জেলা'
+    ];
+    const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+    const rowsCsv = sortedRows.map((r, idx) => [
+      escapeCsv(r.voter_no || (idx + 1)),
+      escapeCsv(r.voter_name || r.father_name || r.mother_name || r.guardian_name || r.name_bn),
+      escapeCsv(r.name_bn),
+      escapeCsv(`শ্রেণি ${r.class_name} (রোল ${r.roll_no || ''})`),
+      escapeCsv(getVoterDepartmentName(r, 'bn')),
+      escapeCsv(r.current_village || r.permanent_village || ''),
+      escapeCsv(r.current_upazila || r.permanent_upazila || 'কালিহাতি'),
+      escapeCsv(r.current_district || r.permanent_district || 'টাঙ্গাইল')
+    ].join(','));
+
+    const csvContent = '\uFEFF' + [headers.map(escapeCsv).join(','), ...rowsCsv].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `voter_list_2026_${selectedClass !== 'all' ? 'class_' + selectedClass : 'all'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="module-grid">
+      <div className="form-card full" style={{ gridColumn: '1 / -1' }}>
+        <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <span className="eyebrow">STUDENT &amp; GUARDIAN DATABASE</span>
+            <h2>🗳️ {t('শ্রেণিভিত্তিক ভোটার তালিকা (৮ কলাম)', 'Class-wise Voter List (8 Columns)')}</h2>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {onBack && (
+              <button
+                type="button"
+                className="mini"
+                onClick={onBack}
+                style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', fontWeight: 700, cursor: 'pointer', padding: '6px 12px', borderRadius: '6px' }}
+              >
+                📋 {t('শিক্ষার্থী তালিকায় ফিরুন', 'Back to Student List')}
+              </button>
+            )}
+            <button className="btn" onClick={exportCSV} style={{ background: '#0284c7', color: '#fff' }}>
+              📊 {t('CSV ডাউনলোড', 'Export CSV')}
+            </button>
+            <button className="btn" onClick={print} style={{ background: '#166534', color: '#fff' }}>
+              🖨️ {t('প্রিন্ট / PDF রিপোর্ট', 'Print / PDF Report')}
+            </button>
+          </div>
+        </div>
+
+        <p className="portal-muted" style={{ margin: '8px 0 14px' }}>
+          {t(
+            '✓ ভোটার তালিকা বিন্যাস: ৬ষ্ঠ-৮ম শ্রেণি শ্রেণি রোলের ক্রমানুসারে এবং ৯ম-১০ম শ্রেণি ১ম: বিজ্ঞান বিভাগ, ২য়: মানবিক বিভাগ, ৩য়: ব্যবসায় শিক্ষা শাখা অনুসারে ক্রমান্বয়ে সজ্জিত। পিতার নামে “মৃত” থাকলে মাতার নাম স্বয়ংক্রিয়ভাবে ভোটার হিসেবে অন্তর্ভুক্ত হয়।',
+            '✓ Voter List Sorting: Classes 6-8 by class roll no; Classes 9-10 by 1st: Science, 2nd: Humanities, 3rd: Business Studies, then by roll no. If father is deceased, mother name is automatically selected.'
+          )}
+        </p>
+
+        {/* Class Filter Tabs */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          {[
+            ['all', t('সকল শ্রেণি (৬ষ্ঠ-১০ম)', 'All Classes (6-10)')],
+            ['6', t('৬ষ্ঠ শ্রেণি', 'Class 6')],
+            ['7', t('৭ম শ্রেণি', 'Class 7')],
+            ['8', t('৮ম শ্রেণি', 'Class 8')],
+            ['9', t('৯ম শ্রেণি', 'Class 9')],
+            ['10', t('১০ম শ্রেণি', 'Class 10')]
+          ].map(([clsVal, clsLabel]) => (
+            <button
+              key={clsVal}
+              type="button"
+              onClick={() => setSelectedClass(clsVal)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: selectedClass === clsVal ? 700 : 500,
+                border: selectedClass === clsVal ? '2px solid #0f4c3a' : '1px solid #cbd5e1',
+                background: selectedClass === clsVal ? '#0f4c3a' : '#f8fafc',
+                color: selectedClass === clsVal ? '#ffffff' : '#334155',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {clsLabel}
+            </button>
+          ))}
+        </div>
+
+        {/* Filters Bar: Group + Village / Search */}
+        <div className="filters" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {(selectedClass === 'all' || selectedClass === '9' || selectedClass === '10') && (
+            <select
+              value={selectedGroup}
+              onChange={(e) => setSelectedGroup(e.target.value)}
+              style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', minWidth: '150px' }}
+            >
+              <option value="all">{t('সকল বিভাগ / শাখা', 'All Departments')}</option>
+              <option value="science">{t('বিজ্ঞান বিভাগ', 'Science Group')}</option>
+              <option value="humanities">{t('মানবিক বিভাগ', 'Humanities Group')}</option>
+              <option value="business">{t('ব্যবসায় শিক্ষা শাখা', 'Business Studies Group')}</option>
+            </select>
+          )}
+
+          <input
+            style={{ flex: 1, minWidth: '220px' }}
+            placeholder={t('গ্রাম, ভোটার নং, শিক্ষার্থী বা অভিভাবকের নাম লিখে খুঁজুন...', 'Search by village, voter no, student or guardian...')}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && load()}
+          />
+
+          <button className="btn" onClick={load}>
+            🔎 {t('খুঁজুন', 'Search')}
+          </button>
+
+          {q && (
+            <button
+              type="button"
+              className="mini"
+              onClick={() => { setQ(''); load(); }}
+              style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5' }}
+            >
+              ✕ {t('রিসেট', 'Reset')}
+            </button>
+          )}
+        </div>
+
+        {msg && <p className="msg" style={{ marginTop: '10px' }}>{msg}</p>}
+      </div>
+
+      <div className="table-card full" style={{ gridColumn: '1 / -1' }}>
+        <div className="toolbar">
+          <div>
+            <h2>{t('ভোটার তালিকা (৮টি নির্ধারিত কলাম)', 'Voter List (8 Standard Columns)')}</h2>
+            <p className="portal-muted" style={{ margin: 0, fontSize: '12px' }}>
+              {selectedClass === 'all' ? t('৬ষ্ঠ থেকে ১০ম শ্রেণি', 'Classes 6-10') : `${t('শ্রেণি', 'Class')} ${selectedClass}`}
+              {selectedGroup !== 'all' ? ` • ${selectedGroup === 'science' ? 'বিজ্ঞান বিভাগ' : selectedGroup === 'humanities' ? 'মানবিক বিভাগ' : 'ব্যবসায় শিক্ষা শাখা'}` : ''}
+            </p>
+          </div>
+          <span style={{ fontWeight: 700, background: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '12px', fontSize: '13px' }}>
+            {sortedRows.length} {t('জন ভোটার', 'voters')}
+          </span>
+        </div>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr style={{ background: '#f8fafc' }}>
+                <th style={{ width: '90px' }}>{t('১ম: ভোটার নং', 'Col 1: Voter No.')}</th>
+                <th>{t('২য়: ভোটারের নাম', 'Col 2: Voter Name')}</th>
+                <th>{t('৩য়: শিক্ষার্থীর নাম', 'Col 3: Student Name')}</th>
+                <th style={{ width: '130px', textAlign: 'center' }}>{t('৪র্থ: শ্রেণি রোল নং', 'Col 4: Class Roll')}</th>
+                <th style={{ width: '130px', textAlign: 'center' }}>{t('৫ম: বিভাগ', 'Col 5: Department')}</th>
+                <th>{t('৬ষ্ঠ: গ্রাম', 'Col 6: Village')}</th>
+                <th>{t('৭ম: উপজেলা', 'Col 7: Upazila')}</th>
+                <th>{t('৮ম: জেলা', 'Col 8: District')}</th>
+                <th style={{ width: '90px', textAlign: 'center' }}>{t('অ্যাকশন', 'Action')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRows.length === 0 ? (
+                <tr>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                    {t('কোনো ভোটার তথ্য পাওয়া যায়নি', 'No voter records found')}
+                  </td>
+                </tr>
+              ) : (
+                sortedRows.map((r, idx) => (
+                  <tr key={r.id}>
+                    {/* 1st Column: Voter No */}
+                    <td style={{ fontWeight: 700, textAlign: 'center' }}>
+                      {editing === r.id ? (
+                        <input
+                          className="inline-edit"
+                          style={{ width: '70px', textAlign: 'center' }}
+                          value={draft.voter_no}
+                          placeholder={String(idx + 1)}
+                          onChange={(e) => setDraft(d => ({ ...d, voter_no: e.target.value }))}
+                        />
+                      ) : (
+                        r.voter_no || (idx + 1)
+                      )}
+                    </td>
+
+                    {/* 2nd Column: Voter Name */}
+                    <td>
+                      {editing === r.id ? (
+                        <input
+                          className="inline-edit"
+                          style={{ width: '100%' }}
+                          value={draft.voter_name_override}
+                          placeholder={t('স্বয়ংক্রিয় নাম রাখতে খালি রাখুন', 'Leave blank for auto name')}
+                          onChange={(e) => setDraft(d => ({ ...d, voter_name_override: e.target.value }))}
+                        />
+                      ) : (
+                        <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                          {r.voter_name || r.father_name || r.mother_name || r.guardian_name || r.name_bn}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* 3rd Column: Student Name */}
+                    <td>
+                      <span style={{ fontWeight: 500 }}>
+                        {lang === 'en' ? (r.name_en || r.name_bn) : r.name_bn}
+                      </span>
+                    </td>
+
+                    {/* 4th Column: Class Roll No */}
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <span style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
+                        {t('শ্রেণি', 'Class')} {r.class_name} • {t('রোল', 'Roll')} {r.roll_no || '—'}
+                      </span>
+                    </td>
+
+                    {/* 5th Column: Department */}
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        background: getStudentGroupPriority(r) === 1 ? '#dbeafe' : getStudentGroupPriority(r) === 2 ? '#fef3c7' : getStudentGroupPriority(r) === 3 ? '#dcfce7' : '#f1f5f9',
+                        color: getStudentGroupPriority(r) === 1 ? '#1e40af' : getStudentGroupPriority(r) === 2 ? '#92400e' : getStudentGroupPriority(r) === 3 ? '#166534' : '#475569'
+                      }}>
+                        {getVoterDepartmentName(r, lang)}
+                      </span>
+                    </td>
+
+                    {/* 6th Column: Village */}
+                    <td>
+                      {r.current_village || r.permanent_village || '—'}
+                    </td>
+
+                    {/* 7th Column: Upazila */}
+                    <td>
+                      {r.current_upazila || r.permanent_upazila || 'কালিহাতি'}
+                    </td>
+
+                    {/* 8th Column: District */}
+                    <td>
+                      {r.current_district || r.permanent_district || 'টাঙ্গাইল'}
+                    </td>
+
+                    {/* Action */}
+                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      {editing === r.id ? (
+                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                          <button className="mini" style={{ background: '#16a34a', color: '#fff' }} onClick={() => save(r)}>
+                            ✓ {t('সংরক্ষণ', 'Save')}
+                          </button>
+                          <button className="mini" onClick={() => setEditing(null)}>
+                            × {t('বাতিল', 'Cancel')}
+                          </button>
+                        </div>
+                      ) : (
+                        <button className="mini" onClick={() => begin(r)}>
+                          ✎ {t('সম্পাদনা', 'Edit')}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }
 function VillageStudentPanel(){
  const {lang}=useLanguage();
