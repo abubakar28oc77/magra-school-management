@@ -187,14 +187,18 @@ export function teacherMatchesInServiceTrainingCategory(t, categoryKey) {
 
 export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode = 'education' }) {
   const [mode, setMode] = useState(initialMode); // 'education' | 'professional' | 'ict' | 'training'
-  const [selectedCategory, setSelectedCategory] = useState(''); // filter by clicked row
+  const [selectedCategory, setSelectedCategory] = useState(initialMode === 'education' ? EDU_EXAMS_LIST[0] : '');
   const [genderFilter, setGenderFilter] = useState(''); // '' | 'male' | 'female'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Sync mode with initialMode when opened
   React.useEffect(() => {
-    if (initialMode) setMode(initialMode);
-    setSelectedCategory('');
+    if (initialMode) {
+      setMode(initialMode);
+      setSelectedCategory(initialMode === 'education' ? EDU_EXAMS_LIST[0] : '');
+    } else {
+      setSelectedCategory(mode === 'education' ? EDU_EXAMS_LIST[0] : '');
+    }
   }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
@@ -284,9 +288,9 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
   // Displayed matrix in the summary table
   const displayedMatrix = useMemo(() => {
     if (mode === 'education') {
-      if (!selectedCategory) return []; // In education mode, exams are hidden inside dropdown until selected!
       if (selectedCategory === '__all__') return eduMatrix;
-      return eduMatrix.filter(row => row.key === selectedCategory);
+      const targetExam = selectedCategory || EDU_EXAMS_LIST[0];
+      return eduMatrix.filter(row => row.key === targetExam);
     }
     if (mode === 'professional') {
       if (selectedCategory && selectedCategory !== '__all__') {
@@ -299,15 +303,14 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
 
   // Filtered detailed teacher list
   const filteredTeacherList = useMemo(() => {
-    // In education mode, hide teachers until an exam is selected from the dropdown
-    if (mode === 'education' && !selectedCategory) {
-      return [];
-    }
-
     return activeTeachers.filter(t => {
       // 1. Category Filter
-      if (selectedCategory && selectedCategory !== '__all__') {
-        if (mode === 'education' && !teacherHasEducation(t, selectedCategory)) return false;
+      if (mode === 'education') {
+        if (selectedCategory !== '__all__') {
+          const targetExam = selectedCategory || EDU_EXAMS_LIST[0];
+          if (!teacherHasEducation(t, targetExam)) return false;
+        }
+      } else if (selectedCategory && selectedCategory !== '__all__') {
         if (mode === 'professional' && !teacherHasProfDegree(t, selectedCategory)) return false;
         if (mode === 'ict') {
           if (selectedCategory === 'ict_trained' && !teacherHasIctTraining(t)) return false;
@@ -591,7 +594,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
         }}>
           <button
             type="button"
-            onClick={() => { setMode('education'); setSelectedCategory(''); }}
+            onClick={() => { setMode('education'); setSelectedCategory(EDU_EXAMS_LIST[0]); }}
             style={{
               padding: '10px 16px',
               border: 'none',
@@ -778,7 +781,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                       boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
                     }}
                   >
-                    <option value="">-- শিক্ষাগত যোগ্যতা নির্বাচন করুন (ড্রপ-ডাউন) --</option>
+                    <option value="${EDU_EXAMS_LIST[0]}" style={{fontWeight: 700}}>-- শিক্ষাগত যোগ্যতা নির্বাচন করুন (ড্রপ-ডাউন) --</option>
                     {EDU_EXAMS_LIST.map(exam => (
                       <option key={exam} value={exam}>
                         {exam}
@@ -927,81 +930,99 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                   </tr>
                 </thead>
                 <tbody>
-                  {mode === 'education' && !selectedCategory ? (
-                    <tr>
-                      <td colSpan="6" style={{padding: '36px 20px', textAlign: 'center', background: '#ffffff', color: '#64748b'}}>
-                        <div style={{fontSize: '32px', marginBottom: '8px'}}>🎓</div>
-                        <div style={{fontWeight: 700, fontSize: '15px', color: '#1e293b'}}>
-                          শিক্ষাগত যোগ্যতার ফিল্ডের ড্রপ-ডাউন থেকে একটি পরীক্ষা নির্বাচন করুন
-                        </div>
-                        <div style={{fontSize: '12.5px', color: '#64748b', marginTop: '6px', maxWidth: '520px', margin: '6px auto 0'}}>
-                          পরীক্ষার নামগুলো উপরের শিক্ষাগত যোগ্যতার ড্রপ-ডাউন ফিল্ডে সংরক্ষিত রয়েছে। ড্রপ-ডাউন থেকে যেকোনো একটি পরীক্ষা সিলেক্ট করলে শুধুমাত্র সেটির জেন্ডারভিত্তিক ফলাফল ও শিক্ষকদের তালিকা প্রদর্শিত হবে।
-                        </div>
-                      </td>
-                    </tr>
-                  ) : displayedMatrix.length === 0 ? (
+                  {displayedMatrix.map((row, idx) => {
+                    const isSelected = selectedCategory === row.key || (mode === 'education' && selectedCategory !== '__all__');
+                    return (
+                      <tr 
+                        key={row.key} 
+                        style={{
+                          borderBottom: '1px solid #e2e8f0',
+                          background: isSelected ? '#eff6ff' : idx % 2 === 0 ? '#ffffff' : '#fbfcfe',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                          if (mode !== 'education') {
+                            setSelectedCategory(prev => prev === row.key ? '' : row.key);
+                          }
+                        }}
+                      >
+                        <td style={{padding: '10px 12px', fontWeight: 600, color: '#0f172a'}}>
+                          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                            <span style={{color: '#0284c7'}}>▶</span>
+                            {mode === 'education' && selectedCategory !== '__all__' ? (
+                              <select
+                                value={selectedCategory || EDU_EXAMS_LIST[0]}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  padding: '5px 10px',
+                                  fontSize: '13px',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  border: '1.5px solid #059669',
+                                  background: '#ffffff',
+                                  color: '#064e3b',
+                                  cursor: 'pointer',
+                                  outline: 'none'
+                                }}
+                                title="পরীক্ষা পরিবর্তন করতে সিলেক্ট করুন"
+                              >
+                                {EDU_EXAMS_LIST.map(exam => (
+                                  <option key={exam} value={exam}>{exam}</option>
+                                ))}
+                                <option value="__all__">📋 সকল শিক্ষাগত যোগ্যতা (একসাথে দেখুন)</option>
+                              </select>
+                            ) : (
+                              row.label
+                            )}
+                          </div>
+                        </td>
+                        <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#1e3a8a'}}>
+                          <span style={{background: '#dbeafe', padding: '3px 10px', borderRadius: '12px'}}>{row.male} জন</span>
+                        </td>
+                        <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#9f1239'}}>
+                          <span style={{background: '#ffe4e6', padding: '3px 10px', borderRadius: '12px'}}>{row.female} জন</span>
+                        </td>
+                        <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#0f172a'}}>
+                          <span style={{background: '#f1f5f9', padding: '3px 10px', borderRadius: '12px'}}>{row.total} জন</span>
+                        </td>
+                        <td style={{padding: '10px 12px', textAlign: 'center'}}>
+                          <span style={{fontWeight: 700, color: '#047857'}}>{row.percent}%</span>
+                        </td>
+                        <td style={{padding: '10px 12px', textAlign: 'center'}}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (mode === 'education') {
+                                setSelectedCategory(row.key);
+                              } else {
+                                setSelectedCategory(prev => prev === row.key ? '' : row.key);
+                              }
+                            }}
+                            style={{
+                              background: isSelected ? '#0284c7' : '#f1f5f9',
+                              color: isSelected ? '#fff' : '#334155',
+                              border: '1px solid #cbd5e1',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {isSelected ? '✓ ফিল্টার সক্রিয়' : 'তালিকা ফিল্টার'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!displayedMatrix.length && (
                     <tr>
                       <td colSpan="6" style={{padding: '24px', textAlign: 'center', color: '#94a3b8'}}>
                         কোনো ফলাফল পাওয়া যায়নি
                       </td>
                     </tr>
-                  ) : (
-                    displayedMatrix.map((row, idx) => {
-                      const isSelected = selectedCategory === row.key;
-                      return (
-                        <tr 
-                          key={row.key} 
-                          style={{
-                            borderBottom: '1px solid #f1f5f9',
-                            background: isSelected ? '#eff6ff' : idx % 2 === 0 ? '#ffffff' : '#fbfcfe',
-                            cursor: 'pointer'
-                          }}
-                          onClick={() => {
-                            if (mode === 'education') {
-                              setSelectedCategory(prev => prev === row.key ? '' : row.key);
-                            } else {
-                              setSelectedCategory(prev => prev === row.key ? '' : row.key);
-                            }
-                          }}
-                        >
-                          <td style={{padding: '10px 12px', fontWeight: 600, color: '#0f172a'}}>
-                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                              <span style={{color: isSelected ? '#0284c7' : '#64748b'}}>▶</span>
-                              {row.label}
-                            </div>
-                          </td>
-                          <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#1e3a8a'}}>
-                            <span style={{background: '#dbeafe', padding: '3px 10px', borderRadius: '12px'}}>{row.male} জন</span>
-                          </td>
-                          <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 600, color: '#9f1239'}}>
-                            <span style={{background: '#ffe4e6', padding: '3px 10px', borderRadius: '12px'}}>{row.female} জন</span>
-                          </td>
-                          <td style={{padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: '#0f172a'}}>
-                            <span style={{background: '#f1f5f9', padding: '3px 10px', borderRadius: '12px'}}>{row.total} জন</span>
-                          </td>
-                          <td style={{padding: '10px 12px', textAlign: 'center'}}>
-                            <span style={{fontWeight: 700, color: '#047857'}}>{row.percent}%</span>
-                          </td>
-                          <td style={{padding: '10px 12px', textAlign: 'center'}}>
-                            <button
-                              type="button"
-                              style={{
-                                background: isSelected ? '#0284c7' : '#f1f5f9',
-                                color: isSelected ? '#fff' : '#334155',
-                                border: '1px solid #cbd5e1',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '11.5px',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              {isSelected ? '✓ ফিল্টার সক্রিয়' : 'তালিকা ফিল্টার'}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
                   )}
                 </tbody>
               </table>
@@ -1230,19 +1251,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                       </tr>
                     );
                   })}
-                  {mode === 'education' && !selectedCategory ? (
-                    <tr>
-                      <td colSpan="7" style={{padding: '36px 20px', textAlign: 'center', color: '#64748b'}}>
-                        <div style={{fontSize: '28px', marginBottom: '6px'}}>🎓</div>
-                        <div style={{fontWeight: 700, fontSize: '14px', color: '#1e293b'}}>
-                          কোনো শিক্ষাগত যোগ্যতা নির্বাচন করা হয়নি
-                        </div>
-                        <div style={{fontSize: '12px', color: '#64748b', marginTop: '4px'}}>
-                          উপরে <strong>"শিক্ষাগত যোগ্যতার ফিল্ড (ড্রপ-ডাউন)"</strong> থেকে একটি পরীক্ষা নির্বাচন করুন।
-                        </div>
-                      </td>
-                    </tr>
-                  ) : !filteredTeacherList.length ? (
+                  {!filteredTeacherList.length ? (
                     <tr>
                       <td colSpan="7" style={{padding: '30px', textAlign: 'center', color: '#64748b'}}>
                         কোনো শিক্ষক রেকর্ড পাওয়া যায়নি।
