@@ -130,7 +130,7 @@ export function teacherHasIctTraining(t) {
   const trainingList = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
   const hasTraining = trainingList.some(tr => {
     const text = [(tr.title || ''), (tr.name || ''), (tr.subject || ''), (tr.institution || ''), (tr.place || '')].join(' ').toLowerCase();
-    return text.includes('ict') || text.includes('আইসিটি') || text.includes('computer') || text.includes('কম্পিউটার') || text.includes('ডিজিটাল') || text.includes('তথ্য ও যোগাযোগ') || text.includes('বাতায়ন') || text.includes('muktopaath') || text.includes('মুক্তপাঠ');
+    return text.includes('ict') || text.includes('আইসিটি') || text.includes('computer') || text.includes('কম্পিউটার') || text.includes('ডিজিটাল') || text.includes('তথ্য ও যোগাযোগ') || text.includes('বাতায়ন') || text.includes('muktopaath') || text.includes('মুক্তপাঠ') || text.includes('btt') || text.includes('বেসিক টিচার্স');
   });
   if (hasTraining) return true;
 
@@ -147,7 +147,7 @@ export function getTeacherIctTrainingDetails(t) {
   const trainingList = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
   const matched = trainingList.filter(tr => {
     const text = [(tr.title || ''), (tr.name || ''), (tr.subject || ''), (tr.institution || ''), (tr.place || '')].join(' ').toLowerCase();
-    return text.includes('ict') || text.includes('আইসিটি') || text.includes('computer') || text.includes('কম্পিউটার') || text.includes('ডিজিটাল') || text.includes('তথ্য ও যোগাযোগ') || text.includes('বাতায়ন') || text.includes('muktopaath') || text.includes('মুক্তপাঠ');
+    return text.includes('ict') || text.includes('আইসিটি') || text.includes('computer') || text.includes('কম্পিউটার') || text.includes('ডিজিটাল') || text.includes('তথ্য ও যোগাযোগ') || text.includes('বাতায়ন') || text.includes('muktopaath') || text.includes('মুক্তপাঠ') || text.includes('btt') || text.includes('বেসিক টিচার্স');
   });
   if (matched.length) return matched;
 
