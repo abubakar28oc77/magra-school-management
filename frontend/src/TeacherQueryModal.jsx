@@ -51,20 +51,58 @@ export const PROF_DEGREES_LIST = [
   'ডিপ্লোমা ইন লাইব্রেরি অ্যান্ড ইনফরমেসন সাইন্স'
 ];
 
+export function normalizeExam(name) {
+  if (!name) return '';
+  return String(name)
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/[()（）]/g, '')
+    .toLowerCase();
+}
+
 // Helper to check if teacher has specific education
 export function teacherHasEducation(t, examName) {
-  if (!t) return false;
+  if (!t || !examName) return false;
+  const targetNorm = normalizeExam(examName);
   const eduList = t.extended_profile?.education || (Array.isArray(t.education) ? t.education : []);
-  if (eduList.some(e => (e.exam || '').trim() === examName.trim())) return true;
+
+  if (eduList && eduList.length > 0) {
+    return eduList.some(e => {
+      const eNorm = normalizeExam(e.exam || e.name || e.title || '');
+      if (eNorm === targetNorm) return true;
+      if ((e.exam || '').trim() === examName.trim()) return true;
+      return false;
+    });
+  }
+
+  // Fallback ONLY when teacher has no structured eduList
+  const rawText = JSON.stringify(t.extended_profile?.education || t.education || t.qualification || '').toLowerCase();
   
-  // Fallback check in free text
-  const rawText = JSON.stringify(t.extended_profile?.education || t.education || '').toLowerCase();
-  const target = examName.toLowerCase();
-  if (target.includes('এসএসসি') && (rawText.includes('ssc') || rawText.includes('এসএসসি'))) return true;
-  if (target.includes('এইচএসসি') && (rawText.includes('hsc') || rawText.includes('এইচএসসি'))) return true;
-  if (target.includes('স্নাতক') && (rawText.includes('ba') || rawText.includes('bsc') || rawText.includes('b.a') || rawText.includes('b.sc') || rawText.includes('b.com') || rawText.includes('bba') || rawText.includes('স্নাতক') || rawText.includes('অনার্স'))) return true;
-  if (target.includes('স্নাতকোত্তর') && (rawText.includes('ma') || rawText.includes('msc') || rawText.includes('m.a') || rawText.includes('m.sc') || rawText.includes('masters') || rawText.includes('স্নাতকোত্তর') || rawText.includes('মাস্টার্স'))) return true;
-  if (target.includes('কামিল') && (rawText.includes('kamil') || rawText.includes('কামিল'))) return true;
+  if (targetNorm.includes('এসএসসি') && (rawText.includes('ssc') || rawText.includes('এসএসসি') || rawText.includes('দাখিল'))) return true;
+  if (targetNorm.includes('এইচএসসি') && (rawText.includes('hsc') || rawText.includes('এইচএসসি') || rawText.includes('আলিম'))) return true;
+  if (targetNorm.includes('কামিল') && (rawText.includes('kamil') || rawText.includes('কামিল'))) return true;
+
+  if (targetNorm.includes('স্নাতক')) {
+    if (targetNorm.includes('৩বছর')) {
+      return (rawText.includes('৩ বছর') || rawText.includes('3 year')) && (rawText.includes('সম্মান') || rawText.includes('honour') || rawText.includes('অনার্স'));
+    }
+    if (targetNorm.includes('৪বছর')) {
+      return (rawText.includes('৪ বছর') || rawText.includes('4 year')) && (rawText.includes('সম্মান') || rawText.includes('honour') || rawText.includes('অনার্স'));
+    }
+    if (targetNorm.includes('পাস')) {
+      return rawText.includes('পাস') || rawText.includes('pass') || rawText.includes('ফাজিল');
+    }
+  }
+
+  if (targetNorm.includes('স্নাতকোত্তর')) {
+    if (targetNorm.includes('অনার্সবিহীন')) {
+      return rawText.includes('অনার্সবিহীন') || rawText.includes('without honour');
+    }
+    if (targetNorm.includes('অনার্সসহ')) {
+      return rawText.includes('অনার্সসহ') || (rawText.includes('masters') && !rawText.includes('অনার্সবিহীন'));
+    }
+  }
+
   return false;
 }
 
