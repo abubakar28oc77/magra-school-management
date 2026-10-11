@@ -51,6 +51,20 @@ export const PROF_DEGREES_LIST = [
   'ডিপ্লোমা ইন লাইব্রেরি অ্যান্ড ইনফরমেসন সাইন্স'
 ];
 
+export const ICT_SUBJECTS_LIST = [
+  'ডিজিটাল কনটেন্ট ডেভলপমেন্ট',
+  'ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)',
+  'হার্ডওয়্যার এন্ড ট্রাবলশুটিং',
+  'হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং',
+  'নেটওয়ার্কিং এন্ড প্রোগ্রামিং',
+  'বেসিক আইসিটি ট্রেনিং',
+  'বিষয়ভিত্তিক প্রশিক্ষণ (আইসিটি)',
+  'শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা',
+  'ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট',
+  'কম্পিউটার অপারেশন এবংব্যবহার',
+  '(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)'
+];
+
 export function normalizeExam(name) {
   if (!name) return '';
   return String(name)
@@ -142,6 +156,67 @@ export function teacherHasIctTraining(t) {
   return false;
 }
 
+export function teacherHasIctSubject(t, subjectName) {
+  if (!t || !subjectName) return false;
+  const targetNorm = normalizeExam(subjectName);
+  const trainingList = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
+
+  if (trainingList && trainingList.length > 0) {
+    const hasMatch = trainingList.some(tr => {
+      const subNorm = normalizeExam(tr.subject || '');
+      const titleNorm = normalizeExam(tr.title || tr.name || '');
+      if (subNorm === targetNorm || titleNorm === targetNorm) return true;
+      if ((tr.subject || '').trim() === subjectName.trim()) return true;
+
+      const text = [(tr.subject || ''), (tr.title || ''), (tr.name || '')].join(' ').toLowerCase();
+      if (targetNorm.includes('ফলোআপ')) {
+        return text.includes('ফলোআপ') || text.includes('follow');
+      }
+      if (targetNorm.includes('ডিজিটালকনটেন্ট') && !targetNorm.includes('ফলোআপ') && !targetNorm.includes('মুক্তপাঠ')) {
+        return (text.includes('ডিজিটাল কনটেন্ট') || text.includes('digital content') || text.includes('কনটেন্ট')) && !text.includes('ফলোআপ');
+      }
+      if (targetNorm.includes('হার্ডওয়্যার') && targetNorm.includes('নেটওয়ার্ক')) {
+        return text.includes('হার্ডওয়্যার') && text.includes('নেটওয়ার্ক');
+      }
+      if (targetNorm.includes('হার্ডওয়্যার') && !targetNorm.includes('নেটওয়ার্ক')) {
+        return text.includes('হার্ডওয়্যার') && !text.includes('নেটওয়ার্ক');
+      }
+      if (targetNorm.includes('প্রোগ্রামিং')) {
+        return text.includes('প্রোগ্রামিং') || text.includes('programming');
+      }
+      if (targetNorm.includes('বেসিক')) {
+        return text.includes('বেসিক') || text.includes('basic') || text.includes('btt');
+      }
+      if (targetNorm.includes('বিষয়ভিত্তিক')) {
+        return text.includes('বিষয়ভিত্তিক') || text.includes('subject');
+      }
+      if (targetNorm.includes('শেখরাসেল')) {
+        return text.includes('শেখ রাসেল') || text.includes('ল্যাব') || text.includes('srdl');
+      }
+      if (targetNorm.includes('ইন্টারেক্টিভ')) {
+        return text.includes('ইন্টারেক্টিভ') || text.includes('লাইভ ক্লাস') || text.includes('interactive');
+      }
+      if (targetNorm.includes('কম্পিউটারঅপারেশন')) {
+        return text.includes('অপারেশন') || text.includes('operation');
+      }
+      if (targetNorm.includes('মুক্তপাঠ')) {
+        return text.includes('মুক্তপাঠ') || text.includes('বাতায়ন') || text.includes('গুগলড্রাইভ') || text.includes('google drive');
+      }
+      return false;
+    });
+    if (hasMatch) return true;
+  }
+
+  // Fallback for teachers with default/auto ICT training
+  if (teacherHasIctTraining(t)) {
+    if (targetNorm.includes('ডিজিটালকনটেন্ট') && !targetNorm.includes('ফলোআপ') && !targetNorm.includes('মুক্তপাঠ')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function getTeacherIctTrainingDetails(t) {
   if (!t) return [];
   const trainingList = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
@@ -154,7 +229,7 @@ export function getTeacherIctTrainingDetails(t) {
   if (teacherHasIctTraining(t)) {
     return [{
       title: 'আইসিটি ও ডিজিটাল কনটেন্ট তৈরি প্রশিক্ষণ',
-      subject: t.subject || 'তথ্য ও যোগাযোগ প্রযুক্তি',
+      subject: 'ডিজিটাল কনটেন্ট ডেভলপমেন্ট',
       institution: 'জাতীয় শিক্ষা ব্যবস্থাপনা একাডেমি (NAEM) / টিটিসি',
       duration: '১৪ দিন',
       is_auto: true
@@ -225,7 +300,13 @@ export function teacherMatchesInServiceTrainingCategory(t, categoryKey) {
 
 export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode = 'education' }) {
   const [mode, setMode] = useState(initialMode); // 'education' | 'professional' | 'ict' | 'training'
-  const [selectedCategory, setSelectedCategory] = useState(initialMode === 'education' ? EDU_EXAMS_LIST[0] : '');
+  const [selectedCategory, setSelectedCategory] = useState(
+    initialMode === 'education' 
+      ? EDU_EXAMS_LIST[0] 
+      : initialMode === 'ict'
+        ? ICT_SUBJECTS_LIST[0]
+        : ''
+  );
   const [genderFilter, setGenderFilter] = useState(''); // '' | 'male' | 'female'
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -233,9 +314,17 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
   React.useEffect(() => {
     if (initialMode) {
       setMode(initialMode);
-      setSelectedCategory(initialMode === 'education' ? EDU_EXAMS_LIST[0] : '');
+      setSelectedCategory(
+        initialMode === 'education' 
+          ? EDU_EXAMS_LIST[0] 
+          : initialMode === 'ict'
+            ? ICT_SUBJECTS_LIST[0]
+            : ''
+      );
     } else {
-      setSelectedCategory(mode === 'education' ? EDU_EXAMS_LIST[0] : '');
+      if (mode === 'education') setSelectedCategory(EDU_EXAMS_LIST[0]);
+      else if (mode === 'ict') setSelectedCategory(ICT_SUBJECTS_LIST[0]);
+      else setSelectedCategory('');
     }
   }, [initialMode, isOpen]);
 
@@ -266,29 +355,14 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
   });
 
   // 3. ICT Training Matrix
-  const ictTrainedTeachers = activeTeachers.filter(t => teacherHasIctTraining(t));
-  const nonIctTeachers = activeTeachers.filter(t => !teacherHasIctTraining(t));
-
-  const ictMatrix = [
-    {
-      key: 'ict_trained',
-      label: '💻 আইসিটি ও ডিজিটাল কনটেন্ট প্রশিক্ষণপ্রাপ্ত',
-      male: ictTrainedTeachers.filter(t => getTeacherGender(t) === 'male').length,
-      female: ictTrainedTeachers.filter(t => getTeacherGender(t) === 'female').length,
-      total: ictTrainedTeachers.length,
-      percent: totalCount ? Math.round((ictTrainedTeachers.length / totalCount) * 100) : 0,
-      teachers: ictTrainedTeachers
-    },
-    {
-      key: 'ict_untrained',
-      label: '📖 আইসিটি প্রশিক্ষণবিহীন শিক্ষকবৃন্দ',
-      male: nonIctTeachers.filter(t => getTeacherGender(t) === 'male').length,
-      female: nonIctTeachers.filter(t => getTeacherGender(t) === 'female').length,
-      total: nonIctTeachers.length,
-      percent: totalCount ? Math.round((nonIctTeachers.length / totalCount) * 100) : 0,
-      teachers: nonIctTeachers
-    }
-  ];
+  const ictMatrix = ICT_SUBJECTS_LIST.map(subject => {
+    const matched = activeTeachers.filter(t => teacherHasIctSubject(t, subject));
+    const male = matched.filter(t => getTeacherGender(t) === 'male').length;
+    const female = matched.filter(t => getTeacherGender(t) === 'female').length;
+    const total = matched.length;
+    const percent = totalCount ? Math.round((total / totalCount) * 100) : 0;
+    return { key: subject, label: subject, male, female, total, percent, teachers: matched };
+  });
 
   // 4. In-Service Training Matrix (কর্মকালীন প্রশিক্ষণ)
   const inServiceCategories = [
@@ -334,8 +408,13 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
       }
       return profMatrix;
     }
+    if (mode === 'ict') {
+      if (selectedCategory === '__all__') return ictMatrix;
+      const targetSub = selectedCategory || ICT_SUBJECTS_LIST[0];
+      return ictMatrix.filter(row => row.key === targetSub);
+    }
     return currentMatrix;
-  }, [mode, selectedCategory, eduMatrix, profMatrix, currentMatrix]);
+  }, [mode, selectedCategory, eduMatrix, profMatrix, ictMatrix, currentMatrix]);
 
   // Filtered detailed teacher list
   const filteredTeacherList = useMemo(() => {
@@ -346,12 +425,13 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
           const targetExam = selectedCategory || EDU_EXAMS_LIST[0];
           if (!teacherHasEducation(t, targetExam)) return false;
         }
+      } else if (mode === 'ict') {
+        if (selectedCategory !== '__all__') {
+          const targetSub = selectedCategory || ICT_SUBJECTS_LIST[0];
+          if (!teacherHasIctSubject(t, targetSub)) return false;
+        }
       } else if (selectedCategory && selectedCategory !== '__all__') {
         if (mode === 'professional' && !teacherHasProfDegree(t, selectedCategory)) return false;
-        if (mode === 'ict') {
-          if (selectedCategory === 'ict_trained' && !teacherHasIctTraining(t)) return false;
-          if (selectedCategory === 'ict_untrained' && teacherHasIctTraining(t)) return false;
-        }
         if (mode === 'training') {
           if (!teacherMatchesInServiceTrainingCategory(t, selectedCategory)) return false;
         }
@@ -674,7 +754,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
           </button>
           <button
             type="button"
-            onClick={() => { setMode('ict'); setSelectedCategory(''); }}
+            onClick={() => { setMode('ict'); setSelectedCategory(ICT_SUBJECTS_LIST[0]); }}
             style={{
               padding: '10px 16px',
               border: 'none',
@@ -741,19 +821,20 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                 {mode === 'education' 
                   ? (selectedCategory && selectedCategory !== '__all__' ? `নির্বাচিত পরীক্ষায় শিক্ষক` : 'উচ্চ শিক্ষাগত যোগ্যতা') 
                   : mode === 'professional' ? 'পেশাগত ডিগ্রীধারী' 
-                  : mode === 'ict' ? 'আইসিটি প্রশিক্ষণপ্রাপ্ত' 
+                  : mode === 'ict' 
+                    ? (selectedCategory && selectedCategory !== '__all__' ? `নির্বাচিত আইসিটি বিষয়ে শিক্ষক` : 'আইসিটি প্রশিক্ষণপ্রাপ্ত')
                   : 'কর্মকালীন প্রশিক্ষণপ্রাপ্ত'}
               </div>
               <div style={{fontSize: '26px', fontWeight: 800, color: '#581c87', marginTop: '2px'}}>
-                {mode === 'education' 
-                  ? (selectedCategory && selectedCategory !== '__all__' 
-                      ? `${displayedMatrix[0]?.total || 0} জন` 
-                      : `${activeTeachers.filter(t => teacherHasEducation(t, 'স্নাতকোত্তর (অনার্সসহ)') || teacherHasEducation(t, 'স্নাতক সম্মান(৪ বছর মেয়াদী)')).length} জন`)
-                  : mode === 'professional' 
-                    ? `${activeTeachers.filter(t => PROF_DEGREES_LIST.some(d => teacherHasProfDegree(t, d))).length} জন` 
-                    : mode === 'ict' 
-                      ? `${ictTrainedTeachers.length} জন` 
-                      : `${activeTeachers.filter(t => getTeacherAllTrainings(t).length > 0).length} জন`
+                {(mode === 'education' || mode === 'ict') && selectedCategory && selectedCategory !== '__all__'
+                  ? `${displayedMatrix[0]?.total || 0} জন` 
+                  : mode === 'education'
+                    ? `${activeTeachers.filter(t => teacherHasEducation(t, 'স্নাতকোত্তর (অনার্সসহ)') || teacherHasEducation(t, 'স্নাতক সম্মান(৪ বছর মেয়াদী)')).length} জন`
+                    : mode === 'professional' 
+                      ? `${activeTeachers.filter(t => PROF_DEGREES_LIST.some(d => teacherHasProfDegree(t, d))).length} জন` 
+                      : mode === 'ict' 
+                        ? `${activeTeachers.filter(t => ICT_SUBJECTS_LIST.some(s => teacherHasIctSubject(t, s))).length} জন` 
+                        : `${activeTeachers.filter(t => getTeacherAllTrainings(t).length > 0).length} জন`
                 }
               </div>
             </div>
@@ -1010,6 +1091,30 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                                 ))}
                                 <option value="__all__">📋 সকল শিক্ষাগত যোগ্যতা (একসাথে দেখুন)</option>
                               </select>
+                            ) : mode === 'ict' && selectedCategory !== '__all__' ? (
+                              <select
+                                value={selectedCategory || ICT_SUBJECTS_LIST[0]}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  padding: '5px 10px',
+                                  fontSize: '13px',
+                                  fontWeight: 700,
+                                  borderRadius: '6px',
+                                  border: '1.5px solid #0284c7',
+                                  background: '#ffffff',
+                                  color: '#0369a1',
+                                  cursor: 'pointer',
+                                  outline: 'none',
+                                  maxWidth: '380px'
+                                }}
+                                title="আইসিটি প্রশিক্ষণের বিষয় পরিবর্তন করতে সিলেক্ট করুন"
+                              >
+                                {ICT_SUBJECTS_LIST.map(sub => (
+                                  <option key={sub} value={sub}>{sub}</option>
+                                ))}
+                                <option value="__all__">📋 সকল আইসিটি বিষয় (একসাথে দেখুন)</option>
+                              </select>
                             ) : (
                               row.label
                             )}
@@ -1032,7 +1137,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (mode === 'education') {
+                              if (mode === 'education' || mode === 'ict') {
                                 setSelectedCategory(row.key);
                               } else {
                                 setSelectedCategory(prev => prev === row.key ? '' : row.key);
@@ -1073,8 +1178,8 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
               <div>
                 <h3 style={{margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 700}}>
                   👥 বিস্তারিত শিক্ষক তালিকা ({filteredTeacherList.length} জন)
-                  {mode === 'education' && selectedCategory && selectedCategory !== '__all__' && (
-                    <span style={{fontSize: '13px', color: '#047857', fontWeight: 600, marginLeft: '8px'}}>
+                  {((mode === 'education' || mode === 'ict') && selectedCategory && selectedCategory !== '__all__') && (
+                    <span style={{fontSize: '13px', color: mode === 'ict' ? '#0284c7' : '#047857', fontWeight: 600, marginLeft: '8px'}}>
                       [{selectedCategory}]
                     </span>
                   )}
@@ -1082,6 +1187,8 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                 <p style={{margin: '2px 0 0', fontSize: '12px', color: '#64748b'}}>
                   {mode === 'education' && !selectedCategory
                     ? 'অনুগ্রহ করে উপরের ড্রপ-ডাউন থেকে একটি শিক্ষাগত যোগ্যতা বা পরীক্ষার নাম নির্বাচন করুন'
+                    : mode === 'ict' && !selectedCategory
+                      ? 'অনুগ্রহ করে উপরের ড্রপ-ডাউন থেকে একটি আইসিটি প্রশিক্ষণের বিষয় নির্বাচন করুন'
                     : mode === 'training'
                       ? 'শিক্ষকদের এন্ট্রি ফরমের শিক্ষকবৃন্দের প্রশিক্ষণ রেকর্ড ও বিস্তারিত তথ্য'
                       : 'ফিল্টারকৃত শিক্ষকদের ব্যক্তিগত, পদবী ও সংশ্লিষ্ট যোগ্যতার বিস্তারিত তথ্য'}
@@ -1246,7 +1353,9 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                               {getTeacherIctTrainingDetails(t).length > 0 ? (
                                 getTeacherIctTrainingDetails(t).map((tr, tri) => (
                                   <div key={tri} style={{fontSize: '11.5px', marginBottom: '2px', color: '#1e293b'}}>
-                                    • <strong style={{color: '#7c3aed'}}>{tr.title || 'আইসিটি প্রশিক্ষণ'}</strong> {tr.institution ? `(${tr.institution})` : ''} {tr.duration ? `— ${tr.duration}` : ''}
+                                    • <strong style={{color: '#7c3aed'}}>{tr.title || 'আইসিটি প্রশিক্ষণ'}</strong>
+                                    {tr.subject ? <span style={{color: '#0284c7', fontWeight: 600}}> — বিষয়: {tr.subject}</span> : ''}
+                                    {tr.institution ? ` (${tr.institution})` : ''} {tr.duration ? ` — ${tr.duration}` : ''}
                                   </div>
                                 ))
                               ) : (
