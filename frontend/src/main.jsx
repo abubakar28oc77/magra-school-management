@@ -33,7 +33,7 @@ import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQuery
 import {StudentTotListModal} from './StudentTotListModal';
 import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
 import {StudentProfessionQueryModal, ALL_PROFESSIONS_LIST, matchesStudentProfession} from './StudentProfessionQueryModal';
-import {TeacherQueryModal} from './TeacherQueryModal';
+import {TeacherQueryModal, IN_SERVICE_TITLES_LIST} from './TeacherQueryModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -2799,7 +2799,7 @@ function StaffPanel({sub}){
        <tbody>
         {(form.extended_profile?.in_service_training||[]).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #e2e8f0',background:r.is_saved?'#f0fdf4':(i%2===0?'#ffffff':'#f8fafc')}}>
          <td style={{padding:'8px 6px',textAlign:'center'}}><input style={{width:'100%',padding:'6px 2px',textAlign:'center',fontWeight:700,border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#dcfce7':'#f1f5f9'}} value={r.sl_no??(i+1)} onChange={e=>updateTrainingField(i,'sl_no',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} placeholder="প্রশিক্ষণের শিরোনাম" value={r.title||r.name||''} onChange={e=>{updateTrainingField(i,'title',e.target.value,'in_service_training');updateTrainingField(i,'name',e.target.value,'in_service_training');}} required disabled={!!r.is_saved}/></td>
+         <td style={{padding:'8px 6px'}}><select style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} value={r.title||r.name||''} onChange={e=>{updateTrainingField(i,'title',e.target.value,'in_service_training');updateTrainingField(i,'name',e.target.value,'in_service_training');}} required disabled={!!r.is_saved}><option value="">প্রশিক্ষণের শিরোনাম নির্বাচন</option>{IN_SERVICE_TITLES_LIST.map(title=><option key={title} value={title}>{title}</option>)}{(r.title||r.name)&&!IN_SERVICE_TITLES_LIST.includes(r.title||r.name)&&<option value={r.title||r.name}>{r.title||r.name}</option>}</select></td>
          <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} placeholder="প্রশিক্ষণের বিষয়" value={r.subject||''} onChange={e=>updateTrainingField(i,'subject',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
          <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="স্থান/প্রতিষ্ঠান" value={r.institution||r.place||''} onChange={e=>updateTrainingField(i,'institution',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
          <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="অবস্থান" value={r.location||''} onChange={e=>updateTrainingField(i,'location',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
