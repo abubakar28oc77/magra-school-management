@@ -948,21 +948,64 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/teachers/bulk-import') {
     const list = body.people || [];
     let teachers = getLocalStore('teachers', MOCK_TEACHERS);
-    const added = list.map((p, i) => {
+    let updatedCount = 0;
+    let addedCount = 0;
+
+    list.forEach((p, i) => {
       const rawStatus = (p.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
-      return {
-        ...p,
-        id: 'tch_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
-        employee_id: p.employee_id || ('EMP-' + String(teachers.length + i + 1).padStart(3, '0')),
-        status: st,
-        name_bn: p.name_bn || p.name_en || 'শিক্ষক',
-        designation: p.designation || 'সহকারী শিক্ষক'
+
+      let extProfile = p.extended_profile || {
+        education: [],
+        professional_qualifications: [],
+        training: [],
+        in_service_training: [],
+        ntrca: {},
+        dob: '',
+        professional_note: ''
       };
+      if (typeof p.extended_profile_json === 'string' && p.extended_profile_json.trim()) {
+        try {
+          const parsed = JSON.parse(p.extended_profile_json);
+          extProfile = { ...extProfile, ...parsed };
+        } catch {}
+      }
+      if (p.dob && !extProfile.dob) {
+        extProfile.dob = p.dob;
+      }
+
+      const empId = (p.employee_id || '').trim();
+      const existingIdx = empId ? teachers.findIndex(t => String(t.employee_id || '').trim() === empId) : -1;
+
+      const record = {
+        ...(existingIdx >= 0 ? teachers[existingIdx] : {}),
+        ...p,
+        id: existingIdx >= 0 ? teachers[existingIdx].id : (p.id || ('tch_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6))),
+        employee_id: empId || (existingIdx >= 0 ? teachers[existingIdx].employee_id : ('EMP-' + String(teachers.length + i + 1).padStart(3, '0'))),
+        status: st,
+        name_bn: p.name_bn || p.name_en || (existingIdx >= 0 ? teachers[existingIdx].name_bn : 'শিক্ষক'),
+        designation: p.designation || (existingIdx >= 0 ? teachers[existingIdx].designation : 'সহকারী শিক্ষক'),
+        extended_profile: extProfile
+      };
+
+      if (existingIdx >= 0) {
+        teachers[existingIdx] = record;
+        updatedCount++;
+      } else {
+        teachers.push(record);
+        addedCount++;
+      }
     });
-    teachers = [...added, ...teachers];
+
+    teachers = sortPeopleByEmployeeId(teachers);
     setLocalStore('teachers', teachers);
-    return { success: true, count: added.length, message: `${added.length} জন শিক্ষক সফলভাবে ইমপোর্ট হয়েছে` };
+    return {
+      success: true,
+      count: list.length,
+      updated_count: updatedCount,
+      added_count: addedCount,
+      message: `${list.length} জন শিক্ষকের তথ্য সফলভাবে সিঙ্ক/ইমপোর্ট হয়েছে (নতুন: ${addedCount}, আপডেট: ${updatedCount})`
+    };
   }
 
   if (cleanPath === '/staff') {
@@ -1037,21 +1080,63 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/staff/bulk-import') {
     const list = body.people || [];
     let staff = getLocalStore('staff', []);
-    const added = list.map((p, i) => {
+    let updatedCount = 0;
+    let addedCount = 0;
+
+    list.forEach((p, i) => {
       const rawStatus = (p.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
-      return {
-        ...p,
-        id: 'stf_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6),
-        employee_id: p.employee_id || ('STF-' + String(staff.length + i + 1).padStart(3, '0')),
-        status: st,
-        name_bn: p.name_bn || p.name_en || 'কর্মচারী',
-        designation: p.designation || 'কর্মচারী'
+
+      let extProfile = p.extended_profile || {
+        education: [],
+        professional_qualifications: [],
+        training: [],
+        in_service_training: [],
+        dob: '',
+        professional_note: ''
       };
+      if (typeof p.extended_profile_json === 'string' && p.extended_profile_json.trim()) {
+        try {
+          const parsed = JSON.parse(p.extended_profile_json);
+          extProfile = { ...extProfile, ...parsed };
+        } catch {}
+      }
+      if (p.dob && !extProfile.dob) {
+        extProfile.dob = p.dob;
+      }
+
+      const empId = (p.employee_id || '').trim();
+      const existingIdx = empId ? staff.findIndex(s => String(s.employee_id || '').trim() === empId) : -1;
+
+      const record = {
+        ...(existingIdx >= 0 ? staff[existingIdx] : {}),
+        ...p,
+        id: existingIdx >= 0 ? staff[existingIdx].id : (p.id || ('stf_' + (Date.now() + i) + '_' + Math.random().toString(36).slice(2, 6))),
+        employee_id: empId || (existingIdx >= 0 ? staff[existingIdx].employee_id : ('STF-' + String(staff.length + i + 1).padStart(3, '0'))),
+        status: st,
+        name_bn: p.name_bn || p.name_en || (existingIdx >= 0 ? staff[existingIdx].name_bn : 'কর্মচারী'),
+        designation: p.designation || (existingIdx >= 0 ? staff[existingIdx].designation : 'কর্মচারী'),
+        extended_profile: extProfile
+      };
+
+      if (existingIdx >= 0) {
+        staff[existingIdx] = record;
+        updatedCount++;
+      } else {
+        staff.push(record);
+        addedCount++;
+      }
     });
-    staff = [...added, ...staff];
+
+    staff = sortPeopleByEmployeeId(staff);
     setLocalStore('staff', staff);
-    return { success: true, count: added.length, message: `${added.length} জন কর্মচারী সফলভাবে ইমপোর্ট হয়েছে` };
+    return {
+      success: true,
+      count: list.length,
+      updated_count: updatedCount,
+      added_count: addedCount,
+      message: `${list.length} জন কর্মচারীর তথ্য সফলভাবে সিঙ্ক/ইমপোর্ট হয়েছে (নতুন: ${addedCount}, আপডেট: ${updatedCount})`
+    };
   }
 
   // 8. Notices

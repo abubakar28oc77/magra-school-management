@@ -1523,7 +1523,8 @@ function StudentPanel({sub}){
       'Emergency Phone',
       'Special Needs / Notes',
       'Status',
-      ...custom.map(f => 'custom:' + f.field_key)
+      ...custom.map(f => 'custom:' + f.field_key),
+      'extended_profile_json'
     ];
 
     const rows = studentList.map(x => {
@@ -1572,7 +1573,8 @@ function StudentPanel({sub}){
         'Emergency Phone': x.emergency_phone || x.guardian_phone || '',
         'Special Needs / Notes': x.special_needs || x.additional_notes || '',
         'Status': x.status === 'inactive' ? 'নিষ্ক্রিয়' : 'সক্রিয়',
-        ...c
+        ...c,
+        'extended_profile_json': JSON.stringify(x.extended_profile || {})
       };
     });
     const filename = 'magra-students.csv';
@@ -2545,41 +2547,546 @@ function StaffPanel({sub}){
 
  useEffect(()=>{load();},[q,status,customFieldKey,customFieldValue]);
 
- const exportPeople=()=>{
-  const custom=customFields.filter(f=>f.enabled&&!f.is_system);
-  const headers=['Employee ID','Name','Designation',...(isTeacher?['Subject']:[]),'Mobile','Status',...custom.map(f=>'custom:'+f.field_key)];
-  const rows=(list||[]).map(x=>{
-   const c=flattenCustom(x);
-   return {'Employee ID':x.employee_id||'',Name:x.name_bn||'',Designation:x.designation||'',...(isTeacher?{Subject:x.subject||''}:{}),Mobile:x.phone||'',Status:statusBn(x.status),...c};
-  });
-  downloadCsv(isTeacher?'magra-teachers.csv':'magra-staff.csv',rows,headers);
- };
+   const formatEduSummary = (arr) => {
+    if (!Array.isArray(arr) || !arr.length) return '';
+    return arr.map(e => [e.exam, e.institution, e.board, e.subject, e.year, e.result].filter(Boolean).join(' - ')).join(' ; ');
+  };
 
- const peopleImportHeaders=isTeacher?['public_contact_role','public_contact_enabled','employee_id','name_bn','name_en','designation','designation_en','subject','phone','email','joining_date','gender','address','nid_no','tin_no','birth_registration_no','whatsapp_no','blood_group','religion','marital_status','nationality','father_name_bn','father_name_en','mother_name_bn','mother_name_en','first_joining_date','first_mpo_date','current_post_joining_date','current_mpo_date','previous_institution_joining_date','previous_institution_mpo_date','appointment_date','appointment_authority','mpo_index_no','teacher_registration_no','registration_date','teacher_portal_id','permanent_address','status','extended_profile_json']:['public_contact_role','public_contact_enabled','employee_id','name_bn','name_en','designation','phone','email','joining_date','gender','address','nid_no','tin_no','birth_registration_no','whatsapp_no','blood_group','religion','marital_status','nationality','father_name_bn','father_name_en','mother_name_bn','mother_name_en','first_joining_date','current_post_joining_date','appointment_date','appointment_authority','permanent_address','status','extended_profile_json'];
- const downloadPeopleTemplate=()=>downloadCsv(isTeacher?'magra-teacher-import-template.csv':'magra-staff-import-template.csv',[Object.fromEntries(peopleImportHeaders.map(k=>[k,k==='employee_id'?(isTeacher?'TCH-001':'STF-001'):k==='name_bn'?'নমুনা নাম':k==='designation'?(isTeacher?'সহকারী শিক্ষক':'অফিস সহকারী'):k==='status'?'active':k==='nationality'?'বাংলাদেশী':k==='extended_profile_json'?'{}':'']))],peopleImportHeaders);
- 
- const importPeople=async(e)=>{
-  const file=e.target.files?.[0];
-  e.target.value='';
-  if(!file)return;
-  try{
-   const matrix=parseCsvText(await file.text());
-   if(matrix.length<2)throw new Error('CSV-তে কোনো তথ্য পাওয়া যায়নি');
-   const headers=matrix[0].map(x=>x.trim().toLowerCase());
-   const required=['employee_id','name_bn','designation'];
-   const missing=required.filter(x=>!headers.includes(x));
-   if(missing.length)throw new Error(`আবশ্যিক কলাম নেই: ${missing.join(', ')}`);
-   const rows=matrix.slice(1).map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]??'').trim()]))).filter(x=>Object.values(x).some(Boolean));
-   const result=await api(isTeacher?'/teachers/bulk-import':'/staff/bulk-import',{method:'POST',body:JSON.stringify({people:rows})});
-   setMsg(`${result.message||'ইমপোর্ট সম্পন্ন'}${result.error_count?` — ${result.error_count}টি সারিতে সমস্যা`:''}`);
-   setView('list');
-   load();
-  }catch(err){
-   setMsg(err.message||'CSV আপলোড ব্যর্থ');
-  }
- };
+  const formatTrainingSummary = (arr) => {
+    if (!Array.isArray(arr) || !arr.length) return '';
+    return arr.map(t => [t.title || t.name, t.subject, t.institution || t.place, t.location, t.duration, t.start_date, t.end_date].filter(Boolean).join(' - ')).join(' ; ');
+  };
 
- const change=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const parseEduText = (str) => {
+    if (!str || typeof str !== 'string') return [];
+    return str.split(';').map(part => {
+      const tokens = part.split('-').map(s => s.trim());
+      if (!tokens.length || !tokens[0]) return null;
+      return {
+        exam: tokens[0] || '',
+        institution: tokens[1] || '',
+        board: tokens[2] || '',
+        subject: tokens[3] || '',
+        year: tokens[4] || '',
+        result: tokens[5] || '',
+        is_saved: true
+      };
+    }).filter(Boolean);
+  };
+
+  const parseTrainingText = (str) => {
+    if (!str || typeof str !== 'string') return [];
+    return str.split(';').map(part => {
+      const tokens = part.split('-').map(s => s.trim());
+      if (!tokens.length || !tokens[0]) return null;
+      return {
+        title: tokens[0] || '',
+        subject: tokens[1] || '',
+        institution: tokens[2] || '',
+        location: tokens[3] || '',
+        duration: tokens[4] || '',
+        start_date: tokens[5] || '',
+        end_date: tokens[6] || '',
+        is_saved: true
+      };
+    }).filter(Boolean);
+  };
+
+  const exportPeople = () => {
+    const custom = customFields.filter(f => f.enabled && !f.is_system);
+    const headers = [
+      'Employee ID',
+      'Name (Bangla)',
+      'Name (English)',
+      'Designation',
+      ...(isTeacher ? ['Designation (English)', 'Subject'] : []),
+      'Date of Birth',
+      'Gender',
+      'Blood Group',
+      'Religion',
+      'Marital Status',
+      'Nationality',
+      'NID No',
+      'TIN No',
+      'Birth Registration No',
+      'Father Name (Bangla)',
+      'Father Name (English)',
+      'Mother Name (Bangla)',
+      'Mother Name (English)',
+      'First Joining Date',
+      ...(isTeacher ? ['First MPO Date'] : []),
+      'Current Post Joining Date',
+      ...(isTeacher ? ['Current MPO Date'] : []),
+      'Previous Institution Joining Date',
+      ...(isTeacher ? ['Previous Institution MPO Date'] : []),
+      'Appointment Date',
+      'Appointment Authority',
+      ...(isTeacher ? [
+        'MPO Index No',
+        'Teacher Registration No',
+        'Registration Date',
+        'NTRCA Registered',
+        'NTRCA Recommended',
+        'NTRCA Year',
+        'NTRCA Subject',
+        'NTRCA Remarks',
+        'Teacher Portal ID'
+      ] : []),
+      'Educational Qualifications',
+      'Professional Degrees',
+      'ICT Trainings',
+      'In-Service Trainings',
+      'Professional Note',
+      'Mobile',
+      'WhatsApp',
+      'Email',
+      'Present Address',
+      'Permanent Address',
+      'Public Contact Role',
+      'Public Contact Enabled',
+      'Status',
+      ...custom.map(f => 'custom:' + f.field_key),
+      'extended_profile_json'
+    ];
+
+    const rows = (list || []).map(x => {
+      const c = flattenCustom(x);
+      const ext = x.extended_profile || {};
+      const ntrca = ext.ntrca || {};
+      return {
+        'Employee ID': x.employee_id || '',
+        'Name (Bangla)': x.name_bn || '',
+        'Name (English)': x.name_en || '',
+        'Designation': x.designation || '',
+        ...(isTeacher ? {
+          'Designation (English)': x.designation_en || '',
+          'Subject': x.subject || ''
+        } : {}),
+        'Date of Birth': ext.dob || x.date_of_birth || '',
+        'Gender': x.gender || '',
+        'Blood Group': x.blood_group || '',
+        'Religion': x.religion || 'ইসলাম',
+        'Marital Status': x.marital_status || '',
+        'Nationality': x.nationality || 'বাংলাদেশী',
+        'NID No': x.nid_no || '',
+        'TIN No': x.tin_no || '',
+        'Birth Registration No': x.birth_registration_no || '',
+        'Father Name (Bangla)': x.father_name_bn || '',
+        'Father Name (English)': x.father_name_en || '',
+        'Mother Name (Bangla)': x.mother_name_bn || '',
+        'Mother Name (English)': x.mother_name_en || '',
+        'First Joining Date': x.first_joining_date || '',
+        ...(isTeacher ? {
+          'First MPO Date': x.first_mpo_date || ''
+        } : {}),
+        'Current Post Joining Date': x.current_post_joining_date || x.joining_date || '',
+        ...(isTeacher ? {
+          'Current MPO Date': x.current_mpo_date || ''
+        } : {}),
+        'Previous Institution Joining Date': x.previous_institution_joining_date || '',
+        ...(isTeacher ? {
+          'Previous Institution MPO Date': x.previous_institution_mpo_date || ''
+        } : {}),
+        'Appointment Date': x.appointment_date || '',
+        'Appointment Authority': x.appointment_authority || '',
+        ...(isTeacher ? {
+          'MPO Index No': x.mpo_index_no || '',
+          'Teacher Registration No': x.teacher_registration_no || '',
+          'Registration Date': x.registration_date || '',
+          'NTRCA Registered': ntrca.registered || '',
+          'NTRCA Recommended': ntrca.recommended || '',
+          'NTRCA Year': ntrca.year || '',
+          'NTRCA Subject': ntrca.subject || '',
+          'NTRCA Remarks': ntrca.remarks || '',
+          'Teacher Portal ID': x.teacher_portal_id || ''
+        } : {}),
+        'Educational Qualifications': formatEduSummary(ext.education),
+        'Professional Degrees': formatEduSummary(ext.professional_qualifications),
+        'ICT Trainings': formatTrainingSummary(ext.training),
+        'In-Service Trainings': formatTrainingSummary(ext.in_service_training),
+        'Professional Note': ext.professional_note || '',
+        'Mobile': x.phone || '',
+        'WhatsApp': x.whatsapp_no || '',
+        'Email': x.email || '',
+        'Present Address': x.address || '',
+        'Permanent Address': x.permanent_address || '',
+        'Public Contact Role': x.public_contact_role || '',
+        'Public Contact Enabled': x.public_contact_enabled !== false ? 'হ্যাঁ' : 'না',
+        'Status': statusBn(x.status),
+        ...c,
+        'extended_profile_json': JSON.stringify(ext)
+      };
+    });
+    downloadCsv(isTeacher ? 'magra-teachers.csv' : 'magra-staff.csv', rows, headers);
+  };
+
+  const peopleImportHeaders = isTeacher ? [
+    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Designation', 'Designation (English)', 'Subject',
+    'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
+    'NID No', 'TIN No', 'Birth Registration No',
+    'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
+    'First Joining Date', 'First MPO Date', 'Current Post Joining Date', 'Current MPO Date',
+    'Previous Institution Joining Date', 'Previous Institution MPO Date', 'Appointment Date', 'Appointment Authority',
+    'MPO Index No', 'Teacher Registration No', 'Registration Date',
+    'NTRCA Registered', 'NTRCA Recommended', 'NTRCA Year', 'NTRCA Subject', 'NTRCA Remarks', 'Teacher Portal ID',
+    'Educational Qualifications', 'Professional Degrees', 'ICT Trainings', 'In-Service Trainings', 'Professional Note',
+    'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
+    'Public Contact Role', 'Public Contact Enabled', 'Status', 'extended_profile_json'
+  ] : [
+    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Designation',
+    'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
+    'NID No', 'TIN No', 'Birth Registration No',
+    'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
+    'First Joining Date', 'Current Post Joining Date', 'Appointment Date', 'Appointment Authority',
+    'Educational Qualifications', 'Professional Degrees', 'ICT Trainings', 'In-Service Trainings', 'Professional Note',
+    'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
+    'Public Contact Role', 'Public Contact Enabled', 'Status', 'extended_profile_json'
+  ];
+
+  const downloadPeopleTemplate = () => {
+    const sampleRow = isTeacher ? {
+      'Employee ID': '1',
+      'Name (Bangla)': 'মোঃ খলিলুর রহমান',
+      'Name (English)': 'Md. Khalilur Rahman',
+      'Designation': 'প্রধান শিক্ষক',
+      'Designation (English)': 'Head Teacher',
+      'Subject': 'গণিত',
+      'Date of Birth': '1975-01-01',
+      'Gender': 'পুরুষ',
+      'Blood Group': 'B+',
+      'Religion': 'ইসলাম',
+      'Marital Status': 'বিবাহিত',
+      'Nationality': 'বাংলাদেশী',
+      'NID No': '1975000000000',
+      'TIN No': '',
+      'Birth Registration No': '',
+      'Father Name (Bangla)': 'পিতার নাম',
+      'Father Name (English)': "Father's Name",
+      'Mother Name (Bangla)': 'মাতার নাম',
+      'Mother Name (English)': "Mother's Name",
+      'First Joining Date': '2000-01-01',
+      'First MPO Date': '2000-05-01',
+      'Current Post Joining Date': '2010-01-01',
+      'Current MPO Date': '2010-05-01',
+      'Previous Institution Joining Date': '',
+      'Previous Institution MPO Date': '',
+      'Appointment Date': '1999-12-15',
+      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
+      'MPO Index No': '123456',
+      'Teacher Registration No': '',
+      'Registration Date': '',
+      'NTRCA Registered': '',
+      'NTRCA Recommended': '',
+      'NTRCA Year': '',
+      'NTRCA Subject': '',
+      'NTRCA Remarks': '',
+      'Teacher Portal ID': '',
+      'Educational Qualifications': 'এসএসসি/সমমান - টাঙ্গাইল জিলা স্কুল - ঢাকা - বিজ্ঞান - 1990 - 1st Division ; এইচএসসি/সমমান - করটিয়া কলেজ - ঢাকা - বিজ্ঞান - 1992 - 1st Division',
+      'Professional Degrees': 'বিএড - টিটিসি ঢাকা - জাতীয় বিশ্ববিদ্যালয় - গণিত - 1998 - 1st Class',
+      'ICT Trainings': 'আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - NAEM - ঢাকা - ১৪ দিন - 2021-03-01 - 2021-03-14',
+      'In-Service Trainings': 'সিপিডি-১ (১৪ দিন) - গণিত - টিটিসি - ময়মনসিংহ - ১৪ দিন - 2018-05-10 - 2018-05-24',
+      'Professional Note': '',
+      'Mobile': '01712345678',
+      'WhatsApp': '01712345678',
+      'Email': 'khalil@example.com',
+      'Present Address': 'গ্রাম: মগড়া, কালিহাতি, টাঙ্গাইল',
+      'Permanent Address': 'গ্রাম: মগড়া, কালিহাতি, টাঙ্গাইল',
+      'Public Contact Role': 'head_teacher',
+      'Public Contact Enabled': 'হ্যাঁ',
+      'Status': 'সক্রিয়',
+      'extended_profile_json': '{}'
+    } : {
+      'Employee ID': 'STF-001',
+      'Name (Bangla)': 'অফিস সহকারী',
+      'Name (English)': 'Office Assistant',
+      'Designation': 'অফিস সহকারী কাম হিসাব সহকারী',
+      'Date of Birth': '1985-01-01',
+      'Gender': 'পুরুষ',
+      'Blood Group': 'O+',
+      'Religion': 'ইসলাম',
+      'Marital Status': 'বিবাহিত',
+      'Nationality': 'বাংলাদেশী',
+      'NID No': '',
+      'TIN No': '',
+      'Birth Registration No': '',
+      'Father Name (Bangla)': '',
+      'Father Name (English)': '',
+      'Mother Name (Bangla)': '',
+      'Mother Name (English)': '',
+      'First Joining Date': '2015-01-01',
+      'Current Post Joining Date': '2015-01-01',
+      'Appointment Date': '2014-12-15',
+      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
+      'Educational Qualifications': '',
+      'Professional Degrees': '',
+      'ICT Trainings': '',
+      'In-Service Trainings': '',
+      'Professional Note': '',
+      'Mobile': '01700000000',
+      'WhatsApp': '',
+      'Email': '',
+      'Present Address': 'কালিহাতি, টাঙ্গাইল',
+      'Permanent Address': 'কালিহাতি, টাঙ্গাইল',
+      'Public Contact Role': 'office_assistant',
+      'Public Contact Enabled': 'হ্যাঁ',
+      'Status': 'সক্রিয়',
+      'extended_profile_json': '{}'
+    };
+    downloadCsv(isTeacher ? 'magra-teacher-import-template.csv' : 'magra-staff-import-template.csv', [sampleRow], peopleImportHeaders);
+  };
+
+  const importPeople = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const matrix = parseCsvText(await file.text());
+      if (matrix.length < 2) throw new Error('CSV-তে কোনো তথ্য পাওয়া যায়নি');
+      const rawHeaders = matrix[0].map(x => x.trim().toLowerCase());
+      const aliasMap = {
+        'employee id': 'employee_id',
+        'employee_id': 'employee_id',
+        'id': 'employee_id',
+        'কর্মচারী আইডি': 'employee_id',
+        'শিক্ষক আইডি': 'employee_id',
+        'name': 'name_bn',
+        'name (bangla)': 'name_bn',
+        'name_bn': 'name_bn',
+        'নাম': 'name_bn',
+        'নাম (বাংলা)': 'name_bn',
+        'শিক্ষকের নাম': 'name_bn',
+        'কর্মচারীর নাম': 'name_bn',
+        'name (english)': 'name_en',
+        'name_en': 'name_en',
+        'নাম (ইংরেজি)': 'name_en',
+        'designation': 'designation',
+        'designation_bn': 'designation',
+        'পদবি': 'designation',
+        'পদবী': 'designation',
+        'designation (english)': 'designation_en',
+        'designation_en': 'designation_en',
+        'পদবি (ইংরেজি)': 'designation_en',
+        'subject': 'subject',
+        'মূল বিষয়': 'subject',
+        'বিষয়': 'subject',
+        'date of birth': 'dob',
+        'date_of_birth': 'dob',
+        'dob': 'dob',
+        'জন্ম তারিখ': 'dob',
+        'gender': 'gender',
+        'লিঙ্গ': 'gender',
+        'জেন্ডার': 'gender',
+        'blood group': 'blood_group',
+        'blood_group': 'blood_group',
+        'রক্তের গ্রুপ': 'blood_group',
+        'religion': 'religion',
+        'ধর্ম': 'religion',
+        'marital status': 'marital_status',
+        'marital_status': 'marital_status',
+        'বৈবাহিক অবস্থা': 'marital_status',
+        'nationality': 'nationality',
+        'জাতীয়তা': 'nationality',
+        'nid no': 'nid_no',
+        'nid': 'nid_no',
+        'nid_no': 'nid_no',
+        'জাতীয় পরিচয়পত্র নম্বর': 'nid_no',
+        'tin no': 'tin_no',
+        'tin': 'tin_no',
+        'tin_no': 'tin_no',
+        'tin নম্বর': 'tin_no',
+        'birth registration no': 'birth_registration_no',
+        'birth_registration_no': 'birth_registration_no',
+        'জন্ম নিবন্ধন নম্বর': 'birth_registration_no',
+        'father name (bangla)': 'father_name_bn',
+        'father_name_bn': 'father_name_bn',
+        'পিতার নাম (বাংলা)': 'father_name_bn',
+        'পিতার নাম': 'father_name_bn',
+        'father name (english)': 'father_name_en',
+        'father_name_en': 'father_name_en',
+        'পিতার নাম (ইংরেজি)': 'father_name_en',
+        'mother name (bangla)': 'mother_name_bn',
+        'mother_name_bn': 'mother_name_bn',
+        'মাতার নাম (বাংলা)': 'mother_name_bn',
+        'মাতার নাম': 'mother_name_bn',
+        'mother name (english)': 'mother_name_en',
+        'mother_name_en': 'mother_name_en',
+        'মাতার নাম (ইংরেজি)': 'mother_name_en',
+        'first joining date': 'first_joining_date',
+        'first_joining_date': 'first_joining_date',
+        '১ম যোগদানের তারিখ': 'first_joining_date',
+        'first mpo date': 'first_mpo_date',
+        'first_mpo_date': 'first_mpo_date',
+        '১ম এমপিওভুক্তির তারিখ': 'first_mpo_date',
+        'current post joining date': 'current_post_joining_date',
+        'current_post_joining_date': 'current_post_joining_date',
+        'joining_date': 'current_post_joining_date',
+        'joining date': 'current_post_joining_date',
+        'বর্তমান পদে যোগদানের তারিখ': 'current_post_joining_date',
+        'current mpo date': 'current_mpo_date',
+        'current_mpo_date': 'current_mpo_date',
+        'বর্তমান পদে এমপিও তারিখ': 'current_mpo_date',
+        'previous institution joining date': 'previous_institution_joining_date',
+        'previous_institution_joining_date': 'previous_institution_joining_date',
+        'অত্র প্রতিষ্ঠানে যোগদানের তারিখ': 'previous_institution_joining_date',
+        'previous institution mpo date': 'previous_institution_mpo_date',
+        'previous_institution_mpo_date': 'previous_institution_mpo_date',
+        'অত্র প্রতিষ্ঠানে এমপিও তারিখ': 'previous_institution_mpo_date',
+        'appointment date': 'appointment_date',
+        'appointment_date': 'appointment_date',
+        'নিয়োগের তারিখ': 'appointment_date',
+        'appointment authority': 'appointment_authority',
+        'appointment_authority': 'appointment_authority',
+        'নিয়োগকারী কর্তৃপক্ষ': 'appointment_authority',
+        'mpo index no': 'mpo_index_no',
+        'mpo_index_no': 'mpo_index_no',
+        'এমপিও কোড/ইনডেক্স নম্বর': 'mpo_index_no',
+        'teacher registration no': 'teacher_registration_no',
+        'teacher_registration_no': 'teacher_registration_no',
+        'শিক্ষক নিবন্ধন নম্বর': 'teacher_registration_no',
+        'registration date': 'registration_date',
+        'registration_date': 'registration_date',
+        'নিবন্ধনের তারিখ': 'registration_date',
+        'ntrca registered': 'ntrca_registered',
+        'ntrca_registered': 'ntrca_registered',
+        'ntrca নিবন্ধিত?': 'ntrca_registered',
+        'ntrca recommended': 'ntrca_recommended',
+        'ntrca_recommended': 'ntrca_recommended',
+        'ntrca সুপারিশপ্রাপ্ত?': 'ntrca_recommended',
+        'ntrca year': 'ntrca_year',
+        'ntrca_year': 'ntrca_year',
+        'ntrca নিবন্ধন/সুপারিশের সন': 'ntrca_year',
+        'ntrca subject': 'ntrca_subject',
+        'ntrca_subject': 'ntrca_subject',
+        'ntrca বিষয়': 'ntrca_subject',
+        'ntrca remarks': 'ntrca_remarks',
+        'ntrca_remarks': 'ntrca_remarks',
+        'ntrca মন্তব্য': 'ntrca_remarks',
+        'teacher portal id': 'teacher_portal_id',
+        'teacher_portal_id': 'teacher_portal_id',
+        'শিক্ষক বাতায়ন id': 'teacher_portal_id',
+        'educational qualifications': 'educational_qualifications',
+        'educational_qualifications': 'educational_qualifications',
+        'শিক্ষাগত যোগ্যতার বিবরণ': 'educational_qualifications',
+        'professional degrees': 'professional_degrees',
+        'professional_degrees': 'professional_degrees',
+        'পেশাগত যোগ্যতার বিবরণ': 'professional_degrees',
+        'ict trainings': 'ict_trainings',
+        'ict_trainings': 'ict_trainings',
+        'আইসিটি প্রশিক্ষণ': 'ict_trainings',
+        'in-service trainings': 'in_service_trainings',
+        'in_service_trainings': 'in_service_trainings',
+        'কর্মকালীন বিভিন্ন প্রশিক্ষণ': 'in_service_trainings',
+        'professional note': 'professional_note',
+        'professional_note': 'professional_note',
+        'অতিরিক্ত পেশাগত তথ্য': 'professional_note',
+        'mobile': 'phone',
+        'phone': 'phone',
+        'মোবাইল': 'phone',
+        'ফোন': 'phone',
+        'whatsapp': 'whatsapp_no',
+        'whatsapp_no': 'whatsapp_no',
+        'হোয়াটসঅ্যাপ': 'whatsapp_no',
+        'হোয়াটসঅ্যাপ': 'whatsapp_no',
+        'email': 'email',
+        'ই-মেইল': 'email',
+        'ইমেইল': 'email',
+        'present address': 'address',
+        'address': 'address',
+        'বর্তমান ঠিকানা': 'address',
+        'ঠিকানা': 'address',
+        'permanent address': 'permanent_address',
+        'permanent_address': 'permanent_address',
+        'স্থায়ী ঠিকানা': 'permanent_address',
+        'public contact role': 'public_contact_role',
+        'public_contact_role': 'public_contact_role',
+        'public contact enabled': 'public_contact_enabled',
+        'public_contact_enabled': 'public_contact_enabled',
+        'status': 'status',
+        'অবস্থা': 'status',
+        'extended_profile_json': 'extended_profile_json'
+      };
+
+      const headers = rawHeaders.map(h => aliasMap[h] || h);
+      if (!headers.includes('name_bn')) {
+        throw new Error('আবশ্যিক কলাম অনুপস্থিত: নাম (বা Name / name_bn)');
+      }
+
+      const rows = matrix.slice(1).map(r => {
+        const obj = {};
+        headers.forEach((h, i) => {
+          const val = (r[i] ?? '').trim();
+          if (val) obj[h] = val;
+        });
+        if (!obj.name_bn) return null;
+
+        let ext = {
+          education: [],
+          professional_qualifications: [],
+          training: [],
+          in_service_training: [],
+          ntrca: {},
+          dob: obj.dob || '',
+          professional_note: obj.professional_note || ''
+        };
+
+        if (obj.extended_profile_json) {
+          try {
+            const parsed = JSON.parse(obj.extended_profile_json);
+            ext = { ...ext, ...parsed };
+          } catch {}
+        }
+
+        if (!ext.education?.length && obj.educational_qualifications) {
+          ext.education = parseEduText(obj.educational_qualifications);
+        }
+        if (!ext.professional_qualifications?.length && obj.professional_degrees) {
+          ext.professional_qualifications = parseEduText(obj.professional_degrees);
+        }
+        if (!ext.training?.length && obj.ict_trainings) {
+          ext.training = parseTrainingText(obj.ict_trainings);
+        }
+        if (!ext.in_service_training?.length && obj.in_service_trainings) {
+          ext.in_service_training = parseTrainingText(obj.in_service_trainings);
+        }
+
+        if (obj.dob) ext.dob = obj.dob;
+        if (obj.professional_note) ext.professional_note = obj.professional_note;
+
+        if (obj.ntrca_registered || obj.ntrca_recommended || obj.ntrca_year || obj.ntrca_subject || obj.ntrca_remarks) {
+          ext.ntrca = {
+            registered: obj.ntrca_registered || ext.ntrca?.registered || '',
+            recommended: obj.ntrca_recommended || ext.ntrca?.recommended || '',
+            year: obj.ntrca_year || ext.ntrca?.year || '',
+            subject: obj.ntrca_subject || ext.ntrca?.subject || '',
+            remarks: obj.ntrca_remarks || ext.ntrca?.remarks || ''
+          };
+        }
+
+        obj.extended_profile = ext;
+
+        if (obj.public_contact_enabled !== undefined) {
+          const pce = String(obj.public_contact_enabled).toLowerCase();
+          obj.public_contact_enabled = !(pce === 'না' || pce === 'no' || pce === 'false');
+        }
+
+        if (obj.current_post_joining_date && !obj.joining_date) {
+          obj.joining_date = obj.current_post_joining_date;
+        }
+
+        return obj;
+      }).filter(Boolean);
+
+      if (!rows.length) throw new Error('কোনো বৈধ রেকর্ড পাওয়া যায়নি');
+      const result = await api(isTeacher ? '/teachers/bulk-import' : '/staff/bulk-import', { method: 'POST', body: JSON.stringify({ people: rows }) });
+      setMsg(result.message || 'ইমপোর্ট সম্পন্ন হয়েছে');
+      setView('list');
+      load();
+    } catch (err) {
+      setMsg(err.message || 'CSV আপলোড ব্যর্থ');
+    }
+  };
+
+  const change=(k,v)=>setForm(f=>({...f,[k]:v}));
  const ext=(k,v)=>setForm(f=>({...f,extended_profile:{...(f?.extended_profile||{}),[k]:v}}));
  const addRow=k=>ext(k,[...(form?.extended_profile?.[k]||[]),{}]);
  const updateRow=(k,i,f,v)=>ext(k,(form?.extended_profile?.[k]||[]).map((r,n)=>n===i?{...r,[f]:v}:r));
