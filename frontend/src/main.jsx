@@ -2987,12 +2987,14 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
     </div>
    )}
  
-   <TeacherQueryModal
-    isOpen={teacherQueryModal.isOpen}
-    onClose={() => setTeacherQueryModal(prev => ({ ...prev, isOpen: false }))}
-    teachers={allTeachers && allTeachers.length ? allTeachers : teachers}
-    initialMode={teacherQueryModal.mode}
-   />
+   {teacherQueryModal.isOpen && (
+    <TeacherQueryModal
+     isOpen={teacherQueryModal.isOpen}
+     onClose={() => setTeacherQueryModal(prev => ({ ...prev, isOpen: false }))}
+     teachers={allTeachers && allTeachers.length ? allTeachers : teachers}
+     initialMode={teacherQueryModal.mode}
+    />
+   )}
 </div>;
 }
 

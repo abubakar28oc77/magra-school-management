@@ -201,8 +201,6 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
     }
   }, [initialMode, isOpen]);
 
-  if (!isOpen) return null;
-
   // Active Teachers only
   const activeTeachers = teachers.filter(t => (t.status || 'active').toLowerCase() === 'active' || (t.status || 'active').toLowerCase() === 'সক্রিয়');
   const maleCount = activeTeachers.filter(t => getTeacherGender(t) === 'male').length;
@@ -345,6 +343,8 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
       return true;
     });
   }, [activeTeachers, mode, selectedCategory, genderFilter, searchQuery]);
+
+  if (!isOpen) return null;
 
   // Print Function
   const handlePrint = () => {
