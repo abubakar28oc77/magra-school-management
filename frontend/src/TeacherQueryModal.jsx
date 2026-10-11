@@ -241,7 +241,9 @@ export function getTeacherIctTrainingDetails(t) {
 // Helper to get all in-service trainings from teacher entry form
 export function getTeacherAllTrainings(t) {
   if (!t) return [];
-  const list = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
+  const ictList = t.extended_profile?.training || (Array.isArray(t.training) ? t.training : []);
+  const inServiceList = t.extended_profile?.in_service_training || (Array.isArray(t.in_service_training) ? t.in_service_training : []);
+  const list = [...ictList, ...inServiceList];
   if (list && list.length > 0) return list;
 
   // Fallback defaults if teacher has designation/subject indicating training
