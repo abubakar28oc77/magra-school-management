@@ -1667,7 +1667,7 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                             <img
                               src={getTeacherPhoto(t)}
                               alt=""
-                              style={{width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #cbd5e1'}}
+                              style={{width: '34px', height: '34px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #cbd5e1'}}
                             />
                             <div>
                               <div style={{fontWeight: 600, color: '#0f172a'}}>{t.name_bn || t.name_en}</div>

@@ -3394,7 +3394,8 @@ function StaffPanel({sub}){
      <table>
       <thead>
        <tr>
-        <th>Employee ID</th>
+        <th style={{textAlign:'center',width:'85px'}}>Employee ID</th>
+        <th style={{textAlign:'center',width:'55px'}}>ছবি</th>
         <th>নাম</th>
         <th>পদবি</th>
         {isTeacher&&<th>বিষয়</th>}
@@ -3405,12 +3406,15 @@ function StaffPanel({sub}){
       </thead>
       <tbody>
        {(list||[]).map(x=><tr key={x.id}>
-        <td><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
-        <td>
-         <div style={{display:'flex',alignItems:'center',gap:8}}>
-          <img src={getTeacherPhoto(x)} alt="" style={{width:30,height:30,borderRadius:'50%',objectFit:'cover',border:'1px solid #cbd5e1',flexShrink:0}}/>
-          <span>{x.name_bn}</span>
+        <td style={{textAlign:'center'}}><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
+        <td style={{textAlign:'center',padding:'4px'}}>
+         <div style={{width:'38px',height:'38px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)'}}>
+          <img src={getTeacherPhoto(x)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}/>
          </div>
+        </td>
+        <td>
+         <div style={{fontWeight:600,color:'#0f172a'}}>{x.name_bn}</div>
+         {x.name_en&&x.name_en!==x.name_bn&&<div style={{fontSize:'11px',color:'#64748b'}}>{x.name_en}</div>}
         </td>
         <td>{x.designation}</td>
         {isTeacher&&<td>{x.subject||'—'}</td>}
@@ -3439,7 +3443,7 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
          <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button>
         </td>
        </tr>)}
-       {!(list||[]).length&&<tr><td colSpan={isTeacher?7:6}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
+       {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
     </div>
@@ -3515,7 +3519,7 @@ load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত�
              <img 
               src={getTeacherPhoto(t)} 
               alt="" 
-              style={{width:34,height:34,borderRadius:'50%',objectFit:'cover',border:'1.5px solid #bbf7d0',flexShrink:0}}
+              style={{width:36,height:36,borderRadius:'6px',objectFit:'cover',border:'1px solid #cbd5e1',flexShrink:0}}
              />
              <div>
               <div style={{fontWeight:600,color:'#0f172a'}}>{t.name_bn}</div>
