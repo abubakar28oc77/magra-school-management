@@ -3276,204 +3276,362 @@ function StaffPanel({sub}){
   const printPersonProfile = (x) => {
     const w = window.open('', '_blank');
     if (!w) {
-      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে অনুমতি দিন।');
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন দিন।');
       return;
     }
     const eduList = isTeacher ? getTeacherAllEducation(x) : (x.extended_profile?.education || []);
     const profList = x.extended_profile?.professional_qualifications || [];
-    const trainingList = [...(x.extended_profile?.training || []), ...(x.extended_profile?.in_service_training || [])];
+    const ictTrainingList = x.extended_profile?.training || [];
+    const inServiceList = x.extended_profile?.in_service_training || [];
+    const ntrca = x.extended_profile?.ntrca || {};
     const photo = getTeacherPhoto(x);
+
+    const safeVal = (v) => (v !== undefined && v !== null && String(v).trim() !== '' ? v : '—');
 
     const content = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${x.name_bn || x.name_en} - ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} জীবনবৃত্তান্ত ও প্রোফাইল</title>
+  <title>${x.name_bn || x.name_en} - ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও প্রোফাইল</title>
   <style>
-    @page { size: A4 portrait; margin: 12mm; }
-    body { font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif; color: #0f172a; margin: 0; padding: 12px; font-size: 11.5px; line-height: 1.4; }
-    .header { text-align: center; border-bottom: 2px solid #0b8050; padding-bottom: 8px; margin-bottom: 12px; position: relative; }
-    .header h1 { font-size: 20px; color: #0b8050; margin: 0 0 3px; font-weight: 800; }
-    .header p { margin: 2px 0; font-size: 11px; color: #475569; }
-    .badge-title { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 14px; border-radius: 12px; font-weight: 700; font-size: 12px; margin-top: 6px; }
-    .profile-card { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc; }
-    .profile-photo { width: 105px; height: 125px; border: 1px solid #94a3b8; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #fff; }
-    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .profile-details { flex: 1; }
-    .profile-details table { width: 100%; border-collapse: collapse; }
-    .profile-details td { padding: 3px 6px; border: none; font-size: 11.5px; }
-    .profile-details td.label { font-weight: 700; color: #334155; width: 130px; }
-    .section-title { font-size: 12.5px; font-weight: 700; color: #0b8050; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 12px 0 6px; display: flex; align-items: center; gap: 6px; }
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 4px; margin-bottom: 10px; font-size: 11px; }
-    .data-table th, .data-table td { border: 1px solid #cbd5e1; padding: 5px 8px; text-align: left; }
-    .data-table th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
-    .signatures { margin-top: 45px; display: flex; justify-content: space-between; page-break-inside: avoid; }
-    .sig-box { text-align: center; width: 190px; border-top: 1px dashed #475569; padding-top: 5px; font-size: 11px; font-weight: 600; }
+    @page { size: A4 portrait; margin: 10mm 12mm; }
+    body { font-family: 'SolaimanLipi', 'Noto Sans Bengali', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 11px; line-height: 1.35; background: #fff; }
+    .header-box { text-align: center; border-bottom: 2.5px solid #0b8050; padding-bottom: 6px; margin-bottom: 10px; }
+    .header-box h1 { font-size: 19px; color: #0b8050; margin: 0 0 2px; font-weight: 800; letter-spacing: -0.2px; }
+    .header-box p { margin: 1px 0; font-size: 10.5px; color: #475569; }
+    .header-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1.5px solid #10b981; padding: 2.5px 14px; border-radius: 12px; font-weight: 700; font-size: 11.5px; margin-top: 5px; }
+
+    .top-summary { display: flex; gap: 14px; align-items: center; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; margin-bottom: 10px; }
+    .top-photo { width: 85px; height: 100px; border: 1px solid #94a3b8; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #fff; }
+    .top-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .top-info { flex: 1; }
+    .top-name-bn { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
+    .top-name-en { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .top-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; font-size: 11px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px; }
+    .top-grid div b { color: #334155; }
+
+    .sec-title { background: #f0fdf4; color: #065f46; border: 1px solid #bbf7d0; padding: 4px 8px; font-weight: 700; font-size: 11.5px; margin: 10px 0 4px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; page-break-after: avoid; }
+    .sec-sub { font-weight: 700; font-size: 11px; color: #1e293b; margin: 6px 0 3px; display: flex; align-items: center; gap: 4px; }
+
+    .table-info { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 10.5px; }
+    .table-info td { border: 1px solid #cbd5e1; padding: 4px 6px; vertical-align: middle; }
+    .table-info td.lbl { background: #f8fafc; font-weight: 700; color: #334155; width: 18%; }
+    .table-info td.val { width: 32%; color: #0f172a; }
+
+    .table-grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 10px; }
+    .table-grid th, .table-grid td { border: 1px solid #cbd5e1; padding: 4px 5px; text-align: left; }
+    .table-grid th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+    .table-grid td.c { text-align: center; }
+
+    .signatures { margin-top: 35px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+    .sig-box { text-align: center; width: 190px; border-top: 1px dashed #475569; padding-top: 4px; font-size: 10.5px; font-weight: 600; color: #1e293b; }
+
+    @media print {
+      body { padding: 0; }
+      .no-print { display: none; }
+      .sec-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .table-info td.lbl, .table-grid th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
   </style>
 </head>
 <body>
-  <div class="header">
+  <div class="header-box">
     <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
     <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • EIIN: 114290 • MPO: 4206071302 • স্থাপিত: ১৯৪৬</p>
-    <div class="badge-title">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} জীবনবৃত্তান্ত ও ব্যক্তিগত পরিচিতি (Profile Biodata)</div>
+    <div class="header-badge">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও জীবনবৃত্তান্ত (Official Profile Record)</div>
   </div>
 
-  <div class="profile-card">
-    <div class="profile-photo">
+  <div class="top-summary">
+    <div class="top-photo">
       <img src="${photo}" alt="" />
     </div>
-    <div class="profile-details">
-      <table>
-        <tr>
-          <td class="label">Employee ID:</td>
-          <td><b>${x.employee_id || '—'}</b></td>
-          <td class="label">অবস্থা (Status):</td>
-          <td><b>${statusBn(x.status)}</b></td>
-        </tr>
-        <tr>
-          <td class="label">নাম (বাংলা):</td>
-          <td><b style="font-size:13px;color:#0f172a">${x.name_bn || '—'}</b></td>
-          <td class="label">পদবী:</td>
-          <td><b>${x.designation || '—'}</b></td>
-        </tr>
-        <tr>
-          <td class="label">নাম (English):</td>
-          <td>${x.name_en || '—'}</td>
-          <td class="label">মূল বিষয়:</td>
-          <td>${x.subject || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">মোবাইল নম্বর:</td>
-          <td>${x.phone || '—'}</td>
-          <td class="label">ই-মেইল:</td>
-          <td>${x.email || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">জাতীয় পরিচয়পত্র:</td>
-          <td>${x.nid_no || '—'}</td>
-          <td class="label">জন্ম তারিখ:</td>
-          <td>${x.extended_profile?.dob || x.date_of_birth || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">রক্তের গ্রুপ:</td>
-          <td>${x.blood_group || '—'}</td>
-          <td class="label">ধর্ম ও লিঙ্গ:</td>
-          <td>${x.religion || 'ইসলাম'} • ${x.gender || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">১ম যোগদানের তারিখ:</td>
-          <td>${x.first_joining_date || '—'}</td>
-          <td class="label">বর্তমান পদে যোগদান:</td>
-          <td>${x.current_post_joining_date || x.joining_date || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">এমপিও ইনডেক্স নম্বর:</td>
-          <td>${x.mpo_index_no || '—'}</td>
-          <td class="label">শিক্ষক নিবন্ধন নং:</td>
-          <td>${x.teacher_registration_no || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">বর্তমান ঠিকানা:</td>
-          <td colspan="3">${x.address || '—'}</td>
-        </tr>
-        <tr>
-          <td class="label">স্থায়ী ঠিকানা:</td>
-          <td colspan="3">${x.permanent_address || '—'}</td>
-        </tr>
-      </table>
+    <div class="top-info">
+      <div class="top-name-bn">${safeVal(x.name_bn)}</div>
+      <div class="top-name-en">${safeVal(x.name_en)}</div>
+      <div class="top-grid">
+        <div><b>Employee ID:</b> ${safeVal(x.employee_id)}</div>
+        <div><b>পদবী:</b> ${safeVal(x.designation)}</div>
+        <div><b>অবস্থা:</b> ${statusBn(x.status)}</div>
+        <div><b>মূল বিষয়:</b> ${safeVal(x.subject)}</div>
+        <div><b>মোবাইল:</b> ${safeVal(x.phone)}</div>
+        <div><b>এমপিও ইনডেক্স:</b> ${safeVal(x.mpo_index_no)}</div>
+      </div>
     </div>
   </div>
 
-  <div class="section-title">🎓 শিক্ষাগত যোগ্যতার বিবরণ</div>
-  <table class="data-table">
+  <!-- ১. পরিচয় ও পরিবার -->
+  <div class="sec-title"><span>👤 ১. পরিচয় ও পরিবারের বিবরণ</span><small>ধাপ ১</small></div>
+  <table class="table-info">
+    <tr>
+      <td class="lbl">Employee ID:</td>
+      <td class="val"><b>${safeVal(x.employee_id)}</b></td>
+      <td class="lbl">নাম (বাংলা):</td>
+      <td class="val"><b>${safeVal(x.name_bn)}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">নাম (ইংরেজি):</td>
+      <td class="val">${safeVal(x.name_en)}</td>
+      <td class="lbl">জন্ম তারিখ:</td>
+      <td class="val">${safeVal(x.extended_profile?.dob || x.date_of_birth)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">লিঙ্গ:</td>
+      <td class="val">${safeVal(x.gender)}</td>
+      <td class="lbl">জাতীয় পরিচয়পত্র (NID):</td>
+      <td class="val">${safeVal(x.nid_no)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">TIN নম্বর:</td>
+      <td class="val">${safeVal(x.tin_no)}</td>
+      <td class="lbl">জন্ম নিবন্ধন নম্বর:</td>
+      <td class="val">${safeVal(x.birth_registration_no)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">রক্তের গ্রুপ:</td>
+      <td class="val"><b>${safeVal(x.blood_group)}</b></td>
+      <td class="lbl">ধর্ম:</td>
+      <td class="val">${safeVal(x.religion || 'ইসলাম')}</td>
+    </tr>
+    <tr>
+      <td class="lbl">বৈবাহিক অবস্থা:</td>
+      <td class="val">${safeVal(x.marital_status)}</td>
+      <td class="lbl">জাতীয়তা:</td>
+      <td class="val">${safeVal(x.nationality || 'বাংলাদেশী')}</td>
+    </tr>
+    <tr>
+      <td class="lbl">পিতার নাম (বাংলা):</td>
+      <td class="val">${safeVal(x.father_name_bn)}</td>
+      <td class="lbl">পিতার নাম (ইংরেজি):</td>
+      <td class="val">${safeVal(x.father_name_en)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">মাতার নাম (বাংলা):</td>
+      <td class="val">${safeVal(x.mother_name_bn)}</td>
+      <td class="lbl">মাতার নাম (ইংরেজি):</td>
+      <td class="val">${safeVal(x.mother_name_en)}</td>
+    </tr>
+  </table>
+
+  <!-- ২. চাকরি ও MPO -->
+  <div class="sec-title"><span>💼 ২. চাকরি ও MPO সংক্রান্ত বিবরণ</span><small>ধাপ ২</small></div>
+  <table class="table-info">
+    <tr>
+      <td class="lbl">পদবী (Designation):</td>
+      <td class="val"><b>${safeVal(x.designation)}</b></td>
+      <td class="lbl">Designation (English):</td>
+      <td class="val">${safeVal(x.designation_en)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">মূল বিষয় (Subject):</td>
+      <td class="val"><b>${safeVal(x.subject)}</b></td>
+      <td class="lbl">বর্তমান অবস্থা (Status):</td>
+      <td class="val"><b>${statusBn(x.status)}</b></td>
+    </tr>
+    <tr>
+      <td class="lbl">১ম যোগদানের তারিখ:</td>
+      <td class="val">${safeVal(x.first_joining_date)}</td>
+      <td class="lbl">১ম এমপিওভুক্তির তারিখ:</td>
+      <td class="val">${safeVal(x.first_mpo_date)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">বর্তমান পদে যোগদানের তারিখ:</td>
+      <td class="val">${safeVal(x.current_post_joining_date || x.joining_date)}</td>
+      <td class="lbl">বর্তমান পদে এমপিও তারিখ:</td>
+      <td class="val">${safeVal(x.current_mpo_date)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">অত্র প্রতিষ্ঠানে যোগদানের তারিখ:</td>
+      <td class="val">${safeVal(x.previous_institution_joining_date)}</td>
+      <td class="lbl">অত্র প্রতিষ্ঠানে এমপিও তারিখ:</td>
+      <td class="val">${safeVal(x.previous_institution_mpo_date)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">নিয়োগের তারিখ:</td>
+      <td class="val">${safeVal(x.appointment_date)}</td>
+      <td class="lbl">নিয়োগকারী কর্তৃপক্ষ:</td>
+      <td class="val">${safeVal(x.appointment_authority)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">এমপিও কোড / ইনডেক্স নম্বর:</td>
+      <td class="val" colspan="3"><b>${safeVal(x.mpo_index_no)}</b></td>
+    </tr>
+  </table>
+
+  <!-- ৩. শিক্ষাগত যোগ্যতার বিবরণ -->
+  <div class="sec-title"><span>🎓 ৩. শিক্ষাগত যোগ্যতার বিবরণ</span><small>ধাপ ৩</small></div>
+  <table class="table-grid">
     <thead>
       <tr>
-        <th style="width:40px;text-align:center">ক্র.নং</th>
-        <th>পরীক্ষার নাম</th>
-        <th>প্রতিষ্ঠান</th>
+        <th style="width:35px" class="c">ক্র.নং</th>
+        <th style="width:130px">পরীক্ষার নাম</th>
+        <th>শিক্ষা প্রতিষ্ঠান</th>
         <th>বোর্ড / বিশ্ববিদ্যালয়</th>
         <th>গ্রুপ / বিষয়</th>
-        <th>পাশের সন</th>
-        <th>ফলাফল / বিভাগ</th>
+        <th style="width:65px" class="c">পাশের সন</th>
+        <th style="width:75px" class="c">ফলাফল / GPA</th>
       </tr>
     </thead>
     <tbody>
-      ${eduList.length ? eduList.map((ed, idx) => `
+      ${eduList && eduList.length ? eduList.map((ed, idx) => `
         <tr>
-          <td style="text-align:center">${idx + 1}</td>
-          <td><b>${ed.exam || '—'}</b></td>
-          <td>${ed.institution || '—'}</td>
-          <td>${ed.board || '—'}</td>
-          <td>${ed.subject || '—'}</td>
-          <td>${ed.year || '—'}</td>
-          <td>${ed.result || '—'}</td>
+          <td class="c">${idx + 1}</td>
+          <td><b>${safeVal(ed.exam)}</b></td>
+          <td>${safeVal(ed.institution)}</td>
+          <td>${safeVal(ed.board)}</td>
+          <td>${safeVal(ed.subject)}</td>
+          <td class="c"><b>${safeVal(ed.year)}</b></td>
+          <td class="c">${safeVal(ed.result)}</td>
         </tr>
-      `).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b">কোনো শিক্ষাগত যোগ্যতার তথ্য পাওয়া যায়নি</td></tr>'}
+      `).join('') : '<tr><td colspan="7" class="c" style="color:#64748b;padding:8px">কোনো শিক্ষাগত যোগ্যতার তথ্য পাওয়া যায়নি</td></tr>'}
     </tbody>
   </table>
 
-  ${profList.length ? `
-    <div class="section-title">📜 পেশাগত যোগ্যতার বিবরণ</div>
-    <table class="data-table">
-      <thead>
+  <!-- ৪. পেশাগত যোগ্যতার বিবরণ -->
+  <div class="sec-title"><span>📜 ৪. পেশাগত যোগ্যতার বিবরণ</span><small>ধাপ ৪</small></div>
+  <table class="table-grid">
+    <thead>
+      <tr>
+        <th style="width:35px" class="c">ক্র.নং</th>
+        <th style="width:130px">পেশাগত ডিগ্রী</th>
+        <th>শিক্ষা প্রতিষ্ঠান</th>
+        <th>বোর্ড / বিশ্ববিদ্যালয়</th>
+        <th>গ্রুপ / বিষয়</th>
+        <th style="width:65px" class="c">পাশের সন</th>
+        <th style="width:75px" class="c">ফলাফল / GPA</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${profList && profList.length ? profList.map((pr, idx) => `
         <tr>
-          <th style="width:40px;text-align:center">ক্র.নং</th>
-          <th>ডিগ্রী</th>
-          <th>প্রতিষ্ঠান</th>
-          <th>বোর্ড/বিশ্ববিদ্যালয়</th>
-          <th>বিষয়</th>
-          <th>পাশের সন</th>
-          <th>ফলাফল</th>
+          <td class="c">${idx + 1}</td>
+          <td><b>${safeVal(pr.exam)}</b></td>
+          <td>${safeVal(pr.institution)}</td>
+          <td>${safeVal(pr.board)}</td>
+          <td>${safeVal(pr.subject)}</td>
+          <td class="c"><b>${safeVal(pr.year)}</b></td>
+          <td class="c">${safeVal(pr.result)}</td>
         </tr>
-      </thead>
-      <tbody>
-        ${profList.map((pr, idx) => `
-          <tr>
-            <td style="text-align:center">${idx + 1}</td>
-            <td><b>${pr.exam || '—'}</b></td>
-            <td>${pr.institution || '—'}</td>
-            <td>${pr.board || '—'}</td>
-            <td>${pr.subject || '—'}</td>
-            <td>${pr.year || '—'}</td>
-            <td>${pr.result || '—'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  ` : ''}
+      `).join('') : '<tr><td colspan="7" class="c" style="color:#64748b;padding:8px">কোনো পেশাগত যোগ্যতার তথ্য সংরক্ষিত নেই</td></tr>'}
+    </tbody>
+  </table>
 
-  ${trainingList.length ? `
-    <div class="section-title">📚 প্রশিক্ষণের বিবরণ</div>
-    <table class="data-table">
-      <thead>
+  <!-- ৫. প্রশিক্ষণের বিবরণ -->
+  <div class="sec-title"><span>📚 ৫. প্রশিক্ষণের বিবরণ (আইসিটি ও কর্মকালীন)</span><small>ধাপ ৫</small></div>
+  <div class="sec-sub">🔹 ৫.১ আইসিটি প্রশিক্ষণ (ICT Training)</div>
+  <table class="table-grid">
+    <thead>
+      <tr>
+        <th style="width:35px" class="c">ক্র.নং</th>
+        <th style="width:140px">প্রশিক্ষণের শিরোনাম</th>
+        <th>প্রশিক্ষণের বিষয়</th>
+        <th>স্থান / প্রতিষ্ঠান</th>
+        <th>অবস্থান</th>
+        <th style="width:75px" class="c">শুরুর তারিখ</th>
+        <th style="width:75px" class="c">শেষের তারিখ</th>
+        <th style="width:75px" class="c">স্থিতিকাল</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${ictTrainingList && ictTrainingList.length ? ictTrainingList.map((tr, idx) => `
         <tr>
-          <th style="width:40px;text-align:center">ক্র.নং</th>
-          <th>প্রশিক্ষণের নাম / শিরোনাম</th>
-          <th>বিষয়</th>
-          <th>প্রতিষ্ঠান / স্থান</th>
-          <th>মেয়াদ</th>
-          <th>শুরুর তারিখ</th>
-          <th>সমাপ্তির তারিখ</th>
+          <td class="c">${idx + 1}</td>
+          <td><b>${safeVal(tr.title || tr.name)}</b></td>
+          <td>${safeVal(tr.subject)}</td>
+          <td>${safeVal(tr.institution || tr.place)}</td>
+          <td>${safeVal(tr.location)}</td>
+          <td class="c">${safeVal(tr.start_date)}</td>
+          <td class="c">${safeVal(tr.end_date)}</td>
+          <td class="c">${safeVal(tr.duration)}</td>
         </tr>
-      </thead>
-      <tbody>
-        ${trainingList.map((tr, idx) => `
-          <tr>
-            <td style="text-align:center">${idx + 1}</td>
-            <td><b>${tr.title || tr.name || '—'}</b></td>
-            <td>${tr.subject || '—'}</td>
-            <td>${tr.institution || tr.location || '—'}</td>
-            <td>${tr.duration || '—'}</td>
-            <td>${tr.start_date || '—'}</td>
-            <td>${tr.end_date || '—'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  ` : ''}
+      `).join('') : '<tr><td colspan="8" class="c" style="color:#64748b;padding:6px">কোনো আইসিটি প্রশিক্ষণ রেকর্ড পাওয়া যায়নি</td></tr>'}
+    </tbody>
+  </table>
+
+  <div class="sec-sub">🔹 ৫.২ কর্মকালীন বিভিন্ন প্রশিক্ষণ (In-service Training)</div>
+  <table class="table-grid">
+    <thead>
+      <tr>
+        <th style="width:35px" class="c">ক্র.নং</th>
+        <th style="width:140px">প্রশিক্ষণের শিরোনাম</th>
+        <th>প্রশিক্ষণের বিষয়</th>
+        <th>স্থান / প্রতিষ্ঠান</th>
+        <th>অবস্থান</th>
+        <th style="width:75px" class="c">শুরুর তারিখ</th>
+        <th style="width:75px" class="c">শেষের তারিখ</th>
+        <th style="width:75px" class="c">স্থিতিকাল</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${inServiceList && inServiceList.length ? inServiceList.map((tr, idx) => `
+        <tr>
+          <td class="c">${idx + 1}</td>
+          <td><b>${safeVal(tr.title || tr.name)}</b></td>
+          <td>${safeVal(tr.subject)}</td>
+          <td>${safeVal(tr.institution || tr.place)}</td>
+          <td>${safeVal(tr.location)}</td>
+          <td class="c">${safeVal(tr.start_date)}</td>
+          <td class="c">${safeVal(tr.end_date)}</td>
+          <td class="c">${safeVal(tr.duration)}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="8" class="c" style="color:#64748b;padding:6px">কোনো কর্মকালীন প্রশিক্ষণ রেকর্ড পাওয়া যায়নি</td></tr>'}
+    </tbody>
+  </table>
+
+  <table class="table-info" style="margin-top:4px">
+    <tr>
+      <td class="lbl">শিক্ষক বাতায়ন ID:</td>
+      <td class="val">${safeVal(x.teacher_portal_id)}</td>
+      <td class="lbl">অতিরিক্ত পেশাগত তথ্য:</td>
+      <td class="val">${safeVal(x.extended_profile?.professional_note)}</td>
+    </tr>
+  </table>
+
+  <!-- ৬. নিবন্ধন / NTRCA ও যোগাযোগ -->
+  <div class="sec-title"><span>📝 ৬. নিবন্ধন/NTRCA ও যোগাযোগের বিবরণ</span><small>ধাপ ৬</small></div>
+  <table class="table-info">
+    <tr>
+      <td class="lbl">শিক্ষক নিবন্ধন নম্বর:</td>
+      <td class="val"><b>${safeVal(x.teacher_registration_no)}</b></td>
+      <td class="lbl">নিবন্ধনের তারিখ:</td>
+      <td class="val">${safeVal(x.registration_date)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">NTRCA নিবন্ধিত?</td>
+      <td class="val">${safeVal(ntrca.registered)}</td>
+      <td class="lbl">NTRCA সুপারিশপ্রাপ্ত?</td>
+      <td class="val">${safeVal(ntrca.recommended)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">নিবন্ধন/সুপারিশের সন:</td>
+      <td class="val">${safeVal(ntrca.year)}</td>
+      <td class="lbl">NTRCA বিষয়:</td>
+      <td class="val">${safeVal(ntrca.subject)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">NTRCA মন্তব্য:</td>
+      <td class="val" colspan="3">${safeVal(ntrca.remarks)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">মোবাইল নম্বর:</td>
+      <td class="val"><b>${safeVal(x.phone)}</b></td>
+      <td class="lbl">WhatsApp নম্বর:</td>
+      <td class="val">${safeVal(x.whatsapp_no)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">ই-মেইল ঠিকানা:</td>
+      <td class="val">${safeVal(x.email)}</td>
+      <td class="lbl">বর্তমান ঠিকানা:</td>
+      <td class="val">${safeVal(x.address)}</td>
+    </tr>
+    <tr>
+      <td class="lbl">স্থায়ী ঠিকানা:</td>
+      <td class="val" colspan="3">${safeVal(x.permanent_address)}</td>
+    </tr>
+  </table>
 
   <div class="signatures">
-    <div class="sig-box">সংশ্লিষ্ট শিক্ষক/কর্মচারীর স্বাক্ষর</div>
+    <div class="sig-box">সংশ্লিষ্ট শিক্ষক/কর্মচারীর স্বাক্ষর ও তারিখ</div>
+    <div class="sig-box">সহকারী প্রধান শিক্ষকের স্বাক্ষর</div>
     <div class="sig-box">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
   </div>
 
