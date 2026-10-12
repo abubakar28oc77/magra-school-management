@@ -3229,10 +3229,74 @@ function StaffPanel({sub}){
   }
  };
 
+  const [inlineEditId, setInlineEditId] = useState(null);
+  const [inlineForm, setInlineForm] = useState({});
+
+  const uploadPhoto = (x, e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) {
+      setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');
+      return;
+    }
+    const r = new FileReader();
+    r.onload = async () => {
+      try {
+        const base = isTeacher ? 'teachers' : 'staff';
+        await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: r.result }) });
+        try {
+          let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+          const dName = (x.designation || '').toLowerCase();
+          const nBn = (x.name_bn || '').toLowerCase();
+          if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
+            leaderStored.head = { ...(leaderStored.head || {}), photo: r.result, name: x.name_bn || leaderStored.head?.name };
+          } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
+            leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: r.result, name: x.name_bn || leaderStored.asst_head?.name };
+          } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
+            leaderStored.president = { ...(leaderStored.president || {}), photo: r.result, name: x.name_bn || leaderStored.president?.name };
+          }
+          localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
+        } catch {}
+        setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
+        window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+        window.dispatchEvent(new Event('storage'));
+        load();
+      } catch (err) {
+        setMsg(err.message || 'ছবি সংরক্ষণে ত্রুটি');
+      }
+    };
+    r.readAsDataURL(f);
+  };
+
+  const saveInline = async (x) => {
+    if (!inlineForm.name_bn?.trim()) {
+      setMsg('নাম আবশ্যিক');
+      return;
+    }
+    try {
+      const base = isTeacher ? 'teachers' : 'staff';
+      const updated = {
+        ...x,
+        name_bn: inlineForm.name_bn.trim(),
+        designation: inlineForm.designation?.trim() || x.designation,
+        ...(isTeacher ? { subject: inlineForm.subject?.trim() || x.subject } : {}),
+        phone: inlineForm.phone?.trim() || x.phone,
+        status: inlineForm.status || x.status || 'active'
+      };
+      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify(updated) });
+      setMsg(`✅ ${updated.name_bn}-এর তথ্য সফলভাবে সংরক্ষিত হয়েছে`);
+      setInlineEditId(null);
+      load();
+    } catch (err) {
+      setMsg(err.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
+    }
+  };
+
  const switchTab=(t, v)=>{
   setTab(t);
   if(v) setView(v);
   setEditing(null);
+  setInlineEditId(null);
   setForm(initNewForm(t));
   setStep(0);
  };
@@ -3427,48 +3491,158 @@ function StaffPanel({sub}){
         {isTeacher&&<th>বিষয়</th>}
         <th>মোবাইল</th>
         <th>অবস্থা</th>
-        <th>কাজ</th>
+        <th style={{textAlign:'center',padding:'10px 8px',minWidth:'190px',whiteSpace:'nowrap'}}>কাজ (সংরক্ষণ • সম্পাদনা • মুছুন)</th>
        </tr>
       </thead>
       <tbody>
-       {(list||[]).map(x=><tr key={x.id}>
-        <td style={{textAlign:'center'}}><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
-        <td style={{textAlign:'center',padding:'4px'}}>
-         <div style={{width:'38px',height:'38px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)'}}>
-          <img src={getTeacherPhoto(x)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}/>
-         </div>
-        </td>
-        <td>
-         <div style={{fontWeight:600,color:'#0f172a'}}>{x.name_bn}</div>
-         {x.name_en&&x.name_en!==x.name_bn&&<div style={{fontSize:'11px',color:'#64748b'}}>{x.name_en}</div>}
-        </td>
-        <td>{x.designation}</td>
-        {isTeacher&&<td>{x.subject||'—'}</td>}
-        <td>{x.phone||'—'}</td>
-        <td>{statusBn(x.status)}</td>
-        <td>
-         <button className="mini" onClick={()=>begin(x)}>সম্পাদনা</button>
-         <label className="mini" style={{marginLeft:4,cursor:'pointer',background:'#0b8050',color:'#fff',border:'none',display:'inline-block'}}>📷 ছবি<input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}const r=new FileReader();r.onload=async()=>{try{const base=isTeacher?'teachers':'staff';await api(`/${base}/${x.id}`,{method:'PUT',body:JSON.stringify({...x,photo_url:r.result})});
-try {
-  let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
-  const dName = (x.designation || '').toLowerCase();
-  const nBn = (x.name_bn || '').toLowerCase();
-  if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
-    leaderStored.head = { ...(leaderStored.head || {}), photo: r.result, name: x.name_bn || leaderStored.head?.name };
-  } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
-    leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: r.result, name: x.name_bn || leaderStored.asst_head?.name };
-  } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
-    leaderStored.president = { ...(leaderStored.president || {}), photo: r.result, name: x.name_bn || leaderStored.president?.name };
-  }
-  localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
-} catch {}
-setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
-window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
-window.dispatchEvent(new Event('storage'));
-load();}catch(err){setMsg(err.message||'ছবি সংরক্ষণে ত্রুটি');}};r.readAsDataURL(f);}}/></label>
-         <button className="mini" style={{marginLeft:4,color:'#dc2626'}} onClick={()=>remove(x.id)}>মুছুন</button>
-        </td>
-       </tr>)}
+       {(list||[]).map(x=>{
+        const isInline = inlineEditId === x.id;
+        return (
+         <tr key={x.id} style={{background: isInline ? '#f0fdf4' : undefined}}>
+          <td style={{textAlign:'center'}}><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
+          <td style={{textAlign:'center',padding:'4px'}}>
+           <label style={{cursor:'pointer',display:'inline-block',position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
+            <div style={{width:'38px',height:'38px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)',position:'relative'}}>
+             <img src={getTeacherPhoto(x)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}/>
+             <span style={{position:'absolute',bottom:0,right:0,background:'rgba(0,0,0,0.65)',color:'#fff',fontSize:'9px',padding:'1px 3px',borderRadius:'3px',lineHeight:1}}>📷</span>
+            </div>
+            <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
+           </label>
+          </td>
+          <td>
+           {isInline ? (
+            <input 
+             value={inlineForm.name_bn} 
+             onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} 
+             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%',fontWeight:600}} 
+             placeholder="নাম (বাংলা)"
+            />
+           ) : (
+            <div>
+             <div style={{fontWeight:600,color:'#0f172a'}}>{x.name_bn}</div>
+             {x.name_en&&x.name_en!==x.name_bn&&<div style={{fontSize:'11px',color:'#64748b'}}>{x.name_en}</div>}
+            </div>
+           )}
+          </td>
+          <td>
+           {isInline ? (
+            <input 
+             value={inlineForm.designation} 
+             onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} 
+             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+             placeholder="পদবি"
+            />
+           ) : (
+            x.designation
+           )}
+          </td>
+          {isTeacher && (
+           <td>
+            {isInline ? (
+             <input 
+              value={inlineForm.subject} 
+              onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} 
+              style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+              placeholder="মূল বিষয়"
+             />
+            ) : (
+             x.subject || '—'
+            )}
+           </td>
+          )}
+          <td>
+           {isInline ? (
+            <input 
+             value={inlineForm.phone} 
+             onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} 
+             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+             placeholder="মোবাইল"
+            />
+           ) : (
+            x.phone || '—'
+           )}
+          </td>
+          <td>
+           {isInline ? (
+            <select 
+             value={inlineForm.status} 
+             onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} 
+             style={{padding:'5px 8px',fontSize:'12px',borderRadius:'6px',border:'1px solid #3b82f6'}}
+            >
+             {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
+            </select>
+           ) : (
+            statusBn(x.status)
+           )}
+          </td>
+          <td style={{textAlign:'center',padding:'8px 6px',whiteSpace:'nowrap'}}>
+           <div style={{display:'inline-flex',alignItems:'center',gap:'4px',justifyContent:'center',flexWrap:'nowrap'}}>
+            {isInline ? (
+             <>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#16a34a',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               onClick={()=>saveInline(x)} 
+               title="সংরক্ষণ করুন"
+              >
+               💾 সংরক্ষণ
+              </button>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#64748b',color:'#fff',border:'none',padding:'6px 8px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600}} 
+               onClick={()=>setInlineEditId(null)} 
+               title="সম্পাদনা বাতিল"
+              >
+               ✕
+              </button>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#0284c7',color:'#fff',border:'none',padding:'6px 8px',borderRadius:'6px',cursor:'pointer',fontSize:'11px',fontWeight:600}} 
+               onClick={()=>begin(x)} 
+               title="পূর্ণাঙ্গ ৭ ধাপের এন্ট্রি ফরম"
+              >
+               📝 পূর্ণাঙ্গ ফরম
+              </button>
+             </>
+            ) : (
+             <>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#2563eb',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               onClick={()=>{
+                setInlineEditId(x.id);
+                setInlineForm({
+                 name_bn: x.name_bn || '',
+                 designation: x.designation || '',
+                 subject: x.subject || '',
+                 phone: x.phone || '',
+                 status: x.status || 'active'
+                });
+               }} 
+               title="সম্পাদনা করুন"
+              >
+               ✏️ সম্পাদনা
+              </button>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#ef4444',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               onClick={()=>remove(x.id)} 
+               title="মুছে ফেলুন"
+              >
+               🗑️ মুছুন
+              </button>
+             </>
+            )}
+           </div>
+          </td>
+         </tr>
+        );
+       })}
        {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
