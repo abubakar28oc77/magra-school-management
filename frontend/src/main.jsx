@@ -3268,6 +3268,219 @@ function StaffPanel({sub}){
     r.readAsDataURL(f);
   };
 
+  const printPersonProfile = (x) => {
+    const w = window.open('', '_blank');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে অনুমতি দিন।');
+      return;
+    }
+    const eduList = isTeacher ? getTeacherAllEducation(x) : (x.extended_profile?.education || []);
+    const profList = x.extended_profile?.professional_qualifications || [];
+    const trainingList = [...(x.extended_profile?.training || []), ...(x.extended_profile?.in_service_training || [])];
+    const photo = getTeacherPhoto(x);
+
+    const content = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${x.name_bn || x.name_en} - ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} জীবনবৃত্তান্ত ও প্রোফাইল</title>
+  <style>
+    @page { size: A4 portrait; margin: 12mm; }
+    body { font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif; color: #0f172a; margin: 0; padding: 12px; font-size: 11.5px; line-height: 1.4; }
+    .header { text-align: center; border-bottom: 2px solid #0b8050; padding-bottom: 8px; margin-bottom: 12px; position: relative; }
+    .header h1 { font-size: 20px; color: #0b8050; margin: 0 0 3px; font-weight: 800; }
+    .header p { margin: 2px 0; font-size: 11px; color: #475569; }
+    .badge-title { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 14px; border-radius: 12px; font-weight: 700; font-size: 12px; margin-top: 6px; }
+    .profile-card { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc; }
+    .profile-photo { width: 105px; height: 125px; border: 1px solid #94a3b8; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #fff; }
+    .profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-details { flex: 1; }
+    .profile-details table { width: 100%; border-collapse: collapse; }
+    .profile-details td { padding: 3px 6px; border: none; font-size: 11.5px; }
+    .profile-details td.label { font-weight: 700; color: #334155; width: 130px; }
+    .section-title { font-size: 12.5px; font-weight: 700; color: #0b8050; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 3px; margin: 12px 0 6px; display: flex; align-items: center; gap: 6px; }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 4px; margin-bottom: 10px; font-size: 11px; }
+    .data-table th, .data-table td { border: 1px solid #cbd5e1; padding: 5px 8px; text-align: left; }
+    .data-table th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+    .signatures { margin-top: 45px; display: flex; justify-content: space-between; page-break-inside: avoid; }
+    .sig-box { text-align: center; width: 190px; border-top: 1px dashed #475569; padding-top: 5px; font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+    <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • EIIN: 114290 • MPO: 4206071302 • স্থাপিত: ১৯৪৬</p>
+    <div class="badge-title">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} জীবনবৃত্তান্ত ও ব্যক্তিগত পরিচিতি (Profile Biodata)</div>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-photo">
+      <img src="${photo}" alt="" />
+    </div>
+    <div class="profile-details">
+      <table>
+        <tr>
+          <td class="label">Employee ID:</td>
+          <td><b>${x.employee_id || '—'}</b></td>
+          <td class="label">অবস্থা (Status):</td>
+          <td><b>${statusBn(x.status)}</b></td>
+        </tr>
+        <tr>
+          <td class="label">নাম (বাংলা):</td>
+          <td><b style="font-size:13px;color:#0f172a">${x.name_bn || '—'}</b></td>
+          <td class="label">পদবী:</td>
+          <td><b>${x.designation || '—'}</b></td>
+        </tr>
+        <tr>
+          <td class="label">নাম (English):</td>
+          <td>${x.name_en || '—'}</td>
+          <td class="label">মূল বিষয়:</td>
+          <td>${x.subject || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">মোবাইল নম্বর:</td>
+          <td>${x.phone || '—'}</td>
+          <td class="label">ই-মেইল:</td>
+          <td>${x.email || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">জাতীয় পরিচয়পত্র:</td>
+          <td>${x.nid_no || '—'}</td>
+          <td class="label">জন্ম তারিখ:</td>
+          <td>${x.extended_profile?.dob || x.date_of_birth || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">রক্তের গ্রুপ:</td>
+          <td>${x.blood_group || '—'}</td>
+          <td class="label">ধর্ম ও লিঙ্গ:</td>
+          <td>${x.religion || 'ইসলাম'} • ${x.gender || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">১ম যোগদানের তারিখ:</td>
+          <td>${x.first_joining_date || '—'}</td>
+          <td class="label">বর্তমান পদে যোগদান:</td>
+          <td>${x.current_post_joining_date || x.joining_date || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">এমপিও ইনডেক্স নম্বর:</td>
+          <td>${x.mpo_index_no || '—'}</td>
+          <td class="label">শিক্ষক নিবন্ধন নং:</td>
+          <td>${x.teacher_registration_no || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">বর্তমান ঠিকানা:</td>
+          <td colspan="3">${x.address || '—'}</td>
+        </tr>
+        <tr>
+          <td class="label">স্থায়ী ঠিকানা:</td>
+          <td colspan="3">${x.permanent_address || '—'}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-title">🎓 শিক্ষাগত যোগ্যতার বিবরণ</div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:40px;text-align:center">ক্র.নং</th>
+        <th>পরীক্ষার নাম</th>
+        <th>প্রতিষ্ঠান</th>
+        <th>বোর্ড / বিশ্ববিদ্যালয়</th>
+        <th>গ্রুপ / বিষয়</th>
+        <th>পাশের সন</th>
+        <th>ফলাফল / বিভাগ</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${eduList.length ? eduList.map((ed, idx) => `
+        <tr>
+          <td style="text-align:center">${idx + 1}</td>
+          <td><b>${ed.exam || '—'}</b></td>
+          <td>${ed.institution || '—'}</td>
+          <td>${ed.board || '—'}</td>
+          <td>${ed.subject || '—'}</td>
+          <td>${ed.year || '—'}</td>
+          <td>${ed.result || '—'}</td>
+        </tr>
+      `).join('') : '<tr><td colspan="7" style="text-align:center;color:#64748b">কোনো শিক্ষাগত যোগ্যতার তথ্য পাওয়া যায়নি</td></tr>'}
+    </tbody>
+  </table>
+
+  ${profList.length ? `
+    <div class="section-title">📜 পেশাগত যোগ্যতার বিবরণ</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:40px;text-align:center">ক্র.নং</th>
+          <th>ডিগ্রী</th>
+          <th>প্রতিষ্ঠান</th>
+          <th>বোর্ড/বিশ্ববিদ্যালয়</th>
+          <th>বিষয়</th>
+          <th>পাশের সন</th>
+          <th>ফলাফল</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${profList.map((pr, idx) => `
+          <tr>
+            <td style="text-align:center">${idx + 1}</td>
+            <td><b>${pr.exam || '—'}</b></td>
+            <td>${pr.institution || '—'}</td>
+            <td>${pr.board || '—'}</td>
+            <td>${pr.subject || '—'}</td>
+            <td>${pr.year || '—'}</td>
+            <td>${pr.result || '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  ` : ''}
+
+  ${trainingList.length ? `
+    <div class="section-title">📚 প্রশিক্ষণের বিবরণ</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:40px;text-align:center">ক্র.নং</th>
+          <th>প্রশিক্ষণের নাম / শিরোনাম</th>
+          <th>বিষয়</th>
+          <th>প্রতিষ্ঠান / স্থান</th>
+          <th>মেয়াদ</th>
+          <th>শুরুর তারিখ</th>
+          <th>সমাপ্তির তারিখ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${trainingList.map((tr, idx) => `
+          <tr>
+            <td style="text-align:center">${idx + 1}</td>
+            <td><b>${tr.title || tr.name || '—'}</b></td>
+            <td>${tr.subject || '—'}</td>
+            <td>${tr.institution || tr.location || '—'}</td>
+            <td>${tr.duration || '—'}</td>
+            <td>${tr.start_date || '—'}</td>
+            <td>${tr.end_date || '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  ` : ''}
+
+  <div class="signatures">
+    <div class="sig-box">সংশ্লিষ্ট শিক্ষক/কর্মচারীর স্বাক্ষর</div>
+    <div class="sig-box">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>`;
+    w.document.write(content);
+    w.document.close();
+  };
+
   const saveInline = async (x) => {
     if (!inlineForm.name_bn?.trim()) {
       setMsg('নাম আবশ্যিক');
@@ -3492,6 +3705,7 @@ function StaffPanel({sub}){
         <th>মোবাইল</th>
         <th>অবস্থা</th>
         <th style={{textAlign:'center',padding:'10px 8px',minWidth:'190px',whiteSpace:'nowrap'}}>কাজ (সংরক্ষণ • সম্পাদনা • মুছুন)</th>
+         <th style={{textAlign:'center',padding:'10px 8px',minWidth:'210px',whiteSpace:'nowrap'}}>ডকুমেন্ট ও CSV কমান্ড</th>
        </tr>
       </thead>
       <tbody>
@@ -3640,10 +3854,49 @@ function StaffPanel({sub}){
             )}
            </div>
           </td>
+          <td style={{textAlign:'center',padding:'6px 8px',whiteSpace:'nowrap'}}>
+           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',minWidth:'200px'}}>
+            <button 
+             type="button" 
+             className="mini" 
+             style={{background:'#0284c7',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             onClick={()=>printPersonProfile(x)} 
+             title="এই ব্যক্তির পূর্ণাঙ্গ প্রোফাইল ও জীবনবৃত্তান্ত পিডিএফ/প্রিন্ট করুন"
+            >
+             🖨️ পিডিএফ/প্রিন্ট
+            </button>
+            <button 
+             type="button" 
+             className="mini" 
+             style={{background:'#4f46e5',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             onClick={downloadPeopleTemplate} 
+             title="Template CSV ডাউনলোড করুন"
+            >
+             ⬇ Template CSV
+            </button>
+            <label 
+             className="mini" 
+             style={{background:'#0d9488',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center',margin:0}} 
+             title="CSV ফাইল আপলোড করুন"
+            >
+             ⬆ CSV আপলোড
+             <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
+            </label>
+            <button 
+             type="button" 
+             className="mini" 
+             style={{background:'#059669',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             onClick={exportPeople} 
+             title="সকল তথ্যের পূর্ণাঙ্গ CSV রিপোর্ট এক্সপোর্ট করুন"
+            >
+             📊 CSV রিপোর্ট
+            </button>
+           </div>
+          </td>
          </tr>
         );
        })}
-       {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
+       {!(list||[]).length&&<tr><td colSpan={isTeacher?9:8}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
     </div>
