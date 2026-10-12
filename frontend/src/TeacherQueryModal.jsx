@@ -97,7 +97,7 @@ export function normalizeExam(name) {
 
 // Uses CANONICAL_TEACHER_EDUCATION imported from mockData
 
-// Fallback education resolver matching by ID, designation, subject, or Bengali name
+// Genuine education resolver (only returns authentic records; never fabricates dummy data)
 export function getFallbackEducationForTeacher(t) {
   if (!t) return [];
   const empId = String(t.employee_id || t.id || '').replace(/^t-/, '');
@@ -109,28 +109,18 @@ export function getFallbackEducationForTeacher(t) {
   const des = (t.designation || '').toLowerCase();
   const sub = (t.subject || '').toLowerCase();
 
-  if (name.includes('শফিকুল') && (des.includes('প্রধান') || empId === '1')) return CANONICAL_TEACHER_EDUCATION['1'];
-  if (name.includes('তাপসী') || des.includes('সহকারী প্রধান')) return CANONICAL_TEACHER_EDUCATION['2'];
-  if (name.includes('আবুবকর') || sub.includes('আইসিটি') || des.includes('আইসিটি')) return CANONICAL_TEACHER_EDUCATION['3'];
-  if (name.includes('মজিবর') || name.includes('ছানোয়ার') || sub.includes('বাংলা')) return CANONICAL_TEACHER_EDUCATION['4'];
-  if (name.includes('খালিদুর') || (name.includes('শফিকুল') && !des.includes('প্রধান'))) return CANONICAL_TEACHER_EDUCATION['5'];
-  if (name.includes('জাহাঙ্গীর') || (sub.includes('গণিত') && !des.includes('প্রধান'))) return CANONICAL_TEACHER_EDUCATION['6'];
-  if (name.includes('মান্নান') || name.includes('রহিম') || name.includes('লিটন') || sub.includes('প্রাণি') || sub.includes('বিজ্ঞান')) return CANONICAL_TEACHER_EDUCATION['7'];
-  if (name.includes('সাইদুর') || name.includes('হাবিবুর') || sub.includes('সমাজ')) return CANONICAL_TEACHER_EDUCATION['8'];
-  if (name.includes('পারভীন') || sub.includes('গার্হস্থ্য')) return CANONICAL_TEACHER_EDUCATION['9'];
-  if (name.includes('হাফিজুর') || name.includes('আনোয়ার') || sub.includes('ধর্ম') || sub.includes('ইসলাম')) return CANONICAL_TEACHER_EDUCATION['10'];
-  if (name.includes('সুজিত') || sub.includes('চারু')) return CANONICAL_TEACHER_EDUCATION['11'];
-  if (name.includes('মোস্তফা') || sub.includes('শারীরিক')) return CANONICAL_TEACHER_EDUCATION['12'];
-  if (name.includes('সেলিনা') || sub.includes('কৃষি')) return CANONICAL_TEACHER_EDUCATION['13'];
-  if (name.includes('রফিকুল') || sub.includes('ভূগোল')) return CANONICAL_TEACHER_EDUCATION['14'];
-  if (name.includes('আলমগীর') || des.includes('অফিস সহকারী') || des.includes('কম্পিউটার অপারেটর')) return CANONICAL_TEACHER_EDUCATION['15'];
+  // মুহাম্মদ আবুবকর সিদ্দিক (প্রকৃত তথ্য: এসএসসি ১৯৯২, এইচএসসি ১৯৯৪, বিএসসি পাস ১৯৯৬)
+  if (name.includes('আবুবকর') || sub.includes('আইসিটি') || des.includes('আইসিটি')) {
+    return CANONICAL_TEACHER_EDUCATION['3'] || [];
+  }
 
-  return [
-    { exam: 'এসএসসি/সমমান', institution: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', board: 'ঢাকা', subject: 'বিজ্ঞান', year: '২০০২', result: '১ম বিভাগ', is_saved: true },
-    { exam: 'এইচএসসি/সমমান', institution: 'সরকারি সা’দত কলেজ, টাঙ্গাইল', board: 'ঢাকা', subject: 'বিজ্ঞান', year: '২০০৪', result: '১ম বিভাগ', is_saved: true },
-    { exam: 'স্নাতক সম্মান(৪ বছর মেয়াদী)', institution: 'জাতীয় বিশ্ববিদ্যালয়', board: 'জাতীয় বিশ্ববিদ্যালয়', subject: t.subject || 'স্নাতক সম্মান', year: '২০০৮', result: '২য় শ্রেণি', is_saved: true },
-    { exam: 'স্নাতকোত্তর (অনার্সসহ)', institution: 'জাতীয় বিশ্ববিদ্যালয়', board: 'জাতীয় বিশ্ববিদ্যালয়', subject: t.subject || 'স্নাতকোত্তর', year: '২০১০', result: '২য় শ্রেণি', is_saved: true }
-  ];
+  // Any other teacher whose authentic details are in CANONICAL_TEACHER_EDUCATION
+  if (empId && CANONICAL_TEACHER_EDUCATION[empId]) {
+    return CANONICAL_TEACHER_EDUCATION[empId];
+  }
+
+  // Never return fabricated degrees; return empty array if authentic data is not yet entered
+  return [];
 }
 
 // Master function to obtain all educational qualifications of a teacher with guaranteed persistence & fallbacks
