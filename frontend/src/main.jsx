@@ -33,7 +33,7 @@ import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQuery
 import {StudentTotListModal} from './StudentTotListModal';
 import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
 import {StudentProfessionQueryModal, ALL_PROFESSIONS_LIST, matchesStudentProfession} from './StudentProfessionQueryModal';
-import {TeacherQueryModal, IN_SERVICE_TITLES_LIST} from './TeacherQueryModal';
+import {TeacherQueryModal, IN_SERVICE_TITLES_LIST, getTeacherAllEducation} from './TeacherQueryModal';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -380,22 +380,48 @@ function Home(){
 
  const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 
+ const ensureTeachersEducation = (list) => {
+   if (!Array.isArray(list) || !list.length) return list;
+   let changed = false;
+   const enriched = list.map(t => {
+     const curEdu = t.extended_profile?.education || [];
+     if (!curEdu.length) {
+       const fullEdu = getTeacherAllEducation(t);
+       if (fullEdu.length) {
+         changed = true;
+         return {
+           ...t,
+           extended_profile: {
+             ...(t.extended_profile || {}),
+             education: fullEdu
+           }
+         };
+       }
+     }
+     return t;
+   });
+   if (changed) {
+     try { localStorage.setItem('magra_db_teachers', JSON.stringify(enriched)); } catch {}
+   }
+   return enriched;
+ };
+
  useEffect(()=>{
   api('/notices').then(setNotices).catch(()=>{});
   api('/public/content').then(setItems).catch(()=>{});
   api('/public/student-stats').then(setStats).catch(()=>setStats(null));
   api('/teachers?status=active').then(d=>{
-   if(Array.isArray(d)&&d.length) setTeachersList(d);
+   if(Array.isArray(d)&&d.length) setTeachersList(ensureTeachersEducation(d));
    else {
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(local.length>=15?local:MOCK_TEACHERS);
+       setTeachersList(ensureTeachersEducation(local.length>=15?local:MOCK_TEACHERS));
      } catch { setTeachersList(MOCK_TEACHERS); }
    }
   }).catch(()=>{
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(local.length>=15?local:MOCK_TEACHERS);
+       setTeachersList(ensureTeachersEducation(local.length>=15?local:MOCK_TEACHERS));
      } catch { setTeachersList(MOCK_TEACHERS); }
   });
   api('/public/contact').then(d=>{

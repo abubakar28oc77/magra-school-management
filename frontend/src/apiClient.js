@@ -84,7 +84,8 @@ import {
   MOCK_ADMISSIONS,
   MOCK_SCHOLARSHIPS,
   MOCK_PUBLIC_CONTENT,
-  MOCK_SSC_RESULTS
+  MOCK_SSC_RESULTS,
+  CANONICAL_TEACHER_EDUCATION
 } from './mockData.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 
@@ -231,7 +232,30 @@ function getLocalStore(key, defaultVal = []) {
       return enriched;
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
-      return parsed;
+      let changed = false;
+      const healed = parsed.map(t => {
+        if (!t) return t;
+        const curEdu = t.extended_profile?.education;
+        if (!Array.isArray(curEdu) || curEdu.length === 0) {
+          const empId = String(t.employee_id || t.id || '').replace(/^t-/, '');
+          const fallback = CANONICAL_TEACHER_EDUCATION[empId] || [];
+          if (fallback.length) {
+            changed = true;
+            return {
+              ...t,
+              extended_profile: {
+                ...(t.extended_profile || {}),
+                education: fallback
+              }
+            };
+          }
+        }
+        return t;
+      });
+      if (changed) {
+        try { localStorage.setItem('magra_db_teachers', JSON.stringify(healed)); } catch {}
+      }
+      return healed;
     }
     return parsed !== null && parsed !== undefined ? parsed : defaultVal;
   } catch {
