@@ -2623,14 +2623,16 @@ function StaffPanel({sub}){
     }).filter(Boolean);
   };
 
-  const exportPeople = () => {
+  const exportPeople = (targetPerson = null) => {
+    const isSingle = targetPerson && typeof targetPerson === 'object' && targetPerson.id;
+    const targetList = isSingle ? [targetPerson] : (list || []);
+
     const custom = customFields.filter(f => f.enabled && !f.is_system);
     const headers = [
+      // ধাপ ১: পরিচয় ও পরিবার
       'Employee ID',
       'Name (Bangla)',
       'Name (English)',
-      'Designation',
-      ...(isTeacher ? ['Designation (English)', 'Subject'] : []),
       'Date of Birth',
       'Gender',
       'Blood Group',
@@ -2644,6 +2646,11 @@ function StaffPanel({sub}){
       'Father Name (English)',
       'Mother Name (Bangla)',
       'Mother Name (English)',
+
+      // ধাপ ২: চাকরি ও MPO
+      'Designation',
+      ...(isTeacher ? ['Designation (English)', 'Subject'] : []),
+      'Status',
       'First Joining Date',
       ...(isTeacher ? ['First MPO Date'] : []),
       'Current Post Joining Date',
@@ -2652,47 +2659,57 @@ function StaffPanel({sub}){
       ...(isTeacher ? ['Previous Institution MPO Date'] : []),
       'Appointment Date',
       'Appointment Authority',
+      ...(isTeacher ? ['MPO Index No'] : []),
+
+      // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
+      'Educational Qualifications',
+
+      // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
+      'Professional Degrees',
+
+      // ধাপ ৫: প্রশিক্ষণের বিবরণ
+      'ICT Trainings',
+      'In-Service Trainings',
+      ...(isTeacher ? ['Teacher Portal ID'] : []),
+      'Professional Note',
+
+      // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
       ...(isTeacher ? [
-        'MPO Index No',
         'Teacher Registration No',
         'Registration Date',
         'NTRCA Registered',
         'NTRCA Recommended',
         'NTRCA Year',
         'NTRCA Subject',
-        'NTRCA Remarks',
-        'Teacher Portal ID'
+        'NTRCA Remarks'
       ] : []),
-      'Educational Qualifications',
-      'Professional Degrees',
-      'ICT Trainings',
-      'In-Service Trainings',
-      'Professional Note',
       'Mobile',
       'WhatsApp',
       'Email',
       'Present Address',
       'Permanent Address',
+
+      // অতিরিক্ত ও সিস্টেম ফিল্ড
       'Public Contact Role',
       'Public Contact Enabled',
-      'Status',
       ...custom.map(f => 'custom:' + f.field_key),
       'extended_profile_json'
     ];
 
-    const rows = (list || []).map(x => {
+    const rows = targetList.map(x => {
       const c = flattenCustom(x);
       const ext = x.extended_profile || {};
       const ntrca = ext.ntrca || {};
+      const eduList = isTeacher ? getTeacherAllEducation(x) : (ext.education || []);
+      const profList = ext.professional_qualifications || [];
+      const ictList = ext.training || [];
+      const inServiceList = ext.in_service_training || [];
+
       return {
+        // ধাপ ১: পরিচয় ও পরিবার
         'Employee ID': x.employee_id || '',
         'Name (Bangla)': x.name_bn || '',
         'Name (English)': x.name_en || '',
-        'Designation': x.designation || '',
-        ...(isTeacher ? {
-          'Designation (English)': x.designation_en || '',
-          'Subject': x.subject || ''
-        } : {}),
         'Date of Birth': ext.dob || x.date_of_birth || '',
         'Gender': x.gender || '',
         'Blood Group': x.blood_group || '',
@@ -2706,6 +2723,14 @@ function StaffPanel({sub}){
         'Father Name (English)': x.father_name_en || '',
         'Mother Name (Bangla)': x.mother_name_bn || '',
         'Mother Name (English)': x.mother_name_en || '',
+
+        // ধাপ ২: চাকরি ও MPO
+        'Designation': x.designation || '',
+        ...(isTeacher ? {
+          'Designation (English)': x.designation_en || '',
+          'Subject': x.subject || ''
+        } : {}),
+        'Status': statusBn(x.status),
         'First Joining Date': x.first_joining_date || '',
         ...(isTeacher ? {
           'First MPO Date': x.first_mpo_date || ''
@@ -2721,146 +2746,211 @@ function StaffPanel({sub}){
         'Appointment Date': x.appointment_date || '',
         'Appointment Authority': x.appointment_authority || '',
         ...(isTeacher ? {
-          'MPO Index No': x.mpo_index_no || '',
+          'MPO Index No': x.mpo_index_no || ''
+        } : {}),
+
+        // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
+        'Educational Qualifications': formatEduSummary(eduList),
+
+        // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
+        'Professional Degrees': formatEduSummary(profList),
+
+        // ধাপ ৫: প্রশিক্ষণের বিবরণ
+        'ICT Trainings': formatTrainingSummary(ictList),
+        'In-Service Trainings': formatTrainingSummary(inServiceList),
+        ...(isTeacher ? {
+          'Teacher Portal ID': x.teacher_portal_id || ''
+        } : {}),
+        'Professional Note': ext.professional_note || '',
+
+        // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
+        ...(isTeacher ? {
           'Teacher Registration No': x.teacher_registration_no || '',
           'Registration Date': x.registration_date || '',
           'NTRCA Registered': ntrca.registered || '',
           'NTRCA Recommended': ntrca.recommended || '',
           'NTRCA Year': ntrca.year || '',
           'NTRCA Subject': ntrca.subject || '',
-          'NTRCA Remarks': ntrca.remarks || '',
-          'Teacher Portal ID': x.teacher_portal_id || ''
+          'NTRCA Remarks': ntrca.remarks || ''
         } : {}),
-        'Educational Qualifications': formatEduSummary(ext.education),
-        'Professional Degrees': formatEduSummary(ext.professional_qualifications),
-        'ICT Trainings': formatTrainingSummary(ext.training),
-        'In-Service Trainings': formatTrainingSummary(ext.in_service_training),
-        'Professional Note': ext.professional_note || '',
         'Mobile': x.phone || '',
         'WhatsApp': x.whatsapp_no || '',
         'Email': x.email || '',
         'Present Address': x.address || '',
         'Permanent Address': x.permanent_address || '',
+
+        // অতিরিক্ত ও সিস্টেম ফিল্ড
         'Public Contact Role': x.public_contact_role || '',
         'Public Contact Enabled': x.public_contact_enabled !== false ? 'হ্যাঁ' : 'না',
-        'Status': statusBn(x.status),
         ...c,
         'extended_profile_json': JSON.stringify(ext)
       };
     });
-    downloadCsv(isTeacher ? 'magra-teachers.csv' : 'magra-staff.csv', rows, headers);
+
+    let filename = isTeacher ? 'magra-teachers.csv' : 'magra-staff.csv';
+    if (isSingle) {
+      const cleanName = (targetPerson.name_bn || targetPerson.name_en || 'teacher').replace(/[\s/\\:*?"<>|]+/g, '_');
+      const empTag = targetPerson.employee_id ? `_ID${targetPerson.employee_id}` : '';
+      filename = `${cleanName}${empTag}_CSV_Report.csv`;
+    }
+
+    downloadCsv(filename, rows, headers);
   };
 
   const peopleImportHeaders = isTeacher ? [
-    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Designation', 'Designation (English)', 'Subject',
-    'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
+    // ধাপ ১: পরিচয় ও পরিবার
+    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
     'NID No', 'TIN No', 'Birth Registration No',
     'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
+
+    // ধাপ ২: চাকরি ও MPO
+    'Designation', 'Designation (English)', 'Subject', 'Status',
     'First Joining Date', 'First MPO Date', 'Current Post Joining Date', 'Current MPO Date',
     'Previous Institution Joining Date', 'Previous Institution MPO Date', 'Appointment Date', 'Appointment Authority',
-    'MPO Index No', 'Teacher Registration No', 'Registration Date',
-    'NTRCA Registered', 'NTRCA Recommended', 'NTRCA Year', 'NTRCA Subject', 'NTRCA Remarks', 'Teacher Portal ID',
-    'Educational Qualifications', 'Professional Degrees', 'ICT Trainings', 'In-Service Trainings', 'Professional Note',
+    'MPO Index No',
+
+    // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
+    'Educational Qualifications',
+
+    // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
+    'Professional Degrees',
+
+    // ধাপ ৫: প্রশিক্ষণের বিবরণ
+    'ICT Trainings', 'In-Service Trainings', 'Teacher Portal ID', 'Professional Note',
+
+    // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
+    'Teacher Registration No', 'Registration Date', 'NTRCA Registered', 'NTRCA Recommended', 'NTRCA Year', 'NTRCA Subject', 'NTRCA Remarks',
     'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
-    'Public Contact Role', 'Public Contact Enabled', 'Status', 'extended_profile_json'
+
+    // অতিরিক্ত ও সিস্টেম ফিল্ড
+    'Public Contact Role', 'Public Contact Enabled', 'extended_profile_json'
   ] : [
-    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Designation',
-    'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
+    // ধাপ ১: পরিচয় ও পরিবার
+    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
     'NID No', 'TIN No', 'Birth Registration No',
     'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
+
+    // ধাপ ২: চাকরি ও MPO
+    'Designation', 'Status',
     'First Joining Date', 'Current Post Joining Date', 'Appointment Date', 'Appointment Authority',
-    'Educational Qualifications', 'Professional Degrees', 'ICT Trainings', 'In-Service Trainings', 'Professional Note',
+
+    // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
+    'Educational Qualifications',
+
+    // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
+    'Professional Degrees',
+
+    // ধাপ ৫: প্রশিক্ষণের বিবরণ
+    'ICT Trainings', 'In-Service Trainings', 'Professional Note',
+
+    // ধাপ ৬: যোগাযোগ
     'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
-    'Public Contact Role', 'Public Contact Enabled', 'Status', 'extended_profile_json'
+
+    // অতিরিক্ত ও সিস্টেম ফিল্ড
+    'Public Contact Role', 'Public Contact Enabled', 'extended_profile_json'
   ];
 
   const downloadPeopleTemplate = () => {
     const sampleRow = isTeacher ? {
+      // ধাপ ১: পরিচয় ও পরিবার
       'Employee ID': '1',
-      'Name (Bangla)': 'মোঃ খলিলুর রহমান',
-      'Name (English)': 'Md. Khalilur Rahman',
-      'Designation': 'প্রধান শিক্ষক',
-      'Designation (English)': 'Head Teacher',
-      'Subject': 'গণিত',
-      'Date of Birth': '1975-01-01',
+      'Name (Bangla)': 'মুহাম্মদ শফিকুল ইসলাম',
+      'Name (English)': 'MUHAMMAD SHAFIQUL ISLAM',
+      'Date of Birth': '1975-02-10',
       'Gender': 'পুরুষ',
       'Blood Group': 'B+',
       'Religion': 'ইসলাম',
       'Marital Status': 'বিবাহিত',
       'Nationality': 'বাংলাদেশী',
-      'NID No': '1975000000000',
+      'NID No': '19759312345678901',
+      'TIN No': '123456789012',
+      'Birth Registration No': '19759312345678902',
+      'Father Name (Bangla)': 'মরহুম আব্দুল কাদের',
+      'Father Name (English)': 'Late Abdul Kader',
+      'Mother Name (Bangla)': 'মোছাঃ ফাতেমা খাতুন',
+      'Mother Name (English)': 'Mst Fatema Khatun',
+
+      // ধাপ ২: চাকরি ও MPO
+      'Designation': 'প্রধান শিক্ষক',
+      'Designation (English)': 'Head Teacher',
+      'Subject': 'প্রশাসনিক',
+      'Status': 'সক্রিয়',
+      'First Joining Date': '2000-03-01',
+      'First MPO Date': '2000-05-01',
+      'Current Post Joining Date': '2010-01-15',
+      'Current MPO Date': '2010-05-01',
+      'Previous Institution Joining Date': '',
+      'Previous Institution MPO Date': '',
+      'Appointment Date': '2000-02-15',
+      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
+      'MPO Index No': '4206071302',
+
+      // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
+      'Educational Qualifications': 'এসএসসি/সমমান - টাঙ্গাইল জিলা স্কুল - ঢাকা - বিজ্ঞান - ১৯৯০ - ১ম বিভাগ ; এইচএসসি/সমমান - করটিয়া সা’দত কলেজ - ঢাকা - বিজ্ঞান - ১৯৯২ - ১ম বিভাগ ; স্নাতক (সম্মান)/সমমান - ঢাকা বিশ্ববিদ্যালয় - ঢাকা - গণিত - ১৯৯৫ - ১ম শ্রেণি ; স্নাতকোত্তর/সমমান - ঢাকা বিশ্ববিদ্যালয় - ঢাকা - গণিত - ১৯৯৬ - ১ম শ্রেণি',
+
+      // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
+      'Professional Degrees': 'বিএড - সরকারি টিটিসি ঢাকা - জাতীয় বিশ্ববিদ্যালয় - শিক্ষা প্রশাসন - ১৯৯৮ - ১ম শ্রেণি',
+
+      // ধাপ ৫: প্রশিক্ষণের বিবরণ
+      'ICT Trainings': 'আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - NAEM - ঢাকা - ১৪ দিন - 2021-03-01 - 2021-03-14',
+      'In-Service Trainings': 'কারিকুলাম বিস্তরণ - নতুন শিক্ষাক্রম - HSTTI - ময়মনসিংহ - ৭ দিন - 2023-01-05 - 2023-01-11',
+      'Teacher Portal ID': 'shafiqul.magra',
+      'Professional Note': 'প্রধান শিক্ষক হিসেবে দায়িত্ব পালনরত।',
+
+      // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
+      'Teacher Registration No': 'NTRCA-1234567',
+      'Registration Date': '2006-05-15',
+      'NTRCA Registered': 'হ্যাঁ',
+      'NTRCA Recommended': 'হ্যাঁ',
+      'NTRCA Year': '2006',
+      'NTRCA Subject': 'গণিত',
+      'NTRCA Remarks': 'সুপারিশপ্রাপ্ত ও এমপিওভুক্ত',
+      'Mobile': '01753539680',
+      'WhatsApp': '01753539680',
+      'Email': 'headteacher.magra@gmail.com',
+      'Present Address': 'গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল',
+      'Permanent Address': 'গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল',
+
+      // অতিরিক্ত ও সিস্টেম ফিল্ড
+      'Public Contact Role': 'head_teacher',
+      'Public Contact Enabled': 'হ্যাঁ',
+      'extended_profile_json': '{}'
+    } : {
+      // স্টাফ টেমপ্লেট
+      'Employee ID': 'STF-001',
+      'Name (Bangla)': 'মোঃ আলমগীর হোসেন',
+      'Name (English)': 'MD. ALAMGIR HOSSAIN',
+      'Date of Birth': '1985-06-15',
+      'Gender': 'পুরুষ',
+      'Blood Group': 'O+',
+      'Religion': 'ইসলাম',
+      'Marital Status': 'বিবাহিত',
+      'Nationality': 'বাংলাদেশী',
+      'NID No': '19859312345678903',
       'TIN No': '',
       'Birth Registration No': '',
       'Father Name (Bangla)': 'পিতার নাম',
       'Father Name (English)': "Father's Name",
       'Mother Name (Bangla)': 'মাতার নাম',
       'Mother Name (English)': "Mother's Name",
-      'First Joining Date': '2000-01-01',
-      'First MPO Date': '2000-05-01',
-      'Current Post Joining Date': '2010-01-01',
-      'Current MPO Date': '2010-05-01',
-      'Previous Institution Joining Date': '',
-      'Previous Institution MPO Date': '',
-      'Appointment Date': '1999-12-15',
-      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
-      'MPO Index No': '123456',
-      'Teacher Registration No': '',
-      'Registration Date': '',
-      'NTRCA Registered': '',
-      'NTRCA Recommended': '',
-      'NTRCA Year': '',
-      'NTRCA Subject': '',
-      'NTRCA Remarks': '',
-      'Teacher Portal ID': '',
-      'Educational Qualifications': 'এসএসসি/সমমান - টাঙ্গাইল জিলা স্কুল - ঢাকা - বিজ্ঞান - 1990 - 1st Division ; এইচএসসি/সমমান - করটিয়া কলেজ - ঢাকা - বিজ্ঞান - 1992 - 1st Division',
-      'Professional Degrees': 'বিএড - টিটিসি ঢাকা - জাতীয় বিশ্ববিদ্যালয় - গণিত - 1998 - 1st Class',
-      'ICT Trainings': 'আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - NAEM - ঢাকা - ১৪ দিন - 2021-03-01 - 2021-03-14',
-      'In-Service Trainings': 'সিপিডি-১ (১৪ দিন) - গণিত - টিটিসি - ময়মনসিংহ - ১৪ দিন - 2018-05-10 - 2018-05-24',
-      'Professional Note': '',
-      'Mobile': '01712345678',
-      'WhatsApp': '01712345678',
-      'Email': 'khalil@example.com',
-      'Present Address': 'গ্রাম: মগড়া, কালিহাতি, টাঙ্গাইল',
-      'Permanent Address': 'গ্রাম: মগড়া, কালিহাতি, টাঙ্গাইল',
-      'Public Contact Role': 'head_teacher',
-      'Public Contact Enabled': 'হ্যাঁ',
+      'Designation': 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
       'Status': 'সক্রিয়',
-      'extended_profile_json': '{}'
-    } : {
-      'Employee ID': 'STF-001',
-      'Name (Bangla)': 'অফিস সহকারী',
-      'Name (English)': 'Office Assistant',
-      'Designation': 'অফিস সহকারী কাম হিসাব সহকারী',
-      'Date of Birth': '1985-01-01',
-      'Gender': 'পুরুষ',
-      'Blood Group': 'O+',
-      'Religion': 'ইসলাম',
-      'Marital Status': 'বিবাহিত',
-      'Nationality': 'বাংলাদেশী',
-      'NID No': '',
-      'TIN No': '',
-      'Birth Registration No': '',
-      'Father Name (Bangla)': '',
-      'Father Name (English)': '',
-      'Mother Name (Bangla)': '',
-      'Mother Name (English)': '',
       'First Joining Date': '2015-01-01',
       'Current Post Joining Date': '2015-01-01',
       'Appointment Date': '2014-12-15',
       'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
-      'Educational Qualifications': '',
-      'Professional Degrees': '',
-      'ICT Trainings': '',
+      'Educational Qualifications': 'এইচএসসি/সমমান - সরকারি এম এম আলী কলেজ - ঢাকা - মানবিক - ২০০৪ - ২য় বিভাগ',
+      'Professional Degrees': 'ডিপ্লোমা ইন কম্পিউটার এপ্লিকেশন - যুব উন্নয়ন অধিদপ্তর - ঢাকা - আইসিটি - ২০০৬ - এ গ্রেড',
+      'ICT Trainings': 'কম্পিউটার অফিস এপ্লিকেশন - কারিগরি শিক্ষা বোর্ড - ঢাকা - ৬ মাস - 2008-01-01 - 2008-06-30',
       'In-Service Trainings': '',
       'Professional Note': '',
-      'Mobile': '01700000000',
-      'WhatsApp': '',
-      'Email': '',
-      'Present Address': 'কালিহাতি, টাঙ্গাইল',
-      'Permanent Address': 'কালিহাতি, টাঙ্গাইল',
+      'Mobile': '01726223355',
+      'WhatsApp': '01726223355',
+      'Email': 'alamgir.magra@gmail.com',
+      'Present Address': 'গ্রাম: মগড়া, কালিহাতী, টাঙ্গাইল',
+      'Permanent Address': 'গ্রাম: মগড়া, কালিহাতী, টাঙ্গাইল',
       'Public Contact Role': 'office_assistant',
       'Public Contact Enabled': 'হ্যাঁ',
-      'Status': 'সক্রিয়',
       'extended_profile_json': '{}'
     };
     downloadCsv(isTeacher ? 'magra-teacher-import-template.csv' : 'magra-staff-import-template.csv', [sampleRow], peopleImportHeaders);
@@ -4049,8 +4139,8 @@ function StaffPanel({sub}){
              type="button" 
              className="mini" 
              style={{background:'#059669',color:'#fff',border:'none',padding:'2px 3px',borderRadius:'3px',cursor:'pointer',fontSize:'8.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px',justifyContent:'center',lineHeight:1.2}} 
-             onClick={exportPeople} 
-             title="সকল তথ্যের পূর্ণাঙ্গ CSV রিপোর্ট এক্সপোর্ট করুন"
+             onClick={()=>exportPeople(x)} 
+             title={`${x.name_bn || 'এই ব্যক্তির'} একক পূর্ণাঙ্গ CSV রিপোর্ট ডাউনলোড করুন`}
             >
              📊 CSV রিপোর্ট
             </button>
