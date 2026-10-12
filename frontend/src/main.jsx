@@ -415,13 +415,13 @@ function Home(){
    else {
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(ensureTeachersEducation(local.length>=15?local:MOCK_TEACHERS));
+       setTeachersList(ensureTeachersEducation(local.length>=11?local:MOCK_TEACHERS));
      } catch { setTeachersList(MOCK_TEACHERS); }
    }
   }).catch(()=>{
      try {
        const local=JSON.parse(localStorage.getItem('magra_db_teachers')||'[]');
-       setTeachersList(ensureTeachersEducation(local.length>=15?local:MOCK_TEACHERS));
+       setTeachersList(ensureTeachersEducation(local.length>=11?local:MOCK_TEACHERS));
      } catch { setTeachersList(MOCK_TEACHERS); }
   });
   api('/public/contact').then(d=>{
@@ -2318,6 +2318,11 @@ function ResultPanel({sub}){
 const emptyTeacher={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',designation_en:'',subject:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',first_mpo_date:'',current_post_joining_date:'',current_mpo_date:'',previous_institution_joining_date:'',previous_institution_mpo_date:'',appointment_date:'',appointment_authority:'',mpo_index_no:'',teacher_registration_no:'',registration_date:'',teacher_portal_id:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],ntrca:{},dob:'',professional_note:''}};
 const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',current_post_joining_date:'',appointment_date:'',appointment_authority:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],dob:'',professional_note:''}};
 
+const toBnDigits = (n) => {
+  if (n === null || n === undefined || n === '') return '';
+  return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+};
+
 function StaffPanel({sub}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
  const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
@@ -3696,16 +3701,16 @@ function StaffPanel({sub}){
     <div className="table-wrap">
      <table>
       <thead>
-       <tr>
-        <th style={{textAlign:'center',width:'85px'}}>Employee ID</th>
-        <th style={{textAlign:'center',width:'55px'}}>ছবি</th>
-        <th>নাম</th>
-        <th>পদবি</th>
-        {isTeacher&&<th>বিষয়</th>}
-        <th>মোবাইল</th>
-        <th>অবস্থা</th>
-        <th style={{textAlign:'center',padding:'10px 8px',minWidth:'190px',whiteSpace:'nowrap'}}>কাজ (সংরক্ষণ • সম্পাদনা • মুছুন)</th>
-         <th style={{textAlign:'center',padding:'10px 8px',minWidth:'210px',whiteSpace:'nowrap'}}>ডকুমেন্ট ও CSV কমান্ড</th>
+       <tr style={{background:'#f2f8f5',borderBottom:'1.5px solid #bbf7d0'}}>
+        <th style={{textAlign:'center',width:'65px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px',lineHeight:'1.2'}}>Employee<br/>ID</th>
+        <th style={{textAlign:'center',width:'58px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>ছবি</th>
+        <th style={{textAlign:'left',width:'220px',padding:'10px 10px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>নাম</th>
+        <th style={{textAlign:'left',width:'150px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>পদবি</th>
+        {isTeacher&&<th style={{textAlign:'left',width:'165px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>বিষয়</th>}
+        <th style={{textAlign:'left',width:'120px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>মোবাইল</th>
+        <th style={{textAlign:'center',width:'75px',padding:'10px 6px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>অবস্থা</th>
+        <th style={{textAlign:'center',width:'95px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>কাজ</th>
+        <th style={{textAlign:'center',width:'140px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>ডকুমেন্ট ও CSV</th>
        </tr>
       </thead>
       <tbody>
@@ -3713,37 +3718,37 @@ function StaffPanel({sub}){
         const isInline = inlineEditId === x.id;
         return (
          <tr key={x.id} style={{background: isInline ? '#f0fdf4' : undefined}}>
-          <td style={{textAlign:'center'}}><strong style={{color:'#1e293b',fontWeight:700}}>{x.employee_id}</strong></td>
-          <td style={{textAlign:'center',padding:'4px'}}>
+          <td style={{textAlign:'center',padding:'8px 4px'}}><strong style={{color:'#1e293b',fontWeight:700,fontSize:'13px'}}>{toBnDigits(x.employee_id || (list.indexOf(x) >= 0 ? list.indexOf(x) + 1 : ''))}</strong></td>
+          <td style={{textAlign:'center',padding:'5px 4px'}}>
            <label style={{cursor:'pointer',display:'inline-block',position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
-            <div style={{width:'38px',height:'38px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)',position:'relative'}}>
+            <div style={{width:'40px',height:'44px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)',position:'relative'}}>
              <img src={getTeacherPhoto(x)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}/>
-             <span style={{position:'absolute',bottom:0,right:0,background:'rgba(0,0,0,0.65)',color:'#fff',fontSize:'9px',padding:'1px 3px',borderRadius:'3px',lineHeight:1}}>📷</span>
+             <span style={{position:'absolute',bottom:0,right:0,background:'rgba(0,0,0,0.6)',color:'#fff',fontSize:'8px',padding:'1px 2px',borderRadius:'2px',lineHeight:1}}>📷</span>
             </div>
             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
            </label>
           </td>
-          <td>
+          <td style={{padding:'8px 10px',textAlign:'left'}}>
            {isInline ? (
             <input 
              value={inlineForm.name_bn} 
              onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} 
-             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%',fontWeight:600}} 
+             style={{padding:'4px 6px',fontSize:'13px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%',fontWeight:600}} 
              placeholder="নাম (বাংলা)"
             />
            ) : (
             <div>
-             <div style={{fontWeight:600,color:'#0f172a'}}>{x.name_bn}</div>
-             {x.name_en&&x.name_en!==x.name_bn&&<div style={{fontSize:'11px',color:'#64748b'}}>{x.name_en}</div>}
+             <div style={{fontWeight:700,color:'#0f172a',fontSize:'13.5px',lineHeight:'1.3'}}>{x.name_bn}</div>
+             {x.name_en&&<div style={{fontSize:'10px',fontWeight:600,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:'2px'}}>{x.name_en}</div>}
             </div>
            )}
           </td>
-          <td>
+          <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
            {isInline ? (
             <input 
              value={inlineForm.designation} 
              onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} 
-             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+             style={{padding:'4px 6px',fontSize:'12.5px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
              placeholder="পদবি"
             />
            ) : (
@@ -3751,12 +3756,12 @@ function StaffPanel({sub}){
            )}
           </td>
           {isTeacher && (
-           <td>
+           <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
             {isInline ? (
              <input 
               value={inlineForm.subject} 
               onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} 
-              style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+              style={{padding:'4px 6px',fontSize:'12.5px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
               placeholder="মূল বিষয়"
              />
             ) : (
@@ -3764,24 +3769,24 @@ function StaffPanel({sub}){
             )}
            </td>
           )}
-          <td>
+          <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12px',color:'#334155',letterSpacing:'0.2px'}}>
            {isInline ? (
             <input 
              value={inlineForm.phone} 
              onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} 
-             style={{padding:'5px 8px',fontSize:'13px',borderRadius:'6px',border:'1px solid #3b82f6',width:'100%'}} 
+             style={{padding:'4px 6px',fontSize:'12px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
              placeholder="মোবাইল"
             />
            ) : (
             x.phone || '—'
            )}
           </td>
-          <td>
+          <td style={{textAlign:'center',padding:'8px 6px',fontSize:'12px',color:'#334155',fontWeight:500}}>
            {isInline ? (
             <select 
              value={inlineForm.status} 
              onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} 
-             style={{padding:'5px 8px',fontSize:'12px',borderRadius:'6px',border:'1px solid #3b82f6'}}
+             style={{padding:'3px 6px',fontSize:'11.5px',borderRadius:'5px',border:'1px solid #3b82f6'}}
             >
              {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
             </select>
@@ -3789,14 +3794,14 @@ function StaffPanel({sub}){
             statusBn(x.status)
            )}
           </td>
-          <td style={{textAlign:'center',padding:'8px 6px',whiteSpace:'nowrap'}}>
-           <div style={{display:'inline-flex',alignItems:'center',gap:'4px',justifyContent:'center',flexWrap:'nowrap'}}>
+          <td style={{textAlign:'center',padding:'4px 3px',whiteSpace:'nowrap'}}>
+           <div style={{display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center',flexWrap:'nowrap'}}>
             {isInline ? (
              <>
               <button 
                type="button" 
                className="mini" 
-               style={{background:'#16a34a',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               style={{background:'#16a34a',color:'#fff',border:'none',padding:'2.5px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'9.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} 
                onClick={()=>saveInline(x)} 
                title="সংরক্ষণ করুন"
               >
@@ -3805,7 +3810,7 @@ function StaffPanel({sub}){
               <button 
                type="button" 
                className="mini" 
-               style={{background:'#64748b',color:'#fff',border:'none',padding:'6px 8px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600}} 
+               style={{background:'#64748b',color:'#fff',border:'none',padding:'2.5px 4px',borderRadius:'4px',cursor:'pointer',fontSize:'9.5px',fontWeight:600}} 
                onClick={()=>setInlineEditId(null)} 
                title="সম্পাদনা বাতিল"
               >
@@ -3814,11 +3819,11 @@ function StaffPanel({sub}){
               <button 
                type="button" 
                className="mini" 
-               style={{background:'#0284c7',color:'#fff',border:'none',padding:'6px 8px',borderRadius:'6px',cursor:'pointer',fontSize:'11px',fontWeight:600}} 
+               style={{background:'#0284c7',color:'#fff',border:'none',padding:'2.5px 4px',borderRadius:'4px',cursor:'pointer',fontSize:'9px',fontWeight:600}} 
                onClick={()=>begin(x)} 
                title="পূর্ণাঙ্গ ৭ ধাপের এন্ট্রি ফরম"
               >
-               📝 পূর্ণাঙ্গ ফরম
+               📝 ফরম
               </button>
              </>
             ) : (
@@ -3826,7 +3831,7 @@ function StaffPanel({sub}){
               <button 
                type="button" 
                className="mini" 
-               style={{background:'#2563eb',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               style={{background:'#2563eb',color:'#fff',border:'none',padding:'2.5px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'9.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} 
                onClick={()=>{
                 setInlineEditId(x.id);
                 setInlineForm({
@@ -3844,7 +3849,7 @@ function StaffPanel({sub}){
               <button 
                type="button" 
                className="mini" 
-               style={{background:'#ef4444',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px'}} 
+               style={{background:'#ef4444',color:'#fff',border:'none',padding:'2.5px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'9.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} 
                onClick={()=>remove(x.id)} 
                title="মুছে ফেলুন"
               >
@@ -3854,12 +3859,12 @@ function StaffPanel({sub}){
             )}
            </div>
           </td>
-          <td style={{textAlign:'center',padding:'6px 8px',whiteSpace:'nowrap'}}>
-           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px',minWidth:'200px'}}>
+          <td style={{textAlign:'center',padding:'3px 3px',whiteSpace:'nowrap'}}>
+           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px',width:'135px',margin:'0 auto'}}>
             <button 
              type="button" 
              className="mini" 
-             style={{background:'#0284c7',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             style={{background:'#0284c7',color:'#fff',border:'none',padding:'2px 3px',borderRadius:'3px',cursor:'pointer',fontSize:'8.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px',justifyContent:'center',lineHeight:1.2}} 
              onClick={()=>printPersonProfile(x)} 
              title="এই ব্যক্তির পূর্ণাঙ্গ প্রোফাইল ও জীবনবৃত্তান্ত পিডিএফ/প্রিন্ট করুন"
             >
@@ -3868,7 +3873,7 @@ function StaffPanel({sub}){
             <button 
              type="button" 
              className="mini" 
-             style={{background:'#4f46e5',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             style={{background:'#4f46e5',color:'#fff',border:'none',padding:'2px 3px',borderRadius:'3px',cursor:'pointer',fontSize:'8.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px',justifyContent:'center',lineHeight:1.2}} 
              onClick={downloadPeopleTemplate} 
              title="Template CSV ডাউনলোড করুন"
             >
@@ -3876,7 +3881,7 @@ function StaffPanel({sub}){
             </button>
             <label 
              className="mini" 
-             style={{background:'#0d9488',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center',margin:0}} 
+             style={{background:'#0d9488',color:'#fff',border:'none',padding:'2px 3px',borderRadius:'3px',cursor:'pointer',fontSize:'8.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px',justifyContent:'center',lineHeight:1.2,margin:0}} 
              title="CSV ফাইল আপলোড করুন"
             >
              ⬆ CSV আপলোড
@@ -3885,7 +3890,7 @@ function StaffPanel({sub}){
             <button 
              type="button" 
              className="mini" 
-             style={{background:'#059669',color:'#fff',border:'none',padding:'5px 7px',borderRadius:'5px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}} 
+             style={{background:'#059669',color:'#fff',border:'none',padding:'2px 3px',borderRadius:'3px',cursor:'pointer',fontSize:'8.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px',justifyContent:'center',lineHeight:1.2}} 
              onClick={exportPeople} 
              title="সকল তথ্যের পূর্ণাঙ্গ CSV রিপোর্ট এক্সপোর্ট করুন"
             >
