@@ -398,6 +398,112 @@ export function ResultPanel({ sub }) {
     showNotification('নমুনা নম্বর সফলভাবে পূরণ করা হয়েছে। সংরক্ষণ করতে "💾 সব নম্বর সংরক্ষণ" বাটনে চাপুন।', 'info');
   };
 
+  // ==================== AUTO-FILL ALL MARKS FOR ALL CLASSES IN ENGLISH ====================
+  const handleAutoFillAllClassesMarks = async () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে একটি পরীক্ষা নির্বাচন করুন (যেমন: বার্ষিক পরীক্ষা / অর্ধবার্ষিক পরীক্ষা)', 'error');
+      return;
+    }
+
+    const examTitle = selectedExamObj ? selectedExamObj.name_bn : 'বর্তমান পরীক্ষা';
+    const confirmMsg = `আপনি কি "${examTitle}"-এর জন্য ৬ষ্ঠ থেকে ১০ম শ্রেণির সকল বিষয়ের ২৪১ জন শিক্ষার্থীর সকল নম্বর ইংরেজিতে ১-ক্লিকে স্বয়ংক্রিয়ভাবে (Auto-Entry) পূরণ এবং ফলাফল প্রসেস করতে চান?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      showNotification('সকল শ্রেণির নম্বর ইংরেজিতে স্বয়ংক্রিয়ভাবে প্রস্তুত হচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...', 'info');
+
+      // 1. Fetch all students and all subjects
+      const allSt = await api('/students?status=active');
+      let allSubs = await api('/subjects');
+      const studentList = Array.isArray(allSt) ? allSt : [];
+      let subjectList = Array.isArray(allSubs) ? allSubs : [];
+      if (subjectList.length < 20) {
+        await api('/subjects/reset-dhaka-board', { method: 'POST' });
+        subjectList = await api('/subjects');
+      }
+
+      if (!studentList.length || !subjectList.length) {
+        showNotification('শিক্ষার্থী বা বিষয়ের তালিকা পাওয়া যায়নি', 'error');
+        return;
+      }
+
+      const bulkRecords = [];
+
+      studentList.forEach((student, stIdx) => {
+        const cls = String(student.class_name || '6');
+        const applicableSubs = getStudentApplicableSubjects(student, subjectList);
+        
+        // Deterministic realistic performance tier based on roll
+        const roll = Number(student.roll_no) || (stIdx + 1);
+        let basePerf;
+        if (roll <= 3) {
+          basePerf = 0.88 + ((roll * 13) % 10) * 0.01; // 88% - 98% (GPA 5.0)
+        } else if (roll <= 10) {
+          basePerf = 0.74 + ((roll * 7) % 13) * 0.01; // 74% - 87% (A / A+)
+        } else if (roll % 13 === 0) {
+          basePerf = 0.32; // occasional component fail
+        } else if (roll % 6 === 0) {
+          basePerf = 0.62 + ((roll * 5) % 9) * 0.01; // 62% - 71%
+        } else {
+          basePerf = 0.50 + ((roll * 3) % 24) * 0.01; // 50% - 74%
+        }
+
+        applicableSubs.forEach((sub, subIdx) => {
+          const wMax = Number(sub.written_max) || 0;
+          const mMax = Number(sub.mcq_max) || 0;
+          const pMax = Number(sub.practical_max) || 0;
+
+          const subVar = (((roll + subIdx * 4) % 9) - 4) * 0.015;
+          const perf = Math.max(0.25, Math.min(0.98, basePerf + subVar));
+
+          let w = wMax > 0 ? Math.round(wMax * perf) : 0;
+          let m = mMax > 0 ? Math.round(mMax * perf) : 0;
+          let p = pMax > 0 ? Math.round(pMax * (perf > 0.4 ? 0.92 : 0.75)) : 0;
+
+          if (wMax > 0 && w > wMax) w = wMax;
+          if (mMax > 0 && m > mMax) m = mMax;
+          if (pMax > 0 && p > pMax) p = pMax;
+
+          bulkRecords.push({
+            exam_id: selectedExam,
+            class_name: cls,
+            student_id: student.id,
+            subject_id: sub.id,
+            subject_code: sub.code,
+            written: w,
+            mcq: m,
+            practical: p,
+            absent: false,
+            remarks: ''
+          });
+        });
+      });
+
+      // 2. Save all bulk marks in one go
+      await api('/marks/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ exam_id: selectedExam, records: bulkRecords })
+      });
+
+      // 3. Process results for all classes (6, 7, 8, 9, 10)
+      for (const cls of ['6', '7', '8', '9', '10']) {
+        await api('/results/process', {
+          method: 'POST',
+          body: JSON.stringify({ exam_id: selectedExam, class_name: cls })
+        });
+      }
+
+      // 4. Reload current roster and views
+      await handleLoadRoster();
+      await loadProcessedResults();
+
+      showNotification(`🎉 অভূতপূর্ব সাফল্য! ৬ষ্ঠ থেকে ১০ম শ্রেণির মোট ${toBnDigits(studentList.length)} জন শিক্ষার্থীর সকল বিষয়ের ${toBnDigits(bulkRecords.length)} টি নম্বর ইংরেজিতে স্বয়ংক্রিয়ভাবে সফল এন্ট্রি এবং ফলাফল প্রসেস সম্পন্ন হয়েছে! ✓`, 'success');
+    } catch (err) {
+      console.error('Auto-fill all error:', err);
+      showNotification('সকল শ্রেণির নম্বর অটো-এন্ট্রি ব্যর্থ: ' + err.message, 'error');
+    }
+  };
+
   // ==================== PROCESS RESULTS ====================
   const handleRunResultProcessing = async () => {
     if (!selectedExam) {
@@ -1306,8 +1412,17 @@ export function ResultPanel({ sub }) {
               <button type="button" className="btn-modern-action" onClick={handleLoadRoster}>
                 🔄 তালিকা রিফ্রেশ
               </button>
-              <button type="button" className="btn-modern-secondary" onClick={handleQuickDemoMarks}>
-                🎲 ডেমো ফিল
+              <button
+                type="button"
+                className="btn-modern-special"
+                onClick={handleAutoFillAllClassesMarks}
+                style={{ background: '#7c3aed', color: '#fff', border: 'none', fontWeight: 700 }}
+                title="৬ষ্ঠ থেকে ১০ম শ্রেণির সকল বিষয়ের ২৪১ জন শিক্ষার্থীর সকল নম্বর ইংরেজিতে ১-ক্লিকে অটো এন্ট্রি ও প্রসেস করুন"
+              >
+                ⚡ সকল শ্রেণির নম্বর অটো এন্ট্রি (ইংরেজিতে)
+              </button>
+              <button type="button" className="btn-modern-secondary" onClick={handleQuickDemoMarks} title="বর্তমান নির্বাচিত বিষয়ের নমুনা নম্বর পূরণ">
+                🎲 বর্তমান বিষয় ফিল
               </button>
               <button type="button" className="btn-modern-primary" onClick={handleSaveMarksRoster}>
                 💾 সব নম্বর সংরক্ষণ
@@ -1317,22 +1432,41 @@ export function ResultPanel({ sub }) {
 
           {currentSubjectObj && (
             <div className="subject-meta-strip">
-              <span><b>পূর্ণমান:</b> {toBnDigits(currentSubjectObj.full_marks)}</span>
+              <span><b>পূর্ণমান:</b> {currentSubjectObj.full_marks}</span>
               {currentSubjectObj.written_max > 0 && (
-                <span><b>লিখিত/CQ:</b> সর্বোচ্চ {toBnDigits(currentSubjectObj.written_max)} (পাস: {toBnDigits(currentSubjectObj.written_pass || 23)})</span>
+                <span><b>লিখিত/CQ:</b> সর্বোচ্চ {currentSubjectObj.written_max} (পাস: {currentSubjectObj.written_pass || 23})</span>
               )}
               {currentSubjectObj.mcq_max > 0 && (
-                <span><b>MCQ:</b> সর্বোচ্চ {toBnDigits(currentSubjectObj.mcq_max)} (পাস: {toBnDigits(currentSubjectObj.mcq_pass || 10)})</span>
+                <span><b>MCQ:</b> সর্বোচ্চ {currentSubjectObj.mcq_max} (পাস: {currentSubjectObj.mcq_pass || 10})</span>
               )}
               {currentSubjectObj.practical_max > 0 && (
-                <span><b>ব্যবহারিক:</b> সর্বোচ্চ {toBnDigits(currentSubjectObj.practical_max)} (পাস: {toBnDigits(currentSubjectObj.practical_pass || 8)})</span>
+                <span><b>ব্যবহারিক:</b> সর্বোচ্চ {currentSubjectObj.practical_max} (পাস: {currentSubjectObj.practical_pass || 8})</span>
               )}
-              <span><b>মোট পাস:</b> {toBnDigits(currentSubjectObj.pass_marks || 33)}</span>
+              <span><b>মোট পাস:</b> {currentSubjectObj.pass_marks || 33}</span>
             </div>
           )}
 
-          <div className="marks-quick-tip-banner">
-            <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> কোনো তির চিহ্ন বা স্পিনারের প্রয়োজন নেই—সরাসরি কীবোর্ড দিয়ে নম্বর লিখুন। <b>Enter</b> বা <b>↓ (নিচের তির)</b> চাপলে স্বয়ংক্রিয়ভাবে পরবর্তী শিক্ষার্থীর ঘরে চলে যাবে। (বাংলা ও ইংরেজি উভয় ডিজিট সমর্থিত)</span>
+          <div className="marks-quick-tip-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> কোনো তির চিহ্নের প্রয়োজন নেই—সরাসরি কীবোর্ডে নম্বর লিখুন। মোট নম্বর ও জিপি ইংরেজিতে প্রদর্শিত হবে।</span>
+            <button
+              type="button"
+              onClick={handleAutoFillAllClassesMarks}
+              style={{
+                background: '#4f46e5',
+                color: '#fff',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              🚀 ১-ক্লিকে সকল শ্রেণির সকল নম্বর অটো এন্ট্রি (ইংরেজিতে)
+            </button>
           </div>
 
           <div className="table-responsive-wrapper">
@@ -1414,12 +1548,12 @@ export function ResultPanel({ sub }) {
                       </td>
                       <td>
                         <b className={`mark-total-display ${r.absent ? 'absent' : ''}`}>
-                          {r.absent ? 'Abs' : toBnDigits(evalRes.total)}
+                          {r.absent ? 'Abs' : evalRes.total}
                         </b>
                       </td>
                       <td>
                         <span className={`grade-pill ${evalRes.is_pass ? 'grade-pass' : 'grade-fail'}`} title={evalRes.fail_reason}>
-                          {evalRes.letter_grade} ({toBnDigits(evalRes.gp.toFixed(1))})
+                          {evalRes.letter_grade} ({evalRes.gp.toFixed(1)})
                         </span>
                       </td>
                       <td style={{ textAlign: 'center' }}>
@@ -1544,14 +1678,25 @@ export function ResultPanel({ sub }) {
               <b>মূল্যায়ন নীতি:</b> {isSSC ? '৪র্থ বিষয়ের অতিরিক্ত পয়েন্ট বোনাস প্রযোজ্য' : 'সকল আবশ্যিক বিষয়ে পৃথক পাস প্রযোজ্য'}
             </div>
 
-            <button
-              type="button"
-              className="btn-modern-primary btn-large"
-              onClick={handleRunResultProcessing}
-              disabled={!selectedExam}
-            >
-              🧮 Result Process চালান
-            </button>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px' }}>
+              <button
+                type="button"
+                className="btn-modern-primary btn-large"
+                onClick={handleRunResultProcessing}
+                disabled={!selectedExam}
+              >
+                🧮 বর্তমান শ্রেণির Result Process চালান
+              </button>
+              <button
+                type="button"
+                className="btn-modern-action btn-large"
+                style={{ background: '#7c3aed', color: '#fff', border: 'none', fontWeight: 700 }}
+                onClick={handleAutoFillAllClassesMarks}
+                disabled={!selectedExam}
+              >
+                ⚡ ১-ক্লিকে সকল শ্রেণির নম্বর অটো এন্ট্রি ও প্রসেস (ইংরেজিতে)
+              </button>
+            </div>
           </div>
 
           {analysis?.overall && (
@@ -1631,9 +1776,9 @@ export function ResultPanel({ sub }) {
                     <td><span className="code-pill">{x.student_id}</span></td>
                     <td><b>{x.name_bn}</b></td>
                     <td><span className="sub-tag-compulsory">{x.department || 'সাধারণ'}</span></td>
-                    <td><b>{toBnDigits(x.total_marks)}</b> <small className="text-muted">/ {toBnDigits(x.total_full_marks)}</small></td>
-                    <td>{toBnDigits(x.percentage)}%</td>
-                    <td><b style={{ fontSize: '15px', color: x.is_pass ? '#0b8050' : '#dc2626' }}>{toBnDigits(x.gpa)}</b></td>
+                    <td><b>{x.total_marks}</b> <small className="text-muted">/ {x.total_full_marks}</small></td>
+                    <td>{x.percentage}%</td>
+                    <td><b style={{ fontSize: '15px', color: x.is_pass ? '#0b8050' : '#dc2626' }}>{x.gpa}</b></td>
                     <td>
                       <span className={`grade-pill ${x.is_pass ? 'grade-pass' : 'grade-fail'}`}>
                         {x.final_grade}
@@ -1742,18 +1887,18 @@ export function ResultPanel({ sub }) {
                       }
                       return (
                         <React.Fragment key={`${st.id}-${subDef.code}`}>
-                          <td className="tab-sub-col">{found.written_max > 0 ? toBnDigits(found.written) : '—'}</td>
-                          <td className="tab-sub-col">{found.mcq_max > 0 ? toBnDigits(found.mcq) : '—'}</td>
-                          <td className="tab-sub-col">{found.practical_max > 0 ? toBnDigits(found.practical) : '—'}</td>
+                          <td className="tab-sub-col">{found.written_max > 0 ? found.written : '—'}</td>
+                          <td className="tab-sub-col">{found.mcq_max > 0 ? found.mcq : '—'}</td>
+                          <td className="tab-sub-col">{found.practical_max > 0 ? found.practical : '—'}</td>
                           <td className={`tab-sub-col ${found.is_pass ? 'tab-pass-cell' : 'tab-fail-cell'}`}>
-                            <b>{toBnDigits(found.total)}</b>
+                            <b>{found.total}</b>
                             <div style={{ fontSize: '10px' }}>{found.letter_grade}</div>
                           </td>
                         </React.Fragment>
                       );
                     })}
-                    <td><b>{toBnDigits(st.total_marks)}</b></td>
-                    <td><b style={{ color: st.is_pass ? '#0b8050' : '#dc2626' }}>{toBnDigits(st.gpa)}</b></td>
+                    <td><b>{st.total_marks}</b></td>
+                    <td><b style={{ color: st.is_pass ? '#0b8050' : '#dc2626' }}>{st.gpa}</b></td>
                     <td><span className={`grade-pill ${st.is_pass ? 'grade-pass' : 'grade-fail'}`}>{st.final_grade}</span></td>
                     <td>
                       <span className={`status-pill ${st.is_pass ? 'status-active' : 'status-completed'}`}>
@@ -1900,18 +2045,18 @@ export function ResultPanel({ sub }) {
                         <b>{sub.name_bn}</b>
                         {sub.is_optional && <span className="sub-tag-opt" style={{ marginLeft: '6px' }}>৪র্থ বিষয়</span>}
                       </td>
-                      <td>{toBnDigits(sub.full_marks)}</td>
-                      <td>{sub.written_max > 0 ? toBnDigits(sub.written) : '—'}</td>
-                      <td>{sub.mcq_max > 0 ? toBnDigits(sub.mcq) : '—'}</td>
-                      <td>{sub.practical_max > 0 ? toBnDigits(sub.practical) : '—'}</td>
-                      <td><b>{toBnDigits(sub.total)}</b></td>
+                      <td>{sub.full_marks}</td>
+                      <td>{sub.written_max > 0 ? sub.written : '—'}</td>
+                      <td>{sub.mcq_max > 0 ? sub.mcq : '—'}</td>
+                      <td>{sub.practical_max > 0 ? sub.practical : '—'}</td>
+                      <td><b>{sub.total}</b></td>
                       <td>
                         <b style={{ color: sub.is_pass ? '#0b8050' : '#dc2626' }}>
                           {sub.letter_grade}
                         </b>
                       </td>
                       <td>
-                        <b>{toBnDigits(sub.gp.toFixed(2))}</b>
+                        <b>{sub.gp.toFixed(2)}</b>
                       </td>
                     </tr>
                   ))}
@@ -1921,7 +2066,7 @@ export function ResultPanel({ sub }) {
               {/* 4th Subject Bonus Notice (SSC) */}
               {isSSC && currentStudentResult.bonus_point > 0 && (
                 <div style={{ fontSize: '12px', color: '#0284c7', background: '#f0f9ff', padding: '6px 12px', borderRadius: '6px', marginBottom: '12px' }}>
-                  💡 <b>৪র্থ বিষয় সুবিধা:</b> ৪র্থ বিষয়ে অতিরিক্ত পয়েন্ট <b>+{toBnDigits(currentStudentResult.bonus_point.toFixed(2))}</b> মূল জিপিএ-তে যোগ করা হয়েছে।
+                  💡 <b>৪র্থ বিষয় সুবিধা:</b> ৪র্থ বিষয়ে অতিরিক্ত পয়েন্ট <b>+{currentStudentResult.bonus_point.toFixed(2)}</b> মূল জিপিএ-তে যোগ করা হয়েছে।
                 </div>
               )}
 
@@ -1929,16 +2074,16 @@ export function ResultPanel({ sub }) {
               <div className="marksheet-summary-box">
                 <div>
                   <div className="summary-unit-title">সর্বমোট প্রাপ্ত নম্বর</div>
-                  <div className="summary-unit-value">{toBnDigits(currentStudentResult.total_marks)}</div>
+                  <div className="summary-unit-value">{currentStudentResult.total_marks}</div>
                 </div>
                 <div>
                   <div className="summary-unit-title">প্রাপ্ত শতকরা (%)</div>
-                  <div className="summary-unit-value">{toBnDigits(currentStudentResult.percentage)}%</div>
+                  <div className="summary-unit-value">{currentStudentResult.percentage}%</div>
                 </div>
                 <div>
                   <div className="summary-unit-title">গ্রেড পয়েন্ট (GPA)</div>
                   <div className={`summary-unit-value ${currentStudentResult.is_pass ? 'passed' : 'failed'}`}>
-                    {toBnDigits(currentStudentResult.gpa)}
+                    {currentStudentResult.gpa}
                   </div>
                 </div>
                 <div>
