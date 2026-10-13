@@ -1234,6 +1234,14 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/exams') {
     let exams = getLocalStore('exams', MOCK_EXAMS);
+    if (!exams.some(e => e.id === 'ex-annual-2026')) {
+      exams.push({ id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক পরীক্ষা', status: 'published', remarks: '৬ষ্ঠ-৯ম শ্রেণির বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা', created_at: new Date().toISOString() });
+      try { localStorage.setItem('magra_db_exams', JSON.stringify(exams)); } catch(e){}
+    }
+    if (!exams.some(e => e.id === 'ex-test-2026')) {
+      exams.push({ id: 'ex-test-2026', academic_year: '2026', name_bn: 'নির্বাচনি পরীক্ষা ২০২৬ (SSC Test)', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনি পরীক্ষা', status: 'published', remarks: '১০ম শ্রেণির এসএসসি টেস্ট ও ফরমপূরণ পরীক্ষা', created_at: new Date().toISOString() });
+      try { localStorage.setItem('magra_db_exams', JSON.stringify(exams)); } catch(e){}
+    }
     if (method === 'POST') {
       const newExam = {
         id: 'ex-' + Date.now(),
@@ -1419,6 +1427,123 @@ function handleMockRequest(path, opts = {}) {
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     return generateResultAnalytics(processed, subs);
   }
+  // 10. Student Promotion and SSC Form Fill-up Endpoints
+  if (cleanPath === '/promotion/execute' && method === 'POST') {
+    const { source_year, target_year, source_class, target_class, promotions } = body;
+    let students = getLocalStore('students', MOCK_STUDENTS);
+    let promotedCount = 0;
+    const promoMap = new Map();
+    (promotions || []).forEach(p => {
+      if (p.student_id) promoMap.set(String(p.student_id), p);
+      if (p.id) promoMap.set(String(p.id), p);
+    });
+
+    students = students.map(s => {
+      const p = promoMap.get(String(s.student_id)) || promoMap.get(String(s.id));
+      if (!p) return s;
+
+      const oldClass = s.class_name;
+      const oldRoll = s.roll_no;
+      const historyItem = {
+        date: new Date().toISOString().slice(0, 10),
+        from_year: source_year || '2026',
+        to_year: target_year || '2027',
+        from_class: oldClass,
+        to_class: p.action === 'promote' ? String(target_class) : oldClass,
+        from_roll: oldRoll,
+        to_roll: Number(p.new_roll) || oldRoll,
+        action: p.action, // 'promote' or 'repeat'
+        method: p.method, // 'merit' or 'special_approval'
+        approval_note: p.approval_note || ''
+      };
+
+      const ext = s.extended_profile || {};
+      const history = Array.isArray(ext.promotion_history) ? [...ext.promotion_history, historyItem] : [historyItem];
+
+      if (p.action === 'promote') {
+        promotedCount++;
+        return {
+          ...s,
+          class_name: String(target_class),
+          roll_no: Number(p.new_roll) || oldRoll,
+          department: p.department || s.department || 'সাধারণ',
+          section: p.section || s.section || 'A',
+          extended_profile: {
+            ...ext,
+            promotion_history: history
+          }
+        };
+      } else {
+        return {
+          ...s,
+          roll_no: Number(p.new_roll) || oldRoll,
+          extended_profile: {
+            ...ext,
+            promotion_history: history
+          }
+        };
+      }
+    });
+
+    setLocalStore('students', students);
+    return {
+      ok: true,
+      count: promotedCount,
+      message: `শ্রেণি ${source_class} থেকে শ্রেণি ${target_class} এ ${promotedCount} জন শিক্ষার্থীর প্রমোশন সফলভাবে সম্পন্ন ও সংরক্ষিত হয়েছে`
+    };
+  }
+
+  if (cleanPath === '/ssc-form-fillup/save' && method === 'POST') {
+    const { exam_id, academic_year, candidates } = body;
+    let students = getLocalStore('students', MOCK_STUDENTS);
+    let updatedCount = 0;
+    const candMap = new Map();
+    (candidates || []).forEach(c => {
+      if (c.student_id) candMap.set(String(c.student_id), c);
+      if (c.id) candMap.set(String(c.id), c);
+    });
+
+    students = students.map(s => {
+      const c = candMap.get(String(s.student_id)) || candMap.get(String(s.id));
+      if (!c) return s;
+
+      updatedCount++;
+      return {
+        ...s,
+        ssc_candidate_status: c.status, // 'approved', 'special_approved', 'detained'
+        ssc_approval_type: c.approval_type, // 'regular', 'head_teacher_special'
+        ssc_approval_note: c.approval_note || '',
+        ssc_academic_year: academic_year || '2026',
+        ssc_exam_id: exam_id || ''
+      };
+    });
+
+    setLocalStore('students', students);
+    return {
+      ok: true,
+      count: updatedCount,
+      message: `১০ম শ্রেণির ${updatedCount} জন শিক্ষার্থীর এসএসসি পরীক্ষার ফরমপূরণ অনুমোদন তালিকা সফলভাবে সংরক্ষিত হয়েছে`
+    };
+  }
+
+  if (cleanPath === '/promotion/history') {
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    const historyList = [];
+    students.forEach(s => {
+      const hist = s?.extended_profile?.promotion_history;
+      if (Array.isArray(hist) && hist.length) {
+        hist.forEach(h => {
+          historyList.push({
+            student_id: s.student_id,
+            name_bn: s.name_bn,
+            ...h
+          });
+        });
+      }
+    });
+    return historyList.reverse();
+  }
+
 
   if (cleanPath === '/reports/overview') {
     return {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { PromotionPanel } from './PromotionPanel.jsx';
 import { requestApi } from './apiClient';
 import {
   DHAKA_BOARD_GRADING_SCALE,
@@ -43,6 +44,7 @@ export function ResultPanel({ sub }) {
     if (s === 'tabulation') return 'tabulation';
     if (s === 'marksheet' || s === 'progress') return 'marksheet';
     if (s === 'analysis') return 'analysis';
+    if (s === 'promotion' || s === 'promotions' || s === 'ssc_form_fillup') return 'promotion';
     return 'academic_year';
   };
 
@@ -889,7 +891,8 @@ export function ResultPanel({ sub }) {
           ['merit', '🏆 ৭. মেধা তালিকা'],
           ['tabulation', '📋 ৮. ট্যাবুলেশন শিট'],
           ['marksheet', '📄 ৯. মার্কশিট ও প্রগ্রেস'],
-          ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ']
+          ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ'],
+          ['promotion', '🎓 ১১. প্রমোশন ও ফরমপূরণ']
         ].map(([key, label]) => (
           <button
             key={key}
