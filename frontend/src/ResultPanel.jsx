@@ -398,7 +398,243 @@ export function ResultPanel({ sub }) {
     showNotification('নমুনা নম্বর সফলভাবে পূরণ করা হয়েছে। সংরক্ষণ করতে "💾 সব নম্বর সংরক্ষণ" বাটনে চাপুন।', 'info');
   };
 
+  // ==================== CSV HELPER & IMPORT/EXPORT ====================
+  const parseCsvText = (text) => {
+    const rows = [];
+    let row = [], cell = '', quoted = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i], nx = text[i + 1];
+      if (ch === '"') {
+        if (quoted && nx === '"') { cell += '"'; i++; }
+        else quoted = !quoted;
+      } else if (ch === ',' && !quoted) {
+        row.push(cell);
+        cell = '';
+      } else if ((ch === '\n' || ch === '\r') && !quoted) {
+        if (ch === '\r' && nx === '\n') i++;
+        row.push(cell);
+        if (row.some(v => v.trim() !== '')) rows.push(row);
+        row = [];
+        cell = '';
+      } else {
+        cell += ch;
+      }
+    }
+    if (cell !== '' || row.length) {
+      row.push(cell);
+      if (row.some(v => v.trim() !== '')) rows.push(row);
+    }
+    return rows;
+  };
 
+  // CSV Download (Export Pre-filled / Blank Template)
+  const handleDownloadMarksCsv = () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!currentSubjectObj) {
+      showNotification('অনুগ্রহ করে বিষয় নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!marksRoster.length) {
+      showNotification('ডাউনলোড করার মতো কোনো শিক্ষার্থী পাওয়া যায়নি। তালিকা রিফ্রেশ করুন।', 'error');
+      return;
+    }
+
+    const escapeCsv = (str) => {
+      const val = str === null || str === undefined ? '' : String(str);
+      if (val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+
+    const wMax = currentSubjectObj.written_max || 0;
+    const mMax = currentSubjectObj.mcq_max || 0;
+    const pMax = currentSubjectObj.practical_max || 0;
+
+    const headers = [
+      'Roll',
+      'Student_ID',
+      'Student_Name',
+      'Department',
+      'Exam_Name',
+      'Subject_Code',
+      'Subject_Name',
+      `Written_CQ_max_${wMax}`,
+      `MCQ_max_${mMax}`,
+      `Practical_max_${pMax}`,
+      'Absent',
+      'Remarks'
+    ];
+
+    const rows = marksRoster.map(r => [
+      escapeCsv(r.roll_no || ''),
+      escapeCsv(r.student_code || r.student_id || ''),
+      escapeCsv(r.name_bn || ''),
+      escapeCsv(r.department || 'সাধারণ'),
+      escapeCsv(selectedExamObj ? selectedExamObj.name_bn : ''),
+      escapeCsv(currentSubjectObj.code || ''),
+      escapeCsv(currentSubjectObj.name_bn || ''),
+      escapeCsv(r.written !== null && r.written !== undefined ? r.written : ''),
+      escapeCsv(r.mcq !== null && r.mcq !== undefined ? r.mcq : ''),
+      escapeCsv(r.practical !== null && r.practical !== undefined ? r.practical : ''),
+      escapeCsv(r.absent ? 'Yes' : 'No'),
+      escapeCsv(r.remarks || '')
+    ]);
+
+    // UTF-8 with BOM (\uFEFF) ensures Bengali text is crystal clear in Excel
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const safeSub = (currentSubjectObj.name_bn || 'Subject').replace(/[^\w\u0980-\u09FF]/g, '_');
+    const safeExam = (selectedExamObj?.name_bn || 'Exam').replace(/[^\w\u0980-\u09FF]/g, '_');
+    link.href = url;
+    link.download = `Marks_Class_${className}_${safeSub}_Code${currentSubjectObj.code}_${safeExam}_${selectedYear}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showNotification(`শ্রেণি ${toBnDigits(className)} এর "${currentSubjectObj.name_bn}" বিষয়ের মার্কস এন্ট্রি CSV সফলভাবে ডাউনলোড হয়েছে! ✓`, 'success');
+  };
+
+  // CSV Upload (Import Marks)
+  const handleUploadMarksCsv = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!currentSubjectObj) {
+      showNotification('অনুগ্রহ করে বিষয় নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!marksRoster.length) {
+      showNotification('শিক্ষার্থী তালিকা লোড করা নেই। আগে "🔄 তালিকা রিফ্রেশ" করুন।', 'error');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const matrix = parseCsvText(text);
+
+      if (matrix.length < 2) {
+        showNotification('CSV ফাইলে কোনো ডেটা পাওয়া যায়নি। সঠিক ফাইল নির্বাচন করুন।', 'error');
+        return;
+      }
+
+      const rawHeaders = matrix[0].map(h => (h || '').trim().toLowerCase().replace(/[\s_-]+/g, ''));
+      const findHeaderIdx = (aliases) => {
+        return rawHeaders.findIndex(h => aliases.some(alias => h.includes(alias)));
+      };
+
+      const rollIdx = findHeaderIdx(['roll', 'রোল']);
+      const idIdx = findHeaderIdx(['studentid', 'student_id', 'স্টুডেন্টআইডি', 'আইডি', 'id']);
+      const writtenIdx = findHeaderIdx(['writtencq', 'written', 'cq', 'লিখিত']);
+      const mcqIdx = findHeaderIdx(['mcq', 'এমসিকিউ', 'বহুনির্বাচনি']);
+      const practicalIdx = findHeaderIdx(['practical', 'ব্যবহারিক', 'prac']);
+      const absentIdx = findHeaderIdx(['absent', 'অনুপস্থিত']);
+      const remarksIdx = findHeaderIdx(['remarks', 'মন্তব্য', 'remark']);
+
+      if (rollIdx === -1 && idIdx === -1) {
+        showNotification('CSV ফাইলে Roll বা Student ID কলাম পাওয়া যায়নি। অনুগ্রহ করে ডাউনলোড করা টেমপ্লেট ব্যবহার করুন।', 'error');
+        return;
+      }
+
+      const wMax = Number(currentSubjectObj.written_max) || 0;
+      const mMax = Number(currentSubjectObj.mcq_max) || 0;
+      const pMax = Number(currentSubjectObj.practical_max) || 0;
+
+      const importedMap = new Map();
+
+      for (let r = 1; r < matrix.length; r++) {
+        const row = matrix[r];
+        if (!row || !row.length || row.every(c => !c.trim())) continue;
+
+        const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
+        const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim() : '';
+
+        let written = writtenIdx !== -1 && row[writtenIdx] !== undefined ? normalizeMarkDigits(row[writtenIdx]) : '';
+        let mcq = mcqIdx !== -1 && row[mcqIdx] !== undefined ? normalizeMarkDigits(row[mcqIdx]) : '';
+        let practical = practicalIdx !== -1 && row[practicalIdx] !== undefined ? normalizeMarkDigits(row[practicalIdx]) : '';
+        const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
+        const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
+        const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
+
+        // Validation against maximum
+        if (written !== '' && wMax > 0 && parseFloat(written) > wMax) written = String(wMax);
+        if (mcq !== '' && mMax > 0 && parseFloat(mcq) > mMax) mcq = String(mMax);
+        if (practical !== '' && pMax > 0 && parseFloat(practical) > pMax) practical = String(pMax);
+
+        const dataObj = { written, mcq, practical, absent: isAbsent, remarks };
+
+        if (idVal) importedMap.set(`id:${idVal.toLowerCase()}`, dataObj);
+        if (rollVal) importedMap.set(`roll:${rollVal}`, dataObj);
+      }
+
+      let matchedCount = 0;
+      const updatedRoster = marksRoster.map(studentRow => {
+        const stCode = (studentRow.student_code || '').toLowerCase();
+        const stId = (studentRow.student_id || '').toLowerCase();
+        const stRoll = String(studentRow.roll_no || '');
+
+        const imported = importedMap.get(`id:${stCode}`) ||
+                         importedMap.get(`id:${stId}`) ||
+                         importedMap.get(`roll:${stRoll}`);
+
+        if (imported) {
+          matchedCount++;
+          return {
+            ...studentRow,
+            written: imported.written !== '' ? imported.written : studentRow.written,
+            mcq: imported.mcq !== '' ? imported.mcq : studentRow.mcq,
+            practical: imported.practical !== '' ? imported.practical : studentRow.practical,
+            absent: imported.absent,
+            remarks: imported.remarks || studentRow.remarks
+          };
+        }
+        return studentRow;
+      });
+
+      if (matchedCount === 0) {
+        showNotification('CSV ফাইলের রোলের সাথে বর্তমান শ্রেণির কোনো শিক্ষার্থীর রোল মেলেনি। সঠিক শ্রেণির CSV আপলোড করুন।', 'error');
+        return;
+      }
+
+      setMarksRoster(updatedRoster);
+
+      // Save immediately to backend/store
+      const recordsToSave = updatedRoster.map(r => ({
+        exam_id: selectedExam,
+        class_name: className,
+        student_id: r.student_id,
+        subject_id: currentSubjectObj.id,
+        subject_code: currentSubjectObj.code,
+        written: r.written,
+        mcq: r.mcq,
+        practical: r.practical,
+        absent: r.absent,
+        remarks: r.remarks
+      }));
+
+      await api('/marks/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ exam_id: selectedExam, records: recordsToSave })
+      });
+
+      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${toBnDigits(matchedCount)} জন শিক্ষার্থীর নম্বর সফলভাবে ইমপোর্ট ও সংরক্ষণ করা হয়েছে! ✓`, 'success');
+    } catch (err) {
+      console.error('CSV import error:', err);
+      showNotification('CSV ফাইল আপলোড ব্যর্থ: ' + err.message, 'error');
+    }
+  };
 
   // ==================== PROCESS RESULTS ====================
   const handleRunResultProcessing = async () => {
@@ -1308,6 +1544,28 @@ export function ResultPanel({ sub }) {
               <button type="button" className="btn-modern-action" onClick={handleLoadRoster}>
                 🔄 তালিকা রিফ্রেশ
               </button>
+              <button
+                type="button"
+                className="btn-modern-action"
+                style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 600 }}
+                onClick={handleDownloadMarksCsv}
+                title="বর্তমান বিষয়ের শিক্ষার্থীদের নম্বর এন্ট্রি শিট CSV ফাইল হিসেবে ডাউনলোড করুন (Excel Compatible)"
+              >
+                📥 CSV Download
+              </button>
+              <label
+                className="btn-modern-action"
+                style={{ background: '#059669', color: '#fff', borderColor: '#059669', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                title="এক্সেলে পূরণকৃত মার্কস CSV ফাইল আপলোড করে এক ক্লিকে সকল নম্বর যুক্ত করুন"
+              >
+                📤 CSV Upload
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  style={{ display: 'none' }}
+                  onChange={handleUploadMarksCsv}
+                />
+              </label>
               <button type="button" className="btn-modern-secondary" onClick={handleQuickDemoMarks} title="বর্তমান নির্বাচিত বিষয়ের নমুনা নম্বর পূরণ">
                 🎲 ডেমো ফিল
               </button>
@@ -1333,8 +1591,54 @@ export function ResultPanel({ sub }) {
             </div>
           )}
 
-          <div className="marks-quick-tip-banner">
-            <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> কোনো তির চিহ্নের প্রয়োজন নেই—সরাসরি কীবোর্ডে নম্বর লিখুন। <b>Enter</b> বা <b>↓ (নিচের তির)</b> চাপলে স্বয়ংক্রিয়ভাবে পরবর্তী শিক্ষার্থীর ঘরে চলে যাবে। মোট নম্বর ও জিপি ইংরেজিতে প্রদর্শিত হবে।</span>
+          <div className="marks-quick-tip-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> সরাসরি কীবোর্ডে নম্বর লিখুন (Enter বা ↓ চাপলে পরের ঘরে যাবে)। অথবা <b>CSV Download</b> করে অফলাইনে এক্সেলে নম্বর বসিয়ে <b>CSV Upload</b> করতে পারেন।</span>
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={handleDownloadMarksCsv}
+                style={{
+                  background: '#0284c7',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="বর্তমান বিষয়ের CSV শিট ডাউনলোড"
+              >
+                📥 CSV Download
+              </button>
+              <label
+                style={{
+                  background: '#059669',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="পূরণকৃত CSV শিট আপলোড"
+              >
+                📤 CSV Upload
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  style={{ display: 'none' }}
+                  onChange={handleUploadMarksCsv}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="table-responsive-wrapper">
