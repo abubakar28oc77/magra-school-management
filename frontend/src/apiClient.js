@@ -74,6 +74,7 @@ import {
   MOCK_TEACHERS,
   MOCK_STAFF,
   MOCK_COMMITTEE,
+  DEFAULT_ACADEMIC_YEARS,
   MOCK_NOTICES,
   MOCK_EXAMS,
   MOCK_SUBJECTS,
@@ -205,16 +206,23 @@ export function enrichStudentProfile(s) {
   };
 }
 
-// Safe student dataset initialization - strictly genuine data without any synthetic villages
-const AUTHENTIC_VERSION_TAG = 'magra_v2026_authentic_clean_user_students_v3';
+// CRITICAL: Strictly protect and preserve all user data (15 teachers, 241 students, etc.)
+// NEVER overwrite magra_db_students or magra_db_teachers if data already exists in localStorage.
 try {
-  const currentTag = localStorage.getItem('magra_data_version');
   const rawSt = localStorage.getItem('magra_db_students');
-  if (!rawSt || currentTag !== AUTHENTIC_VERSION_TAG) {
+  if (!rawSt) {
     localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
-    localStorage.setItem('magra_data_version', AUTHENTIC_VERSION_TAG);
+  } else {
+    try {
+      const parsed = JSON.parse(rawSt);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+      }
+    } catch {}
   }
-} catch {}
+} catch (e) {
+  console.warn('LocalStorage student check error:', e);
+}
 
 // Local storage database helpers (preserves user data completely)
 function getLocalStore(key, defaultVal = []) {
@@ -1175,17 +1183,215 @@ function handleMockRequest(path, opts = {}) {
     return notices;
   }
 
-  // 9. Exams & Subjects
+  // 9. Academic Years, Exams & Results (Modernized)
+  if (cleanPath === '/academic-years') {
+    let years = getLocalStore('academic_years', DEFAULT_ACADEMIC_YEARS);
+    if (method === 'POST') {
+      const yearStr = String(body.year || '').trim();
+      const newY = {
+        id: 'ay-' + (yearStr || Date.now()),
+        year: yearStr || String(new Date().getFullYear()),
+        title_bn: body.title_bn || (yearStr ? yearStr + ' শিক্ষাবর্ষ' : 'নতুন শিক্ষাবর্ষ'),
+        is_current: !!body.is_current,
+        status: body.status || 'active',
+        remarks: body.remarks || '',
+        created_at: new Date().toISOString()
+      };
+      if (newY.is_current) {
+        years = years.map(y => ({ ...y, is_current: false }));
+      }
+      years = [newY, ...years.filter(y => String(y.id) !== String(newY.id) && String(y.year) !== String(newY.year))];
+      setLocalStore('academic_years', years);
+      return newY;
+    }
+    return years;
+  }
+
+  if (cleanPath.startsWith('/academic-years/') && (method === 'PUT' || method === 'PATCH')) {
+    const id = cleanPath.split('/')[2];
+    let years = getLocalStore('academic_years', DEFAULT_ACADEMIC_YEARS);
+    if (body.is_current) {
+      years = years.map(y => ({ ...y, is_current: false }));
+    }
+    years = years.map(y => {
+      if (String(y.id) === String(id) || String(y.year) === String(id)) {
+        return { ...y, ...body };
+      }
+      return y;
+    });
+    setLocalStore('academic_years', years);
+    return { success: true, updated: id };
+  }
+
+  if (cleanPath.startsWith('/academic-years/') && method === 'DELETE') {
+    const id = cleanPath.split('/')[2];
+    let years = getLocalStore('academic_years', DEFAULT_ACADEMIC_YEARS);
+    years = years.filter(y => String(y.id) !== String(id) && String(y.year) !== String(id));
+    setLocalStore('academic_years', years);
+    return { success: true, deleted: id };
+  }
+
   if (cleanPath === '/exams') {
-    return getLocalStore('exams', MOCK_EXAMS);
+    let exams = getLocalStore('exams', MOCK_EXAMS);
+    if (method === 'POST') {
+      const newExam = {
+        id: 'ex-' + Date.now(),
+        academic_year: String(body.academic_year || '2026').trim(),
+        name_bn: (body.name_bn || '').trim(),
+        name_en: (body.name_en || '').trim(),
+        exam_type: body.exam_type || 'সাময়িক পরীক্ষা',
+        status: body.status || 'active',
+        grading_scheme_id: body.grading_scheme_id || '',
+        remarks: body.remarks || '',
+        created_at: new Date().toISOString()
+      };
+      exams = [newExam, ...exams];
+      setLocalStore('exams', exams);
+      return newExam;
+    }
+    const yearFilter = params.get('academic_year');
+    if (yearFilter) {
+      return exams.filter(e => String(e.academic_year) === String(yearFilter));
+    }
+    return exams;
+  }
+
+  if (cleanPath.startsWith('/exams/') && !cleanPath.endsWith('/subjects')) {
+    const examId = cleanPath.split('/')[2];
+    let exams = getLocalStore('exams', MOCK_EXAMS);
+    if (method === 'PUT' || method === 'PATCH') {
+      exams = exams.map(e => String(e.id) === String(examId) ? { ...e, ...body } : e);
+      setLocalStore('exams', exams);
+      return { success: true, exam: exams.find(e => String(e.id) === String(examId)) };
+    }
+    if (method === 'DELETE') {
+      exams = exams.filter(e => String(e.id) !== String(examId));
+      setLocalStore('exams', exams);
+      return { success: true, deleted: examId };
+    }
+    return exams.find(e => String(e.id) === String(examId)) || null;
   }
 
   if (cleanPath === '/subjects') {
-    return getLocalStore('subjects', MOCK_SUBJECTS);
+    const cls = params.get('class_name');
+    const subs = getLocalStore('subjects', MOCK_SUBJECTS);
+    if (cls) {
+      return subs.filter(s => !s.class_name || String(s.class_name) === String(cls));
+    }
+    return subs;
   }
 
   if (cleanPath.startsWith('/exams/') && cleanPath.endsWith('/subjects')) {
+    const examId = cleanPath.split('/')[2];
+    if (method === 'POST') {
+      let examSubs = getLocalStore('exam_subjects_' + examId, []);
+      const newSub = { id: 'es-' + Date.now(), exam_id: examId, ...body };
+      examSubs = examSubs.filter(s => String(s.subject_id) !== String(body.subject_id));
+      examSubs.push(newSub);
+      setLocalStore('exam_subjects_' + examId, examSubs);
+      return newSub;
+    }
+    const stored = getLocalStore('exam_subjects_' + examId, []);
+    if (stored.length) return stored;
     return getLocalStore('subjects', MOCK_SUBJECTS);
+  }
+
+  if (cleanPath === '/grading-schemes') {
+    const defaultSchemes = [
+      { id: 'gs-1', name_bn: 'বাংলাদেশ মাধ্যমিক সাধারণ গ্রেডিং (SSC Standard)', board: 'ঢাকা / মাদ্রাসা শিক্ষা বোর্ড', academic_year: 2026, pass_percent: 33 }
+    ];
+    let schemes = getLocalStore('grading_schemes', defaultSchemes);
+    if (method === 'POST') {
+      const newGs = { id: 'gs-' + Date.now(), ...body };
+      schemes = [newGs, ...schemes];
+      setLocalStore('grading_schemes', schemes);
+      return newGs;
+    }
+    return schemes;
+  }
+
+  if (cleanPath === '/marks') {
+    const examId = params.get('exam_id');
+    const marks = getLocalStore('marks', []);
+    if (examId) {
+      return marks.filter(m => String(m.exam_id) === String(examId));
+    }
+    return marks;
+  }
+
+  if (cleanPath === '/marks/bulk' && method === 'POST') {
+    const examId = body.exam_id;
+    const records = Array.isArray(body.records) ? body.records : [];
+    let marks = getLocalStore('marks', []);
+    const otherMarks = marks.filter(m => String(m.exam_id) !== String(examId));
+    const processed = records.map(r => ({
+      ...r,
+      exam_id: examId,
+      written: r.written !== '' && r.written !== undefined ? Number(r.written) : null,
+      mcq: r.mcq !== '' && r.mcq !== undefined ? Number(r.mcq) : null,
+      practical: r.practical !== '' && r.practical !== undefined ? Number(r.practical) : null,
+      total: (Number(r.written) || 0) + (Number(r.mcq) || 0) + (Number(r.practical) || 0)
+    }));
+    setLocalStore('marks', [...otherMarks, ...processed]);
+    return { ok: true, count: processed.length };
+  }
+
+  if (cleanPath === '/results/process' && method === 'POST') {
+    const examId = body.exam_id;
+    let exams = getLocalStore('exams', MOCK_EXAMS);
+    exams = exams.map(e => String(e.id) === String(examId) ? { ...e, status: 'published' } : e);
+    setLocalStore('exams', exams);
+    const marks = getLocalStore('marks', []).filter(m => String(m.exam_id) === String(examId));
+    return { ok: true, count: marks.length || 15 };
+  }
+
+  if (cleanPath === '/results/summary') {
+    const examId = params.get('exam_id');
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    return students.slice(0, 20).map((s, idx) => ({
+      id: s.id,
+      merit: idx + 1,
+      roll_no: s.roll_no,
+      student_id: s.student_id,
+      name_bn: s.name_bn,
+      subjects: 5,
+      total_marks: Math.max(250, 490 - idx * 12),
+      percentage: ((Math.max(250, 490 - idx * 12) / 500) * 100).toFixed(1),
+      gpa: idx < 8 ? '5.00' : idx < 15 ? '4.50' : '4.00',
+      result_status: 'PASSED'
+    }));
+  }
+
+  if (cleanPath === '/results/analysis') {
+    return {
+      overall: {
+        students: 65,
+        passed: 62,
+        failed: 3,
+        incomplete: 0,
+        avg_percentage: '76.4',
+        avg_gpa: '4.42',
+        highest_percentage: '94.8',
+        lowest_percentage: '34.2'
+      },
+      subjects: [
+        { code: '101', subject_name: 'বাংলা', avg_marks: 78.5, avg_percentage: 78.5, passed: 63, failed: 2, pass_rate: 96.9 },
+        { code: '107', subject_name: 'ইংরেজি', avg_marks: 71.2, avg_percentage: 71.2, passed: 60, failed: 5, pass_rate: 92.3 },
+        { code: '109', subject_name: 'গণিত', avg_marks: 74.0, avg_percentage: 74.0, passed: 59, failed: 6, pass_rate: 90.7 },
+        { code: '127', subject_name: 'বিজ্ঞান', avg_marks: 79.8, avg_percentage: 79.8, passed: 64, failed: 1, pass_rate: 98.4 },
+        { code: '154', subject_name: 'আইসিটি', avg_marks: 43.5, avg_percentage: 87.0, passed: 65, failed: 0, pass_rate: 100.0 }
+      ],
+      classes: [
+        { class_name: '৬', students: 65, passed: 62, failed: 3, avg_percentage: 76.4, avg_gpa: 4.42 }
+      ],
+      grades: [
+        { grade: 'A+', count: 24 },
+        { grade: 'A', count: 22 },
+        { grade: 'A-', count: 11 },
+        { grade: 'B', count: 5 },
+        { grade: 'F', count: 3 }
+      ]
+    };
   }
 
   // 10. Routines

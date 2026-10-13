@@ -3824,10 +3824,17 @@ export const MOCK_NOTICES = [
   { id: 5, title_bn: 'মেধাবী ও অসচ্ছল শিক্ষার্থীদের মাঝে স্কুল ড্রেস ও শিক্ষা উপকরণ বিতরণ', body: 'গভর্নিং বডির সিদ্ধান্ত অনুযায়ী ২০২৬ শিক্ষাবর্ষে অসচ্ছল ও মেধাবী শিক্ষার্থীদের মাঝে বিনামূল্যে স্কুল ড্রেস, ব্যাগ ও শিক্ষা সহায়ক খাতা-কলম বিতরণ করা হয়েছে।', notice_date: '2026-01-10', urgent: false }
 ];
 
+export const DEFAULT_ACADEMIC_YEARS = [
+  { id: 'ay-2026', year: '2026', title_bn: '২০২৬ শিক্ষাবর্ষ', is_current: true, status: 'active', remarks: 'চলমান প্রধান শিক্ষাবর্ষ' },
+  { id: 'ay-2025', year: '2025', title_bn: '২০২৫ শিক্ষাবর্ষ', is_current: false, status: 'completed', remarks: 'বিগত শিক্ষাবর্ষ' },
+  { id: 'ay-2027', year: '2027', title_bn: '২০২৭ শিক্ষাবর্ষ', is_current: false, status: 'upcoming', remarks: 'পরবর্তী শিক্ষাবর্ষ' },
+  { id: 'ay-2024', year: '2024', title_bn: '২০২৪ শিক্ষাবর্ষ', is_current: false, status: 'completed', remarks: 'আর্কাইভ শিক্ষাবর্ষ' }
+];
+
 export const MOCK_EXAMS = [
-  { id: 'ex-1', name_bn: '১ম সাময়িক পরীক্ষা ২০২৬', exam_type: 'অভ্যন্তরীণ', start_date: '2026-03-10', end_date: '2026-03-24', status: 'published' },
-  { id: 'ex-2', name_bn: 'অর্ধবার্ষিক পরীক্ষা ২০২৬', exam_type: 'অভ্যন্তরীণ', start_date: '2026-06-15', end_date: '2026-06-30', status: 'draft' },
-  { id: 'ex-3', name_bn: 'বার্ষিক পরীক্ষা ২০২৫ (সম্পন্ন)', exam_type: 'বার্ষিক', start_date: '2025-11-20', end_date: '2025-12-05', status: 'published' }
+  { id: 'ex-1', academic_year: '2026', name_bn: '১ম সাময়িক পরীক্ষা', name_en: '1st Terminal Examination', exam_type: 'সাময়িক পরীক্ষা', status: 'active', remarks: 'মার্ক এন্ট্রি চলমান' },
+  { id: 'ex-2', academic_year: '2026', name_bn: 'অর্ধবার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'অর্ধবার্ষিক পরীক্ষা', status: 'draft', remarks: 'প্রস্তুতি চলছে' },
+  { id: 'ex-3', academic_year: '2025', name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'বার্ষিক পরীক্ষা', status: 'published', remarks: 'ফলাফল প্রকাশিত' }
 ];
 
 export const MOCK_SUBJECTS = [
