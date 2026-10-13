@@ -1271,3 +1271,325 @@ button,.btn{touch-action:manipulation}
     justify-content: stretch;
   }
 }
+
+/* ========================================================================= */
+/* DHAKA BOARD EXAMINATION & RESULT ENHANCEMENTS (JSC & SSC PATTERNS)       */
+/* ========================================================================= */
+
+.board-pattern-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+  border: 1.5px solid #a7f3d0;
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pattern-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0b8050;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 30px;
+}
+
+.pattern-desc {
+  font-size: 13px;
+  color: #334155;
+  margin: 0;
+}
+
+.dept-chip-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dept-chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+
+.dept-chip:hover {
+  background: #f1f5f9;
+}
+
+.dept-chip.active {
+  background: #0b8050;
+  color: #fff;
+  border-color: #0b8050;
+  box-shadow: 0 2px 4px rgba(11, 128, 80, 0.25);
+}
+
+.sub-tag-compulsory { background: #f1f5f9; color: #334155; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.sub-tag-sci { background: #e0f2fe; color: #0284c7; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.sub-tag-hum { background: #fef3c7; color: #d97706; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.sub-tag-bus { background: #ede9fe; color: #7c3aed; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.sub-tag-opt { background: #fee2e2; color: #dc2626; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+
+.grading-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.grading-policy-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.grading-policy-card h4 {
+  margin: 0 0 10px 0;
+  color: #0f172a;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.policy-list {
+  padding-left: 20px;
+  margin: 0;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.tabulation-matrix-container {
+  overflow-x: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.tabulation-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: center;
+}
+
+.tabulation-table th, .tabulation-table td {
+  border: 1px solid #e2e8f0;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.tabulation-table th {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.tab-sub-head {
+  background: #e2e8f0;
+  font-size: 11.5px;
+}
+
+.tab-sub-col {
+  font-size: 11px;
+  width: 32px;
+  padding: 4px 2px !important;
+}
+
+.tab-fail-cell {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  font-weight: 700;
+}
+
+.tab-pass-cell {
+  color: #0b8050;
+  font-weight: 600;
+}
+
+.official-marksheet-wrapper {
+  background: #ffffff;
+  border: 2px solid #0b8050;
+  border-radius: 14px;
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  color: #0f172a;
+}
+
+.marksheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid #0b8050;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.marksheet-school-logo-zone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.school-monogram {
+  width: 64px;
+  height: 64px;
+  background: #0b8050;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 4px 10px rgba(11, 128, 80, 0.3);
+}
+
+.school-title-text h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #0b8050;
+  font-weight: 800;
+}
+
+.school-title-text p {
+  margin: 2px 0 0 0;
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.marksheet-exam-title-badge {
+  text-align: center;
+  margin: 14px 0 18px 0;
+}
+
+.marksheet-exam-title-badge span {
+  display: inline-block;
+  background: #1e293b;
+  color: #ffffff;
+  padding: 6px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.marksheet-top-info-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.marksheet-student-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.marksheet-scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  text-align: center;
+}
+
+.marksheet-scale-table th, .marksheet-scale-table td {
+  border: 1px solid #cbd5e1;
+  padding: 2px 4px;
+}
+
+.marksheet-scale-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+
+.marksheet-subjects-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.marksheet-subjects-table th, .marksheet-subjects-table td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.marksheet-subjects-table th {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.marksheet-subjects-table td.text-left {
+  text-align: left;
+}
+
+.marksheet-summary-box {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.summary-unit-title {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.summary-unit-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.summary-unit-value.passed { color: #0b8050; }
+.summary-unit-value.failed { color: #dc2626; }
+
+.marksheet-signature-zone {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 48px;
+  padding-top: 14px;
+  font-size: 13px;
+  color: #475569;
+  text-align: center;
+}
+
+.signature-block {
+  border-top: 1px dashed #64748b;
+  padding-top: 6px;
+  min-width: 160px;
+}
