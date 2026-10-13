@@ -133,6 +133,143 @@ export function getTeacherAllEducation(t) {
   return getFallbackEducationForTeacher(t);
 }
 
+// Helper to check if a specific education item matches an exam name
+export function isEducationItemMatchingExam(e, examName) {
+  if (!e || !examName) return false;
+  const targetNorm = normalizeExam(examName);
+  const eNorm = normalizeExam(e.exam || e.name || e.title || '');
+  const eSub = normalizeExam(e.subject || '');
+  if (eNorm === targetNorm) return true;
+  if ((e.exam || '').trim() === examName.trim()) return true;
+
+  if (targetNorm.includes('এসএসসি')) {
+    if (eNorm.includes('এসএসসি') || eNorm.includes('দাখিল') || eNorm.includes('ssc')) return true;
+  }
+  if (targetNorm.includes('এইচএসসি')) {
+    if (eNorm.includes('এইচএসসি') || eNorm.includes('আলিম') || eNorm.includes('hsc')) return true;
+  }
+  if (targetNorm.includes('কামিল')) {
+    if (eNorm.includes('কামিল') || eNorm.includes('kamil')) return true;
+  }
+  if (targetNorm.includes('স্নাতক')) {
+    if (targetNorm.includes('৩বছর')) {
+      if (eNorm.includes('৩বছর') || (eNorm.includes('সম্মান') && (eNorm.includes('৩') || (e.year_span && String(e.year_span).includes('৩'))))) return true;
+      return false;
+    }
+    if (targetNorm.includes('৪বছর')) {
+      if (eNorm.includes('৪বছর') || (eNorm.includes('সম্মান') && !eNorm.includes('৩বছর') && !(e.year_span && String(e.year_span).includes('৩')))) return true;
+      return false;
+    }
+    if (targetNorm.includes('পাস')) {
+      if (!eNorm.includes('সম্মান') && (eNorm.includes('পাস') || eNorm.includes('ফাজিল') || eSub.includes('পাস') || eNorm === 'স্নাতক' || eNorm === 'স্নাতক/সমমান' || eNorm === 'স্নাতকসমমান')) {
+        return true;
+      }
+      return false;
+    }
+  }
+  if (targetNorm.includes('স্নাতকোত্তর')) {
+    if (targetNorm.includes('অনার্সবিহীন')) {
+      if (eNorm.includes('অনার্সবিহীন')) return true;
+      return false;
+    }
+    if (targetNorm.includes('অনার্সসহ')) {
+      if (eNorm.includes('অনার্সসহ') || (!eNorm.includes('অনার্সবিহীন') && (eNorm.includes('স্নাতকোত্তর') || eNorm.includes('মাস্টার্স') || eNorm.includes('masters')))) return true;
+      return false;
+    }
+  }
+  return false;
+}
+
+// Function to get ONLY the educational qualifications matching the queried exam
+export function getTeacherFilteredEducation(t, examName) {
+  if (!t) return [];
+  const allEdu = getTeacherAllEducation(t);
+  if (!examName || examName === '__all__') {
+    return allEdu;
+  }
+  const matched = allEdu.filter(e => isEducationItemMatchingExam(e, examName));
+  if (matched.length > 0) {
+    return matched;
+  }
+  // Fallback if teacher was matched by teacherHasEducation
+  if (teacherHasEducation(t, examName)) {
+    return [{
+      exam: examName,
+      subject: t.subject || '',
+      institution: '',
+      year: '',
+      result: '',
+      is_saved: true
+    }];
+  }
+  return [];
+}
+
+// Function to get ONLY the professional degrees matching the queried degree
+export function getTeacherFilteredProfDegrees(t, degreeName) {
+  if (!t) return [];
+  const profList = t.extended_profile?.professional_qualifications || (Array.isArray(t.professional_qualifications) ? t.professional_qualifications : []);
+  if (!degreeName || degreeName === '__all__') {
+    return profList;
+  }
+  const targetNorm = normalizeExam(degreeName);
+  const matched = profList.filter(p => {
+    const pExam = (p.exam || '').trim();
+    return pExam === degreeName.trim() || normalizeExam(pExam) === targetNorm;
+  });
+  if (matched.length > 0) return matched;
+  if (teacherHasProfDegree(t, degreeName)) {
+    return [{ exam: degreeName, institution: '', year: '', result: '', is_saved: true }];
+  }
+  return [];
+}
+
+// Function to get ONLY ICT trainings matching the queried subject
+export function getTeacherFilteredIctTrainings(t, subjectName) {
+  if (!t) return [];
+  const allIct = getTeacherIctTrainingDetails(t);
+  if (!subjectName || subjectName === '__all__') return allIct;
+  const targetNorm = normalizeExam(subjectName);
+  const matched = allIct.filter(tr => {
+    const subNorm = normalizeExam(tr.subject || '');
+    const titleNorm = normalizeExam(tr.title || tr.name || '');
+    if (subNorm === targetNorm || titleNorm === targetNorm) return true;
+    if ((tr.subject || '').trim() === subjectName.trim()) return true;
+    const text = [(tr.subject || ''), (tr.title || ''), (tr.name || '')].join(' ').toLowerCase();
+    if (targetNorm.includes('ফলোআপ')) return text.includes('ফলোআপ') || text.includes('follow');
+    if (targetNorm.includes('ডিজিটালকনটেন্ট')) return (text.includes('ডিজিটাল কনটেন্ট') || text.includes('কনটেন্ট')) && !text.includes('ফলোআপ');
+    if (targetNorm.includes('হার্ডওয়্যার')) return text.includes('হার্ডওয়্যার');
+    if (targetNorm.includes('প্রোগ্রামিং')) return text.includes('প্রোগ্রামিং');
+    if (targetNorm.includes('বেসিক')) return text.includes('বেসিক') || text.includes('btt');
+    if (targetNorm.includes('শেখরাসেল')) return text.includes('শেখ রাসেল') || text.includes('ল্যাব');
+    return false;
+  });
+  if (matched.length > 0) return matched;
+  if (teacherHasIctSubject(t, subjectName)) {
+    return [{ title: 'আইসিটি প্রশিক্ষণ', subject: subjectName, institution: 'NAEM/TTC', duration: '১৪ দিন' }];
+  }
+  return [];
+}
+
+// Function to get ONLY in-service trainings matching the queried title
+export function getTeacherFilteredTrainings(t, titleName) {
+  if (!t) return [];
+  const allTrainings = getTeacherAllTrainings(t);
+  if (!titleName || titleName === '__all__') return allTrainings;
+  const targetNorm = normalizeExam(titleName);
+  const matched = allTrainings.filter(tr => {
+    const titleNorm = normalizeExam(tr.title || tr.name || '');
+    if (titleNorm === targetNorm) return true;
+    if ((tr.title || tr.name || '').includes(titleName) || titleName.includes(tr.title || tr.name || '')) return true;
+    return false;
+  });
+  if (matched.length > 0) return matched;
+  if (teacherHasInServiceTrainingTitle(t, titleName)) {
+    return [{ title: titleName, subject: t.subject || '', institution: 'টিটিসি / মাধ্যমিক শিক্ষা অফিস', duration: 'সম্পন্ন' }];
+  }
+  return [];
+}
+
 // Helper to check if teacher has specific education
 export function teacherHasEducation(t, examName) {
   if (!t || !examName) return false;
@@ -922,16 +1059,16 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
           ${filteredTeacherList.map((t, idx) => {
             let detailText = '—';
             if (mode === 'education') {
-              const edu = getTeacherAllEducation(t);
+              const edu = getTeacherFilteredEducation(t, selectedCategory);
               detailText = edu.map(e => `${e.exam || ''}${e.subject ? ` (${e.subject})` : ''} [${e.institution || e.board || ''} - ${e.year || ''}${e.result ? `, ${e.result}` : ''}]`).filter(Boolean).join('; ') || 'তথ্য এন্ট্রি নেই';
             } else if (mode === 'professional') {
-              const prof = t.extended_profile?.professional_qualifications || [];
+              const prof = getTeacherFilteredProfDegrees(t, selectedCategory);
               detailText = prof.map(p => `${p.exam || ''} (${p.institution || ''} - ${p.year || ''})`).filter(Boolean).join(', ') || 'পেশাগত ডিগ্রী এন্ট্রি নেই';
             } else if (mode === 'ict') {
-              const tr = getTeacherIctTrainingDetails(t);
+              const tr = getTeacherFilteredIctTrainings(t, selectedCategory);
               detailText = tr.map(x => `${x.title || 'আইসিটি প্রশিক্ষণ'} (${x.institution || x.place || 'NAEM/TTC'} - ${x.duration || '১৪ দিন'})`).join('; ') || 'প্রশিক্ষণপ্রাপ্ত নয়';
             } else if (mode === 'training') {
-              const trList = getTeacherAllTrainings(t);
+              const trList = getTeacherFilteredTrainings(t, selectedCategory);
               detailText = trList.map((x, i) => `${i+1}. ${x.title || x.name || 'প্রশিক্ষণ'} [${x.subject ? x.subject+', ' : ''}${x.institution || x.place || ''} - ${x.duration || 'সম্পন্ন'}]`).join('; ') || 'কোনো কর্মকালীন প্রশিক্ষণ এন্ট্রি নেই';
             }
             return `
@@ -999,16 +1136,16 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
     const rows = filteredTeacherList.map((t, idx) => {
       let detailText = '';
       if (mode === 'education') {
-        const edu = getTeacherAllEducation(t);
+        const edu = getTeacherFilteredEducation(t, selectedCategory);
         detailText = edu.map(e => `${e.exam || ''}${e.subject ? ` (${e.subject})` : ''} (${e.institution || ''} - ${e.year || ''})`).join('; ');
       } else if (mode === 'professional') {
-        const prof = t.extended_profile?.professional_qualifications || [];
+        const prof = getTeacherFilteredProfDegrees(t, selectedCategory);
         detailText = prof.map(p => `${p.exam || ''} (${p.institution || ''} - ${p.year || ''})`).join('; ');
       } else if (mode === 'ict') {
-        const tr = getTeacherIctTrainingDetails(t);
+        const tr = getTeacherFilteredIctTrainings(t, selectedCategory);
         detailText = tr.map(x => `${x.title || 'আইসিটি প্রশিক্ষণ'} (${x.duration || ''})`).join('; ');
       } else if (mode === 'training') {
-        const trList = getTeacherAllTrainings(t);
+        const trList = getTeacherFilteredTrainings(t, selectedCategory);
         detailText = trList.map((x, i) => `${i+1}. ${x.title || x.name || 'প্রশিক্ষণ'} [${x.subject ? x.subject+', ' : ''}${x.institution || ''} - ${x.duration || ''}]`).join('; ');
       }
       return [
@@ -1748,8 +1885,8 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
                         <td style={{padding: '8px 10px'}}>
                           {mode === 'education' && (
                             <div>
-                              {getTeacherAllEducation(t).length > 0 ? (
-                                getTeacherAllEducation(t).map((e, ei) => (
+                              {getTeacherFilteredEducation(t, selectedCategory).length > 0 ? (
+                                getTeacherFilteredEducation(t, selectedCategory).map((e, ei) => (
                                   <div key={ei} style={{fontSize: '11.5px', marginBottom: '2px', color: '#1e293b'}}>
                                     • <strong style={{color: '#047857'}}>{e.exam || 'ডিগ্রী'}</strong> {e.subject ? <span style={{color: '#0284c7', fontWeight: 600}}>({e.subject})</span> : ''} {e.institution ? `— ${e.institution}` : ''} {e.year ? `[${e.year}]` : ''} {e.result ? `(${e.result})` : ''}
                                   </div>
@@ -1762,14 +1899,14 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
 
                           {mode === 'professional' && (
                             <div>
-                              {(t.extended_profile?.professional_qualifications || []).length > 0 ? (
-                                (t.extended_profile?.professional_qualifications || []).map((p, pi) => (
+                              {getTeacherFilteredProfDegrees(t, selectedCategory).length > 0 ? (
+                                getTeacherFilteredProfDegrees(t, selectedCategory).map((p, pi) => (
                                   <div key={pi} style={{fontSize: '11.5px', marginBottom: '2px', color: '#1e293b'}}>
                                     • <strong style={{color: '#0284c7'}}>{p.exam || 'পেশাগত ডিগ্রী'}</strong> {p.institution ? `— ${p.institution}` : ''} {p.year ? `(${p.year})` : ''} {p.result ? `[${p.result}]` : ''}
                                   </div>
                                 ))
-                              ) : teacherHasProfDegree(t, 'বিএড') ? (
-                                <div style={{fontSize: '11.5px', color: '#0284c7', fontWeight: 600}}>• বিএড (B.Ed) ডিগ্রিধারী</div>
+                              ) : teacherHasProfDegree(t, selectedCategory || 'বিএড') ? (
+                                <div style={{fontSize: '11.5px', color: '#0284c7', fontWeight: 600}}>• {selectedCategory || 'বিএড'} ডিগ্রিধারী</div>
                               ) : (
                                 <span style={{fontSize: '11.5px', color: '#94a3b8'}}>পেশাগত ডিগ্রী এন্ট্রি নেই</span>
                               )}
@@ -1778,8 +1915,8 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
 
                           {mode === 'ict' && (
                             <div>
-                              {getTeacherIctTrainingDetails(t).length > 0 ? (
-                                getTeacherIctTrainingDetails(t).map((tr, tri) => (
+                              {getTeacherFilteredIctTrainings(t, selectedCategory).length > 0 ? (
+                                getTeacherFilteredIctTrainings(t, selectedCategory).map((tr, tri) => (
                                   <div key={tri} style={{fontSize: '11.5px', marginBottom: '2px', color: '#1e293b'}}>
                                     • <strong style={{color: '#7c3aed'}}>{tr.title || 'আইসিটি প্রশিক্ষণ'}</strong>
                                     {tr.subject ? <span style={{color: '#0284c7', fontWeight: 600}}> — বিষয়: {tr.subject}</span> : ''}
@@ -1794,45 +1931,38 @@ export function TeacherQueryModal({ isOpen, onClose, teachers = [], initialMode 
 
                           {mode === 'training' && (
                             <div>
-                              {trainings.length > 0 ? (
+                              {getTeacherFilteredTrainings(t, selectedCategory).length > 0 ? (
                                 <>
                                   <div style={{marginBottom: '4px', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center'}}>
                                     <span style={{background: '#fef3c7', color: '#92400e', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', border: '1px solid #fde68a'}}>
-                                      {toBengaliDigits(trainings.length)}টি কর্মকালীন প্রশিক্ষণ
+                                      {toBengaliDigits(getTeacherFilteredTrainings(t, selectedCategory).length)}টি কর্মকালীন প্রশিক্ষণ
                                     </span>
                                     {selectedCategory && selectedCategory !== '__all__' && (
                                       <span style={{background: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '10px', border: '1px solid #bbf7d0'}}>
-                                        ✓ কুয়েরিকৃত প্রশিক্ষণ প্রাপ্ত
+                                        ✓ কুয়েরিকৃত প্রশিক্ষণ
                                       </span>
                                     )}
                                   </div>
-                                  {trainings.map((tr, tri) => {
-                                    const isMatchedTitle = selectedCategory && selectedCategory !== '__all__' && (
-                                      normalizeExam(tr.title || tr.name || '') === normalizeExam(selectedCategory) ||
-                                      (tr.title || '').includes(selectedCategory) ||
-                                      selectedCategory.includes(tr.title || '')
-                                    );
-                                    return (
-                                      <div key={tri} style={{
-                                        fontSize: '11.5px', 
-                                        marginBottom: '3px', 
-                                        color: '#1e293b', 
-                                        lineHeight: '1.4',
-                                        padding: isMatchedTitle ? '2px 6px' : '0',
-                                        background: isMatchedTitle ? '#fef3c7' : 'transparent',
-                                        borderRadius: isMatchedTitle ? '4px' : '0',
-                                        border: isMatchedTitle ? '1px solid #fde68a' : 'none'
-                                      }}>
-                                        <strong style={{color: isMatchedTitle ? '#b45309' : '#0f172a'}}>
-                                          {isMatchedTitle ? '⭐ ' : ''}{tri + 1}. {tr.title || tr.name || 'কর্মকালীন প্রশিক্ষণ'}
-                                        </strong>
-                                        {tr.subject ? <span style={{color: '#0369a1', fontWeight: 600}}> ({tr.subject})</span> : ''}
-                                        {tr.institution || tr.place ? <span style={{color: '#475569'}}> — {tr.institution || tr.place}</span> : ''}
-                                        {tr.duration ? <span style={{color: '#15803d', fontWeight: 700}}> [{tr.duration}]</span> : ''}
-                                        {tr.start_date ? <span style={{color: '#64748b', fontSize: '10.5px'}}> ({tr.start_date})</span> : ''}
-                                      </div>
-                                    );
-                                  })}
+                                  {getTeacherFilteredTrainings(t, selectedCategory).map((tr, tri) => (
+                                    <div key={tri} style={{
+                                      fontSize: '11.5px', 
+                                      marginBottom: '3px', 
+                                      color: '#1e293b', 
+                                      lineHeight: '1.4',
+                                      padding: '2px 6px',
+                                      background: '#fef3c7',
+                                      borderRadius: '4px',
+                                      border: '1px solid #fde68a'
+                                    }}>
+                                      <strong style={{color: '#b45309'}}>
+                                        ⭐ {tri + 1}. {tr.title || tr.name || 'কর্মকালীন প্রশিক্ষণ'}
+                                      </strong>
+                                      {tr.subject ? <span style={{color: '#0369a1', fontWeight: 600}}> ({tr.subject})</span> : ''}
+                                      {tr.institution || tr.place ? <span style={{color: '#475569'}}> — {tr.institution || tr.place}</span> : ''}
+                                      {tr.duration ? <span style={{color: '#15803d', fontWeight: 700}}> [{tr.duration}]</span> : ''}
+                                      {tr.start_date ? <span style={{color: '#64748b', fontSize: '10.5px'}}> ({tr.start_date})</span> : ''}
+                                    </div>
+                                  ))}
                                 </>
                               ) : (
                                 <span style={{fontSize: '11.5px', color: '#94a3b8'}}>কোনো কর্মকালীন প্রশিক্ষণ এন্ট্রি নেই</span>
