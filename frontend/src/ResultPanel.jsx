@@ -283,7 +283,34 @@ export function ResultPanel({ sub }) {
     }
   }, [tab, selectedExam, className, selectedSubjectId, department]);
 
-  const handleEditRosterMark = (idx, field, val) => {
+  // Normalize Bangla or English digits and decimal points for direct fast typing
+  const normalizeMarkDigits = (input) => {
+    if (input === null || input === undefined) return '';
+    let str = String(input);
+    // Convert Bengali numerals ০-৯ to ASCII 0-9
+    str = str.replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+    // Keep only digits and decimal point
+    str = str.replace(/[^0-9.]/g, '');
+    // Allow at most one decimal point
+    const parts = str.split('.');
+    if (parts.length > 2) {
+      str = parts[0] + '.' + parts.slice(1).join('');
+    }
+    return str;
+  };
+
+  const handleEditRosterMark = (idx, field, rawVal, maxVal) => {
+    let val = rawVal;
+    if (['written', 'mcq', 'practical'].includes(field)) {
+      val = normalizeMarkDigits(rawVal);
+      if (val !== '' && maxVal !== undefined && maxVal !== null && maxVal > 0) {
+        const num = parseFloat(val);
+        if (!isNaN(num) && num > maxVal) {
+          // If exceeded maxVal, clamp to maxVal so marks cannot exceed maximum
+          val = String(maxVal);
+        }
+      }
+    }
     setMarksRoster(prev => {
       const next = [...prev];
       const cur = { ...next[idx] };
@@ -291,6 +318,25 @@ export function ResultPanel({ sub }) {
       next[idx] = cur;
       return next;
     });
+  };
+
+  // Keyboard navigation for fast direct marks entry (Enter/Down to next student row, Up to prev row)
+  const handleMarkKeyDown = (e, rowIdx, field) => {
+    if (e.key === 'Enter' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const target = document.getElementById(`roster-mark-${field}-${rowIdx + 1}`);
+      if (target) {
+        target.focus();
+        target.select();
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const target = document.getElementById(`roster-mark-${field}-${rowIdx - 1}`);
+      if (target) {
+        target.focus();
+        target.select();
+      }
+    }
   };
 
   // Save Marks Roster
@@ -1285,6 +1331,10 @@ export function ResultPanel({ sub }) {
             </div>
           )}
 
+          <div className="marks-quick-tip-banner">
+            <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> কোনো তির চিহ্ন বা স্পিনারের প্রয়োজন নেই—সরাসরি কীবোর্ড দিয়ে নম্বর লিখুন। <b>Enter</b> বা <b>↓ (নিচের তির)</b> চাপলে স্বয়ংক্রিয়ভাবে পরবর্তী শিক্ষার্থীর ঘরে চলে যাবে। (বাংলা ও ইংরেজি উভয় ডিজিট সমর্থিত)</span>
+          </div>
+
           <div className="table-responsive-wrapper">
             <table className="modern-exam-table marks-table">
               <thead>
@@ -1313,41 +1363,53 @@ export function ResultPanel({ sub }) {
                       <td><span className="sub-tag-compulsory">{r.department}</span></td>
                       <td>
                         <input
-                          type="number"
+                          id={`roster-mark-written-${i}`}
+                          type="text"
+                          inputMode="decimal"
                           className="mark-input-box"
-                          min="0"
-                          max={currentSubjectObj?.written_max || 100}
-                          step="0.5"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck="false"
                           disabled={r.absent || (currentSubjectObj?.written_max === 0)}
-                          placeholder={currentSubjectObj?.written_max ? `max ${currentSubjectObj.written_max}` : '—'}
+                          placeholder={currentSubjectObj?.written_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.written_max)}` : '—'}
                           value={r.written}
-                          onChange={(e) => handleEditRosterMark(i, 'written', e.target.value)}
+                          onChange={(e) => handleEditRosterMark(i, 'written', e.target.value, currentSubjectObj?.written_max)}
+                          onFocus={(e) => e.target.select()}
+                          onKeyDown={(e) => handleMarkKeyDown(e, i, 'written')}
                         />
                       </td>
                       <td>
                         <input
-                          type="number"
+                          id={`roster-mark-mcq-${i}`}
+                          type="text"
+                          inputMode="decimal"
                           className="mark-input-box"
-                          min="0"
-                          max={currentSubjectObj?.mcq_max || 100}
-                          step="0.5"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck="false"
                           disabled={r.absent || (currentSubjectObj?.mcq_max === 0)}
-                          placeholder={currentSubjectObj?.mcq_max ? `max ${currentSubjectObj.mcq_max}` : '—'}
+                          placeholder={currentSubjectObj?.mcq_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.mcq_max)}` : '—'}
                           value={r.mcq}
-                          onChange={(e) => handleEditRosterMark(i, 'mcq', e.target.value)}
+                          onChange={(e) => handleEditRosterMark(i, 'mcq', e.target.value, currentSubjectObj?.mcq_max)}
+                          onFocus={(e) => e.target.select()}
+                          onKeyDown={(e) => handleMarkKeyDown(e, i, 'mcq')}
                         />
                       </td>
                       <td>
                         <input
-                          type="number"
+                          id={`roster-mark-practical-${i}`}
+                          type="text"
+                          inputMode="decimal"
                           className="mark-input-box"
-                          min="0"
-                          max={currentSubjectObj?.practical_max || 100}
-                          step="0.5"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck="false"
                           disabled={r.absent || (currentSubjectObj?.practical_max === 0)}
-                          placeholder={currentSubjectObj?.practical_max ? `max ${currentSubjectObj.practical_max}` : '—'}
+                          placeholder={currentSubjectObj?.practical_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.practical_max)}` : '—'}
                           value={r.practical}
-                          onChange={(e) => handleEditRosterMark(i, 'practical', e.target.value)}
+                          onChange={(e) => handleEditRosterMark(i, 'practical', e.target.value, currentSubjectObj?.practical_max)}
+                          onFocus={(e) => e.target.select()}
+                          onKeyDown={(e) => handleMarkKeyDown(e, i, 'practical')}
                         />
                       </td>
                       <td>
