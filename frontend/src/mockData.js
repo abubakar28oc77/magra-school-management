@@ -186,7 +186,8 @@ export function getLeadershipData(teachersListInput) {
 
 // Comprehensive Standalone Mock Data & Offline Observation Engine for Magra School Management ERP V118
 export const MOCK_SCHOOL = {
-  nameBn: 'মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়',
+  name: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়',
+  nameBn: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়',
   nameEn: 'Magra Pals Union High School',
   eiin: '114290',
   mpo: '4206071302',

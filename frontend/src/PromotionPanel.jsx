@@ -983,8 +983,8 @@ export function PromotionPanel({
 
           {/* Printable Official School Header (Only visible on print) */}
           <div className="print-official-header print-only">
-            <h2>{MOCK_SCHOOL.name}</h2>
-            <h4>EIIN: {MOCK_SCHOOL.eiin} • ডাকঘর: মগড়া, জেলা: টাঙ্গাইল</h4>
+            <h2>{MOCK_SCHOOL.nameBn || MOCK_SCHOOL.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'}</h2>
+            <h4>EIIN: {MOCK_SCHOOL.eiin} • মগড়া, কালিহাতি, টাঙ্গাইল</h4>
             <h3>বার্ষিক পরীক্ষা {toBnDigits(selectedYear)} শেষে শ্রেণি প্রমোশন ও মেধা তালিকা শিট</h3>
             <p>
               বর্তমান শ্রেণি: <b>{toBnDigits(currentClass)}</b> ➔ পরবর্তী উত্তীর্ণ শ্রেণি: <b>{toBnDigits(targetClass)} ({toBnDigits(targetYear)} শিক্ষাবর্ষ)</b>
@@ -1303,8 +1303,8 @@ export function PromotionPanel({
 
           {/* Print Official School Header for SSC */}
           <div className="print-official-header print-only">
-            <h2>{MOCK_SCHOOL.name}</h2>
-            <h4>EIIN: {MOCK_SCHOOL.eiin} • ডাকঘর: মগড়া, জেলা: টাঙ্গাইল</h4>
+            <h2>{MOCK_SCHOOL.nameBn || MOCK_SCHOOL.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'}</h2>
+            <h4>EIIN: {MOCK_SCHOOL.eiin} • মগড়া, কালিহাতি, টাঙ্গাইল</h4>
             <h3>এসএসসি পরীক্ষা {toBnDigits(selectedYear)} - নির্বাচনি পরীক্ষা শেষে ফরমপূরণ অনুমোদন তালিকা</h3>
             <p>
               ১০ম শ্রেণি • বোর্ড: ঢাকা শিক্ষা বোর্ড • শিক্ষাবর্ষ: {toBnDigits(selectedYear)}
