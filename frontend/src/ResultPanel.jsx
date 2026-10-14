@@ -1091,6 +1091,10 @@ export function ResultPanel({ sub }) {
     transcriptSubjects.some(s => String(s.code) === '107') && 
     transcriptSubjects.some(s => String(s.code) === '108');
 
+  const sub101 = transcriptSubjects.find(s => String(s.code) === '101');
+  const sub102 = transcriptSubjects.find(s => String(s.code) === '102');
+  const banglaCombinedTotal = ((sub101 && !sub101.absent) ? Number(sub101.total || 0) : 0) + ((sub102 && !sub102.absent) ? Number(sub102.total || 0) : 0);
+
   const sub107 = transcriptSubjects.find(s => String(s.code) === '107');
   const sub108 = transcriptSubjects.find(s => String(s.code) === '108');
   const englishCombinedTotal = ((sub107 && !sub107.absent) ? Number(sub107.total || 0) : 0) + ((sub108 && !sub108.absent) ? Number(sub108.total || 0) : 0);
@@ -2706,7 +2710,7 @@ export function ResultPanel({ sub }) {
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
                           <td rowSpan={hasBanglaPair ? 2 : 1}>—</td>
-                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          <td rowSpan={hasBanglaPair ? 2 : 1}><b>{hasBanglaPair ? banglaCombinedTotal : (sub.absent ? 0 : sub.total)}</b></td>
                           <td rowSpan={hasBanglaPair ? 2 : 1} className="transcript-grade-cell">
                             <div className="grade-letter">{sub.letter_grade}</div>
                             <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
@@ -2724,11 +2728,11 @@ export function ResultPanel({ sub }) {
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
-                          {/* Practical spanned from row 101 */}
-                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          {/* Practical, Total, and Grade spanned from row 101 when hasBanglaPair */}
                           {!hasBanglaPair && (
                             <>
                               <td>—</td>
+                              <td><b>{sub.absent ? 0 : sub.total}</b></td>
                               <td className="transcript-grade-cell">
                                 <div className="grade-letter">{sub.letter_grade}</div>
                                 <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
