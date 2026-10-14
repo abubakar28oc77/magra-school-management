@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { PromotionPanel } from './PromotionPanel.jsx';
-import { requestApi } from './apiClient';
+import { requestApi, sortStudentsList, getStudentGroupPriority } from './apiClient';
 import {
   DHAKA_BOARD_GRADING_SCALE,
   calculateSubjectGrade,
@@ -12,6 +12,55 @@ import {
 } from './boardExamEngine';
 
 const api = requestApi;
+
+export function matchesStudentGroup(student, deptFilter) {
+  if (!student) return false;
+  if (!deptFilter || deptFilter === 'all' || deptFilter === 'সকল বিভাগ') return true;
+  const prio = getStudentGroupPriority(student);
+  const filterStr = String(deptFilter).toLowerCase();
+  if (filterStr.includes('বিজ্ঞান') || filterStr.includes('science') || filterStr.includes('sci')) return prio === 1;
+  if (filterStr.includes('মানবিক') || filterStr.includes('humanities') || filterStr.includes('hum') || filterStr.includes('arts')) return prio === 2;
+  if (filterStr.includes('ব্যবসা') || filterStr.includes('বাণিজ্য') || filterStr.includes('business') || filterStr.includes('commerce') || filterStr.includes('bs')) return prio === 3;
+  return prio === 4;
+}
+
+export function isSubjectApplicableToStudent(subject, student) {
+  if (!subject || !student) return false;
+  const cls = String(student.class_name || '');
+  const isSSC = ['9', '10', '৯', '১০'].includes(cls);
+
+  // 1. Religion check (for all classes 6-10)
+  const subCode = String(subject.code || '');
+  const subName = String(subject.name_bn || '');
+  const isReligionSub = ['111', '112', '113', '114'].includes(subCode) || subName.includes('ধর্ম');
+  if (isReligionSub) {
+    const stRel = (student.religion || 'ইসলাম').trim();
+    if (stRel.includes('হিন্দু') || stRel.toLowerCase().includes('hindu')) {
+      return subCode === '112' || subName.includes('হিন্দু');
+    }
+    if (stRel.includes('বৌদ্ধ') || stRel.toLowerCase().includes('buddhist')) {
+      return subCode === '113' || subName.includes('বৌদ্ধ');
+    }
+    if (stRel.includes('খ্রিষ্টান') || stRel.toLowerCase().includes('christian')) {
+      return subCode === '114' || subName.includes('খ্রিষ্টান');
+    }
+    // Default Islam
+    return subCode === '111' || subName.includes('ইসলাম');
+  }
+
+  // 2. Classes 6-8 (JSC pattern: all other subjects are compulsory for everyone)
+  if (!isSSC) return true;
+
+  // 3. Classes 9-10 (SSC pattern)
+  const subDept = (subject.department || 'আবশ্যিক').trim();
+  if (subDept === 'আবশ্যিক' || subDept === 'সাধারণ' || subDept === 'all' || !subDept) {
+    return true;
+  }
+
+  // If subject has a specific department, student MUST belong to that department
+  return matchesStudentGroup(student, subDept);
+}
+
 const classes = ['6', '7', '8', '9', '10'];
 
 const STANDARD_EXAM_PRESETS = [
@@ -227,7 +276,7 @@ export function ResultPanel({ sub }) {
       if (s.class_name && String(s.class_name) !== String(className)) return false;
       if (!isSSC) return true;
       if (department === 'all' || department === 'সকল বিভাগ') return true;
-      return s.department === 'আবশ্যিক' || s.department === department;
+      return s.department === 'আবশ্যিক' || matchesStudentGroup({ department: s.department }, department);
     });
   }, [subjects, className, department, isSSC]);
 
@@ -260,17 +309,23 @@ export function ResultPanel({ sub }) {
       const allSt = await api('/students?class_name=' + className);
       const studentList = Array.isArray(allSt) ? allSt : [];
 
-      // Filter by department if class 9/10 and group selected
+      // 1. Filter students of the class who take this subject
+      // AND match toolbar department filter if explicitly selected
       const filteredSt = studentList.filter(s => {
-        if (!isSSC) return true;
-        if (department === 'all' || department === 'সকল বিভাগ') return true;
-        const stDept = s.department || s.group_name || 'বিজ্ঞান';
-        return stDept.includes(department);
+        // Must take this subject (respecting department and religion)
+        if (!isSubjectApplicableToStudent(currentSubjectObj, s)) return false;
+
+        // Toolbar department filter
+        if (isSSC && department !== 'all' && department !== 'সকল বিভাগ') {
+          if (!matchesStudentGroup(s, department)) return false;
+        }
+
+        return true;
       });
 
-      // Sort by roll
-      filteredSt.sort((a, b) => (Number(a.roll_no) || 0) - (Number(b.roll_no) || 0));
-      setStudents(filteredSt);
+      // 2. Sort students using official student directory order (sortStudentsList)
+      const sortedSt = sortStudentsList(filteredSt);
+      setStudents(sortedSt);
 
       // Load existing marks for this exam & class
       const existingMarks = await api('/marks?exam_id=' + selectedExam + '&class_name=' + className);
@@ -278,20 +333,25 @@ export function ResultPanel({ sub }) {
       (Array.isArray(existingMarks) ? existingMarks : []).forEach(m => {
         marksMap.set(`${m.student_id}_${m.subject_id}`, m);
         marksMap.set(`${m.student_id}_${m.subject_code}`, m);
+        if (m.student_code) {
+          marksMap.set(`${m.student_code}_${m.subject_id}`, m);
+          marksMap.set(`${m.student_code}_${m.subject_code}`, m);
+        }
       });
 
-      const roster = filteredSt.map(s => {
+      const roster = sortedSt.map(s => {
         const key = `${s.id}_${currentSubjectObj.id}`;
         const altKey = `${s.student_id}_${currentSubjectObj.id}`;
         const codeKey = `${s.id}_${currentSubjectObj.code}`;
-        const m = marksMap.get(key) || marksMap.get(altKey) || marksMap.get(codeKey) || {};
+        const altCodeKey = `${s.student_id}_${currentSubjectObj.code}`;
+        const m = marksMap.get(key) || marksMap.get(altKey) || marksMap.get(codeKey) || marksMap.get(altCodeKey) || {};
 
         return {
           student_id: s.id,
-          student_code: s.student_id || ('STU-' + s.roll_no),
-          roll_no: s.roll_no,
-          name_bn: s.name_bn,
-          department: s.department || s.group_name || 'সাধারণ',
+          student_code: s.student_id || s.id || ('STU-' + s.roll_no),
+          roll_no: s.roll_no !== undefined && s.roll_no !== null ? s.roll_no : '',
+          name_bn: s.name_bn || s.name_en || '',
+          department: s.department || s.group_name || s.group || 'সাধারণ',
           subject_id: currentSubjectObj.id,
           subject_code: currentSubjectObj.code,
           written: m.written !== null && m.written !== undefined ? m.written : '',
@@ -401,7 +461,14 @@ export function ResultPanel({ sub }) {
         body: JSON.stringify({ exam_id: selectedExam, records })
       });
 
-      showNotification(`${currentSubjectObj?.name_bn} বিষয়ের ${toBnDigits(records.length)} জন শিক্ষার্থীর নম্বর সফলভাবে সংরক্ষিত হয়েছে! ✓`, 'success');
+      // Recalculate results immediately so Tabulation Sheet & Marksheets update
+      await api('/results/process', {
+        method: 'POST',
+        body: JSON.stringify({ exam_id: selectedExam, class_name: className })
+      });
+      loadProcessedResults(true);
+
+      showNotification(`${currentSubjectObj?.name_bn || 'নির্বাচিত'} বিষয়ের ${toBnDigits(records.length)} জন শিক্ষার্থীর নম্বর সফলভাবে সংরক্ষিত ও প্রসেস হয়েছে! ✓`, 'success');
     } catch (err) {
       showNotification('নম্বর সংরক্ষণ ব্যর্থ: ' + err.message, 'error');
     }
@@ -502,7 +569,7 @@ export function ResultPanel({ sub }) {
     ];
 
     const rows = marksRoster.map(r => [
-      escapeCsv(r.roll_no || ''),
+      escapeCsv(r.roll_no !== undefined && r.roll_no !== null ? r.roll_no : ''),
       escapeCsv(r.student_code || r.student_id || ''),
       escapeCsv(r.name_bn || ''),
       escapeCsv(r.department || 'সাধারণ'),
@@ -534,7 +601,75 @@ export function ResultPanel({ sub }) {
     showNotification(`শ্রেণি ${toBnDigits(className)} এর "${currentSubjectObj.name_bn}" বিষয়ের মার্কস এন্ট্রি CSV সফলভাবে ডাউনলোড হয়েছে! ✓`, 'success');
   };
 
-  // CSV Upload (Import Marks)
+  // Master Tabulation Sheet CSV Download (Export All Applicable Subjects Matrix)
+  const handleDownloadMasterCsv = () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!subjectsForClass.length) {
+      showNotification('কোনো বিষয় পাওয়া যায়নি।', 'error');
+      return;
+    }
+
+    const escapeCsv = (str) => {
+      const val = str === null || str === undefined ? '' : String(str);
+      if (val.includes(',') || val.includes('"') || val.includes('\n') || val.includes('\r')) {
+        return `"${val.replace(/"/g, '""')}"`;
+      }
+      return val;
+    };
+
+    const headers = [
+      'Roll',
+      'Student_ID',
+      'Student_Name',
+      'Department'
+    ];
+
+    subjectsForClass.forEach(s => {
+      if (s.written_max > 0) headers.push(`[${s.code}] ${s.name_bn} (CQ max ${s.written_max})`);
+      if (s.mcq_max > 0) headers.push(`[${s.code}] ${s.name_bn} (MCQ max ${s.mcq_max})`);
+      if (s.practical_max > 0) headers.push(`[${s.code}] ${s.name_bn} (Prac max ${s.practical_max})`);
+    });
+
+    const studentList = filteredProcessedResults.length ? filteredProcessedResults : students;
+
+    const rows = studentList.map(st => {
+      const row = [
+        escapeCsv(st.roll_no !== undefined ? st.roll_no : ''),
+        escapeCsv(st.student_id || st.student_code || st.id || ''),
+        escapeCsv(st.name_bn || st.name_en || ''),
+        escapeCsv(st.department || 'সাধারণ')
+      ];
+
+      subjectsForClass.forEach(s => {
+        const subResult = (st.subjects || []).find(sub => sub.code === s.code || sub.subject_id === s.id);
+        if (s.written_max > 0) row.push(escapeCsv(subResult?.written !== undefined ? subResult.written : ''));
+        if (s.mcq_max > 0) row.push(escapeCsv(subResult?.mcq !== undefined ? subResult.mcq : ''));
+        if (s.practical_max > 0) row.push(escapeCsv(subResult?.practical !== undefined ? subResult.practical : ''));
+      });
+
+      return row;
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    const safeExam = (selectedExamObj?.name_bn || 'Exam').replace(/[^\w\u0980-\u09FF]/g, '_');
+    link.href = url;
+    link.download = `Master_Tabulation_Class_${className}_${safeExam}_${selectedYear}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showNotification(`শ্রেণি ${toBnDigits(className)} এর মাস্টার ট্যাবুলেশন শিট CSV সফলভাবে ডাউনলোড হয়েছে! ✓`, 'success');
+  };
+
+  // CSV Upload (Import Marks - Smart Multi-Subject & Single-Subject Parser)
   const handleUploadMarksCsv = async (e) => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -542,14 +677,6 @@ export function ResultPanel({ sub }) {
 
     if (!selectedExam) {
       showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
-      return;
-    }
-    if (!currentSubjectObj) {
-      showNotification('অনুগ্রহ করে বিষয় নির্বাচন করুন', 'error');
-      return;
-    }
-    if (!marksRoster.length) {
-      showNotification('শিক্ষার্থী তালিকা লোড করা নেই। আগে "🔄 তালিকা রিফ্রেশ" করুন।', 'error');
       return;
     }
 
@@ -562,17 +689,29 @@ export function ResultPanel({ sub }) {
         return;
       }
 
-      const rawHeaders = matrix[0].map(h => (h || '').trim().toLowerCase().replace(/[\s_-]+/g, ''));
+      // Ensure students list is available
+      let stList = students;
+      if (!Array.isArray(stList) || !stList.length) {
+        try {
+          const fetchedSt = await api('/students?class_name=' + className);
+          if (Array.isArray(fetchedSt) && fetchedSt.length) {
+            stList = fetchedSt;
+            setStudents(stList);
+          }
+        } catch (_) {}
+      }
+
+      const rawHeaders = matrix[0].map(h => (h || '').trim());
+      const cleanHeaders = rawHeaders.map(h => h.toLowerCase().replace(/[\s_\-]+/g, ''));
+
       const findHeaderIdx = (aliases) => {
-        return rawHeaders.findIndex(h => aliases.some(alias => h.includes(alias)));
+        return cleanHeaders.findIndex(h => aliases.some(alias => h.includes(alias)));
       };
 
-      const rollIdx = findHeaderIdx(['roll', 'রোল']);
-      const idIdx = findHeaderIdx(['studentid', 'student_id', 'স্টুডেন্টআইডি', 'আইডি', 'id']);
-      const writtenIdx = findHeaderIdx(['writtencq', 'written', 'cq', 'লিখিত']);
-      const mcqIdx = findHeaderIdx(['mcq', 'এমসিকিউ', 'বহুনির্বাচনি']);
-      const practicalIdx = findHeaderIdx(['practical', 'ব্যবহারিক', 'prac']);
-      const absentIdx = findHeaderIdx(['absent', 'অনুপস্থিত']);
+      const rollIdx = findHeaderIdx(['roll', 'রোল', 'ক্লাসরোল', 'rollno', 'roll_no']);
+      const idIdx = findHeaderIdx(['studentid', 'student_id', 'আইডি', 'স্টুডেন্টআইডি', 'id']);
+      const deptIdx = findHeaderIdx(['department', 'dept', 'বিভাগ', 'শাখা', 'গ্রুপ', 'group']);
+      const absentIdx = findHeaderIdx(['absent', 'অনুপস্থিত', 'abs']);
       const remarksIdx = findHeaderIdx(['remarks', 'মন্তব্য', 'remark']);
 
       if (rollIdx === -1 && idIdx === -1) {
@@ -580,88 +719,245 @@ export function ResultPanel({ sub }) {
         return;
       }
 
-      const wMax = Number(currentSubjectObj.written_max) || 0;
-      const mMax = Number(currentSubjectObj.mcq_max) || 0;
-      const pMax = Number(currentSubjectObj.practical_max) || 0;
+      // Filter subjects for current class
+      const classSubjects = subjects.filter(s => !s.class_name || String(s.class_name) === String(className));
 
-      const importedMap = new Map();
-
-      for (let r = 1; r < matrix.length; r++) {
-        const row = matrix[r];
-        if (!row || !row.length || row.every(c => !c.trim())) continue;
-
-        const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
-        const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim() : '';
-
-        let written = writtenIdx !== -1 && row[writtenIdx] !== undefined ? normalizeMarkDigits(row[writtenIdx]) : '';
-        let mcq = mcqIdx !== -1 && row[mcqIdx] !== undefined ? normalizeMarkDigits(row[mcqIdx]) : '';
-        let practical = practicalIdx !== -1 && row[practicalIdx] !== undefined ? normalizeMarkDigits(row[practicalIdx]) : '';
-        const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
-        const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
-        const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
-
-        // Validation against maximum
-        if (written !== '' && wMax > 0 && parseFloat(written) > wMax) written = String(wMax);
-        if (mcq !== '' && mMax > 0 && parseFloat(mcq) > mMax) mcq = String(mMax);
-        if (practical !== '' && pMax > 0 && parseFloat(practical) > pMax) practical = String(pMax);
-
-        const dataObj = { written, mcq, practical, absent: isAbsent, remarks };
-
-        if (idVal) importedMap.set(`id:${idVal.toLowerCase()}`, dataObj);
-        if (rollVal) importedMap.set(`roll:${rollVal}`, dataObj);
-      }
-
-      let matchedCount = 0;
-      const updatedRoster = marksRoster.map(studentRow => {
-        const stCode = (studentRow.student_code || '').toLowerCase();
-        const stId = (studentRow.student_id || '').toLowerCase();
-        const stRoll = String(studentRow.roll_no || '');
-
-        const imported = importedMap.get(`id:${stCode}`) ||
-                         importedMap.get(`id:${stId}`) ||
-                         importedMap.get(`roll:${stRoll}`);
-
-        if (imported) {
-          matchedCount++;
-          return {
-            ...studentRow,
-            written: imported.written !== '' ? imported.written : studentRow.written,
-            mcq: imported.mcq !== '' ? imported.mcq : studentRow.mcq,
-            practical: imported.practical !== '' ? imported.practical : studentRow.practical,
-            absent: imported.absent,
-            remarks: imported.remarks || studentRow.remarks
-          };
+      // Build student lookup map
+      const studentLookup = new Map();
+      (stList || []).forEach(st => {
+        if (st.id) studentLookup.set(`id:${st.id.toLowerCase()}`, st);
+        if (st.student_id) studentLookup.set(`id:${st.student_id.toLowerCase()}`, st);
+        if (st.student_code) studentLookup.set(`id:${st.student_code.toLowerCase()}`, st);
+        if (st.roll_no !== undefined && st.roll_no !== null) {
+          studentLookup.set(`roll:${st.roll_no}`, st);
+          const dept = (st.department || st.group_name || '').toLowerCase();
+          if (dept) studentLookup.set(`dept_roll:${dept}_${st.roll_no}`, st);
+          const deptPrio = getStudentGroupPriority({ department: st.department || st.group_name });
+          if (deptPrio < 4) studentLookup.set(`prio_roll:${deptPrio}_${st.roll_no}`, st);
         }
-        return studentRow;
       });
 
-      if (matchedCount === 0) {
-        showNotification('CSV ফাইলের রোলের সাথে বর্তমান শ্রেণির কোনো শিক্ষার্থীর রোল মেলেনি। সঠিক শ্রেণির CSV আপলোড করুন।', 'error');
+      // ==================== MODE 1: MULTI-SUBJECT COLUMN MATRIX ====================
+      // Check if header row contains multiple subject columns (e.g. Master Tabulation CSV)
+      const subjectColumnsMap = new Map(); // subject_id -> { sub, writtenIdx, mcqIdx, practicalIdx }
+
+      classSubjects.forEach(sub => {
+        const code = String(sub.code);
+        const subCleanName = (sub.name_bn || '').toLowerCase().replace(/[\s_\-]+/g, '');
+
+        let wCol = -1, mCol = -1, pCol = -1;
+
+        cleanHeaders.forEach((h, colIdx) => {
+          const hasSubRef = h.includes(code) || (subCleanName.length >= 4 && h.includes(subCleanName));
+          if (!hasSubRef) return;
+
+          const isPrac = h.includes('practical') || h.includes('prac') || h.includes('ব্যবহারিক');
+          const isMcq = h.includes('mcq') || h.includes('এমসিকিউ') || h.includes('বহুনির্বাচনি') || h.includes('বহুনির্বাচনী') || h.includes('নৈর্ব্যক্তিক');
+          const isWritten = h.includes('cq') || h.includes('written') || h.includes('লিখিত') || h.includes('সৃজনশীল') || h.includes('রচনামূলক') || h.includes('তত্ত্বীয়');
+
+          if (isPrac) {
+            pCol = colIdx;
+          } else if (isMcq) {
+            mCol = colIdx;
+          } else if (isWritten) {
+            wCol = colIdx;
+          } else {
+            if (sub.mcq_max === 0 && sub.practical_max === 0) {
+              wCol = colIdx;
+            } else if (wCol === -1) {
+              wCol = colIdx;
+            }
+          }
+        });
+
+        if (wCol !== -1 || mCol !== -1 || pCol !== -1) {
+          subjectColumnsMap.set(sub.id, {
+            sub,
+            writtenIdx: wCol,
+            mcqIdx: mCol,
+            practicalIdx: pCol
+          });
+        }
+      });
+
+      let recordsToSave = [];
+      const matchedStudentIds = new Set();
+      let detectedSubjectNames = [];
+
+      if (subjectColumnsMap.size >= 2) {
+        // Multi-Subject CSV Matrix
+        detectedSubjectNames = Array.from(subjectColumnsMap.values()).map(x => x.sub.name_bn);
+
+        for (let r = 1; r < matrix.length; r++) {
+          const row = matrix[r];
+          if (!row || !row.length || row.every(c => !c.trim())) continue;
+
+          const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
+          const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim().toLowerCase() : '';
+          const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
+          const deptPrio = deptVal ? getStudentGroupPriority({ department: deptVal }) : 99;
+
+          const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
+                                 (rollVal && deptVal && studentLookup.get(`dept_roll:${deptVal}_${rollVal}`)) ||
+                                 (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
+                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+
+          if (!matchedStudent) continue;
+          matchedStudentIds.add(matchedStudent.id);
+
+          const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
+          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
+          const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
+
+          subjectColumnsMap.forEach(({ sub, writtenIdx: wIdx, mcqIdx: mIdx, practicalIdx: pIdx }) => {
+            let w = wIdx !== -1 && row[wIdx] !== undefined ? normalizeMarkDigits(row[wIdx]) : '';
+            let m = mIdx !== -1 && row[mIdx] !== undefined ? normalizeMarkDigits(row[mIdx]) : '';
+            let p = pIdx !== -1 && row[pIdx] !== undefined ? normalizeMarkDigits(row[pIdx]) : '';
+
+            // Validation against maximums
+            if (w !== '' && sub.written_max > 0 && parseFloat(w) > sub.written_max) w = String(sub.written_max);
+            if (m !== '' && sub.mcq_max > 0 && parseFloat(m) > sub.mcq_max) m = String(sub.mcq_max);
+            if (p !== '' && sub.practical_max > 0 && parseFloat(p) > sub.practical_max) p = String(sub.practical_max);
+
+            if (w !== '' || m !== '' || p !== '' || isAbsent) {
+              recordsToSave.push({
+                exam_id: selectedExam,
+                class_name: className,
+                student_id: matchedStudent.id,
+                subject_id: sub.id,
+                subject_code: sub.code,
+                written: w,
+                mcq: m,
+                practical: p,
+                absent: isAbsent,
+                remarks
+              });
+            }
+          });
+        }
+      } else {
+        // ==================== MODE 2: ROW-WISE OR SINGLE-SUBJECT CSV ====================
+        const subjectCodeIdx = findHeaderIdx(['subjectcode', 'subject_code', 'বিষয়কোড', 'কোড', 'code', 'subcode']);
+        const subjectNameIdx = findHeaderIdx(['subjectname', 'subject_name', 'বিষয়', 'বিষয়েরনাম', 'subject']);
+
+        // Comprehensive alias detection for Bangladeshi mark sheets
+        const writtenIdx = findHeaderIdx([
+          'writtencq', 'written', 'cq', 'লিখিত', 'সৃজনশীল', 'রচনামূলক', 'বর্ণনামূলক', 'তত্ত্বীয়', 'theory', 'sub1', 'mark', 'marks', 'নম্বর', 'প্রাপ্তনম্বর', 'প্রাপ্ত_নম্বর', 'obttotal', 'total'
+        ]);
+        const mcqIdx = findHeaderIdx([
+          'mcq', 'এমসিকিউ', 'বহুনির্বাচনি', 'বহুনির্বাচনী', 'নৈর্ব্যক্তিক', 'নৈর্ব্যক্তিক_নম্বর', 'objective'
+        ]);
+        const practicalIdx = findHeaderIdx(['practical', 'ব্যবহারিক', 'ব্যবহারিক_নম্বর', 'prac']);
+
+        let targetSubject = currentSubjectObj;
+        const rowSubjectsSet = new Set();
+
+        for (let r = 1; r < matrix.length; r++) {
+          const row = matrix[r];
+          if (!row || !row.length || row.every(c => !c.trim())) continue;
+
+          const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
+          const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim().toLowerCase() : '';
+          const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
+          const deptPrio = deptVal ? getStudentGroupPriority({ department: deptVal }) : 99;
+
+          const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
+                                 (rollVal && deptVal && studentLookup.get(`dept_roll:${deptVal}_${rollVal}`)) ||
+                                 (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
+                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+
+          if (!matchedStudent) continue;
+          matchedStudentIds.add(matchedStudent.id);
+
+          // Detect row subject if subject column exists
+          let rowSub = targetSubject;
+          const rowCode = subjectCodeIdx !== -1 && row[subjectCodeIdx] ? row[subjectCodeIdx].trim() : '';
+          const rowSubName = subjectNameIdx !== -1 && row[subjectNameIdx] ? row[subjectNameIdx].trim() : '';
+
+          if (rowCode) {
+            const found = classSubjects.find(s => String(s.code) === rowCode);
+            if (found) rowSub = found;
+          } else if (rowSubName) {
+            const found = classSubjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn)));
+            if (found) rowSub = found;
+          }
+
+          if (!rowSub) rowSub = currentSubjectObj;
+          if (!rowSub) continue;
+
+          rowSubjectsSet.add(rowSub.name_bn);
+
+          const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
+          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
+          const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
+
+          let w = writtenIdx !== -1 && row[writtenIdx] !== undefined ? normalizeMarkDigits(row[writtenIdx]) : '';
+          let m = mcqIdx !== -1 && row[mcqIdx] !== undefined ? normalizeMarkDigits(row[mcqIdx]) : '';
+          let p = practicalIdx !== -1 && row[practicalIdx] !== undefined ? normalizeMarkDigits(row[practicalIdx]) : '';
+
+          const wMax = Number(rowSub.written_max) || 0;
+          const mMax = Number(rowSub.mcq_max) || 0;
+          const pMax = Number(rowSub.practical_max) || 0;
+
+          if (w !== '' && wMax > 0 && parseFloat(w) > wMax) w = String(wMax);
+          if (m !== '' && mMax > 0 && parseFloat(m) > mMax) m = String(mMax);
+          if (p !== '' && pMax > 0 && parseFloat(p) > pMax) p = String(pMax);
+
+          recordsToSave.push({
+            exam_id: selectedExam,
+            class_name: className,
+            student_id: matchedStudent.id,
+            subject_id: rowSub.id,
+            subject_code: rowSub.code,
+            written: w,
+            mcq: m,
+            practical: p,
+            absent: isAbsent,
+            remarks
+          });
+        }
+
+        detectedSubjectNames = Array.from(rowSubjectsSet);
+        if (rowSubjectsSet.size === 1) {
+          const singleSub = classSubjects.find(s => s.name_bn === detectedSubjectNames[0]);
+          if (singleSub && singleSub.id !== selectedSubjectId) {
+            setSelectedSubjectId(singleSub.id);
+          }
+        }
+      }
+
+      if (!recordsToSave.length || matchedStudentIds.size === 0) {
+        showNotification('CSV ফাইলের রোলের সাথে বর্তমান শ্রেণির কোনো শিক্ষার্থীর রোল বা আইডি মেলেনি। সঠিক শ্রেণির CSV আপলোড করুন।', 'error');
         return;
       }
 
-      setMarksRoster(updatedRoster);
-
-      // Save immediately to backend/store
-      const recordsToSave = updatedRoster.map(r => ({
-        exam_id: selectedExam,
-        class_name: className,
-        student_id: r.student_id,
-        subject_id: currentSubjectObj.id,
-        subject_code: currentSubjectObj.code,
-        written: r.written,
-        mcq: r.mcq,
-        practical: r.practical,
-        absent: r.absent,
-        remarks: r.remarks
-      }));
-
+      // 1. Save records to backend store
       await api('/marks/bulk', {
         method: 'POST',
         body: JSON.stringify({ exam_id: selectedExam, records: recordsToSave })
       });
 
-      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${toBnDigits(matchedCount)} জন শিক্ষার্থীর নম্বর সফলভাবে ইমপোর্ট ও সংরক্ষণ করা হয়েছে! ✓`, 'success');
+      // 2. Immediately recalculate results via Dhaka Board Exam Engine
+      const processRes = await api('/results/process', {
+        method: 'POST',
+        body: JSON.stringify({ exam_id: selectedExam, class_name: className })
+      });
+
+      if (Array.isArray(processRes.summary)) {
+        setProcessedResults(processRes.summary);
+      }
+
+      // 3. Refresh processed results state and marks roster
+      await loadProcessedResults(true);
+      if (tab === 'marks') {
+        handleLoadRoster();
+      }
+
+      const subjectsInfo = detectedSubjectNames.length > 1
+        ? `${toBnDigits(detectedSubjectNames.length)}টি বিষয় (${detectedSubjectNames.slice(0, 3).join(', ')}${detectedSubjectNames.length > 3 ? '...' : ''})`
+        : `"${detectedSubjectNames[0] || currentSubjectObj?.name_bn || 'বিষয়'}"`;
+
+      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${subjectsInfo} এর ${toBnDigits(matchedStudentIds.size)} জন শিক্ষার্থীর নম্বর সফলভাবে ইমপোর্ট ও মাস্টার শিটে প্রসেস করা হয়েছে! ✓`, 'success');
     } catch (err) {
       console.error('CSV import error:', err);
       showNotification('CSV ফাইল আপলোড ব্যর্থ: ' + err.message, 'error');
@@ -685,7 +981,7 @@ export function ResultPanel({ sub }) {
       setProcessedResults(processed);
 
       // Refresh analysis
-      const ana = await api(`/results/analysis?exam_id=${selectedExam}&class_name=${className}`);
+      const ana = await api(`/results/analysis?exam_id=${selectedExam}&class_name=${className}&force=1`);
       setAnalysis(ana);
 
       showNotification(`ফলাফল প্রসেসিং সফল! শ্রেণি ${toBnDigits(className)} এর ${toBnDigits(res.count)} জন শিক্ষার্থীর গ্রেড ও মেধা তালিকা প্রস্তুত।`, 'success');
@@ -694,23 +990,30 @@ export function ResultPanel({ sub }) {
     }
   };
 
-  // Load Processed Results for Merit, Tabulation, Marksheet
-  const loadProcessedResults = async () => {
+  // Load Processed Results for Merit, Tabulation, Marksheet (forceRecompute = true forces re-evaluation)
+  const loadProcessedResults = async (forceRecompute = false) => {
     if (!selectedExam) return;
     try {
-      const res = await api(`/results/summary?exam_id=${selectedExam}&class_name=${className}`);
-      if (Array.isArray(res) && res.length) {
-        setProcessedResults(res);
-      } else {
-        // If not processed yet, process on the fly
+      if (forceRecompute) {
         const p = await api('/results/process', {
           method: 'POST',
           body: JSON.stringify({ exam_id: selectedExam, class_name: className })
         });
         if (Array.isArray(p.summary)) setProcessedResults(p.summary);
+      } else {
+        const res = await api(`/results/summary?exam_id=${selectedExam}&class_name=${className}&force=1`);
+        if (Array.isArray(res) && res.length) {
+          setProcessedResults(res);
+        } else {
+          const p = await api('/results/process', {
+            method: 'POST',
+            body: JSON.stringify({ exam_id: selectedExam, class_name: className })
+          });
+          if (Array.isArray(p.summary)) setProcessedResults(p.summary);
+        }
       }
 
-      const ana = await api(`/results/analysis?exam_id=${selectedExam}&class_name=${className}`);
+      const ana = await api(`/results/analysis?exam_id=${selectedExam}&class_name=${className}&force=1`);
       setAnalysis(ana);
     } catch (e) {
       console.warn('Load processed results warning:', e);
@@ -726,10 +1029,7 @@ export function ResultPanel({ sub }) {
   // Filtered processed results by Department (Group) for 9-10
   const filteredProcessedResults = useMemo(() => {
     if (!isSSC || department === 'all' || department === 'সকল বিভাগ') return processedResults;
-    return processedResults.filter(r => {
-      const stDept = r.department || r.student?.department || '';
-      return stDept.includes(department);
-    });
+    return processedResults.filter(r => matchesStudentGroup(r.student || r, department));
   }, [processedResults, isSSC, department]);
 
   const currentStudentResult = useMemo(() => {
@@ -1932,7 +2232,7 @@ export function ResultPanel({ sub }) {
               </h3>
             </div>
             <div className="table-action-group">
-              <button type="button" className="btn-modern-action" onClick={loadProcessedResults}>
+              <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
                 🔄 রিফ্রেশ
               </button>
               <button type="button" className="btn-modern-secondary" onClick={() => window.print()}>
@@ -2020,7 +2320,29 @@ export function ResultPanel({ sub }) {
               </h3>
             </div>
             <div className="table-action-group">
-              <button type="button" className="btn-modern-action" onClick={loadProcessedResults}>
+              <button
+                type="button"
+                className="btn-modern-action"
+                style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 600 }}
+                onClick={handleDownloadMasterCsv}
+                title="শ্রেণির সকল বিষয়ের মাস্টার ট্যাবুলেশন শিট CSV ফাইল ডাউনলোড করুন"
+              >
+                📥 মাস্টার শিট CSV
+              </button>
+              <label
+                className="btn-modern-action"
+                style={{ background: '#059669', color: '#fff', borderColor: '#059669', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                title="সকল বিষয়ের মার্কস পূরণকৃত CSV আপলোড করে মাস্টার শিট হালনাগাদ করুন"
+              >
+                📤 মাস্টার শিট CSV আপলোড
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  style={{ display: 'none' }}
+                  onChange={handleUploadMarksCsv}
+                />
+              </label>
+              <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
                 🔄 রিফ্রেশ
               </button>
               <button type="button" className="btn-modern-primary" onClick={() => window.print()}>

@@ -1396,6 +1396,18 @@ function handleMockRequest(path, opts = {}) {
     });
     const updatedList = Array.from(map.values());
     setLocalStore('marks', updatedList);
+
+    // Invalidate cached results for this exam across all classes so Tabulation & Merit lists immediately update
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        Object.keys(window.localStorage).forEach(k => {
+          if (k.startsWith(`magra_db_results_${examId}_`)) {
+            window.localStorage.removeItem(k);
+          }
+        });
+      }
+    } catch (_) {}
+
     return { ok: true, count: records.length };
   }
 
@@ -1421,9 +1433,10 @@ function handleMockRequest(path, opts = {}) {
     const examId = params.get('exam_id');
     const cls = params.get('class_name') || '6';
     const dept = params.get('department');
+    const force = params.get('force') === '1' || params.get('force') === 'true';
     
     // Check cache
-    let processed = getLocalStore(`results_${examId}_${cls}`, null);
+    let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
@@ -1442,7 +1455,8 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/results/analysis') {
     const examId = params.get('exam_id');
     const cls = params.get('class_name') || '6';
-    let processed = getLocalStore(`results_${examId}_${cls}`, null);
+    const force = params.get('force') === '1' || params.get('force') === 'true';
+    let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
