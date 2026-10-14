@@ -110,6 +110,28 @@ try {
   }
 } catch {}
 
+// Purge deleted/legacy exams from localStorage on startup
+try {
+  const rawExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
+  if (Array.isArray(rawExams)) {
+    const cleaned = rawExams.filter(e => {
+      if (!e) return false;
+      const bn = e.name_bn || '';
+      const en = e.name_en || '';
+      const rem = e.remarks || '';
+      const isTarget = e.id === 'ex-annual-2026' || e.id === 'ex-test-2026' ||
+                       bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') ||
+                       bn.includes('বার্ষিক পরীক্ষা ২০২৬') ||
+                       en.includes('SSC Test Examination 2026') || en.includes('Annual Examination 2026') ||
+                       rem.includes('১০ম শ্রেণির এসএসসি টেস্ট') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা');
+      return !isTarget;
+    });
+    if (cleaned.length !== rawExams.length) {
+      localStorage.setItem('magra_db_exams', JSON.stringify(cleaned));
+    }
+  }
+} catch {}
+
 // Religion normalization helper
 export function normalizeReligion(raw) {
   if (!raw || typeof raw !== 'string') return 'ইসলাম';
@@ -236,6 +258,19 @@ function getLocalStore(key, defaultVal = []) {
       return defaultVal;
     }
     const parsed = JSON.parse(raw);
+    if (key === 'exams' && Array.isArray(parsed)) {
+      const filtered = parsed.filter(e => {
+        if (!e) return false;
+        if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
+        if (e.name_bn && (e.name_bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || e.name_bn.includes('বার্ষিক পরীক্ষা ২০২৬'))) return false;
+        if (e.name_en && (e.name_en.includes('SSC Test Examination 2026') || e.name_en.includes('Annual Examination 2026'))) return false;
+        return true;
+      });
+      if (filtered.length !== parsed.length) {
+        try { localStorage.setItem('magra_db_exams', JSON.stringify(filtered)); } catch(e){}
+      }
+      return filtered;
+    }
     if (key === 'students' && Array.isArray(parsed)) {
       const enriched = parsed.map(enrichStudentProfile);
       return enriched;
@@ -1234,14 +1269,6 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/exams') {
     let exams = getLocalStore('exams', MOCK_EXAMS);
-    if (!exams.some(e => e.id === 'ex-annual-2026')) {
-      exams.push({ id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক পরীক্ষা', status: 'published', remarks: '৬ষ্ঠ-৯ম শ্রেণির বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা', created_at: new Date().toISOString() });
-      try { localStorage.setItem('magra_db_exams', JSON.stringify(exams)); } catch(e){}
-    }
-    if (!exams.some(e => e.id === 'ex-test-2026')) {
-      exams.push({ id: 'ex-test-2026', academic_year: '2026', name_bn: 'নির্বাচনি পরীক্ষা ২০২৬ (SSC Test)', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনি পরীক্ষা', status: 'published', remarks: '১০ম শ্রেণির এসএসসি টেস্ট ও ফরমপূরণ পরীক্ষা', created_at: new Date().toISOString() });
-      try { localStorage.setItem('magra_db_exams', JSON.stringify(exams)); } catch(e){}
-    }
     if (method === 'POST') {
       const newExam = {
         id: 'ex-' + Date.now(),

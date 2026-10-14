@@ -13,7 +13,7 @@ export function PromotionPanel({
 }) {
   // Navigation Modes
   // 'annual_promotion' (Classes 6-9) | 'ssc_form_fillup' (Class 10) | 'history'
-  const [activeMode, setActiveMode] = useState(initialClass === '10' ? 'ssc_form_fillup' : 'annual_promotion');
+  const [activeMode, setActiveMode] = useState('annual_promotion');
 
   // Filters & Context
   const [selectedYear, setSelectedYear] = useState(initialYear || '2026');
@@ -86,7 +86,7 @@ export function PromotionPanel({
   const loadPromotionData = async () => {
     setIsLoading(true);
     try {
-      const clsToFetch = activeMode === 'ssc_form_fillup' ? '10' : currentClass;
+      const clsToFetch = currentClass;
       
       // 1. Fetch Students
       const stdList = await api(`/students?class_name=${clsToFetch}`);
@@ -507,125 +507,6 @@ export function PromotionPanel({
     }
   };
 
-  // ==================== HANDLERS: SSC FORM FILL-UP ====================
-  // Toggle Principal's Special Approval for SSC
-  const handleToggleSscApproval = (id, checked) => {
-    setSscRoster(prev => prev.map(s => {
-      if (s.id === id) {
-        if (checked) {
-          return {
-            ...s,
-            head_teacher_approved: true,
-            ssc_status: s.is_pass ? 'approved' : 'special_approved',
-            approval_type: s.is_pass ? 'regular' : 'head_teacher_special',
-            approval_note: s.is_pass ? 'নিয়মিত উত্তীর্ণ (সকল বিষয়ে পাস)' : 'প্রধান শিক্ষকের বিশেষ অনুমতি ও অনুমোদন সাপেক্ষে'
-          };
-        } else {
-          return {
-            ...s,
-            head_teacher_approved: false,
-            ssc_status: 'detained',
-            approval_type: 'none',
-            approval_note: 'ফরমপূরণের অনুমতি স্থগিত / অযোগ্য'
-          };
-        }
-      }
-      return s;
-    }));
-  };
-
-  // Change SSC Status directly
-  const handleChangeSscStatus = (id, status) => {
-    setSscRoster(prev => prev.map(s => {
-      if (s.id === id) {
-        if (status === 'approved') {
-          return {
-            ...s,
-            ssc_status: 'approved',
-            head_teacher_approved: true,
-            approval_type: 'regular',
-            approval_note: 'নিয়মিত উত্তীর্ণ'
-          };
-        } else if (status === 'special_approved') {
-          return {
-            ...s,
-            ssc_status: 'special_approved',
-            head_teacher_approved: true,
-            approval_type: 'head_teacher_special',
-            approval_note: 'প্রধান শিক্ষকের বিশেষ অনুমোদনপ্রাপ্ত'
-          };
-        } else {
-          return {
-            ...s,
-            ssc_status: 'detained',
-            head_teacher_approved: false,
-            approval_type: 'none',
-            approval_note: 'ফরমপূরণের অযোগ্য (Detained)'
-          };
-        }
-      }
-      return s;
-    }));
-  };
-
-  // Update SSC Approval Note
-  const handleUpdateSscNote = (id, note) => {
-    setSscRoster(prev => prev.map(s => s.id === id ? { ...s, approval_note: note } : s));
-  };
-
-  // Bulk approve borderlines for SSC
-  const handleBulkApproveSscBorderline = () => {
-    let count = 0;
-    setSscRoster(prev => prev.map(s => {
-      if (!s.is_pass && s.failed_count > 0 && s.failed_count <= 2) {
-        count++;
-        return {
-          ...s,
-          head_teacher_approved: true,
-          ssc_status: 'special_approved',
-          approval_type: 'head_teacher_special',
-          approval_note: `প্রধান শিক্ষকের বিশেষ অনুমতি (${toBnDigits(s.failed_count)} বিষয়ে শর্তসাপেক্ষ ছাড়)`
-        };
-      }
-      return s;
-    }));
-
-    if (count > 0) {
-      showNotification && showNotification(`১ বা ২ বিষয়ে অকৃতকার্য ${toBnDigits(count)} জন শিক্ষার্থীকে প্রধান শিক্ষকের বিশেষ অনুমোদনে এসএসসি ফরমপূরণের সুযোগ দেওয়া হয়েছে!`, 'success');
-    } else {
-      showNotification && showNotification('শর্তসাপেক্ষ অনুমোদনের যোগ্য নতুন শিক্ষার্থী পাওয়া যায়নি।', 'info');
-    }
-  };
-
-  // Save SSC Candidate List
-  const handleSaveSscList = async () => {
-    try {
-      setIsExecuting(true);
-      const payload = {
-        exam_id: selectedExamId,
-        academic_year: selectedYear,
-        candidates: sscRoster.map(s => ({
-          id: s.id,
-          student_id: s.student_id,
-          status: s.ssc_status,
-          approval_type: s.approval_type,
-          approval_note: s.approval_note
-        }))
-      };
-
-      const res = await api('/ssc-form-fillup/save', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
-
-      showNotification && showNotification(`✓ ${res.message || '১০ম শ্রেণির এসএসসি ফরমপূরণ অনুমোদন তালিকা সফলভাবে সংরক্ষিত হয়েছে!'}`, 'success');
-    } catch (e) {
-      showNotification && showNotification('সংরক্ষণ ব্যর্থ: ' + e.message, 'error');
-    } finally {
-      setIsExecuting(false);
-    }
-  };
-
   // ==================== CSV / PRINT EXPORTS ====================
   // Download Promotion CSV
   const handleDownloadPromotionCsv = () => {
@@ -685,60 +566,6 @@ export function PromotionPanel({
     showNotification && showNotification('প্রমোশন শিট এক্সেল/CSV সফলভাবে ডাউনলোড হয়েছে!', 'success');
   };
 
-  // Download SSC Form Fill-up CSV
-  const handleDownloadSscCsv = () => {
-    const headers = [
-      'SL',
-      'Class_10_Roll',
-      'Student_ID',
-      'Student_Name',
-      'Group_Department',
-      'Test_GPA',
-      'Test_Grade',
-      'Total_Marks',
-      'Test_Result',
-      'Failed_Subjects',
-      'Form_Fillup_Status',
-      'Approval_Type',
-      'Head_Teacher_Approved',
-      'Guardian_Mobile',
-      'Remarks'
-    ];
-
-    const escapeCsv = (str) => {
-      const v = str === null || str === undefined ? '' : String(str);
-      return `"${v.replace(/"/g, '""')}"`;
-    };
-
-    const rows = sscRoster.map((s, idx) => [
-      escapeCsv(idx + 1),
-      escapeCsv(s.roll_no),
-      escapeCsv(s.student_id),
-      escapeCsv(s.name_bn),
-      escapeCsv(s.department),
-      escapeCsv(s.gpa),
-      escapeCsv(s.final_grade),
-      escapeCsv(s.total_marks),
-      escapeCsv(s.is_pass ? 'উত্তীর্ণ' : 'অকৃতকার্য'),
-      escapeCsv(s.failed_subjects.join(', ')),
-      escapeCsv(s.ssc_status === 'approved' ? 'নিয়মিত অনুমোদিত' : s.ssc_status === 'special_approved' ? 'বিশেষ অনুমোদন' : 'অযোগ্য'),
-      escapeCsv(s.approval_type === 'regular' ? 'নিয়মিত' : s.approval_type === 'head_teacher_special' ? 'প্রধান শিক্ষকের বিশেষ অনুমতি' : '—'),
-      escapeCsv(s.head_teacher_approved ? 'হ্যাঁ' : 'না'),
-      escapeCsv(s.guardian_phone),
-      escapeCsv(s.approval_note)
-    ]);
-
-    const lines = [headers.join(','), ...rows.map(r => r.join(','))];
-    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `SSC_Candidate_Form_Fillup_List_${selectedYear}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showNotification && showNotification('এসএসসি ফরমপূরণ অনুমোদন তালিকা সফলভাবে ডাউনলোড হয়েছে!', 'success');
-  };
-
   // Print Official Sheet
   const handlePrintOfficialSheet = () => {
     window.print();
@@ -758,42 +585,15 @@ export function PromotionPanel({
       return true;
     });
   }, [roster, searchQuery]);
-
-  // Filtered SSC Roster for View
-  const filteredSscRoster = useMemo(() => {
-    return sscRoster.filter(item => {
-      if (departmentFilter !== 'all' && !item.department.includes(departmentFilter)) {
-        return false;
-      }
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const match = (item.name_bn || '').toLowerCase().includes(q) ||
-                      (item.student_id || '').toLowerCase().includes(q) ||
-                      String(item.roll_no).includes(q);
-        if (!match) return false;
-      }
-      return true;
-    });
-  }, [sscRoster, departmentFilter, searchQuery]);
-
   // Metrics
   const metrics = useMemo(() => {
-    if (activeMode === 'annual_promotion') {
-      const total = roster.length;
-      const meritPromoted = roster.filter(s => s.promotion_action === 'promote' && s.promotion_method === 'merit').length;
-      const specialPromoted = roster.filter(s => s.promotion_action === 'promote' && s.promotion_method === 'special_approval').length;
-      const repeat = roster.filter(s => s.promotion_action === 'repeat').length;
-      const targetTotal = meritPromoted + specialPromoted;
-      return { total, meritPromoted, specialPromoted, repeat, targetTotal };
-    } else {
-      const total = sscRoster.length;
-      const regularApproved = sscRoster.filter(s => s.ssc_status === 'approved').length;
-      const specialApproved = sscRoster.filter(s => s.ssc_status === 'special_approved').length;
-      const detained = sscRoster.filter(s => s.ssc_status === 'detained').length;
-      const totalApproved = regularApproved + specialApproved;
-      return { total, regularApproved, specialApproved, detained, totalApproved };
-    }
-  }, [roster, sscRoster, activeMode]);
+    const total = roster.length;
+    const meritPromoted = roster.filter(s => s.promotion_action === 'promote' && s.promotion_method === 'merit').length;
+    const specialPromoted = roster.filter(s => s.promotion_action === 'promote' && s.promotion_method === 'special_approval').length;
+    const repeat = roster.filter(s => s.promotion_action === 'repeat').length;
+    const targetTotal = meritPromoted + specialPromoted;
+    return { total, meritPromoted, specialPromoted, repeat, targetTotal };
+  }, [roster]);
 
   return (
     <div className="promotion-panel-container">
@@ -1176,276 +976,7 @@ export function PromotionPanel({
         </div>
       )}
 
-      {/* ================= 2. MODE: SSC FORM FILL-UP (CLASS 10) ================= */}
-      {activeMode === 'ssc_form_fillup' && (
-        <div className="promo-content-wrapper">
-          {/* SSC Context Card */}
-          <div className="promo-context-card no-print">
-            <div className="promo-context-grid">
-              <div className="context-item">
-                <label>শিক্ষাবর্ষ:</label>
-                <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)}>
-                  {academicYears.map(ay => (
-                    <option key={ay.id || ay.year} value={ay.year}>
-                      {ay.title_bn || ay.year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="context-item">
-                <label>নির্বাচনি পরীক্ষা (Test Exam):</label>
-                <select value={selectedExamId} onChange={(e) => setSelectedExamId(e.target.value)}>
-                  {examsForYear.length === 0 ? (
-                    <option value="">কোনো পরীক্ষা নেই</option>
-                  ) : (
-                    examsForYear.map(ex => (
-                      <option key={ex.id} value={ex.id}>
-                        {ex.name_bn}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              <div className="context-item highlight-box">
-                <label>শ্রেণি:</label>
-                <div className="badge-target-class">
-                  শ্রেণি <b>১০ (দশম)</b>
-                </div>
-              </div>
-
-              <div className="context-item">
-                <label>বিভাগ/গ্রুপ ফিল্টার:</label>
-                <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
-                  <option value="all">সকল বিভাগ (All)</option>
-                  <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
-                  <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
-                  <option value="ব্যবসায়">ব্যবসায় শিক্ষা (Commerce)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* SSC Action Toolbar */}
-            <div className="promo-action-toolbar">
-              <div className="toolbar-left">
-                <input
-                  type="text"
-                  className="promo-search-input"
-                  placeholder="🔍 ১০ম শ্রেণির পরীক্ষার্থী খুঁজুন..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="toolbar-right">
-                <button
-                  type="button"
-                  className="btn-promo-action"
-                  onClick={handleBulkApproveSscBorderline}
-                  title="১ বা ২ বিষয়ে ফেল করা পরীক্ষার্থীদের প্রধান শিক্ষকের বিশেষ অনুমতি দিন"
-                >
-                  ✍️ প্রধান শিক্ষকের শর্তসাপেক্ষ বিশেষ অনুমতি
-                </button>
-                <button
-                  type="button"
-                  className="btn-promo-action"
-                  onClick={handleDownloadSscCsv}
-                >
-                  📥 ঢাকা বোর্ড eSIF CSV ডাউনলোড
-                </button>
-                <button
-                  type="button"
-                  className="btn-promo-action secondary"
-                  onClick={handlePrintOfficialSheet}
-                >
-                  🖨️ অফিসিয়াল ফরমপূরণ শিট প্রিন্ট
-                </button>
-                <button
-                  type="button"
-                  className="btn-promo-primary"
-                  onClick={handleSaveSscList}
-                  disabled={isExecuting}
-                >
-                  💾 এসএসসি ফরমপূরণ তালিকা সংরক্ষণ
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* SSC Metrics Cards */}
-          <div className="promo-stats-cards no-print">
-            <div className="promo-card">
-              <span className="card-lbl">১০ম শ্রেণির মোট পরীক্ষার্থী</span>
-              <b className="card-val">{toBnDigits(metrics.total)}</b>
-              <small>নির্বাচনি পরীক্ষায় অংশগ্রণকারী</small>
-            </div>
-            <div className="promo-card card-green">
-              <span className="card-lbl">নিয়মিত ফরমপূরণ অনুমোদিত</span>
-              <b className="card-val">{toBnDigits(metrics.regularApproved)}</b>
-              <small>সকল বিষয়ে পাসকৃত</small>
-            </div>
-            <div className="promo-card card-amber">
-              <span className="card-lbl">প্রধান শিক্ষকের বিশেষ অনুমতি</span>
-              <b className="card-val">{toBnDigits(metrics.specialApproved)}</b>
-              <small>শর্তসাপেক্ষে ফরমপূরণের সুযোগ</small>
-            </div>
-            <div className="promo-card card-red">
-              <span className="card-lbl">অননুমোদিত / অযোগ্য</span>
-              <b className="card-val">{toBnDigits(metrics.detained)}</b>
-              <small>ফরমপূরণ স্থগিত (Detained)</small>
-            </div>
-            <div className="promo-card card-blue">
-              <span className="card-lbl">সর্বমোট ফরমপূরণ পরীক্ষার্থী</span>
-              <b className="card-val">{toBnDigits(metrics.totalApproved)}</b>
-              <small>বোর্ড রেজিস্ট্রেশন চূড়ান্ত</small>
-            </div>
-          </div>
-
-          {/* Print Official School Header for SSC */}
-          <div className="print-official-header print-only">
-            <h2>{MOCK_SCHOOL.nameBn || MOCK_SCHOOL.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'}</h2>
-            <h4>EIIN: {MOCK_SCHOOL.eiin} • মগড়া, কালিহাতি, টাঙ্গাইল</h4>
-            <h3>এসএসসি পরীক্ষা {toBnDigits(selectedYear)} - নির্বাচনি পরীক্ষা শেষে ফরমপূরণ অনুমোদন তালিকা</h3>
-            <p>
-              ১০ম শ্রেণি • বোর্ড: ঢাকা শিক্ষা বোর্ড • শিক্ষাবর্ষ: {toBnDigits(selectedYear)}
-            </p>
-          </div>
-
-          {/* SSC Candidate Selection Table */}
-          <div className="promo-table-card">
-            <div className="table-header-flex no-print">
-              <h3>
-                🎓 ১০ম শ্রেণির এসএসসি ফরমপূরণ অনুমোদন তালিকা ({toBnDigits(filteredSscRoster.length)} জন)
-              </h3>
-              <div className="table-legend">
-                <span className="legend-item"><span className="dot dot-green"></span> নিয়মিত অনুমোদিত</span>
-                <span className="legend-item"><span className="dot dot-amber"></span> বিশেষ অনুমোদনে ফরমপূরণ</span>
-                <span className="legend-item"><span className="dot dot-red"></span> অযোগ্য (Detained)</span>
-              </div>
-            </div>
-
-            <div className="table-responsive-wrapper">
-              <table className="modern-exam-table promo-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: '50px' }}>ক্রমি</th>
-                    <th style={{ width: '60px' }}>১০ম রোল</th>
-                    <th>শিক্ষার্থী আইডি</th>
-                    <th>পরীক্ষার্থীর নাম</th>
-                    <th>বিভাগ/গ্রুপ</th>
-                    <th style={{ width: '80px' }}>টেস্ট GPA</th>
-                    <th style={{ width: '70px' }}>মোট নম্বর</th>
-                    <th>টেস্ট ফলাফল</th>
-                    <th style={{ width: '160px' }}>ফরমপূরণ অবস্থা</th>
-                    <th style={{ width: '220px' }}>প্রধান শিক্ষকের অনুমোদন ও মন্তব্য</th>
-                    <th>অভিভাবকের ফোন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredSscRoster.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="text-center py-4">
-                        {isLoading ? '⏳ তথ্য লোড হচ্ছে...' : 'কোনো পরীক্ষার্থী পাওয়া যায়নি।'}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredSscRoster.map((row, idx) => {
-                      const isApproved = row.ssc_status === 'approved';
-                      const isSpecial = row.ssc_status === 'special_approved';
-
-                      return (
-                        <tr
-                          key={row.id}
-                          className={`promo-row ${isSpecial ? 'row-special' : isApproved ? 'row-promoted' : 'row-repeat'}`}
-                        >
-                          <td className="text-center">{toBnDigits(idx + 1)}</td>
-                          <td className="text-center"><b>{toBnDigits(row.roll_no)}</b></td>
-                          <td><span className="code-pill">{row.student_id}</span></td>
-                          <td><b>{row.name_bn}</b></td>
-                          <td><span className="sub-tag-compulsory">{row.department}</span></td>
-                          <td className="text-center">
-                            <b className={row.final_grade === 'F' ? 'text-danger' : 'text-success'}>
-                              {toBnDigits(row.gpa)}
-                            </b>
-                            <span className="grade-badge ml-1">{row.final_grade}</span>
-                          </td>
-                          <td className="text-center"><b>{toBnDigits(row.total_marks)}</b></td>
-                          <td>
-                            {row.is_pass ? (
-                              <span className="status-badge-pass">✓ পাস</span>
-                            ) : (
-                              <span className="status-badge-fail">
-                                ⚠ {toBnDigits(row.failed_count)} ফেল
-                                <small className="d-block text-muted">{row.failed_subjects.join(', ')}</small>
-                              </span>
-                            )}
-                          </td>
-                          <td>
-                            <select
-                              className={`promo-select ${isSpecial ? 'select-amber' : isApproved ? 'select-green' : 'select-red'}`}
-                              value={row.ssc_status}
-                              onChange={(e) => handleChangeSscStatus(row.id, e.target.value)}
-                            >
-                              <option value="approved">🟢 নিয়মিত ফরমপূরণ</option>
-                              <option value="special_approved">🟡 বিশেষ অনুমোদনে ফরমপূরণ</option>
-                              <option value="detained">🔴 ফরমপূরণে অযোগ্য (Detained)</option>
-                            </select>
-                          </td>
-                          <td>
-                            <div className="approval-control-group">
-                              <label className="checkbox-label">
-                                <input
-                                  type="checkbox"
-                                  checked={row.head_teacher_approved}
-                                  onChange={(e) => handleToggleSscApproval(row.id, e.target.checked)}
-                                />
-                                <span>{row.head_teacher_approved ? 'অনুমোদিত' : 'অনুমোদনহীন'}</span>
-                              </label>
-                              <input
-                                type="text"
-                                className="input-approval-note"
-                                placeholder="অনুমোদনের কারণ/নোট..."
-                                value={row.approval_note}
-                                onChange={(e) => handleUpdateSscNote(row.id, e.target.value)}
-                              />
-                            </div>
-                          </td>
-                          <td>
-                            <a href={`tel:${row.guardian_phone}`} className="phone-link">
-                              📞 {row.guardian_phone}
-                            </a>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Print Official Footer with Signatures for SSC */}
-            <div className="print-official-footer print-only">
-              <div className="sig-row">
-                <div className="sig-block">
-                  <div className="sig-line"></div>
-                  <span>১০ম শ্রেণির শ্রেণি শিক্ষক</span>
-                </div>
-                <div className="sig-block">
-                  <div className="sig-line"></div>
-                  <span>পরীক্ষা নিয়ন্ত্রণ কমিটি আহ্বায়ক</span>
-                </div>
-                <div className="sig-block">
-                  <div className="sig-line"></div>
-                  <span>প্রধান শিক্ষক (স্বাক্ষর ও সিল)</span>
-                  <b>{MOCK_SCHOOL.headTeacher}</b>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= 3. MODE: PROMOTION HISTORY & AUDIT TRAIL ================= */}
+      {/* ================= 2. MODE: PROMOTION HISTORY & AUDIT TRAIL ================= */}
       {activeMode === 'history' && (
         <div className="promo-content-wrapper">
           <div className="promo-table-card">

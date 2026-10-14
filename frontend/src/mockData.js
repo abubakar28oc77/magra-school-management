@@ -3835,8 +3835,6 @@ export const DEFAULT_ACADEMIC_YEARS = [
 export const MOCK_EXAMS = [
   { id: 'ex-1', academic_year: '2026', name_bn: '১ম সাময়িক পরীক্ষা', name_en: '1st Terminal Examination', exam_type: 'সাময়িক পরীক্ষা', status: 'active', remarks: 'মার্ক এন্ট্রি চলমান' },
   { id: 'ex-2', academic_year: '2026', name_bn: 'অর্ধবার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'অর্ধবার্ষিক পরীক্ষা', status: 'draft', remarks: 'প্রস্তুতি চলছে' },
-  { id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক পরীক্ষা', status: 'published', remarks: '৬ষ্ঠ-৯ম শ্রেণির বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা' },
-  { id: 'ex-test-2026', academic_year: '2026', name_bn: 'নির্বাচনি পরীক্ষা ২০২৬ (SSC Test)', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনি পরীক্ষা', status: 'published', remarks: '১০ম শ্রেণির এসএসসি টেস্ট ও ফরমপূরণ পরীক্ষা' },
   { id: 'ex-3', academic_year: '2025', name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'বার্ষিক পরীক্ষা', status: 'published', remarks: 'ফলাফল প্রকাশিত' }
 ];
 

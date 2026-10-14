@@ -140,9 +140,19 @@ export function ResultPanel({ sub }) {
 
       const examList = await api('/exams');
       if (Array.isArray(examList)) {
-        setExams(examList);
-        if (examList.length && !selectedExam) {
-          setSelectedExam(examList[0].id);
+        const cleanList = examList.filter(e => {
+          if (!e) return false;
+          if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
+          const bn = e.name_bn || '';
+          const en = e.name_en || '';
+          const rem = e.remarks || '';
+          if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
+          if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
+          return true;
+        });
+        setExams(cleanList);
+        if (cleanList.length && !selectedExam) {
+          setSelectedExam(cleanList[0].id);
         }
       }
 
@@ -168,14 +178,34 @@ export function ResultPanel({ sub }) {
 
   // Filtered exams for Exam Names setup tab
   const filteredExamsForSetup = useMemo(() => {
-    if (examFilterYear === 'all') return exams;
-    return exams.filter(e => String(e.academic_year) === String(examFilterYear));
+    const valid = exams.filter(e => {
+      if (!e) return false;
+      if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
+      const bn = e.name_bn || '';
+      const en = e.name_en || '';
+      const rem = e.remarks || '';
+      if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
+      if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
+      return true;
+    });
+    if (examFilterYear === 'all') return valid;
+    return valid.filter(e => String(e.academic_year) === String(examFilterYear));
   }, [exams, examFilterYear]);
 
   // Filtered exams for toolbar
   const examsForSelectedYear = useMemo(() => {
-    if (!selectedYear || selectedYear === 'all') return exams;
-    return exams.filter(e => String(e.academic_year) === String(selectedYear));
+    const valid = exams.filter(e => {
+      if (!e) return false;
+      if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
+      const bn = e.name_bn || '';
+      const en = e.name_en || '';
+      const rem = e.remarks || '';
+      if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
+      if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
+      return true;
+    });
+    if (!selectedYear || selectedYear === 'all') return valid;
+    return valid.filter(e => String(e.academic_year) === String(selectedYear));
   }, [exams, selectedYear]);
 
   useEffect(() => {
@@ -892,7 +922,7 @@ export function ResultPanel({ sub }) {
           ['tabulation', '📋 ৮. ট্যাবুলেশন শিট'],
           ['marksheet', '📄 ৯. মার্কশিট ও প্রগ্রেস'],
           ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ'],
-          ['promotion', '🎓 ১১. প্রমোশন ও ফরমপূরণ']
+          ['promotion', '🎓 ১১. শিক্ষার্থী প্রমোশন']
         ].map(([key, label]) => (
           <button
             key={key}
