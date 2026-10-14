@@ -1043,7 +1043,7 @@ export function ResultPanel({ sub }) {
     '102': 'BANGLA-II',
     '107': 'ENGLISH-I',
     '108': 'ENGLISH-II',
-    '109': 'MATHEMATICS',
+    '109': 'METHMATICS',
     '111': 'ISLAM RELIGION AND MORAL EDUCATION',
     '112': 'HINDU RELIGION AND MORAL EDUCATION',
     '113': 'BUDDHIST RELIGION AND MORAL EDUCATION',
@@ -1053,7 +1053,7 @@ export function ResultPanel({ sub }) {
     '137': 'CHEMISTRY',
     '138': 'BIOLOGY',
     '150': 'BANGLADESH AND GLOBAL STUDIES',
-    '126': 'HIGHER MATHEMATICS',
+    '126': 'HIGHER METHMATICS',
     '134': 'AGRICULTURE STUDIES',
     '127': 'GENERAL SCIENCE',
     '146': 'ACCOUNTING',
@@ -1091,6 +1091,10 @@ export function ResultPanel({ sub }) {
     transcriptSubjects.some(s => String(s.code) === '107') && 
     transcriptSubjects.some(s => String(s.code) === '108');
 
+  const sub107 = transcriptSubjects.find(s => String(s.code) === '107');
+  const sub108 = transcriptSubjects.find(s => String(s.code) === '108');
+  const englishCombinedTotal = ((sub107 && !sub107.absent) ? Number(sub107.total || 0) : 0) + ((sub108 && !sub108.absent) ? Number(sub108.total || 0) : 0);
+
   const handlePrintMarksheet = () => {
     if (!currentStudentResult) {
       showNotification('প্রিন্ট করার জন্য কোনো শিক্ষার্থী নির্বাচিত নেই।', 'error');
@@ -1118,46 +1122,34 @@ export function ResultPanel({ sub }) {
   <style>
     @page { size: A4 portrait; margin: 8mm 10mm; }
     * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 0; font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; background: #fff; color: #0f172a; }
-    .official-marksheet-wrapper { width: 100%; max-width: 190mm; margin: 0 auto; background: #fff; border: 2px solid #0f172a; outline: 1px solid #64748b; outline-offset: -4px; border-radius: 4px; padding: 8mm 8mm; page-break-inside: avoid; }
-    .marksheet-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0b8050; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
-    .marksheet-school-logo-zone { display: flex; align-items: center; gap: 12px; flex: 1; }
-    .marksheet-logo-img { width: 62px; height: 62px; object-fit: contain; }
-    .school-title-text h2 { margin: 0; font-size: 19px; color: #0b8050; font-weight: 800; line-height: 1.2; }
-    .school-title-text h3 { margin: 2px 0 0 0; font-size: 11px; color: #1e3a8a; font-weight: 700; letter-spacing: 0.5px; }
-    .school-title-text p { margin: 2px 0 0 0; font-size: 10.5px; color: #475569; }
-    .marksheet-scale-box { border: 1px solid #64748b; border-radius: 4px; overflow: hidden; background: #fff; min-width: 170px; }
-    .scale-box-title { font-size: 9px; font-weight: 800; text-align: center; background: #0f172a; color: #fff; padding: 2px 4px; letter-spacing: 0.5px; }
-    .marksheet-scale-table { width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: center; }
-    .marksheet-scale-table th, .marksheet-scale-table td { border: 1px solid #cbd5e1; padding: 1.5px 4px; }
-    .marksheet-scale-table th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
-    .marksheet-exam-title-badge { text-align: center; margin: 10px 0 10px 0; }
-    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 5px 22px; border-radius: 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
-    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 10px; margin-bottom: 10px; }
-    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 11.5px; line-height: 1.7; }
+    body { margin: 0; padding: 0; font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; background: #fff; color: #000; }
+    .official-marksheet-wrapper { width: 100%; max-width: 190mm; margin: 0 auto; background: #fff; border: 1.5px solid #000; border-radius: 4px; padding: 8mm 10mm; page-break-inside: avoid; }
+    .transcript-official-header { text-align: center; margin-bottom: 14px; }
+    .transcript-school-name { margin: 0 0 3px 0; font-size: 22px; color: #0b8050; font-weight: 800; letter-spacing: 0.3px; }
+    .transcript-school-line { margin: 2px 0; font-size: 12.5px; color: #1e293b; font-weight: 500; }
+    .transcript-school-eiin { margin: 2px 0 0 0; font-size: 12.5px; color: #1e293b; font-weight: 600; }
+    .marksheet-exam-title-badge { text-align: center; margin: 10px 0 12px 0; }
+    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 5px 24px; border-radius: 9999px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 12px; margin-bottom: 12px; }
+    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 12px; line-height: 1.8; color: #0f172a; }
     .marksheet-student-card .info-row { margin: 1px 0; }
-    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 11px; border: 1.5px solid #0f172a; }
-    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #64748b; padding: 4.5px 6px; text-align: center; }
-    .marksheet-subjects-table th { background: #f1f5f9; color: #0f172a; font-weight: 700; font-size: 11px; }
-    .marksheet-subjects-table td.text-left { text-align: left; padding-left: 8px; }
-    .sub-bn-sub { font-size: 10.5px; color: #475569; }
-    .combined-grade-cell { vertical-align: middle; background: #f8fafc; }
-    .grade-badge { font-size: 13px; font-weight: 800; }
-    .grade-badge.pass { color: #0b8050; }
-    .grade-badge.fail { color: #dc2626; }
-    .gp-sub { font-size: 10px; font-weight: 700; color: #334155; margin-top: 1px; }
-    .combined-tag { display: inline-block; font-size: 9px; font-weight: 600; color: #0284c7; background: #e0f2fe; padding: 1px 4px; border-radius: 3px; margin-top: 2px; border: 1px solid #bae6fd; }
-    .sub-opt-tag { display: inline-block; font-size: 9px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 1px 4px; border-radius: 3px; margin-left: 5px; border: 1px solid #fde68a; }
-    .marksheet-policy-note { font-size: 10px; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 5px 8px; border-radius: 4px; margin-top: 6px; }
-    .marksheet-bonus-note { font-size: 10px; color: #0284c7; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; margin-top: 4px; }
-    .marksheet-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center; }
-    .summary-unit-title { font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
-    .summary-unit-value { font-size: 14.5px; font-weight: 800; color: #0f172a; }
-    .summary-unit-value.passed { color: #0b8050; }
-    .summary-unit-value.failed { color: #dc2626; }
-    .marksheet-signature-zone { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #334155; text-align: center; }
-    .signature-block { border-top: 1px dashed #64748b; padding-top: 4px; min-width: 140px; }
-    .transcript-footer-meta { margin-top: 12px; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 4px; }
+    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11.5px; border: 1px solid #000; }
+    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #000; padding: 5px 6px; text-align: center; }
+    .marksheet-subjects-table th { background: #fff; color: #000; font-weight: 700; font-size: 11.5px; }
+    .marksheet-subjects-table td.text-left { text-align: left; padding-left: 8px; font-weight: 600; }
+    .transcript-grade-cell { vertical-align: middle; text-align: center; background: #fff; }
+    .grade-letter { font-size: 13.5px; font-weight: 800; color: #0b8050; line-height: 1.2; }
+    .grade-gp { font-size: 10.5px; font-weight: 700; color: #000; margin-top: 1px; }
+    .transcript-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 6px; margin-top: 10px; text-align: center; }
+    .transcript-summary-box .summary-label { font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+    .transcript-summary-box .summary-val { font-size: 15px; font-weight: 800; color: #000; }
+    .transcript-summary-box .summary-val.green-text { color: #0b8050; }
+    .transcript-summary-box .summary-val.status-text { font-size: 16px; }
+    .transcript-signatures-zone { display: flex; justify-content: space-between; margin-top: 36px; font-size: 11.5px; color: #334155; text-align: center; }
+    .transcript-signatures-zone .sig-column { min-width: 150px; }
+    .transcript-signatures-zone .sig-dots { letter-spacing: 1px; color: #94a3b8; margin-bottom: 5px; }
+    .transcript-signatures-zone .sig-title { font-weight: 600; color: #1e293b; }
+    .transcript-footer-line { margin-top: 14px; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 5px; }
   </style>
 </head>
 <body>
@@ -2628,50 +2620,17 @@ export function ResultPanel({ sub }) {
           {currentStudentResult ? (
             <div className="official-marksheet-wrapper" id="official-academic-transcript">
               {/* ========================================================= */}
-              {/* SECTION 1: TOP SECTION (লোগোসহ বিদ্যালয়ের নাম, ঠিকানা, EIIN NO) */}
+              {/* SECTION 1: TOP SECTION (Centered School Header - User Mockup) */}
               {/* ========================================================= */}
-              <div className="marksheet-header">
-                <div className="marksheet-school-logo-zone">
-                  <img
-                    src="/school-logo.png"
-                    alt="School Logo"
-                    className="marksheet-logo-img"
-                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  />
-                  <div className="school-title-text">
-                    <h2>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
-                    <h3>MAGRA PAL'S UNION HIGH SCHOOL</h3>
-                    <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল | স্থাপিত: ১৯৪৬ খ্রি.</p>
-                    <p><b>EIIN: ১১৪২৯০</b> | ঢাকা মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড</p>
-                  </div>
-                </div>
-
-                {/* Dhaka Board Grading Scale Box on Top Right */}
-                <div className="marksheet-scale-box">
-                  <div className="scale-box-title">GRADING SCALE</div>
-                  <table className="marksheet-scale-table">
-                    <thead>
-                      <tr>
-                        <th>Marks %</th>
-                        <th>Grade</th>
-                        <th>GP</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DHAKA_BOARD_GRADING_SCALE.map(g => (
-                        <tr key={g.letter_grade}>
-                          <td>{g.min_pct}-{Math.floor(g.max_pct)}%</td>
-                          <td><b>{g.letter_grade}</b></td>
-                          <td>{g.gpa.toFixed(1)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="transcript-official-header">
+                <h1 className="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+                <div className="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
+                <div className="transcript-school-line">স্থাপিত: ১৯৪৬</div>
+                <div className="transcript-school-eiin">EIIN: 114290</div>
               </div>
 
               {/* ========================================================= */}
-              {/* SECTION 2: MIDDLE SECTION (১ম ছবির মত)                     */}
+              {/* SECTION 2: EXAM TITLE BADGE */}
               {/* ========================================================= */}
               <div className="marksheet-exam-title-badge">
                 <span>
@@ -2679,7 +2638,7 @@ export function ResultPanel({ sub }) {
                 </span>
               </div>
 
-              {/* Student Details Grid (Image 1 Style) */}
+              {/* Student Details Grid */}
               <div className="marksheet-top-info-grid">
                 {/* Left Card */}
                 <div className="marksheet-student-card">
@@ -2715,13 +2674,13 @@ export function ResultPanel({ sub }) {
               </div>
 
               {/* ========================================================= */}
-              {/* SECTION 3: BOTTOM SECTION (২ নং ছবির মত)                   */}
+              {/* SECTION 3: SUBJECTS & MARKS TABLE */}
               {/* ========================================================= */}
               <table className="marksheet-subjects-table marksheet-board-table">
                 <thead>
                   <tr>
                     <th rowSpan="2" style={{ width: '90px' }}>Subject Code</th>
-                    <th rowSpan="2" style={{ textAlign: 'left' }}>Subject Name</th>
+                    <th rowSpan="2" style={{ textAlign: 'center' }}>Subject Name</th>
                     <th colSpan="4">Marks</th>
                     <th rowSpan="2" style={{ width: '100px' }}>Grade</th>
                   </tr>
@@ -2742,18 +2701,15 @@ export function ResultPanel({ sub }) {
                         <tr key={sub.code || sub.subject_id}>
                           <td><b>101</b></td>
                           <td className="text-left">
-                            <b>BANGLA-I</b> <span className="sub-bn-sub">(বাংলা ১ম পত্র)</span>
+                            <b>BANGLA-I</b>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
-                          <td>—</td>
+                          <td rowSpan={hasBanglaPair ? 2 : 1}>—</td>
                           <td><b>{sub.absent ? 0 : sub.total}</b></td>
-                          <td rowSpan={hasBanglaPair ? 2 : 1} className="combined-grade-cell">
-                            <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
-                              {sub.letter_grade}
-                            </div>
-                            <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
-                            {hasBanglaPair && <div className="combined-tag">সমন্বিত গ্রেড</div>}
+                          <td rowSpan={hasBanglaPair ? 2 : 1} className="transcript-grade-cell">
+                            <div className="grade-letter">{sub.letter_grade}</div>
+                            <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
                           </td>
                         </tr>
                       );
@@ -2764,19 +2720,20 @@ export function ResultPanel({ sub }) {
                         <tr key={sub.code || sub.subject_id}>
                           <td><b>102</b></td>
                           <td className="text-left">
-                            <b>BANGLA-II</b> <span className="sub-bn-sub">(বাংলা ২য় পত্র)</span>
+                            <b>BANGLA-II</b>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
-                          <td>—</td>
+                          {/* Practical spanned from row 101 */}
                           <td><b>{sub.absent ? 0 : sub.total}</b></td>
                           {!hasBanglaPair && (
-                            <td className="combined-grade-cell">
-                              <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
-                                {sub.letter_grade}
-                              </div>
-                              <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
-                            </td>
+                            <>
+                              <td>—</td>
+                              <td className="transcript-grade-cell">
+                                <div className="grade-letter">{sub.letter_grade}</div>
+                                <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
+                              </td>
+                            </>
                           )}
                         </tr>
                       );
@@ -2788,18 +2745,15 @@ export function ResultPanel({ sub }) {
                         <tr key={sub.code || sub.subject_id}>
                           <td><b>107</b></td>
                           <td className="text-left">
-                            <b>ENGLISH-I</b> <span className="sub-bn-sub">(ইংরেজি ১ম পত্র)</span>
+                            <b>ENGLISH-I</b>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
-                          <td>—</td>
-                          <td>—</td>
-                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
-                          <td rowSpan={hasEnglishPair ? 2 : 1} className="combined-grade-cell">
-                            <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
-                              {sub.letter_grade}
-                            </div>
-                            <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
-                            {hasEnglishPair && <div className="combined-tag">সমন্বিত গ্রেড</div>}
+                          <td rowSpan={hasEnglishPair ? 2 : 1}>—</td>
+                          <td rowSpan={hasEnglishPair ? 2 : 1}>—</td>
+                          <td rowSpan={hasEnglishPair ? 2 : 1}><b>{hasEnglishPair ? englishCombinedTotal : (sub.absent ? 0 : sub.total)}</b></td>
+                          <td rowSpan={hasEnglishPair ? 2 : 1} className="transcript-grade-cell">
+                            <div className="grade-letter">{sub.letter_grade}</div>
+                            <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
                           </td>
                         </tr>
                       );
@@ -2810,25 +2764,25 @@ export function ResultPanel({ sub }) {
                         <tr key={sub.code || sub.subject_id}>
                           <td><b>108</b></td>
                           <td className="text-left">
-                            <b>ENGLISH-II</b> <span className="sub-bn-sub">(ইংরেজি ২য় পত্র)</span>
+                            <b>ENGLISH-II</b>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
-                          <td>—</td>
-                          <td>—</td>
-                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
                           {!hasEnglishPair && (
-                            <td className="combined-grade-cell">
-                              <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
-                                {sub.letter_grade}
-                              </div>
-                              <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
-                            </td>
+                            <>
+                              <td>—</td>
+                              <td>—</td>
+                              <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                              <td className="transcript-grade-cell">
+                                <div className="grade-letter">{sub.letter_grade}</div>
+                                <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
+                              </td>
+                            </>
                           )}
                         </tr>
                       );
                     }
 
-                    // All other single subjects (109 Math, 111 Islam/Religion, 154 ICT, 136 Physics, 137 Chem, 138 Bio, 150 BGS, 126 Higher Math, etc.)
+                    // All other single subjects
                     const isAbsent = !!sub.absent;
                     const wVal = isAbsent ? 'অনুপস্থিত' : (sub.written_max > 0 ? (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0) : '—');
                     const mVal = isAbsent ? 'অনুপস্থিত' : (sub.mcq_max > 0 ? (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0) : '—');
@@ -2839,18 +2793,14 @@ export function ResultPanel({ sub }) {
                         <td><b>{sub.code}</b></td>
                         <td className="text-left">
                           <b>{getSubjectEnName(sub)}</b>
-                          {sub.name_bn && <span className="sub-bn-sub"> ({sub.name_bn})</span>}
-                          {sub.is_optional && <span className="sub-opt-tag">৪র্থ বিষয় / Optional</span>}
                         </td>
                         <td>{wVal}</td>
                         <td>{mVal}</td>
                         <td>{pVal}</td>
                         <td><b>{isAbsent ? 0 : sub.total}</b></td>
-                        <td>
-                          <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
-                            {sub.letter_grade}
-                          </div>
-                          <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                        <td className="transcript-grade-cell">
+                          <div className="grade-letter">{sub.letter_grade}</div>
+                          <div className="grade-gp">GP {sub.gp.toFixed(2)}</div>
                         </td>
                       </tr>
                     );
@@ -2858,71 +2808,60 @@ export function ResultPanel({ sub }) {
                 </tbody>
               </table>
 
-              {/* SSC Board Combined Subjects Notice */}
-              {isSSC && (
-                <div className="marksheet-policy-note">
-                  📌 <b>বোর্ড সমন্বিত পাস ও গ্রেডিং নীতি (৯ম ও ১০ম শ্রেণি):</b> বাংলা (১ম ও ২য় পত্র মিলিয়ে CQ পাস ৪৬, MCQ পাস ২০, মোট পাস ৬৬) এবং ইংরেজি (১ম ও ২য় পত্র মিলিয়ে মোট পাস ৬৬)। উভয় পত্রের সমন্বিত প্রাপ্ত নম্বরের ভিত্তিতে গ্রেড ও জিপিএ নির্ধারিত হয়েছে।
-                </div>
-              )}
-
-              {/* 4th Subject Bonus Notice (SSC) */}
-              {isSSC && currentStudentResult.bonus_point > 0 && (
-                <div className="marksheet-bonus-note">
-                  💡 <b>৪র্থ বিষয় সুবিধা:</b> ৪র্থ বিষয়ে অতিরিক্ত পয়েন্ট <b>+{currentStudentResult.bonus_point.toFixed(2)}</b> মূল জিপিএ-তে যোগ করা হয়েছে।
-                </div>
-              )}
-
               {/* Summary Cards */}
-              <div className="marksheet-summary-box">
+              <div className="transcript-summary-box">
                 <div>
-                  <div className="summary-unit-title">সর্বমোট প্রাপ্ত নম্বর</div>
-                  <div className="summary-unit-value">{currentStudentResult.total_marks}</div>
+                  <div className="summary-label">সর্বমোট প্রাপ্ত নম্বর</div>
+                  <div className="summary-val">{currentStudentResult.total_marks}</div>
                 </div>
                 <div>
-                  <div className="summary-unit-title">প্রাপ্ত শতকরা (%)</div>
-                  <div className="summary-unit-value">{currentStudentResult.percentage}%</div>
+                  <div className="summary-label">প্রাপ্ত শতকরা (%)</div>
+                  <div className="summary-val">{currentStudentResult.percentage}%</div>
                 </div>
                 <div>
-                  <div className="summary-unit-title">গ্রেড পয়েন্ট (GPA)</div>
-                  <div className={`summary-unit-value ${currentStudentResult.is_pass ? 'passed' : 'failed'}`}>
+                  <div className="summary-label">গ্রেড পয়েন্ট (GPA)</div>
+                  <div className="summary-val green-text">
                     {currentStudentResult.gpa}
                   </div>
                 </div>
                 <div>
-                  <div className="summary-unit-title">চূড়ান্ত লেটার গ্রেড</div>
-                  <div className={`summary-unit-value ${currentStudentResult.is_pass ? 'passed' : 'failed'}`}>
+                  <div className="summary-label">চূড়ান্ত লেটার গ্রেড</div>
+                  <div className="summary-val green-text">
                     {currentStudentResult.final_grade}
                   </div>
                 </div>
                 <div>
-                  <div className="summary-unit-title">ফলাফল স্ট্যাটাস</div>
-                  <div className={`summary-unit-value ${currentStudentResult.is_pass ? 'passed' : 'failed'}`}>
+                  <div className="summary-label">ফলাফল স্ট্যাটাস</div>
+                  <div className="summary-val green-text status-text">
                     {currentStudentResult.result_status}
                   </div>
                 </div>
                 <div>
-                  <div className="summary-unit-title">শ্রেণি মেধা স্থান</div>
-                  <div className="summary-unit-value">
-                    {currentStudentResult.merit ? `${toBnDigits(currentStudentResult.merit)} তম` : '—'}
+                  <div className="summary-label">শ্রেণি মেধা স্থান</div>
+                  <div className="summary-val">
+                    {currentStudentResult.merit ? `${toBnDigits(currentStudentResult.merit)} তম` : '১ তম'}
                   </div>
                 </div>
               </div>
 
               {/* Signature Zone */}
-              <div className="marksheet-signature-zone">
-                <div className="signature-block">
+              <div className="transcript-signatures-zone">
+                <div className="sig-column">
+                  <div className="sig-dots">...........................................</div>
                   <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
                 </div>
-                <div className="signature-block">
+                <div className="sig-column">
+                  <div className="sig-dots">...........................................</div>
                   <div>অভিভাবকের স্বাক্ষর</div>
                 </div>
-                <div className="signature-block">
+                <div className="sig-column">
+                  <div className="sig-dots">...........................................</div>
                   <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
                 </div>
               </div>
 
               {/* Footer info */}
-              <div className="transcript-footer-meta">
+              <div className="transcript-footer-line">
                 <span>ফলাফল প্রকাশের তারিখ: {toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
                 <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
               </div>
