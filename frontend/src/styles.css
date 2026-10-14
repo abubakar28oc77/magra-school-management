@@ -1471,15 +1471,22 @@ button,.btn{touch-action:manipulation}
   font-weight: 600;
 }
 
+/* ==========================================================================
+   ACADEMIC TRANSCRIPT / MARKSHEET A4 OFFICIAL STYLES
+   ========================================================================== */
+
 .official-marksheet-wrapper {
   background: #ffffff;
-  border: 2px solid #0b8050;
-  border-radius: 14px;
-  padding: 32px;
-  max-width: 900px;
+  border: 2px solid #0f172a;
+  outline: 1px solid #94a3b8;
+  outline-offset: -5px;
+  border-radius: 6px;
+  padding: 24px 28px;
+  max-width: 860px;
   margin: 0 auto;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.06);
   color: #0f172a;
+  font-family: 'Noto Sans Bengali', system-ui, sans-serif;
 }
 
 .marksheet-header {
@@ -1487,15 +1494,22 @@ button,.btn{touch-action:manipulation}
   align-items: center;
   justify-content: space-between;
   border-bottom: 2px solid #0b8050;
-  padding-bottom: 16px;
-  margin-bottom: 20px;
-  gap: 16px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  gap: 14px;
 }
 
 .marksheet-school-logo-zone {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex: 1;
+}
+
+.marksheet-logo-img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
 }
 
 .school-monogram {
@@ -1513,110 +1527,221 @@ button,.btn{touch-action:manipulation}
 
 .school-title-text h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 21px;
   color: #0b8050;
   font-weight: 800;
+  line-height: 1.25;
+}
+
+.school-title-text h3 {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #1e3a8a;
+  font-weight: 700;
+  letter-spacing: 0.6px;
 }
 
 .school-title-text p {
-  margin: 2px 0 0 0;
-  font-size: 12.5px;
+  margin: 3px 0 0 0;
+  font-size: 11.5px;
   color: #475569;
+}
+
+.marksheet-scale-box {
+  border: 1px solid #64748b;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #ffffff;
+  min-width: 175px;
+}
+
+.scale-box-title {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-align: center;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 2px 4px;
+  letter-spacing: 0.5px;
+}
+
+.marksheet-scale-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  text-align: center;
+}
+
+.marksheet-scale-table th, .marksheet-scale-table td {
+  border: 1px solid #cbd5e1;
+  padding: 2px 5px;
+}
+
+.marksheet-scale-table th {
+  background: #f1f5f9;
+  font-weight: 700;
+  color: #1e293b;
 }
 
 .marksheet-exam-title-badge {
   text-align: center;
-  margin: 14px 0 18px 0;
+  margin: 12px 0 14px 0;
 }
 
 .marksheet-exam-title-badge span {
   display: inline-block;
   background: #1e293b;
   color: #ffffff;
-  padding: 6px 24px;
+  padding: 6px 26px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.2);
 }
 
 .marksheet-top-info-grid {
   display: grid;
-  grid-template-columns: 2fr 1.2fr;
-  gap: 16px;
-  margin-bottom: 18px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .marksheet-student-card {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 13px;
+  padding: 10px 14px;
+  font-size: 12.5px;
   line-height: 1.8;
 }
 
-.marksheet-scale-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 10.5px;
-  text-align: center;
-}
-
-.marksheet-scale-table th, .marksheet-scale-table td {
-  border: 1px solid #cbd5e1;
-  padding: 2px 4px;
-}
-
-.marksheet-scale-table th {
-  background: #f1f5f9;
-  font-weight: 700;
+.marksheet-student-card .info-row {
+  margin: 2px 0;
 }
 
 .marksheet-subjects-table {
   width: 100%;
   border-collapse: collapse;
-  margin: 16px 0;
-  font-size: 13px;
+  margin: 14px 0;
+  font-size: 12px;
+  border: 1.5px solid #0f172a;
 }
 
 .marksheet-subjects-table th, .marksheet-subjects-table td {
-  border: 1px solid #cbd5e1;
-  padding: 8px 10px;
+  border: 1px solid #64748b;
+  padding: 6px 8px;
   text-align: center;
 }
 
 .marksheet-subjects-table th {
   background: #f1f5f9;
-  color: #1e293b;
+  color: #0f172a;
   font-weight: 700;
+  font-size: 12px;
 }
 
 .marksheet-subjects-table td.text-left {
   text-align: left;
+  padding-left: 10px;
+}
+
+.sub-bn-sub {
+  font-size: 11px;
+  color: #475569;
+  font-weight: normal;
+}
+
+.combined-grade-cell {
+  vertical-align: middle;
+  background: #f8fafc;
+}
+
+.grade-badge {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.grade-badge.pass {
+  color: #0b8050;
+}
+
+.grade-badge.fail {
+  color: #dc2626;
+}
+
+.gp-sub {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #334155;
+  margin-top: 1px;
+}
+
+.combined-tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #0284c7;
+  background: #e0f2fe;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-top: 3px;
+  border: 1px solid #bae6fd;
+}
+
+.sub-opt-tag {
+  display: inline-block;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  border: 1px solid #fde68a;
+}
+
+.marksheet-policy-note {
+  font-size: 11px;
+  color: #1e3a8a;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 10px;
+  border-radius: 5px;
+  margin-top: 8px;
+}
+
+.marksheet-bonus-note {
+  font-size: 11px;
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-top: 6px;
 }
 
 .marksheet-summary-box {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
   background: #f8fafc;
   border: 1.5px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 14px;
-  margin-top: 16px;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 12px;
   text-align: center;
 }
 
 .summary-unit-title {
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: #64748b;
   font-weight: 600;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .summary-unit-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: #0f172a;
 }
@@ -1627,17 +1752,87 @@ button,.btn{touch-action:manipulation}
 .marksheet-signature-zone {
   display: flex;
   justify-content: space-between;
-  margin-top: 48px;
-  padding-top: 14px;
-  font-size: 13px;
-  color: #475569;
+  margin-top: 38px;
+  padding-top: 8px;
+  font-size: 12px;
+  color: #334155;
   text-align: center;
 }
 
 .signature-block {
   border-top: 1px dashed #64748b;
-  padding-top: 6px;
-  min-width: 160px;
+  padding-top: 5px;
+  min-width: 150px;
+}
+
+.transcript-footer-meta {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #64748b;
+  border-top: 1px dotted #cbd5e1;
+  padding-top: 5px;
+}
+
+/* ==========================================================================
+   A4 PRINT STYLES FOR OFFICIAL TRANSCRIPT
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  header, nav, aside, .top, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
+    display: none !important;
+  }
+
+  .admin {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .panel {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .marksheet-console-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .official-marksheet-wrapper {
+    box-shadow: none !important;
+    border: 1.5px solid #000 !important;
+    outline: 1px solid #333 !important;
+    outline-offset: -4px !important;
+    border-radius: 4px !important;
+    padding: 10mm 10mm !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 190mm !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .marksheet-subjects-table th, .marksheet-subjects-table td {
+    border: 1px solid #000 !important;
+  }
+
+  .marksheet-scale-table th, .marksheet-scale-table td {
+    border: 1px solid #000 !important;
+  }
 }
 
 

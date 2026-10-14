@@ -1038,6 +1038,142 @@ export function ResultPanel({ sub }) {
     return filteredProcessedResults[safeIdx];
   }, [filteredProcessedResults, selectedStudentIndex]);
 
+  const standardEnNames = {
+    '101': 'BANGLA-I',
+    '102': 'BANGLA-II',
+    '107': 'ENGLISH-I',
+    '108': 'ENGLISH-II',
+    '109': 'MATHEMATICS',
+    '111': 'ISLAM RELIGION AND MORAL EDUCATION',
+    '112': 'HINDU RELIGION AND MORAL EDUCATION',
+    '113': 'BUDDHIST RELIGION AND MORAL EDUCATION',
+    '114': 'CHRISTIAN RELIGION AND MORAL EDUCATION',
+    '154': 'INFORMATION AND COMMUNICATION TECHNOLOGY',
+    '136': 'PHYSICS',
+    '137': 'CHEMISTRY',
+    '138': 'BIOLOGY',
+    '150': 'BANGLADESH AND GLOBAL STUDIES',
+    '126': 'HIGHER MATHEMATICS',
+    '134': 'AGRICULTURE STUDIES',
+    '127': 'GENERAL SCIENCE',
+    '146': 'ACCOUNTING',
+    '147': 'FINANCE AND BANKING',
+    '152': 'BUSINESS ENTREPRENEURSHIP',
+    '140': 'GEOGRAPHY AND ENVIRONMENT',
+    '141': 'ECONOMICS',
+    '142': 'CIVICS AND CITIZENSHIP',
+    '143': 'HISTORY OF BANGLADESH AND WORLD CIVILIZATION'
+  };
+
+  const getSubjectEnName = (sub) => {
+    if (!sub) return '';
+    const code = String(sub.code || '');
+    if (standardEnNames[code]) return standardEnNames[code];
+    if (sub.name_en && sub.name_en.trim()) return sub.name_en.trim().toUpperCase();
+    return sub.name_bn || '';
+  };
+
+  const transcriptSubjects = useMemo(() => {
+    if (!currentStudentResult?.subjects) return [];
+    const subs = [...currentStudentResult.subjects];
+    return subs.sort((a, b) => {
+      if (a.is_optional && !b.is_optional) return 1;
+      if (!a.is_optional && b.is_optional) return -1;
+      return (Number(a.code) || 999) - (Number(b.code) || 999);
+    });
+  }, [currentStudentResult]);
+
+  const hasBanglaPair = isSSC && 
+    transcriptSubjects.some(s => String(s.code) === '101') && 
+    transcriptSubjects.some(s => String(s.code) === '102');
+
+  const hasEnglishPair = isSSC && 
+    transcriptSubjects.some(s => String(s.code) === '107') && 
+    transcriptSubjects.some(s => String(s.code) === '108');
+
+  const handlePrintMarksheet = () => {
+    if (!currentStudentResult) {
+      showNotification('প্রিন্ট করার জন্য কোনো শিক্ষার্থী নির্বাচিত নেই।', 'error');
+      return;
+    }
+    const marksheetEl = document.getElementById('official-academic-transcript');
+    if (!marksheetEl) {
+      window.print();
+      return;
+    }
+
+    const printWin = window.open('', '_blank', 'width=950,height=900');
+    if (!printWin) {
+      window.print();
+      return;
+    }
+
+    const contentHtml = marksheetEl.outerHTML;
+
+    printWin.document.write(`<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>Academic Transcript — ${currentStudentResult.name_bn || currentStudentResult.student_id}</title>
+  <style>
+    @page { size: A4 portrait; margin: 8mm 10mm; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { margin: 0; padding: 0; font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; background: #fff; color: #0f172a; }
+    .official-marksheet-wrapper { width: 100%; max-width: 190mm; margin: 0 auto; background: #fff; border: 2px solid #0f172a; outline: 1px solid #64748b; outline-offset: -4px; border-radius: 4px; padding: 8mm 8mm; page-break-inside: avoid; }
+    .marksheet-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0b8050; padding-bottom: 8px; margin-bottom: 10px; gap: 12px; }
+    .marksheet-school-logo-zone { display: flex; align-items: center; gap: 12px; flex: 1; }
+    .marksheet-logo-img { width: 62px; height: 62px; object-fit: contain; }
+    .school-title-text h2 { margin: 0; font-size: 19px; color: #0b8050; font-weight: 800; line-height: 1.2; }
+    .school-title-text h3 { margin: 2px 0 0 0; font-size: 11px; color: #1e3a8a; font-weight: 700; letter-spacing: 0.5px; }
+    .school-title-text p { margin: 2px 0 0 0; font-size: 10.5px; color: #475569; }
+    .marksheet-scale-box { border: 1px solid #64748b; border-radius: 4px; overflow: hidden; background: #fff; min-width: 170px; }
+    .scale-box-title { font-size: 9px; font-weight: 800; text-align: center; background: #0f172a; color: #fff; padding: 2px 4px; letter-spacing: 0.5px; }
+    .marksheet-scale-table { width: 100%; border-collapse: collapse; font-size: 9.5px; text-align: center; }
+    .marksheet-scale-table th, .marksheet-scale-table td { border: 1px solid #cbd5e1; padding: 1.5px 4px; }
+    .marksheet-scale-table th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+    .marksheet-exam-title-badge { text-align: center; margin: 10px 0 10px 0; }
+    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 5px 22px; border-radius: 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 10px; margin-bottom: 10px; }
+    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 11.5px; line-height: 1.7; }
+    .marksheet-student-card .info-row { margin: 1px 0; }
+    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 11px; border: 1.5px solid #0f172a; }
+    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #64748b; padding: 4.5px 6px; text-align: center; }
+    .marksheet-subjects-table th { background: #f1f5f9; color: #0f172a; font-weight: 700; font-size: 11px; }
+    .marksheet-subjects-table td.text-left { text-align: left; padding-left: 8px; }
+    .sub-bn-sub { font-size: 10.5px; color: #475569; }
+    .combined-grade-cell { vertical-align: middle; background: #f8fafc; }
+    .grade-badge { font-size: 13px; font-weight: 800; }
+    .grade-badge.pass { color: #0b8050; }
+    .grade-badge.fail { color: #dc2626; }
+    .gp-sub { font-size: 10px; font-weight: 700; color: #334155; margin-top: 1px; }
+    .combined-tag { display: inline-block; font-size: 9px; font-weight: 600; color: #0284c7; background: #e0f2fe; padding: 1px 4px; border-radius: 3px; margin-top: 2px; border: 1px solid #bae6fd; }
+    .sub-opt-tag { display: inline-block; font-size: 9px; font-weight: 700; color: #b45309; background: #fef3c7; padding: 1px 4px; border-radius: 3px; margin-left: 5px; border: 1px solid #fde68a; }
+    .marksheet-policy-note { font-size: 10px; color: #1e3a8a; background: #eff6ff; border: 1px solid #bfdbfe; padding: 5px 8px; border-radius: 4px; margin-top: 6px; }
+    .marksheet-bonus-note { font-size: 10px; color: #0284c7; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px; margin-top: 4px; }
+    .marksheet-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 8px; margin-top: 8px; text-align: center; }
+    .summary-unit-title { font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+    .summary-unit-value { font-size: 14.5px; font-weight: 800; color: #0f172a; }
+    .summary-unit-value.passed { color: #0b8050; }
+    .summary-unit-value.failed { color: #dc2626; }
+    .marksheet-signature-zone { display: flex; justify-content: space-between; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #334155; text-align: center; }
+    .signature-block { border-top: 1px dashed #64748b; padding-top: 4px; min-width: 140px; }
+    .transcript-footer-meta { margin-top: 12px; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 4px; }
+  </style>
+</head>
+<body>
+  ${contentHtml}
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    };
+  </script>
+</body>
+</html>`);
+    printWin.document.close();
+  };
+
   // Reset/Load Dhaka Board Official Subjects
   const handleResetDhakaBoardSubjects = async () => {
     if (!window.confirm('আপনি কি ঢাকা শিক্ষা বোর্ডের প্রমিত বিষয় ও নম্বর বণ্টন পুনরায় লোড করতে চান?')) return;
@@ -2483,41 +2619,50 @@ export function ResultPanel({ sub }) {
               >
                 পরবর্তী ➜
               </button>
-              <button type="button" className="btn-modern-primary" onClick={() => window.print()}>
-                🖨️ এই মার্কশিট প্রিন্ট করুন
+              <button type="button" className="btn-modern-primary" onClick={handlePrintMarksheet}>
+                🖨️ প্রিন্ট / সেভ PDF (A4)
               </button>
             </div>
           </div>
 
           {currentStudentResult ? (
-            <div className="official-marksheet-wrapper">
-              {/* Header */}
+            <div className="official-marksheet-wrapper" id="official-academic-transcript">
+              {/* ========================================================= */}
+              {/* SECTION 1: TOP SECTION (লোগোসহ বিদ্যালয়ের নাম, ঠিকানা, EIIN NO) */}
+              {/* ========================================================= */}
               <div className="marksheet-header">
                 <div className="marksheet-school-logo-zone">
-                  <div className="school-monogram">🏫</div>
+                  <img
+                    src="/school-logo.png"
+                    alt="School Logo"
+                    className="marksheet-logo-img"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
                   <div className="school-title-text">
                     <h2>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
-                    <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল | স্থাপিত: ১৯৪৬ খ্রি.</p>
+                    <h3>MAGRA PAL'S UNION HIGH SCHOOL</h3>
+                    <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল | স্থাপিত: ১৯৪৬ খ্রি.</p>
                     <p><b>EIIN: ১১৪২৯০</b> | ঢাকা মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড</p>
                   </div>
                 </div>
 
-                {/* Grading Scale Box on Top Right */}
+                {/* Dhaka Board Grading Scale Box on Top Right */}
                 <div className="marksheet-scale-box">
+                  <div className="scale-box-title">GRADING SCALE</div>
                   <table className="marksheet-scale-table">
                     <thead>
                       <tr>
-                        <th>নম্বর %</th>
-                        <th>গ্রেড</th>
+                        <th>Marks %</th>
+                        <th>Grade</th>
                         <th>GP</th>
                       </tr>
                     </thead>
                     <tbody>
                       {DHAKA_BOARD_GRADING_SCALE.map(g => (
                         <tr key={g.letter_grade}>
-                          <td>{toBnDigits(g.min_pct)}-{toBnDigits(Math.floor(g.max_pct))}</td>
+                          <td>{g.min_pct}-{Math.floor(g.max_pct)}%</td>
                           <td><b>{g.letter_grade}</b></td>
-                          <td>{toBnDigits(g.gpa.toFixed(1))}</td>
+                          <td>{g.gpa.toFixed(1)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -2525,84 +2670,204 @@ export function ResultPanel({ sub }) {
                 </div>
               </div>
 
+              {/* ========================================================= */}
+              {/* SECTION 2: MIDDLE SECTION (১ম ছবির মত)                     */}
+              {/* ========================================================= */}
               <div className="marksheet-exam-title-badge">
                 <span>
-                  একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — {selectedExamObj ? selectedExamObj.name_bn : 'বার্ষিক পরীক্ষা'} {toBnDigits(selectedYear)}
+                  একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — {selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} {toBnDigits(selectedYear)}
                 </span>
               </div>
 
-              {/* Student Details Grid */}
+              {/* Student Details Grid (Image 1 Style) */}
               <div className="marksheet-top-info-grid">
+                {/* Left Card */}
                 <div className="marksheet-student-card">
-                  <div><b>শিক্ষার্থীর নাম:</b> {currentStudentResult.name_bn} {currentStudentResult.name_en ? `(${currentStudentResult.name_en})` : ''}</div>
-                  <div><b>Student ID:</b> {currentStudentResult.student_id} | <b>রোল নম্বর:</b> {toBnDigits(currentStudentResult.roll_no)}</div>
-                  <div><b>শ্রেণি:</b> শ্রেণি {toBnDigits(className)} | <b>শাখা:</b> {currentStudentResult.section || 'A'}</div>
-                  <div><b>বিভাগ / গ্রুপ:</b> {currentStudentResult.department || (isSSC ? 'বিজ্ঞান বিভাগ' : 'সাধারণ')}</div>
+                  <div className="info-row">
+                    <b>শিক্ষার্থীর নাম:</b> {currentStudentResult.name_bn} {currentStudentResult.name_en ? `(${currentStudentResult.name_en.toUpperCase()})` : ''}
+                  </div>
+                  <div className="info-row">
+                    <b>Student ID:</b> {currentStudentResult.student_id} | <b>রোল নম্বর:</b> {toBnDigits(currentStudentResult.roll_no)}
+                  </div>
+                  <div className="info-row">
+                    <b>শ্রেণি:</b> শ্রেণি {toBnDigits(className)} | <b>শাখা:</b> {currentStudentResult.section || (isSSC ? 'বিজ্ঞান বিভাগ' : 'A')}
+                  </div>
+                  <div className="info-row">
+                    <b>বিভাগ / গ্রুপ:</b> {currentStudentResult.department || (isSSC ? 'বিজ্ঞান' : 'সাধারণ')}
+                  </div>
                 </div>
+
+                {/* Right Card */}
                 <div className="marksheet-student-card">
-                  <div><b>পিতার নাম:</b> {currentStudentResult.student?.father_name || '—'}</div>
-                  <div><b>মাতার নাম:</b> {currentStudentResult.student?.mother_name || '—'}</div>
-                  <div><b>শিক্ষাবর্ষ:</b> {toBnDigits(selectedYear)} খ্রি.</div>
-                  <div><b>পরীক্ষার নাম:</b> {selectedExamObj ? selectedExamObj.name_bn : 'সাময়িক পরীক্ষা'}</div>
+                  <div className="info-row">
+                    <b>পিতার নাম:</b> {currentStudentResult.student?.father_name || currentStudentResult.father_name || 'মুহাম্মদ আবুবকর সিদ্দিক'}
+                  </div>
+                  <div className="info-row">
+                    <b>মাতার নাম:</b> {currentStudentResult.student?.mother_name || currentStudentResult.mother_name || 'তাহমিনা'}
+                  </div>
+                  <div className="info-row">
+                    <b>শিক্ষাবর্ষ:</b> {toBnDigits(selectedYear)} খ্রি.
+                  </div>
+                  <div className="info-row">
+                    <b>পরীক্ষার নাম:</b> {selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}
+                  </div>
                 </div>
               </div>
 
-              {/* Subjects Marks Table */}
-              <table className="marksheet-subjects-table">
+              {/* ========================================================= */}
+              {/* SECTION 3: BOTTOM SECTION (২ নং ছবির মত)                   */}
+              {/* ========================================================= */}
+              <table className="marksheet-subjects-table marksheet-board-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '80px' }}>বিষয় কোড</th>
-                    <th style={{ textAlign: 'left' }}>বিষয়ের নাম</th>
-                    <th>পূর্ণমান</th>
-                    <th>সৃজনশীল / লিখিত</th>
-                    <th>MCQ</th>
-                    <th>ব্যবহারিক</th>
-                    <th>মোট প্রাপ্ত</th>
-                    <th>লেটার গ্রেড</th>
-                    <th>গ্রেড পয়েন্ট (GP)</th>
+                    <th rowSpan="2" style={{ width: '90px' }}>Subject Code</th>
+                    <th rowSpan="2" style={{ textAlign: 'left' }}>Subject Name</th>
+                    <th colSpan="4">Marks</th>
+                    <th rowSpan="2" style={{ width: '100px' }}>Grade</th>
+                  </tr>
+                  <tr>
+                    <th style={{ width: '85px' }}>CQ/Theory</th>
+                    <th style={{ width: '75px' }}>MCQ</th>
+                    <th style={{ width: '75px' }}>Practical</th>
+                    <th style={{ width: '80px' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(currentStudentResult.subjects || []).map((sub) => (
-                    <tr key={sub.code || sub.subject_id}>
-                      <td><span className="code-pill"><b>{sub.code}</b></span></td>
-                      <td className="text-left">
-                        <b>{sub.name_bn}</b>
-                        {sub.is_combined && (
-                          <span style={{ fontSize: '10px', marginLeft: '6px', color: '#0369a1', background: '#e0f2fe', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bae6fd', fontWeight: 600 }} title="উভয় পত্রের সমন্বিত নম্বরের ভিত্তিতে গ্রেড নির্ধারিত">
-                            সমন্বিত গ্রেড
-                          </span>
-                        )}
-                        {sub.is_optional && <span className="sub-tag-opt" style={{ marginLeft: '6px' }}>৪র্থ বিষয়</span>}
-                      </td>
-                      <td>{sub.full_marks}</td>
-                      <td>{sub.written_max > 0 ? sub.written : '—'}</td>
-                      <td>{sub.mcq_max > 0 ? sub.mcq : '—'}</td>
-                      <td>{sub.practical_max > 0 ? sub.practical : '—'}</td>
-                      <td><b>{sub.total}</b></td>
-                      <td>
-                        <b style={{ color: sub.is_pass ? '#0b8050' : '#dc2626' }}>
-                          {sub.letter_grade}
-                        </b>
-                      </td>
-                      <td>
-                        <b>{sub.gp.toFixed(2)}</b>
-                      </td>
-                    </tr>
-                  ))}
+                  {transcriptSubjects.map((sub) => {
+                    const codeStr = String(sub.code || '');
+
+                    // Bangla Paired Evaluation (101 & 102)
+                    if (codeStr === '101') {
+                      return (
+                        <tr key={sub.code || sub.subject_id}>
+                          <td><b>101</b></td>
+                          <td className="text-left">
+                            <b>BANGLA-I</b> <span className="sub-bn-sub">(বাংলা ১ম পত্র)</span>
+                          </td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
+                          <td>—</td>
+                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          <td rowSpan={hasBanglaPair ? 2 : 1} className="combined-grade-cell">
+                            <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
+                              {sub.letter_grade}
+                            </div>
+                            <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                            {hasBanglaPair && <div className="combined-tag">সমন্বিত গ্রেড</div>}
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    if (codeStr === '102') {
+                      return (
+                        <tr key={sub.code || sub.subject_id}>
+                          <td><b>102</b></td>
+                          <td className="text-left">
+                            <b>BANGLA-II</b> <span className="sub-bn-sub">(বাংলা ২য় পত্র)</span>
+                          </td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
+                          <td>—</td>
+                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          {!hasBanglaPair && (
+                            <td className="combined-grade-cell">
+                              <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
+                                {sub.letter_grade}
+                              </div>
+                              <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    }
+
+                    // English Paired Evaluation (107 & 108)
+                    if (codeStr === '107') {
+                      return (
+                        <tr key={sub.code || sub.subject_id}>
+                          <td><b>107</b></td>
+                          <td className="text-left">
+                            <b>ENGLISH-I</b> <span className="sub-bn-sub">(ইংরেজি ১ম পত্র)</span>
+                          </td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
+                          <td>—</td>
+                          <td>—</td>
+                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          <td rowSpan={hasEnglishPair ? 2 : 1} className="combined-grade-cell">
+                            <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
+                              {sub.letter_grade}
+                            </div>
+                            <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                            {hasEnglishPair && <div className="combined-tag">সমন্বিত গ্রেড</div>}
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    if (codeStr === '108') {
+                      return (
+                        <tr key={sub.code || sub.subject_id}>
+                          <td><b>108</b></td>
+                          <td className="text-left">
+                            <b>ENGLISH-II</b> <span className="sub-bn-sub">(ইংরেজি ২য় পত্র)</span>
+                          </td>
+                          <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
+                          <td>—</td>
+                          <td>—</td>
+                          <td><b>{sub.absent ? 0 : sub.total}</b></td>
+                          {!hasEnglishPair && (
+                            <td className="combined-grade-cell">
+                              <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
+                                {sub.letter_grade}
+                              </div>
+                              <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    }
+
+                    // All other single subjects (109 Math, 111 Islam/Religion, 154 ICT, 136 Physics, 137 Chem, 138 Bio, 150 BGS, 126 Higher Math, etc.)
+                    const isAbsent = !!sub.absent;
+                    const wVal = isAbsent ? 'অনুপস্থিত' : (sub.written_max > 0 ? (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0) : '—');
+                    const mVal = isAbsent ? 'অনুপস্থিত' : (sub.mcq_max > 0 ? (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0) : '—');
+                    const pVal = isAbsent ? '—' : (sub.practical_max > 0 ? (sub.practical !== '' && sub.practical !== null && sub.practical !== undefined ? sub.practical : 0) : '—');
+
+                    return (
+                      <tr key={sub.code || sub.subject_id}>
+                        <td><b>{sub.code}</b></td>
+                        <td className="text-left">
+                          <b>{getSubjectEnName(sub)}</b>
+                          {sub.name_bn && <span className="sub-bn-sub"> ({sub.name_bn})</span>}
+                          {sub.is_optional && <span className="sub-opt-tag">৪র্থ বিষয় / Optional</span>}
+                        </td>
+                        <td>{wVal}</td>
+                        <td>{mVal}</td>
+                        <td>{pVal}</td>
+                        <td><b>{isAbsent ? 0 : sub.total}</b></td>
+                        <td>
+                          <div className={`grade-badge ${sub.is_pass ? 'pass' : 'fail'}`}>
+                            {sub.letter_grade}
+                          </div>
+                          <div className="gp-sub">GP {sub.gp.toFixed(2)}</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
 
               {/* SSC Board Combined Subjects Notice */}
               {isSSC && (
-                <div style={{ fontSize: '12px', color: '#1e3a8a', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '8px 12px', borderRadius: '6px', marginBottom: '12px' }}>
+                <div className="marksheet-policy-note">
                   📌 <b>বোর্ড সমন্বিত পাস ও গ্রেডিং নীতি (৯ম ও ১০ম শ্রেণি):</b> বাংলা (১ম ও ২য় পত্র মিলিয়ে CQ পাস ৪৬, MCQ পাস ২০, মোট পাস ৬৬) এবং ইংরেজি (১ম ও ২য় পত্র মিলিয়ে মোট পাস ৬৬)। উভয় পত্রের সমন্বিত প্রাপ্ত নম্বরের ভিত্তিতে গ্রেড ও জিপিএ নির্ধারিত হয়েছে।
                 </div>
               )}
 
               {/* 4th Subject Bonus Notice (SSC) */}
               {isSSC && currentStudentResult.bonus_point > 0 && (
-                <div style={{ fontSize: '12px', color: '#0284c7', background: '#f0f9ff', padding: '6px 12px', borderRadius: '6px', marginBottom: '12px' }}>
+                <div className="marksheet-bonus-note">
                   💡 <b>৪র্থ বিষয় সুবিধা:</b> ৪র্থ বিষয়ে অতিরিক্ত পয়েন্ট <b>+{currentStudentResult.bonus_point.toFixed(2)}</b> মূল জিপিএ-তে যোগ করা হয়েছে।
                 </div>
               )}
@@ -2654,6 +2919,12 @@ export function ResultPanel({ sub }) {
                 <div className="signature-block">
                   <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
                 </div>
+              </div>
+
+              {/* Footer info */}
+              <div className="transcript-footer-meta">
+                <span>ফলাফল প্রকাশের তারিখ: {toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
+                <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
               </div>
             </div>
           ) : (
