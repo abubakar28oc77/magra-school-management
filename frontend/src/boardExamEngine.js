@@ -152,22 +152,124 @@ export function calculateOverallResult(studentClass, subjectResults) {
 
   let totalObtained = 0;
   let totalFull = 0;
-  let hasFailInMain = false;
-  const mainSubjects = [];
-  const optionalSubjects = [];
   const failedSubjects = [];
 
   subjectResults.forEach(sub => {
     totalObtained += (sub.total || 0);
     totalFull += (sub.full_marks || 100);
+  });
 
-    if (isSSC && sub.is_optional) {
-      optionalSubjects.push(sub);
+  const percentage = totalFull > 0 ? ((totalObtained / totalFull) * 100).toFixed(1) : '0.0';
+
+  if (!isSSC) {
+    // Classes 6-8 (JSC Pattern)
+    let hasFailInMain = false;
+    const mainSubjects = [];
+
+    subjectResults.forEach(sub => {
+      mainSubjects.push(sub);
+      if (!sub.is_pass) {
+        hasFailInMain = true;
+        failedSubjects.push(sub.name_bn);
+      }
+    });
+
+    if (hasFailInMain || mainSubjects.length === 0) {
+      return {
+        result_status: 'অকৃতকার্য',
+        gpa: '0.00',
+        final_grade: 'F',
+        total_marks: totalObtained,
+        total_full_marks: totalFull,
+        percentage,
+        is_pass: false,
+        failed_count: failedSubjects.length,
+        failed_subjects: failedSubjects,
+        bonus_point: 0,
+        subject_count: subjectResults.length
+      };
+    }
+
+    const rawGpa = mainSubjects.reduce((sum, s) => sum + s.gp, 0) / mainSubjects.length;
+    const finalGpaNum = Math.min(5.00, Number(rawGpa.toFixed(2)));
+    const gpaStr = finalGpaNum.toFixed(2);
+    const final_grade = getFinalGradeFromGpa(finalGpaNum);
+
+    return {
+      result_status: 'উত্তীর্ণ',
+      gpa: gpaStr,
+      final_grade,
+      total_marks: totalObtained,
+      total_full_marks: totalFull,
+      percentage,
+      is_pass: true,
+      failed_count: failedSubjects.length,
+      failed_subjects: failedSubjects,
+      bonus_point: 0,
+      subject_count: subjectResults.length
+    };
+  }
+
+  // ==================== SSC PATTERN (Classes 9 & 10) ====================
+  // Combined Courses:
+  // 1. Bangla (101 & 102 as 1 composite course)
+  // 2. English (107 & 108 as 1 composite course)
+  // 3. Other Core/Group Subjects
+  // 4. Optional 4th Subject (bonus above GP 2.0)
+  const mainCourses = [];
+  const optionalCourses = [];
+  let hasFailInMain = false;
+
+  const sub101 = subjectResults.find(s => String(s.code) === '101');
+  const sub102 = subjectResults.find(s => String(s.code) === '102');
+  const sub107 = subjectResults.find(s => String(s.code) === '107');
+  const sub108 = subjectResults.find(s => String(s.code) === '108');
+
+  // Bangla Combined Course (101 + 102)
+  if (sub101 || sub102) {
+    const isPass = sub101 ? sub101.is_pass : (sub102 ? sub102.is_pass : false);
+    const gp = sub101 ? sub101.gp : (sub102 ? sub102.gp : 0.0);
+    mainCourses.push({
+      name: 'বাংলা (১ম ও ২য় পত্র)',
+      is_pass: isPass,
+      gp
+    });
+    if (!isPass) {
+      hasFailInMain = true;
+      failedSubjects.push('বাংলা (১ম ও ২য় পত্র)');
+    }
+  }
+
+  // English Combined Course (107 + 108)
+  if (sub107 || sub108) {
+    const isPass = sub107 ? sub107.is_pass : (sub108 ? sub108.is_pass : false);
+    const gp = sub107 ? sub107.gp : (sub108 ? sub108.gp : 0.0);
+    mainCourses.push({
+      name: 'ইংরেজি (১ম ও ২য় পত্র)',
+      is_pass: isPass,
+      gp
+    });
+    if (!isPass) {
+      hasFailInMain = true;
+      failedSubjects.push('ইংরেজি (১ম ও ২য় পত্র)');
+    }
+  }
+
+  // Remaining subjects (Math, Religion, Group subjects, ICT, etc.)
+  subjectResults.forEach(sub => {
+    if (['101', '102', '107', '108'].includes(String(sub.code))) return;
+
+    if (sub.is_optional) {
+      optionalCourses.push(sub);
       if (!sub.is_pass) {
         failedSubjects.push(`${sub.name_bn} (৪র্থ বিষয়)`);
       }
     } else {
-      mainSubjects.push(sub);
+      mainCourses.push({
+        name: sub.name_bn,
+        is_pass: sub.is_pass,
+        gp: sub.gp
+      });
       if (!sub.is_pass) {
         hasFailInMain = true;
         failedSubjects.push(sub.name_bn);
@@ -175,9 +277,7 @@ export function calculateOverallResult(studentClass, subjectResults) {
     }
   });
 
-  const percentage = totalFull > 0 ? ((totalObtained / totalFull) * 100).toFixed(1) : '0.0';
-
-  if (hasFailInMain || mainSubjects.length === 0) {
+  if (hasFailInMain || mainCourses.length === 0) {
     return {
       result_status: 'অকৃতকার্য',
       gpa: '0.00',
@@ -189,22 +289,23 @@ export function calculateOverallResult(studentClass, subjectResults) {
       failed_count: failedSubjects.length,
       failed_subjects: failedSubjects,
       bonus_point: 0,
-      subject_count: subjectResults.length
+      subject_count: subjectResults.length,
+      main_course_count: mainCourses.length
     };
   }
 
-  // All main subjects passed!
-  const mainGpSum = mainSubjects.reduce((sum, s) => sum + s.gp, 0);
+  // All main courses passed!
+  const mainGpSum = mainCourses.reduce((sum, s) => sum + s.gp, 0);
   let bonusPoint = 0;
 
-  if (isSSC && optionalSubjects.length > 0) {
-    const opt = optionalSubjects[0];
+  if (optionalCourses.length > 0) {
+    const opt = optionalCourses[0];
     if (opt.is_pass && opt.gp > 2.0) {
       bonusPoint = opt.gp - 2.0;
     }
   }
 
-  const rawGpa = (mainGpSum + bonusPoint) / mainSubjects.length;
+  const rawGpa = (mainGpSum + bonusPoint) / mainCourses.length;
   const finalGpaNum = Math.min(5.00, Number(rawGpa.toFixed(2)));
   const gpaStr = finalGpaNum.toFixed(2);
   const final_grade = getFinalGradeFromGpa(finalGpaNum);
@@ -220,7 +321,8 @@ export function calculateOverallResult(studentClass, subjectResults) {
     failed_count: failedSubjects.length,
     failed_subjects: failedSubjects,
     bonus_point: Number(bonusPoint.toFixed(2)),
-    subject_count: subjectResults.length
+    subject_count: subjectResults.length,
+    main_course_count: mainCourses.length
   };
 }
 
@@ -280,8 +382,10 @@ export function getStudentApplicableSubjects(student, allSubjects) {
 
 /**
  * Process entire class result matrix, assign Merit Positions (মেধা স্থান)
+ * Fully supports Dhaka Board Combined Bangla (101+102) & English (107+108) for Classes 9 & 10.
  */
 export function processClassResults(students, subjects, marksList, className, examId) {
+  const isSSC = ['9', '10', '৯', '১০'].includes(String(className));
   const classStudents = students.filter(s => s && String(s.class_name) === String(className));
   
   // Build lookup map for marks: `${exam_id}_${student_id}_${subject_id}`
@@ -295,14 +399,206 @@ export function processClassResults(students, subjects, marksList, className, ex
 
   const studentResults = classStudents.map(student => {
     const applicableSubjects = getStudentApplicableSubjects(student, subjects);
-    
-    const subjectEvals = applicableSubjects.map(sub => {
-      const rec = marksMap.get(`${student.id}_${sub.id}`) || 
-                  marksMap.get(`${student.student_id}_${sub.id}`) ||
-                  marksMap.get(`${student.id}_${sub.code}`) ||
-                  marksMap.get(`${student.student_id}_${sub.code}`);
-      return calculateSubjectGrade(sub, rec);
-    });
+
+    const getRec = (sub) => {
+      if (!sub) return null;
+      return marksMap.get(`${student.id}_${sub.id}`) || 
+             marksMap.get(`${student.student_id}_${sub.id}`) ||
+             marksMap.get(`${student.id}_${sub.code}`) ||
+             marksMap.get(`${student.student_id}_${sub.code}`) || null;
+    };
+
+    let subjectEvals = [];
+
+    if (!isSSC) {
+      // Classes 6-8: standard individual evaluation
+      subjectEvals = applicableSubjects.map(sub => {
+        const rec = getRec(sub);
+        return calculateSubjectGrade(sub, rec);
+      });
+    } else {
+      // Classes 9 & 10 (SSC Pattern):
+      // Bangla 1st (101) + Bangla 2nd (102) Combined: CQ>=46, MCQ>=20, Total>=66
+      // English 1st (107) + English 2nd (108) Combined: Total>=66
+      const sub101 = applicableSubjects.find(s => String(s.code) === '101');
+      const sub102 = applicableSubjects.find(s => String(s.code) === '102');
+      const sub107 = applicableSubjects.find(s => String(s.code) === '107');
+      const sub108 = applicableSubjects.find(s => String(s.code) === '108');
+
+      // 1. Evaluate Combined Bangla
+      const rec101 = getRec(sub101);
+      const rec102 = getRec(sub102);
+
+      const w1 = rec101?.written !== '' && rec101?.written !== null && rec101?.written !== undefined ? Number(rec101.written) : 0;
+      const m1 = rec101?.mcq !== '' && rec101?.mcq !== null && rec101?.mcq !== undefined ? Number(rec101.mcq) : 0;
+      const t1 = w1 + m1;
+
+      const w2 = rec102?.written !== '' && rec102?.written !== null && rec102?.written !== undefined ? Number(rec102.written) : 0;
+      const m2 = rec102?.mcq !== '' && rec102?.mcq !== null && rec102?.mcq !== undefined ? Number(rec102.mcq) : 0;
+      const t2 = w2 + m2;
+
+      const banglaCombinedCQ = w1 + w2;
+      const banglaCombinedMCQ = m1 + m2;
+      const banglaCombinedTotal = banglaCombinedCQ + banglaCombinedMCQ;
+
+      // Board rules: Combined CQ pass 46, Combined MCQ pass 20, Total pass 66
+      const passBanglaCQ = banglaCombinedCQ >= 46;
+      const passBanglaMCQ = banglaCombinedMCQ >= 20;
+      const passBanglaTotal = banglaCombinedTotal >= 66;
+
+      const isBanglaAbsent = !!(rec101?.absent && rec102?.absent);
+      const isBanglaPass = !isBanglaAbsent && passBanglaCQ && passBanglaMCQ && passBanglaTotal;
+
+      const banglaPct = (banglaCombinedTotal / 200) * 100;
+      const banglaGradeObj = isBanglaPass ? getLetterAndPoint(banglaPct) : { letter: 'F', gp: 0.0 };
+      const banglaLetter = banglaGradeObj.letter;
+      const banglaGp = banglaGradeObj.gp;
+
+      const banglaFailReasons = [];
+      if (!passBanglaCQ) banglaFailReasons.push(`বাংলা CQ (${banglaCombinedCQ} < ৪৬)`);
+      if (!passBanglaMCQ) banglaFailReasons.push(`বাংলা MCQ (${banglaCombinedMCQ} < ২০)`);
+      if (!passBanglaTotal) banglaFailReasons.push(`বাংলা মোট (${banglaCombinedTotal} < ৬৬)`);
+
+      // 2. Evaluate Combined English
+      const rec107 = getRec(sub107);
+      const rec108 = getRec(sub108);
+
+      const w107 = rec107?.written !== '' && rec107?.written !== null && rec107?.written !== undefined ? Number(rec107.written) : 0;
+      const w108 = rec108?.written !== '' && rec108?.written !== null && rec108?.written !== undefined ? Number(rec108.written) : 0;
+      const englishCombinedTotal = w107 + w108;
+
+      // Board rules: English Combined Total pass 66
+      const passEnglishTotal = englishCombinedTotal >= 66;
+      const isEnglishAbsent = !!(rec107?.absent && rec108?.absent);
+      const isEnglishPass = !isEnglishAbsent && passEnglishTotal;
+
+      const englishPct = (englishCombinedTotal / 200) * 100;
+      const englishGradeObj = isEnglishPass ? getLetterAndPoint(englishPct) : { letter: 'F', gp: 0.0 };
+      const englishLetter = englishGradeObj.letter;
+      const englishGp = englishGradeObj.gp;
+
+      const englishFailReasons = [];
+      if (!passEnglishTotal) englishFailReasons.push(`ইংরেজি মোট (${englishCombinedTotal} < ৬৬)`);
+
+      subjectEvals = applicableSubjects.map(sub => {
+        if (sub.code === '101') {
+          return {
+            subject_id: sub.id,
+            code: sub.code,
+            name_bn: sub.name_bn,
+            name_en: sub.name_en || '',
+            department: sub.department || 'আবশ্যিক',
+            is_optional: false,
+            full_marks: 100,
+            written_max: 70,
+            mcq_max: 30,
+            practical_max: 0,
+            written: w1,
+            mcq: m1,
+            practical: 0,
+            total: t1,
+            percentage: Number(((t1 / 100) * 100).toFixed(1)),
+            letter_grade: banglaLetter,
+            gp: banglaGp,
+            is_pass: isBanglaPass,
+            absent: !!rec101?.absent,
+            fail_reason: banglaFailReasons.join(', '),
+            is_combined: true,
+            combined_title: 'বাংলা (১ম ও ২য় পত্র)',
+            combined_total: banglaCombinedTotal,
+            combined_cq: banglaCombinedCQ,
+            combined_mcq: banglaCombinedMCQ
+          };
+        }
+        if (sub.code === '102') {
+          return {
+            subject_id: sub.id,
+            code: sub.code,
+            name_bn: sub.name_bn,
+            name_en: sub.name_en || '',
+            department: sub.department || 'আবশ্যিক',
+            is_optional: false,
+            full_marks: 100,
+            written_max: 70,
+            mcq_max: 30,
+            practical_max: 0,
+            written: w2,
+            mcq: m2,
+            practical: 0,
+            total: t2,
+            percentage: Number(((t2 / 100) * 100).toFixed(1)),
+            letter_grade: banglaLetter,
+            gp: banglaGp,
+            is_pass: isBanglaPass,
+            absent: !!rec102?.absent,
+            fail_reason: banglaFailReasons.join(', '),
+            is_combined: true,
+            combined_title: 'বাংলা (১ম ও ২য় পত্র)',
+            combined_total: banglaCombinedTotal,
+            combined_cq: banglaCombinedCQ,
+            combined_mcq: banglaCombinedMCQ
+          };
+        }
+        if (sub.code === '107') {
+          return {
+            subject_id: sub.id,
+            code: sub.code,
+            name_bn: sub.name_bn,
+            name_en: sub.name_en || '',
+            department: sub.department || 'আবশ্যিক',
+            is_optional: false,
+            full_marks: 100,
+            written_max: 100,
+            mcq_max: 0,
+            practical_max: 0,
+            written: w107,
+            mcq: 0,
+            practical: 0,
+            total: w107,
+            percentage: Number(((w107 / 100) * 100).toFixed(1)),
+            letter_grade: englishLetter,
+            gp: englishGp,
+            is_pass: isEnglishPass,
+            absent: !!rec107?.absent,
+            fail_reason: englishFailReasons.join(', '),
+            is_combined: true,
+            combined_title: 'ইংরেজি (১ম ও ২য় পত্র)',
+            combined_total: englishCombinedTotal
+          };
+        }
+        if (sub.code === '108') {
+          return {
+            subject_id: sub.id,
+            code: sub.code,
+            name_bn: sub.name_bn,
+            name_en: sub.name_en || '',
+            department: sub.department || 'আবশ্যিক',
+            is_optional: false,
+            full_marks: 100,
+            written_max: 100,
+            mcq_max: 0,
+            practical_max: 0,
+            written: w108,
+            mcq: 0,
+            practical: 0,
+            total: w108,
+            percentage: Number(((w108 / 100) * 100).toFixed(1)),
+            letter_grade: englishLetter,
+            gp: englishGp,
+            is_pass: isEnglishPass,
+            absent: !!rec108?.absent,
+            fail_reason: englishFailReasons.join(', '),
+            is_combined: true,
+            combined_title: 'ইংরেজি (১ম ও ২য় পত্র)',
+            combined_total: englishCombinedTotal
+          };
+        }
+
+        // Regular subjects
+        const rec = getRec(sub);
+        return calculateSubjectGrade(sub, rec);
+      });
+    }
 
     const overall = calculateOverallResult(className, subjectEvals);
 

@@ -2351,6 +2351,12 @@ export function ResultPanel({ sub }) {
             </div>
           </div>
 
+          {isSSC && (
+            <div style={{ padding: '8px 16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', marginBottom: '12px', fontSize: '13px', color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>📌 <b>৯ম ও ১০ম শ্রেণি বোর্ড গ্রেডিং নিয়ম:</b> বাংলা (১ম ও ২য় পত্র মিলিয়ে CQ পাস ৪৬, MCQ পাস ২০, মোট পাস ৬৬) এবং ইংরেজি (১ম ও ২য় পত্র মিলিয়ে মোট পাস ৬৬)। উভয় পত্রের সমন্বিত নম্বরের ভিত্তিতে গ্রেড ও জিপিএ নির্ধারিত।</span>
+            </div>
+          )}
+
           <div className="tabulation-matrix-container">
             <table className="tabulation-table">
               <thead>
@@ -2406,7 +2412,10 @@ export function ResultPanel({ sub }) {
                           <td className="tab-sub-col">{found.written_max > 0 ? found.written : '—'}</td>
                           <td className="tab-sub-col">{found.mcq_max > 0 ? found.mcq : '—'}</td>
                           <td className="tab-sub-col">{found.practical_max > 0 ? found.practical : '—'}</td>
-                          <td className={`tab-sub-col ${found.is_pass ? 'tab-pass-cell' : 'tab-fail-cell'}`}>
+                          <td
+                            className={`tab-sub-col ${found.is_pass ? 'tab-pass-cell' : 'tab-fail-cell'}`}
+                            title={found.is_combined ? `${found.combined_title}: মোট প্রাপ্ত ${found.combined_total}, গ্রেড ${found.letter_grade}` : ''}
+                          >
                             <b>{found.total}</b>
                             <div style={{ fontSize: '10px' }}>{found.letter_grade}</div>
                           </td>
@@ -2559,6 +2568,11 @@ export function ResultPanel({ sub }) {
                       <td><span className="code-pill"><b>{sub.code}</b></span></td>
                       <td className="text-left">
                         <b>{sub.name_bn}</b>
+                        {sub.is_combined && (
+                          <span style={{ fontSize: '10px', marginLeft: '6px', color: '#0369a1', background: '#e0f2fe', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bae6fd', fontWeight: 600 }} title="উভয় পত্রের সমন্বিত নম্বরের ভিত্তিতে গ্রেড নির্ধারিত">
+                            সমন্বিত গ্রেড
+                          </span>
+                        )}
                         {sub.is_optional && <span className="sub-tag-opt" style={{ marginLeft: '6px' }}>৪র্থ বিষয়</span>}
                       </td>
                       <td>{sub.full_marks}</td>
@@ -2578,6 +2592,13 @@ export function ResultPanel({ sub }) {
                   ))}
                 </tbody>
               </table>
+
+              {/* SSC Board Combined Subjects Notice */}
+              {isSSC && (
+                <div style={{ fontSize: '12px', color: '#1e3a8a', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '8px 12px', borderRadius: '6px', marginBottom: '12px' }}>
+                  📌 <b>বোর্ড সমন্বিত পাস ও গ্রেডিং নীতি (৯ম ও ১০ম শ্রেণি):</b> বাংলা (১ম ও ২য় পত্র মিলিয়ে CQ পাস ৪৬, MCQ পাস ২০, মোট পাস ৬৬) এবং ইংরেজি (১ম ও ২য় পত্র মিলিয়ে মোট পাস ৬৬)। উভয় পত্রের সমন্বিত প্রাপ্ত নম্বরের ভিত্তিতে গ্রেড ও জিপিএ নির্ধারিত হয়েছে।
+                </div>
+              )}
 
               {/* 4th Subject Bonus Notice (SSC) */}
               {isSSC && currentStudentResult.bonus_point > 0 && (
