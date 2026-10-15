@@ -327,9 +327,10 @@ export function calculateOverallResult(studentClass, subjectResults) {
 }
 
 /**
- * Filter applicable subjects for a student based on Class and Department (Group)
+ * Filter applicable subjects for a student based on Class, Religion, Department (Group),
+ * and 4th Subject rules (Science: either 126 or 134; Humanities & Business Studies: always 134).
  */
-export function getStudentApplicableSubjects(student, allSubjects) {
+export function getStudentApplicableSubjects(student, allSubjects, marksMap = null) {
   const cls = String(student.class_name || '6');
   const isSSC = ['9', '10', '৯', '১০'].includes(cls);
 
@@ -340,12 +341,12 @@ export function getStudentApplicableSubjects(student, allSubjects) {
     // Return standard core subjects (Compulsory + Islam/Hindu by religion if specified)
     const stRel = (student.religion || '').trim();
     return classSubs.filter(s => {
-      const isRel = ['111', '112', '113', '114'].includes(s.code);
+      const isRel = ['111', '112', '113', '114'].includes(String(s.code));
       if (!isRel) return true;
-      if (stRel.includes('হিন্দু') || stRel.includes('hindu')) return s.code === '112';
-      if (stRel.includes('বৌদ্ধ') || stRel.includes('buddhist')) return s.code === '113';
-      if (stRel.includes('খ্রিষ্টান') || stRel.includes('christian')) return s.code === '114';
-      return s.code === '111'; // Default Islam
+      if (stRel.includes('হিন্দু') || stRel.includes('hindu')) return String(s.code) === '112';
+      if (stRel.includes('বৌদ্ধ') || stRel.includes('buddhist')) return String(s.code) === '113';
+      if (stRel.includes('খ্রিষ্টান') || stRel.includes('christian')) return String(s.code) === '114';
+      return String(s.code) === '111'; // Default Islam
     });
   }
 
@@ -353,29 +354,95 @@ export function getStudentApplicableSubjects(student, allSubjects) {
   const stDept = (student.department || student.group_name || student.group || 'বিজ্ঞান').trim();
   const stRel = (student.religion || '').trim();
 
+  const isHumanities = stDept.includes('মানবিক') || stDept.toLowerCase().includes('humanities') || stDept.includes('আর্টস');
+  const isBusiness = stDept.includes('ব্যবসায়') || stDept.toLowerCase().includes('commerce') || stDept.includes('বাণিজ্য');
+  const isScience = !isHumanities && !isBusiness; // Default is Science
+
+  // Determine student's 4th subject:
+  // 1. Humanities & Business Studies: 4th subject is ALWAYS Agriculture Studies (134)
+  // 2. Science: 4th subject is EITHER Higher Mathematics (126) OR Agriculture Studies (134) - never both!
+  let chosenScienceFourthCode = '126'; // Standard Science default
+
+  if (isScience) {
+    const explicit = (
+      student.fourth_subject || 
+      student.fourth_subject_code || 
+      student.optional_subject || 
+      student.optional_subject_name || 
+      student.elective_subject || 
+      ''
+    ).toString().toLowerCase();
+
+    if (explicit.includes('134') || explicit.includes('কৃষি') || explicit.includes('agri')) {
+      chosenScienceFourthCode = '134';
+    } else if (explicit.includes('126') || explicit.includes('উচ্চতর') || explicit.includes('গণিত') || explicit.includes('higher') || explicit.includes('math')) {
+      chosenScienceFourthCode = '126';
+    } else if (marksMap) {
+      // Check if student has marks in 134 vs 126
+      const sId = student.id;
+      const stRollId = student.student_id;
+      const rec134 = (sId && marksMap.get(`${sId}_134`)) || 
+                     (stRollId && marksMap.get(`${stRollId}_134`)) ||
+                     (sId && marksMap.get(`${sId}_sub-10-134-sci`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-10-134-sci`)) ||
+                     (sId && marksMap.get(`${sId}_sub-9-134-sci`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-9-134-sci`));
+
+      const rec126 = (sId && marksMap.get(`${sId}_126`)) || 
+                     (stRollId && marksMap.get(`${stRollId}_126`)) ||
+                     (sId && marksMap.get(`${sId}_sub-10-126`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-10-126`)) ||
+                     (sId && marksMap.get(`${sId}_sub-9-126`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-9-126`));
+
+      const has134 = rec134 && !rec134.absent && (Number(rec134.total) > 0 || Number(rec134.written) > 0 || Number(rec134.mcq) > 0 || Number(rec134.practical) > 0);
+      const has126 = rec126 && !rec126.absent && (Number(rec126.total) > 0 || Number(rec126.written) > 0 || Number(rec126.mcq) > 0 || Number(rec126.practical) > 0);
+
+      if (has134 && !has126) {
+        chosenScienceFourthCode = '134';
+      } else if (has126 && !has134) {
+        chosenScienceFourthCode = '126';
+      } else {
+        chosenScienceFourthCode = '126';
+      }
+    }
+  }
+
   return classSubs.filter(s => {
-    // Religion check
-    const isRel = ['111', '112', '113', '114'].includes(s.code);
+    // 1. Religion check
+    const isRel = ['111', '112', '113', '114'].includes(String(s.code));
     if (isRel) {
-      if (stRel.includes('হিন্দু') || stRel.includes('hindu')) return s.code === '112';
-      if (stRel.includes('বৌদ্ধ') || stRel.includes('buddhist')) return s.code === '113';
-      if (stRel.includes('খ্রিষ্টান') || stRel.includes('christian')) return s.code === '114';
-      return s.code === '111';
+      if (stRel.includes('হিন্দু') || stRel.includes('hindu')) return String(s.code) === '112';
+      if (stRel.includes('বৌদ্ধ') || stRel.includes('buddhist')) return String(s.code) === '113';
+      if (stRel.includes('খ্রিষ্টান') || stRel.includes('christian')) return String(s.code) === '114';
+      return String(s.code) === '111';
     }
 
+    // 2. Compulsory subjects
     if (s.department === 'আবশ্যিক') return true;
 
-    if (stDept.includes('বিজ্ঞান') || stDept.toLowerCase().includes('science')) {
-      return s.department === 'বিজ্ঞান';
-    }
-    if (stDept.includes('মানবিক') || stDept.toLowerCase().includes('humanities') || stDept.includes('আর্টস')) {
-      return s.department === 'মানবিক';
-    }
-    if (stDept.includes('ব্যবসায়') || stDept.toLowerCase().includes('commerce') || stDept.includes('বাণিজ্য')) {
-      return s.department === 'ব্যবসায় শিক্ষা';
+    // 3. Science Group: only chosen 4th subject (either 126 or 134)
+    if (isScience) {
+      if (s.department !== 'বিজ্ঞান') return false;
+      if (String(s.code) === '126' || String(s.code) === '134') {
+        return String(s.code) === chosenScienceFourthCode;
+      }
+      return true;
     }
 
-    // Default to Science if unspecified
+    // 4. Humanities Group: 4th subject is ALWAYS 134 (Agriculture Studies). Exclude 151 (Home Science).
+    if (isHumanities) {
+      if (s.department !== 'মানবিক') return false;
+      if (String(s.code) === '151') return false;
+      return true;
+    }
+
+    // 5. Business Studies Group: 4th subject is ALWAYS 134 (Agriculture Studies).
+    if (isBusiness) {
+      if (s.department !== 'ব্যবসায় শিক্ষা') return false;
+      return true;
+    }
+
     return s.department === 'বিজ্ঞান';
   });
 }
@@ -398,7 +465,7 @@ export function processClassResults(students, subjects, marksList, className, ex
   });
 
   const studentResults = classStudents.map(student => {
-    const applicableSubjects = getStudentApplicableSubjects(student, subjects);
+    const applicableSubjects = getStudentApplicableSubjects(student, subjects, marksMap);
 
     const getRec = (sub) => {
       if (!sub) return null;

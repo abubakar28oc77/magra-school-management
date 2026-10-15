@@ -275,6 +275,8 @@ export function ResultPanel({ sub }) {
     return subjects.filter(s => {
       if (s.class_name && String(s.class_name) !== String(className)) return false;
       if (!isSSC) return true;
+      // In Humanities & Business Studies: 4th subject is always 134 (Agriculture Studies). Exclude 151 (Home Science).
+      if (String(s.code) === '151') return false;
       if (department === 'all' || department === 'সকল বিভাগ') return true;
       return s.department === 'আবশ্যিক' || matchesStudentGroup({ department: s.department }, department);
     });
@@ -1075,7 +1077,42 @@ export function ResultPanel({ sub }) {
 
   const transcriptSubjects = useMemo(() => {
     if (!currentStudentResult?.subjects) return [];
-    const subs = [...currentStudentResult.subjects];
+    let subs = [...currentStudentResult.subjects];
+
+    // Ensure only 1 4th subject appears on transcript:
+    // For Science: either 126 or 134 (never both)
+    const has126 = subs.some(s => String(s.code) === '126');
+    const has134 = subs.some(s => String(s.code) === '134');
+    if (has126 && has134) {
+      const sub126 = subs.find(s => String(s.code) === '126');
+      const sub134 = subs.find(s => String(s.code) === '134');
+      const st = currentStudentResult.student || currentStudentResult;
+      const explicit = (st.fourth_subject || st.fourth_subject_code || st.optional_subject || '').toString().toLowerCase();
+
+      let keepCode = '126';
+      if (explicit.includes('134') || explicit.includes('কৃষি')) {
+        keepCode = '134';
+      } else if (explicit.includes('126') || explicit.includes('উচ্চতর') || explicit.includes('গণিত')) {
+        keepCode = '126';
+      } else {
+        const m126 = !sub126?.absent && (Number(sub126?.total) > 0 || Number(sub126?.written) > 0 || Number(sub126?.mcq) > 0 || Number(sub126?.practical) > 0);
+        const m134 = !sub134?.absent && (Number(sub134?.total) > 0 || Number(sub134?.written) > 0 || Number(sub134?.mcq) > 0 || Number(sub134?.practical) > 0);
+        if (m134 && !m126) keepCode = '134';
+        else keepCode = '126';
+      }
+      subs = subs.filter(s => {
+        const code = String(s.code);
+        if (code === '126' || code === '134') return code === keepCode;
+        return true;
+      });
+    }
+
+    // For Humanities & Business Studies: 4th subject is always 134 (Agriculture Studies). Exclude 151 (Home Science).
+    const stGroup = (currentStudentResult.department || currentStudentResult.student?.department || '').toLowerCase();
+    if (stGroup.includes('মানবিক') || stGroup.includes('ব্যবসায়') || stGroup.includes('commerce') || stGroup.includes('business')) {
+      subs = subs.filter(s => String(s.code) !== '151');
+    }
+
     return subs.sort((a, b) => {
       if (a.is_optional && !b.is_optional) return 1;
       if (!a.is_optional && b.is_optional) return -1;
