@@ -16,11 +16,27 @@ const api = requestApi;
 export function matchesStudentGroup(student, deptFilter) {
   if (!student) return false;
   if (!deptFilter || deptFilter === 'all' || deptFilter === 'সকল বিভাগ') return true;
-  const prio = getStudentGroupPriority(student);
-  const filterStr = String(deptFilter).toLowerCase();
-  if (filterStr.includes('বিজ্ঞান') || filterStr.includes('science') || filterStr.includes('sci')) return prio === 1;
-  if (filterStr.includes('মানবিক') || filterStr.includes('humanities') || filterStr.includes('hum') || filterStr.includes('arts')) return prio === 2;
-  if (filterStr.includes('ব্যবসা') || filterStr.includes('বাণিজ্য') || filterStr.includes('business') || filterStr.includes('commerce') || filterStr.includes('bs')) return prio === 3;
+
+  const f = String(deptFilter).toLowerCase().trim();
+  const wantSci = f.includes('বিজ্ঞান') || f.includes('science') || f.includes('sci');
+  const wantHum = f.includes('মানবিক') || f.includes('humanities') || f.includes('hum') || f.includes('arts');
+  const wantBus = f.includes('ব্যবসা') || f.includes('ব্যবসায়') || f.includes('ব্যবসায়') || f.includes('বাণিজ্য') || f.includes('business') || f.includes('commerce') || f.includes('bs');
+
+  const s = student.student || student;
+  const rawDept = String(s.department || s.group_name || s.group || s.section || s.student_code || s.student_id || s.id || '').toLowerCase();
+
+  const isSci = rawDept.includes('বিজ্ঞান') || rawDept.includes('science') || rawDept.includes('sci') || (s.student_id && String(s.student_id).toLowerCase().includes('sci')) || (s.student_code && String(s.student_code).toLowerCase().includes('sci'));
+  const isHum = rawDept.includes('মানবিক') || rawDept.includes('humanities') || rawDept.includes('hum') || rawDept.includes('arts') || (s.student_id && String(s.student_id).toLowerCase().includes('hum')) || (s.student_code && String(s.student_code).toLowerCase().includes('hum'));
+  const isBus = rawDept.includes('ব্যবসা') || rawDept.includes('ব্যবসায়') || rawDept.includes('ব্যবসায়') || rawDept.includes('বাণিজ্য') || rawDept.includes('business') || rawDept.includes('commerce') || rawDept.includes('bs') || (s.student_id && String(s.student_id).toLowerCase().includes('bs')) || (s.student_code && String(s.student_code).toLowerCase().includes('bs'));
+
+  if (wantSci) return Boolean(isSci && !isHum && !isBus);
+  if (wantHum) return Boolean(isHum && !isSci && !isBus);
+  if (wantBus) return Boolean(isBus && !isSci && !isHum);
+
+  const prio = getStudentGroupPriority(s);
+  if (wantSci) return prio === 1;
+  if (wantHum) return prio === 2;
+  if (wantBus) return prio === 3;
   return prio === 4;
 }
 
@@ -308,7 +324,11 @@ export function ResultPanel({ sub }) {
     }
 
     try {
-      const allSt = await api('/students?class_name=' + className);
+      let url = '/students?class_name=' + className;
+      if (isSSC && department && department !== 'all' && department !== 'সকল বিভাগ') {
+        url += '&department=' + encodeURIComponent(department);
+      }
+      const allSt = await api(url);
       const studentList = Array.isArray(allSt) ? allSt : [];
 
       // 1. Filter students of the class who take this subject
@@ -318,7 +338,7 @@ export function ResultPanel({ sub }) {
         if (!isSubjectApplicableToStudent(currentSubjectObj, s)) return false;
 
         // Toolbar department filter
-        if (isSSC && department !== 'all' && department !== 'সকল বিভাগ') {
+        if (isSSC && department && department !== 'all' && department !== 'সকল বিভাগ') {
           if (!matchesStudentGroup(s, department)) return false;
         }
 
@@ -365,7 +385,8 @@ export function ResultPanel({ sub }) {
       });
 
       setMarksRoster(roster);
-      showNotification(`শ্রেণি ${toBnDigits(className)} এর ${toBnDigits(roster.length)} জন শিক্ষার্থীর নম্বর এন্ট্রি ঘর প্রস্তুত হয়েছে।`, 'success');
+      const deptLabel = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? ` (${department} বিভাগ)` : '';
+      showNotification(`শ্রেণি ${toBnDigits(className)}${deptLabel} এর ${toBnDigits(roster.length)} জন শিক্ষার্থীর নম্বর এন্ট্রি ঘর প্রস্তুত হয়েছে।`, 'success');
     } catch (err) {
       showNotification('শিক্ষার্থী তালিকা লোড ব্যর্থ: ' + err.message, 'error');
     }
@@ -376,6 +397,14 @@ export function ResultPanel({ sub }) {
       handleLoadRoster();
     }
   }, [tab, selectedExam, className, selectedSubjectId, department]);
+
+  // Filter marks roster strictly by selected Department for Classes 9 & 10
+  const displayedMarksRoster = useMemo(() => {
+    if (!isSSC || !department || department === 'all' || department === 'সকল বিভাগ') {
+      return marksRoster;
+    }
+    return marksRoster.filter(r => matchesStudentGroup(r, department));
+  }, [marksRoster, isSSC, department]);
 
   // Normalize Bangla or English digits and decimal points for direct fast typing
   const normalizeMarkDigits = (input) => {
@@ -393,7 +422,7 @@ export function ResultPanel({ sub }) {
     return str;
   };
 
-  const handleEditRosterMark = (idx, field, rawVal, maxVal) => {
+  const handleEditRosterMark = (studentKey, field, rawVal, maxVal) => {
     let val = rawVal;
     if (['written', 'mcq', 'practical'].includes(field)) {
       val = normalizeMarkDigits(rawVal);
@@ -406,11 +435,14 @@ export function ResultPanel({ sub }) {
       }
     }
     setMarksRoster(prev => {
-      const next = [...prev];
-      const cur = { ...next[idx] };
-      cur[field] = val;
-      next[idx] = cur;
-      return next;
+      return prev.map((item, idx) => {
+        const match = (typeof studentKey === 'number' && idx === studentKey) ||
+                      (studentKey && (item.student_id === studentKey || item.student_code === studentKey));
+        if (match) {
+          return { ...item, [field]: val };
+        }
+        return item;
+      });
     });
   };
 
@@ -439,13 +471,14 @@ export function ResultPanel({ sub }) {
       showNotification('পরীক্ষা নির্বাচন করুন', 'error');
       return;
     }
-    if (!marksRoster.length) {
+    const targetRoster = displayedMarksRoster.length ? displayedMarksRoster : marksRoster;
+    if (!targetRoster.length) {
       showNotification('সংরক্ষণ করার মতো কোনো শিক্ষার্থীর নম্বর নেই', 'error');
       return;
     }
 
     try {
-      const records = marksRoster.map(r => ({
+      const records = targetRoster.map(r => ({
         exam_id: selectedExam,
         class_name: className,
         student_id: r.student_id,
@@ -470,7 +503,8 @@ export function ResultPanel({ sub }) {
       });
       loadProcessedResults(true);
 
-      showNotification(`${currentSubjectObj?.name_bn || 'নির্বাচিত'} বিষয়ের ${toBnDigits(records.length)} জন শিক্ষার্থীর নম্বর সফলভাবে সংরক্ষিত ও প্রসেস হয়েছে! ✓`, 'success');
+      const deptLabel = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? ` (${department} বিভাগ)` : '';
+      showNotification(`${currentSubjectObj?.name_bn || 'নির্বাচিত'} বিষয়ের${deptLabel} ${toBnDigits(records.length)} জন শিক্ষার্থীর নম্বর সফলভাবে সংরক্ষিত ও প্রসেস হয়েছে! ✓`, 'success');
     } catch (err) {
       showNotification('নম্বর সংরক্ষণ ব্যর্থ: ' + err.message, 'error');
     }
@@ -483,7 +517,13 @@ export function ResultPanel({ sub }) {
     const mMax = currentSubjectObj.mcq_max || 0;
     const pMax = currentSubjectObj.practical_max || 0;
 
+    const targetRoster = displayedMarksRoster.length ? displayedMarksRoster : marksRoster;
+    const targetIds = new Set(targetRoster.map(r => r.student_id || r.student_code));
+
     setMarksRoster(prev => prev.map((r, i) => {
+      if (targetIds.size > 0 && !targetIds.has(r.student_id || r.student_code)) {
+        return r;
+      }
       const perf = (i % 7 === 6) ? 0.30 : (i % 5 === 0) ? 0.92 : (i % 3 === 0) ? 0.82 : 0.68;
       const w = wMax ? Math.round(wMax * perf) : 0;
       const m = mMax ? Math.round(mMax * perf) : 0;
@@ -570,7 +610,8 @@ export function ResultPanel({ sub }) {
       'Remarks'
     ];
 
-    const rows = marksRoster.map(r => [
+    const targetRoster = displayedMarksRoster.length ? displayedMarksRoster : marksRoster;
+    const rows = targetRoster.map(r => [
       escapeCsv(r.roll_no !== undefined && r.roll_no !== null ? r.roll_no : ''),
       escapeCsv(r.student_code || r.student_id || ''),
       escapeCsv(r.name_bn || ''),
@@ -2040,6 +2081,10 @@ export function ResultPanel({ sub }) {
               <span className="card-badge">নম্বর এন্ট্রি কনসোল</span>
               <h3>
                 ✍️ {selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'} — শ্রেণি {toBnDigits(className)}: [{currentSubjectObj?.code}] {currentSubjectObj?.name_bn}
+                {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? ` (${department} বিভাগ)` : ''}
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#0369a1', background: '#e0f2fe', padding: '3px 9px', borderRadius: '12px', marginLeft: '10px' }}>
+                  {toBnDigits(displayedMarksRoster.length)} জন শিক্ষার্থী
+                </span>
               </h3>
             </div>
             <div className="table-action-group">
@@ -2161,10 +2206,11 @@ export function ResultPanel({ sub }) {
                 </tr>
               </thead>
               <tbody>
-                {marksRoster.map((r, i) => {
+                {displayedMarksRoster.map((r, i) => {
                   const evalRes = calculateSubjectGrade(currentSubjectObj, r);
+                  const stKey = r.student_id || r.student_code || i;
                   return (
-                    <tr key={r.student_id || i}>
+                    <tr key={r.student_id || r.student_code || i}>
                       <td><span className="roll-pill">{toBnDigits(r.roll_no || '—')}</span></td>
                       <td><span className="code-pill">{r.student_code || '—'}</span></td>
                       <td><b>{r.name_bn}</b></td>
@@ -2181,7 +2227,7 @@ export function ResultPanel({ sub }) {
                           disabled={r.absent || (currentSubjectObj?.written_max === 0)}
                           placeholder={currentSubjectObj?.written_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.written_max)}` : '—'}
                           value={r.written}
-                          onChange={(e) => handleEditRosterMark(i, 'written', e.target.value, currentSubjectObj?.written_max)}
+                          onChange={(e) => handleEditRosterMark(stKey, 'written', e.target.value, currentSubjectObj?.written_max)}
                           onFocus={(e) => e.target.select()}
                           onKeyDown={(e) => handleMarkKeyDown(e, i, 'written')}
                         />
@@ -2198,7 +2244,7 @@ export function ResultPanel({ sub }) {
                           disabled={r.absent || (currentSubjectObj?.mcq_max === 0)}
                           placeholder={currentSubjectObj?.mcq_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.mcq_max)}` : '—'}
                           value={r.mcq}
-                          onChange={(e) => handleEditRosterMark(i, 'mcq', e.target.value, currentSubjectObj?.mcq_max)}
+                          onChange={(e) => handleEditRosterMark(stKey, 'mcq', e.target.value, currentSubjectObj?.mcq_max)}
                           onFocus={(e) => e.target.select()}
                           onKeyDown={(e) => handleMarkKeyDown(e, i, 'mcq')}
                         />
@@ -2215,7 +2261,7 @@ export function ResultPanel({ sub }) {
                           disabled={r.absent || (currentSubjectObj?.practical_max === 0)}
                           placeholder={currentSubjectObj?.practical_max ? `সর্বোচ্চ ${toBnDigits(currentSubjectObj.practical_max)}` : '—'}
                           value={r.practical}
-                          onChange={(e) => handleEditRosterMark(i, 'practical', e.target.value, currentSubjectObj?.practical_max)}
+                          onChange={(e) => handleEditRosterMark(stKey, 'practical', e.target.value, currentSubjectObj?.practical_max)}
                           onFocus={(e) => e.target.select()}
                           onKeyDown={(e) => handleMarkKeyDown(e, i, 'practical')}
                         />
@@ -2234,7 +2280,7 @@ export function ResultPanel({ sub }) {
                         <input
                           type="checkbox"
                           checked={!!r.absent}
-                          onChange={(e) => handleEditRosterMark(i, 'absent', e.target.checked)}
+                          onChange={(e) => handleEditRosterMark(stKey, 'absent', e.target.checked)}
                         />
                       </td>
                       <td>
@@ -2243,16 +2289,18 @@ export function ResultPanel({ sub }) {
                           className="remarks-input-box"
                           placeholder="মন্তব্য"
                           value={r.remarks}
-                          onChange={(e) => handleEditRosterMark(i, 'remarks', e.target.value)}
+                          onChange={(e) => handleEditRosterMark(stKey, 'remarks', e.target.value)}
                         />
                       </td>
                     </tr>
                   );
                 })}
-                {!marksRoster.length && (
+                {!displayedMarksRoster.length && (
                   <tr>
                     <td colSpan="11" className="empty-table-cell">
-                      শিক্ষার্থী তালিকা প্রস্তুত করতে উপরের "🔄 লোড" বাটনে ক্লিক করুন।
+                      {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+                        ? `শ্রেণি ${toBnDigits(className)} এর "${department} বিভাগ"-এ কোনো শিক্ষার্থী পাওয়া যায়নি অথবা উপরের "🔄 লোড" বাটনে ক্লিক করুন।`
+                        : `শিক্ষার্থী তালিকা প্রস্তুত করতে উপরের "🔄 লোড" বাটনে ক্লিক করুন।`}
                     </td>
                   </tr>
                 )}
