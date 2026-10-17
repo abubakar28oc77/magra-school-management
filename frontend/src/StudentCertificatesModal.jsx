@@ -236,9 +236,7 @@ export function StudentCertificatesModal({
                 </div>
               </div>
               <div class="sign-block right-sign">
-                <div class="sign-space">
-                  <div class="digital-sign-mock">${school.headTeacher}</div>
-                </div>
+                <div class="sign-space"></div>
                 <div class="sign-bar"></div>
                 <div class="sign-name">${school.headTeacher}</div>
                 <div class="sign-desig">প্রধান শিক্ষক</div>
