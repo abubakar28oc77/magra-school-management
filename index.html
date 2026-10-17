@@ -1394,7 +1394,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             তাঁহার ভবিষ্যৎ শিক্ষা জীবনে সর্বাঙ্গীন মঙ্গল ও সাফল্য কামনা করি।
           </p>
         </div>
-      `):(t=`প্রত্যয়ন পত্র`,n=`STUDENT BONAFIDE / CITIZEN CERTIFICATE`,e=`
+      `):(t=`প্রত্যয়নপত্র`,n=`STUDENT BONAFIDE / CITIZEN CERTIFICATE`,e=`
         <div class="cert-body-text">
           <p class="cert-para">
             এই মর্মে প্রত্যয়ন করা যাইতেছে যে, <b class="cert-highlight-name">${oe}</b>${j?.name_en?` (${j.name_en})`:``}, পিতা: <b>${se}</b>, মাতা: <b>${ce}</b>, গ্রাম: <b>${P}</b>, ডাকঘর: <b>${fe}</b>, উপজেলা: <b>${pe}</b>, জেলা: <b>${me}</b>; সে ঐতিহ্যবাহী <b>${ie.nameBn}</b>-এর <b>শ্রেণি ${de}</b> (${ae})-এর একজন নিয়মিত ও বাধ্যগত শিক্ষার্থী। তাহার শ্রেণি রোল নম্বর <b>${le}</b>। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার জন্ম তারিখ: <b>${N}</b> খ্রি.।
@@ -1450,10 +1450,8 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
                 <div class="sign-desig">${ie.nameBn}</div>
               </div>
               <div class="sign-block seal-block">
-                <div class="official-seal-circle">
-                  <span>অফিসিয়াল গোল সিল</span>
-                  <small>মগড়া পালস্ ইউ. উচ্চ বিদ্যালয়</small>
-                </div>
+                <div class="official-seal-circle"></div>
+                <div class="seal-caption">(অফিসিয়াল সিল)</div>
               </div>
               <div class="sign-block right-sign">
                 <div class="sign-space"></div>
@@ -1471,7 +1469,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>${a===`testimonial`?`প্রশংসাপত্র`:a===`transfer`?`ছাড়পত্র (TC)`:`প্রত্যয়ন পত্র`} - ${j?.name_bn||`Student`}</title>
+        <title>${a===`testimonial`?`প্রশংসাপত্র`:a===`transfer`?`ছাড়পত্র (TC)`:`প্রত্যয়নপত্র`} - ${j?.name_bn||`Student`}</title>
         <style>
           ${na}
           body {
@@ -1484,9 +1482,43 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             margin: 10mm;
           }
           @media print {
-            body { padding: 0; }
+            body { padding: 0; background: #fff !important; }
             .no-print { display: none !important; }
             .certificate-sheet { box-shadow: none !important; border: none !important; }
+            .cert-type-ribbon {
+              padding: 9px 52px !important;
+              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .ribbon-bn {
+              font-size: 32px !important;
+              font-weight: 900 !important;
+              letter-spacing: 2px !important;
+              line-height: 1.25 !important;
+              color: #ffffff !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .ribbon-en {
+              font-size: 10px !important;
+              letter-spacing: 1.5px !important;
+              color: #fef08a !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .official-seal-circle {
+              width: 100px !important;
+              height: 100px !important;
+              border: 1.5px dashed #94a3b8 !important;
+              background: transparent !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .seal-caption {
+              font-size: 11px !important;
+              color: #64748b !important;
+            }
           }
         </style>
       </head>
@@ -1592,25 +1624,30 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     display: inline-block;
     background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
     color: #ffffff;
-    padding: 6px 36px;
-    border-radius: 20px;
-    border: 2px solid #f59e0b;
-    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    padding: 8px 48px;
+    border-radius: 28px;
+    border: 2.5px solid #f59e0b;
+    box-shadow: 0 3px 8px rgba(30, 58, 138, 0.28);
+    text-align: center;
   }
 
   .ribbon-bn {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    line-height: 1.2;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1.25;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   }
 
   .ribbon-en {
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-family: 'Outfit', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     color: #fef08a;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.5px;
+    margin-top: 2px;
   }
 
   /* Reference & Date */
@@ -1803,30 +1840,30 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 
   .seal-block {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-end;
     align-items: center;
+    width: 170px;
   }
 
   .official-seal-circle {
-    width: 88px;
-    height: 88px;
-    border: 2px dashed #b91c1c;
+    width: 96px;
+    height: 96px;
+    border: 1.5px dashed #94a3b8;
     border-radius: 50%;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    color: #b91c1c;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 4px;
-    background: rgba(254, 242, 242, 0.6);
+    background: transparent;
+    margin: 0 auto 6px;
   }
 
-  .official-seal-circle small {
-    font-size: 7.5px;
-    margin-top: 2px;
+  .seal-caption {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-align: center;
+    letter-spacing: 0.5px;
   }
 `,ra=[`০`,`১`,`২`,`৩`,`৪`,`৫`,`৬`,`৭`,`৮`,`৯`],ia=e=>e==null?``:String(e).replace(/\d/g,e=>ra[e]),aa=`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 115'%3E%3Cdefs%3E%3ClinearGradient id='bgA' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23e0f2fe'/%3E%3Cstop offset='100%25' stop-color='%23bae6fd'/%3E%3C/linearGradient%3E%3ClinearGradient id='skinA' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fed7aa'/%3E%3Cstop offset='100%25' stop-color='%23fba96b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='115' fill='url(%23bgA)'/%3E%3Ccircle cx='50' cy='42' r='24' fill='url(%23skinA)'/%3E%3Cpath d='M26 36 C26 14 74 14 74 36 C74 18 64 8 50 8 C36 8 26 18 26 36 Z' fill='%231e293b'/%3E%3Ccircle cx='42' cy='40' r='2.5' fill='%230f172a'/%3E%3Ccircle cx='58' cy='40' r='2.5' fill='%230f172a'/%3E%3Cpath d='M44 52 Q50 57 56 52' stroke='%23b45309' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3Cpath d='M14 115 C14 82 28 72 50 72 C72 72 86 82 86 115 Z' fill='%230369a1'/%3E%3Cpath d='M40 72 L50 96 L60 72 Z' fill='%23ffffff'/%3E%3Cpolygon points='50,78 45,83 55,83' fill='%230284c7'/%3E%3C/svg%3E`;function oa({isOpen:e,onClose:t,student:n,onEditStudent:r,onOpenIdCard:i,onOpenCertificate:a}){let[o,s]=(0,w.useState)(`personal`);if(!e||!n)return null;let c=Yn,l=n.photo_url||aa,u=e=>{let t=[e?.department,e?.group_name,e?.group,e?.section,e?.student_id].filter(Boolean).map(e=>String(e).toLowerCase()).join(` `);return t.includes(`বিজ্ঞান`)||t.includes(`science`)||t.includes(`sci`)?`বিজ্ঞান বিভাগ (Science)`:t.includes(`মানবিক`)||t.includes(`humanities`)||t.includes(`hum`)||t.includes(`arts`)?`মানবিক বিভাগ (Humanities)`:t.includes(`ব্যবসা`)||t.includes(`বাণিজ্য`)||t.includes(`business`)||t.includes(`commerce`)?`ব্যবসায় শিক্ষা (Commerce)`:e?.department||e?.group_name||`সাধারণ`},d=e=>{if(!e)return`—`;try{let t=new Date(e),n=new Date,r=n.getFullYear()-t.getFullYear(),i=n.getMonth()-t.getMonth();return i<0&&(r--,i+=12),`${ia(r)} বছর ${ia(i)} মাস`}catch{return`—`}},f=()=>{let e=window.open(``,`_blank`,`width=950,height=850`);e&&(e.document.write(`
       <!DOCTYPE html>

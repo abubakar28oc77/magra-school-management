@@ -169,7 +169,7 @@ export function StudentCertificatesModal({
       `;
     } else {
       // Bonafide / প্রত্যয়নপত্র
-      titleBn = 'প্রত্যয়ন পত্র';
+      titleBn = 'প্রত্যয়নপত্র';
       titleEn = 'STUDENT BONAFIDE / CITIZEN CERTIFICATE';
       contentHtml = `
         <div class="cert-body-text">
@@ -230,10 +230,8 @@ export function StudentCertificatesModal({
                 <div class="sign-desig">${school.nameBn}</div>
               </div>
               <div class="sign-block seal-block">
-                <div class="official-seal-circle">
-                  <span>অফিসিয়াল গোল সিল</span>
-                  <small>মগড়া পালস্ ইউ. উচ্চ বিদ্যালয়</small>
-                </div>
+                <div class="official-seal-circle"></div>
+                <div class="seal-caption">(অফিসিয়াল সিল)</div>
               </div>
               <div class="sign-block right-sign">
                 <div class="sign-space"></div>
@@ -258,7 +256,7 @@ export function StudentCertificatesModal({
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>${certType === 'testimonial' ? 'প্রশংসাপত্র' : certType === 'transfer' ? 'ছাড়পত্র (TC)' : 'প্রত্যয়ন পত্র'} - ${student?.name_bn || 'Student'}</title>
+        <title>${certType === 'testimonial' ? 'প্রশংসাপত্র' : certType === 'transfer' ? 'ছাড়পত্র (TC)' : 'প্রত্যয়নপত্র'} - ${student?.name_bn || 'Student'}</title>
         <style>
           ${certificateStyles}
           body {
@@ -271,9 +269,43 @@ export function StudentCertificatesModal({
             margin: 10mm;
           }
           @media print {
-            body { padding: 0; }
+            body { padding: 0; background: #fff !important; }
             .no-print { display: none !important; }
             .certificate-sheet { box-shadow: none !important; border: none !important; }
+            .cert-type-ribbon {
+              padding: 9px 52px !important;
+              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .ribbon-bn {
+              font-size: 32px !important;
+              font-weight: 900 !important;
+              letter-spacing: 2px !important;
+              line-height: 1.25 !important;
+              color: #ffffff !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .ribbon-en {
+              font-size: 10px !important;
+              letter-spacing: 1.5px !important;
+              color: #fef08a !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .official-seal-circle {
+              width: 100px !important;
+              height: 100px !important;
+              border: 1.5px dashed #94a3b8 !important;
+              background: transparent !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .seal-caption {
+              font-size: 11px !important;
+              color: #64748b !important;
+            }
           }
         </style>
       </head>
@@ -687,25 +719,30 @@ export const certificateStyles = `
     display: inline-block;
     background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
     color: #ffffff;
-    padding: 6px 36px;
-    border-radius: 20px;
-    border: 2px solid #f59e0b;
-    box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    padding: 8px 48px;
+    border-radius: 28px;
+    border: 2.5px solid #f59e0b;
+    box-shadow: 0 3px 8px rgba(30, 58, 138, 0.28);
+    text-align: center;
   }
 
   .ribbon-bn {
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    line-height: 1.2;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    line-height: 1.25;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   }
 
   .ribbon-en {
-    font-size: 8.5px;
+    font-size: 9.5px;
     font-family: 'Outfit', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     color: #fef08a;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.5px;
+    margin-top: 2px;
   }
 
   /* Reference & Date */
@@ -898,29 +935,29 @@ export const certificateStyles = `
 
   .seal-block {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-end;
     align-items: center;
+    width: 170px;
   }
 
   .official-seal-circle {
-    width: 88px;
-    height: 88px;
-    border: 2px dashed #b91c1c;
+    width: 96px;
+    height: 96px;
+    border: 1.5px dashed #94a3b8;
     border-radius: 50%;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    color: #b91c1c;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 4px;
-    background: rgba(254, 242, 242, 0.6);
+    background: transparent;
+    margin: 0 auto 6px;
   }
 
-  .official-seal-circle small {
-    font-size: 7.5px;
-    margin-top: 2px;
+  .seal-caption {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-align: center;
+    letter-spacing: 0.5px;
   }
 `;
