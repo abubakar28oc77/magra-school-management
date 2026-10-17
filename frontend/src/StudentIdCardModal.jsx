@@ -42,6 +42,47 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
   const [bulkClass, setBulkClass] = useState('10');
   const [bulkGroup, setBulkGroup] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [customPhotos, setCustomPhotos] = useState({});
+
+  const handleUploadCardPhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f || !activeStudent) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 320, maxH = 380;
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.88);
+        const sId = activeStudent.id;
+        try {
+          localStorage.setItem('magra_photo_' + sId, compressed);
+          if (activeStudent.student_id) {
+            localStorage.setItem('magra_photo_' + activeStudent.student_id, compressed);
+          }
+          const raw = localStorage.getItem('magra_db_students');
+          if (raw) {
+            const list = JSON.parse(raw);
+            const updated = list.map(x => (String(x.id) === String(sId) || String(x.student_id) === String(activeStudent.student_id)) ? { ...x, photo_url: compressed } : x);
+            localStorage.setItem('magra_db_students', JSON.stringify(updated));
+          }
+        } catch {}
+        setCustomPhotos(prev => ({ ...prev, [sId]: compressed }));
+      };
+      img.src = ev.target.result;
+    };
+    r.readAsDataURL(f);
+  };
 
   // Merge any live student data from localStorage
   const mergedStudents = useMemo(() => {
@@ -140,7 +181,23 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
   };
 
   const generateFrontCardHtml = (s) => {
-    const photo = s.photo_url || s.photo || s.image || s.extended_profile?.photo_url || getStudentPhoto(s);
+    let photo = customPhotos[s?.id] || null;
+    if (!photo) {
+      try {
+        const k1 = localStorage.getItem('magra_photo_' + s?.id);
+        if (k1 && k1.length > 20 && !k1.includes('fakepath')) photo = k1;
+        const k2 = localStorage.getItem('magra_photo_' + s?.student_id);
+        if (!photo && k2 && k2.length > 20 && !k2.includes('fakepath')) photo = k2;
+      } catch {}
+    }
+    if (!photo) {
+      const cand = s?.photo_url || s?.photo || s?.image || s?.extended_profile?.photo_url;
+      if (cand && typeof cand === 'string' && cand.length > 20 && !cand.includes('fakepath')) {
+        photo = cand;
+      }
+    }
+    const fallbackPhoto = getStudentPhoto(s);
+    if (!photo) photo = fallbackPhoto;
     const dept = getDepartmentName(s);
     const phone = getGuardianPhone(s);
     const isClass9or10 = ['9', '10', '৯', '১০'].includes(String(s.class_name).trim());
@@ -167,7 +224,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
         <div class="card-body">
           <div class="center-photo-wrap">
             <div class="photo-frame">
-              <img src="${photo}" alt="Student Photo">
+              <img src="${photo}" alt="Student Photo" onerror="if(this.src!=='${fallbackPhoto}'){this.src='${fallbackPhoto}';}">
             </div>
           </div>
 
@@ -595,7 +652,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
               {activeStudent ? (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', padding: '10px 0' }}>
                   {(cardSide === 'front' || cardSide === 'both') && (
-                    <div style={{ maxWidth: '360px', width: '100%' }}>
+                    <div style={{ maxWidth: '335px', width: '100%' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px', textAlign: 'center' }}>
                         ★ সম্মুখ ভাগ (Front Side)
                       </div>
@@ -614,7 +671,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
                   )}
 
                   {(cardSide === 'back' || cardSide === 'both') && (
-                    <div style={{ maxWidth: '360px', width: '100%' }}>
+                    <div style={{ maxWidth: '335px', width: '100%' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1', marginBottom: '6px', textAlign: 'center' }}>
                         ★ বিপরীত ভাগ (Back Side)
                       </div>
@@ -772,8 +829,9 @@ export const idCardStyles = `
   }
 
   .id-card {
-    width: 320px;
-    height: 480px;
+    width: 330px;
+    height: 520px;
+    max-height: 520px;
     border-radius: 12px;
     background: #ffffff;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
@@ -784,39 +842,51 @@ export const idCardStyles = `
     position: relative;
     color: #0f172a;
     page-break-inside: avoid;
+    box-sizing: border-box;
+  }
+
+  .front-card {
+    width: 330px;
+    height: 520px;
+    max-height: 520px;
+    box-sizing: border-box;
   }
 
   /* FRONT CARD STYLES */
   .front-card .card-header {
     background: linear-gradient(135deg, #064e3b 0%, #047857 70%, #059669 100%);
     color: #ffffff;
-    padding: 8px 10px 7px;
+    padding: 7px 10px 6px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     border-bottom: 2px solid #fbbf24;
   }
 
   .school-logo {
-    width: 58px;
-    height: 58px;
+    width: 54px;
+    height: 54px;
     object-fit: contain;
-    border-radius: 50%;
-    background: #ffffff;
-    padding: 2px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
     flex-shrink: 0;
   }
 
   .school-meta {
     flex: 1;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     min-width: 0;
   }
 
   .school-meta h3.school-name-bn {
     margin: 0;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 800;
     letter-spacing: -0.2px;
     line-height: 1.2;
@@ -824,6 +894,7 @@ export const idCardStyles = `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
   }
 
   .school-meta h4.school-name-en {
@@ -880,13 +951,16 @@ export const idCardStyles = `
   }
 
   .photo-frame {
-    width: 140px;
-    height: 165px;
-    border-radius: 10px;
-    border: 3px solid #047857;
+    width: 122px;
+    height: 142px;
+    border-radius: 8px;
+    border: 2.5px solid #047857;
     overflow: hidden;
     background: #f1f5f9;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .photo-frame img {
@@ -903,23 +977,26 @@ export const idCardStyles = `
   }
 
   .student-name-bn {
-    font-size: 26px;
+    font-size: 21px;
     font-weight: 900;
     color: #064e3b;
-    line-height: 1.25;
-    word-break: break-word;
-    letter-spacing: -0.2px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .student-name-en {
-    font-size: 13px;
+    font-size: 11px;
     font-family: 'Outfit', sans-serif;
     color: #0284c7;
     font-weight: 700;
-    margin-top: 2px;
+    margin-top: 1px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .front-card-table {
@@ -1026,11 +1103,13 @@ export const idCardStyles = `
 
   /* BACK CARD STYLES */
   .back-card {
+    width: 330px;
+    height: 520px;
+    max-height: 520px;
     background: #fafaf9;
     display: flex;
     flex-direction: column;
-    width: 340px;
-    min-height: 540px;
+    box-sizing: border-box;
   }
 
   .back-ribbon {

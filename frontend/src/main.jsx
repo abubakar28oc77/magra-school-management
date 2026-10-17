@@ -1804,9 +1804,34 @@ function StudentPanel({sub}){
  const file=e=>{
   const f=e.target.files?.[0];
   if(!f)return;
-  if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}
+  if(f.size>5*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 5MB হতে হবে');return;}
   const r=new FileReader();
-  r.onload=()=>change('photo_url',r.result);
+  r.onload=()=>{
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 320, maxH = 380;
+      let w = img.width, h = img.height;
+      if (w > maxW || h > maxH) {
+        const ratio = Math.min(maxW / w, maxH / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.88);
+      change('photo_url', compressed);
+      try {
+        const id = editing || form.id || form.student_id;
+        if (id) {
+          localStorage.setItem('magra_photo_' + id, compressed);
+        }
+      } catch {}
+    };
+    img.src = r.result;
+  };
   r.readAsDataURL(f);
  };
 

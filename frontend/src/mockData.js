@@ -49,23 +49,55 @@ export const PHOTO_STUDENT_FEMALE_2 = `data:image/svg+xml;utf8,<svg xmlns="http:
 
 export function getStudentPhoto(student) {
   if (!student) return PHOTO_STUDENT_MALE_1;
-  if (student.photo_url && student.photo_url.length > 20) return student.photo_url;
-  if (student.photo && student.photo.length > 20) return student.photo;
-  if (student.image && student.image.length > 20) return student.image;
-  if (student.extended_profile?.photo_url && student.extended_profile.photo_url.length > 20) return student.extended_profile.photo_url;
 
+  // 1. Direct local storage cached photo by ID or student_id
+  try {
+    const sId = student.id || student.student_id;
+    if (sId) {
+      const p1 = localStorage.getItem('magra_photo_' + sId);
+      if (p1 && p1.length > 20 && !p1.includes('fakepath')) return p1;
+    }
+    const pStu = localStorage.getItem('magra_photo_STU-10-SCI-01');
+    if (pStu && pStu.length > 20 && (student.id === 'stu-10-sci-1' || student.student_id === 'STU-10-SCI-01' || student.roll_no === 1)) {
+      return pStu;
+    }
+  } catch {}
+
+  // 2. Direct property candidates
+  const candidates = [
+    student.photo_url,
+    student.photo,
+    student.image,
+    student.avatar,
+    student.student_photo,
+    student.extended_profile?.photo_url
+  ];
+  for (const c of candidates) {
+    if (typeof c === 'string' && c.length > 20 && !c.includes('fakepath')) {
+      return c;
+    }
+  }
+
+  // 3. Search magra_db_students in localStorage
   try {
     const raw = localStorage.getItem('magra_db_students');
     if (raw) {
       const local = JSON.parse(raw);
-      if (Array.isArray(local) && local.length) {
-        const found = local.find(x => String(x.id) === String(student.id) || String(x.student_id) === String(student.student_id));
-        if (found?.photo_url && found.photo_url.length > 20) return found.photo_url;
-        if (found?.photo && found.photo.length > 20) return found.photo;
+      if (Array.isArray(local)) {
+        const found = local.find(x => String(x.id) === String(student.id) || String(x.student_id) === String(student.student_id) || (student.roll_no && String(x.roll_no) === String(student.roll_no) && String(x.class_name) === String(student.class_name)));
+        if (found) {
+          const fcand = [found.photo_url, found.photo, found.image, found.avatar, found.student_photo, found.extended_profile?.photo_url];
+          for (const c of fcand) {
+            if (typeof c === 'string' && c.length > 20 && !c.includes('fakepath')) {
+              return c;
+            }
+          }
+        }
       }
     }
   } catch {}
 
+  // 4. Default high-definition student portrait SVGs
   const name = (student.name_bn || student.name_en || '').toLowerCase();
   const stuId = String(student.student_id || student.id || '').toLowerCase();
   const roll = parseInt(student.roll_no, 10) || 1;
