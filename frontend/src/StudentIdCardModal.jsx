@@ -157,7 +157,14 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
   };
 
   const getGuardianPhone = (s) => {
-    return s?.guardian_phone || s?.father_mobile || s?.mother_mobile || s?.emergency_phone || '—';
+    let raw = s?.guardian_phone || s?.father_mobile || s?.mother_mobile || s?.emergency_phone || '—';
+    if (typeof raw === 'string') {
+      const clean = raw.trim();
+      if (/^1[3-9]\d{8}$/.test(clean)) {
+        return '0' + clean;
+      }
+    }
+    return raw;
   };
 
   const formatBnDate = (dStr) => {
@@ -817,7 +824,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
 
 // Master ID Card Styling (CR-80 standard card proportion: 85.6mm x 53.98mm)
 export const idCardStyles = `
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap');
 
   * { box-sizing: border-box; }
 
@@ -829,9 +836,9 @@ export const idCardStyles = `
   }
 
   .id-card {
-    width: 330px;
-    height: 520px;
-    max-height: 520px;
+    width: 335px;
+    height: 525px;
+    max-height: 525px;
     border-radius: 12px;
     background: #ffffff;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
@@ -846,9 +853,9 @@ export const idCardStyles = `
   }
 
   .front-card {
-    width: 330px;
-    height: 520px;
-    max-height: 520px;
+    width: 335px;
+    height: 525px;
+    max-height: 525px;
     box-sizing: border-box;
   }
 
@@ -856,17 +863,18 @@ export const idCardStyles = `
   .front-card .card-header {
     background: linear-gradient(135deg, #064e3b 0%, #047857 70%, #059669 100%);
     color: #ffffff;
-    padding: 7px 10px 6px;
+    padding: 8px 10px 7px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     border-bottom: 2px solid #fbbf24;
   }
 
   .school-logo {
-    width: 54px;
-    height: 54px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
+    border-radius: 50% !important;
     background: transparent !important;
     padding: 0 !important;
     border: none !important;
@@ -886,22 +894,22 @@ export const idCardStyles = `
 
   .school-meta h3.school-name-bn {
     margin: 0;
-    font-size: 13.5px;
-    font-weight: 800;
+    font-size: 15.5px;
+    font-weight: 900;
     letter-spacing: -0.2px;
-    line-height: 1.2;
+    line-height: 1.25;
     color: #ffffff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   }
 
   .school-meta h4.school-name-en {
     margin: 1.5px 0 0;
-    font-size: 8.5px;
+    font-size: 10px;
     font-family: 'Outfit', sans-serif;
-    font-weight: 600;
+    font-weight: 700;
     color: #fef08a;
     letter-spacing: 0.3px;
     white-space: nowrap;
@@ -910,18 +918,20 @@ export const idCardStyles = `
   }
 
   .school-sub {
-    margin: 1.5px 0 0;
-    font-size: 8px;
+    margin: 2px 0 0;
+    font-size: 9px;
     color: #d1fae5;
     line-height: 1.2;
+    font-weight: 600;
   }
 
   .school-address {
-    margin: 1.5px 0 0;
-    font-size: 8px;
+    margin: 2px 0 0;
+    font-size: 9.5px;
     color: #fef08a;
-    font-weight: 600;
-    line-height: 1.2;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.1px;
   }
 
   .card-ribbon {
@@ -938,26 +948,27 @@ export const idCardStyles = `
 
   .front-card .card-body {
     flex: 1;
-    padding: 6px 12px 4px;
+    padding: 8px 14px 6px;
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
     align-items: center;
   }
 
   .center-photo-wrap {
-    margin: 4px auto 6px;
+    margin: 4px auto 4px;
     display: flex;
     justify-content: center;
   }
 
   .photo-frame {
-    width: 122px;
-    height: 142px;
-    border-radius: 8px;
+    width: 142px;
+    height: 170px;
+    border-radius: 9px;
     border: 2.5px solid #047857;
     overflow: hidden;
     background: #f1f5f9;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.14);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -971,13 +982,13 @@ export const idCardStyles = `
 
   .center-student-title {
     text-align: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     width: 100%;
     padding: 0 6px;
   }
 
   .student-name-bn {
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 900;
     color: #064e3b;
     line-height: 1.2;
@@ -987,7 +998,7 @@ export const idCardStyles = `
   }
 
   .student-name-en {
-    font-size: 11px;
+    font-size: 11.5px;
     font-family: 'Outfit', sans-serif;
     color: #0284c7;
     font-weight: 700;
@@ -1001,26 +1012,34 @@ export const idCardStyles = `
 
   .front-card-table {
     width: 100%;
-    max-width: 285px;
-    font-size: 10.5px;
+    max-width: 295px;
+    font-size: 12px;
     border-collapse: collapse;
-    margin-top: 2px;
+    margin: 0 auto;
+  }
+
+  .front-card-table tr {
+    border-bottom: 1px dashed #f1f5f9;
+  }
+
+  .front-card-table tr:last-child {
+    border-bottom: none;
   }
 
   .front-card-table td {
-    padding: 2.2px 2px;
+    padding: 4px 3px;
     vertical-align: middle;
     color: #1e293b;
   }
 
   .front-card-table td.lbl {
-    width: 84px;
+    width: 90px;
     color: #475569;
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .front-card-table td.sep {
-    width: 10px;
+    width: 12px;
     text-align: center;
     font-weight: 700;
     color: #64748b;
@@ -1033,15 +1052,15 @@ export const idCardStyles = `
   .dept-tag {
     background: #ecfdf5;
     color: #047857;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 9.5px;
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
     font-weight: 700;
     border: 0.5px solid #a7f3d0;
   }
 
   .roll-highlight {
-    font-size: 12px;
+    font-size: 13px;
     color: #b91c1c;
     font-weight: 800;
   }
@@ -1050,7 +1069,7 @@ export const idCardStyles = `
     font-family: monospace;
     font-weight: 800;
     color: #0369a1;
-    font-size: 10.5px;
+    font-size: 12px;
     letter-spacing: 0.5px;
   }
 
@@ -1103,9 +1122,9 @@ export const idCardStyles = `
 
   /* BACK CARD STYLES */
   .back-card {
-    width: 330px;
-    height: 520px;
-    max-height: 520px;
+    width: 335px;
+    height: 525px;
+    max-height: 525px;
     background: #fafaf9;
     display: flex;
     flex-direction: column;
@@ -1120,7 +1139,7 @@ export const idCardStyles = `
 
   .back-card .card-body {
     flex: 1;
-    padding: 12px 14px 8px;
+    padding: 10px 16px 8px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1128,7 +1147,7 @@ export const idCardStyles = `
 
   .back-info-table {
     width: 100%;
-    font-size: 11px;
+    font-size: 11.5px;
     border-collapse: collapse;
   }
 
@@ -1141,7 +1160,7 @@ export const idCardStyles = `
   }
 
   .back-info-table td {
-    padding: 6px 2px;
+    padding: 6.5px 3px;
     vertical-align: top;
     line-height: 1.4;
   }
@@ -1191,7 +1210,7 @@ export const idCardStyles = `
   }
 
   .footer-head-name {
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.25;
@@ -1201,7 +1220,7 @@ export const idCardStyles = `
     font-size: 11px;
     font-weight: 700;
     color: #fef08a;
-    margin-top: 2px;
+    margin-top: 1.5px;
     letter-spacing: 0.3px;
   }
 
@@ -1209,13 +1228,13 @@ export const idCardStyles = `
     font-size: 10.5px;
     font-weight: 700;
     color: #ffffff;
-    margin-top: 1.5px;
+    margin-top: 1px;
     letter-spacing: 0.4px;
     font-family: monospace, 'Noto Sans Bengali', sans-serif;
   }
 
   .footer-school-name {
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 800;
     color: #ffffff;
     margin-top: 3px;
@@ -1223,7 +1242,7 @@ export const idCardStyles = `
   }
 
   .footer-school-address {
-    font-size: 8px;
+    font-size: 8.5px;
     color: #d1fae5;
     margin-top: 1.5px;
     font-weight: 600;
