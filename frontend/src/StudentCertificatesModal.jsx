@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { MOCK_SCHOOL } from './mockData.js';
+import schoolLogo from '../public/school-logo.png';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
@@ -193,7 +194,7 @@ export function StudentCertificatesModal({
             <!-- School Header -->
             <div class="cert-header">
               <div class="cert-header-meta">
-                <img src="/school-logo.png" class="cert-logo" alt="Logo" onerror="this.style.display='none'">
+                <img src="${schoolLogo}" class="cert-logo" alt="Logo">
                 <div class="cert-school-title">
                   <h1>${school.nameBn}</h1>
                   <h2>${school.nameEn}</h2>
@@ -769,7 +770,7 @@ export const certificateStyles = `
     transform: translate(-50%, -50%);
     width: 250px;
     height: 250px;
-    background-image: url('/school-logo.png');
+    background-image: url('${schoolLogo}');
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;

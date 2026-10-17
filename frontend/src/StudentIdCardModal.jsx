@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { MOCK_SCHOOL } from './mockData.js';
+import { MOCK_SCHOOL, MOCK_STUDENTS, getStudentPhoto } from './mockData.js';
+import schoolLogo from '../public/school-logo.png';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
@@ -42,14 +43,31 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
   const [bulkGroup, setBulkGroup] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Merge any live student data from localStorage
+  const mergedStudents = useMemo(() => {
+    let localList = [];
+    try {
+      const raw = localStorage.getItem('magra_db_students');
+      if (raw) localList = JSON.parse(raw);
+    } catch {}
+
+    const base = (Array.isArray(students) && students.length) ? students : MOCK_STUDENTS;
+    if (!Array.isArray(localList) || !localList.length) return base;
+
+    return base.map(s => {
+      const matched = localList.find(l => String(l.id) === String(s.id) || String(l.student_id) === String(s.student_id));
+      return matched ? { ...s, ...matched } : s;
+    });
+  }, [students]);
+
   // Selected single student
   const activeStudent = useMemo(() => {
-    return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || students[0] || null;
-  }, [students, selectedStudentId]);
+    return mergedStudents.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || mergedStudents[0] || null;
+  }, [mergedStudents, selectedStudentId]);
 
   // Bulk student list filtered and sorted
   const bulkStudents = useMemo(() => {
-    return students.filter(s => {
+    return mergedStudents.filter(s => {
       const clsMatch = !bulkClass || bulkClass === 'all' || String(s.class_name) === String(bulkClass);
       if (!clsMatch) return false;
 
@@ -71,7 +89,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
       const rb = parseNum(b.roll_no, 9999);
       return ra - rb;
     });
-  }, [students, bulkClass, bulkGroup]);
+  }, [mergedStudents, bulkClass, bulkGroup]);
 
   // Filtered dropdown for single student selector
   const filteredStudentList = useMemo(() => {
@@ -83,7 +101,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
       (s.student_id && s.student_id.toLowerCase().includes(q)) ||
       (s.roll_no && String(s.roll_no).includes(q))
     );
-  }, [students, searchQuery]);
+  }, [mergedStudents, searchQuery]);
 
   if (!isOpen) return null;
 
@@ -122,7 +140,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
   };
 
   const generateFrontCardHtml = (s) => {
-    const photo = s.photo_url || DEFAULT_STUDENT_AVATAR;
+    const photo = s.photo_url || s.photo || s.image || s.extended_profile?.photo_url || getStudentPhoto(s);
     const dept = getDepartmentName(s);
     const phone = getGuardianPhone(s);
     const isClass9or10 = ['9', '10', '৯', '১০'].includes(String(s.class_name).trim());
@@ -131,7 +149,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
       <div class="id-card front-card">
         <!-- 1. Header (Green with 4 lines + Logo across all 4 lines) -->
         <div class="card-header">
-          <img src="/school-logo.png" class="school-logo" alt="Logo" onerror="this.style.display='none'">
+          <img src="${schoolLogo}" class="school-logo" alt="Logo">
           <div class="school-meta">
             <h3 class="school-name-bn">${school.nameBn}</h3>
             <h4 class="school-name-en">${school.nameEn}</h4>
@@ -259,7 +277,8 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
         <div class="back-card-footer-banner">
           <div class="footer-head-meta">
             <div class="footer-head-name">${school.headTeacher}</div>
-            <div class="footer-head-desig">প্রধান শিক্ষক • মোবাইল: ${school.phone}</div>
+            <div class="footer-head-desig">প্রধান শিক্ষক</div>
+            <div class="footer-head-phone">মোবাইল: ${toBengaliDigits(school.phone)}</div>
             <div class="footer-school-name">${school.nameBn}</div>
             <div class="footer-school-address">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাংগাইল।</div>
           </div>
@@ -576,7 +595,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
               {activeStudent ? (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap', padding: '10px 0' }}>
                   {(cardSide === 'front' || cardSide === 'both') && (
-                    <div style={{ maxWidth: '350px', width: '100%' }}>
+                    <div style={{ maxWidth: '360px', width: '100%' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857', marginBottom: '6px', textAlign: 'center' }}>
                         ★ সম্মুখ ভাগ (Front Side)
                       </div>
@@ -595,7 +614,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
                   )}
 
                   {(cardSide === 'back' || cardSide === 'both') && (
-                    <div style={{ maxWidth: '350px', width: '100%' }}>
+                    <div style={{ maxWidth: '360px', width: '100%' }}>
                       <div style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1', marginBottom: '6px', textAlign: 'center' }}>
                         ★ বিপরীত ভাগ (Back Side)
                       </div>
@@ -855,19 +874,19 @@ export const idCardStyles = `
   }
 
   .center-photo-wrap {
-    margin: 2px auto 4px;
+    margin: 4px auto 6px;
     display: flex;
     justify-content: center;
   }
 
   .photo-frame {
-    width: 90px;
-    height: 106px;
-    border-radius: 8px;
-    border: 2px solid #047857;
+    width: 140px;
+    height: 165px;
+    border-radius: 10px;
+    border: 3px solid #047857;
     overflow: hidden;
     background: #f1f5f9;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.16);
   }
 
   .photo-frame img {
@@ -878,29 +897,29 @@ export const idCardStyles = `
 
   .center-student-title {
     text-align: center;
-    margin-bottom: 3px;
+    margin-bottom: 6px;
     width: 100%;
+    padding: 0 6px;
   }
 
   .student-name-bn {
-    font-size: 14px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 26px;
+    font-weight: 900;
+    color: #064e3b;
+    line-height: 1.25;
+    word-break: break-word;
+    letter-spacing: -0.2px;
   }
 
   .student-name-en {
-    font-size: 9.5px;
+    font-size: 13px;
     font-family: 'Outfit', sans-serif;
     color: #0284c7;
-    font-weight: 600;
-    margin-top: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 700;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    word-break: break-word;
   }
 
   .front-card-table {
@@ -1010,6 +1029,8 @@ export const idCardStyles = `
     background: #fafaf9;
     display: flex;
     flex-direction: column;
+    width: 340px;
+    min-height: 540px;
   }
 
   .back-ribbon {
@@ -1098,11 +1119,20 @@ export const idCardStyles = `
   }
 
   .footer-head-desig {
-    font-size: 9.5px;
+    font-size: 11px;
     font-weight: 700;
     color: #fef08a;
-    margin-top: 1.5px;
+    margin-top: 2px;
     letter-spacing: 0.3px;
+  }
+
+  .footer-head-phone {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 1.5px;
+    letter-spacing: 0.4px;
+    font-family: monospace, 'Noto Sans Bengali', sans-serif;
   }
 
   .footer-school-name {

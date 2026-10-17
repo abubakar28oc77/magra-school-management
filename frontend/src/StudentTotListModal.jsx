@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { getStudentPhoto } from './mockData.js';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
@@ -156,7 +157,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
     const groupLabel = selectedGroup ? selectedGroup : 'সকল বিভাগ / শাখা';
 
     const rowsHtml = filteredStudents.map((s, idx) => {
-      const photoSrc = s.photo_url || DEFAULT_AVATAR;
+      const photoSrc = s.photo_url || getStudentPhoto(s);
       const fatherName = s.father_name || s.father_name_en || '—';
       const motherName = s.mother_name || s.mother_name_en || '—';
       const village = s.current_village || s.permanent_village || s.address || 'মগড়া';
@@ -471,7 +472,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
                 </thead>
                 <tbody>
                   {filteredStudents.map((s, idx) => {
-                    const photoSrc = s.photo_url || DEFAULT_AVATAR;
+                    const photoSrc = s.photo_url || getStudentPhoto(s);
                     const fatherName = s.father_name || s.father_name_en || '—';
                     const motherName = s.mother_name || s.mother_name_en || '—';
                     const village = s.current_village || s.permanent_village || s.address || '—';
@@ -485,7 +486,7 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
                               src={photoSrc}
                               alt=""
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              onError={e => { e.target.src = DEFAULT_AVATAR; }}
+                              onError={e => { e.target.src = getStudentPhoto(s); }}
                             />
                           </div>
                         </td>
@@ -532,11 +533,11 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
           {viewMode === 'grid' && (
             <div style={{ maxHeight: '420px', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', padding: '4px' }}>
               {filteredStudents.map((s, idx) => {
-                const photoSrc = s.photo_url || DEFAULT_AVATAR;
+                const photoSrc = s.photo_url || getStudentPhoto(s);
                 return (
                   <div key={s.id || idx} style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '12px', background: '#fff', display: 'flex', gap: '12px', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.04)' }}>
                     <div style={{ width: '56px', height: '56px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', flexShrink: 0, background: '#f8fafc' }}>
-                      <img src={photoSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.src = DEFAULT_AVATAR; }} />
+                      <img src={photoSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.src = getStudentPhoto(s); }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

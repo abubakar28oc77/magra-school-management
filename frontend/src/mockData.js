@@ -38,6 +38,52 @@ export function getTeacherPhoto(teacher) {
   return PHOTO_MALE_TEACHER;
 }
 
+// High-definition dignified student portrait photos in authentic school uniform
+export const PHOTO_STUDENT_MALE_1 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 8 112 112"><defs><linearGradient id="bgSm1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23ecfdf5"/><stop offset="100%" stop-color="%23d1fae5"/></linearGradient><linearGradient id="skinSm1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="%23fed7aa"/><stop offset="100%" stop-color="%23fba96b"/></linearGradient></defs><rect width="160" height="160" fill="url(%23bgSm1)"/><path d="M62 76 L98 76 L98 96 L62 96 Z" fill="%23fba96b"/><path d="M12 160 C12 102 42 86 80 86 C118 86 148 102 148 160 Z" fill="%23ffffff"/><path d="M12 160 C12 102 42 86 80 86 C118 86 148 102 148 160 Z" fill="none" stroke="%23cbd5e1" stroke-width="1.5"/><path d="M60 86 L80 120 L100 86 Z" fill="%23f8fafc"/><polygon points="80,92 73,100 87,100" fill="%23047857"/><path d="M75 100 L80 160 L85 100 Z" fill="%23065f46"/><path d="M42 98 L56 86 L68 96 L50 114 Z" fill="%23047857"/><path d="M118 98 L104 86 L92 96 L110 114 Z" fill="%23047857"/><circle cx="43" cy="52" r="8.5" fill="%23fba96b"/><circle cx="117" cy="52" r="8.5" fill="%23fba96b"/><circle cx="80" cy="50" r="37" fill="url(%23skinSm1)"/><path d="M38 42 C38 12 122 12 122 42 C122 20 108 8 80 8 C52 8 38 20 38 42 Z" fill="%231e293b"/><path d="M38 38 C44 26 62 20 80 20 C100 20 118 26 122 38 C116 28 98 24 80 24 C60 24 44 28 38 38 Z" fill="%230f172a"/><path d="M56 42 Q66 38 74 42" stroke="%231e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M86 42 Q94 38 104 42" stroke="%231e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="68" cy="48" rx="4" ry="2.8" fill="%230f172a"/><ellipse cx="92" cy="48" rx="4" ry="2.8" fill="%230f172a"/><circle cx="69.5" cy="46.5" r="1.2" fill="%23ffffff"/><circle cx="93.5" cy="46.5" r="1.2" fill="%23ffffff"/><path d="M77 56 Q80 60 83 56" stroke="%23b45309" stroke-width="1.8" fill="none"/><path d="M71 68 Q80 77 89 68" stroke="%23b91c1c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
+
+export const PHOTO_STUDENT_MALE_2 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 8 112 112"><defs><linearGradient id="bgSm2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23eff6ff"/><stop offset="100%" stop-color="%23dbeafe"/></linearGradient><linearGradient id="skinSm2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="%23fed7aa"/><stop offset="100%" stop-color="%23fba96b"/></linearGradient></defs><rect width="160" height="160" fill="url(%23bgSm2)"/><path d="M62 76 L98 76 L98 96 L62 96 Z" fill="%23fba96b"/><path d="M12 160 C12 102 42 86 80 86 C118 86 148 102 148 160 Z" fill="%23ffffff"/><path d="M12 160 C12 102 42 86 80 86 C118 86 148 102 148 160 Z" fill="none" stroke="%23cbd5e1" stroke-width="1.5"/><path d="M60 86 L80 120 L100 86 Z" fill="%23f8fafc"/><polygon points="80,92 73,100 87,100" fill="%230369a1"/><path d="M75 100 L80 160 L85 100 Z" fill="%230284c7"/><circle cx="43" cy="52" r="8.5" fill="%23fba96b"/><circle cx="117" cy="52" r="8.5" fill="%23fba96b"/><circle cx="80" cy="50" r="37" fill="url(%23skinSm2)"/><path d="M40 40 C40 10 120 10 120 40 C120 16 106 6 80 6 C54 6 40 16 40 40 Z" fill="%231e293b"/><path d="M56 42 Q66 38 74 42" stroke="%231e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M86 42 Q94 38 104 42" stroke="%231e293b" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse cx="68" cy="48" rx="4" ry="2.8" fill="%230f172a"/><ellipse cx="92" cy="48" rx="4" ry="2.8" fill="%230f172a"/><circle cx="69.5" cy="46.5" r="1.2" fill="%23ffffff"/><circle cx="93.5" cy="46.5" r="1.2" fill="%23ffffff"/><path d="M77 56 Q80 60 83 56" stroke="%23b45309" stroke-width="1.8" fill="none"/><path d="M72 68 Q80 76 88 68" stroke="%23b91c1c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
+
+export const PHOTO_STUDENT_FEMALE_1 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 8 112 112"><defs><linearGradient id="bgSf1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23fdf2f8"/><stop offset="100%" stop-color="%23fce7f3"/></linearGradient><linearGradient id="skinSf1" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="%23ffdfba"/><stop offset="100%" stop-color="%23f5b88c"/></linearGradient></defs><rect width="160" height="160" fill="url(%23bgSf1)"/><path d="M62 76 L98 76 L98 96 L62 96 Z" fill="%23f5b88c"/><path d="M12 160 C12 96 40 84 80 84 C120 84 148 96 148 160 Z" fill="%23047857"/><path d="M38 160 L80 100 L122 160 Z" fill="%23ffffff"/><path d="M48 86 C48 40 112 40 112 86 C112 118 48 118 48 86 Z" fill="%23ffffff"/><path d="M50 86 C50 44 110 44 110 86 C110 114 50 114 50 86 Z" fill="none" stroke="%23047857" stroke-width="2"/><circle cx="80" cy="56" r="28" fill="url(%23skinSf1)"/><path d="M56 46 Q66 42 74 46" stroke="%23171717" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M86 46 Q94 42 104 46" stroke="%23171717" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="68" cy="52" rx="3.8" ry="2.6" fill="%23171717"/><ellipse cx="92" cy="52" rx="3.8" ry="2.6" fill="%23171717"/><circle cx="69.5" cy="50.8" r="1.1" fill="%23ffffff"/><circle cx="93.5" cy="50.8" r="1.1" fill="%23ffffff"/><path d="M77 60 Q80 64 83 60" stroke="%23c2410c" stroke-width="1.8" fill="none"/><path d="M72 70 Q80 78 88 70" stroke="%23be123c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
+
+export const PHOTO_STUDENT_FEMALE_2 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="24 8 112 112"><defs><linearGradient id="bgSf2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%23f0fdf4"/><stop offset="100%" stop-color="%23dcfce7"/></linearGradient><linearGradient id="skinSf2" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="%23ffdfba"/><stop offset="100%" stop-color="%23f5b88c"/></linearGradient></defs><rect width="160" height="160" fill="url(%23bgSf2)"/><path d="M62 76 L98 76 L98 96 L62 96 Z" fill="%23f5b88c"/><path d="M12 160 C12 96 40 84 80 84 C120 84 148 96 148 160 Z" fill="%23047857"/><path d="M42 86 L80 126 L118 86 Z" fill="%23ffffff"/><circle cx="43" cy="52" r="8.5" fill="%23f5b88c"/><circle cx="117" cy="52" r="8.5" fill="%23f5b88c"/><circle cx="80" cy="50" r="37" fill="url(%23skinSf2)"/><path d="M38 52 C38 10 122 10 122 52 C122 18 108 6 80 6 C52 6 38 18 38 52 Z" fill="%23171717"/><path d="M38 52 C34 76 36 94 44 102 C46 84 42 66 40 52 Z" fill="%23171717"/><path d="M122 52 C126 76 124 94 116 102 C114 84 118 66 120 52 Z" fill="%23171717"/><path d="M56 42 Q66 38 74 42" stroke="%23171717" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M86 42 Q94 38 104 42" stroke="%23171717" stroke-width="2.2" fill="none" stroke-linecap="round"/><ellipse cx="68" cy="48" rx="3.8" ry="2.6" fill="%23171717"/><ellipse cx="92" cy="48" rx="3.8" ry="2.6" fill="%23171717"/><circle cx="69.5" cy="46.8" r="1.1" fill="%23ffffff"/><circle cx="93.5" cy="46.8" r="1.1" fill="%23ffffff"/><path d="M77 56 Q80 60 83 56" stroke="%23c2410c" stroke-width="1.8" fill="none"/><path d="M72 68 Q80 76 88 68" stroke="%23be123c" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
+
+export function getStudentPhoto(student) {
+  if (!student) return PHOTO_STUDENT_MALE_1;
+  if (student.photo_url && student.photo_url.length > 20) return student.photo_url;
+  if (student.photo && student.photo.length > 20) return student.photo;
+  if (student.image && student.image.length > 20) return student.image;
+  if (student.extended_profile?.photo_url && student.extended_profile.photo_url.length > 20) return student.extended_profile.photo_url;
+
+  try {
+    const raw = localStorage.getItem('magra_db_students');
+    if (raw) {
+      const local = JSON.parse(raw);
+      if (Array.isArray(local) && local.length) {
+        const found = local.find(x => String(x.id) === String(student.id) || String(x.student_id) === String(student.student_id));
+        if (found?.photo_url && found.photo_url.length > 20) return found.photo_url;
+        if (found?.photo && found.photo.length > 20) return found.photo;
+      }
+    }
+  } catch {}
+
+  const name = (student.name_bn || student.name_en || '').toLowerCase();
+  const stuId = String(student.student_id || student.id || '').toLowerCase();
+  const roll = parseInt(student.roll_no, 10) || 1;
+  const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা');
+
+  if (name.includes('আহনাফ') || name.includes('ahnaf') || stuId.includes('stu-10-sci-01') || roll === 1) {
+    return PHOTO_STUDENT_MALE_1;
+  }
+  if (name.includes('শিহাব') || name.includes('shihab') || roll === 2) {
+    return PHOTO_STUDENT_MALE_2;
+  }
+  if (isFemale) {
+    return (roll % 2 === 0) ? PHOTO_STUDENT_FEMALE_2 : PHOTO_STUDENT_FEMALE_1;
+  }
+  return (roll % 2 === 0) ? PHOTO_STUDENT_MALE_2 : PHOTO_STUDENT_MALE_1;
+}
+
+
 export const DEFAULT_LEADERSHIP_DATA = {
   president: {
     key: 'public.nav.leadership.president',
@@ -218,6 +264,7 @@ export const MOCK_USERS = [
 export const MOCK_STUDENTS = [
   {
     "id": "stu-10-sci-1",
+    "photo_url": PHOTO_STUDENT_MALE_1,
     "student_id": "STU-10-SCI-01",
     "roll_no": 1,
     "name_bn": "আহনাফ সিদ্দিক",
@@ -259,6 +306,7 @@ export const MOCK_STUDENTS = [
   },
   {
     "id": "stu-10-sci-2",
+    "photo_url": PHOTO_STUDENT_MALE_2,
     "student_id": "STU-10-SCI-02",
     "roll_no": 2,
     "name_bn": "শিহাব উদ্দিন",
@@ -303,6 +351,7 @@ export const MOCK_STUDENTS = [
   },
   {
     "id": "stu-10-sci-3",
+    "photo_url": PHOTO_STUDENT_MALE_1,
     "student_id": "STU-10-SCI-03",
     "roll_no": 3,
     "name_bn": "শাওন আহমেদ",
@@ -344,6 +393,7 @@ export const MOCK_STUDENTS = [
   },
   {
     "id": "stu-10-sci-4",
+    "photo_url": PHOTO_STUDENT_MALE_2,
     "student_id": "STU-10-SCI-04",
     "roll_no": 4,
     "name_bn": "মোঃ ফাইয়ান ইসলাম ফাহাদ",
@@ -880,6 +930,7 @@ export const MOCK_STUDENTS = [
   },
   {
     "id": "stu-10-sci-17",
+    "photo_url": PHOTO_STUDENT_FEMALE_1,
     "student_id": "STU-10-SCI-17",
     "roll_no": 17,
     "name_bn": "তানজিলা জাহান",
@@ -1372,6 +1423,7 @@ export const MOCK_STUDENTS = [
   },
   {
     "id": "stu-10-hum-1",
+    "photo_url": PHOTO_STUDENT_FEMALE_1,
     "student_id": "STU-10-HUM-01",
     "roll_no": 1,
     "name_bn": "তানজিনা আকতার",

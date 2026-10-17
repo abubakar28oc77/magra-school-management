@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MOCK_SCHOOL } from './mockData.js';
+import { MOCK_SCHOOL, getStudentPhoto } from './mockData.js';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
@@ -22,7 +22,7 @@ export function StudentProfileModal({
   if (!isOpen || !student) return null;
 
   const school = MOCK_SCHOOL;
-  const photo = student.photo_url || DEFAULT_STUDENT_AVATAR;
+  const photo = student.photo_url || getStudentPhoto(student);
 
   const getDepartmentLabel = (s) => {
     const g = [s?.department, s?.group_name, s?.group, s?.section, s?.student_id]
