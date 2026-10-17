@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_SCHOOL } from './mockData.js';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -63,7 +63,7 @@ export function StudentCertificatesModal({
   }, [student?.id]);
 
   // Generate dynamic default memo number based on student & type
-  useMemo(() => {
+  useEffect(() => {
     const code = student?.roll_no ? String(student.roll_no).padStart(3, '0') : '001';
     const prefix = certType === 'testimonial' ? 'মপাউবি/প্রশংসা' : certType === 'transfer' ? 'মপাউবি/ছাড়পত্র' : 'মপাউবি/প্রত্যয়ন';
     setMemoNo(`${prefix}/২০২৬/${code}`);
