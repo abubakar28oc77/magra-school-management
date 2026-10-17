@@ -37,11 +37,30 @@ export function StudentCertificatesModal({
   const [tcReason, setTcReason] = useState('অভিভাবকের বাসস্থান স্থানান্তর ও সুবিধার জন্য');
   const [paidUptoMonth, setPaidUptoMonth] = useState('ডিসেম্বর ২০২৬');
   const [signeeTitle, setSigneeTitle] = useState('মুহাম্মদ শফিকুল ইসলাম, প্রধান শিক্ষক');
+  const [customBirthDate, setCustomBirthDate] = useState('');
+
+  // Date formatter for Bengali certificate display (DD-MM-YYYY)
+  const formatBnDate = (dStr) => {
+    if (!dStr) return '০১-০১-২০১০';
+    const clean = String(dStr).slice(0, 10);
+    const parts = clean.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return toBengaliDigits(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    }
+    return toBengaliDigits(clean);
+  };
 
   // Active student object
   const student = useMemo(() => {
     return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || students[0] || null;
   }, [students, selectedStudentId]);
+
+  // Sync customBirthDate when active student changes
+  useEffect(() => {
+    if (student) {
+      setCustomBirthDate(formatBnDate(student.date_of_birth || student.extended_profile?.dob));
+    }
+  }, [student?.id]);
 
   // Generate dynamic default memo number based on student & type
   useMemo(() => {
@@ -76,7 +95,7 @@ export function StudentCertificatesModal({
   const postOffice = student?.current_post_office || student?.permanent_post_office || 'মগড়া';
   const upazila = student?.current_upazila || student?.permanent_upazila || 'কালিহাতি';
   const district = student?.current_district || student?.permanent_district || 'টাঙ্গাইল';
-  const birthDate = student?.date_of_birth ? toBengaliDigits(student.date_of_birth.slice(0, 10)) : '০১-০১-২০১০';
+  const birthDate = customBirthDate || formatBnDate(student?.date_of_birth || student?.extended_profile?.dob || '2010-01-01');
 
   // Render certificate HTML for preview and printing
   const generateCertificateHtml = () => {
@@ -90,7 +109,7 @@ export function StudentCertificatesModal({
       contentHtml = `
         <div class="cert-body-text">
           <p class="cert-para">
-            এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>${deptName}</b> হইতে <b>${passingYear}</b> সনের <b>${examName}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) <b>${gpaResult}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${rollNo}</b> এবং স্টুডেন্ট আইডি: <b>${studentId}</b>।
+            এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>${deptName}</b> হইতে <b>${passingYear}</b> সনের <b>${examName}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) <b>${gpaResult}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার জন্ম তারিখ: <b>${birthDate}</b> খ্রি.।
           </p>
           <p class="cert-para">
             বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark || 'উত্তম ও প্রশংসনীয়'}</b>।
@@ -160,7 +179,7 @@ export function StudentCertificatesModal({
       contentHtml = `
         <div class="cert-body-text">
           <p class="cert-para">
-            এই মর্মে প্রত্যয়ন করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>শ্রেণি ${className}</b> (${deptName})-এর একজন নিয়মিত ও বাধ্যগত শিক্ষার্থী। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${rollNo}</b> এবং স্টুডেন্ট আইডি: <b>${studentId}</b>।
+            এই মর্মে প্রত্যয়ন করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>শ্রেণি ${className}</b> (${deptName})-এর একজন নিয়মিত ও বাধ্যগত শিক্ষার্থী। তাহার শ্রেণি রোল নম্বর <b>${rollNo}</b>। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার জন্ম তারিখ: <b>${birthDate}</b> খ্রি.।
           </p>
           <p class="cert-para">
             বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark || 'উত্তম ও প্রশংসনীয়'}</b>।
@@ -492,6 +511,18 @@ export function StudentCertificatesModal({
                 </div>
               </>
             )}
+
+            {/* Birth Date Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>জন্ম তারিখ (ভর্তি বহির রেকর্ড অনুযায়ী):</label>
+              <input
+                type="text"
+                value={customBirthDate}
+                onChange={e => setCustomBirthDate(e.target.value)}
+                style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                placeholder="DD-MM-YYYY"
+              />
+            </div>
 
             {/* Common Conduct Remarks */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
