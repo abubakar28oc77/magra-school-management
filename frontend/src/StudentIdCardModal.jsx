@@ -91,9 +91,9 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
 
   const getDepartmentName = (s) => {
     const p = getStudentGroupPriority(s);
-    if (p === 1) return 'বিজ্ঞান বিভাগ (Science)';
-    if (p === 2) return 'মানবিক বিভাগ (Humanities)';
-    if (p === 3) return 'ব্যবসায় শিক্ষা (Commerce)';
+    if (p === 1) return 'বিজ্ঞান বিভাগ';
+    if (p === 2) return 'মানবিক বিভাগ';
+    if (p === 3) return 'ব্যবসায় শিক্ষা শাখা';
     return s?.department || s?.group_name || 'সাধারণ';
   };
 
@@ -101,92 +101,178 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
     return s?.guardian_phone || s?.father_mobile || s?.mother_mobile || s?.emergency_phone || '—';
   };
 
-  const generateSingleHtml = (s) => {
+  const formatBnDate = (dStr) => {
+    if (!dStr) return '০১-০১-২০১০';
+    const clean = String(dStr).slice(0, 10);
+    const parts = clean.split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      return toBengaliDigits(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    }
+    return toBengaliDigits(clean);
+  };
+
+  const getStudentAddress = (s) => {
+    const v = s?.current_village || s?.permanent_village;
+    const po = s?.current_post_office || s?.permanent_post_office || 'মগড়া';
+    const up = s?.current_upazila || s?.permanent_upazila || 'কালিহাতি';
+    const dist = s?.current_district || s?.permanent_district || 'টাঙ্গাইল';
+    if (s?.address && s.address.length > 5) return s.address;
+    if (v) return `গ্রাম: ${v}, ডাকঘর: ${po}, উপজেলা: ${up}, জেলা: ${dist}`;
+    return `গ্রাম ও ডাকঘর: ${po}, উপজেলা: ${up}, জেলা: ${dist}`;
+  };
+
+  const generateFrontCardHtml = (s) => {
     const photo = s.photo_url || DEFAULT_STUDENT_AVATAR;
     const dept = getDepartmentName(s);
     const phone = getGuardianPhone(s);
-    const blood = s.blood_group || 'O+';
-    const guardian = s.guardian_name || s.father_name || s.mother_name || 'অভিভাবক';
+    const isClass9or10 = ['9', '10', '৯', '১০'].includes(String(s.class_name).trim());
 
     return `
-      <div class="id-card-wrap">
-        <!-- FRONT CARD -->
-        <div class="id-card front-card">
-          <div class="card-header">
-            <img src="/school-logo.png" class="school-logo" alt="Logo" onerror="this.style.display='none'">
-            <div class="school-meta">
-              <h3>${school.nameBn}</h3>
-              <h4>${school.nameEn}</h4>
-              <p class="school-sub">EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ • কালিহাতি, টাঙ্গাইল</p>
-            </div>
-          </div>
-          <div class="card-ribbon">
-            <span>STUDENT ID CARD • শিক্ষার্থী পরিচয়পত্র</span>
-          </div>
-          <div class="card-body">
-            <div class="photo-col">
-              <div class="photo-frame">
-                <img src="${photo}" alt="Student Photo">
-              </div>
-              <div class="blood-badge">
-                <span class="blood-icon">🩸</span>
-                <span class="blood-val">${blood}</span>
-              </div>
-            </div>
-            <div class="info-col">
-              <div class="student-name-bn">${s.name_bn || '—'}</div>
-              <div class="student-name-en">${s.name_en || ''}</div>
-              <table class="card-table">
-                <tr><td>আইডি (ID)</td><td>: <b>${s.student_id || '—'}</b></td></tr>
-                <tr><td>শ্রেণি</td><td>: <b>শ্রেণি ${s.class_name || '—'} ${s.section ? '('+s.section+')' : ''}</b></td></tr>
-                <tr><td>বিভাগ</td><td>: <span class="dept-tag">${dept}</span></td></tr>
-                <tr><td>রোল নং</td><td>: <b class="roll-highlight">${toBengaliDigits(s.roll_no) || s.roll_no || '—'}</b></td></tr>
-                <tr><td>অভিভাবক</td><td>: ${guardian}</td></tr>
-                <tr><td>মোবাইল</td><td>: <span class="mono">${phone}</span></td></tr>
-              </table>
-            </div>
-          </div>
-          <div class="card-footer">
-            <div class="barcode-box">
-              <div class="barcode-bars">||| | |||| || ||| || |||| | ||| ||||</div>
-              <span class="barcode-text">${s.student_id || 'ID-MAGRA'}</span>
-            </div>
-            <div class="sign-box">
-              <div class="sign-line"></div>
-              <span class="sign-title">প্রধান শিক্ষক</span>
-            </div>
+      <div class="id-card front-card">
+        <!-- 1. Header (Green with 4 lines + Logo across all 4 lines) -->
+        <div class="card-header">
+          <img src="/school-logo.png" class="school-logo" alt="Logo" onerror="this.style.display='none'">
+          <div class="school-meta">
+            <h3 class="school-name-bn">${school.nameBn}</h3>
+            <h4 class="school-name-en">${school.nameEn}</h4>
+            <p class="school-sub">EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬</p>
+            <p class="school-address">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাংগাইল।</p>
           </div>
         </div>
 
-        <!-- BACK CARD -->
-        <div class="id-card back-card">
-          <div class="back-header">
-            <h4>জরুরি নির্দেশনাবলি ও বিদ্যালয়ের নিয়মাবলি</h4>
-          </div>
-          <div class="back-body">
-            <ol class="rules-list">
-              <li>এই পরিচয়পত্রটি সার্বক্ষণিক সাথে রাখা এবং প্রদর্শন করা বাধ্যতামূলক।</li>
-              <li>কার্ডটি হস্তান্তরযোগ্য নয়; কোনো অবস্থাতেই অন্যের ব্যবহার নিষিদ্ধ।</li>
-              <li>কার্ড হারিয়ে গেলে অবিলম্বে প্রধান শিক্ষক বা শ্রেণি শিক্ষককে অবহিত করতে হবে।</li>
-              <li>পরীক্ষা হলে ও ক্লাস রুমে প্রবেশের সময় কার্ডটি দৃশ্যমান থাকা আবশ্যক।</li>
-              <li>কার্ডটি পাওয়া গেলে নিচের ঠিকানায় জমা দেওয়ার জন্য অনুরোধ করা যাচ্ছে।</li>
-            </ol>
-            <div class="school-contact-box">
-              <p><b>প্রতিষ্ঠানের ঠিকানা:</b> ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল</p>
-              <p><b>হেল্পলাইন / অফিস:</b> 01712-345678 • <b>Email:</b> magrapuhs.46@gmail.com</p>
-              <p class="validity">মেয়াদকাল: <b>২০২৬ শিক্ষাবর্ষ (৩১ ডিসেম্বর পর্যন্ত বৈধ)</b></p>
+        <!-- 2. Ribbon with enlarged font -->
+        <div class="card-ribbon">
+          <span>STUDENT ID CARD • শিক্ষার্থী পরিচয়পত্র</span>
+        </div>
+
+        <!-- 3 & 4. Card Body: Centered enlarged photo + Centered info table -->
+        <div class="card-body">
+          <div class="center-photo-wrap">
+            <div class="photo-frame">
+              <img src="${photo}" alt="Student Photo">
             </div>
           </div>
-          <div class="back-footer">
-            <div class="back-seal-box">
-              <span class="seal-mark">★ অফিসিয়াল সিল ★</span>
-            </div>
-            <div class="sign-box">
-              <div class="sign-line"></div>
-              <span class="sign-title">অনুমোদিত স্বাক্ষর</span>
-            </div>
+
+          <div class="center-student-title">
+            <div class="student-name-bn">${s.name_bn || '—'}</div>
+            ${s.name_en ? `<div class="student-name-en">${s.name_en}</div>` : ''}
+          </div>
+
+          <table class="front-card-table">
+            <tr>
+              <td class="lbl">শ্রেণি</td>
+              <td class="sep">:</td>
+              <td class="val"><b>শ্রেণি ${toBengaliDigits(s.class_name) || s.class_name || '—'}</b></td>
+            </tr>
+            <tr>
+              <td class="lbl">রোল নং</td>
+              <td class="sep">:</td>
+              <td class="val"><b class="roll-highlight">${toBengaliDigits(s.roll_no) || s.roll_no || '—'}</b></td>
+            </tr>
+            ${isClass9or10 ? `
+            <tr>
+              <td class="lbl">বিভাগ</td>
+              <td class="sep">:</td>
+              <td class="val"><span class="dept-tag">${dept}</span></td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td class="lbl">আইডি (ID)</td>
+              <td class="sep">:</td>
+              <td class="val"><b>${s.student_id || '—'}</b></td>
+            </tr>
+            <tr>
+              <td class="lbl">জরুরী প্রয়োজনে</td>
+              <td class="sep">:</td>
+              <td class="val"><b class="emergency-phone">${phone}</b></td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- 5. Footer (Unchanged) -->
+        <div class="card-footer">
+          <div class="barcode-box">
+            <div class="barcode-bars">||| | |||| || ||| || ||||</div>
+            <span class="barcode-text">${s.student_id || 'ID-MAGRA'}</span>
+          </div>
+          <div class="sign-box">
+            <div class="sign-line"></div>
+            <span class="sign-title">প্রধান শিক্ষক</span>
           </div>
         </div>
+      </div>
+    `;
+  };
+
+  const generateBackCardHtml = (s) => {
+    const fatherName = s.father_name || s.guardian_name || '—';
+    const motherName = s.mother_name || '—';
+    const mobileNo = s.guardian_phone || s.father_mobile || s.mother_mobile || s.emergency_phone || '—';
+    const birthDate = formatBnDate(s.date_of_birth || s.extended_profile?.dob || '2010-01-01');
+    const blood = s.blood_group || 'O+';
+    const address = getStudentAddress(s);
+
+    return `
+      <div class="id-card back-card">
+        <!-- Top Ribbon -->
+        <div class="card-ribbon back-ribbon">
+          <span>STUDENT INFORMATION • শিক্ষার্থীর তথ্যাবলি</span>
+        </div>
+
+        <!-- Middle Body: Student Personal & Guardian Details -->
+        <div class="card-body">
+          <table class="back-info-table">
+            <tr>
+              <td class="lbl">পিতার নাম</td>
+              <td class="sep">:</td>
+              <td class="val">${fatherName}</td>
+            </tr>
+            <tr>
+              <td class="lbl">মাতার নাম</td>
+              <td class="sep">:</td>
+              <td class="val">${motherName}</td>
+            </tr>
+            <tr>
+              <td class="lbl">মোবাইল নম্বর</td>
+              <td class="sep">:</td>
+              <td class="val"><span class="mono">${mobileNo}</span></td>
+            </tr>
+            <tr>
+              <td class="lbl">জন্ম তারিখ</td>
+              <td class="sep">:</td>
+              <td class="val">${birthDate} খ্রি.</td>
+            </tr>
+            <tr>
+              <td class="lbl">রক্তের গ্রুপ</td>
+              <td class="sep">:</td>
+              <td class="val"><span class="blood-badge-pill">🩸 ${blood}</span></td>
+            </tr>
+            <tr>
+              <td class="lbl">শিক্ষার্থীর ঠিকানা</td>
+              <td class="sep">:</td>
+              <td class="val">${address}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Bottom Banner: Designed like front card header with Headmaster info -->
+        <div class="back-card-footer-banner">
+          <div class="footer-head-meta">
+            <div class="footer-head-name">${school.headTeacher}</div>
+            <div class="footer-head-desig">প্রধান শিক্ষক • মোবাইল: ${school.phone}</div>
+            <div class="footer-school-name">${school.nameBn}</div>
+            <div class="footer-school-address">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাংগাইল।</div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  const generateSingleHtml = (s, side = cardSide) => {
+    return `
+      <div class="id-card-wrap">
+        ${(side === 'front' || side === 'both') ? generateFrontCardHtml(s) : ''}
+        ${(side === 'back' || side === 'both') ? generateBackCardHtml(s) : ''}
       </div>
     `;
   };
@@ -205,8 +291,8 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
         <style>
           ${idCardStyles}
           body {
-            background: #f1f5f9;
-            padding: 30px;
+            background: #ffffff;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -215,12 +301,13 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
           @media print {
             body { background: transparent; padding: 0; }
             .no-print { display: none !important; }
+            .id-card { box-shadow: none !important; }
           }
         </style>
       </head>
       <body>
         <div class="single-print-container">
-          ${generateSingleHtml(activeStudent)}
+          ${generateSingleHtml(activeStudent, cardSide)}
         </div>
         <script>
           window.onload = () => { window.print(); };
@@ -238,7 +325,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
 
     const cardsHtml = bulkStudents.map(s => `
       <div class="sheet-card-item">
-        ${generateSingleHtml(s)}
+        ${generateSingleHtml(s, cardSide)}
       </div>
     `).join('');
 
@@ -499,52 +586,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
                           __html: `
                             <style>${idCardStyles}</style>
                             <div class="id-card-wrap">
-                              <div class="id-card front-card">
-                                <div class="card-header">
-                                  <img src="/school-logo.png" class="school-logo" alt="Logo" onerror="this.style.display='none'">
-                                  <div class="school-meta">
-                                    <h3>${school.nameBn}</h3>
-                                    <h4>${school.nameEn}</h4>
-                                    <p class="school-sub">EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬</p>
-                                  </div>
-                                </div>
-                                <div class="card-ribbon">
-                                  <span>STUDENT ID CARD • শিক্ষার্থী পরিচয়পত্র</span>
-                                </div>
-                                <div class="card-body">
-                                  <div class="photo-col">
-                                    <div class="photo-frame">
-                                      <img src="${activeStudent.photo_url || DEFAULT_STUDENT_AVATAR}" alt="Photo">
-                                    </div>
-                                    <div class="blood-badge">
-                                      <span class="blood-icon">🩸</span>
-                                      <span class="blood-val">${activeStudent.blood_group || 'O+'}</span>
-                                    </div>
-                                  </div>
-                                  <div class="info-col">
-                                    <div class="student-name-bn">${activeStudent.name_bn || '—'}</div>
-                                    <div class="student-name-en">${activeStudent.name_en || ''}</div>
-                                    <table class="card-table">
-                                      <tr><td>আইডি (ID)</td><td>: <b>${activeStudent.student_id || '—'}</b></td></tr>
-                                      <tr><td>শ্রেণি</td><td>: <b>শ্রেণি ${activeStudent.class_name || '—'}</b></td></tr>
-                                      <tr><td>বিভাগ</td><td>: <span class="dept-tag">${getDepartmentName(activeStudent)}</span></td></tr>
-                                      <tr><td>রোল নং</td><td>: <b class="roll-highlight">${toBengaliDigits(activeStudent.roll_no) || activeStudent.roll_no || '—'}</b></td></tr>
-                                      <tr><td>অভিভাবক</td><td>: ${activeStudent.guardian_name || activeStudent.father_name || 'অভিভাবক'}</td></tr>
-                                      <tr><td>মোবাইল</td><td>: <span class="mono">${getGuardianPhone(activeStudent)}</span></td></tr>
-                                    </table>
-                                  </div>
-                                </div>
-                                <div class="card-footer">
-                                  <div class="barcode-box">
-                                    <div class="barcode-bars">||| | |||| || ||| || ||||</div>
-                                    <span class="barcode-text">${activeStudent.student_id || 'ID-MAGRA'}</span>
-                                  </div>
-                                  <div class="sign-box">
-                                    <div class="sign-line"></div>
-                                    <span class="sign-title">প্রধান শিক্ষক</span>
-                                  </div>
-                                </div>
-                              </div>
+                              ${generateFrontCardHtml(activeStudent)}
                             </div>
                           `
                         }}
@@ -563,33 +605,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
                           __html: `
                             <style>${idCardStyles}</style>
                             <div class="id-card-wrap">
-                              <div class="id-card back-card">
-                                <div class="back-header">
-                                  <h4>জরুরি নির্দেশনাবলি ও বিদ্যালয়ের নিয়মাবলি</h4>
-                                </div>
-                                <div class="back-body">
-                                  <ol class="rules-list">
-                                    <li>এই পরিচয়পত্রটি সার্বক্ষণিক সাথে রাখা এবং প্রদর্শন করা বাধ্যতামূলক।</li>
-                                    <li>কার্ডটি অহস্তান্তরযোগ্য; অন্যের ব্যবহার দণ্ডনীয়।</li>
-                                    <li>কার্ড হারিয়ে গেলে অবিলম্বে প্রধান শিক্ষককে অবহিত করতে হবে।</li>
-                                    <li>পরীক্ষা হলে ও ক্লাসে প্রবেশের সময় কার্ডটি দৃশ্যমান থাকা আবশ্যক।</li>
-                                  </ol>
-                                  <div class="school-contact-box">
-                                    <p><b>ঠিকানা:</b> মগড়া, কালিহাতি, টাঙ্গাইল • EIIN ${school.eiin}</p>
-                                    <p><b>হেল্পলাইন:</b> 01712-345678 • <b>Email:</b> magrapuhs.46@gmail.com</p>
-                                    <p class="validity">মেয়াদকাল: <b>২০২৬ শিক্ষাবর্ষ (৩১ ডিসেম্বর পর্যন্ত বৈধ)</b></p>
-                                  </div>
-                                </div>
-                                <div class="back-footer">
-                                  <div class="back-seal-box">
-                                    <span class="seal-mark">★ অফিসিয়াল সিল ★</span>
-                                  </div>
-                                  <div class="sign-box">
-                                    <div class="sign-line"></div>
-                                    <span class="sign-title">অনুমোদিত স্বাক্ষর</span>
-                                  </div>
-                                </div>
-                              </div>
+                              ${generateBackCardHtml(activeStudent)}
                             </div>
                           `
                         }}
@@ -755,7 +771,7 @@ export const idCardStyles = `
   .front-card .card-header {
     background: linear-gradient(135deg, #064e3b 0%, #047857 70%, #059669 100%);
     color: #ffffff;
-    padding: 10px 10px 8px;
+    padding: 8px 10px 7px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -763,80 +779,95 @@ export const idCardStyles = `
   }
 
   .school-logo {
-    width: 44px;
-    height: 44px;
+    width: 58px;
+    height: 58px;
     object-fit: contain;
     border-radius: 50%;
     background: #ffffff;
     padding: 2px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.25);
     flex-shrink: 0;
   }
 
   .school-meta {
     flex: 1;
     text-align: center;
+    min-width: 0;
   }
 
-  .school-meta h3 {
+  .school-meta h3.school-name-bn {
     margin: 0;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 800;
     letter-spacing: -0.2px;
     line-height: 1.2;
     color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .school-meta h4 {
-    margin: 2px 0 0;
-    font-size: 9px;
+  .school-meta h4.school-name-en {
+    margin: 1.5px 0 0;
+    font-size: 8.5px;
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
     color: #fef08a;
     letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .school-sub {
-    margin: 2px 0 0;
-    font-size: 8.5px;
+    margin: 1.5px 0 0;
+    font-size: 8px;
     color: #d1fae5;
+    line-height: 1.2;
+  }
+
+  .school-address {
+    margin: 1.5px 0 0;
+    font-size: 8px;
+    color: #fef08a;
+    font-weight: 600;
+    line-height: 1.2;
   }
 
   .card-ribbon {
     background: #0f172a;
     color: #38bdf8;
     text-align: center;
-    font-size: 9px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 800;
     letter-spacing: 0.8px;
-    padding: 2.5px 4px;
+    padding: 3.5px 4px;
     text-transform: uppercase;
+    border-bottom: 1px solid #334155;
   }
 
   .front-card .card-body {
     flex: 1;
-    padding: 10px;
-    display: flex;
-    gap: 10px;
-  }
-
-  .photo-col {
-    width: 82px;
+    padding: 6px 12px 4px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
+  }
+
+  .center-photo-wrap {
+    margin: 2px auto 4px;
+    display: flex;
+    justify-content: center;
   }
 
   .photo-frame {
-    width: 80px;
-    height: 98px;
-    border-radius: 6px;
+    width: 90px;
+    height: 106px;
+    border-radius: 8px;
     border: 2px solid #047857;
     overflow: hidden;
     background: #f1f5f9;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.12);
   }
 
   .photo-frame img {
@@ -845,69 +876,68 @@ export const idCardStyles = `
     object-fit: cover;
   }
 
-  .blood-badge {
-    background: #fef2f2;
-    border: 1px solid #f87171;
-    border-radius: 4px;
-    padding: 2px 6px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 10.5px;
-    font-weight: 800;
-    color: #b91c1c;
-  }
-
-  .blood-icon { font-size: 10px; }
-
-  .info-col {
-    flex: 1;
-    min-width: 0;
+  .center-student-title {
+    text-align: center;
+    margin-bottom: 3px;
+    width: 100%;
   }
 
   .student-name-bn {
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 800;
     color: #0f172a;
-    line-height: 1.25;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .student-name-en {
-    font-size: 10px;
+    font-size: 9.5px;
     font-family: 'Outfit', sans-serif;
     color: #0284c7;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-top: 1px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .card-table {
+  .front-card-table {
     width: 100%;
+    max-width: 285px;
     font-size: 10.5px;
     border-collapse: collapse;
+    margin-top: 2px;
   }
 
-  .card-table td {
-    padding: 2.2px 0;
-    vertical-align: top;
-    color: #334155;
+  .front-card-table td {
+    padding: 2.2px 2px;
+    vertical-align: middle;
+    color: #1e293b;
   }
 
-  .card-table td:first-child {
-    width: 60px;
+  .front-card-table td.lbl {
+    width: 84px;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .front-card-table td.sep {
+    width: 10px;
+    text-align: center;
+    font-weight: 700;
     color: #64748b;
+  }
+
+  .front-card-table td.val {
     font-weight: 600;
   }
 
   .dept-tag {
     background: #ecfdf5;
     color: #047857;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 3px;
     font-size: 9.5px;
     font-weight: 700;
@@ -915,18 +945,21 @@ export const idCardStyles = `
   }
 
   .roll-highlight {
-    font-size: 12.5px;
+    font-size: 12px;
     color: #b91c1c;
+    font-weight: 800;
   }
 
-  .mono {
+  .emergency-phone {
     font-family: monospace;
-    font-weight: 700;
-    font-size: 10px;
+    font-weight: 800;
+    color: #0369a1;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
   }
 
   .front-card .card-footer {
-    padding: 6px 12px 8px;
+    padding: 6px 14px 6px;
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     display: flex;
@@ -979,74 +1012,112 @@ export const idCardStyles = `
     flex-direction: column;
   }
 
-  .back-header {
+  .back-ribbon {
     background: #0f172a;
+    color: #fde047;
+    border-bottom: 1.5px solid #fbbf24;
+  }
+
+  .back-card .card-body {
+    flex: 1;
+    padding: 12px 14px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .back-info-table {
+    width: 100%;
+    font-size: 11px;
+    border-collapse: collapse;
+  }
+
+  .back-info-table tr {
+    border-bottom: 1px dashed #e2e8f0;
+  }
+
+  .back-info-table tr:last-child {
+    border-bottom: none;
+  }
+
+  .back-info-table td {
+    padding: 6px 2px;
+    vertical-align: top;
+    line-height: 1.4;
+  }
+
+  .back-info-table td.lbl {
+    width: 95px;
+    color: #475569;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .back-info-table td.sep {
+    width: 10px;
+    text-align: center;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .back-info-table td.val {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .blood-badge-pill {
+    background: #fef2f2;
+    border: 1px solid #f87171;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 800;
+    color: #b91c1c;
+    display: inline-block;
+  }
+
+  .mono {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 10.5px;
+  }
+
+  .back-card-footer-banner {
+    background: linear-gradient(135deg, #064e3b 0%, #047857 70%, #059669 100%);
     color: #ffffff;
-    padding: 8px 10px;
+    padding: 8px 10px 7px;
+    border-top: 2px solid #fbbf24;
     text-align: center;
   }
 
-  .back-header h4 {
-    margin: 0;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fde047;
+  .footer-head-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.25;
   }
 
-  .back-body {
-    flex: 1;
-    padding: 10px 12px;
+  .footer-head-desig {
     font-size: 9.5px;
-    color: #334155;
-    line-height: 1.45;
-  }
-
-  .rules-list {
-    margin: 0;
-    padding-left: 16px;
-    margin-bottom: 10px;
-  }
-
-  .rules-list li {
-    margin-bottom: 4px;
-  }
-
-  .school-contact-box {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 9px;
-    margin-top: 6px;
-  }
-
-  .school-contact-box p {
-    margin: 2px 0;
-  }
-
-  .validity {
-    color: #047857;
     font-weight: 700;
-    margin-top: 4px !important;
+    color: #fef08a;
+    margin-top: 1.5px;
+    letter-spacing: 0.3px;
   }
 
-  .back-footer {
-    padding: 8px 12px 10px;
-    background: #f5f5f4;
-    border-top: 1px solid #e7e5e4;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+  .footer-school-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-top: 3px;
+    line-height: 1.2;
   }
 
-  .seal-mark {
-    font-size: 8.5px;
-    font-weight: 700;
-    color: #b91c1c;
-    border: 1px dashed #b91c1c;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: #fef2f2;
+  .footer-school-address {
+    font-size: 8px;
+    color: #d1fae5;
+    margin-top: 1.5px;
+    font-weight: 600;
   }
 
   @media print {
