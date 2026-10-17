@@ -219,7 +219,9 @@ class ErrorBoundary extends React.Component {
               style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
               onClick={() => { 
                 this.setState({ hasError: false, error: null }); 
-                window.location.reload(); 
+                const base = window.location.href.split('?')[0].split('#')[0];
+                const hash = window.location.hash || '';
+                window.location.href = base + '?ts=' + Date.now() + hash;
               }}
             >
               🔄 পেজ রিলোড করুন

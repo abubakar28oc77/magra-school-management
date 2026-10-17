@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MOCK_SCHOOL } from './mockData.js';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -28,7 +28,7 @@ export function StudentCertificatesModal({
   const [searchQuery, setSearchQuery] = useState('');
 
   // Customizable certificate fields
-  const [memoNo, setMemoNo] = useState('');
+  const [customMemoNo, setCustomMemoNo] = useState('');
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [passingYear, setPassingYear] = useState('২০২৬');
   const [examName, setExamName] = useState('মাধ্যমিক স্কুল সার্টিফিকেট (এসএসসি)');
@@ -55,19 +55,15 @@ export function StudentCertificatesModal({
     return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || students[0] || null;
   }, [students, selectedStudentId]);
 
-  // Sync customBirthDate when active student changes
-  useEffect(() => {
-    if (student) {
-      setCustomBirthDate(formatBnDate(student.date_of_birth || student.extended_profile?.dob));
-    }
-  }, [student?.id]);
-
-  // Generate dynamic default memo number based on student & type
-  useEffect(() => {
+  // Derived default memo number based on student & type
+  const defaultMemoNo = useMemo(() => {
     const code = student?.roll_no ? String(student.roll_no).padStart(3, '0') : '001';
     const prefix = certType === 'testimonial' ? 'মপাউবি/প্রশংসা' : certType === 'transfer' ? 'মপাউবি/ছাড়পত্র' : 'মপাউবি/প্রত্যয়ন';
-    setMemoNo(`${prefix}/২০২৬/${code}`);
-  }, [certType, student?.id]);
+    return `${prefix}/২০২৬/${code}`;
+  }, [certType, student?.id, student?.roll_no]);
+
+  const memoNo = customMemoNo || defaultMemoNo;
+  const birthDate = customBirthDate || formatBnDate(student?.date_of_birth || student?.extended_profile?.dob || '2010-01-01');
 
   // Filtered student list for dropdown
   const filteredStudents = useMemo(() => {
@@ -95,7 +91,6 @@ export function StudentCertificatesModal({
   const postOffice = student?.current_post_office || student?.permanent_post_office || 'মগড়া';
   const upazila = student?.current_upazila || student?.permanent_upazila || 'কালিহাতি';
   const district = student?.current_district || student?.permanent_district || 'টাঙ্গাইল';
-  const birthDate = customBirthDate || formatBnDate(student?.date_of_birth || student?.extended_profile?.dob || '2010-01-01');
 
   // Render certificate HTML for preview and printing
   const generateCertificateHtml = () => {
@@ -343,7 +338,7 @@ export function StudentCertificatesModal({
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button
               type="button"
-              onClick={() => setCertType('testimonial')}
+              onClick={() => { setCertType('testimonial'); setCustomMemoNo(''); }}
               style={{
                 padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
                 border: certType === 'testimonial' ? '2px solid #0369a1' : '1px solid #cbd5e1',
@@ -356,7 +351,7 @@ export function StudentCertificatesModal({
             </button>
             <button
               type="button"
-              onClick={() => setCertType('transfer')}
+              onClick={() => { setCertType('transfer'); setCustomMemoNo(''); }}
               style={{
                 padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
                 border: certType === 'transfer' ? '2px solid #0369a1' : '1px solid #cbd5e1',
@@ -369,7 +364,7 @@ export function StudentCertificatesModal({
             </button>
             <button
               type="button"
-              onClick={() => setCertType('bonafide')}
+              onClick={() => { setCertType('bonafide'); setCustomMemoNo(''); }}
               style={{
                 padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
                 border: certType === 'bonafide' ? '2px solid #0369a1' : '1px solid #cbd5e1',
@@ -420,7 +415,11 @@ export function StudentCertificatesModal({
               />
               <select
                 value={selectedStudentId}
-                onChange={e => setSelectedStudentId(e.target.value)}
+                onChange={e => {
+                  setSelectedStudentId(e.target.value);
+                  setCustomBirthDate('');
+                  setCustomMemoNo('');
+                }}
                 style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '12.5px', marginTop: '4px' }}
               >
                 {filteredStudents.map(s => (
@@ -438,7 +437,7 @@ export function StudentCertificatesModal({
                 <input
                   type="text"
                   value={memoNo}
-                  onChange={e => setMemoNo(e.target.value)}
+                  onChange={e => setCustomMemoNo(e.target.value)}
                   style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                 />
               </div>
@@ -517,7 +516,7 @@ export function StudentCertificatesModal({
               <label style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>জন্ম তারিখ (ভর্তি বহির রেকর্ড অনুযায়ী):</label>
               <input
                 type="text"
-                value={customBirthDate}
+                value={birthDate}
                 onChange={e => setCustomBirthDate(e.target.value)}
                 style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                 placeholder="DD-MM-YYYY"
