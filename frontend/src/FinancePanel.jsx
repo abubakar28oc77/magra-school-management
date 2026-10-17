@@ -773,6 +773,8 @@ export function FinancePanel({ sub }) {
     setTimeout(() => setSubmitMsg(''), 4000);
   };
 
+  const handleCollectPayment = handleTakePayment;
+
 
   // ==========================================
   // INSTITUTIONAL INCOME FORM & LOGIC
