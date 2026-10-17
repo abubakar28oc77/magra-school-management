@@ -674,6 +674,7 @@ export function FinancePanel({ sub }) {
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentRemarks, setPaymentRemarks] = useState('');
   const [receivedBy, setReceivedBy] = useState('মোঃ আলমগীর হোসেন (হিসাব সহকারী)');
   const [submitMsg, setSubmitMsg] = useState('');
@@ -730,7 +731,7 @@ export function FinancePanel({ sub }) {
     const newTransaction = {
       id: `FEE-${Date.now()}`,
       receipt_no: receiptNo,
-      date: new Date().toISOString().slice(0, 10),
+      date: receiptDate || new Date().toISOString().slice(0, 10),
       student_id: selectedStudent.student_id || selectedStudent.id,
       student_name: selectedStudent.name_bn || selectedStudent.name,
       class_name: selectedStudent.class_name,
