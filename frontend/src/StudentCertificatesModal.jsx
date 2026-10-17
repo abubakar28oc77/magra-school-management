@@ -89,26 +89,13 @@ export function StudentCertificatesModal({
       titleEn = 'TESTIMONIAL / COMMENDATION CERTIFICATE';
       contentHtml = `
         <div class="cert-body-text">
-          <p class="cert-lead">এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে,</p>
-          <div class="recipient-box">
-            <span class="recipient-name">${studentNameBn}</span>
-            ${student?.name_en ? `<span class="recipient-name-en">(${student.name_en})</span>` : ''}
-          </div>
           <p class="cert-para">
-            পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, 
-            গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, 
-            উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>।
+            এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>${deptName}</b> হইতে <b>${passingYear}</b> সনের <b>${examName}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) <b>${gpaResult}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${rollNo}</b> এবং স্টুডেন্ট আইডি: <b>${studentId}</b>।
           </p>
           <p class="cert-para">
-            সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>${deptName}</b> হইতে <b>${passingYear}</b> সনের 
-            <b>${examName}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) 
-            <b>${gpaResult}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। তাহার শ্রেণি রোল নম্বর 
-            <b>${rollNo}</b> এবং স্টুডেন্ট আইডি: <b>${studentId}</b>।
+            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark || 'উত্তম ও প্রশংসনীয়'}</b>।
           </p>
-          <p class="cert-para">
-            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark}</b>।
-          </p>
-          <p class="cert-wish">
+          <p class="cert-para cert-closing-para">
             আমি তাহার ভবিষ্যৎ জীবনের সর্বাঙ্গীন উন্নতি ও উজ্জ্বল সাফল্য কামনা করি।
           </p>
         </div>
@@ -172,29 +159,14 @@ export function StudentCertificatesModal({
       titleEn = 'STUDENT BONAFIDE / CITIZEN CERTIFICATE';
       contentHtml = `
         <div class="cert-body-text">
-          <p class="cert-lead">এই মর্মে প্রত্যয়ন করা যাইতেছে যে,</p>
-          <div class="recipient-box">
-            <span class="recipient-name">${studentNameBn}</span>
-            ${student?.name_en ? `<span class="recipient-name-en">(${student.name_en})</span>` : ''}
-          </div>
           <p class="cert-para">
-            পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, 
-            গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, 
-            উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>।
+            এই মর্মে প্রত্যয়ন করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>শ্রেণি ${className}</b> (${deptName})-এর একজন নিয়মিত ও বাধ্যগত শিক্ষার্থী। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${rollNo}</b> এবং স্টুডেন্ট আইডি: <b>${studentId}</b>।
           </p>
           <p class="cert-para">
-            সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>শ্রেণি ${className}</b> (${deptName})-এর একজন 
-            নিয়মিত ও বাধ্যগত শিক্ষার্থী। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর 
-            <b>${rollNo}</b>, স্টুডেন্ট আইডি: <b>${studentId}</b> এবং জন্মতারিখ: <b>${birthDate}</b>।
+            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark || 'উত্তম ও প্রশংসনীয়'}</b>।
           </p>
-          <p class="cert-para">
-            সে নিয়মিত শ্রেণিকক্ষে উপস্থিত থাকে এবং পাঠ্যক্রম ও সহশিক্ষা কার্যক্রমে সক্রিয় অংশগ্রহণ করে। বিদ্যালয়ের কোনো শৃঙ্খলাবিরোধী কাজে তাহার কোনো সংশ্লিষ্টতা নাই। আমার জানামতে তাহার নৈতিক চরিত্র <b>${conductRemark}</b>।
-          </p>
-          <p class="cert-para">
-            তাহার প্রাতিষ্ঠানিক ও দাপ্তরিক প্রয়োজন (যেমন: <b>পাসপোর্ট আবেদন / শিক্ষাবৃত্তি / উপবৃত্তি / ব্যাংক হিসাব খোলা / জাতীয় পরিচয়পত্র বা সরকারি সুবিধা গ্রহণ</b>)-এর সুবিধার্থে তাহার আবেদনের প্রেক্ষিতে এই প্রত্যয়নপত্র প্রদান করা হইল।
-          </p>
-          <p class="cert-wish">
-            আমি তাহার জীবনের সার্বিক কল্যাণ ও সাফল্য কামনা করি।
+          <p class="cert-para cert-closing-para">
+            আমি তাহার ভবিষ্যৎ জীবনের সর্বাঙ্গীন উন্নতি ও উজ্জ্বল সাফল্য কামনা করি।
           </p>
         </div>
       `;
@@ -743,10 +715,33 @@ export const certificateStyles = `
   .cert-body-text {
     position: relative;
     z-index: 2;
-    line-height: 1.85;
-    font-size: 14.5px;
+    line-height: 2.2;
+    font-size: 15.5px;
     color: #1e293b;
     text-align: justify;
+    padding-top: 8px;
+  }
+
+  .cert-highlight-name {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1e3a8a;
+    border-bottom: 1.5px dotted #1e3a8a;
+    padding: 0 4px;
+    display: inline;
+  }
+
+  .cert-para {
+    margin: 0 0 16px;
+    text-indent: 40px;
+    line-height: 2.2;
+    font-size: 15.5px;
+    text-align: justify;
+  }
+
+  .cert-closing-para {
+    margin-top: 18px;
+    margin-bottom: 24px;
   }
 
   .cert-lead {
@@ -777,11 +772,6 @@ export const certificateStyles = `
     font-weight: 600;
     color: #0369a1;
     margin-left: 8px;
-  }
-
-  .cert-para {
-    margin: 0 0 12px;
-    text-indent: 28px;
   }
 
   .cert-wish {

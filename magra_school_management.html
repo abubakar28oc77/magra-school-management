@@ -1335,26 +1335,13 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   }
 `,Qi=[`০`,`১`,`২`,`৩`,`৪`,`৫`,`৬`,`৭`,`৮`,`৯`],$i=e=>e==null?``:String(e).replace(/\d/g,e=>Qi[e]);function ea(e){let t=[e?.department,e?.group_name,e?.group,e?.section,e?.student_id].filter(Boolean).map(e=>String(e).toLowerCase()).join(` `);return t.includes(`বিজ্ঞান`)||t.includes(`science`)||t.includes(`sci`)?`বিজ্ঞান বিভাগ`:t.includes(`মানবিক`)||t.includes(`humanities`)||t.includes(`hum`)||t.includes(`arts`)?`মানবিক বিভাগ`:t.includes(`ব্যবসা`)||t.includes(`বাণিজ্য`)||t.includes(`business`)||t.includes(`commerce`)?`ব্যবসায় শিক্ষা শাখা`:e?.department||e?.group_name||`সাধারণ`}function ta({isOpen:e,onClose:t,students:n=[],initialStudentId:r=``,initialCertType:i=`testimonial`}){let[a,o]=(0,w.useState)(i||`testimonial`),[s,c]=(0,w.useState)(r||n[0]?.id||``),[l,u]=(0,w.useState)(``),[d,f]=(0,w.useState)(``),[p,m]=(0,w.useState)(()=>new Date().toISOString().slice(0,10)),[h,g]=(0,w.useState)(`২০২৬`),[_,v]=(0,w.useState)(`মাধ্যমিক স্কুল সার্টিফিকেট (এসএসসি)`),[y,b]=(0,w.useState)(`৫.০০ (A+)`),[x,S]=(0,w.useState)(`উত্তম ও প্রশংসনীয়`),[C,T]=(0,w.useState)(`অভিভাবকের বাসস্থান স্থানান্তর ও সুবিধার জন্য`),[E,D]=(0,w.useState)(`ডিসেম্বর ২০২৬`),[O,k]=(0,w.useState)(`মুহাম্মদ শফিকুল ইসলাম, প্রধান শিক্ষক`),A=(0,w.useMemo)(()=>n.find(e=>String(e.id)===String(s)||String(e.student_id)===String(s))||n[0]||null,[n,s]);(0,w.useMemo)(()=>{let e=A?.roll_no?String(A.roll_no).padStart(3,`0`):`001`;f(`${a===`testimonial`?`মপাউবি/প্রশংসা`:a===`transfer`?`মপাউবি/ছাড়পত্র`:`মপাউবি/প্রত্যয়ন`}/২০২৬/${e}`)},[a,A?.id]);let j=(0,w.useMemo)(()=>{if(!l.trim())return n;let e=l.toLowerCase();return n.filter(t=>t.name_bn&&t.name_bn.toLowerCase().includes(e)||t.name_en&&t.name_en.toLowerCase().includes(e)||t.student_id&&t.student_id.toLowerCase().includes(e)||t.roll_no&&String(t.roll_no).includes(e))},[n,l]);if(!e)return null;let M=Yn,N=ea(A),ee=A?.name_bn||`—`,P=A?.father_name||`—`,te=A?.mother_name||`—`,ne=$i(A?.roll_no)||A?.roll_no||`—`,re=A?.student_id||`—`,ie=$i(A?.class_name)||A?.class_name||`১০`,ae=A?.current_village||A?.permanent_village||`মগড়া`,oe=A?.current_post_office||A?.permanent_post_office||`মগড়া`,se=A?.current_upazila||A?.permanent_upazila||`কালিহাতি`,ce=A?.current_district||A?.permanent_district||`টাঙ্গাইল`,le=A?.date_of_birth?$i(A.date_of_birth.slice(0,10)):`০১-০১-২০১০`,ue=()=>{let e=``,t=``,n=``;return a===`testimonial`?(t=`প্রশংসাপত্র`,n=`TESTIMONIAL / COMMENDATION CERTIFICATE`,e=`
         <div class="cert-body-text">
-          <p class="cert-lead">এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে,</p>
-          <div class="recipient-box">
-            <span class="recipient-name">${ee}</span>
-            ${A?.name_en?`<span class="recipient-name-en">(${A.name_en})</span>`:``}
-          </div>
           <p class="cert-para">
-            পিতা: <b>${P}</b>, মাতা: <b>${te}</b>, 
-            গ্রাম: <b>${ae}</b>, ডাকঘর: <b>${oe}</b>, 
-            উপজেলা: <b>${se}</b>, জেলা: <b>${ce}</b>।
+            এই মর্মে প্রশংসাপত্র প্রদান করা যাইতেছে যে, <b class="cert-highlight-name">${ee}</b>${A?.name_en?` (${A.name_en})`:``}, পিতা: <b>${P}</b>, মাতা: <b>${te}</b>, গ্রাম: <b>${ae}</b>, ডাকঘর: <b>${oe}</b>, উপজেলা: <b>${se}</b>, জেলা: <b>${ce}</b>; সে ঐতিহ্যবাহী <b>${M.nameBn}</b>-এর <b>${N}</b> হইতে <b>${h}</b> সনের <b>${_}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) <b>${y}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${ne}</b> এবং স্টুডেন্ট আইডি: <b>${re}</b>।
           </p>
           <p class="cert-para">
-            সে ঐতিহ্যবাহী <b>${M.nameBn}</b>-এর <b>${N}</b> হইতে <b>${h}</b> সনের 
-            <b>${_}</b>-এ নিয়মিত পরীক্ষার্থী হিসেবে অংশগ্রহণ করিয়া গ্রেড পয়েন্ট এভারেজ (GPA) 
-            <b>${y}</b> পাইয়া সাফল্যের সহিত উত্তীর্ণ হইয়াছে। তাহার শ্রেণি রোল নম্বর 
-            <b>${ne}</b> এবং স্টুডেন্ট আইডি: <b>${re}</b>।
+            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${x||`উত্তম ও প্রশংসনীয়`}</b>।
           </p>
-          <p class="cert-para">
-            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${x}</b>।
-          </p>
-          <p class="cert-wish">
+          <p class="cert-para cert-closing-para">
             আমি তাহার ভবিষ্যৎ জীবনের সর্বাঙ্গীন উন্নতি ও উজ্জ্বল সাফল্য কামনা করি।
           </p>
         </div>
@@ -1409,29 +1396,14 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
         </div>
       `):(t=`প্রত্যয়ন পত্র`,n=`STUDENT BONAFIDE / CITIZEN CERTIFICATE`,e=`
         <div class="cert-body-text">
-          <p class="cert-lead">এই মর্মে প্রত্যয়ন করা যাইতেছে যে,</p>
-          <div class="recipient-box">
-            <span class="recipient-name">${ee}</span>
-            ${A?.name_en?`<span class="recipient-name-en">(${A.name_en})</span>`:``}
-          </div>
           <p class="cert-para">
-            পিতা: <b>${P}</b>, মাতা: <b>${te}</b>, 
-            গ্রাম: <b>${ae}</b>, ডাকঘর: <b>${oe}</b>, 
-            উপজেলা: <b>${se}</b>, জেলা: <b>${ce}</b>।
+            এই মর্মে প্রত্যয়ন করা যাইতেছে যে, <b class="cert-highlight-name">${ee}</b>${A?.name_en?` (${A.name_en})`:``}, পিতা: <b>${P}</b>, মাতা: <b>${te}</b>, গ্রাম: <b>${ae}</b>, ডাকঘর: <b>${oe}</b>, উপজেলা: <b>${se}</b>, জেলা: <b>${ce}</b>; সে ঐতিহ্যবাহী <b>${M.nameBn}</b>-এর <b>শ্রেণি ${ie}</b> (${N})-এর একজন নিয়মিত ও বাধ্যগত শিক্ষার্থী। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর <b>${ne}</b> এবং স্টুডেন্ট আইডি: <b>${re}</b>।
           </p>
           <p class="cert-para">
-            সে ঐতিহ্যবাহী <b>${M.nameBn}</b>-এর <b>শ্রেণি ${ie}</b> (${N})-এর একজন 
-            নিয়মিত ও বাধ্যগত শিক্ষার্থী। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার শ্রেণি রোল নম্বর 
-            <b>${ne}</b>, স্টুডেন্ট আইডি: <b>${re}</b> এবং জন্মতারিখ: <b>${le}</b>।
+            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী এবং অধ্যবসায়ী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${x||`উত্তম ও প্রশংসনীয়`}</b>।
           </p>
-          <p class="cert-para">
-            সে নিয়মিত শ্রেণিকক্ষে উপস্থিত থাকে এবং পাঠ্যক্রম ও সহশিক্ষা কার্যক্রমে সক্রিয় অংশগ্রহণ করে। বিদ্যালয়ের কোনো শৃঙ্খলাবিরোধী কাজে তাহার কোনো সংশ্লিষ্টতা নাই। আমার জানামতে তাহার নৈতিক চরিত্র <b>${x}</b>।
-          </p>
-          <p class="cert-para">
-            তাহার প্রাতিষ্ঠানিক ও দাপ্তরিক প্রয়োজন (যেমন: <b>পাসপোর্ট আবেদন / শিক্ষাবৃত্তি / উপবৃত্তি / ব্যাংক হিসাব খোলা / জাতীয় পরিচয়পত্র বা সরকারি সুবিধা গ্রহণ</b>)-এর সুবিধার্থে তাহার আবেদনের প্রেক্ষিতে এই প্রত্যয়নপত্র প্রদান করা হইল।
-          </p>
-          <p class="cert-wish">
-            আমি তাহার জীবনের সার্বিক কল্যাণ ও সাফল্য কামনা করি।
+          <p class="cert-para cert-closing-para">
+            আমি তাহার ভবিষ্যৎ জীবনের সর্বাঙ্গীন উন্নতি ও উজ্জ্বল সাফল্য কামনা করি।
           </p>
         </div>
       `),`
@@ -1678,10 +1650,33 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   .cert-body-text {
     position: relative;
     z-index: 2;
-    line-height: 1.85;
-    font-size: 14.5px;
+    line-height: 2.2;
+    font-size: 15.5px;
     color: #1e293b;
     text-align: justify;
+    padding-top: 8px;
+  }
+
+  .cert-highlight-name {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1e3a8a;
+    border-bottom: 1.5px dotted #1e3a8a;
+    padding: 0 4px;
+    display: inline;
+  }
+
+  .cert-para {
+    margin: 0 0 16px;
+    text-indent: 40px;
+    line-height: 2.2;
+    font-size: 15.5px;
+    text-align: justify;
+  }
+
+  .cert-closing-para {
+    margin-top: 18px;
+    margin-bottom: 24px;
   }
 
   .cert-lead {
@@ -1712,11 +1707,6 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     font-weight: 600;
     color: #0369a1;
     margin-left: 8px;
-  }
-
-  .cert-para {
-    margin: 0 0 12px;
-    text-indent: 28px;
   }
 
   .cert-wish {
