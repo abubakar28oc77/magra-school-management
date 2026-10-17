@@ -214,35 +214,43 @@ class ErrorBoundary extends React.Component {
           )}
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button 
-              style={{ padding: '8px 18px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-              onClick={() => { 
-                this.setState({ hasError: false, error: null }); 
-                const base = window.location.href.split('?')[0].split('#')[0];
-                const hash = window.location.hash || '';
-                window.location.href = base + '?ts=' + Date.now() + hash;
-              }}
-            >
-              🔄 পেজ রিলোড করুন
-            </button>
-            <button 
-              style={{ padding: '8px 18px', background: '#0b8050', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ padding: '10px 20px', background: '#0b8050', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 2px 6px rgba(11,128,80,0.3)' }}
               onClick={() => {
                 try {
                   localStorage.setItem('magra_admin_active_tab', 'dashboard');
                   localStorage.removeItem('magra_admin_active_sub');
+                  sessionStorage.clear();
                 } catch {}
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
             >
-              📊 ড্যাশবোর্ডে ফিরে যান
+              📊 ড্যাশবোর্ডে ফিরে যান (নিরাপদ রিলোড)
             </button>
             <button 
-              style={{ padding: '8px 18px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ padding: '10px 20px', background: '#2b6cb0', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
+              onClick={() => { 
+                try {
+                  localStorage.removeItem('magra_admin_active_sub');
+                  sessionStorage.clear();
+                } catch {}
+                this.setState({ hasError: false, error: null }); 
+                const base = window.location.href.split('?')[0].split('#')[0];
+                window.location.replace(base + '?v=' + Date.now());
+                window.location.reload();
+              }}
+            >
+              🔄 ক্যাশ ক্লিয়ার ও রিফ্রেশ করুন
+            </button>
+            <button 
+              style={{ padding: '10px 18px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
               onClick={() => { this.setState({ hasError: false, error: null }); }}
             >
               পুনরায় চেষ্টা করুন
             </button>
+          </div>
+          <div style={{ marginTop: '16px', fontSize: '12px', color: '#718096' }}>
+            💡 টিপস: ব্রাউজারের পুরাতন ক্যাশ দ্রুত দূর করতে কীবোর্ডে <b>Ctrl + F5</b> অথবা <b>Ctrl + Shift + R</b> চাপুন।
           </div>
         </div>
       );
