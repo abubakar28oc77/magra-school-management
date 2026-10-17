@@ -103,15 +103,11 @@ export function getStudentGuardian(s, lang = 'bn'){
 
 export function getStudentPhone(s){
  if(!s) return '—';
- const gp = (s.guardian_phone||'').trim();
- if(gp) return gp;
- const fp = (s.father_mobile||'').trim();
- if(fp) return fp;
- const mp = (s.mother_mobile||'').trim();
- if(mp) return mp;
- const ep = (s.emergency_phone||'').trim();
- if(ep) return ep;
- return '—';
+ let p = (s.guardian_phone||'').trim() || (s.father_mobile||'').trim() || (s.mother_mobile||'').trim() || (s.emergency_phone||'').trim() || '';
+ if (/^1[3-9]\d{8}$/.test(p)) {
+   p = '0' + p;
+ }
+ return p || '—';
 }
 
 function CustomFields({ formKey, form, setForm }) {
@@ -1238,6 +1234,38 @@ function StudentPanel({sub}){
  const handleOpenProfile = (s) => {
    setProfileStudent(s);
  };
+ const [actionMenu, setActionMenu] = useState(null);
+
+ useEffect(() => {
+   const handleScroll = () => {
+     if (actionMenu) setActionMenu(null);
+   };
+   window.addEventListener('scroll', handleScroll, true);
+   return () => window.removeEventListener('scroll', handleScroll, true);
+ }, [actionMenu]);
+
+ const toggleActionMenu = (e, s) => {
+   e.stopPropagation();
+   if (actionMenu?.studentId === s.id) {
+     setActionMenu(null);
+   } else {
+     const rect = e.currentTarget.getBoundingClientRect();
+     const menuWidth = 195;
+     let left = rect.right - menuWidth;
+     if (left < 10) left = 10;
+     const menuHeight = 220;
+     let top = rect.bottom + 4;
+     if (top + menuHeight > window.innerHeight) {
+       top = Math.max(10, rect.top - menuHeight - 4);
+     }
+     setActionMenu({
+       studentId: s.id,
+       top,
+       left,
+       student: s
+     });
+   }
+ };
  const [disabilityFilter,setDisabilityFilter]=useState('');
  const [professionFilter,setProfessionFilter]=useState('');
  const [professionScope,setProfessionScope]=useState('any');
@@ -2261,18 +2289,18 @@ function StudentPanel({sub}){
     <div className="table-wrap">
      <table>
       <thead>
-       <tr>
+       <tr style={{whiteSpace:'nowrap'}}>
         <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={studentList.length>0 && selectedIds.length===studentList.length} onChange={toggleSelectAll}/></th>
-        <th>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
-        <th>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
-        <th>{lang==='en'?'Class':'শ্রেণি'}</th>
-        <th style={{color:'#0284c7'}}>{lang==='en'?'Department / Group':'বিভাগ'}</th>
-        <th>{lang==='en'?'Roll':'রোল'}</th>
-         <th>{lang==='en'?'Religion':'ধর্ম'}</th>
-        <th>{lang==='en'?'Guardian':'অভিভাবক'}</th>
-        <th>{lang==='en'?'Mobile':'মোবাইল'}</th>
-        <th>{lang==='en'?'Status':'অবস্থা'}</th>
-        <th style={{textAlign:'center',minWidth:'250px'}}>{lang==='en'?'Actions & Documents':'সেবা ও অ্যাকশন'}</th>
+        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
+        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
+        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Class':'শ্রেণি'}</th>
+        <th style={{color:'#0284c7',whiteSpace:'nowrap'}}>{lang==='en'?'Department / Group':'বিভাগ'}</th>
+        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Roll':'রোল'}</th>
+        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Religion':'ধর্ম'}</th>
+        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Guardian':'অভিভাবক'}</th>
+        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Mobile':'মোবাইল'}</th>
+        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Status':'অবস্থা'}</th>
+        <th style={{textAlign:'center',width:'80px',whiteSpace:'nowrap'}}>{lang==='en'?'Actions':'অ্যাকশন'}</th>
        </tr>
       </thead>
       <tbody>
@@ -2285,12 +2313,12 @@ function StudentPanel({sub}){
          const studentStatus = statusBn(s.status, lang);
 
          return (
-           <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined}}>
+           <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined,whiteSpace:'nowrap'}}>
             <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
-            <td><code>{s.student_id}</code></td>
-            <td><b>{studentName || '—'}</b></td>
-            <td>{classDisplay}</td>
-            <td>
+            <td style={{whiteSpace:'nowrap'}}><code>{s.student_id}</code></td>
+            <td style={{whiteSpace:'nowrap'}}><b>{studentName || '—'}</b></td>
+            <td style={{whiteSpace:'nowrap'}}>{classDisplay}</td>
+            <td style={{whiteSpace:'nowrap'}}>
               {s.department || s.group_name || s.group ? (
                 <span style={{background:'#e0f2fe',color:'#0369a1',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>
                   {studentGroup}
@@ -2299,19 +2327,35 @@ function StudentPanel({sub}){
                 <span style={{color:'#94a3b8'}}>—</span>
               )}
             </td>
-            <td>{s.roll_no || '—'}</td>
-             <td><span style={{background:(s.religion||'ইসলাম')==='হিন্দু'?'#fef3c7':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#f3e8ff':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#e0e7ff':'#f0fdf4',color:(s.religion||'ইসলাম')==='হিন্দু'?'#b45309':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#7e22ce':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#4338ca':'#15803d',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>{s.religion||'ইসলাম'}</span></td>
-            <td>{studentGuardian}</td>
-            <td>{getStudentPhone(s)}</td>
-            <td><span style={{color: s.status==='active'?'#16a34a':'#dc2626', fontWeight:600}}>{studentStatus}</span></td>
-            <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
-             <div style={{display:'inline-flex',gap:'4px',alignItems:'center'}}>
-              <button className="mini" type="button" onClick={()=>handleOpenProfile(s)} style={{background:'#f0fdf4',color:'#166534',border:'1px solid #86efac',fontWeight:700,cursor:'pointer',padding:'3px 8px'}} title="শিক্ষার্থীর পূর্ণাঙ্গ প্রোফাইল">👁️ {isEn?'Profile':'প্রোফাইল'}</button>
-              <button className="mini" type="button" onClick={()=>handleOpenIdCard(s.id)} style={{background:'#eff6ff',color:'#1d4ed8',border:'1px solid #bfdbfe',fontWeight:700,cursor:'pointer',padding:'3px 8px'}} title="শিক্ষার্থী পরিচয়পত্র (ID Card)">🪪 {isEn?'ID':'আইডি'}</button>
-              <button className="mini" type="button" onClick={()=>handleOpenCert(s.id, 'testimonial')} style={{background:'#fef3c7',color:'#92400e',border:'1px solid #fde68a',fontWeight:700,cursor:'pointer',padding:'3px 8px'}} title="প্রশংসাপত্র / ছাড়পত্র / প্রত্যয়ন">📜 {isEn?'Cert':'সনদ'}</button>
-              <button className="mini" type="button" onClick={()=>edit(s)} style={{padding:'3px 6px',cursor:'pointer'}} title={isEn?'Edit':'সম্পাদনা'}>✏️</button>
-              <button className="mini" type="button" onClick={()=>remove(s)} style={{background:'#fee2e2',color:'#b91c1c',border:'1px solid #fca5a5',fontWeight:600,cursor:'pointer',padding:'3px 6px'}} title={isEn?'Delete':'মুছুন'}>🗑️</button>
-             </div>
+            <td style={{textAlign:'center',whiteSpace:'nowrap'}}>{s.roll_no || '—'}</td>
+             <td style={{textAlign:'center',whiteSpace:'nowrap'}}><span style={{background:(s.religion||'ইসলাম')==='হিন্দু'?'#fef3c7':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#f3e8ff':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#e0e7ff':'#f0fdf4',color:(s.religion||'ইসলাম')==='হিন্দু'?'#b45309':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#7e22ce':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#4338ca':'#15803d',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>{s.religion||'ইসলাম'}</span></td>
+            <td style={{whiteSpace:'nowrap'}}>{studentGuardian}</td>
+            <td style={{whiteSpace:'nowrap'}}>{getStudentPhone(s)}</td>
+            <td style={{textAlign:'center',whiteSpace:'nowrap'}}><span style={{color: s.status==='active'?'#16a34a':'#dc2626', fontWeight:600}}>{studentStatus}</span></td>
+            <td style={{textAlign:'center',whiteSpace:'nowrap',width:'80px'}}>
+             <button
+               type="button"
+               className="mini"
+               onClick={(e)=>toggleActionMenu(e, s)}
+               style={{
+                 background: actionMenu?.studentId===s.id ? '#047857' : '#ffffff',
+                 color: actionMenu?.studentId===s.id ? '#ffffff' : '#334155',
+                 border: actionMenu?.studentId===s.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
+                 fontWeight: 700,
+                 cursor: 'pointer',
+                 padding: '4px 8px',
+                 borderRadius: '6px',
+                 display: 'inline-flex',
+                 alignItems: 'center',
+                 gap: '4px',
+                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                 transition: 'all 0.15s ease'
+               }}
+               title={isEn ? 'Actions & Services' : 'সেবা ও অ্যাকশন'}
+             >
+               <span style={{fontSize:'16px',lineHeight:1,fontWeight:900}}>⋮</span>
+               <span style={{fontSize:'11.5px'}}>{isEn ? 'Actions' : 'সেবা'}</span>
+             </button>
             </td>
            </tr>
          );
@@ -2319,6 +2363,142 @@ function StudentPanel({sub}){
        {!studentList.length&&<tr><td colSpan="11" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
       </tbody>
      </table>
+     {actionMenu && (
+       <>
+         <div
+           style={{position:'fixed',inset:0,zIndex:9998}}
+           onClick={()=>setActionMenu(null)}
+         />
+         <div
+           style={{
+             position: 'fixed',
+             top: actionMenu.top,
+             left: actionMenu.left,
+             zIndex: 9999,
+             background: '#ffffff',
+             borderRadius: '10px',
+             boxShadow: '0 12px 30px -5px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.1)',
+             border: '1px solid #cbd5e1',
+             minWidth: '195px',
+             padding: '6px 0',
+             textAlign: 'left'
+           }}
+           onClick={e=>e.stopPropagation()}
+         >
+           <button
+             type="button"
+             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenProfile(s);}}
+             style={{
+               width:'100%',
+               padding:'8px 14px',
+               background:'none',
+               border:'none',
+               display:'flex',
+               alignItems:'center',
+               gap:'9px',
+               fontSize:'13px',
+               fontWeight:600,
+               color:'#166534',
+               cursor:'pointer',
+               textAlign:'left'
+             }}
+             onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
+             onMouseLeave={e=>e.currentTarget.style.background='none'}
+           >
+             <span style={{fontSize:'15px'}}>👁️</span> {lang==='en'?'Student Profile':'শিক্ষার্থী প্রোফাইল'}
+           </button>
+           <button
+             type="button"
+             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenIdCard(s.id);}}
+             style={{
+               width:'100%',
+               padding:'8px 14px',
+               background:'none',
+               border:'none',
+               display:'flex',
+               alignItems:'center',
+               gap:'9px',
+               fontSize:'13px',
+               fontWeight:600,
+               color:'#1d4ed8',
+               cursor:'pointer',
+               textAlign:'left'
+             }}
+             onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
+             onMouseLeave={e=>e.currentTarget.style.background='none'}
+           >
+             <span style={{fontSize:'15px'}}>🪪</span> {lang==='en'?'ID Card Studio':'পরিচয়পত্র (ID Card)'}
+           </button>
+           <button
+             type="button"
+             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenCert(s.id, 'testimonial');}}
+             style={{
+               width:'100%',
+               padding:'8px 14px',
+               background:'none',
+               border:'none',
+               display:'flex',
+               alignItems:'center',
+               gap:'9px',
+               fontSize:'13px',
+               fontWeight:600,
+               color:'#b45309',
+               cursor:'pointer',
+               textAlign:'left'
+             }}
+             onMouseEnter={e=>e.currentTarget.style.background='#fef3c7'}
+             onMouseLeave={e=>e.currentTarget.style.background='none'}
+           >
+             <span style={{fontSize:'15px'}}>📜</span> {lang==='en'?'Certificates / TC':'প্রশংসাপত্র / সনদ / TC'}
+           </button>
+           <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
+           <button
+             type="button"
+             onClick={()=>{const s=actionMenu.student; setActionMenu(null); edit(s);}}
+             style={{
+               width:'100%',
+               padding:'8px 14px',
+               background:'none',
+               border:'none',
+               display:'flex',
+               alignItems:'center',
+               gap:'9px',
+               fontSize:'13px',
+               fontWeight:600,
+               color:'#0f172a',
+               cursor:'pointer',
+               textAlign:'left'
+             }}
+             onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
+             onMouseLeave={e=>e.currentTarget.style.background='none'}
+           >
+             <span style={{fontSize:'15px'}}>✏️</span> {lang==='en'?'Edit Information':'তথ্য সম্পাদনা'}
+           </button>
+           <button
+             type="button"
+             onClick={()=>{const s=actionMenu.student; setActionMenu(null); remove(s);}}
+             style={{
+               width:'100%',
+               padding:'8px 14px',
+               background:'none',
+               border:'none',
+               display:'flex',
+               alignItems:'center',
+               gap:'9px',
+               fontSize:'13px',
+               fontWeight:600,
+               color:'#dc2626',
+               cursor:'pointer',
+               textAlign:'left'
+             }}
+             onMouseEnter={e=>e.currentTarget.style.background='#fee2e2'}
+             onMouseLeave={e=>e.currentTarget.style.background='none'}
+           >
+             <span style={{fontSize:'15px'}}>🗑️</span> {lang==='en'?'Delete Record':'শিক্ষার্থী রেকর্ড মুছুন'}
+           </button>
+         </div>
+       </>
+     )}
     </div>
    </div>
   )}
