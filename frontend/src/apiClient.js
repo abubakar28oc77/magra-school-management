@@ -1783,6 +1783,134 @@ function handleMockRequest(path, opts = {}) {
     ];
   }
 
+  // Document Management & Generation Endpoints
+  if (cleanPath === '/documents/issued') {
+    const docType = params.get('document_type');
+    const stuId = params.get('student_id');
+    const defaultIssued = [
+      { id: 'iss-1', document_no: 'DOC-2026-1001', issue_date: '2026-01-15', document_type: 'id_card', name_bn: 'আহনাফ সিদ্দিক', roll_no: 1, class_name: '10' },
+      { id: 'iss-2', document_no: 'DOC-2026-1002', issue_date: '2026-02-10', document_type: 'commendation_certificate', name_bn: 'তানজিনা আক্তার', roll_no: 1, class_name: '10' },
+      { id: 'iss-3', document_no: 'DOC-2026-1003', issue_date: '2026-03-01', document_type: 'bonafide_certificate', name_bn: 'শিহাব উদ্দিন', roll_no: 2, class_name: '10' },
+      { id: 'iss-4', document_no: 'DOC-2026-1004', issue_date: '2026-03-15', document_type: 'transfer_certificate', name_bn: 'আসাদুজ্জামান নূর', roll_no: 2, class_name: '10' }
+    ];
+    let issued = getLocalStore('issued_documents', defaultIssued);
+    if (docType) issued = issued.filter(d => d.document_type === docType);
+    if (stuId) issued = issued.filter(d => String(d.student_id) === String(stuId));
+    return issued;
+  }
+
+  if (cleanPath === '/documents/issue' && method === 'POST') {
+    const x = body || {};
+    const no = x.document_no || `DOC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newDoc = {
+      id: 'iss-' + Date.now(),
+      document_type: x.document_type,
+      student_id: x.student_id || null,
+      exam_id: x.exam_id || null,
+      document_no: no,
+      issue_date: x.issue_date || new Date().toISOString().slice(0, 10),
+      data_snapshot: x.data_snapshot || {},
+      name_bn: x.data_snapshot?.student?.name_bn || '',
+      created_at: new Date().toISOString()
+    };
+    let issued = getLocalStore('issued_documents', []);
+    issued.unshift(newDoc);
+    setLocalStore('issued_documents', issued);
+    return newDoc;
+  }
+
+  if (cleanPath.startsWith('/documents/student/')) {
+    const stuId = cleanPath.replace('/documents/student/', '').split('?')[0];
+    const type = params.get('type') || 'id_card';
+    const examId = params.get('exam_id');
+    const cls = params.get('class_name') || '6';
+
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    let student = students.find(s => String(s.id) === String(stuId) || String(s.student_id) === String(stuId));
+    if (!student && students.length) student = students[0];
+
+    const school = MOCK_SCHOOL;
+    const exams = getLocalStore('exams', MOCK_EXAMS);
+    const exam = exams.find(e => String(e.id) === String(examId)) || exams[0] || null;
+
+    if (['id_card', 'certificate', 'commendation_certificate', 'transfer_certificate', 'bonafide_certificate'].includes(type)) {
+      return {
+        type,
+        school,
+        student,
+        issue_date: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    if (type === 'admit_card') {
+      return {
+        type,
+        school,
+        student,
+        exam: exam || { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা ২০২৬', start_date: '2026-10-20', end_date: '2026-11-05' },
+        issue_date: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    if (type === 'marksheet' || type === 'progress_report') {
+      let subs = getLocalStore('subjects', MOCK_SUBJECTS);
+      const studentClass = student?.class_name || cls;
+      const classSubs = subs.filter(s => !s.class_name || String(s.class_name) === String(studentClass));
+      const marks = classSubs.slice(0, 8).map((sub, i) => ({
+        id: 'm-' + i,
+        subject_name: sub.name_bn,
+        subject_name_en: sub.name_en,
+        full_marks: sub.full_marks || 100,
+        written: 50 + (i * 3) % 20,
+        mcq: 20 + (i * 2) % 10,
+        practical: sub.practical_marks ? 20 : 0,
+        total: 70 + (i * 3) % 25,
+        grade: 'A',
+        gpa: 4.0
+      }));
+      return {
+        type,
+        school,
+        student,
+        exam: exam || { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা ২০২৬' },
+        marks,
+        summary: { total_marks: 615, full_marks: 800, percentage: 76.8, gpa: 4.50, result_status: 'উত্তীর্ণ' },
+        issue_date: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    if (type === 'tabulation' || type === 'merit_list') {
+      const targetClass = cls || student?.class_name || '10';
+      const classStudents = students.filter(s => String(s.class_name) === String(targetClass)).slice(0, 20);
+      const list = classStudents.map((s, idx) => ({
+        id: s.id,
+        merit: idx + 1,
+        roll_no: s.roll_no,
+        name_bn: s.name_bn,
+        name_en: s.name_en,
+        subjects: 8,
+        total_marks: 750 - idx * 12,
+        gpa: (5.0 - idx * 0.08).toFixed(2),
+        result_status: 'উত্তীর্ণ'
+      }));
+      return {
+        type,
+        school,
+        student,
+        exam: exam || { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা ২০২৬' },
+        list,
+        issue_date: new Date().toISOString().slice(0, 10)
+      };
+    }
+
+    return {
+      type,
+      school,
+      student,
+      issue_date: new Date().toISOString().slice(0, 10)
+    };
+  }
+
   // Default fallback
   return [];
 }

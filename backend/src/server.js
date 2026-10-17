@@ -582,7 +582,7 @@ app.get('/api/documents/issued',auth,allow(...documentRoles),async(req,res)=>{
 app.get('/api/documents/student/:id',auth,async(req,res)=>{
  try{
   const type=String(req.query.type||'id_card'); const examId=req.query.exam_id||null; const className=String(req.query.class_name||'').trim();
-  const documentTypes=new Set(['id_card','marksheet','progress_report','certificate','commendation_certificate','admit_card','tabulation','merit_list']);
+  const documentTypes=new Set(['id_card','marksheet','progress_report','certificate','commendation_certificate','transfer_certificate','bonafide_certificate','admit_card','tabulation','merit_list']);
   if(!documentTypes.has(type)) return res.status(400).json({message:'অজানা ডকুমেন্ট টাইপ'});
   const st=await pool.query('SELECT * FROM students WHERE id=$1',[req.params.id]); if(!st.rowCount)return res.status(404).json({message:'শিক্ষার্থী পাওয়া যায়নি'});
   const student=st.rows[0];
@@ -590,7 +590,7 @@ app.get('/api/documents/student/:id',auth,async(req,res)=>{
   if(req.user.role==='guardian'){const ok=await pool.query('SELECT 1 FROM guardian_student_links WHERE guardian_user_id=$1 AND student_id=$2',[req.user.sub,student.id]);if(!ok.rowCount)return res.status(403).json({message:'এই শিক্ষার্থীর তথ্য দেখার অনুমতি নেই'});}
   const school=SCHOOL;
   if(type==='id_card') return res.json({type,school,student,issue_date:new Date().toISOString().slice(0,10)});
-  if(type==='certificate'||type==='commendation_certificate') return res.json({type,school,student,issue_date:new Date().toISOString().slice(0,10)});
+  if(type==='certificate'||type==='commendation_certificate'||type==='transfer_certificate'||type==='bonafide_certificate') return res.json({type,school,student,issue_date:new Date().toISOString().slice(0,10)});
   if(type==='admit_card'){
    if(!examId)return res.status(400).json({message:'প্রবেশপত্রের জন্য পরীক্ষা নির্বাচন করুন'});
    const ex=await pool.query('SELECT * FROM exams WHERE id=$1 AND status<>$2',[examId,'draft']);
@@ -612,9 +612,9 @@ app.get('/api/documents/student/:id',auth,async(req,res)=>{
 });
 app.post('/api/documents/issue',auth,allow(...documentRoles),async(req,res)=>{
  try{
-  const x=req.body||{}; const documentTypes=['id_card','marksheet','progress_report','certificate','commendation_certificate','admit_card','tabulation','merit_list'];
+  const x=req.body||{}; const documentTypes=['id_card','marksheet','progress_report','certificate','commendation_certificate','transfer_certificate','bonafide_certificate','admit_card','tabulation','merit_list'];
   if(!documentTypes.includes(String(x.document_type||'')))return res.status(400).json({message:'অবৈধ ডকুমেন্ট ধরন'});
-  if(['id_card','marksheet','progress_report','certificate','commendation_certificate','admit_card'].includes(x.document_type) && !x.student_id)return res.status(400).json({message:'এই ডকুমেন্টের জন্য শিক্ষার্থী নির্বাচন করুন'});
+  if(['id_card','marksheet','progress_report','certificate','commendation_certificate','transfer_certificate','bonafide_certificate','admit_card'].includes(x.document_type) && !x.student_id)return res.status(400).json({message:'এই ডকুমেন্টের জন্য শিক্ষার্থী নির্বাচন করুন'});
   if(['marksheet','progress_report','admit_card','tabulation','merit_list'].includes(x.document_type) && !x.exam_id)return res.status(400).json({message:'এই ডকুমেন্টের জন্য পরীক্ষা নির্বাচন করুন'});
   const no=x.document_no||`DOC-${new Date().getFullYear()}-${Date.now()}`;
   const q=await pool.query('INSERT INTO issued_documents(document_type,student_id,exam_id,document_no,issue_date,data_snapshot,issued_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *',[x.document_type,x.student_id||null,x.exam_id||null,no,x.issue_date||new Date(),JSON.stringify(x.data_snapshot||{}),req.user.sub]);
