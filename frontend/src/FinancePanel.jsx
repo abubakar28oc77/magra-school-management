@@ -14,6 +14,41 @@ export const formatMoney = (amount) => {
   return `৳ ${toBnDigits(val.toLocaleString('en-US'))}`;
 };
 
+
+export const parseRollNumber = (val) => {
+  if (val === null || val === undefined) return null;
+  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+  const str = String(val).trim();
+  const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+  const m = converted.match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+};
+
+export const normalizeClass = (val) => {
+  if (val === null || val === undefined) return '';
+  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+  const str = String(val).trim();
+  const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+  const m = converted.match(/\d+/);
+  return m ? String(parseInt(m[0], 10)) : str;
+};
+
+export const getStudentDepartment = (s) => {
+  if (!s) return 'সাধারণ';
+  const txt = [
+    s.department,
+    s.group_name,
+    s.group,
+    s.section,
+    s.student_id
+  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+
+  if (txt.includes('বিজ্ঞান') || txt.includes('science') || txt.includes('sci')) return 'বিজ্ঞান';
+  if (txt.includes('মানবিক') || txt.includes('humanities') || txt.includes('hum') || txt.includes('arts')) return 'মানবিক';
+  if (txt.includes('ব্যবসা') || txt.includes('ব্যবসায়') || txt.includes('ব্যবসায়') || txt.includes('বাণিজ্য') || txt.includes('business') || txt.includes('commerce') || txt.includes('bs')) return 'ব্যবসায় শিক্ষা';
+  return 'সাধারণ';
+};
+
 export const formatDateBn = (dateStr) => {
   if (!dateStr) return '—';
   const clean = String(dateStr).slice(0, 10);
@@ -352,15 +387,133 @@ export function FinancePanel({ sub }) {
   // ==========================================
   // FEE COLLECTION STATE & LOGIC
   // ==========================================
-  const [selectedClass, setSelectedClass] = useState('6');
-  const [studentSearch, setStudentSearch] = useState('');
+  // Default to Class 8 as requested
+  const [selectedClass, setSelectedClass] = useState('8');
+  // Group selection for Class 9 and 10
+  const [selectedGroup, setSelectedGroup] = useState('all');
+  // Roll number input for search
+  const [searchRoll, setSearchRoll] = useState('1');
   const [selectedStudentId, setSelectedStudentId] = useState('');
-  
+  const [searchFeedback, setSearchFeedback] = useState(null);
+
+  // Filtered and roll-sorted students for selected class and group
+  const classStudents = useMemo(() => {
+    let list = (students || []).filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass));
+    if (selectedClass === '9' || selectedClass === '10') {
+      if (selectedGroup !== 'all') {
+        list = list.filter(s => {
+          const dept = getStudentDepartment(s);
+          if (selectedGroup === 'science' || selectedGroup === 'বিজ্ঞান') return dept === 'বিজ্ঞান';
+          if (selectedGroup === 'humanities' || selectedGroup === 'মানবিক') return dept === 'মানবিক';
+          if (selectedGroup === 'business' || selectedGroup === 'ব্যবসা' || selectedGroup === 'ব্যবসায় শিক্ষা') return dept === 'ব্যবসায় শিক্ষা';
+          return true;
+        });
+      }
+    }
+    return [...list].sort((a, b) => {
+      const ra = parseRollNumber(a.roll_no) ?? 9999;
+      const rb = parseRollNumber(b.roll_no) ?? 9999;
+      return ra - rb;
+    });
+  }, [students, selectedClass, selectedGroup]);
+
+  // Synchronize selected student with class/group changes
+  useEffect(() => {
+    if (classStudents.length > 0) {
+      const existsInList = classStudents.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId));
+      if (!existsInList) {
+        const first = classStudents[0];
+        setSelectedStudentId(first.id || first.student_id);
+        setSearchRoll(String(first.roll_no || ''));
+        setSearchFeedback(null);
+      }
+    } else {
+      setSelectedStudentId('');
+      setSearchRoll('');
+    }
+  }, [classStudents, selectedStudentId]);
+
   // Selected Student Object
   const selectedStudent = useMemo(() => {
-    if (!selectedStudentId) return null;
-    return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || null;
-  }, [students, selectedStudentId]);
+    if (!selectedStudentId) {
+      return classStudents[0] || null;
+    }
+    return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || classStudents[0] || null;
+  }, [students, selectedStudentId, classStudents]);
+
+  // Handle Search Student by Roll Number (Exact & Multi-stream)
+  const handleSearchStudent = (customRoll = null) => {
+    const query = customRoll !== null ? customRoll : searchRoll;
+    const targetRoll = parseRollNumber(query);
+    
+    if (targetRoll === null) {
+      setSearchFeedback({
+        type: 'error',
+        text: 'দয়া করে শিক্ষার্থীর রোল নম্বর লিখুন (যেমন: ১ বা 1)'
+      });
+      return;
+    }
+
+    // 1. Search in current classStudents
+    const found = classStudents.find(s => parseRollNumber(s.roll_no) === targetRoll);
+    if (found) {
+      setSelectedStudentId(found.id || found.student_id);
+      setSearchRoll(String(found.roll_no));
+      setSearchFeedback({
+        type: 'success',
+        text: `✅ পাওয়া গেছে: ${found.name_bn} (রোল: ${toBnDigits(found.roll_no)}, শ্রেণি: ${toBnDigits(found.class_name)}${found.group ? ` • ${found.group}` : ''})`
+      });
+      return;
+    }
+
+    // 2. If not found in current group, search across entire selected class
+    const inEntireClass = students.filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass))
+      .find(s => parseRollNumber(s.roll_no) === targetRoll);
+    if (inEntireClass) {
+      setSelectedGroup('all');
+      setSelectedStudentId(inEntireClass.id || inEntireClass.student_id);
+      setSearchRoll(String(inEntireClass.roll_no));
+      setSearchFeedback({
+        type: 'success',
+        text: `✅ পাওয়া গেছে: ${inEntireClass.name_bn} (রোল: ${toBnDigits(inEntireClass.roll_no)}, শ্রেণি: ${toBnDigits(inEntireClass.class_name)}${inEntireClass.group ? ` • ${inEntireClass.group}` : ''})`
+      });
+      return;
+    }
+
+    // 3. Fallback: search by student_id or name
+    const fuzzy = students.filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass))
+      .find(s => 
+        String(s.student_id || '').toLowerCase() === String(query).trim().toLowerCase() ||
+        String(s.name_bn || '').includes(String(query).trim())
+      );
+    if (fuzzy) {
+      setSelectedStudentId(fuzzy.id || fuzzy.student_id);
+      setSearchRoll(String(fuzzy.roll_no));
+      setSearchFeedback({
+        type: 'success',
+        text: `✅ পাওয়া গেছে: ${fuzzy.name_bn} (রোল: ${toBnDigits(fuzzy.roll_no)}, শ্রেণি: ${toBnDigits(fuzzy.class_name)})`
+      });
+      return;
+    }
+
+    setSearchFeedback({
+      type: 'error',
+      text: `⚠️ শ্রেণি ${toBnDigits(selectedClass)}${selectedGroup !== 'all' ? ` (${selectedGroup} বিভাগ)` : ''}-এ রোল ${toBnDigits(query)} এর কোনো শিক্ষার্থী পাওয়া যায়নি। তালিকা থেকে নির্বাচন করুন।`
+    });
+  };
+
+  // Dropdown Selection Handler
+  const handleSelectStudentFromDropdown = (stuId) => {
+    setSelectedStudentId(stuId);
+    const found = classStudents.find(s => String(s.id) === String(stuId) || String(s.student_id) === String(stuId));
+    if (found) {
+      setSearchRoll(String(found.roll_no || ''));
+      setSearchFeedback({
+        type: 'success',
+        text: `✅ নির্বাচিত: ${found.name_bn} (রোল: ${toBnDigits(found.roll_no)})`
+      });
+    }
+  };
 
   // Stipend / Scholarship status
   const [isStipend, setIsStipend] = useState(false);
@@ -401,34 +554,64 @@ export function FinancePanel({ sub }) {
     setMonthlyRate(rate);
   }, [selectedStudent, selectedClass, classRates]);
 
-  // Fee categories toggles & amounts
+  // Fee categories toggles & amounts - COMPLETELY EDITABLE BY USER
   const [feeHeads, setFeeHeads] = useState({
-    admission: { active: false, amount: 500, label: 'ভর্তি ফি' },
-    late_fine: { active: false, amount: 50, label: 'বিলম্ব ফি / জরিমানা' },
-    session_dev: { active: false, amount: 800, label: 'বার্ষিক চাঁদা / উন্নয়ন ও সেশন ফি' },
-    exam_fee: { active: false, amount: 400, label: 'পরীক্ষার ফি', exam_name: 'অর্ধ-বার্ষিক পরীক্ষা' },
-    registration: { active: false, amount: 350, label: 'রেজিষ্ট্রেশন ফি (৮ম/৯ম শ্রেণি)' },
-    ssc_board_center: { active: false, amount: 1950, label: 'এসএসসি পরীক্ষার বোর্ড ও কেন্দ্র ফি' },
-    milad: { active: false, amount: 100, label: 'বার্ষিক মিলাদ মাহফিল ও ধর্মীয় অনুষ্ঠান' },
-    scout: { active: false, amount: 100, label: 'স্কাউট ও গার্ল গাইড ফি' },
-    testimonial: { active: false, amount: 200, label: 'প্রশংসাপত্র ফি' },
-    tc: { active: false, amount: 300, label: 'ছাড়পত্র / টি.সি ফি' },
-    other: { active: false, amount: 0, label: 'অন্যান্য ফি', note: '' }
+    admission: { active: false, amount: '', label: 'ভর্তি ফি', placeholder: 'যেমন: ৫০০' },
+    late_fine: { active: false, amount: '', label: 'বিলম্ব ফি / জরিমানা', placeholder: 'যেমন: ২০ বা ৫০' },
+    session_dev: { active: false, amount: '', label: 'বার্ষিক চাঁদা / সেশন ফি', placeholder: 'যেমন: ৮০০' },
+    exam_fee: { active: false, amount: '', label: 'পরীক্ষার ফি', exam_name: 'অর্ধ-বার্ষিক পরীক্ষা', placeholder: 'যেমন: ৪০০' },
+    registration: { active: false, amount: '', label: 'রেজিষ্ট্রেশন ফি (৮ম/৯ম শ্রেণি)', placeholder: 'যেমন: ৩৫০' },
+    ssc_board_center: { active: false, amount: '', label: 'এসএসসি পরীক্ষার বোর্ড ও কেন্দ্র ফি', placeholder: 'যেমন: ১৯৫০' },
+    milad: { active: false, amount: '', label: 'বার্ষিক মিলাদ মাহফিল ও ধর্মীয় অনুষ্ঠান', placeholder: 'যেমন: ১০০' },
+    scout: { active: false, amount: '', label: 'স্কাউট ও গার্ল গাইড ফি', placeholder: 'যেমন: ১০০' },
+    testimonial: { active: false, amount: '', label: 'প্রশংসাপত্র ফি', placeholder: 'যেমন: ২০০' },
+    tc: { active: false, amount: '', label: 'ছাড়পত্র / টি.সি ফি', placeholder: 'যেমন: ৩০০' },
+    other: { active: false, amount: '', label: 'অন্যান্য ফি', note: '', placeholder: 'টাকা লিখুন' }
   });
 
   // Toggle fee head active
   const toggleFeeHead = (key) => {
-    setFeeHeads(prev => ({
-      ...prev,
-      [key]: { ...prev[key], active: !prev[key].active }
-    }));
+    setFeeHeads(prev => {
+      const nextActive = !prev[key].active;
+      return {
+        ...prev,
+        [key]: {
+          ...prev[key],
+          active: nextActive
+        }
+      };
+    });
   };
 
-  // Change fee head amount
-  const setFeeHeadAmount = (key, amt) => {
+  // Change fee head amount directly (typing automatically activates the head)
+  const setFeeHeadAmount = (key, val) => {
+    setFeeHeads(prev => {
+      const hasAmount = val !== '' && !isNaN(val) && Number(val) > 0;
+      return {
+        ...prev,
+        [key]: {
+          ...prev[key],
+          amount: val,
+          active: hasAmount ? true : prev[key].active
+        }
+      };
+    });
+  };
+
+  // Preset suggested default rates
+  const applySuggestedRates = () => {
     setFeeHeads(prev => ({
-      ...prev,
-      [key]: { ...prev[key], amount: Math.max(0, Number(amt) || 0) }
+      admission: { ...prev.admission, amount: 500 },
+      late_fine: { ...prev.late_fine, amount: 50 },
+      session_dev: { ...prev.session_dev, amount: 800 },
+      exam_fee: { ...prev.exam_fee, amount: 400 },
+      registration: { ...prev.registration, amount: 350 },
+      ssc_board_center: { ...prev.ssc_board_center, amount: 1950 },
+      milad: { ...prev.milad, amount: 100 },
+      scout: { ...prev.scout, amount: 100 },
+      testimonial: { ...prev.testimonial, amount: 200 },
+      tc: { ...prev.tc, amount: 300 },
+      other: { ...prev.other, amount: '' }
     }));
   };
 
@@ -456,105 +639,112 @@ export function FinancePanel({ sub }) {
   const tuitionGrossAmount = selectedMonths.length * monthlyRate;
   const tuitionEffectiveAmount = isTuitionFree ? 0 : tuitionGrossAmount;
 
-  // Other heads gross total
+  // Other heads gross total (Dynamic calculation from user inputs)
   const otherHeadsGrossTotal = useMemo(() => {
     let sum = 0;
-    Object.keys(feeHeads).forEach(k => {
-      if (feeHeads[k].active) {
-        sum += Number(feeHeads[k].amount) || 0;
+    Object.keys(feeHeads).forEach(key => {
+      const h = feeHeads[key];
+      if (h.active) {
+        sum += (Number(h.amount) || 0);
       }
     });
     return sum;
   }, [feeHeads]);
 
-  // Gross Total (মোট পাওনা)
+  // Overall Gross Total Due
   const grossTotal = tuitionEffectiveAmount + otherHeadsGrossTotal;
 
-  // Discount / Principal Waiver (প্রধান শিক্ষক কর্তৃক মওকুফ)
+  // Discount / Waiver (By Head Teacher)
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [discountReason, setDiscountReason] = useState('প্রধান শিক্ষকের অনুমোদনক্রমে মওকুফ');
+  const [discountReason, setDiscountReason] = useState('');
 
-  // Net Payable (গৃহীত টাকার পরিমাণ) = মোট পাওনা - ডিসকাউন্ট
+  // Net Payable Calculation: grossTotal - discountAmount
   const netPayable = Math.max(0, grossTotal - (Number(discountAmount) || 0));
 
-  // Payment Form details
+  // Amount Received (Paid)
   const [paidAmount, setPaidAmount] = useState(netPayable);
+
+  // Keep paidAmount in sync when grossTotal or discountAmount changes
   useEffect(() => {
     setPaidAmount(netPayable);
   }, [netPayable]);
 
+  // Remaining Due Amount
   const dueAmount = Math.max(0, netPayable - (Number(paidAmount) || 0));
 
+  // Payment Method
   const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [receivedBy, setReceivedBy] = useState('মোঃ আলমগীর হোসেন (হিসাব সহকারী)');
   const [paymentRemarks, setPaymentRemarks] = useState('');
+  const [receivedBy, setReceivedBy] = useState('মোঃ আলমগীর হোসেন (হিসাব সহকারী)');
   const [submitMsg, setSubmitMsg] = useState('');
-
-  // Active Receipt Modal to view & print
   const [activeReceipt, setActiveReceipt] = useState(null);
 
-  // Handle Payment Submission
-  const handleCollectPayment = (e) => {
-    e?.preventDefault();
+  // Active items for money receipt preview
+  const activeFeeItems = useMemo(() => {
+    const items = [];
+    if (selectedMonths.length > 0) {
+      items.push({
+        label: `মাসিক বেতন (${selectedMonths.join(', ')})`,
+        amount: tuitionEffectiveAmount,
+        original_amount: tuitionGrossAmount,
+        is_free: isTuitionFree,
+        note: isTuitionFree ? 'উপবৃত্তি/বৃত্তি প্রাপ্ত - মওকুফ' : ''
+      });
+    }
+    Object.keys(feeHeads).forEach(k => {
+      const h = feeHeads[k];
+      const amt = Number(h.amount) || 0;
+      if (h.active && amt > 0) {
+        items.push({
+          label: k === 'other' ? (h.note ? `অন্যান্য: ${h.note}` : 'অন্যান্য ফি') : (k === 'exam_fee' && h.exam_name ? `পরীক্ষার ফি (${h.exam_name})` : h.label),
+          amount: amt,
+          is_free: false,
+          note: ''
+        });
+      }
+    });
+    return items;
+  }, [selectedMonths, tuitionEffectiveAmount, tuitionGrossAmount, isTuitionFree, feeHeads]);
+
+  // Submit Payment Handler
+  const handleTakePayment = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+
     if (!selectedStudent) {
-      alert('অনুগ্রহ করে প্রথমে একজন শিক্ষার্থী নির্বাচন করুন।');
+      alert('অনুগ্রহ করে একজন শিক্ষার্থী নির্বাচন করুন।');
       return;
     }
-    if (grossTotal <= 0 && netPayable <= 0) {
-      alert('কমপক্ষে একটি ফি-এর খাত অথবা বেতনের মাস নির্বাচন করুন।');
+
+    if (activeFeeItems.length === 0) {
+      alert('কমপক্ষে একটি ফি বা বেতনের মাস নির্বাচন করুন।');
+      return;
+    }
+
+    if (Number(paidAmount) <= 0 && dueAmount <= 0 && grossTotal > 0 && discountAmount < grossTotal) {
+      alert('গৃহীত টাকার পরিমাণ সঠিক নয়।');
       return;
     }
 
     const receiptNo = `মপাউবি/রশিদ/${new Date().getFullYear()}/${String(feeRecords.length + 1).padStart(3, '0')}`;
-    
-    // Build breakdown items
-    const breakdownItems = [];
-    if (selectedMonths.length > 0) {
-      breakdownItems.push({
-        name: `মাসিক বেতন (${toBnDigits(selectedMonths.length)} মাস: ${selectedMonths.join(', ')})`,
-        amount: tuitionEffectiveAmount,
-        original_amount: tuitionGrossAmount,
-        note: isTuitionFree
-          ? `[${isStipend ? 'উপবৃত্তি' : 'মেধাবৃত্তি'} সুবিধাভোগী — ১০০% টিউশন ফি মওকুফ]`
-          : `@ ${toBnDigits(monthlyRate)} টাকা/মাস`
-      });
-    }
-
-    Object.keys(feeHeads).forEach(k => {
-      const h = feeHeads[k];
-      if (h.active && h.amount > 0) {
-        let title = h.label;
-        if (k === 'exam_fee' && h.exam_name) title += ` (${h.exam_name})`;
-        if (k === 'other' && h.note) title += ` - ${h.note}`;
-        breakdownItems.push({
-          name: title,
-          amount: h.amount
-        });
-      }
-    });
 
     const newTransaction = {
       id: `FEE-${Date.now()}`,
       receipt_no: receiptNo,
-      date: receiptDate,
+      date: new Date().toISOString().slice(0, 10),
       student_id: selectedStudent.student_id || selectedStudent.id,
       student_name: selectedStudent.name_bn || selectedStudent.name,
-      student_name_en: selectedStudent.name_en || '',
-      class_name: selectedStudent.class_name || selectedClass,
-      roll_no: selectedStudent.roll_no || '—',
+      class_name: selectedStudent.class_name,
+      roll_no: selectedStudent.roll_no,
       section: selectedStudent.section || 'ক',
-      group_name: selectedStudent.group || selectedStudent.department || '',
-      guardian_name: selectedStudent.guardian_name_bn || selectedStudent.father_name_bn || '—',
-      phone: selectedStudent.phone || selectedStudent.guardian_phone || '—',
+      group: selectedStudent.group || selectedStudent.department || '',
       is_stipend: isStipend,
       is_scholarship: isScholarship,
       tuition_months: selectedMonths,
       tuition_amount: tuitionEffectiveAmount,
-      items: breakdownItems,
+      items: activeFeeItems.map(i => ({ name: i.label, amount: i.amount, is_free: i.is_free, note: i.note })),
       gross_total: grossTotal,
       discount: Number(discountAmount) || 0,
-      discount_reason: discountReason,
+      discount_reason: discountReason || '',
       net_payable: netPayable,
       paid_amount: Number(paidAmount) || 0,
       due_amount: dueAmount,
@@ -574,7 +764,7 @@ export function FinancePanel({ sub }) {
     setFeeHeads(prev => {
       const reset = {};
       Object.keys(prev).forEach(k => {
-        reset[k] = { ...prev[k], active: false };
+        reset[k] = { ...prev[k], active: false, amount: '' };
       });
       return reset;
     });
@@ -582,30 +772,6 @@ export function FinancePanel({ sub }) {
     setTimeout(() => setSubmitMsg(''), 4000);
   };
 
-  // Filtered Students for Selector Dropdown
-  const filteredStudents = useMemo(() => {
-    let list = students;
-    if (selectedClass && selectedClass !== 'all') {
-      list = list.filter(s => String(s.class_name) === String(selectedClass));
-    }
-    if (studentSearch.trim()) {
-      const q = studentSearch.toLowerCase();
-      list = list.filter(s =>
-        (s.name_bn && s.name_bn.toLowerCase().includes(q)) ||
-        (s.name_en && s.name_en.toLowerCase().includes(q)) ||
-        (s.roll_no && String(s.roll_no).includes(q)) ||
-        (s.student_id && String(s.student_id).toLowerCase().includes(q))
-      );
-    }
-    return list;
-  }, [students, selectedClass, studentSearch]);
-
-  // Set default student if none selected
-  useEffect(() => {
-    if (!selectedStudentId && filteredStudents.length > 0) {
-      setSelectedStudentId(filteredStudents[0].id || filteredStudents[0].student_id);
-    }
-  }, [filteredStudents, selectedStudentId]);
 
   // ==========================================
   // INSTITUTIONAL INCOME FORM & LOGIC
@@ -1168,45 +1334,150 @@ export function FinancePanel({ sub }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Filter & Selector Box */}
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #cbd5e1', padding: '16px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
-              <h3 style={{ margin: '0 0 12px', fontSize: '14.5px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h3 style={{ margin: '0 0 14px', fontSize: '15px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span>🎯</span> ১. শিক্ষার্থী নির্বাচন করুন
               </h3>
               
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>শ্রেণি</label>
-                <select
-                  value={selectedClass}
-                  onChange={e => { setSelectedClass(e.target.value); setSelectedStudentId(''); }}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
-                >
-                  <option value="all">সকল শ্রেণি</option>
-                  {['6', '7', '8', '9', '10'].map(c => (
-                    <option key={c} value={c}>শ্রেণি {toBnDigits(c)} (Class {c})</option>
-                  ))}
-                </select>
-              </div>
-
+              {/* Class Selection Buttons */}
               <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>শিক্ষার্থী অনুসন্ধান (নাম/রোল/আইডি)</label>
-                <input
-                  type="text"
-                  placeholder="যেমন: আহনাফ / 1 / s-601"
-                  value={studentSearch}
-                  onChange={e => setStudentSearch(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
-                />
+                <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '5px' }}>
+                  শ্রেণি নির্বাচন করুন:
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+                  {['6', '7', '8', '9', '10'].map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setSelectedClass(c);
+                        if (c !== '9' && c !== '10') setSelectedGroup('all');
+                        setSearchRoll('');
+                        setSearchFeedback(null);
+                      }}
+                      style={{
+                        padding: '7px 2px',
+                        borderRadius: '6px',
+                        border: selectedClass === c ? '2px solid #047857' : '1px solid #cbd5e1',
+                        background: selectedClass === c ? '#047857' : '#f8fafc',
+                        color: selectedClass === c ? '#ffffff' : '#334155',
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {toBnDigits(c)}ম শ্রেণি
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* Group / Stream Selector (Only for Class 9 and 10) */}
+              {(selectedClass === '9' || selectedClass === '10') && (
+                <div style={{ marginBottom: '12px', background: '#f0fdf4', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #86efac' }}>
+                  <label style={{ fontSize: '11.5px', fontWeight: 800, color: '#065f46', display: 'block', marginBottom: '4px' }}>
+                    বিভাগ / গ্রুপ নির্বাচন (৯ম ও ১০ম শ্রেণির জন্য):
+                  </label>
+                  <select
+                    value={selectedGroup}
+                    onChange={e => {
+                      setSelectedGroup(e.target.value);
+                      setSearchFeedback(null);
+                    }}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12.5px', fontWeight: 700, background: '#ffffff', color: '#065f46' }}
+                  >
+                    <option value="all">সকল বিভাগ / গ্রুপ (All Groups)</option>
+                    <option value="science">বিজ্ঞান বিভাগ (Science)</option>
+                    <option value="humanities">মানবিক বিভাগ (Humanities)</option>
+                    <option value="business">ব্যবসায় শিক্ষা শাখা (Business Studies)</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Roll Number Search Box + Search Button */}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '5px' }}>
+                  রোল নম্বর দিয়ে অনুসন্ধান (Search by Roll):
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder={selectedClass === '9' || selectedClass === '10' ? "রোল লিখুন (যেমন: ৭ বা 7)" : "রোল লিখুন (যেমন: ১ বা 1)"}
+                    value={searchRoll}
+                    onChange={e => setSearchRoll(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStudent(); } }}
+                    style={{
+                      flex: 1,
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #94a3b8',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      color: '#0f172a'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSearchStudent()}
+                    style={{
+                      background: '#047857',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontWeight: 800,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 4px rgba(4,120,87,0.2)'
+                    }}
+                  >
+                    🔍 খুঁজুন
+                  </button>
+                </div>
+              </div>
+
+              {/* Search Feedback Message */}
+              {searchFeedback && (
+                <div style={{
+                  marginBottom: '12px',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  background: searchFeedback.type === 'success' ? '#dcfce7' : '#fee2e2',
+                  color: searchFeedback.type === 'success' ? '#166534' : '#991b1b',
+                  border: searchFeedback.type === 'success' ? '1px solid #86efac' : '1px solid #fca5a5'
+                }}>
+                  {searchFeedback.text}
+                </div>
+              )}
+
+              {/* Dropdown Selector (Sync with search) */}
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>তালিকা থেকে নির্বাচন করুন ({filteredStudents.length} জন)</label>
+                <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
+                  অথবা তালিকা থেকে নির্বাচন করুন ({classStudents.length} জন):
+                </label>
                 <select
                   value={selectedStudentId}
-                  onChange={e => setSelectedStudentId(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #047857', fontSize: '13px', fontWeight: 700, background: '#f0fdf4' }}
+                  onChange={e => handleSelectStudentFromDropdown(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #047857',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    background: '#f0fdf4',
+                    color: '#065f46'
+                  }}
                 >
-                  {filteredStudents.map(s => (
+                  {classStudents.map(s => (
                     <option key={s.id || s.student_id} value={s.id || s.student_id}>
-                      রোল {toBnDigits(s.roll_no)} - {s.name_bn} (শ্রেণি: {toBnDigits(s.class_name)})
+                      রোল {toBnDigits(s.roll_no)} - {s.name_bn} {s.group ? `(${s.group})` : ''}
                     </option>
                   ))}
                 </select>
@@ -1236,9 +1507,9 @@ export function FinancePanel({ sub }) {
 
                 <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px', border: '1px solid #e2e8f0' }}>
                   <div><b>Student ID:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{selectedStudent.student_id || selectedStudent.id}</span></div>
-                  <div><b>শাখা / গ্রুপ:</b> {selectedStudent.section || 'ক'} {selectedStudent.group ? `(${selectedStudent.group})` : ''}</div>
-                  <div><b>পিতা / অভিভাবক:</b> {selectedStudent.guardian_name_bn || selectedStudent.father_name_bn || '—'}</div>
-                  <div><b>মোবাইল:</b> {toBnDigits(selectedStudent.phone || selectedStudent.guardian_phone || '—')}</div>
+                  <div><b>শাখা / গ্রুপ:</b> {selectedStudent.section || 'ক'} {selectedStudent.group ? `(${selectedStudent.group})` : (selectedStudent.department ? `(${selectedStudent.department})` : '')}</div>
+                  <div><b>পিতা / অভিভাবক:</b> {selectedStudent.guardian_name_bn || selectedStudent.father_name || selectedStudent.father_name_bn || '—'}</div>
+                  <div><b>মোবাইল:</b> {toBnDigits(selectedStudent.phone || selectedStudent.guardian_phone || selectedStudent.father_mobile || '—')}</div>
                 </div>
 
                 {/* Stipend / Scholarship Selector Box (CRITICAL REQUIREMENT) */}
@@ -1250,34 +1521,40 @@ export function FinancePanel({ sub }) {
                   <div style={{ fontSize: '12.5px', fontWeight: 800, color: isTuitionFree ? '#047857' : '#334155', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>🎁</span> উপবৃত্তি ও বৃত্তি সংক্রান্ত সুবিধা
                   </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: isStipend ? 700 : 500, color: isStipend ? '#047857' : '#334155' }}>
+                      <input
+                        type="checkbox"
+                        checked={isStipend}
+                        onChange={e => setIsStipend(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: '#047857' }}
+                      />
+                      <span>উপবৃত্তি প্রাপ্ত শিক্ষার্থী (Stipend Recipient)</span>
+                    </label>
 
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginBottom: '6px', fontSize: '12.5px', fontWeight: 600 }}>
-                    <input
-                      type="checkbox"
-                      checked={isStipend}
-                      onChange={e => setIsStipend(e.target.checked)}
-                      style={{ width: '16px', height: '16px', accentColor: '#047857' }}
-                    />
-                    <span>উপবৃত্তি প্রাপ্ত শিক্ষার্থী (Stipend Recipient)</span>
-                  </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: isScholarship ? 700 : 500, color: isScholarship ? '#047857' : '#334155' }}>
+                      <input
+                        type="checkbox"
+                        checked={isScholarship}
+                        onChange={e => setIsScholarship(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: '#047857' }}
+                      />
+                      <span>মেধাবৃত্তি / সাধারণ বৃত্তি প্রাপ্ত</span>
+                    </label>
+                  </div>
 
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 600 }}>
-                    <input
-                      type="checkbox"
-                      checked={isScholarship}
-                      onChange={e => setIsScholarship(e.target.checked)}
-                      style={{ width: '16px', height: '16px', accentColor: '#047857' }}
-                    />
-                    <span>মেধাবৃত্তি / সাধারণ বৃত্তি প্রাপ্ত</span>
-                  </label>
-
-                  {isTuitionFree && (
+                  {isTuitionFree ? (
                     <div style={{
                       marginTop: '8px', background: '#dcfce7', color: '#166534',
-                      padding: '8px 10px', borderRadius: '6px', fontSize: '11.5px',
-                      fontWeight: 700, lineHeight: 1.4, border: '1px solid #86efac'
+                      padding: '6px 8px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                      border: '1px solid #86efac', display: 'flex', alignItems: 'center', gap: '4px'
                     }}>
-                      ⚡ <b>১০০% বেতন মওকুফ সক্রিয়:</b> সরকারি নীতিমালা অনুযায়ী অত্র শিক্ষার্থীর কোনো মাসের বেতন মোট পাওনায় যুক্ত হবে না (০ টাকা হিসেবে গণ্য হবে)।
+                      <span>✨</span> সরকারি নিয়মানুযায়ী বেতন সম্পূর্ণ ফ্রি (৳ ০ ধার্য হবে)
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '6px', fontSize: '10.5px', color: '#64748b' }}>
+                      * উপবৃত্তি বা বৃত্তি প্রাপ্ত সিলেক্ট থাকলে মাসিক বেতন মোট পাওনায় যোগ হবে না।
                     </div>
                   )}
                 </div>
@@ -1382,82 +1659,112 @@ export function FinancePanel({ sub }) {
               </div>
             </div>
 
-            {/* 2. Other Specified Institutional Fee Heads */}
+            {/* 2. Other Specified Institutional Fee Heads (User Fully Editable Amounts) */}
             <div style={{
               background: '#ffffff', borderRadius: '12px', border: '1px solid #cbd5e1',
               padding: '16px 20px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
-              <h3 style={{ margin: '0 0 12px', fontSize: '15px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>📋</span> ২. অন্যান্য প্রাতিষ্ঠানিক ফি ক্যাটাগরি (প্রযোজ্য ক্ষেত্রে টিক দিন)
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📋</span> ২. অন্যান্য প্রাতিষ্ঠানিক ফি ক্যাটাগরি (প্রযোজ্য ক্ষেত্রে টিক দিন ও ইচ্ছামতো টাকার অংক লিখুন)
+                </h3>
+                <button
+                  type="button"
+                  onClick={applySuggestedRates}
+                  style={{
+                    background: '#f0fdf4', border: '1px solid #86efac', color: '#047857',
+                    padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  title="প্রমিত ফি রেট স্বয়ংক্রিয়ভাবে ইনপুটে বসান"
+                >
+                  🔄 প্রমিত ফি বসান (Suggested Rates)
+                </button>
+              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '10px' }}>
+              <div style={{ fontSize: '11.5px', color: '#475569', marginBottom: '12px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
+                💡 <b>নির্দেশনা:</b> প্রতিটি ফির ক্ষেত্রে টাকার অংক আপনার ইচ্ছামতো সরাসরি লিখুন (যেমন: বিলম্ব ফি বা জরিমানার ঘরে ২০, ৫০, ১০০ টাকা লিখলে তা স্বয়ংক্রিয়ভাবে মোট পাওনায় যোগ হবে)।
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '10px' }}>
                 
                 {/* 1. ভর্তি ফি */}
-                <div style={{ border: feeHeads.admission.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.admission.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.admission.active} onChange={() => toggleFeeHead('admission')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.admission.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.admission.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.admission.active} onChange={() => toggleFeeHead('admission')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>ভর্তি ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.admission.active}
-                    value={feeHeads.admission.amount}
-                    onChange={e => setFeeHeadAmount('admission', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.admission.amount}
+                      onChange={e => setFeeHeadAmount('admission', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.admission.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 2. বিলম্ব ফি / জরিমানা */}
-                <div style={{ border: feeHeads.late_fine.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.late_fine.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.late_fine.active} onChange={() => toggleFeeHead('late_fine')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.late_fine.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.late_fine.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.late_fine.active} onChange={() => toggleFeeHead('late_fine')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>বিলম্ব ফি / জরিমানা</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.late_fine.active}
-                    value={feeHeads.late_fine.amount}
-                    onChange={e => setFeeHeadAmount('late_fine', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="যেমন: ২০ বা ৫০"
+                      value={feeHeads.late_fine.amount}
+                      onChange={e => setFeeHeadAmount('late_fine', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.late_fine.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 3. বার্ষিক চাঁদা / উন্নয়ন ও সেশন ফি */}
-                <div style={{ border: feeHeads.session_dev.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.session_dev.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.session_dev.active} onChange={() => toggleFeeHead('session_dev')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.session_dev.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.session_dev.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.session_dev.active} onChange={() => toggleFeeHead('session_dev')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>বার্ষিক চাঁদা / সেশন ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.session_dev.active}
-                    value={feeHeads.session_dev.amount}
-                    onChange={e => setFeeHeadAmount('session_dev', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.session_dev.amount}
+                      onChange={e => setFeeHeadAmount('session_dev', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.session_dev.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 4. পরীক্ষার ফি */}
-                <div style={{ border: feeHeads.exam_fee.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.exam_fee.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                      <input type="checkbox" checked={feeHeads.exam_fee.active} onChange={() => toggleFeeHead('exam_fee')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.exam_fee.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.exam_fee.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                      <input type="checkbox" checked={feeHeads.exam_fee.active} onChange={() => toggleFeeHead('exam_fee')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                       <span>পরীক্ষার ফি</span>
                     </label>
-                    <input
-                      type="number"
-                      disabled={!feeHeads.exam_fee.active}
-                      value={feeHeads.exam_fee.amount}
-                      onChange={e => setFeeHeadAmount('exam_fee', e.target.value)}
-                      style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                      <input
+                        type="number"
+                        placeholder="টাকা লিখুন"
+                        value={feeHeads.exam_fee.amount}
+                        onChange={e => setFeeHeadAmount('exam_fee', e.target.value)}
+                        style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.exam_fee.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                      />
+                    </div>
                   </div>
                   {feeHeads.exam_fee.active && (
                     <select
                       value={feeHeads.exam_fee.exam_name}
                       onChange={e => setFeeHeads(prev => ({ ...prev, exam_fee: { ...prev.exam_fee, exam_name: e.target.value } }))}
-                      style={{ width: '100%', padding: '4px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      style={{ width: '100%', padding: '5px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', background: '#fff' }}
                     >
                       <option value="১ম সাময়িক পরীক্ষা">১ম সাময়িক পরীক্ষা</option>
                       <option value="অর্ধ-বার্ষিক পরীক্ষা">অর্ধ-বার্ষিক পরীক্ষা</option>
@@ -1469,118 +1776,138 @@ export function FinancePanel({ sub }) {
                 </div>
 
                 {/* 5. রেজিষ্ট্রেশন ফি */}
-                <div style={{ border: feeHeads.registration.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.registration.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.registration.active} onChange={() => toggleFeeHead('registration')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.registration.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.registration.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.registration.active} onChange={() => toggleFeeHead('registration')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>রেজিষ্ট্রেশন ফি (৮ম/৯ম)</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.registration.active}
-                    value={feeHeads.registration.amount}
-                    onChange={e => setFeeHeadAmount('registration', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.registration.amount}
+                      onChange={e => setFeeHeadAmount('registration', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.registration.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 6. এসএসসি পরীক্ষার বোর্ড ও কেন্দ্র ফি */}
-                <div style={{ border: feeHeads.ssc_board_center.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.ssc_board_center.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.ssc_board_center.active} onChange={() => toggleFeeHead('ssc_board_center')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.ssc_board_center.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.ssc_board_center.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.ssc_board_center.active} onChange={() => toggleFeeHead('ssc_board_center')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>এসএসসি বোর্ড ও কেন্দ্র ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.ssc_board_center.active}
-                    value={feeHeads.ssc_board_center.amount}
-                    onChange={e => setFeeHeadAmount('ssc_board_center', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.ssc_board_center.amount}
+                      onChange={e => setFeeHeadAmount('ssc_board_center', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.ssc_board_center.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 7. বার্ষিক মিলাদ মাহফিল */}
-                <div style={{ border: feeHeads.milad.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.milad.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.milad.active} onChange={() => toggleFeeHead('milad')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.milad.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.milad.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.milad.active} onChange={() => toggleFeeHead('milad')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>বার্ষিক মিলাদ মাহফিল</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.milad.active}
-                    value={feeHeads.milad.amount}
-                    onChange={e => setFeeHeadAmount('milad', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.milad.amount}
+                      onChange={e => setFeeHeadAmount('milad', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.milad.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 8. স্কাউট ও গার্ল গাইড ফি */}
-                <div style={{ border: feeHeads.scout.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.scout.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.scout.active} onChange={() => toggleFeeHead('scout')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.scout.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.scout.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.scout.active} onChange={() => toggleFeeHead('scout')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>স্কাউট ও গার্ল গাইড ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.scout.active}
-                    value={feeHeads.scout.amount}
-                    onChange={e => setFeeHeadAmount('scout', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.scout.amount}
+                      onChange={e => setFeeHeadAmount('scout', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.scout.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 9. প্রশংসাপত্র ফি */}
-                <div style={{ border: feeHeads.testimonial.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.testimonial.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.testimonial.active} onChange={() => toggleFeeHead('testimonial')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.testimonial.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.testimonial.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.testimonial.active} onChange={() => toggleFeeHead('testimonial')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>প্রশংসাপত্র ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.testimonial.active}
-                    value={feeHeads.testimonial.amount}
-                    onChange={e => setFeeHeadAmount('testimonial', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.testimonial.amount}
+                      onChange={e => setFeeHeadAmount('testimonial', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.testimonial.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 10. ছাড়পত্র / টি.সি ফি */}
-                <div style={{ border: feeHeads.tc.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.tc.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700 }}>
-                    <input type="checkbox" checked={feeHeads.tc.active} onChange={() => toggleFeeHead('tc')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.tc.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.tc.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, flex: 1 }}>
+                    <input type="checkbox" checked={feeHeads.tc.active} onChange={() => toggleFeeHead('tc')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>ছাড়পত্র / টি.সি ফি</span>
                   </label>
-                  <input
-                    type="number"
-                    disabled={!feeHeads.tc.active}
-                    value={feeHeads.tc.amount}
-                    onChange={e => setFeeHeadAmount('tc', e.target.value)}
-                    style={{ width: '80px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা লিখুন"
+                      value={feeHeads.tc.amount}
+                      onChange={e => setFeeHeadAmount('tc', e.target.value)}
+                      style={{ width: '90px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.tc.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
 
                 {/* 11. অন্যান্য ফি */}
-                <div style={{ border: feeHeads.other.active ? '1.5px solid #047857' : '1px solid #cbd5e1', background: feeHeads.other.active ? '#f0fdf4' : '#fff', padding: '8px 12px', borderRadius: '8px', gridColumn: 'span 2', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                    <input type="checkbox" checked={feeHeads.other.active} onChange={() => toggleFeeHead('other')} style={{ width: '16px', height: '16px', accentColor: '#047857' }} />
+                <div style={{ border: feeHeads.other.active ? '2px solid #047857' : '1px solid #cbd5e1', background: feeHeads.other.active ? '#f0fdf4' : '#fff', padding: '9px 12px', borderRadius: '8px', gridColumn: 'span 2', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    <input type="checkbox" checked={feeHeads.other.active} onChange={() => toggleFeeHead('other')} style={{ width: '17px', height: '17px', accentColor: '#047857' }} />
                     <span>অন্যান্য ফি:</span>
                   </label>
                   <input
                     type="text"
-                    disabled={!feeHeads.other.active}
-                    placeholder="খাতের বিবরণ (যেমন: বিজ্ঞানাগার/আইসিটি চার্জ)"
+                    placeholder="খাতের বিবরণ (যেমন: বিজ্ঞানাগার/আইসিটি/লাইব্রেরি চার্জ)"
                     value={feeHeads.other.note}
-                    onChange={e => setFeeHeads(prev => ({ ...prev, other: { ...prev.other, note: e.target.value } }))}
-                    style={{ flex: 1, padding: '4px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    onChange={e => setFeeHeads(prev => ({ ...prev, other: { ...prev.other, note: e.target.value, active: e.target.value ? true : prev.other.active } }))}
+                    style={{ flex: 1, padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
                   />
-                  <input
-                    type="number"
-                    disabled={!feeHeads.other.active}
-                    placeholder="টাকা"
-                    value={feeHeads.other.amount}
-                    onChange={e => setFeeHeadAmount('other', e.target.value)}
-                    style={{ width: '90px', padding: '4px 6px', borderRadius: '5px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 700, fontSize: '12.5px' }}
-                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>৳</span>
+                    <input
+                      type="number"
+                      placeholder="টাকা"
+                      value={feeHeads.other.amount}
+                      onChange={e => setFeeHeadAmount('other', e.target.value)}
+                      style={{ width: '95px', padding: '6px 8px', borderRadius: '6px', border: feeHeads.other.active ? '1.5px solid #047857' : '1px solid #cbd5e1', textAlign: 'right', fontWeight: 800, fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
                 </div>
+
               </div>
             </div>
 
