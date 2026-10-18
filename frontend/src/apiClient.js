@@ -1777,6 +1777,93 @@ function handleMockRequest(path, opts = {}) {
     return { success: true, message: 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।' };
   }
 
+  
+  // Teacher Portal Endpoints (Smart Attendance & Marks Roster)
+  if (cleanPath === '/portal/teacher/roster') {
+    const cls = params.get('class_name') || '6';
+    const sec = params.get('section') || '';
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    let filtered = students.filter(s => String(s.class_name).trim() === String(cls).trim());
+    if (sec) {
+      filtered = filtered.filter(s => !s.section || String(s.section).includes(sec));
+    }
+    if (!filtered.length && students.length) {
+      filtered = students.slice(0, 15);
+    }
+    return filtered.map(s => ({
+      id: s.id,
+      student_id: s.student_id,
+      name_bn: s.name_bn,
+      roll_no: s.roll_no,
+      status: 'present',
+      remarks: ''
+    }));
+  }
+
+  if (cleanPath === '/portal/teacher/marks-roster') {
+    const examId = params.get('exam_id');
+    const cls = params.get('class_name') || '6';
+    const subId = params.get('subject_id');
+    const students = getLocalStore('students', MOCK_STUDENTS);
+    const subjects = getLocalStore('subjects', MOCK_SUBJECTS);
+    const marks = getLocalStore('marks', []);
+
+    const sub = subjects.find(s => String(s.id) === String(subId) || String(s.code) === String(subId)) || subjects[0] || {
+      name_bn: 'বাংলা',
+      full_marks: 100,
+      written_max: 70,
+      mcq_max: 30,
+      practical_max: 0
+    };
+
+    let classStudents = students.filter(s => String(s.class_name).trim() === String(cls).trim());
+    if (!classStudents.length) classStudents = students.slice(0, 15);
+
+    const studentRows = classStudents.map(s => {
+      const existing = marks.find(m => String(m.exam_id) === String(examId) && String(m.student_id) === String(s.id) && String(m.subject_id) === String(subId));
+      return {
+        id: s.id,
+        student_id: s.student_id,
+        name_bn: s.name_bn,
+        roll_no: s.roll_no,
+        written: existing ? existing.written : '',
+        mcq: existing ? existing.mcq : '',
+        practical: existing ? existing.practical : '',
+        absent: existing ? existing.absent : false,
+        remarks: existing ? existing.remarks : ''
+      };
+    });
+
+    return {
+      meta: sub,
+      students: studentRows
+    };
+  }
+
+  if (cleanPath === '/portal/teacher/marks-save' && method === 'POST') {
+    const { exam_id, records } = body || {};
+    let marks = getLocalStore('marks', []);
+    const map = new Map();
+    marks.forEach(m => map.set(`${m.exam_id}_${m.student_id}_${m.subject_id}`, m));
+    (records || []).forEach(r => {
+      const w = r.written !== '' && r.written !== undefined && r.written !== null ? Number(r.written) : null;
+      const m = r.mcq !== '' && r.mcq !== undefined && r.mcq !== null ? Number(r.mcq) : null;
+      const p = r.practical !== '' && r.practical !== undefined && r.practical !== null ? Number(r.practical) : null;
+      const tot = (w || 0) + (m || 0) + (p || 0);
+      map.set(`${exam_id}_${r.student_id}_${r.subject_id}`, {
+        ...r,
+        exam_id,
+        written: w,
+        mcq: m,
+        practical: p,
+        total: r.absent ? 0 : tot,
+        updated_at: new Date().toISOString()
+      });
+    });
+    setLocalStore('marks', Array.from(map.values()));
+    return { ok: true, count: (records || []).length };
+  }
+
   if (cleanPath === '/portal/links') {
     return [
       { id: 'link-1', guardian_name: 'রফিকুল ইসলাম', guardian_login: 'pilot-guardian-01', student_name: 'মাহির আহমেদ', student_code: 'STU-2026-0601', class_name: '6', roll_no: 1, relation: 'পিতা' }

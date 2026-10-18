@@ -1069,7 +1069,7 @@ function Admin(){
  }
 
  const adminEn={
- 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','শিক্ষক ভোটার তালিকা':'Teacher Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','প্রমোশন':'Promotion','প্রমোশন ও SSC ফরমপূরণ':'Promotion & SSC Form Fill-up','শিক্ষার্থী প্রমোশন':'Student Promotion','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','শিক্ষার্থী ফি আদায়':'Student Fee Collection','রশিদ ও ইতিহাস':'Receipts & History','বিদ্যালয়ের আয়':'School Income','বিদ্যালয়ের ব্যয়':'School Expense','ক্যাশ বুক ও বিবরণী':'Cash Book & Statement','ফি রেট সেটিংস':'Fee Rate Settings','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','ছাড়পত্র (TC)':'Transfer Certificate (TC)','প্রত্যয়ন পত্র':'Bonafide Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
+ 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','শিক্ষক ভোটার তালিকা':'Teacher Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','প্রমোশন':'Promotion','প্রমোশন ও SSC ফরমপূরণ':'Promotion & SSC Form Fill-up','শিক্ষার্থী প্রমোশন':'Student Promotion','রুটিন':'Routine','ফি ও হিসাব':'Fees & Accounts','শিক্ষার্থী ফি আদায়':'Student Fee Collection','রশিদ ও ইতিহাস':'Receipts & History','বিদ্যালয়ের আয়':'School Income','বিদ্যালয়ের ব্যয়':'School Expense','ক্যাশ বুক ও বিবরণী':'Cash Book & Statement','ফি রেট সেটিংস':'Fee Rate Settings','শ্রেণি শিক্ষক নির্ধারণ':'Class Teacher Assignment','লাইব্রেরি':'Library','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','ছাড়পত্র (TC)':'Transfer Certificate (TC)','প্রত্যয়ন পত্র':'Bonafide Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
  const ADMIN_NAV_GROUPS=[
   {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
   {group:'একাডেমিক',items:[
@@ -1080,7 +1080,7 @@ function Admin(){
    {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['academic_year','একাডেমিক ইয়ার সেটআপ'],['exam_names','পরীক্ষার নাম সেটআপ'],['marks','মার্ক এন্ট্রি'],['subjects','বিষয় ও নম্বর বণ্টন'],['grading','গ্রেডিং পলিসি'],['processing','ফলাফল প্রসেসিং'],['analysis','ফলাফল বিশ্লেষণ'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা'],['promotion','শিক্ষার্থী প্রমোশন']]},
    {k:'routine',n:'রুটিন',i:'🗓️'}
   ]},
-  {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳',subs:[['collect','শিক্ষার্থী ফি আদায়'],['receipts','রশিদ ও ইতিহাস'],['income','বিদ্যালয়ের আয়'],['expense','বিদ্যালয়ের ব্যয়'],['cashbook','ক্যাশ বুক ও বিবরণী'],['rates','ফি রেট সেটিংস']]},{k:'library',n:'লাইব্রেরি',i:'📚'}]},
+  {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳',subs:[['collect','শিক্ষার্থী ফি আদায়'],['receipts','রশিদ ও ইতিহাস'],['income','বিদ্যালয়ের আয়'],['expense','বিদ্যালয়ের ব্যয়'],['cashbook','ক্যাশ বুক ও বিবরণী'],['rates','ফি রেট সেটিংস'],['teachers','শ্রেণি শিক্ষক নির্ধারণ']]},{k:'library',n:'লাইব্রেরি',i:'📚'}]},
   {group:'শিক্ষা',items:[
    {k:'learning',n:'ডিজিটাল লার্নিং',i:'💻',subs:[['content','ডিজিটাল কনটেন্ট'],['syllabus','সিলেবাস'],['progress','শিক্ষার্থী অগ্রগতি']]},
    {k:'question',n:'প্রশ্নব্যাংক',i:'❓',subs:[['bank','প্রশ্নব্যাংক'],['model','মডেল প্রশ্ন']]},
@@ -5457,28 +5457,392 @@ function GuardianPortal({data}){
  </div>
 }
 function TeacherPortal({data}){
- const classesForTeacher=[...new Map((data.today_routine||[]).map(r=>[`${r.class_name}|${r.section||''}`,{class_name:r.class_name,section:r.section||''}])).values()];
+ const nav = useNavigate();
+ const [portalTab, setPortalTab] = useState('overview'); // 'overview' | 'finance' | 'results'
+ const classesForTeacher=[...new Map((data.today_routine||[]).map(r=>[`${r.class_name}|${r.section||''}`,{class_name:r.class_name,section:r.section||''}])) .values()];
  const[date,setDate]=useState(new Date().toISOString().slice(0,10)),[selected,setSelected]=useState(''),[roster,setRoster]=useState([]),[msg,setMsg]=useState('');
  const[exams,setExams]=useState([]),[subjects,setSubjects]=useState([]),[examId,setExamId]=useState(''),[subjectId,setSubjectId]=useState(''),[marks,setMarks]=useState([]),[marksMeta,setMarksMeta]=useState(null),[marksMsg,setMarksMsg]=useState('');
  const[submissionRows,setSubmissionRows]=useState([]),[submissionMsg,setSubmissionMsg]=useState(''); const[gradeDraft,setGradeDraft]=useState({});
+
  useEffect(()=>{if(classesForTeacher.length&&!selected)setSelected(`${classesForTeacher[0].class_name}|${classesForTeacher[0].section}`)},[classesForTeacher.length]);
  const chosen=classesForTeacher.find(x=>`${x.class_name}|${x.section}`===selected)||classesForTeacher[0];
- async function loadRoster(){if(!chosen)return setMsg('রুটিনে কোনো শ্রেণি পাওয়া যায়নি');try{setMsg('');const d=await api(`/portal/teacher/roster?date=${date}&class_name=${encodeURIComponent(chosen.class_name)}&section=${encodeURIComponent(chosen.section||'')}`);setRoster(d)}catch(e){setMsg(e.message)}}
+
+ async function loadRoster(){if(!chosen)return setMsg('রুটিনে কোনো শ্রেণি পাওয়া যায়নি');try{setMsg('');const d=await api(`/portal/teacher/roster?date=${date}&class_name=${encodeURIComponent(chosen.class_name)}&section=${encodeURIComponent(chosen.section||'')}`);setRoster(Array.isArray(d)?d:[])}catch(e){setMsg(e.message)}}
  useEffect(()=>{if(chosen)loadRoster()},[date,selected]);
  useEffect(()=>{api('/exams').then(setExams).catch(()=>{});},[]);
  useEffect(()=>{if(chosen)api(`/subjects?class_name=${encodeURIComponent(chosen.class_name)}`).then(setSubjects).catch(()=>{})},[selected]);
  useEffect(()=>{if(!examId||!subjectId||!chosen)return;loadMarks()},[examId,subjectId,selected]);
- async function loadMarks(){try{setMarksMsg('');const d=await api(`/portal/teacher/marks-roster?exam_id=${examId}&class_name=${encodeURIComponent(chosen.class_name)}&section=${encodeURIComponent(chosen.section||'')}&subject_id=${subjectId}`);setMarksMeta(d.meta);setMarks(d.students)}catch(e){setMarks([]);setMarksMeta(null);setMarksMsg(e.message)}}
+
+ async function loadMarks(){try{setMarksMsg('');const d=await api(`/portal/teacher/marks-roster?exam_id=${examId}&class_name=${encodeURIComponent(chosen.class_name)}&section=${encodeURIComponent(chosen.section||'')}&subject_id=${subjectId}`);setMarksMeta(d.meta);setMarks(Array.isArray(d.students)?d.students:[])}catch(e){setMarks([]);setMarksMeta(null);setMarksMsg(e.message)}}
  function setStatus(i,status){setRoster(a=>a.map((x,n)=>n===i?{...x,status}:x))}
  async function saveAttendance(){try{const d=await api('/attendance/bulk',{method:'POST',body:JSON.stringify({date,records:roster.map(x=>({student_id:x.id,status:x.status,remarks:x.remarks}))})});setMsg(`${d.count} জনের উপস্থিতি সংরক্ষণ হয়েছে`)}catch(e){setMsg(e.message)}}
  function updateMark(i,k,v){setMarks(a=>a.map((x,n)=>n===i?{...x,[k]:v}:x))}
  async function loadSubmissions(id){if(!id){setSubmissionRows([]);return}try{setSubmissionMsg('');setSubmissionRows(await api(`/portal/teacher/assignment-submissions?assignment_id=${id}`))}catch(e){setSubmissionMsg(e.message);setSubmissionRows([])}}
  async function gradeSubmission(id){const d=gradeDraft[id]||{};try{await api(`/portal/teacher/assignment-submissions/${id}`,{method:'PATCH',body:JSON.stringify({marks:d.marks,teacher_feedback:d.teacher_feedback})});setSubmissionMsg('মূল্যায়ন সংরক্ষণ হয়েছে');loadSubmissions(d.assignment_id)}catch(e){setSubmissionMsg(e.message)}}
  async function saveMarks(){try{if(!marks.length)return;const d=await api('/portal/teacher/marks-save',{method:'POST',body:JSON.stringify({exam_id:examId,class_name:chosen.class_name,section:chosen.section||'',records:marks.map(x=>({student_id:x.id,subject_id:subjectId,written:x.written,mcq:x.mcq,practical:x.practical,absent:x.absent,remarks:x.remarks}))})});setMarksMsg(`${d.count} জনের নম্বর সংরক্ষণ হয়েছে`);loadMarks()}catch(e){setMarksMsg(e.message)}}
- return <div className="portal-shell"><div className="portal-cards"><article className="portal-card"><h3>👨‍🏫 প্রোফাইল</h3><p><b>{data.teacher?.name_bn||data.user.full_name}</b></p><p>পদ: {data.teacher?.designation||'—'}<br/>বিষয়: {data.teacher?.subject||'—'}</p></article><article className="portal-card"><h3>📚 অ্যাসাইনমেন্ট</h3><div className="portal-kpi">{data.assignments?.length||0}</div><p>আপনার তৈরি</p></article><article className="portal-card"><h3>👥 দায়িত্বপ্রাপ্ত শ্রেণি</h3><div className="portal-kpi">{classesForTeacher.length}</div><p>রুটিন অনুযায়ী</p></article></div>
- <section className="portal-section"><div className="toolbar"><div><span className="eyebrow">TEACHER TOOLS</span><h2>দ্রুত উপস্থিতি</h2></div><button className="btn" onClick={saveAttendance} disabled={!roster.length}>উপস্থিতি সংরক্ষণ</button></div><div className="filters"><input type="date" value={date} onChange={e=>setDate(e.target.value)}/><select value={selected} onChange={e=>setSelected(e.target.value)}>{classesForTeacher.map(x=><option key={`${x.class_name}|${x.section}`} value={`${x.class_name}|${x.section}`}>শ্রেণি {x.class_name}{x.section?' • '+x.section:''}</option>)}</select></div>{msg&&<p className="msg">{msg}</p>}<div className="portal-scroll"><table className="portal-table"><thead><tr><th>রোল</th><th>শিক্ষার্থী</th><th>উপস্থিতি</th></tr></thead><tbody>{roster.map((r,i)=><tr key={r.id}><td>{r.roll_no||'—'}</td><td>{r.name_bn}</td><td><div className="attendance-actions"><button className={r.status==='present'?'active':''} onClick={()=>setStatus(i,'present')}>উপস্থিত</button><button className={r.status==='absent'?'active':''} onClick={()=>setStatus(i,'absent')}>অনুপস্থিত</button><button className={r.status==='late'?'active':''} onClick={()=>setStatus(i,'late')}>দেরি</button></div></td></tr>)}{!roster.length&&<tr><td colSpan="3">এই তারিখে কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}</tbody></table></div></section>
- <section className="portal-section"><div className="toolbar"><div><span className="eyebrow">RESULT MANAGEMENT</span><h2>নম্বর এন্ট্রি</h2></div><button className="btn" onClick={saveMarks} disabled={!marks.length}>নম্বর সংরক্ষণ</button></div><div className="filters"><select value={examId} onChange={e=>setExamId(e.target.value)}><option value="">পরীক্ষা নির্বাচন</option>{exams.map(e=><option key={e.id} value={e.id}>{e.name_bn}</option>)}</select><select value={subjectId} onChange={e=>setSubjectId(e.target.value)}><option value="">বিষয় নির্বাচন</option>{subjects.map(x=><option key={x.id} value={x.id}>{x.code} — {x.name_bn}</option>)}</select></div>{marksMeta&&<p className="msg">{marksMeta.name_bn} • পূর্ণমান {marksMeta.full_marks} • লিখিত {marksMeta.written_max||0} • MCQ {marksMeta.mcq_max||0} • ব্যবহারিক {marksMeta.practical_max||0}</p>}{marksMsg&&<p className="msg">{marksMsg}</p>}<div className="portal-scroll"><table className="portal-table"><thead><tr><th>রোল</th><th>শিক্ষার্থী</th><th>লিখিত</th><th>MCQ</th><th>ব্যবহারিক</th><th>অনুপস্থিত</th></tr></thead><tbody>{marks.map((r,i)=><tr key={r.id}><td>{r.roll_no||'—'}</td><td>{r.name_bn}</td><td><input className="mark-input" type="number" min="0" max={marksMeta?.written_max||undefined} value={r.written??''} onChange={e=>updateMark(i,'written',e.target.value)}/></td><td><input className="mark-input" type="number" min="0" max={marksMeta?.mcq_max||undefined} value={r.mcq??''} onChange={e=>updateMark(i,'mcq',e.target.value)}/></td><td><input className="mark-input" type="number" min="0" max={marksMeta?.practical_max||undefined} value={r.practical??''} onChange={e=>updateMark(i,'practical',e.target.value)}/></td><td><input type="checkbox" checked={!!r.absent} onChange={e=>updateMark(i,'absent',e.target.checked)}/></td></tr>)}{!marks.length&&<tr><td colSpan="6">পরীক্ষা ও বিষয় নির্বাচন করলে শিক্ষার্থীদের নম্বর এন্ট্রি তালিকা আসবে।</td></tr>}</tbody></table></div></section>
- <section className="portal-section"><h2>রুটিন</h2><div className="portal-scroll"><table className="portal-table"><thead><tr><th>দিন</th><th>সময়</th><th>বিষয়</th><th>শ্রেণি</th><th>কক্ষ</th></tr></thead><tbody>{(data.today_routine||[]).map(r=><tr key={r.id}><td>{r.day_of_week}</td><td>{String(r.start_time).slice(0,5)}–{String(r.end_time).slice(0,5)}</td><td>{r.subject_name||'—'}</td><td>{r.class_name}</td><td>{r.room||'—'}</td></tr>)}</tbody></table></div></section><section className="portal-section"><div className="toolbar"><div><span className="eyebrow">HOMEWORK REVIEW</span><h2>অ্যাসাইনমেন্ট ও জমা মূল্যায়ন</h2></div></div><div className="form-grid"><select onChange={e=>{const id=e.target.value;setGradeDraft({});loadSubmissions(id)}}><option value="">অ্যাসাইনমেন্ট নির্বাচন</option>{(data.assignments||[]).map(a=><option key={a.id} value={a.id}>{a.title_bn} • {a.submission_count||0} জমা</option>)}</select></div>{submissionMsg&&<p className="msg">{submissionMsg}</p>}<div className="portal-scroll"><table className="portal-table"><thead><tr><th>রোল</th><th>শিক্ষার্থী</th><th>উত্তর</th><th>নম্বর</th><th>মন্তব্য</th><th>কাজ</th></tr></thead><tbody>{submissionRows.map(r=>{const d=gradeDraft[r.id]||{marks:r.marks??'',teacher_feedback:r.teacher_feedback||'',assignment_id:r.assignment_id};return <tr key={r.id}><td>{r.roll_no||'—'}</td><td>{r.name_bn}</td><td>{r.answer_text||'—'}{r.attachment_url&&<><br/><a href={r.attachment_url} target="_blank" rel="noreferrer">Attachment</a></>}</td><td><input className="mark-input" type="number" min="0" max={r.max_marks} value={d.marks} onChange={e=>setGradeDraft({...gradeDraft,[r.id]:{...d,marks:e.target.value}})}/><small>/{r.max_marks}</small></td><td><input value={d.teacher_feedback} onChange={e=>setGradeDraft({...gradeDraft,[r.id]:{...d,teacher_feedback:e.target.value}})}/></td><td><button className="mini" onClick={()=>gradeSubmission(r.id)}>মূল্যায়ন</button></td></tr>})}{!submissionRows.length&&<tr><td colSpan="6">অ্যাসাইনমেন্ট নির্বাচন করলে জমা দেওয়া শিক্ষার্থীদের তালিকা আসবে।</td></tr>}</tbody></table></div></section><Notifications items={data.notifications}/></div>}
+
+ // VIEW: Finance Panel (Class Teacher Fee Collection)
+ if (portalTab === 'finance') {
+   return (
+     <div className="portal-shell">
+       <div style={{
+         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+         background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+         color: '#ffffff', padding: '16px 20px', borderRadius: '12px', marginBottom: '20px',
+         boxShadow: '0 4px 12px rgba(6,78,59,0.2)'
+       }}>
+         <div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <span style={{ fontSize: '24px' }}>💳</span>
+             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>
+               শ্রেণি ফি আদায় ও মানি রসিদ (শ্রেণি শিক্ষক প্যানেল)
+             </h2>
+             <span style={{ background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+               শ্রেণি শিক্ষক মোড
+             </span>
+           </div>
+           <p style={{ margin: '4px 0 0', fontSize: '12.5px', opacity: 0.9 }}>
+             {data.teacher?.name_bn || data.user.full_name} • শ্রেণি শিক্ষক হিসেবে আপনার শ্রেণির ফি আদায় করুন এবং মানি রসিদ প্রিন্ট করুন
+           </p>
+         </div>
+         <div style={{ display: 'flex', gap: '10px' }}>
+           <button
+             type="button"
+             className="btn"
+             onClick={() => setPortalTab('overview')}
+             style={{ background: '#ffffff', color: '#064e3b', fontWeight: 800, fontSize: '13px' }}
+           >
+             ← শিক্ষক পোর্টালে ফিরুন
+           </button>
+         </div>
+       </div>
+       <FinancePanel sub="collect" />
+     </div>
+   );
+ }
+
+ // VIEW: Result Panel (Subject Teacher Marks Entry)
+ if (portalTab === 'results') {
+   return (
+     <div className="portal-shell">
+       <div style={{
+         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+         background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
+         color: '#ffffff', padding: '16px 20px', borderRadius: '12px', marginBottom: '20px',
+         boxShadow: '0 4px 12px rgba(15,118,110,0.2)'
+       }}>
+         <div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <span style={{ fontSize: '24px' }}>📈</span>
+             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>
+               বিষয়ভিত্তিক নম্বর এন্ট্রি (পরীক্ষা ও ফলাফল - বিষয় শিক্ষক প্যানেল)
+             </h2>
+             <span style={{ background: '#ccfbf1', color: '#115e59', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+               বিষয় শিক্ষক মোড
+             </span>
+           </div>
+           <p style={{ margin: '4px 0 0', fontSize: '12.5px', opacity: 0.9 }}>
+             {data.teacher?.name_bn || data.user.full_name} • বিষয় শিক্ষক হিসেবে আপনার নির্ধারিত বিষয়ের পরীক্ষার লিখিত, MCQ ও ব্যবহারিক নম্বর এন্ট্রি করুন
+           </p>
+         </div>
+         <div style={{ display: 'flex', gap: '10px' }}>
+           <button
+             type="button"
+             className="btn"
+             onClick={() => setPortalTab('overview')}
+             style={{ background: '#ffffff', color: '#0f766e', fontWeight: 800, fontSize: '13px' }}
+           >
+             ← শিক্ষক পোর্টালে ফিরুন
+           </button>
+         </div>
+       </div>
+       <ResultPanel sub="marks" />
+     </div>
+   );
+ }
+
+ // VIEW: Teacher Portal Overview
+ return (
+   <div className="portal-shell">
+     {/* Portal Navigation & Dual-Role Banner */}
+     <div style={{
+       display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+       background: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '12px', padding: '14px 20px', marginBottom: '18px',
+       boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+     }}>
+       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+         <span style={{ fontSize: '26px' }}>👨‍🏫</span>
+         <div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <b style={{ fontSize: '16px', color: '#0f172a' }}>{data.teacher?.name_bn || data.user.full_name}</b>
+             <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+               শ্রেণি শিক্ষক ও বিষয় শিক্ষক
+             </span>
+           </div>
+           <small style={{ color: '#64748b', fontSize: '12px' }}>
+             পদবী: {data.teacher?.designation || 'সহকারী শিক্ষক'} • বিষয়: {data.teacher?.subject || 'সকল বিষয়'}
+           </small>
+         </div>
+       </div>
+
+       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+         <button
+           type="button"
+           onClick={() => setPortalTab('finance')}
+           style={{
+             background: '#047857', color: '#ffffff', border: 'none',
+             padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
+             fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+           }}
+         >
+           💳 শ্রেণি ফি আদায়
+         </button>
+         <button
+           type="button"
+           onClick={() => setPortalTab('results')}
+           style={{
+             background: '#0284c7', color: '#ffffff', border: 'none',
+             padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
+             fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+           }}
+         >
+           📈 নম্বর এন্ট্রি (পরীক্ষা ও ফলাফল)
+         </button>
+         <button
+           type="button"
+           onClick={() => nav('/admin')}
+           style={{
+             background: '#1e293b', color: '#ffffff', border: 'none',
+             padding: '8px 14px', borderRadius: '8px', fontSize: '12.5px',
+             fontWeight: 700, cursor: 'pointer'
+           }}
+         >
+           🏛️ সম্পূর্ণ ERP প্যানেল
+         </button>
+       </div>
+     </div>
+
+     {/* Quick Feature Cards */}
+     <div className="portal-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+       <article className="portal-card" style={{ borderLeft: '4px solid #059669', background: '#f0fdf4' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+           <div>
+             <h3 style={{ margin: 0, color: '#065f46', fontSize: '16px' }}>💳 শ্রেণি ফি আদায়</h3>
+             <small style={{ color: '#047857', fontWeight: 600 }}>শ্রেণি শিক্ষক হিসেবে আদায় করুন</small>
+           </div>
+           <span style={{ fontSize: '24px' }}>💵</span>
+         </div>
+         <p style={{ margin: '8px 0 12px', fontSize: '12px', color: '#334155' }}>
+           আপনার শ্রেণির শিক্ষার্থীদের মাসিক বেতন, সেশন ও পরীক্ষার ফি আদায় করে ডাবল-স্লিপ মানি রসিদ প্রিন্ট করুন।
+         </p>
+         <button
+           type="button"
+           onClick={() => setPortalTab('finance')}
+           style={{
+             background: '#047857', color: '#ffffff', border: 'none',
+             padding: '6px 12px', borderRadius: '6px', fontSize: '12px',
+             fontWeight: 700, cursor: 'pointer', width: '100%'
+           }}
+         >
+           ফি আদায় উইন্ডো খুলুন →
+         </button>
+       </article>
+
+       <article className="portal-card" style={{ borderLeft: '4px solid #0284c7', background: '#f0f9ff' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+           <div>
+             <h3 style={{ margin: 0, color: '#0369a1', fontSize: '16px' }}>📈 বিষয়ভিত্তিক নম্বর এন্ট্রি</h3>
+             <small style={{ color: '#0284c7', fontWeight: 600 }}>বিষয় শিক্ষক হিসেবে এন্ট্রি করুন</small>
+           </div>
+           <span style={{ fontSize: '24px' }}>📝</span>
+         </div>
+         <p style={{ margin: '8px 0 12px', fontSize: '12px', color: '#334155' }}>
+           পরীক্ষা ও শ্রেণি নির্বাচন করে আপনার নির্ধারিত বিষয়ের শিক্ষার্থীদের লিখিত, MCQ ও ব্যবহারিক নম্বর এন্ট্রি করুন।
+         </p>
+         <button
+           type="button"
+           onClick={() => setPortalTab('results')}
+           style={{
+             background: '#0284c7', color: '#ffffff', border: 'none',
+             padding: '6px 12px', borderRadius: '6px', fontSize: '12px',
+             fontWeight: 700, cursor: 'pointer', width: '100%'
+           }}
+         >
+           নম্বর এন্ট্রি উইন্ডো খুলুন →
+         </button>
+       </article>
+
+       <article className="portal-card">
+         <h3>📚 অ্যাসাইনমেন্ট</h3>
+         <div className="portal-kpi">{data.assignments?.length||0}</div>
+         <p>আপনার তৈরি ও মূল্যায়নযোগ্য</p>
+       </article>
+
+       <article className="portal-card">
+         <h3>👥 দায়িত্বপ্রাপ্ত শ্রেণি</h3>
+         <div className="portal-kpi">{classesForTeacher.length}</div>
+         <p>রুটিন অনুযায়ী নির্ধারিত</p>
+       </article>
+     </div>
+
+     {/* Smart Attendance Tool */}
+     <section className="portal-section">
+       <div className="toolbar">
+         <div>
+           <span className="eyebrow">TEACHER TOOLS</span>
+           <h2>দ্রুত উপস্থিতি (Daily Attendance)</h2>
+         </div>
+         <button className="btn" onClick={saveAttendance} disabled={!roster.length}>
+           উপস্থিতি সংরক্ষণ
+         </button>
+       </div>
+       <div className="filters">
+         <input type="date" value={date} onChange={e=>setDate(e.target.value)}/>
+         <select value={selected} onChange={e=>setSelected(e.target.value)}>
+           {classesForTeacher.map(x=><option key={`${x.class_name}|${x.section}`} value={`${x.class_name}|${x.section}`}>শ্রেণি {x.class_name}{x.section?' • '+x.section:''}</option>)}
+         </select>
+       </div>
+       {msg&&<p className="msg">{msg}</p>}
+       <div className="portal-scroll">
+         <table className="portal-table">
+           <thead>
+             <tr><th>রোল</th><th>শিক্ষার্থী</th><th>উপস্থিতি</th></tr>
+           </thead>
+           <tbody>
+             {roster.map((r,i)=>(
+               <tr key={r.id}>
+                 <td>{r.roll_no||'—'}</td>
+                 <td>{r.name_bn}</td>
+                 <td>
+                   <div className="attendance-actions">
+                     <button className={r.status==='present'?'active':''} onClick={()=>setStatus(i,'present')}>উপস্থিত</button>
+                     <button className={r.status==='absent'?'active':''} onClick={()=>setStatus(i,'absent')}>অনুপস্থিত</button>
+                     <button className={r.status==='late'?'active':''} onClick={()=>setStatus(i,'late')}>দেরি</button>
+                   </div>
+                 </td>
+               </tr>
+             ))}
+             {!roster.length&&<tr><td colSpan="3">এই তারিখে কোনো শিক্ষার্থী পাওয়া যায়নি।</td></tr>}
+           </tbody>
+         </table>
+       </div>
+     </section>
+
+     {/* Marks Entry Mini-Section */}
+     <section className="portal-section">
+       <div className="toolbar">
+         <div>
+           <span className="eyebrow">RESULT MANAGEMENT</span>
+           <h2>নম্বর এন্ট্রি (Marks Entry)</h2>
+         </div>
+         <div style={{ display: 'flex', gap: '8px' }}>
+           <button className="btn" onClick={saveMarks} disabled={!marks.length}>নম্বর সংরক্ষণ</button>
+           <button className="btn mini" onClick={() => setPortalTab('results')} style={{ background: '#0284c7', color: '#fff' }}>
+             পূর্ণাঙ্গ রেজাল্ট প্যানেল →
+           </button>
+         </div>
+       </div>
+       <div className="filters">
+         <select value={examId} onChange={e=>setExamId(e.target.value)}>
+           <option value="">পরীক্ষা নির্বাচন</option>
+           {exams.map(e=><option key={e.id} value={e.id}>{e.name_bn}</option>)}
+         </select>
+         <select value={subjectId} onChange={e=>setSubjectId(e.target.value)}>
+           <option value="">বিষয় নির্বাচন</option>
+           {subjects.map(x=><option key={x.id} value={x.id}>{x.code} — {x.name_bn}</option>)}
+         </select>
+       </div>
+       {marksMeta&&<p className="msg">{marksMeta.name_bn} • পূর্ণমান {marksMeta.full_marks} • লিখিত {marksMeta.written_max||0} • MCQ {marksMeta.mcq_max||0} • ব্যবহারিক {marksMeta.practical_max||0}</p>}
+       {marksMsg&&<p className="msg">{marksMsg}</p>}
+       <div className="portal-scroll">
+         <table className="portal-table">
+           <thead>
+             <tr><th>রোল</th><th>শিক্ষার্থী</th><th>লিখিত</th><th>MCQ</th><th>ব্যবহারিক</th><th>অনুপস্থিত</th></tr>
+           </thead>
+           <tbody>
+             {marks.map((r,i)=>(
+               <tr key={r.id}>
+                 <td>{r.roll_no||'—'}</td>
+                 <td>{r.name_bn}</td>
+                 <td><input className="mark-input" type="number" min="0" max={marksMeta?.written_max||undefined} value={r.written??''} onChange={e=>updateMark(i,'written',e.target.value)}/></td>
+                 <td><input className="mark-input" type="number" min="0" max={marksMeta?.mcq_max||undefined} value={r.mcq??''} onChange={e=>updateMark(i,'mcq',e.target.value)}/></td>
+                 <td><input className="mark-input" type="number" min="0" max={marksMeta?.practical_max||undefined} value={r.practical??''} onChange={e=>updateMark(i,'practical',e.target.value)}/></td>
+                 <td><input type="checkbox" checked={!!r.absent} onChange={e=>updateMark(i,'absent',e.target.checked)}/></td>
+               </tr>
+             ))}
+             {!marks.length&&<tr><td colSpan="6">পরীক্ষা ও বিষয় নির্বাচন করলে শিক্ষার্থীদের নম্বর এন্ট্রি তালিকা আসবে।</td></tr>}
+           </tbody>
+         </table>
+       </div>
+     </section>
+
+     {/* Class Routine */}
+     <section className="portal-section">
+       <h2>ক্লাস রুটিন</h2>
+       <div className="portal-scroll">
+         <table className="portal-table">
+           <thead>
+             <tr><th>দিন</th><th>সময়</th><th>বিষয়</th><th>শ্রেণি</th><th>কক্ষ</th></tr>
+           </thead>
+           <tbody>
+             {(data.today_routine||[]).map(r=>(
+               <tr key={r.id}>
+                 <td>{r.day_of_week}</td>
+                 <td>{String(r.start_time).slice(0,5)}–{String(r.end_time).slice(0,5)}</td>
+                 <td>{r.subject_name||'—'}</td>
+                 <td>{r.class_name}</td>
+                 <td>{r.room||'—'}</td>
+               </tr>
+             ))}
+           </tbody>
+         </table>
+       </div>
+     </section>
+
+     {/* Homework & Assignment Review */}
+     <section className="portal-section">
+       <div className="toolbar">
+         <div>
+           <span className="eyebrow">HOMEWORK REVIEW</span>
+           <h2>অ্যাসাইনমেন্ট ও জমা মূল্যায়ন</h2>
+         </div>
+       </div>
+       <div className="form-grid">
+         <select onChange={e=>{const id=e.target.value;setGradeDraft({});loadSubmissions(id)}}>
+           <option value="">অ্যাসাইনমেন্ট নির্বাচন</option>
+           {(data.assignments||[]).map(a=><option key={a.id} value={a.id}>{a.title_bn} • {a.submission_count||0} জমা</option>)}
+         </select>
+       </div>
+       {submissionMsg&&<p className="msg">{submissionMsg}</p>}
+       <div className="portal-scroll">
+         <table className="portal-table">
+           <thead>
+             <tr><th>রোল</th><th>শিক্ষার্থী</th><th>উত্তর</th><th>নম্বর</th><th>মন্তব্য</th><th>কাজ</th></tr>
+           </thead>
+           <tbody>
+             {submissionRows.map(r=>{
+               const d=gradeDraft[r.id]||{marks:r.marks??'',teacher_feedback:r.teacher_feedback||'',assignment_id:r.assignment_id};
+               return (
+                 <tr key={r.id}>
+                   <td>{r.roll_no||'—'}</td>
+                   <td>{r.name_bn}</td>
+                   <td>{r.answer_text||'—'}{r.attachment_url&&<><br/><a href={r.attachment_url} target="_blank" rel="noreferrer">Attachment</a></>}</td>
+                   <td><input className="mark-input" type="number" min="0" max={r.max_marks} value={d.marks} onChange={e=>setGradeDraft({...gradeDraft,[r.id]:{...d,marks:e.target.value}})}/><small>/{r.max_marks}</small></td>
+                   <td><input value={d.teacher_feedback} onChange={e=>setGradeDraft({...gradeDraft,[r.id]:{...d,teacher_feedback:e.target.value}})}/></td>
+                   <td><button className="mini" onClick={()=>gradeSubmission(r.id)}>মূল্যায়ন</button></td>
+                 </tr>
+               );
+             })}
+             {!submissionRows.length&&<tr><td colSpan="6">অ্যাসাইনমেন্ট নির্বাচন করলে জমা দেওয়া শিক্ষার্থীদের তালিকা আসবে।</td></tr>}
+           </tbody>
+         </table>
+       </div>
+     </section>
+
+     <Notifications items={data.notifications}/>
+   </div>
+ );
+}
 
 function QuestionPanel(){const[rows,setRows]=useState([]),[form,setForm]=useState({class_name:'6',question_type:'mcq',question_bn:'',chapter:'',marks:1,correct_answer:'',options:['ক','খ','গ','ঘ']}),[msg,setMsg]=useState('');const load=()=>api('/questions').then(setRows).catch(e=>setMsg(e.message));useEffect(load,[]);async function save(e){e.preventDefault();try{await api('/questions',{method:'POST',body:JSON.stringify(form)});setMsg('প্রশ্ন সংরক্ষণ হয়েছে');setForm({...form,question_bn:'',correct_answer:''});load()}catch(e){setMsg(e.message)}}return <div className="form-card"><h2>প্রশ্ন ব্যাংক</h2><form onSubmit={save} className="form-grid"><select value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}>{classes.map(c=><option key={c}>{c}</option>)}</select><select value={form.question_type} onChange={e=>setForm({...form,question_type:e.target.value})}><option value="mcq">MCQ</option><option value="cq">CQ</option><option value="short">সংক্ষিপ্ত</option></select><input placeholder="অধ্যায়" value={form.chapter} onChange={e=>setForm({...form,chapter:e.target.value})}/><input className="full" placeholder="প্রশ্ন *" value={form.question_bn} onChange={e=>setForm({...form,question_bn:e.target.value})} required/><input placeholder="সঠিক উত্তর" value={form.correct_answer} onChange={e=>setForm({...form,correct_answer:e.target.value})}/><input type="number" min="0.5" step="0.5" placeholder="নম্বর" value={form.marks} onChange={e=>setForm({...form,marks:e.target.value})}/><button className="btn full">প্রশ্ন যোগ করুন</button></form>{msg&&<p className="msg">{msg}</p>}<div className="table-wrap"><table><thead><tr><th>শ্রেণি</th><th>ধরন</th><th>অধ্যায়</th><th>প্রশ্ন</th><th>নম্বর</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.class_name}</td><td>{r.question_type}</td><td>{r.chapter||'—'}</td><td>{r.question_bn}</td><td>{r.marks}</td></tr>)}</tbody></table></div></div>}
 function AssignmentPanel(){const[rows,setRows]=useState([]),[form,setForm]=useState({title_bn:'',class_name:'6',description:'',due_at:'',max_marks:100}),[msg,setMsg]=useState('');const load=()=>api('/assignments').then(setRows).catch(e=>setMsg(e.message));useEffect(load,[]);async function save(e){e.preventDefault();try{await api('/assignments',{method:'POST',body:JSON.stringify(form)});setMsg('অ্যাসাইনমেন্ট প্রকাশ হয়েছে');setForm({...form,title_bn:''});load()}catch(e){setMsg(e.message)}}return <div className="form-card"><h2>অ্যাসাইনমেন্ট</h2><form onSubmit={save} className="form-grid"><input placeholder="অ্যাসাইনমেন্টের শিরোনাম *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><select value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}>{classes.map(c=><option key={c}>{c}</option>)}</select><textarea className="full" placeholder="নির্দেশনা/বিবরণ" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><input type="datetime-local" value={form.due_at} onChange={e=>setForm({...form,due_at:e.target.value})}/><input type="number" min="1" value={form.max_marks} onChange={e=>setForm({...form,max_marks:e.target.value})}/><button className="btn full">অ্যাসাইনমেন্ট সংরক্ষণ</button></form>{msg&&<p className="msg">{msg}</p>}<div className="table-wrap"><table><thead><tr><th>শিরোনাম</th><th>শ্রেণি</th><th>সর্বোচ্চ নম্বর</th><th>অবস্থা</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><td>{r.title_bn}</td><td>{r.class_name}</td><td>{r.max_marks}</td><td>{r.status}</td></tr>)}</tbody></table></div></div>}

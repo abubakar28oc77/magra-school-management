@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MOCK_SCHOOL, MOCK_STUDENTS, getStudentPhoto } from './mockData';
+import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, getStudentPhoto } from './mockData';
 import schoolLogo from '../public/school-logo.png';
 
 // Bengali Digits & Helpers
@@ -60,6 +60,155 @@ export const formatDateBn = (dateStr) => {
 };
 
 // Bengali In-Words Converter
+
+// =========================================================
+// CLASS TEACHER DEFAULTS & RESOLUTION LOGIC
+// =========================================================
+export const DEFAULT_CLASS_TEACHERS = {
+  '6': {
+    class_id: '6',
+    class_name: '৬ষ্ঠ শ্রেণি',
+    class_name_en: 'Class 6',
+    teacher_id: 't-3',
+    teacher_name: 'মোঃ আনোয়ার হোসেন',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা',
+    phone: '01770590374'
+  },
+  '7': {
+    class_id: '7',
+    class_name: '৭ম শ্রেণি',
+    class_name_en: 'Class 7',
+    teacher_id: 't-4',
+    teacher_name: 'মোঃ ছানোয়ার হোসেন',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'বাংলাদেশ ও বিশ্বপরিচয়',
+    phone: '01726472073'
+  },
+  '8': {
+    class_id: '8',
+    class_name: '৮ম শ্রেণি',
+    class_name_en: 'Class 8',
+    teacher_id: 't-5',
+    teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'কৃষি শিক্ষা',
+    phone: '01712763604'
+  },
+  '9-science': {
+    class_id: '9-science',
+    class_name: '৯ম শ্রেণি (বিজ্ঞান বিভাগ)',
+    class_name_en: 'Class 9 (Science)',
+    teacher_id: 't-6',
+    teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক',
+    designation: 'সিনিয়র শিক্ষক (আইসিটি)',
+    subject: 'আইসিটি',
+    phone: '01710689846'
+  },
+  '9-humanities': {
+    class_id: '9-humanities',
+    class_name: '৯ম শ্রেণি (মানবিক বিভাগ)',
+    class_name_en: 'Class 9 (Humanities)',
+    teacher_id: 't-7',
+    teacher_name: 'মুহাম্মদ আব্দুর রহিম লিটন',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'জীববিজ্ঞান',
+    phone: '01712004957'
+  },
+  '9-business': {
+    class_id: '9-business',
+    class_name: '৯ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)',
+    class_name_en: 'Class 9 (Business Studies)',
+    teacher_id: 't-8',
+    teacher_name: 'মোঃ হাবিবুর রহমান',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'গণিত ও বিজ্ঞান',
+    phone: '01728046188'
+  },
+  '10-science': {
+    class_id: '10-science',
+    class_name: '১০ম শ্রেণি (বিজ্ঞান বিভাগ)',
+    class_name_en: 'Class 10 (Science)',
+    teacher_id: 't-9',
+    teacher_name: 'আরতী রানী ভদ্র',
+    designation: 'সিনিয়র শিক্ষক',
+    subject: 'হিন্দু ধর্ম',
+    phone: '01752496170'
+  },
+  '10-humanities': {
+    class_id: '10-humanities',
+    class_name: '১০ম শ্রেণি (মানবিক বিভাগ)',
+    class_name_en: 'Class 10 (Humanities)',
+    teacher_id: 't-10',
+    teacher_name: 'মোঃ ওয়াহিদুর রহমান',
+    designation: 'সহকারী শিক্ষক',
+    subject: 'শারীরিক শিক্ষা',
+    phone: '01703538300'
+  },
+  '10-business': {
+    class_id: '10-business',
+    class_name: '১০ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)',
+    class_name_en: 'Class 10 (Business Studies)',
+    teacher_id: 't-11',
+    teacher_name: 'মোঃ শাহিন মিয়া',
+    designation: 'সহকারী শিক্ষক',
+    subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান',
+    phone: '01707518488'
+  }
+};
+
+export const CONFIGURABLE_CLASSES = [
+  { key: '6', name: '৬ষ্ঠ শ্রেণি', en: 'Class 6', group: 'সাধারণ' },
+  { key: '7', name: '৭ম শ্রেণি', en: 'Class 7', group: 'সাধারণ' },
+  { key: '8', name: '৮ম শ্রেণি', en: 'Class 8', group: 'সাধারণ' },
+  { key: '9-science', name: '৯ম শ্রেণি (বিজ্ঞান বিভাগ)', en: 'Class 9 (Science)', group: 'বিজ্ঞান' },
+  { key: '9-humanities', name: '৯ম শ্রেণি (মানবিক বিভাগ)', en: 'Class 9 (Humanities)', group: 'মানবিক' },
+  { key: '9-business', name: '৯ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)', en: 'Class 9 (Business)', group: 'ব্যবসায় শিক্ষা' },
+  { key: '10-science', name: '১০ম শ্রেণি (বিজ্ঞান বিভাগ)', en: 'Class 10 (Science)', group: 'বিজ্ঞান' },
+  { key: '10-humanities', name: '১০ম শ্রেণি (মানবিক বিভাগ)', en: 'Class 10 (Humanities)', group: 'মানবিক' },
+  { key: '10-business', name: '১০ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)', en: 'Class 10 (Business)', group: 'ব্যবসায় শিক্ষা' }
+];
+
+export function getClassTeacher(className, groupName, config = null) {
+  let cfg = config;
+  if (!cfg) {
+    try {
+      const saved = localStorage.getItem('magra_class_teachers_config');
+      if (saved) cfg = JSON.parse(saved);
+    } catch (e) {}
+  }
+  if (!cfg) cfg = DEFAULT_CLASS_TEACHERS;
+
+  const c = String(className || '6').trim().replace(/[মth\s]/g, '');
+  const g = String(groupName || '').toLowerCase();
+
+  const is10 = c.includes('10') || c.includes('১০');
+  const is9 = c.includes('9') || c.includes('৯');
+
+  if (is10) {
+    if (g.includes('মানবিক') || g.includes('humanities') || g.includes('arts')) {
+      return cfg['10-humanities'] || DEFAULT_CLASS_TEACHERS['10-humanities'];
+    }
+    if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) {
+      return cfg['10-business'] || DEFAULT_CLASS_TEACHERS['10-business'];
+    }
+    return cfg['10-science'] || DEFAULT_CLASS_TEACHERS['10-science'];
+  }
+
+  if (is9) {
+    if (g.includes('মানবিক') || g.includes('humanities') || g.includes('arts')) {
+      return cfg['9-humanities'] || DEFAULT_CLASS_TEACHERS['9-humanities'];
+    }
+    if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) {
+      return cfg['9-business'] || DEFAULT_CLASS_TEACHERS['9-business'];
+    }
+    return cfg['9-science'] || DEFAULT_CLASS_TEACHERS['9-science'];
+  }
+
+  const num = c.replace(/\D/g, '') || '6';
+  return cfg[num] || DEFAULT_CLASS_TEACHERS[num] || DEFAULT_CLASS_TEACHERS['6'];
+}
+
 export function numberToWordsBn(num) {
   if (!num || isNaN(num) || num <= 0) return 'শূন্য টাকা মাত্র';
   const ones = [
@@ -368,10 +517,86 @@ export function FinancePanel({ sub }) {
     if (s === 'expense' || s === 'expenses') return 'expense';
     if (s === 'cashbook' || s === 'statement') return 'cashbook';
     if (s === 'rates' || s === 'setup') return 'rates';
+    if (s === 'teachers' || s === 'class_teachers') return 'teachers';
     return 'collect';
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab(sub));
+  const [teacherSuccessMsg, setTeacherSuccessMsg] = useState('');
+
+  // Persistent Class Teachers Configuration (Super Admin setup)
+  const [classTeachers, setClassTeachers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_class_teachers_config');
+      if (saved) return { ...DEFAULT_CLASS_TEACHERS, ...JSON.parse(saved) };
+    } catch (e) {}
+    return DEFAULT_CLASS_TEACHERS;
+  });
+
+  // All Teachers list from local store or mock
+  const allTeachers = useMemo(() => {
+    try {
+      const saved = localStorage.getItem('magra_db_teachers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return MOCK_TEACHERS;
+  }, []);
+
+  const handleSelectClassTeacher = (classKey, teacherId) => {
+    const clsItem = CONFIGURABLE_CLASSES.find(c => c.key === classKey);
+    const t = allTeachers.find(x => String(x.id) === String(teacherId) || String(x.employee_id) === String(teacherId));
+    if (!t) return;
+    setClassTeachers(prev => {
+      const next = {
+        ...prev,
+        [classKey]: {
+          class_id: classKey,
+          class_name: clsItem ? clsItem.name : `${classKey} শ্রেণি`,
+          class_name_en: clsItem ? clsItem.en : `Class ${classKey}`,
+          teacher_id: t.id || t.employee_id,
+          teacher_name: t.name_bn,
+          designation: t.designation || 'শিক্ষক',
+          subject: t.subject || '—',
+          phone: t.phone || ''
+        }
+      };
+      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  };
+
+  const handleSaveSingleClassTeacher = (classKey) => {
+    try {
+      localStorage.setItem('magra_class_teachers_config', JSON.stringify(classTeachers));
+      const clsItem = CONFIGURABLE_CLASSES.find(c => c.key === classKey);
+      setTeacherSuccessMsg(`${clsItem ? clsItem.name : classKey} শ্রেণির শ্রেণি শিক্ষক সফলভাবে সংরক্ষিত হয়েছে।`);
+      setTimeout(() => setTeacherSuccessMsg(''), 4000);
+    } catch (e) {
+      alert('সংরক্ষণ করতে সমস্যা হয়েছে: ' + e.message);
+    }
+  };
+
+  const handleSaveAllClassTeachers = () => {
+    try {
+      localStorage.setItem('magra_class_teachers_config', JSON.stringify(classTeachers));
+      setTeacherSuccessMsg('সকল শ্রেণির দায়িত্বপ্রাপ্ত শ্রেণি শিক্ষক সফলভাবে ব্রাউজারে সংরক্ষিত হয়েছে।');
+      setTimeout(() => setTeacherSuccessMsg(''), 4000);
+    } catch (e) {
+      alert('সংরক্ষণ করতে সমস্যা হয়েছে: ' + e.message);
+    }
+  };
+
+  const handleResetDefaultClassTeachers = () => {
+    if (window.confirm('আপনি কি নিশ্চিত যে সকল শ্রেণির জন্য ডিফল্ট শ্রেণি শিক্ষক রিসেট করতে চান?')) {
+      setClassTeachers(DEFAULT_CLASS_TEACHERS);
+      try { localStorage.setItem('magra_class_teachers_config', JSON.stringify(DEFAULT_CLASS_TEACHERS)); } catch (e) {}
+      setTeacherSuccessMsg('ডিফল্ট শ্রেণি শিক্ষক তালিকা সফলভাবে কার্যকর করা হয়েছে।');
+      setTimeout(() => setTeacherSuccessMsg(''), 4000);
+    }
+  };
   // Selected receipts for dual-student A4 Landscape printing
   const [selectedReceiptIds, setSelectedReceiptIds] = useState([]);
   const [pairStudent1, setPairStudent1] = useState('');
@@ -739,7 +964,20 @@ export function FinancePanel({ sub }) {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [receiptDate, setReceiptDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paymentRemarks, setPaymentRemarks] = useState('');
-  const [receivedBy, setReceivedBy] = useState('মোঃ আলমগীর হোসেন (হিসাব সহকারী)');
+  // Resolved Class Teacher based on selected student or selected class
+  const curClassTeacher = useMemo(() => {
+    const cls = selectedStudent?.class_name || selectedClass || '6';
+    const grp = selectedStudent?.group || selectedStudent?.department || selectedGroup || '';
+    return getClassTeacher(cls, grp, classTeachers);
+  }, [selectedStudent, selectedClass, selectedGroup, classTeachers]);
+
+  const [receivedBy, setReceivedBy] = useState(() => curClassTeacher?.teacher_name || 'মোঃ আনোয়ার হোসেন');
+
+  useEffect(() => {
+    if (curClassTeacher?.teacher_name) {
+      setReceivedBy(curClassTeacher.teacher_name);
+    }
+  }, [curClassTeacher]);
   const [submitMsg, setSubmitMsg] = useState('');
   const [activeReceipt, setActiveReceipt] = useState(null);
 
@@ -813,7 +1051,9 @@ export function FinancePanel({ sub }) {
       paid_amount: Number(paidAmount) || 0,
       due_amount: dueAmount,
       payment_method: paymentMethod,
-      received_by: receivedBy,
+      received_by: receivedBy || curClassTeacher?.teacher_name || 'শ্রেণি শিক্ষক',
+      class_teacher_name: curClassTeacher?.teacher_name || receivedBy,
+      class_teacher_designation: `শ্রেণি শিক্ষক (${curClassTeacher?.class_name || `${toBnDigits(selectedStudent.class_name)}ম শ্রেণি`})`,
       remarks: paymentRemarks || (dueAmount === 0 ? 'সম্পূর্ণ পরিশোধিত' : `বকেয়া: ${formatMoney(dueAmount)}`)
     };
 
@@ -983,6 +1223,9 @@ export function FinancePanel({ sub }) {
       const items = (r.items && r.items.length > 0) ? r.items : [
         { name: 'মাসিক বেতন', amount: r.paid_amount }
       ];
+      const slipTeacher = getClassTeacher(r.class_name, r.group, classTeachers);
+      const teacherName = r.class_teacher_name || slipTeacher?.teacher_name || r.received_by || 'শ্রেণি শিক্ষক';
+      const teacherTitle = r.class_teacher_designation || `শ্রেণি শিক্ষক (${slipTeacher?.class_name || `${toBnDigits(r.class_name)}ম শ্রেণি`})`;
 
       return `
         <div class="receipt-slip">
@@ -1073,14 +1316,15 @@ export function FinancePanel({ sub }) {
           <div class="slip-signatures">
             <div class="sig-col">
               <div class="sig-line"></div>
-              <div class="sig-name">${r.received_by || 'মোঃ আলমগীর হোসেন'}</div>
-              <div class="sig-title">(হিসাব সহকারী)</div>
-              <div class="sig-sub">আদায়কারীর স্বাক্ষর</div>
+              <div class="sig-name">${teacherName}</div>
+              <div class="sig-title">${teacherTitle}</div>
+              <div class="sig-sub">শ্রেণি শিক্ষকের স্বাক্ষর</div>
             </div>
             <div class="sig-col">
               <div class="sig-line"></div>
               <div class="sig-name">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
               <div class="sig-title">প্রধান শিক্ষক</div>
+              <div class="sig-sub">প্রধান শিক্ষকের স্বাক্ষর</div>
             </div>
           </div>
         </div>
@@ -1518,7 +1762,8 @@ export function FinancePanel({ sub }) {
           ['income', '📥 বিদ্যালয়ের আয় খাতা'],
           ['expense', '📤 বিদ্যালয়ের ব্যয় খাতা'],
           ['cashbook', '📊 ক্যাশ বুক ও আর্থিক বিবরণী'],
-          ['rates', '⚙️ ফি রেট ও ক্লাস সেটিংস']
+          ['rates', '⚙️ ফি রেট সেটিংস'],
+          ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
         ].map(([tKey, label]) => (
           <button
             key={tKey}
@@ -2244,13 +2489,18 @@ export function FinancePanel({ sub }) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>আদায়কারীর নাম ও পদবি</label>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>
+                    দায়িত্বপ্রাপ্ত শ্রেণি শিক্ষক (আদায়কারী)
+                  </label>
                   <input
                     type="text"
                     value={receivedBy}
                     onChange={e => setReceivedBy(e.target.value)}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700, color: '#064e3b' }}
                   />
+                  <small style={{ color: '#047857', fontSize: '10.5px', display: 'block', marginTop: '2px', fontWeight: 600 }}>
+                    ✓ শ্রেণি শিক্ষক: {curClassTeacher?.teacher_name} ({curClassTeacher?.class_name})
+                  </small>
                 </div>
 
                 <div>
@@ -3121,6 +3371,201 @@ export function FinancePanel({ sub }) {
           <div style={{ marginTop: '20px', padding: '12px', background: '#ecfdf5', borderRadius: '8px', color: '#166534', fontSize: '12px', fontWeight: 700 }}>
             ✓ সকল পরিবর্তন তাৎক্ষণিকভাবে স্বয়ংক্রিয়ভাবে ব্রাউজারে সংরক্ষিত হচ্ছে।
           </div>
+
+          <div style={{
+            marginTop: '16px', padding: '14px 18px', background: '#f8fafc',
+            border: '1.5px solid #cbd5e1', borderRadius: '10px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px'
+          }}>
+            <div>
+              <h4 style={{ margin: '0 0 3px', color: '#0f172a', fontSize: '14px', fontWeight: 800 }}>
+                👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ ও দায়িত্ব বণ্টন
+              </h4>
+              <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                সুপার এডমিন প্রতিটি শ্রেণির জন্য শ্রেণি শিক্ষক নির্ধারণ করতে পারেন যা মানি রসিদে মুদ্রিত হবে।
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('teachers')}
+              style={{
+                background: '#047857', color: '#ffffff', border: 'none',
+                padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer'
+              }}
+            >
+              শ্রেণি শিক্ষক নির্ধারণে যান →
+            </button>
+          </div>
+        </div>
+      )}
+      {/* ========================================================= */}
+      {/* TAB 7: CLASS TEACHER ASSIGNMENT (SUPER ADMIN)             */}
+      {/* ========================================================= */}
+      {activeTab === 'teachers' && (
+        <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #cbd5e1', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+          {/* Header Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, #064e3b 0%, #047857 70%, #0f766e 100%)',
+            borderRadius: '12px', padding: '18px 24px', color: '#ffffff', marginBottom: '22px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{ fontSize: '22px' }}>👨‍🏫</span>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>
+                  শ্রেণি শিক্ষক নির্ধারণ ও দায়িত্ব বণ্টন (Class Teacher Assignment)
+                </h3>
+                <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                  🛡️ সুপার এডমিন প্যানেল
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '12.5px', opacity: 0.95, maxWidth: '720px', lineHeight: 1.5 }}>
+                সুপার এডমিন কর্তৃক বিদ্যালয়ের প্রতিটি শ্রেণি ও বিভাগের জন্য দায়িত্বপ্রাপ্ত শ্রেণি শিক্ষক নির্ধারণ করুন। ফি আদায়ের মানি রসিদে শ্রেণি শিক্ষকের স্বাক্ষর ব্লকে স্বয়ংক্রিয়ভাবে উক্ত শিক্ষকের নাম ও শ্রেণি পদবী মুদ্রিত হবে।
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={handleSaveAllClassTeachers}
+                style={{
+                  background: '#ffffff', color: '#064e3b', border: 'none',
+                  padding: '9px 18px', borderRadius: '8px', fontSize: '13px',
+                  fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                }}
+              >
+                💾 সকল শ্রেণির তথ্য সংরক্ষণ করুন
+              </button>
+              <button
+                type="button"
+                onClick={handleResetDefaultClassTeachers}
+                style={{
+                  background: 'rgba(255,255,255,0.15)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.4)',
+                  padding: '9px 14px', borderRadius: '8px', fontSize: '12.5px',
+                  fontWeight: 700, cursor: 'pointer'
+                }}
+              >
+                🔄 ডিফল্ট রিসেট
+              </button>
+            </div>
+          </div>
+
+          {teacherSuccessMsg && (
+            <div style={{
+              background: '#dcfce7', color: '#166534', border: '1.5px solid #86efac',
+              padding: '12px 18px', borderRadius: '8px', marginBottom: '20px',
+              fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              <span>✓</span>
+              <span>{teacherSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(330px, 1fr))', gap: '18px' }}>
+            {CONFIGURABLE_CLASSES.map(clsItem => {
+              const assigned = classTeachers[clsItem.key] || DEFAULT_CLASS_TEACHERS[clsItem.key] || {};
+              const matchedTeacher = allTeachers.find(t => String(t.id) === String(assigned.teacher_id) || String(t.employee_id) === String(assigned.teacher_id)) || null;
+
+              return (
+                <div
+                  key={clsItem.key}
+                  style={{
+                    border: '1.5px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden',
+                    background: '#f8fafc', boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                    display: 'flex', flexDirection: 'column'
+                  }}
+                >
+                  {/* Card Header */}
+                  <div style={{
+                    background: '#f1f5f9', borderBottom: '1.5px solid #e2e8f0',
+                    padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                  }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                        🎓 {clsItem.name}
+                      </h4>
+                      <small style={{ color: '#64748b', fontSize: '11px', fontWeight: 600 }}>{clsItem.en}</small>
+                    </div>
+                    <span style={{
+                      background: clsItem.group === 'বিজ্ঞান' ? '#dbeafe' : clsItem.group === 'মানবিক' ? '#fef3c7' : clsItem.group === 'ব্যবসায় শিক্ষা' ? '#fae8ff' : '#e2e8f0',
+                      color: clsItem.group === 'বিজ্ঞান' ? '#1e40af' : clsItem.group === 'মানবিক' ? '#92400e' : clsItem.group === 'ব্যবসায় শিক্ষা' ? '#86198f' : '#475569',
+                      padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700
+                    }}>
+                      {clsItem.group}
+                    </span>
+                  </div>
+
+                  {/* Card Body */}
+                  <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+                        শ্রেণি শিক্ষক নির্বাচন করুন (Select Teacher):
+                      </label>
+                      <select
+                        value={assigned.teacher_id || ''}
+                        onChange={e => handleSelectClassTeacher(clsItem.key, e.target.value)}
+                        style={{
+                          width: '100%', padding: '8px 10px', borderRadius: '6px',
+                          border: '1.5px solid #94a3b8', fontSize: '13px', fontWeight: 700,
+                          background: '#ffffff', color: '#0f172a'
+                        }}
+                      >
+                        <option value="">-- শিক্ষক নির্বাচন করুন --</option>
+                        {allTeachers.map(t => (
+                          <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                            {t.name_bn} • {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Teacher Details & Signature Preview */}
+                    <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ color: '#64748b' }}>শিক্ষকের নাম:</span>
+                        <b style={{ color: '#065f46' }}>{assigned.teacher_name || matchedTeacher?.name_bn || '—'}</b>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <span style={{ color: '#64748b' }}>মূল পদবী ও বিষয়:</span>
+                        <span style={{ fontWeight: 600 }}>{assigned.designation || matchedTeacher?.designation || '—'} {assigned.subject ? `(${assigned.subject})` : ''}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ color: '#64748b' }}>মোবাইল নম্বর:</span>
+                        <span style={{ fontWeight: 600 }}>{toBnDigits(assigned.phone || matchedTeacher?.phone || '—')}</span>
+                      </div>
+
+                      <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '8px', marginTop: '4px', background: '#f0fdf4', padding: '8px', borderRadius: '6px' }}>
+                        <span style={{ fontSize: '10.5px', color: '#166534', display: 'block', fontWeight: 700, marginBottom: '2px' }}>
+                          🧾 মানি রসিদে যেভাবে মুদ্রিত হবে:
+                        </span>
+                        <div style={{ textAlign: 'center', fontSize: '11px', marginTop: '4px' }}>
+                          <b style={{ display: 'block', color: '#0f172a' }}>{assigned.teacher_name || matchedTeacher?.name_bn || 'শ্রেণি শিক্ষকের নাম'}</b>
+                          <span style={{ color: '#047857', fontWeight: 700 }}>শ্রেণি শিক্ষক ({clsItem.name})</span>
+                          <small style={{ display: 'block', color: '#64748b' }}>শ্রেণি শিক্ষকের স্বাক্ষর</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'auto' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveSingleClassTeacher(clsItem.key)}
+                        style={{
+                          background: '#047857', color: '#ffffff', border: 'none',
+                          padding: '6px 14px', borderRadius: '6px', fontSize: '12px',
+                          fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                        }}
+                      >
+                        ✓ সংরক্ষণ করুন
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -3264,18 +3709,27 @@ export function FinancePanel({ sub }) {
                 </div>
 
                 {/* Signatures */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px', padding: '0 15px' }}>
-                  <div style={{ textAlign: 'center', width: '130px', fontSize: '11px' }}>
-                    <div style={{ borderTop: '1px dashed #334155', marginBottom: '4px' }}></div>
-                    <span>{activeReceipt.received_by || 'হিসাব সহকারী'}</span>
-                    <small style={{ display: 'block', color: '#64748b' }}>আদায়কারীর স্বাক্ষর</small>
-                  </div>
-                  <div style={{ textAlign: 'center', width: '130px', fontSize: '11px' }}>
-                    <div style={{ borderTop: '1px dashed #334155', marginBottom: '4px' }}></div>
-                    <span>{MOCK_SCHOOL.headTeacher}</span>
-                    <small style={{ display: 'block', color: '#64748b' }}>প্রধান শিক্ষক</small>
-                  </div>
-                </div>
+                {(() => {
+                  const modalTeacher = getClassTeacher(activeReceipt.class_name, activeReceipt.group, classTeachers);
+                  const teacherName = activeReceipt.class_teacher_name || modalTeacher?.teacher_name || activeReceipt.received_by || 'শ্রেণি শিক্ষক';
+                  const teacherTitle = activeReceipt.class_teacher_designation || `শ্রেণি শিক্ষক (${modalTeacher?.class_name || `${toBnDigits(activeReceipt.class_name)}ম শ্রেণি`})`;
+                  return (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px', padding: '0 15px' }}>
+                      <div style={{ textAlign: 'center', width: '160px', fontSize: '11px' }}>
+                        <div style={{ borderTop: '1px dashed #334155', marginBottom: '4px' }}></div>
+                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{teacherName}</span>
+                        <small style={{ display: 'block', color: '#047857', fontWeight: 700 }}>{teacherTitle}</small>
+                        <small style={{ display: 'block', color: '#64748b' }}>শ্রেণি শিক্ষকের স্বাক্ষর</small>
+                      </div>
+                      <div style={{ textAlign: 'center', width: '160px', fontSize: '11px' }}>
+                        <div style={{ borderTop: '1px dashed #334155', marginBottom: '4px' }}></div>
+                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{MOCK_SCHOOL.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</span>
+                        <small style={{ display: 'block', color: '#047857', fontWeight: 700 }}>প্রধান শিক্ষক</small>
+                        <small style={{ display: 'block', color: '#64748b' }}>প্রধান শিক্ষকের স্বাক্ষর</small>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
