@@ -153,6 +153,64 @@ const DEFAULT_CLASS_RATES = {
 // Initial Sample Fee Transactions
 const SEED_FEE_TRANSACTIONS = [
   {
+    id: 'FEE-2026-005',
+    receipt_no: 'মপাউবি/রশিদ/2026/005',
+    date: '2026-10-18',
+    student_id: 'STU-10-SCI-01',
+    student_name: 'আহসানাফ সিদ্দিক',
+    class_name: '10',
+    roll_no: '1',
+    section: 'ক',
+    group: 'বিজ্ঞান বিভাগ',
+    is_stipend: false,
+    is_scholarship: false,
+    tuition_months: ['আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'],
+    tuition_amount: 1000,
+    items: [
+      { name: 'মাসিক বেতন (আগস্ট, সেপ্টেম্বর, অক্টোবর, নভেম্বর, ডিসেম্বর)', amount: 1000 },
+      { name: 'বিলম্ব ফি / জরিমানা', amount: 40 },
+      { name: 'পরীক্ষার ফি (অর্ধ-বার্ষিক পরীক্ষা)', amount: 650 }
+    ],
+    gross_total: 1690,
+    discount: 190,
+    discount_reason: 'প্রধান শিক্ষক কর্তৃক বিশেষ মওকুফ',
+    net_payable: 1500,
+    paid_amount: 1500,
+    due_amount: 0,
+    payment_method: 'cash',
+    received_by: 'মোঃ আলমগীর হোসেন',
+    remarks: 'সম্পূর্ণ পরিশোধিত'
+  },
+  {
+    id: 'FEE-2026-006',
+    receipt_no: 'মপাউবি/রশিদ/2026/006',
+    date: '2026-10-18',
+    student_id: 'STU-10-SCI-02',
+    student_name: 'তানজিলা আক্তার',
+    class_name: '10',
+    roll_no: '2',
+    section: 'ক',
+    group: 'বিজ্ঞান বিভাগ',
+    is_stipend: false,
+    is_scholarship: false,
+    tuition_months: ['আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'],
+    tuition_amount: 1000,
+    items: [
+      { name: 'মাসিক বেতন (আগস্ট, সেপ্টেম্বর, অক্টোবর, নভেম্বর, ডিসেম্বর)', amount: 1000 },
+      { name: 'বার্ষিক চাঁদা / সেশন ফি', amount: 800 },
+      { name: 'পরীক্ষার ফি (অর্ধ-বার্ষিক পরীক্ষা)', amount: 650 }
+    ],
+    gross_total: 2450,
+    discount: 250,
+    discount_reason: 'প্রধান শিক্ষক কর্তৃক বিশেষ মওকুফ',
+    net_payable: 2200,
+    paid_amount: 2200,
+    due_amount: 0,
+    payment_method: 'cash',
+    received_by: 'মোঃ আলমগীর হোসেন',
+    remarks: 'সম্পূর্ণ পরিশোধিত'
+  },
+  {
     id: 'FEE-2026-001',
     receipt_no: 'মপাউবি/রশিদ/২০২৬/০০১',
     date: '2026-10-15',
@@ -314,6 +372,11 @@ export function FinancePanel({ sub }) {
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab(sub));
+  // Selected receipts for dual-student A4 Landscape printing
+  const [selectedReceiptIds, setSelectedReceiptIds] = useState([]);
+  const [pairStudent1, setPairStudent1] = useState('');
+  const [pairStudent2, setPairStudent2] = useState('');
+
   useEffect(() => {
     if (sub) setActiveTab(getInitialTab(sub));
   }, [sub]);
@@ -771,6 +834,13 @@ export function FinancePanel({ sub }) {
     });
 
     setTimeout(() => setSubmitMsg(''), 4000);
+
+    // Auto-launch print popup in dual-slip A4 Landscape
+    try {
+      handlePrintReceipt(newTransaction);
+    } catch (printErr) {
+      console.warn('Auto print error:', printErr);
+    }
   };
 
   const handleCollectPayment = handleTakePayment;
@@ -896,203 +966,355 @@ export function FinancePanel({ sub }) {
     return feeRecords.reduce((acc, r) => acc + (Number(r.due_amount) || 0), 0);
   }, [feeRecords]);
 
-  // Print Cash Receipt Function
-  const handlePrintReceipt = (r) => {
-    const w = window.open('', '_blank', 'width=1050,height=850');
+  // Print Cash Receipt Function (Dual-Slip A4 Landscape Setup)
+  const handlePrintReceipt = (r1, r2 = null) => {
+    if (!r1) return;
+    const w = window.open('', '_blank', 'width=1150,height=800');
     if (!w) {
-      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে অনুমতি দিন।');
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
       return;
     }
 
     const school = MOCK_SCHOOL;
-    const inWords = numberToWordsBn(r.paid_amount);
 
-    const slipTemplate = (copyType) => `
-      <div class="receipt-slip">
-        <div class="slip-header">
-          <div class="slip-brand">
-            <img src="${schoolLogo}" class="slip-logo" alt="Logo">
-            <div class="slip-school-meta">
-              <h2>${school.nameBn}</h2>
-              <h4>${school.nameEn} • EIIN: ${school.eiin}</h4>
-              <p>ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • স্থাপিত: ১৯৪৬</p>
+    const renderSlip = (r) => {
+      if (!r) return '';
+      const inWords = numberToWordsBn(r.paid_amount);
+      const items = (r.items && r.items.length > 0) ? r.items : [
+        { name: 'মাসিক বেতন', amount: r.paid_amount }
+      ];
+
+      return `
+        <div class="receipt-slip">
+          <div class="slip-content-top">
+            <!-- Header -->
+            <div class="slip-header">
+              <img src="${schoolLogo}" class="slip-logo" alt="Logo" />
+              <div class="slip-header-titles">
+                <h2>${school.nameBn}</h2>
+                <h4>${school.nameEn} • EIIN: ${school.eiin}</h4>
+                <p>ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল - স্থাপিত: ১৯৪৬</p>
+              </div>
+            </div>
+
+            <div class="slip-green-line"></div>
+
+            <!-- Title Pill Banner -->
+            <div class="slip-title-pill">
+              <span>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</span>
+            </div>
+
+            <!-- Metadata Box -->
+            <div class="slip-meta-card">
+              <div class="meta-col-left">
+                <div><b>রশিদ নম্বর:</b> <span class="meta-mono">${r.receipt_no}</span></div>
+                <div><b>শিক্ষার্থীর নাম:</b> <span style="font-weight: 700; color: #0f172a;">${r.student_name}</span></div>
+                <div><b>শ্রেণি:</b> ${toBnDigits(r.class_name)}ম • <b>শাখা/গ্রুপ:</b> ${r.group || (r.section ? `শাখা: ${r.section}` : 'বিজ্ঞান বিভাগ')}</div>
+              </div>
+              <div class="meta-col-right">
+                <div><b>তারিখ:</b> ${formatDateBn(r.date)} খ্রি.</div>
+                <div><b>Student ID:</b> <span class="meta-mono">${r.student_id}</span></div>
+                <div><b>রোল নম্বর:</b> <span style="font-weight: 700;">${toBnDigits(r.roll_no)}</span></div>
+              </div>
+            </div>
+
+            <!-- Fee Table -->
+            <table class="slip-table">
+              <thead>
+                <tr>
+                  <th style="width: 30px; text-align: center;">ক্র.</th>
+                  <th style="text-align: left;">ফি-এর বিবরণ / খাত</th>
+                  <th style="width: 95px; text-align: right;">পরিমাণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map((it, idx) => `
+                  <tr>
+                    <td style="text-align: center;">${toBnDigits(idx + 1)}</td>
+                    <td>
+                      <b>${it.name}</b>
+                      ${it.note ? `<small style="display:block;color:#64748b;font-size:9.5px">${it.note}</small>` : ''}
+                    </td>
+                    <td style="text-align: right; font-weight: 700;">${formatMoney(it.amount)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr class="row-gross">
+                  <td colspan="2" style="text-align: right;">মোট নির্ধারিত পাওনা:</td>
+                  <td style="text-align: right;">${formatMoney(r.gross_total)}</td>
+                </tr>
+                ${r.discount > 0 ? `
+                  <tr class="row-discount">
+                    <td colspan="2" style="text-align: right;">মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):</td>
+                    <td style="text-align: right;">- ${formatMoney(r.discount)}</td>
+                  </tr>
+                ` : ''}
+                <tr class="row-paid">
+                  <td colspan="2" style="text-align: right;">সর্বমোট গৃহীত টাকা:</td>
+                  <td style="text-align: right;">${formatMoney(r.paid_amount)}</td>
+                </tr>
+                ${r.due_amount > 0 ? `
+                  <tr class="row-due">
+                    <td colspan="2" style="text-align: right;">অবশিষ্ট বকেয়া:</td>
+                    <td style="text-align: right;">${formatMoney(r.due_amount)}</td>
+                  </tr>
+                ` : ''}
+              </tfoot>
+            </table>
+
+            <!-- In Words -->
+            <div class="slip-in-words">
+              কথায় (In Words): ${inWords}
             </div>
           </div>
-          <div class="slip-copy-badge">${copyType}</div>
-        </div>
 
-        <div class="slip-banner">
-          <h3>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</h3>
-        </div>
-
-        <div class="slip-meta-grid">
-          <div><b>রশিদ নম্বর:</b> <span class="mono">${r.receipt_no}</span></div>
-          <div style="text-align:right"><b>তারিখ:</b> ${formatDateBn(r.date)} খ্রি.</div>
-          <div><b>শিক্ষার্থীর নাম:</b> <strong>${r.student_name}</strong></div>
-          <div style="text-align:right"><b>Student ID:</b> <span class="mono">${r.student_id}</span></div>
-          <div><b>শ্রেণি:</b> ${toBnDigits(r.class_name)} • <b>শাখা/গ্রুপ:</b> ${r.section} ${r.group_name ? `(${r.group_name})` : ''}</div>
-          <div style="text-align:right"><b>রোল নম্বর:</b> ${toBnDigits(r.roll_no)}</div>
-          <div><b>অভিভাবক:</b> ${r.guardian_name}</div>
-          <div style="text-align:right"><b>মোবাইল:</b> ${toBnDigits(r.phone)}</div>
-        </div>
-
-        ${r.is_stipend || r.is_scholarship ? `
-          <div class="stipend-notice-badge">
-            🎉 <b>বিশেষ সুবিধা:</b> অত্র শিক্ষার্থী ${r.is_stipend ? 'উপবৃত্তি' : 'মেধাবৃত্তি'} সুবিধাভোগী বিধায় সরকারি বিধি অনুযায়ী মাসিক বেতন ১০০% মওকুফ।
-          </div>
-        ` : ''}
-
-        <table class="slip-table">
-          <thead>
-            <tr>
-              <th style="width:30px;text-align:center">ক্র.</th>
-              <th>ফি-এর বিবরণ / খাত</th>
-              <th style="width:110px;text-align:right">পরিমাণ (টাকা)</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${(r.items || []).map((it, idx) => `
-              <tr>
-                <td style="text-align:center">${toBnDigits(idx + 1)}</td>
-                <td>
-                  <b>${it.name}</b>
-                  ${it.note ? `<small style="display:block;color:#475569;font-size:10px">${it.note}</small>` : ''}
-                </td>
-                <td style="text-align:right;font-weight:700">${formatMoney(it.amount)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2" style="text-align:right"><b>মোট নির্ধারিত পাওনা:</b></td>
-              <td style="text-align:right"><b>${formatMoney(r.gross_total)}</b></td>
-            </tr>
-            ${r.discount > 0 ? `
-              <tr style="color:#b45309">
-                <td colspan="2" style="text-align:right">মওকুফ / ছাড় (প্রধান শিক্ষক কর্তৃক):</td>
-                <td style="text-align:right">- ${formatMoney(r.discount)}</td>
-              </tr>
-            ` : ''}
-            <tr style="background:#f1f5f9;font-size:12.5px">
-              <td colspan="2" style="text-align:right"><b>সর্বমোট প্রদেয় / গৃহীত টাকা:</b></td>
-              <td style="text-align:right;color:#047857"><b>${formatMoney(r.paid_amount)}</b></td>
-            </tr>
-            ${r.due_amount > 0 ? `
-              <tr style="color:#dc2626">
-                <td colspan="2" style="text-align:right">অবশিষ্ট বকেয়া:</td>
-                <td style="text-align:right"><b>${formatMoney(r.due_amount)}</b></td>
-              </tr>
-            ` : ''}
-          </tfoot>
-        </table>
-
-        <div class="slip-in-words">
-          <b>কথায় (In Words):</b> ${inWords}
-        </div>
-
-        <div class="slip-signatures">
-          <div class="sig-box">
-            <div class="sig-line"></div>
-            <span>${r.received_by || 'হিসাব সহকারী'}</span>
-            <small>আদায়কারীর স্বাক্ষর</small>
-          </div>
-          <div class="sig-box">
-            <div class="sig-seal-box">সিলমোহর</div>
-            <div class="sig-line"></div>
-            <span>${school.headTeacher}</span>
-            <small>প্রধান শিক্ষক</small>
+          <!-- Signatures -->
+          <div class="slip-signatures">
+            <div class="sig-col">
+              <div class="sig-line"></div>
+              <div class="sig-name">${r.received_by || 'মোঃ আলমগীর হোসেন'}</div>
+              <div class="sig-title">(হিসাব সহকারী)</div>
+              <div class="sig-sub">আদায়কারীর স্বাক্ষর</div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-line"></div>
+              <div class="sig-name">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
+              <div class="sig-title">প্রধান শিক্ষক</div>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    };
 
     w.document.write(`
       <!DOCTYPE html>
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>${r.receipt_no} - ${r.student_name}</title>
+        <title>মানি রিসিট (MONEY RECEIPT) - ${r1.student_name}${r2 ? ` ও ${r2.student_name}` : ''}</title>
         <style>
-          @page { size: A4 landscape; margin: 8mm; }
-          body {
-            font-family: 'SolaimanLipi', Arial, 'Segoe UI', sans-serif;
-            margin: 0; padding: 10px; background: #fff; color: #0f172a; font-size: 11px;
+          @page {
+            size: A4 landscape;
+            margin: 7mm 7mm 6mm 7mm;
           }
-          .dual-receipt-container {
-            display: flex; gap: 16px; justify-content: space-between;
+          *, *::before, *::after {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          html, body {
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            color: #0f172a;
+            font-family: 'SolaimanLipi', 'Nikosh', 'Kalpurush', Arial, sans-serif;
+            font-size: 11px;
+            -webkit-font-smoothing: antialiased;
+          }
+          .dual-container {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 16px;
+            position: relative;
           }
           .receipt-slip {
-            flex: 1; border: 1.5px solid #047857; border-radius: 8px; padding: 12px 14px;
-            background: #ffffff; display: flex; flexDirection: column; justify-content: space-between;
-            position: relative; box-sizing: border-box; min-height: 185mm;
+            flex: 1;
+            width: calc(50% - 9px);
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 14px 12px;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 188mm;
+            max-height: 194mm;
+          }
+          .slip-content-top {
+            flex: 1;
           }
           .slip-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            border-bottom: 2px solid #047857; padding-bottom: 6px; margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
           }
-          .slip-brand { display: flex; align-items: center; gap: 10px; }
-          .slip-logo { width: 44px; height: 44px; object-fit: contain; }
-          .slip-school-meta h2 { font-size: 16px; margin: 0; color: #047857; font-weight: 800; }
-          .slip-school-meta h4 { font-size: 10px; margin: 1px 0; color: #334155; }
-          .slip-school-meta p { font-size: 9px; margin: 0; color: #64748b; }
-          .slip-copy-badge {
-            background: #047857; color: #fff; padding: 3px 8px; border-radius: 4px;
-            font-size: 10px; font-weight: 700; text-transform: uppercase;
+          .slip-logo {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+            flex-shrink: 0;
           }
-          .slip-banner {
-            text-align: center; margin: 4px 0 8px; background: #ecfdf5; border: 1px dashed #059669;
-            padding: 4px; border-radius: 4px;
+          .slip-header-titles {
+            flex: 1;
+            text-align: center;
           }
-          .slip-banner h3 { margin: 0; font-size: 12px; color: #065f46; letter-spacing: 0.5px; }
-          .slip-meta-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; font-size: 10.5px;
-            background: #f8fafc; padding: 6px 8px; border-radius: 5px; margin-bottom: 8px; border: 1px solid #e2e8f0;
+          .slip-header-titles h2 {
+            margin: 0;
+            font-size: 18.5px;
+            font-weight: 800;
+            color: #047857;
+            line-height: 1.2;
           }
-          .mono { font-family: monospace; font-weight: 700; color: #0369a1; }
-          .stipend-notice-badge {
-            background: #fef3c7; color: #92400e; border: 1px solid #fde68a;
-            padding: 4px 8px; border-radius: 4px; font-size: 10px; margin-bottom: 6px; text-align: center;
+          .slip-header-titles h4 {
+            margin: 2px 0 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.2;
           }
-          .slip-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 10.5px; }
-          .slip-table th, .slip-table td { border: 1px solid #cbd5e1; padding: 4px 6px; }
-          .slip-table th { background: #f1f5f9; color: #1e293b; font-weight: 700; }
-          .slip-table tfoot tr td { border-top: 1.5px solid #047857; }
+          .slip-header-titles p {
+            margin: 2px 0 0;
+            font-size: 10px;
+            font-weight: 600;
+            color: #b91c1c;
+            line-height: 1.2;
+          }
+          .slip-green-line {
+            border-bottom: 2px solid #059669;
+            margin: 5px 0 7px;
+          }
+          .slip-title-pill {
+            border: 1.2px solid #059669;
+            border-radius: 6px;
+            background: #f0fdf4;
+            text-align: center;
+            padding: 3px 0;
+            margin-bottom: 7px;
+          }
+          .slip-title-pill span {
+            color: #047857;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+          }
+          .slip-meta-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #f8fafc;
+            padding: 6px 10px;
+            margin-bottom: 7px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            line-height: 1.45;
+          }
+          .meta-col-left {
+            text-align: left;
+          }
+          .meta-col-right {
+            text-align: right;
+          }
+          .meta-mono {
+            font-family: monospace;
+            font-weight: 700;
+            color: #0369a1;
+          }
+          .slip-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5px;
+            margin-bottom: 6px;
+          }
+          .slip-table th, .slip-table td {
+            border: 1px solid #cbd5e1;
+            padding: 4px 6px;
+          }
+          .slip-table th {
+            background: #f0fdf4;
+            color: #047857;
+            font-weight: 800;
+          }
+          .slip-table td {
+            color: #1e293b;
+          }
+          .row-gross td {
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .row-discount td {
+            font-weight: 700;
+            color: #b45309;
+          }
+          .row-paid td {
+            font-weight: 800;
+            color: #047857;
+            background: #dcfce7;
+            font-size: 11px;
+          }
+          .row-due td {
+            font-weight: 700;
+            color: #dc2626;
+          }
           .slip-in-words {
-            font-size: 10.5px; background: #f0fdf4; border: 1px solid #bbf7d0;
-            padding: 5px 8px; border-radius: 4px; margin-bottom: 12px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #166534;
+            margin-bottom: 6px;
           }
           .slip-signatures {
-            display: flex; justify-content: space-between; margin-top: 25px; padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 24px;
+            padding: 0 8px;
           }
-          .sig-box { text-align: center; width: 130px; font-size: 10px; }
-          .sig-line { border-top: 1px dashed #334155; margin-bottom: 4px; }
-          .sig-seal-box {
-            display: inline-block; border: 1px dashed #94a3b8; color: #94a3b8; font-size: 8px;
-            padding: 1px 6px; border-radius: 3px; margin-bottom: 15px;
+          .sig-col {
+            text-align: center;
+            width: 140px;
+            font-size: 9.5px;
+            color: #334155;
+            line-height: 1.35;
           }
-          .cut-divider {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-left: 2px dashed #94a3b8; margin: 0 4px; position: relative;
+          .sig-line {
+            border-top: 1px dashed #64748b;
+            margin-bottom: 4px;
           }
-          .cut-icon {
-            background: #fff; padding: 4px 0; font-size: 14px; position: absolute;
+          .sig-name {
+            font-weight: 700;
+            color: #0f172a;
+          }
+          .sig-title {
+            color: #475569;
+          }
+          .sig-sub {
+            font-size: 8.5px;
+            color: #64748b;
+          }
+          .center-cut-guide {
+            width: 1px;
+            border-left: 1px dashed #94a3b8;
+            margin: 0 -8px;
           }
           @media print {
-            body { padding: 0; }
-            .no-print { display: none !important; }
+            body {
+              padding: 0;
+            }
+            .no-print {
+              display: none !important;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="dual-receipt-container">
-          ${slipTemplate('অফিস কপি (Office Copy)')}
-          <div class="cut-divider">
-            <span class="cut-icon">✂️</span>
-          </div>
-          ${slipTemplate('শিক্ষার্থী / অভিভাবক কপি')}
+        <div class="dual-container">
+          ${renderSlip(r1)}
+          <div class="center-cut-guide"></div>
+          ${renderSlip(r2 || r1)}
         </div>
         <script>
-          window.onload = function() { window.print(); };
+          window.onload = function() {
+            window.print();
+          };
         </script>
       </body>
       </html>
@@ -2074,18 +2296,168 @@ export function FinancePanel({ sub }) {
               <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#047857' }}>
                 🧾 শিক্ষার্থী ফি আদায়ের ইতিহাস ও মানি রিসিট
               </h3>
-              <small style={{ color: '#64748b' }}>সংরক্ষিত সকল রসিদ পুনঃমুদ্রণ ও নিরীক্ষণ করুন</small>
+              <small style={{ color: '#64748b' }}>A4 Landscape এ যে কোন ২ জন শিক্ষার্থীর মানি রিসিট একসাথে অথবা একক শিক্ষার্থীর ডুপ্লিকেট রসিদ প্রিন্ট করুন</small>
             </div>
             <span style={{ background: '#ecfdf5', color: '#047857', padding: '6px 14px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700 }}>
               মোট আদায়কৃত রসিদ: {toBnDigits(feeRecords.length)} টি
             </span>
           </div>
 
+          {/* Quick Dual Student Selector Panel for A4 Landscape Printing */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+            border: '1.5px solid #059669',
+            borderRadius: '10px',
+            padding: '14px 18px',
+            marginBottom: '18px',
+            boxShadow: '0 2px 8px rgba(5,150,105,0.08)'
+          }}>
+            <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#065f46', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>👥</span> যে কোন ২ জন শিক্ষার্থীর মানি রিসিট একসাথে এক পাতায় প্রিন্ট (A4 Landscape):
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr)) auto', gap: '12px', alignItems: 'flex-end' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>
+                  ১ম শিক্ষার্থী (বাম পাশের রসিদ):
+                </label>
+                <select
+                  value={pairStudent1}
+                  onChange={e => setPairStudent1(e.target.value)}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12px', fontWeight: 700, background: '#fff' }}
+                >
+                  <option value="">-- ১ম শিক্ষার্থী নির্বাচন করুন --</option>
+                  {feeRecords.map(r => (
+                    <option key={'p1-' + r.id} value={r.id}>
+                      রোল {toBnDigits(r.roll_no)} - {r.student_name} ({toBnDigits(r.class_name)}ম, {r.receipt_no})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>
+                  ২য় শিক্ষার্থী (ডান পাশের রসিদ):
+                </label>
+                <select
+                  value={pairStudent2}
+                  onChange={e => setPairStudent2(e.target.value)}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12px', fontWeight: 700, background: '#fff' }}
+                >
+                  <option value="">-- ২য় শিক্ষার্থী নির্বাচন করুন --</option>
+                  {feeRecords.map(r => (
+                    <option key={'p2-' + r.id} value={r.id}>
+                      রোল {toBnDigits(r.roll_no)} - {r.student_name} ({toBnDigits(r.class_name)}ম, {r.receipt_no})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const r1 = feeRecords.find(x => x.id === pairStudent1) || (feeRecords[0] || null);
+                    const r2 = feeRecords.find(x => x.id === pairStudent2) || (feeRecords[1] || r1);
+                    if (!r1) {
+                      alert('অনুগ্রহ করে শিক্ষার্থী নির্বাচন করুন।');
+                      return;
+                    }
+                    handlePrintReceipt(r1, r2);
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '8px 18px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(4,120,87,0.3)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  🖨️ ২ জনের রিসিট প্রিন্ট করুন
+                </button>
+              </div>
+            </div>
+
+            {/* If 2 receipts are checked from table */}
+            {selectedReceiptIds.length === 2 && (
+              <div style={{
+                marginTop: '12px',
+                padding: '8px 12px',
+                background: '#dcfce7',
+                border: '1px solid #86efac',
+                borderRadius: '6px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                <div style={{ fontSize: '12.5px', color: '#166534', fontWeight: 700 }}>
+                  ✓ তালিকা থেকে ২ জন শিক্ষার্থী নির্বাচিত: 
+                  <span style={{ marginLeft: '4px', textDecoration: 'underline' }}>
+                    {feeRecords.find(x => x.id === selectedReceiptIds[0])?.student_name}
+                  </span> ও 
+                  <span style={{ marginLeft: '4px', textDecoration: 'underline' }}>
+                    {feeRecords.find(x => x.id === selectedReceiptIds[1])?.student_name}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const r1 = feeRecords.find(x => x.id === selectedReceiptIds[0]);
+                      const r2 = feeRecords.find(x => x.id === selectedReceiptIds[1]);
+                      if (r1 && r2) handlePrintReceipt(r1, r2);
+                    }}
+                    style={{
+                      background: '#047857',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '5px 14px',
+                      borderRadius: '5px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🖨️ নির্বাচিত ২ জন এক পাতায় প্রিন্ট
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedReceiptIds([])}
+                    style={{
+                      background: '#f8fafc',
+                      color: '#64748b',
+                      border: '1px solid #cbd5e1',
+                      padding: '5px 10px',
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    বাতিল
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
-                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '50px' }}>ক্র.</th>
+                  <th style={{ padding: '10px 6px', textAlign: 'center', width: '38px' }}>
+                    <span title="২ জন সিলেক্ট করুন" style={{ fontSize: '11px' }}>সিলেক্ট</span>
+                  </th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '45px' }}>ক্র.</th>
                   <th style={{ padding: '10px 10px', textAlign: 'left', width: '130px' }}>রশিদ নং</th>
                   <th style={{ padding: '10px 8px', textAlign: 'center', width: '90px' }}>তারিখ</th>
                   <th style={{ padding: '10px 10px', textAlign: 'left' }}>শিক্ষার্থীর নাম</th>
@@ -2100,7 +2472,27 @@ export function FinancePanel({ sub }) {
               </thead>
               <tbody>
                 {feeRecords.map((r, idx) => (
-                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#fff' : '#fcfdfe' }}>
+                  <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: selectedReceiptIds.includes(r.id) ? '#ecfdf5' : (idx % 2 === 0 ? '#fff' : '#fcfdfe') }}>
+                    <td style={{ textAlign: 'center', padding: '8px 4px' }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedReceiptIds.includes(r.id)}
+                        onChange={() => {
+                          setSelectedReceiptIds(prev => {
+                            if (prev.includes(r.id)) {
+                              return prev.filter(x => x !== r.id);
+                            } else {
+                              if (prev.length >= 2) {
+                                return [prev[1], r.id];
+                              }
+                              return [...prev, r.id];
+                            }
+                          });
+                        }}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#047857' }}
+                        title="এক পাতায় প্রিন্টের জন্য ২ জন শিক্ষার্থী নির্বাচন করুন"
+                      />
+                    </td>
                     <td style={{ textAlign: 'center', padding: '8px 4px', fontWeight: 600, color: '#64748b' }}>{toBnDigits(idx + 1)}</td>
                     <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{r.receipt_no}</td>
                     <td style={{ textAlign: 'center', padding: '8px 8px' }}>{formatDateBn(r.date)}</td>
@@ -2126,7 +2518,7 @@ export function FinancePanel({ sub }) {
                           borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                           display: 'inline-flex', alignItems: 'center', gap: '3px'
                         }}
-                        title="দ্বিমুখী মানি রিসিট প্রিন্ট করুন"
+                        title="A4 Landscape এ ডুপ্লিকেট ২ কপি প্রিন্ট করুন"
                       >
                         🖨️ প্রিন্ট
                       </button>
@@ -2790,15 +3182,19 @@ export function FinancePanel({ sub }) {
             <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
               <div style={{ border: '2px solid #047857', borderRadius: '10px', padding: '16px', background: '#fff' }}>
                 {/* Header */}
-                <div style={{ textAlign: 'center', borderBottom: '2px solid #047857', paddingBottom: '8px', marginBottom: '10px' }}>
-                  <img src={schoolLogo} alt="Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
-                  <h2 style={{ margin: '4px 0 2px', fontSize: '18px', color: '#047857', fontWeight: 800 }}>{MOCK_SCHOOL.nameBn}</h2>
-                  <h4 style={{ margin: '0 0 2px', fontSize: '12px', color: '#334155' }}>{MOCK_SCHOOL.nameEn} • EIIN: {MOCK_SCHOOL.eiin}</h4>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • স্থাপিত: ১৯৪৬</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '6px' }}>
+                  <img src={schoolLogo} alt="Logo" style={{ width: '54px', height: '54px', objectFit: 'contain' }} />
+                  <div style={{ flex: 1, textAlign: 'center' }}>
+                    <h2 style={{ margin: 0, fontSize: '19px', color: '#047857', fontWeight: 800 }}>{MOCK_SCHOOL.nameBn}</h2>
+                    <h4 style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#1e293b', fontWeight: 700 }}>{MOCK_SCHOOL.nameEn} • EIIN: {MOCK_SCHOOL.eiin}</h4>
+                    <p style={{ margin: '2px 0 0', fontSize: '10.5px', color: '#b91c1c', fontWeight: 600 }}>ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল - স্থাপিত: ১৯৪৬</p>
+                  </div>
                 </div>
 
-                <div style={{ textAlign: 'center', background: '#ecfdf5', padding: '4px', borderRadius: '4px', border: '1px dashed #059669', marginBottom: '12px' }}>
-                  <h4 style={{ margin: 0, fontSize: '13px', color: '#065f46' }}>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</h4>
+                <div style={{ borderBottom: '2px solid #059669', margin: '6px 0 10px' }}></div>
+
+                <div style={{ textAlign: 'center', background: '#f0fdf4', padding: '4px', borderRadius: '6px', border: '1.2px solid #059669', marginBottom: '10px' }}>
+                  <span style={{ margin: 0, fontSize: '12px', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</span>
                 </div>
 
                 {/* Meta details */}
