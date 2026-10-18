@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MOCK_SCHOOL, MOCK_EXAMS, MOCK_SUBJECTS, MOCK_TEACHERS } from './mockData';
-import { WEEK_DAYS, DEFAULT_PERIODS, getSubjectTheme, EXAM_INSTRUCTIONS } from './routineData';
+import { WEEK_DAYS, DEFAULT_PERIODS, GOVT_STANDARD_PERIODS, getSubjectTheme, EXAM_INSTRUCTIONS } from './routineData';
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 
@@ -19,6 +19,20 @@ export const formatDateBn = (dateStr) => {
     return toBnDigits(`${parts[2]}-${parts[1]}-${parts[0]}`);
   }
   return toBnDigits(clean);
+};
+
+export const calculateDurationBn = (startTime, endTime) => {
+  if (!startTime || !endTime) return '—';
+  const [h1, m1] = startTime.split(':').map(Number);
+  const [h2, m2] = endTime.split(':').map(Number);
+  if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return '—';
+  let diffMin = (h2 * 60 + m2) - (h1 * 60 + m1);
+  if (diffMin <= 0) return '—';
+  const hours = Math.floor(diffMin / 60);
+  const mins = diffMin % 60;
+  if (hours > 0 && mins > 0) return `${toBnDigits(hours)} ঘণ্টা ${toBnDigits(mins)} মি.`;
+  if (hours > 0) return `${toBnDigits(hours)} ঘণ্টা`;
+  return `${toBnDigits(mins)} মি.`;
 };
 
 export function RoutinePanel({ sub }) {
@@ -46,10 +60,40 @@ export function RoutinePanel({ sub }) {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: 'success' });
 
+  // Dynamic Periods State (সরকার নির্ধারিত কর্মদিবস ও পিরিয়ড বিন্যাস)
+  const [periods, setPeriods] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_routine_periods');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 6) {
+          const p1 = parsed.find(p => p.period_no === '1');
+          if (p1 && p1.start_time === '10:20') return parsed;
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_PERIODS;
+  });
+
+  // Period Edit Modal State (অ্যাকশন কলামে সমাবেশ, পিরিয়ড ও টিফিন বিরতির সময় নির্ধারণ)
+  const [showPeriodModal, setShowPeriodModal] = useState(false);
+  const [editingPeriod, setEditingPeriod] = useState(null);
+  const [periodForm, setPeriodForm] = useState({
+    period_no: '1',
+    name_bn: '১ম পিরিয়ড',
+    type: 'period',
+    start_time: '10:20',
+    end_time: '11:20',
+    duration: '৬০ মি.',
+    activity: '১ম ঘণ্টার একাডেমিক পাঠদান'
+  });
+
   // Class Routine filters
   const [selectedClass, setSelectedClass] = useState('6');
   const [selectedSection, setSelectedSection] = useState('all');
-  const [classViewMode, setClassViewMode] = useState('grid'); // 'grid' | 'list'
+  const [classViewMode, setClassViewMode] = useState('grid'); // 'grid' | 'periods' | 'list'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Exam Routine filters
@@ -67,8 +111,8 @@ export function RoutinePanel({ sub }) {
     section: 'পদ্মা শাখা',
     day_of_week: '1',
     period_no: '1',
-    start_time: '10:00',
-    end_time: '10:45',
+    start_time: '10:20',
+    end_time: '11:20',
     subject_name: 'বাংলা ১ম পত্র',
     subject_code: '১০১',
     teacher_name: 'মোঃ সাইদুর রহমান',
@@ -100,12 +144,13 @@ export function RoutinePanel({ sub }) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [rData, erData, sData, tData, exData] = await Promise.all([
+      const [rData, erData, sData, tData, exData, pData] = await Promise.all([
         requestApi('/routines'),
         requestApi('/exam_routines'),
         requestApi('/subjects'),
         requestApi('/teachers?status=active'),
-        requestApi('/exams')
+        requestApi('/exams'),
+        requestApi('/routine_periods')
       ]);
 
       setClassRoutines(Array.isArray(rData) ? rData : []);
@@ -113,6 +158,9 @@ export function RoutinePanel({ sub }) {
       setSubjects(Array.isArray(sData) ? sData : MOCK_SUBJECTS);
       setTeachers(Array.isArray(tData) && tData.length ? tData : MOCK_TEACHERS);
       setExams(Array.isArray(exData) && exData.length ? exData : MOCK_EXAMS);
+      if (Array.isArray(pData) && pData.length >= 6) {
+        setPeriods(pData);
+      }
     } catch (err) {
       console.error('Failed to load routine data:', err);
     } finally {
@@ -207,6 +255,104 @@ export function RoutinePanel({ sub }) {
     }
   };
 
+  // Handle Period Timing Edit (অ্যাকশন কলামে সমাবেশ, পিরিয়ড ও টিফিন বিরতি সম্পাদনা)
+  const openEditPeriodModal = (period) => {
+    setEditingPeriod(period);
+    setPeriodForm({
+      period_no: period.period_no,
+      name_bn: period.name_bn,
+      type: period.type || (period.is_assembly ? 'assembly' : period.is_break ? 'break' : 'period'),
+      start_time: period.start_time,
+      end_time: period.end_time,
+      duration: period.duration || calculateDurationBn(period.start_time, period.end_time),
+      activity: period.activity || ''
+    });
+    setShowPeriodModal(true);
+  };
+
+  const handleSavePeriod = async (e) => {
+    e.preventDefault();
+    try {
+      const calculatedDur = calculateDurationBn(periodForm.start_time, periodForm.end_time);
+      const updatedPeriods = periods.map(p => {
+        if (String(p.period_no) === String(periodForm.period_no)) {
+          return {
+            ...p,
+            name_bn: periodForm.name_bn,
+            type: periodForm.type,
+            start_time: periodForm.start_time,
+            end_time: periodForm.end_time,
+            duration: periodForm.duration || calculatedDur,
+            activity: periodForm.activity,
+            is_assembly: periodForm.type === 'assembly' || periodForm.period_no === 'assembly',
+            is_break: periodForm.type === 'break' || periodForm.period_no === 'tiffin'
+          };
+        }
+        return p;
+      });
+
+      setPeriods(updatedPeriods);
+      localStorage.setItem('magra_routine_periods', JSON.stringify(updatedPeriods));
+
+      // Sync class routine slots that use this period
+      const updatedSlots = classRoutines.map(r => {
+        if (String(r.period_no) === String(periodForm.period_no)) {
+          return { ...r, start_time: periodForm.start_time, end_time: periodForm.end_time };
+        }
+        return r;
+      });
+      setClassRoutines(updatedSlots);
+      localStorage.setItem('routines', JSON.stringify(updatedSlots));
+
+      try {
+        await requestApi(`/routine_periods/${periodForm.period_no}`, {
+          method: 'PUT',
+          body: JSON.stringify(periodForm)
+        });
+      } catch (errApi) {
+        console.warn('API sync warning:', errApi);
+      }
+
+      setShowPeriodModal(false);
+      setEditingPeriod(null);
+      setMsg({
+        text: `"${periodForm.name_bn}" এর সময়সূচি (${toBnDigits(periodForm.start_time)} - ${toBnDigits(periodForm.end_time)}) সফলভাবে আপডেট হয়েছে!`,
+        type: 'success'
+      });
+      setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
+    } catch (err) {
+      alert('ত্রুটি: ' + err.message);
+    }
+  };
+
+  const handleResetGovtPeriods = async () => {
+    if (!window.confirm('আপনি কি সরকারি প্রমিত সময়সূচি (সকাল ১০:০০ হতে বিকাল ০৪:০০, দৈনিক সমাবেশ, ৬টি পিরিয়ড ও টিফিন বিরতি)-তে রিসেট করতে চান?')) return;
+    setPeriods(DEFAULT_PERIODS);
+    localStorage.setItem('magra_routine_periods', JSON.stringify(DEFAULT_PERIODS));
+
+    const updatedSlots = classRoutines.map(slot => {
+      const p = DEFAULT_PERIODS.find(x => String(x.period_no) === String(slot.period_no));
+      if (p) {
+        return { ...slot, start_time: p.start_time, end_time: p.end_time };
+      }
+      return slot;
+    });
+    setClassRoutines(updatedSlots);
+    localStorage.setItem('routines', JSON.stringify(updatedSlots));
+
+    try {
+      await requestApi('/routine_periods', {
+        method: 'PUT',
+        body: JSON.stringify(DEFAULT_PERIODS)
+      });
+    } catch (err) {
+      console.warn(err);
+    }
+
+    setMsg({ text: 'সরকারি প্রমিত সময়সূচি (১০:০০ - ০৪:০০) সফলভাবে সেট করা হয়েছে!', type: 'success' });
+    setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
+  };
+
   // Handle Exam Routine Save
   const handleSaveExamSlot = async (e) => {
     e.preventDefault();
@@ -273,8 +419,8 @@ export function RoutinePanel({ sub }) {
           <thead>
             <tr style="background: #f1f5f9; color: #0f172a;">
               <th style="border: 1px solid #94a3b8; padding: 8px; width: 85px;">বার / দিন</th>
-              ${DEFAULT_PERIODS.map(p => `
-                <th style="border: 1px solid #94a3b8; padding: 6px; text-align: center;">
+              ${periods.map(p => `
+                <th style="border: 1px solid #94a3b8; padding: 6px; text-align: center; ${p.is_break ? 'background: #fffbeb; color: #92400e;' : p.is_assembly ? 'background: #f0fdf4; color: #166534;' : ''}">
                   <b>${p.name_bn}</b><br/>
                   <small style="font-size: 10px; color: #475569;">${toBnDigits(p.start_time)} - ${toBnDigits(p.end_time)}</small>
                 </th>
@@ -287,11 +433,18 @@ export function RoutinePanel({ sub }) {
                 <td style="border: 1px solid #94a3b8; padding: 8px; font-weight: bold; background: #f8fafc; text-align: center;">
                   ${day.name_bn}
                 </td>
-                ${DEFAULT_PERIODS.map(period => {
+                ${periods.map(period => {
+                  if (period.is_assembly) {
+                    return `
+                      <td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; background: #f0fdf4; font-size: 10px; color: #166534; font-weight: bold;">
+                        🏛️ সমাবেশ ও শপথ
+                      </td>
+                    `;
+                  }
                   if (period.is_break) {
                     return `
-                      <td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; background: #fffbeb; font-size: 10.5px; color: #b45309; font-weight: bold;">
-                        🥪 টিফিন ও নামাজ বিরতি
+                      <td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; background: #fffbeb; font-size: 10px; color: #b45309; font-weight: bold;">
+                        🥪 টিফিন ও নামাজ
                       </td>
                     `;
                   }
@@ -484,7 +637,7 @@ export function RoutinePanel({ sub }) {
               </span>
             </div>
             <p style={{ margin: 0, fontSize: '12.5px', opacity: 0.9 }}>
-              শ্রেণিভিত্তিক সাপ্তাহিক ক্লাস রুটিন এবং পরীক্ষার পূর্ণাঙ্গ সময়সূচি প্রণয়ন, ট্র্যাকিং ও অফিসিয়াল মুদ্রণ
+              দৈনিক ৬টি পিরিয়ড, সমাবেশ ও টিফিন বিরতি (সকাল ১০:০০ - বিকাল ৪:০০) • সরকারি নির্দেশনা অনুযায়ী রুটিন প্রণয়ন ও ট্র্যাকিং
             </p>
           </div>
         </div>
@@ -562,8 +715,8 @@ export function RoutinePanel({ sub }) {
                   section: ['9', '10'].includes(String(selectedClass)) ? 'বিজ্ঞান বিভাগ' : 'পদ্মা শাখা',
                   day_of_week: '1',
                   period_no: '1',
-                  start_time: '10:00',
-                  end_time: '10:45',
+                  start_time: periods.find(p => p.period_no === '1')?.start_time || '10:20',
+                  end_time: periods.find(p => p.period_no === '1')?.end_time || '11:20',
                   subject_name: 'বাংলা ১ম পত্র',
                   subject_code: '১০১',
                   teacher_name: 'মোঃ সাইদুর রহমান',
@@ -623,9 +776,9 @@ export function RoutinePanel({ sub }) {
         <div style={{ background: '#ffffff', padding: '14px 18px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>দৈনিক পিরিয়ড সংখ্যা</div>
           <div style={{ fontSize: '24px', fontWeight: 900, color: '#0284c7', marginTop: '4px' }}>
-            ৭ টি + বিরতি
+            ৬ টি + সমাবেশ ও বিরতি
           </div>
-          <small style={{ color: '#0284c7', fontSize: '11px' }}>সকাল ১০:০০ হতে বিকাল ৩:৪০</small>
+          <small style={{ color: '#0284c7', fontSize: '11px' }}>সকাল ১০:০০ হতে বিকাল ৪:০০ (৬ ঘণ্টা)</small>
         </div>
 
         <div style={{ background: '#ffffff', padding: '14px 18px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
@@ -797,6 +950,23 @@ export function RoutinePanel({ sub }) {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setClassViewMode('periods')}
+                  style={{
+                    background: classViewMode === 'periods' ? '#ffffff' : 'transparent',
+                    color: classViewMode === 'periods' ? '#0f766e' : '#64748b',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: classViewMode === 'periods' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
+                  }}
+                >
+                  ⏰ পিরিয়ড ও সময়সূচি নির্ধারণ (অ্যাকশন কলাম)
+                </button>
+                <button
+                  type="button"
                   onClick={() => setClassViewMode('list')}
                   style={{
                     background: classViewMode === 'list' ? '#ffffff' : 'transparent',
@@ -817,7 +987,7 @@ export function RoutinePanel({ sub }) {
           </div>
 
           {/* VIEW A: WEEKLY GRID TIMETABLE */}
-          {classViewMode === 'grid' ? (
+          {classViewMode === 'grid' && (
             <div style={{
               background: '#ffffff',
               borderRadius: '12px',
@@ -830,11 +1000,32 @@ export function RoutinePanel({ sub }) {
                   <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>
                     {selectedClass === 'all' ? 'সকল শ্রেণির সাপ্তাহিক ক্লাস শিডিউল' : `${toBnDigits(selectedClass)}ম শ্রেণির পূর্ণাঙ্গ সাপ্তাহিক রুটিন`}
                   </h3>
-                  <small style={{ color: '#64748b' }}>সকাল ১০:০০ হতে বিকাল ৩:৪০ পর্যন্ত • প্রতি পিরিয়ড ৪৫/৪০ মিনিট</small>
+                  <small style={{ color: '#64748b' }}>সকাল ১০:০০ হতে বিকাল ৪:০০ পর্যন্ত • দৈনিক ৬টি পিরিয়ড, সমাবেশ ও টিফিন বিরতি</small>
                 </div>
-                <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }}></span>
-                  লাইভ একাডেমিক শিডিউল সক্রিয়
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setClassViewMode('periods')}
+                    style={{
+                      background: '#f0fdfa',
+                      color: '#0f766e',
+                      border: '1.5px solid #99f6e4',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                  >
+                    <span>⏰</span> পিরিয়ড ও সময়সূচি সম্পাদনা (অ্যাকশন)
+                  </button>
+                  <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }}></span>
+                    লাইভ সক্রিয়
+                  </div>
                 </div>
               </div>
 
@@ -844,21 +1035,42 @@ export function RoutinePanel({ sub }) {
                     <th style={{ padding: '12px', textAlign: 'center', width: '110px', fontSize: '12.5px', color: '#334155', borderRight: '1px solid #e2e8f0' }}>
                       বার / দিন
                     </th>
-                    {DEFAULT_PERIODS.map(p => (
+                    {periods.map(p => (
                       <th
                         key={p.period_no}
                         style={{
-                          padding: '10px 8px',
+                          padding: '10px 6px',
                           textAlign: 'center',
                           fontSize: '12px',
-                          color: p.is_break ? '#b45309' : '#0f766e',
+                          color: p.is_break ? '#b45309' : p.is_assembly ? '#166534' : '#0f766e',
                           borderRight: '1px solid #e2e8f0',
-                          background: p.is_break ? '#fefce8' : '#f8fafc'
+                          background: p.is_break ? '#fefce8' : p.is_assembly ? '#f0fdf4' : '#f8fafc'
                         }}
                       >
-                        <div style={{ fontWeight: 800 }}>{p.name_bn}</div>
-                        <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 500, marginTop: '2px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
+                          <span style={{ fontWeight: 800 }}>{p.name_bn}</span>
+                          <button
+                            type="button"
+                            onClick={() => openEditPeriodModal(p)}
+                            title="সময়সূচি সম্পাদনা (অ্যাকশন)"
+                            style={{
+                              background: 'rgba(0,0,0,0.06)',
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '1px 4px',
+                              borderRadius: '4px',
+                              fontSize: '10px',
+                              color: '#334155'
+                            }}
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                        <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
                           {toBnDigits(p.start_time)} - {toBnDigits(p.end_time)}
+                        </div>
+                        <div style={{ fontSize: '9.5px', color: '#94a3b8', fontWeight: 500 }}>
+                          {p.duration || calculateDurationBn(p.start_time, p.end_time)}
                         </div>
                       </th>
                     ))}
@@ -893,7 +1105,28 @@ export function RoutinePanel({ sub }) {
                         </td>
 
                         {/* Period Cells */}
-                        {DEFAULT_PERIODS.map(period => {
+                        {periods.map(period => {
+                          if (period.is_assembly) {
+                            return (
+                              <td
+                                key={period.period_no}
+                                style={{
+                                  padding: '8px 4px',
+                                  textAlign: 'center',
+                                  background: '#f0fdf4',
+                                  borderRight: '1px solid #e2e8f0',
+                                  color: '#166534',
+                                  fontSize: '11px',
+                                  fontWeight: 700
+                                }}
+                              >
+                                <div style={{ fontSize: '15px', marginBottom: '2px' }}>🏛️</div>
+                                <div>দৈনিক সমাবেশ</div>
+                                <small style={{ fontSize: '9.5px', color: '#15803d', display: 'block' }}>পতাকা ও শপথ</small>
+                              </td>
+                            );
+                          }
+
                           if (period.is_break) {
                             return (
                               <td
@@ -908,7 +1141,9 @@ export function RoutinePanel({ sub }) {
                                   fontWeight: 700
                                 }}
                               >
-                                🥪 টিফিন ও নামাজ
+                                <div style={{ fontSize: '15px', marginBottom: '2px' }}>🥪</div>
+                                <div>টিফিন ও নামাজ</div>
+                                <small style={{ fontSize: '9.5px', color: '#92400e', display: 'block' }}>বিরতি</small>
                               </td>
                             );
                           }
@@ -1032,8 +1267,146 @@ export function RoutinePanel({ sub }) {
                 </tbody>
               </table>
             </div>
-          ) : (
-            /* VIEW B: LIST TABLE */
+          )}
+
+          {/* VIEW B: PERIODS & TIMING CONFIGURATION TABLE (অ্যাকশন কলাম সহ সমাবেশ, পিরিয়ড ও টিফিন বিরতি সম্পাদনা) */}
+          {classViewMode === 'periods' && (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #e2e8f0',
+                background: 'linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', color: '#0f766e', fontWeight: 800 }}>
+                      ⏰ দৈনিক কর্মঘণ্টা, সমাবেশ ও পিরিয়ডের সময়সূচি (Bell Schedule & Timing)
+                    </h3>
+                    <span style={{ background: '#ccfbf1', color: '#0f766e', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 800 }}>
+                      সরকারি প্রমিত মান (১০:০০ - ১৬:০০)
+                    </span>
+                  </div>
+                  <small style={{ color: '#475569', marginTop: '3px', display: 'block' }}>
+                    মাধ্যমিক বিদ্যালয়ের সরকারি প্রমিত নীতিমালা অনুযায়ী: দৈনিক সমাবেশ, ৬টি পাঠদান পিরিয়ড এবং টিফিন ও নামাজ বিরতি নির্ধারণ ও সম্পাদনা
+                  </small>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={handleResetGovtPeriods}
+                    style={{
+                      background: '#f8fafc',
+                      color: '#0f766e',
+                      border: '1.5px solid #0f766e',
+                      padding: '7px 14px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>🔄</span> সরকারি প্রমিত সময়ে রিসেট
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#334155' }}>
+                      <th style={{ padding: '10px 14px', textAlign: 'center', width: '50px' }}>ক্র.</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>পিরিয়ড / ইভেন্টের নাম</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>ক্যাটাগরি / ধরন</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>শুরুর সময়</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>শেষের সময়</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>সময়ব্যাপ্তি (ডিউরেশন)</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>কার্যক্রম / বিবরণ</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {periods.map((p, idx) => {
+                      const isAsm = p.is_assembly || p.type === 'assembly';
+                      const isBrk = p.is_break || p.type === 'break';
+                      return (
+                        <tr key={p.period_no} style={{ borderBottom: '1px solid #f1f5f9', background: isAsm ? '#f0fdf4' : isBrk ? '#fffbeb' : '#ffffff' }}>
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 800, color: '#64748b' }}>
+                            {toBnDigits(idx + 1)}
+                          </td>
+                          <td style={{ padding: '12px 14px' }}>
+                            <div style={{ fontWeight: 800, fontSize: '13px', color: isAsm ? '#15803d' : isBrk ? '#b45309' : '#0f766e' }}>
+                              {isAsm ? '🏛️ ' : isBrk ? '🥪 ' : '📚 '} {p.name_bn}
+                            </div>
+                            <small style={{ color: '#64748b' }}>কোড / আইডি: {p.period_no}</small>
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <span style={{
+                              background: isAsm ? '#dcfce7' : isBrk ? '#fef3c7' : '#e0f2fe',
+                              color: isAsm ? '#15803d' : isBrk ? '#b45309' : '#0369a1',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontWeight: 800,
+                              fontSize: '11px'
+                            }}>
+                              {isAsm ? 'দৈনিক সমাবেশ' : isBrk ? 'নামাজ ও টিফিন বিরতি' : 'শ্রেণিকক্ষে পাঠদান'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#0f172a', fontSize: '13px' }}>
+                            🕒 {toBnDigits(p.start_time)}
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center', fontWeight: 700, color: '#0f172a', fontSize: '13px' }}>
+                            🕒 {toBnDigits(p.end_time)}
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <span style={{ background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>
+                              {p.duration || calculateDurationBn(p.start_time, p.end_time)}
+                            </span>
+                          </td>
+                          <td style={{ padding: '12px 14px', color: '#475569' }}>
+                            {p.activity || (isAsm ? 'জাতীয় পতাকা উত্তোলন ও শপথ' : isBrk ? 'টিফিন ও জোহরের নামাজ' : `${toBnDigits(p.period_no)}ম ঘণ্টার পাঠদান`)}
+                          </td>
+                          <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => openEditPeriodModal(p)}
+                              style={{
+                                background: '#0f766e',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <span>✏️</span> সম্পাদনা
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW C: LIST TABLE */}
+          {classViewMode === 'list' && (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
               <div style={{ padding: '14px 18px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>
@@ -1595,11 +1968,11 @@ export function RoutinePanel({ sub }) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>পিরিয়ড নম্বর *</label>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>পিরিয়ড নির্বাচন *</label>
                   <select
                     value={classForm.period_no}
                     onChange={e => {
-                      const p = DEFAULT_PERIODS.find(x => x.period_no === e.target.value);
+                      const p = periods.find(x => String(x.period_no) === String(e.target.value));
                       setClassForm({
                         ...classForm,
                         period_no: e.target.value,
@@ -1610,10 +1983,32 @@ export function RoutinePanel({ sub }) {
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
                     required
                   >
-                    {DEFAULT_PERIODS.filter(p => !p.is_break).map(p => (
-                      <option key={p.period_no} value={p.period_no}>{p.name_bn} ({toBnDigits(p.start_time)} - {toBnDigits(p.end_time)})</option>
+                    {periods.filter(p => !p.is_break && !p.is_assembly).map(p => (
+                      <option key={p.period_no} value={p.period_no}>
+                        {p.name_bn} ({toBnDigits(p.start_time)} - {toBnDigits(p.end_time)})
+                      </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>সময় (শুরু ও শেষ) *</label>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <input
+                      type="time"
+                      value={classForm.start_time}
+                      onChange={e => setClassForm({ ...classForm, start_time: e.target.value })}
+                      style={{ width: '50%', padding: '8px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      required
+                    />
+                    <input
+                      type="time"
+                      value={classForm.end_time}
+                      onChange={e => setClassForm({ ...classForm, end_time: e.target.value })}
+                      style={{ width: '50%', padding: '8px 6px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1693,6 +2088,145 @@ export function RoutinePanel({ sub }) {
                   style={{ background: '#0f766e', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '6px', fontWeight: 800, cursor: 'pointer' }}
                 >
                   {editingClassSlot ? 'আপডেট করুন' : 'সংরক্ষণ করুন'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 0: EDIT PERIOD & TIMING (অ্যাকশন কলামে সম্পাদনা)  */}
+      {/* ======================================================== */}
+      {showPeriodModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)',
+              color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
+                ✏️ পিরিয়ড ও সময়সূচি সম্পাদনা ({periodForm.name_bn})
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowPeriodModal(false)}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePeriod} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>পিরিয়ড / ইভেন্টের নাম *</label>
+                  <input
+                    type="text"
+                    value={periodForm.name_bn}
+                    onChange={e => setPeriodForm({ ...periodForm, name_bn: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>ধরন / ক্যাটাগরি *</label>
+                  <select
+                    value={periodForm.type}
+                    onChange={e => setPeriodForm({ ...periodForm, type: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                  >
+                    <option value="period">পাঠদান পিরিয়ড</option>
+                    <option value="assembly">দৈনিক সমাবেশ</option>
+                    <option value="break">নামাজ ও টিফিন বিরতি</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>শুরুর সময় (Start Time) *</label>
+                  <input
+                    type="time"
+                    value={periodForm.start_time}
+                    onChange={e => {
+                      const newStart = e.target.value;
+                      const dur = calculateDurationBn(newStart, periodForm.end_time);
+                      setPeriodForm({ ...periodForm, start_time: newStart, duration: dur });
+                    }}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0f766e', fontSize: '13px', fontWeight: 700 }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>শেষের সময় (End Time) *</label>
+                  <input
+                    type="time"
+                    value={periodForm.end_time}
+                    onChange={e => {
+                      const newEnd = e.target.value;
+                      const dur = calculateDurationBn(periodForm.start_time, newEnd);
+                      setPeriodForm({ ...periodForm, end_time: newEnd, duration: dur });
+                    }}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0f766e', fontSize: '13px', fontWeight: 700 }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>সময়ব্যাপ্তি (ডিউরেশন)</label>
+                  <input
+                    type="text"
+                    value={periodForm.duration}
+                    onChange={e => setPeriodForm({ ...periodForm, duration: e.target.value })}
+                    placeholder="যেমন: ৫০ মি."
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', fontWeight: 600 }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>কার্যক্রম / বিবরণ</label>
+                  <input
+                    type="text"
+                    value={periodForm.activity}
+                    onChange={e => setPeriodForm({ ...periodForm, activity: e.target.value })}
+                    placeholder="যেমন: ১ম ঘণ্টার একাডেমিক পাঠদান"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '11.5px', color: '#475569' }}>
+                💡 <b>টিপস:</b> এই পিরিয়ডের শুরুর সময় ও শেষের সময় পরিবর্তন করলে সংশ্লিষ্ট সকল শ্রেণির সাপ্তাহিক রুটিন এবং প্রিন্ট ভিউতে সময় স্বয়ংক্রিয়ভাবে সমন্বিত হবে।
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPeriodModal(false)}
+                  style={{ background: '#e2e8f0', color: '#334155', border: 'none', padding: '9px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0f766e', color: '#fff', border: 'none', padding: '9px 20px', borderRadius: '6px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 6px rgba(15,118,110,0.3)' }}
+                >
+                  সংরক্ষণ করুন
                 </button>
               </div>
             </form>

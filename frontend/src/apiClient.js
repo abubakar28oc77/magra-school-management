@@ -91,7 +91,7 @@ import {
 } from './mockData.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
-import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES } from './routineData.js';
+import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -1644,11 +1644,36 @@ function handleMockRequest(path, opts = {}) {
 
 
   // ==========================================
-  // ACADEMIC ROUTINE ENGINE: CLASS & EXAM
+  // ACADEMIC ROUTINE ENGINE: PERIODS, CLASS & EXAM
   // ==========================================
+  if (cleanPath === '/routine_periods') {
+    let periods = getLocalStore('magra_routine_periods', null);
+    if (!Array.isArray(periods) || !periods.length || (periods.find(p => p.period_no === '1')?.start_time === '10:00')) {
+      periods = DEFAULT_PERIODS;
+      setLocalStore('magra_routine_periods', periods);
+    }
+    if (method === 'PUT') {
+      periods = Array.isArray(body) ? body : periods;
+      setLocalStore('magra_routine_periods', periods);
+      return periods;
+    }
+    return periods;
+  }
+
+  if (cleanPath.startsWith('/routine_periods/')) {
+    const pNo = cleanPath.replace('/routine_periods/', '');
+    let periods = getLocalStore('magra_routine_periods', DEFAULT_PERIODS);
+    if (method === 'PUT' || method === 'PATCH') {
+      periods = periods.map(p => String(p.period_no) === String(pNo) ? { ...p, ...body } : p);
+      setLocalStore('magra_routine_periods', periods);
+      const updated = periods.find(p => String(p.period_no) === String(pNo));
+      return updated || { success: true };
+    }
+  }
+
   if (cleanPath === '/routines') {
     let routines = getLocalStore('routines', null);
-    if (!Array.isArray(routines) || !routines.length) {
+    if (!Array.isArray(routines) || !routines.length || routines.some(r => r.period_no === '1' && r.start_time === '10:00')) {
       routines = DEFAULT_CLASS_ROUTINES;
       setLocalStore('routines', routines);
     }

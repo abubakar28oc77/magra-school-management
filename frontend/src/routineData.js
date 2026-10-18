@@ -10,15 +10,83 @@ export const WEEK_DAYS = [
 ];
 
 export const DEFAULT_PERIODS = [
-  { period_no: '1', name_bn: '১ম পিরিয়ড', start_time: '10:00', end_time: '10:45', duration: '৪৫ মি.' },
-  { period_no: '2', name_bn: '২য় পিরিয়ড', start_time: '10:45', end_time: '11:30', duration: '৪৫ মি.' },
-  { period_no: '3', name_bn: '৩য় পিরিয়ড', start_time: '11:30', end_time: '12:15', duration: '৪৫ মি.' },
-  { period_no: '4', name_bn: '৪র্থ পিরিয়ড', start_time: '12:15', end_time: '13:00', duration: '৪৫ মি.' },
-  { period_no: 'tiffin', name_bn: 'টিফিন ও নামাজ বিরতি', start_time: '13:00', end_time: '13:40', duration: '৪০ মি.', is_break: true },
-  { period_no: '5', name_bn: '৫ম পিরিয়ড', start_time: '13:40', end_time: '14:20', duration: '৪০ মি.' },
-  { period_no: '6', name_bn: '৬ষ্ঠ পিরিয়ড', start_time: '14:20', end_time: '15:00', duration: '৪০ মি.' },
-  { period_no: '7', name_bn: '৭ম পিরিয়ড', start_time: '15:00', end_time: '15:40', duration: '৪০ মি.' }
+  {
+    period_no: 'assembly',
+    name_bn: 'দৈনিক সমাবেশ',
+    type: 'assembly',
+    start_time: '10:00',
+    end_time: '10:20',
+    duration: '২০ মি.',
+    activity: 'জাতীয় পতাকা উত্তোলন, জাতীয় সংগীত, শপথ ও পিটি',
+    is_assembly: true
+  },
+  {
+    period_no: '1',
+    name_bn: '১ম পিরিয়ড',
+    type: 'period',
+    start_time: '10:20',
+    end_time: '11:20',
+    duration: '৬০ মি.',
+    activity: '১ম ঘণ্টার একাডেমিক পাঠদান'
+  },
+  {
+    period_no: '2',
+    name_bn: '২য় পিরিয়ড',
+    type: 'period',
+    start_time: '11:20',
+    end_time: '12:10',
+    duration: '৫০ মি.',
+    activity: '২য় ঘণ্টার একাডেমিক পাঠদান'
+  },
+  {
+    period_no: '3',
+    name_bn: '৩য় পিরিয়ড',
+    type: 'period',
+    start_time: '12:10',
+    end_time: '13:00',
+    duration: '৫০ মি.',
+    activity: '৩য় ঘণ্টার একাডেমিক পাঠদান'
+  },
+  {
+    period_no: 'tiffin',
+    name_bn: 'টিফিন ও নামাজ বিরতি',
+    type: 'break',
+    start_time: '13:00',
+    end_time: '13:50',
+    duration: '৫০ মি.',
+    activity: 'দুপুরের টিফিন ও জোহরের নামাজ',
+    is_break: true
+  },
+  {
+    period_no: '4',
+    name_bn: '৪র্থ পিরিয়ড',
+    type: 'period',
+    start_time: '13:50',
+    end_time: '14:35',
+    duration: '৪৫ মি.',
+    activity: '৪র্থ ঘণ্টার একাডেমিক পাঠদান'
+  },
+  {
+    period_no: '5',
+    name_bn: '৫ম পিরিয়ড',
+    type: 'period',
+    start_time: '14:35',
+    end_time: '15:20',
+    duration: '৪৫ মি.',
+    activity: '৫ম ঘণ্টার একাডেমিক পাঠদান'
+  },
+  {
+    period_no: '6',
+    name_bn: '৬ষ্ঠ পিরিয়ড',
+    type: 'period',
+    start_time: '15:20',
+    end_time: '16:00',
+    duration: '৪০ মি.',
+    activity: '৬ষ্ঠ ঘণ্টার সমাপনী পাঠদান'
+  }
 ];
+
+export const GOVT_STANDARD_PERIODS = [...DEFAULT_PERIODS];
 
 export const SUBJECT_THEMES = {
   'বাংলা': { bg: '#e0f2fe', border: '#38bdf8', text: '#0369a1', icon: '📖' },
@@ -49,82 +117,87 @@ export const getSubjectTheme = (subjectName) => {
   return { bg: '#f8fafc', border: '#cbd5e1', text: '#475569', icon: '📚' };
 };
 
-// Default Class Timetable Slots (সাপ্তাহিক ক্লাস রুটিন)
+// Default Class Timetable Slots (সাপ্তাহিক ক্লাস রুটিন - দৈনিক ৬টি পিরিয়ড ও সরকারি সময় অনুযায়ী)
 export const DEFAULT_CLASS_ROUTINES = [
   // --- Class 6 (৬ষ্ঠ শ্রেণি) ---
-  // Sunday
-  { id: 'cr-6-1-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
-  { id: 'cr-6-1-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
-  { id: 'cr-6-1-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-1-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০১' },
-  { id: 'cr-6-1-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
-  { id: 'cr-6-1-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০১' },
-  { id: 'cr-6-1-7', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '7', start_time: '15:00', end_time: '15:40', subject_name: 'ইসলাম ও নৈতিক শিক্ষা', subject_code: '১১১', teacher_name: 'মোহাম্মদ এনামুল হক', room: '১০১' },
+  // Sunday (রবিবার)
+  { id: 'cr-6-1-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
+  { id: 'cr-6-1-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
+  { id: 'cr-6-1-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-1-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০১' },
+  { id: 'cr-6-1-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
+  { id: 'cr-6-1-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০১' },
 
-  // Monday
-  { id: 'cr-6-2-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-2-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-2-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'রফিকুল ইসলাম', room: '১০১' },
-  { id: 'cr-6-2-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০১' },
-  { id: 'cr-6-2-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'কৃষি শিক্ষা', subject_code: '১৩৪', teacher_name: 'মোঃ রফিকুল ইসলাম', room: '১০১' },
-  { id: 'cr-6-2-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'শারীরিক শিক্ষা', subject_code: '১৪৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: 'মাঠ' },
+  // Monday (সোমবার)
+  { id: 'cr-6-2-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-2-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-2-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'রফিকুল ইসলাম', room: '১০১' },
+  { id: 'cr-6-2-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০১' },
+  { id: 'cr-6-2-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'কৃষি শিক্ষা', subject_code: '১৩৪', teacher_name: 'মোঃ রফিকুল ইসলাম', room: '১০১' },
+  { id: 'cr-6-2-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '2', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'শারীরিক শিক্ষা', subject_code: '১৪৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: 'মাঠ' },
 
-  // Tuesday
-  { id: 'cr-6-3-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-3-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
-  { id: 'cr-6-3-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
-  { id: 'cr-6-3-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
-  { id: 'cr-6-3-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: 'বিজ্ঞান ল্যাব' },
-  { id: 'cr-6-3-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'ইসলাম ও নৈতিক শিক্ষা', subject_code: '১১১', teacher_name: 'মোহাম্মদ এনামুল হক', room: '১০১' },
+  // Tuesday (মঙ্গলবার)
+  { id: 'cr-6-3-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-3-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
+  { id: 'cr-6-3-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
+  { id: 'cr-6-3-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
+  { id: 'cr-6-3-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: 'বিজ্ঞান ল্যাব' },
+  { id: 'cr-6-3-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '3', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'ইসলাম ও নৈতিক শিক্ষা', subject_code: '১১১', teacher_name: 'মোহাম্মদ এনামুল হক', room: '১০১' },
 
-  // Wednesday
-  { id: 'cr-6-4-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-4-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'রফিকুল ইসলাম', room: '১০১' },
-  { id: 'cr-6-4-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০১' },
-  { id: 'cr-6-4-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '১০১' },
-  { id: 'cr-6-4-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০১' },
+  // Wednesday (বুধবার)
+  { id: 'cr-6-4-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-4-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'রফিকুল ইসলাম', room: '১০১' },
+  { id: 'cr-6-4-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০১' },
+  { id: 'cr-6-4-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '১০১' },
+  { id: 'cr-6-4-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০১' },
+  { id: 'cr-6-4-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '4', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'হিন্দুধর্ম ও নৈতিক শিক্ষা', subject_code: '১১২', teacher_name: 'তাপসী সরকার', room: '১০১' },
 
-  // Thursday
-  { id: 'cr-6-5-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০১' },
-  { id: 'cr-6-5-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
-  { id: 'cr-6-5-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
-  { id: 'cr-6-5-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
+  // Thursday (বৃহস্পতিবার)
+  { id: 'cr-6-5-1', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০১' },
+  { id: 'cr-6-5-2', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০১' },
+  { id: 'cr-6-5-3', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০১' },
+  { id: 'cr-6-5-4', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০১' },
+  { id: 'cr-6-5-5', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'ইসলাম ও নৈতিক শিক্ষা', subject_code: '১১১', teacher_name: 'মোহাম্মদ এনামুল হক', room: '১০১' },
+  { id: 'cr-6-5-6', class_name: '6', section: 'পদ্মা শাখা', day_of_week: '5', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'শারীরিক শিক্ষা ও স্বাস্থ্য', subject_code: '১৪৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: 'মাঠ' },
 
   // --- Class 7 (৭ম শ্রেণি) ---
-  { id: 'cr-7-1-1', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০২' },
-  { id: 'cr-7-1-2', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০২' },
-  { id: 'cr-7-1-3', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০২' },
-  { id: 'cr-7-1-4', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০২' },
-  { id: 'cr-7-1-5', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০২' },
-  { id: 'cr-7-1-6', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
+  { id: 'cr-7-1-1', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '১০২' },
+  { id: 'cr-7-1-2', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '১০২' },
+  { id: 'cr-7-1-3', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '১০২' },
+  { id: 'cr-7-1-4', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '১০২' },
+  { id: 'cr-7-1-5', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০২' },
+  { id: 'cr-7-1-6', class_name: '7', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
 
   // --- Class 8 (৮ম শ্রেণি) ---
-  { id: 'cr-8-1-1', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '১০৩' },
-  { id: 'cr-8-1-2', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০৩' },
-  { id: 'cr-8-1-3', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০৩' },
-  { id: 'cr-8-1-4', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'রফিকুল ইসলাম', room: '১০৩' },
-  { id: 'cr-8-1-5', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০৩' },
-  { id: 'cr-8-1-6', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
+  { id: 'cr-8-1-1', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'গণিত', subject_code: '১০৯', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '১০৩' },
+  { id: 'cr-8-1-2', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'সাধারণ বিজ্ঞান', subject_code: '১২৭', teacher_name: 'মোঃ কামরুল হাসান', room: '১০৩' },
+  { id: 'cr-8-1-3', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'তাপসী সরকার', room: '১০৩' },
+  { id: 'cr-8-1-4', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'রফিকুল ইসলাম', room: '১০৩' },
+  { id: 'cr-8-1-5', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'বাংলাদেশ ও বিশ্বপরিচয়', subject_code: '১৫০', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '১০৩' },
+  { id: 'cr-8-1-6', class_name: '8', section: 'পদ্মা শাখা', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
 
   // --- Class 9 (৯ম শ্রেণি বিজ্ঞান ও মানবিক) ---
-  { id: 'cr-9-1-1', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'পদার্থবিজ্ঞান', subject_code: '১৩৬', teacher_name: 'মোঃ কামরুল হাসান', room: '২০১' },
-  { id: 'cr-9-1-2', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'উচ্চতর গণিত', subject_code: '১২৬', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '২০১' },
-  { id: 'cr-9-1-3', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'রসায়ন', subject_code: '১৩৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '২০১' },
-  { id: 'cr-9-1-4', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '২০১' },
-  { id: 'cr-9-1-5', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
-  { id: 'cr-9-1-6', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '২০১' },
+  { id: 'cr-9-1-1', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'পদার্থবিজ্ঞান', subject_code: '১৩৬', teacher_name: 'মোঃ কামরুল হাসান', room: '২০১' },
+  { id: 'cr-9-1-2', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'উচ্চতর গণিত', subject_code: '১২৬', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '২০১' },
+  { id: 'cr-9-1-3', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'রসায়ন', subject_code: '১৩৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '২০১' },
+  { id: 'cr-9-1-4', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '২০১' },
+  { id: 'cr-9-1-5', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' },
+  { id: 'cr-9-1-6', class_name: '9', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '২০১' },
 
-  { id: 'cr-9h-1-1', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা', subject_code: '১৫৩', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '২০২' },
-  { id: 'cr-9h-1-2', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'পৌরনীতি ও নাগরিকতা', subject_code: '১৪০', teacher_name: 'রফিকুল ইসলাম', room: '২০২' },
-  { id: 'cr-9h-1-3', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'সাধারণ গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '২০২' },
+  { id: 'cr-9h-1-1', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা', subject_code: '১৫৩', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', room: '২০২' },
+  { id: 'cr-9h-1-2', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'পৌরনীতি ও নাগরিকতা', subject_code: '১৪০', teacher_name: 'রফিকুল ইসলাম', room: '২০২' },
+  { id: 'cr-9h-1-3', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'সাধারণ গণিত', subject_code: '১০৯', teacher_name: 'মোঃ আনোয়ার হোসেন', room: '২০২' },
+  { id: 'cr-9h-1-4', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'ইংরেজি ১ম পত্র', subject_code: '১০৭', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '২০২' },
+  { id: 'cr-9h-1-5', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'ভূগোল ও পরিবেশ', subject_code: '১১০', teacher_name: 'তাপসী সরকার', room: '২০২' },
+  { id: 'cr-9h-1-6', class_name: '9', section: 'মানবিক বিভাগ', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'বাংলা ১ম পত্র', subject_code: '১০১', teacher_name: 'মোঃ সাইদুর রহমান', room: '২০২' },
 
   // --- Class 10 (১০ম শ্রেণি বিজ্ঞান ও মানবিক) ---
-  { id: 'cr-10-1-1', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:00', end_time: '10:45', subject_name: 'উচ্চতর গণিত', subject_code: '১২৬', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '২০৩' },
-  { id: 'cr-10-1-2', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '2', start_time: '10:45', end_time: '11:30', subject_name: 'রসায়ন', subject_code: '১৩৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '২০৩' },
-  { id: 'cr-10-1-3', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '3', start_time: '11:30', end_time: '12:15', subject_name: 'পদার্থবিজ্ঞান', subject_code: '১৩৬', teacher_name: 'মোঃ কামরুল হাসান', room: '২০৩' },
-  { id: 'cr-10-1-4', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '4', start_time: '12:15', end_time: '13:00', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'মোঃ সাইদুর রহমান', room: '২০৩' },
-  { id: 'cr-10-1-5', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '5', start_time: '13:40', end_time: '14:20', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '২০৩' },
-  { id: 'cr-10-1-6', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '6', start_time: '14:20', end_time: '15:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' }
+  { id: 'cr-10-1-1', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '1', start_time: '10:20', end_time: '11:20', subject_name: 'উচ্চতর গণিত', subject_code: '১২৬', teacher_name: 'মুহাম্মদ শফিকুল ইসলাম', room: '২০৩' },
+  { id: 'cr-10-1-2', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '2', start_time: '11:20', end_time: '12:10', subject_name: 'রসায়ন', subject_code: '১৩৭', teacher_name: 'মোঃ আব্দুল বাছেদ', room: '২০৩' },
+  { id: 'cr-10-1-3', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '3', start_time: '12:10', end_time: '13:00', subject_name: 'পদার্থবিজ্ঞান', subject_code: '১৩৬', teacher_name: 'মোঃ কামরুল হাসান', room: '২০৩' },
+  { id: 'cr-10-1-4', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '4', start_time: '13:50', end_time: '14:35', subject_name: 'বাংলা ২য় পত্র', subject_code: '১০২', teacher_name: 'মোঃ সাইদুর রহমান', room: '২০৩' },
+  { id: 'cr-10-1-5', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '5', start_time: '14:35', end_time: '15:20', subject_name: 'ইংরেজি ২য় পত্র', subject_code: '১০৮', teacher_name: 'মোঃ ছানোয়ার হোসেন', room: '২০৩' },
+  { id: 'cr-10-1-6', class_name: '10', section: 'বিজ্ঞান বিভাগ', day_of_week: '1', period_no: '6', start_time: '15:20', end_time: '16:00', subject_name: 'তথ্য ও যোগাযোগ প্রযুক্তি', subject_code: '১৫৪', teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক', room: 'ডিজিটাল ল্যাব' }
 ];
 
 // Default Examination Schedules (পরীক্ষার পূর্ণাঙ্গ সময়সূচি)
