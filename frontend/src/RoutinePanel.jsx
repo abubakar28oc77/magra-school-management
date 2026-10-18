@@ -1,6 +1,50 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MOCK_SCHOOL, MOCK_EXAMS, MOCK_SUBJECTS, MOCK_TEACHERS } from './mockData';
-import { WEEK_DAYS, DEFAULT_PERIODS, GOVT_STANDARD_PERIODS, getSubjectTheme, EXAM_INSTRUCTIONS } from './routineData';
+import { WEEK_DAYS, DEFAULT_PERIODS, DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, GOVT_STANDARD_PERIODS, getSubjectTheme, EXAM_INSTRUCTIONS } from './routineData';
+
+// Normalization Helpers for robust routine matching
+export const normClass = (val) => {
+  if (val === null || val === undefined) return '';
+  const s = String(val).replace(/[০-৯]/g, d => '0123456789'['০১২৩৪৫৬৭৮৯'.indexOf(d)]).trim();
+  const m = s.match(/\d+/);
+  return m ? m[0] : s;
+};
+
+export const normDay = (val) => {
+  if (val === null || val === undefined) return '';
+  const s = String(val).trim();
+  if (s === '1' || s === '১' || s === 'রবিবার' || s === 'রবি' || s.toLowerCase() === 'sunday' || s.toLowerCase() === 'sun' || s === '0') return '1';
+  if (s === '2' || s === '২' || s === 'সোমবার' || s === 'সোম' || s.toLowerCase() === 'monday' || s.toLowerCase() === 'mon') return '2';
+  if (s === '3' || s === '৩' || s === 'মঙ্গলবার' || s === 'মঙ্গল' || s.toLowerCase() === 'tuesday' || s.toLowerCase() === 'tue') return '3';
+  if (s === '4' || s === '৪' || s === 'বুধবার' || s === 'বুধ' || s.toLowerCase() === 'wednesday' || s.toLowerCase() === 'wed') return '4';
+  if (s === '5' || s === '৫' || s === 'বৃহস্পতিবার' || s === 'বৃহস্পতি' || s.toLowerCase() === 'thursday' || s.toLowerCase() === 'thu') return '5';
+  const num = normClass(s);
+  return num || s;
+};
+
+export const normPeriod = (p, startTime) => {
+  if (p !== null && p !== undefined && String(p).trim() !== '') {
+    const s = String(p).trim();
+    const num = normClass(s);
+    if (num) return num;
+    if (s.includes('১') || s.includes('1')) return '1';
+    if (s.includes('২') || s.includes('2')) return '2';
+    if (s.includes('৩') || s.includes('3')) return '3';
+    if (s.includes('৪') || s.includes('4')) return '4';
+    if (s.includes('৫') || s.includes('5')) return '5';
+    if (s.includes('৬') || s.includes('6')) return '6';
+  }
+  if (startTime) {
+    const st = String(startTime).trim();
+    if (st.startsWith('10:')) return '1';
+    if (st.startsWith('11:')) return '2';
+    if (st.startsWith('12:')) return '3';
+    if (st.startsWith('13:') || st.startsWith('01:') || st.startsWith('1:')) return '4';
+    if (st.startsWith('14:') || st.startsWith('02:') || st.startsWith('2:')) return '5';
+    if (st.startsWith('15:') || st.startsWith('03:') || st.startsWith('3:')) return '6';
+  }
+  return '';
+};
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 
@@ -52,11 +96,22 @@ export function RoutinePanel({ sub }) {
   }, [sub]);
 
   // Main state
-  const [classRoutines, setClassRoutines] = useState([]);
-  const [examRoutines, setExamRoutines] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [exams, setExams] = useState([]);
+  const [classRoutines, setClassRoutines] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_db_routines');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 10) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_CLASS_ROUTINES;
+  });
+  const [examRoutines, setExamRoutines] = useState(DEFAULT_EXAM_ROUTINES);
+  const [subjects, setSubjects] = useState(MOCK_SUBJECTS);
+  const [teachers, setTeachers] = useState(MOCK_TEACHERS);
+  const [exams, setExams] = useState(MOCK_EXAMS);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState({ text: '', type: 'success' });
 
@@ -153,9 +208,10 @@ export function RoutinePanel({ sub }) {
         requestApi('/routine_periods')
       ]);
 
-      setClassRoutines(Array.isArray(rData) ? rData : []);
-      setExamRoutines(Array.isArray(erData) ? erData : []);
-      setSubjects(Array.isArray(sData) ? sData : MOCK_SUBJECTS);
+      const validRoutines = Array.isArray(rData) && rData.length >= 10 ? rData : DEFAULT_CLASS_ROUTINES;
+      setClassRoutines(validRoutines);
+      setExamRoutines(Array.isArray(erData) && erData.length ? erData : DEFAULT_EXAM_ROUTINES);
+      setSubjects(Array.isArray(sData) && sData.length ? sData : MOCK_SUBJECTS);
       setTeachers(Array.isArray(tData) && tData.length ? tData : MOCK_TEACHERS);
       setExams(Array.isArray(exData) && exData.length ? exData : MOCK_EXAMS);
       if (Array.isArray(pData) && pData.length >= 6) {
@@ -178,9 +234,17 @@ export function RoutinePanel({ sub }) {
 
   // Filtered Class Routines
   const filteredClassRoutines = useMemo(() => {
+    const targetClass = selectedClass !== 'all' ? normClass(selectedClass) : 'all';
     return classRoutines.filter(r => {
-      if (selectedClass !== 'all' && String(r.class_name) !== String(selectedClass)) return false;
-      if (selectedSection !== 'all' && r.section && !r.section.includes(selectedSection) && !selectedSection.includes(r.section)) return false;
+      if (targetClass !== 'all') {
+        const rCls = normClass(r.class_name);
+        if (rCls && rCls !== targetClass) return false;
+      }
+      if (selectedSection !== 'all' && r.section) {
+        const sec = selectedSection.trim();
+        const rSec = String(r.section).trim();
+        if (!rSec.includes(sec) && !sec.includes(rSec)) return false;
+      }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchSub = (r.subject_name || '').toLowerCase().includes(q);
@@ -192,6 +256,19 @@ export function RoutinePanel({ sub }) {
       return true;
     });
   }, [classRoutines, selectedClass, selectedSection, searchQuery]);
+
+  // Reset to Govt Standard Routines
+  const handleResetDefaultRoutines = async () => {
+    if (!window.confirm('আপনি কি সরকারি প্রমিত সাপ্তাহিক ক্লাস রুটিন (৬ষ্ঠ-১০ম শ্রেণি, দৈনিক ৬টি পিরিয়ড ও বিষয় শিক্ষকসহ) পুনরায় লোড করতে চান?')) return;
+    try {
+      await requestApi('/routines/reset-defaults', { method: 'POST' });
+      setMsg({ text: 'সরকারি প্রমিত ক্লাস রুটিন সফলভাবে লোড করা হয়েছে!', type: 'success' });
+      await loadData();
+      setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
+    } catch (err) {
+      alert('ত্রুটি: ' + err.message);
+    }
+  };
 
   // Filtered Exam Routines
   const filteredExamRoutines = useMemo(() => {
@@ -221,22 +298,29 @@ export function RoutinePanel({ sub }) {
   const handleSaveClassSlot = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...classForm,
+        class_name: normClass(classForm.class_name) || classForm.class_name,
+        day_of_week: normDay(classForm.day_of_week) || classForm.day_of_week,
+        period_no: normPeriod(classForm.period_no, classForm.start_time) || classForm.period_no
+      };
+
       if (editingClassSlot) {
         await requestApi(`/routines/${editingClassSlot.id}`, {
           method: 'PUT',
-          body: JSON.stringify(classForm)
+          body: JSON.stringify(payload)
         });
         setMsg({ text: 'ক্লাস রুটিন স্লট সফলভাবে আপডেট করা হয়েছে!', type: 'success' });
       } else {
         await requestApi('/routines', {
           method: 'POST',
-          body: JSON.stringify(classForm)
+          body: JSON.stringify(payload)
         });
         setMsg({ text: 'নতুন ক্লাস রুটিন পিরিয়ড সফলভাবে যোগ করা হয়েছে!', type: 'success' });
       }
       setShowClassModal(false);
       setEditingClassSlot(null);
-      loadData();
+      await loadData();
       setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
     } catch (err) {
       alert('ত্রুটি: ' + err.message);
@@ -448,7 +532,7 @@ export function RoutinePanel({ sub }) {
                       </td>
                     `;
                   }
-                  const slot = filteredClassRoutines.find(r => String(r.day_of_week) === String(day.id) && String(r.period_no) === String(period.period_no));
+                  const slot = filteredClassRoutines.find(r => normDay(r.day_of_week) === normDay(day.id) && normPeriod(r.period_no, r.start_time) === normPeriod(period.period_no, period.start_time));
                   if (!slot) {
                     return `<td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; color: #cbd5e1;">—</td>`;
                   }
@@ -1022,6 +1106,26 @@ export function RoutinePanel({ sub }) {
                   >
                     <span>⏰</span> পিরিয়ড ও সময়সূচি সম্পাদনা (অ্যাকশন)
                   </button>
+                  <button
+                    type="button"
+                    onClick={handleResetDefaultRoutines}
+                    style={{
+                      background: '#f8fafc',
+                      color: '#0369a1',
+                      border: '1.5px solid #bae6fd',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}
+                    title="সরকারি প্রমিত ৬টি পিরিয়ডের সাপ্তাহিক ক্লাস রুটিন লোড করুন"
+                  >
+                    <span>🔄</span> প্রমিত রুটিন লোড
+                  </button>
                   <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }}></span>
                     লাইভ সক্রিয়
@@ -1148,10 +1252,12 @@ export function RoutinePanel({ sub }) {
                             );
                           }
 
-                          // Find slot for this day & period
+                          // Find slot for this day & period using robust normalizers
+                          const dayIdNorm = normDay(day.id);
+                          const periodNoNorm = normPeriod(period.period_no, period.start_time);
                           const slot = filteredClassRoutines.find(r =>
-                            String(r.day_of_week) === String(day.id) &&
-                            String(r.period_no) === String(period.period_no)
+                            normDay(r.day_of_week) === dayIdNorm &&
+                            normPeriod(r.period_no, r.start_time) === periodNoNorm
                           );
 
                           if (!slot) {
@@ -1207,30 +1313,48 @@ export function RoutinePanel({ sub }) {
                               style={{
                                 padding: '8px',
                                 borderRight: '1px solid #e2e8f0',
-                                verticalAlign: 'top'
+                                verticalAlign: 'top',
+                                background: '#ffffff'
                               }}
                             >
                               <div style={{
                                 background: theme.bg,
-                                border: `1px solid ${theme.border}`,
+                                border: `1.5px solid ${theme.border}`,
                                 borderRadius: '8px',
-                                padding: '8px',
-                                position: 'relative'
+                                padding: '8px 10px',
+                                position: 'relative',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px'
                               }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                  <div style={{ fontWeight: 800, fontSize: '12px', color: theme.text }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
+                                  <div style={{ fontWeight: 800, fontSize: '12.5px', color: theme.text, lineHeight: 1.3 }}>
                                     {theme.icon} {slot.subject_name}
                                   </div>
-                                  <div style={{ display: 'flex', gap: '2px' }}>
+                                  <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
                                     <button
                                       type="button"
                                       onClick={() => {
                                         setEditingClassSlot(slot);
-                                        setClassForm({ ...slot });
+                                        setClassForm({
+                                          ...slot,
+                                          class_name: normClass(slot.class_name) || slot.class_name,
+                                          day_of_week: normDay(slot.day_of_week) || slot.day_of_week,
+                                          period_no: normPeriod(slot.period_no, slot.start_time) || slot.period_no
+                                        });
                                         setShowClassModal(true);
                                       }}
                                       title="সম্পাদনা"
-                                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px', fontSize: '11px' }}
+                                      style={{
+                                        background: '#ffffff',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        padding: '2px 5px',
+                                        fontSize: '11px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                      }}
                                     >
                                       ✏️
                                     </button>
@@ -1238,22 +1362,31 @@ export function RoutinePanel({ sub }) {
                                       type="button"
                                       onClick={() => handleDeleteClassSlot(slot.id)}
                                       title="মুছুন"
-                                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '1px', fontSize: '11px' }}
+                                      style={{
+                                        background: '#ffffff',
+                                        border: '1px solid #fca5a5',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        padding: '2px 5px',
+                                        fontSize: '11px',
+                                        color: '#dc2626',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                                      }}
                                     >
                                       🗑️
                                     </button>
                                   </div>
                                 </div>
 
-                                <div style={{ fontSize: '11px', color: '#334155', fontWeight: 600, marginTop: '4px' }}>
-                                  👨‍🏫 {slot.teacher_name}
+                                <div style={{ fontSize: '11.5px', color: '#1e293b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span>👨‍🏫</span> <span>{slot.teacher_name}</span>
                                 </div>
 
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '10px', color: '#64748b' }}>
-                                  <span>🚪 কক্ষ {toBnDigits(slot.room || '১০১')}</span>
-                                  {slot.class_name && (
-                                    <span style={{ background: '#ffffff', padding: '1px 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                      {toBnDigits(slot.class_name)}ম
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px', fontSize: '10.5px', color: '#64748b' }}>
+                                  <span style={{ fontWeight: 600 }}>🚪 কক্ষ {toBnDigits(slot.room || '১০১')}</span>
+                                  {slot.section && (
+                                    <span style={{ background: 'rgba(0,0,0,0.06)', color: '#475569', padding: '1px 5px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 600 }}>
+                                      {slot.section}
                                     </span>
                                   )}
                                 </div>
@@ -1739,24 +1872,25 @@ export function RoutinePanel({ sub }) {
                     <th style={{ padding: '10px 14px', textAlign: 'left' }}>শ্রেণি ও শাখা</th>
                     <th style={{ padding: '10px 14px', textAlign: 'left' }}>বিষয়</th>
                     <th style={{ padding: '10px 14px', textAlign: 'center' }}>কক্ষ নম্বর</th>
+                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
                   {teacherRoutines.map(r => (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0f766e' }}>
-                        {WEEK_DAYS.find(d => d.id === String(r.day_of_week))?.name_bn || r.day_of_week}
+                        {WEEK_DAYS.find(d => normDay(d.id) === normDay(r.day_of_week))?.name_bn || r.day_of_week}
                       </td>
                       <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                         <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
-                          {toBnDigits(r.period_no)}ম পিরিয়ড
+                          {toBnDigits(normPeriod(r.period_no, r.start_time) || r.period_no)}ম পিরিয়ড
                         </span>
                       </td>
                       <td style={{ padding: '10px 14px', textAlign: 'center', color: '#64748b' }}>
                         {toBnDigits(r.start_time)} - {toBnDigits(r.end_time)}
                       </td>
                       <td style={{ padding: '10px 14px', fontWeight: 700 }}>
-                        {toBnDigits(r.class_name)}ম শ্রেণি {r.section ? `(${r.section})` : ''}
+                        {toBnDigits(normClass(r.class_name) || r.class_name)}ম শ্রেণি {r.section ? `(${r.section})` : ''}
                       </td>
                       <td style={{ padding: '10px 14px', fontWeight: 800, color: '#0369a1' }}>
                         {r.subject_name}
@@ -1764,11 +1898,64 @@ export function RoutinePanel({ sub }) {
                       <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 700 }}>
                         🚪 কক্ষ {toBnDigits(r.room || '১০১')}
                       </td>
+                      <td style={{ padding: '8px 14px', textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingClassSlot(r);
+                              setClassForm({
+                                ...r,
+                                class_name: normClass(r.class_name) || r.class_name,
+                                day_of_week: normDay(r.day_of_week) || r.day_of_week,
+                                period_no: normPeriod(r.period_no, r.start_time) || r.period_no
+                              });
+                              setShowClassModal(true);
+                            }}
+                            title="সম্পাদনা"
+                            style={{
+                              background: '#e0f2fe',
+                              color: '#0369a1',
+                              border: '1px solid #bae6fd',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>✏️</span> সম্পাদনা
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClassSlot(r.id)}
+                            title="মুছুন"
+                            style={{
+                              background: '#fee2e2',
+                              color: '#b91c1c',
+                              border: '1px solid #fecaca',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>🗑️</span> মুছুন
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {!teacherRoutines.length && (
                     <tr>
-                      <td colSpan="6" style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                      <td colSpan="7" style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
                         নির্বাচিত শিক্ষকের কোনো নির্ধারিত ক্লাস স্লট পাওয়া যায়নি।
                       </td>
                     </tr>
@@ -1956,7 +2143,7 @@ export function RoutinePanel({ sub }) {
                 <div>
                   <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বার / দিন *</label>
                   <select
-                    value={classForm.day_of_week}
+                    value={normDay(classForm.day_of_week) || '1'}
                     onChange={e => setClassForm({ ...classForm, day_of_week: e.target.value })}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
                     required
@@ -1970,7 +2157,7 @@ export function RoutinePanel({ sub }) {
                 <div>
                   <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>পিরিয়ড নির্বাচন *</label>
                   <select
-                    value={classForm.period_no}
+                    value={normPeriod(classForm.period_no, classForm.start_time) || '1'}
                     onChange={e => {
                       const p = periods.find(x => String(x.period_no) === String(e.target.value));
                       setClassForm({
@@ -2014,8 +2201,10 @@ export function RoutinePanel({ sub }) {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বিষয় *</label>
-                  <select
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বিষয় নির্বাচন বা লিখুন *</label>
+                  <input
+                    list="routine-subject-list"
+                    type="text"
                     value={classForm.subject_name}
                     onChange={e => {
                       const subName = e.target.value;
@@ -2026,27 +2215,33 @@ export function RoutinePanel({ sub }) {
                         subject_code: sObj?.code || classForm.subject_code
                       });
                     }}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                    placeholder="যেমন: বাংলা ১ম পত্র, গণিত..."
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0f766e', fontSize: '13px', fontWeight: 700 }}
                     required
-                  >
+                  />
+                  <datalist id="routine-subject-list">
                     {subjects.map(s => (
                       <option key={s.id || s.name_bn} value={s.name_bn}>{s.name_bn} (কোড: {s.code || '১০১'})</option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>শিক্ষক *</label>
-                  <select
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বিষয় শিক্ষক নির্বাচন বা নাম *</label>
+                  <input
+                    list="routine-teacher-list"
+                    type="text"
                     value={classForm.teacher_name}
                     onChange={e => setClassForm({ ...classForm, teacher_name: e.target.value })}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                    placeholder="যেমন: মোঃ সাইদুর রহমান..."
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0f766e', fontSize: '13px', fontWeight: 700 }}
                     required
-                  >
+                  />
+                  <datalist id="routine-teacher-list">
                     {teachers.map(t => (
-                      <option key={t.id || t.name_bn} value={t.name_bn}>{t.name_bn}</option>
+                      <option key={t.id || t.name_bn} value={t.name_bn}>{t.name_bn} ({t.designation || 'সহকারী শিক্ষক'})</option>
                     ))}
-                  </select>
+                  </datalist>
                 </div>
               </div>
 

@@ -1671,10 +1671,16 @@ function handleMockRequest(path, opts = {}) {
     }
   }
 
+  if (cleanPath === '/routines/reset-defaults' && method === 'POST') {
+    setLocalStore('routines', DEFAULT_CLASS_ROUTINES);
+    return { success: true, count: DEFAULT_CLASS_ROUTINES.length, routines: DEFAULT_CLASS_ROUTINES };
+  }
+
   if (cleanPath === '/routines') {
     let routines = getLocalStore('routines', null);
-    if (!Array.isArray(routines) || !routines.length || routines.some(r => r.period_no === '1' && r.start_time === '10:00')) {
-      routines = DEFAULT_CLASS_ROUTINES;
+    if (!Array.isArray(routines) || !routines.length || routines.length < 15 || routines.some(r => r.period_no === '1' && r.start_time === '10:00') || routines.some(r => !r.period_no)) {
+      const userAdded = Array.isArray(routines) ? routines.filter(r => r && r.id && !r.id.startsWith('cr-6-') && !r.id.startsWith('cr-7-') && !r.id.startsWith('cr-8-') && !r.id.startsWith('cr-9-') && !r.id.startsWith('cr-10-')) : [];
+      routines = [...userAdded, ...DEFAULT_CLASS_ROUTINES];
       setLocalStore('routines', routines);
     }
     if (method === 'POST') {
