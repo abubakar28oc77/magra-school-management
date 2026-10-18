@@ -124,65 +124,25 @@ export const DEFAULT_CLASS_TEACHERS = {
     subject: 'কৃষি শিক্ষা',
     phone: '01712763604'
   },
-  '9-science': {
-    class_id: '9-science',
-    class_name: '৯ম শ্রেণি (বিজ্ঞান বিভাগ)',
-    class_name_en: 'Class 9 (Science)',
+  '9': {
+    class_id: '9',
+    class_name: '৯ম শ্রেণি',
+    class_name_en: 'Class 9',
     teacher_id: 't-6',
     teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক',
     designation: 'সিনিয়র শিক্ষক (আইসিটি)',
     subject: 'আইসিটি',
     phone: '01710689846'
   },
-  '9-humanities': {
-    class_id: '9-humanities',
-    class_name: '৯ম শ্রেণি (মানবিক বিভাগ)',
-    class_name_en: 'Class 9 (Humanities)',
-    teacher_id: 't-7',
-    teacher_name: 'মুহাম্মদ আব্দুর রহিম লিটন',
-    designation: 'সিনিয়র শিক্ষক',
-    subject: 'জীববিজ্ঞান',
-    phone: '01712004957'
-  },
-  '9-business': {
-    class_id: '9-business',
-    class_name: '৯ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)',
-    class_name_en: 'Class 9 (Business Studies)',
+  '10': {
+    class_id: '10',
+    class_name: '১০ম শ্রেণি',
+    class_name_en: 'Class 10',
     teacher_id: 't-8',
     teacher_name: 'মোঃ হাবিবুর রহমান',
     designation: 'সিনিয়র শিক্ষক',
     subject: 'গণিত ও বিজ্ঞান',
     phone: '01728046188'
-  },
-  '10-science': {
-    class_id: '10-science',
-    class_name: '১০ম শ্রেণি (বিজ্ঞান বিভাগ)',
-    class_name_en: 'Class 10 (Science)',
-    teacher_id: 't-9',
-    teacher_name: 'আরতী রানী ভদ্র',
-    designation: 'সিনিয়র শিক্ষক',
-    subject: 'হিন্দু ধর্ম',
-    phone: '01752496170'
-  },
-  '10-humanities': {
-    class_id: '10-humanities',
-    class_name: '১০ম শ্রেণি (মানবিক বিভাগ)',
-    class_name_en: 'Class 10 (Humanities)',
-    teacher_id: 't-10',
-    teacher_name: 'মোঃ ওয়াহিদুর রহমান',
-    designation: 'সহকারী শিক্ষক',
-    subject: 'শারীরিক শিক্ষা',
-    phone: '01703538300'
-  },
-  '10-business': {
-    class_id: '10-business',
-    class_name: '১০ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)',
-    class_name_en: 'Class 10 (Business Studies)',
-    teacher_id: 't-11',
-    teacher_name: 'মোঃ শাহিন মিয়া',
-    designation: 'সহকারী শিক্ষক',
-    subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান',
-    phone: '01707518488'
   }
 };
 
@@ -190,12 +150,8 @@ export const CONFIGURABLE_CLASSES = [
   { key: '6', name: '৬ষ্ঠ শ্রেণি', en: 'Class 6', group: 'সাধারণ' },
   { key: '7', name: '৭ম শ্রেণি', en: 'Class 7', group: 'সাধারণ' },
   { key: '8', name: '৮ম শ্রেণি', en: 'Class 8', group: 'সাধারণ' },
-  { key: '9-science', name: '৯ম শ্রেণি (বিজ্ঞান বিভাগ)', en: 'Class 9 (Science)', group: 'বিজ্ঞান' },
-  { key: '9-humanities', name: '৯ম শ্রেণি (মানবিক বিভাগ)', en: 'Class 9 (Humanities)', group: 'মানবিক' },
-  { key: '9-business', name: '৯ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)', en: 'Class 9 (Business)', group: 'ব্যবসায় শিক্ষা' },
-  { key: '10-science', name: '১০ম শ্রেণি (বিজ্ঞান বিভাগ)', en: 'Class 10 (Science)', group: 'বিজ্ঞান' },
-  { key: '10-humanities', name: '১০ম শ্রেণি (মানবিক বিভাগ)', en: 'Class 10 (Humanities)', group: 'মানবিক' },
-  { key: '10-business', name: '১০ম শ্রেণি (ব্যবসায় শিক্ষা শাখা)', en: 'Class 10 (Business)', group: 'ব্যবসায় শিক্ষা' }
+  { key: '9', name: '৯ম শ্রেণি', en: 'Class 9', group: 'সাধারণ' },
+  { key: '10', name: '১০ম শ্রেণি', en: 'Class 10', group: 'সাধারণ' }
 ];
 
 export function getClassTeacher(className, groupName, config = null) {
@@ -209,29 +165,16 @@ export function getClassTeacher(className, groupName, config = null) {
   if (!cfg) cfg = DEFAULT_CLASS_TEACHERS;
 
   const c = String(className || '6').trim().replace(/[মth\s]/g, '');
-  const g = String(groupName || '').toLowerCase();
 
   const is10 = c.includes('10') || c.includes('১০');
   const is9 = c.includes('9') || c.includes('৯');
 
   if (is10) {
-    if (g.includes('মানবিক') || g.includes('humanities') || g.includes('arts')) {
-      return cfg['10-humanities'] || DEFAULT_CLASS_TEACHERS['10-humanities'];
-    }
-    if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) {
-      return cfg['10-business'] || DEFAULT_CLASS_TEACHERS['10-business'];
-    }
-    return cfg['10-science'] || DEFAULT_CLASS_TEACHERS['10-science'];
+    return cfg['10'] || cfg['10-science'] || cfg['10-humanities'] || cfg['10-business'] || DEFAULT_CLASS_TEACHERS['10'];
   }
 
   if (is9) {
-    if (g.includes('মানবিক') || g.includes('humanities') || g.includes('arts')) {
-      return cfg['9-humanities'] || DEFAULT_CLASS_TEACHERS['9-humanities'];
-    }
-    if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) {
-      return cfg['9-business'] || DEFAULT_CLASS_TEACHERS['9-business'];
-    }
-    return cfg['9-science'] || DEFAULT_CLASS_TEACHERS['9-science'];
+    return cfg['9'] || cfg['9-science'] || cfg['9-humanities'] || cfg['9-business'] || DEFAULT_CLASS_TEACHERS['9'];
   }
 
   const num = c.replace(/\D/g, '') || '6';
@@ -592,7 +535,21 @@ export function FinancePanel({ sub }) {
   const [classTeachers, setClassTeachers] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_class_teachers_config');
-      if (saved) return { ...DEFAULT_CLASS_TEACHERS, ...JSON.parse(saved) };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const merged = { ...DEFAULT_CLASS_TEACHERS, ...parsed };
+        if (!merged['9'] || !merged['9'].teacher_name || merged['9'].class_id !== '9') {
+          merged['9'] = parsed['9-science'] ? { ...parsed['9-science'], class_id: '9', class_name: '৯ম শ্রেণি', class_name_en: 'Class 9' } : DEFAULT_CLASS_TEACHERS['9'];
+        }
+        if (!merged['10'] || !merged['10'].teacher_name || merged['10'].class_id !== '10') {
+          merged['10'] = parsed['10-science'] ? { ...parsed['10-science'], class_id: '10', class_name: '১০ম শ্রেণি', class_name_en: 'Class 10' } : DEFAULT_CLASS_TEACHERS['10'];
+        }
+        merged['9'].class_name = '৯ম শ্রেণি';
+        merged['9'].class_name_en = 'Class 9';
+        merged['10'].class_name = '১০ম শ্রেণি';
+        merged['10'].class_name_en = 'Class 10';
+        return merged;
+      }
     } catch (e) {}
     return DEFAULT_CLASS_TEACHERS;
   });
