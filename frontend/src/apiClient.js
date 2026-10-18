@@ -83,6 +83,7 @@ import {
   MOCK_EXPENSES,
   MOCK_BOOKS,
   MOCK_ADMISSIONS,
+  getStudentPhoto,
   MOCK_SCHOLARSHIPS,
   MOCK_PUBLIC_CONTENT,
   MOCK_SSC_RESULTS,
@@ -758,6 +759,238 @@ function handleMockRequest(path, opts = {}) {
         { key: 'office', role: 'অফিস সহকারী', person: office }
       ]
     };
+  }
+
+  // 3.5 Admissions & Online Application Engine
+  if (cleanPath === '/admissions') {
+    let admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
+    if (method === 'POST') {
+      const all = admissions;
+      const yr = body.academic_year || '2026';
+      const seq = String(all.length + 1).padStart(3, '0');
+      const appNo = body.application_no || `ADM-${yr}-${seq}`;
+      const newApp = {
+        id: 'adm-' + Date.now(),
+        application_no: appNo,
+        academic_year: yr,
+        applied_class: body.applied_class || '৬',
+        department: body.department || '',
+        applicant_name_bn: body.applicant_name_bn || '',
+        applicant_name_en: body.applicant_name_en || '',
+        date_of_birth: body.date_of_birth || '',
+        gender: body.gender || 'পুরুষ',
+        religion: body.religion || 'ইসলাম',
+        blood_group: body.blood_group || 'A+',
+        birth_registration_no: body.birth_registration_no || '',
+        father_name: body.father_name || '',
+        father_nid: body.father_nid || '',
+        father_phone: body.father_phone || '',
+        father_profession: body.father_profession || '',
+        mother_name: body.mother_name || '',
+        mother_nid: body.mother_nid || '',
+        mother_phone: body.mother_phone || '',
+        mother_profession: body.mother_profession || '',
+        guardian_name: body.guardian_name || '',
+        guardian_relation: body.guardian_relation || 'পিতা',
+        guardian_phone: body.guardian_phone || '',
+        address: body.address || '',
+        current_village: body.current_village || '',
+        permanent_village: body.permanent_village || '',
+        previous_school: body.previous_school || '',
+        previous_gpa: body.previous_gpa || '',
+        quota: body.quota || 'সাধারণ',
+        // Document Scans
+        photo_url: body.photo_url || '',
+        scanned_photo: body.scanned_photo || body.photo_url || '',
+        scanned_birth_cert: body.scanned_birth_cert || '',
+        scanned_tc: body.scanned_tc || '',
+        scanned_nid: body.scanned_nid || '',
+        scanned_quota_cert: body.scanned_quota_cert || '',
+        // Fee Payment Info
+        payment_amount: Number(body.payment_amount) || 1400,
+        payment_method: body.payment_method || 'bkash',
+        payment_trx_id: body.payment_trx_id || `TRX${Date.now().toString().slice(-8)}`,
+        payment_sender_mobile: body.payment_sender_mobile || body.guardian_phone || '',
+        payment_status: body.payment_status || 'paid',
+        payment_date: body.payment_date || new Date().toISOString(),
+        // Workflow States: submitted -> head_approved -> admitted (or rejected)
+        status: body.status || 'submitted',
+        application_date: body.application_date || new Date().toISOString().slice(0, 10),
+        notes: body.notes || ''
+      };
+      admissions = [newApp, ...admissions];
+      setLocalStore('admissions', admissions);
+      return newApp;
+    }
+
+    // GET /admissions
+    const q = (params.get('q') || '').trim().toLowerCase();
+    const yr = params.get('academic_year');
+    const cls = params.get('applied_class');
+    const st = params.get('status');
+    const paySt = params.get('payment_status');
+
+    if (q) {
+      admissions = admissions.filter(a => {
+        const h = [
+          a.application_no,
+          a.applicant_name_bn,
+          a.applicant_name_en,
+          a.guardian_phone,
+          a.father_phone,
+          a.guardian_name,
+          a.father_name,
+          a.birth_registration_no,
+          a.payment_trx_id
+        ].filter(Boolean).map(String).join(' ').toLowerCase();
+        return h.includes(q);
+      });
+    }
+    if (yr && yr !== 'all') {
+      admissions = admissions.filter(a => String(a.academic_year) === String(yr));
+    }
+    if (cls && cls !== 'all') {
+      admissions = admissions.filter(a => String(a.applied_class) === String(cls));
+    }
+    if (st && st !== 'all') {
+      admissions = admissions.filter(a => a.status === st);
+    }
+    if (paySt && paySt !== 'all') {
+      admissions = admissions.filter(a => a.payment_status === paySt);
+    }
+    return admissions;
+  }
+
+  if (cleanPath === '/admissions/summary') {
+    const admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
+    const yr = params.get('academic_year');
+    const filtered = yr ? admissions.filter(a => String(a.academic_year) === String(yr)) : admissions;
+    return {
+      total: filtered.length,
+      submitted: filtered.filter(a => a.status === 'submitted' || a.status === 'new').length,
+      under_review: filtered.filter(a => a.status === 'under_review').length,
+      head_approved: filtered.filter(a => a.status === 'head_approved' || a.status === 'selected').length,
+      selected: filtered.filter(a => a.status === 'selected' || a.status === 'head_approved').length,
+      admitted: filtered.filter(a => a.status === 'admitted').length,
+      rejected: filtered.filter(a => a.status === 'rejected').length
+    };
+  }
+
+  if (cleanPath.startsWith('/admissions/')) {
+    let admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
+    const subRoute = cleanPath.replace('/admissions/', '');
+    
+    // 1. Headmaster Approval Action
+    if (subRoute.includes('/head_approve')) {
+      const id = subRoute.replace('/head_approve', '');
+      const app = admissions.find(a => String(a.id) === String(id));
+      if (!app) throw new Error('আবেদন পাওয়া যায়নি');
+      app.status = 'head_approved';
+      app.head_approved_date = new Date().toISOString();
+      app.head_approved_by = body.approved_by || 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)';
+      app.head_remarks = body.remarks || 'যাবতীয় তথ্য ও কাগজপত্র নিরীক্ষা সাপেক্ষে ভর্তির অনুমোদন প্রদান করা হলো।';
+      setLocalStore('admissions', admissions);
+      return { success: true, admission: app };
+    }
+
+    // 2. Headmaster Rejection Action
+    if (subRoute.includes('/head_reject')) {
+      const id = subRoute.replace('/head_reject', '');
+      const app = admissions.find(a => String(a.id) === String(id));
+      if (!app) throw new Error('আবেদন পাওয়া যায়নি');
+      app.status = 'rejected';
+      app.rejection_reason = body.reason || 'কাগজপত্রে ত্রুটি পরিলক্ষিত হয়েছে।';
+      setLocalStore('admissions', admissions);
+      return { success: true, admission: app };
+    }
+
+    // 3. Class Teacher Enrollment Action (Enrolls into Class & active students roster)
+    if (subRoute.includes('/enroll') || subRoute.includes('/convert')) {
+      const id = subRoute.replace('/enroll', '').replace('/convert', '');
+      const app = admissions.find(a => String(a.id) === String(id));
+      if (!app) throw new Error('আবেদন পাওয়া যায়নি');
+
+      let students = getLocalStore('students', MOCK_STUDENTS);
+      const targetClass = body.class_name || app.applied_class || '৬';
+      const targetSection = body.section || app.section || 'পদ্মা';
+      const targetDept = body.department || app.department || (['9', '10'].includes(String(targetClass)) ? 'বিজ্ঞান' : 'সাধারণ');
+      
+      // Auto Roll resolution
+      let assignedRoll = Number(body.roll_no);
+      if (!assignedRoll) {
+        const classStudents = students.filter(s => String(s.class_name) === String(targetClass));
+        const maxRoll = classStudents.reduce((max, s) => Math.max(max, Number(s.roll_no) || 0), 0);
+        assignedRoll = maxRoll + 1;
+      }
+
+      // Auto Student ID
+      const yr = app.academic_year || '2026';
+      const stuId = body.student_id || `MPUHS-${yr}-${targetClass}${String(assignedRoll).padStart(2, '0')}`;
+
+      const newStudent = {
+        id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        student_id: stuId,
+        roll_no: assignedRoll,
+        class_name: String(targetClass),
+        section: targetSection,
+        department: targetDept,
+        group_name: targetDept,
+        group: targetDept,
+        name_bn: app.applicant_name_bn,
+        name_en: app.applicant_name_en || app.applicant_name_bn,
+        gender: app.gender || 'পুরুষ',
+        date_of_birth: app.date_of_birth || '',
+        blood_group: app.blood_group || 'A+',
+        religion: normalizeReligion(app.religion || 'ইসলাম'),
+        birth_registration_no: app.birth_registration_no || '',
+        father_name: app.father_name || app.guardian_name,
+        father_mobile: app.father_phone || app.guardian_phone,
+        mother_name: app.mother_name || '',
+        mother_mobile: app.mother_phone || '',
+        guardian_name: app.guardian_name || app.father_name,
+        guardian_phone: app.guardian_phone || app.father_phone,
+        current_village: app.current_village || (app.address ? app.address.split(',')[0] : 'মগড়া'),
+        permanent_village: app.permanent_village || (app.address ? app.address.split(',')[0] : 'মগড়া'),
+        current_upazila: 'কালিহাতি',
+        current_district: 'টাঙ্গাইল',
+        permanent_upazila: 'কালিহাতি',
+        permanent_district: 'টাঙ্গাইল',
+        admission_date: new Date().toISOString().slice(0, 10),
+        admission_class: String(targetClass),
+        status: 'active',
+        photo_url: app.scanned_photo || app.photo_url || getStudentPhoto({ gender: app.gender, class_name: targetClass }),
+        enrolled_by: body.teacher_name || 'শ্রেণি শিক্ষক'
+      };
+
+      // Add to active students list
+      students = [newStudent, ...students];
+      setLocalStore('students', students);
+
+      // Update admission application record
+      app.status = 'admitted';
+      app.enrolled_student_id = stuId;
+      app.enrolled_roll_no = assignedRoll;
+      app.enrolled_section = targetSection;
+      app.enrolled_department = targetDept;
+      app.enrolled_by_teacher = body.teacher_name || 'শ্রেণি শিক্ষক';
+      app.enrolled_date = new Date().toISOString();
+
+      setLocalStore('admissions', admissions);
+      return { success: true, student: newStudent, admission: app };
+    }
+
+    // Direct Single Update or Delete
+    const id = subRoute;
+    if (method === 'PUT') {
+      admissions = admissions.map(a => String(a.id) === String(id) ? { ...a, ...body } : a);
+      setLocalStore('admissions', admissions);
+      return { success: true };
+    }
+    if (method === 'DELETE') {
+      admissions = admissions.filter(a => String(a.id) !== String(id));
+      setLocalStore('admissions', admissions);
+      return { success: true };
+    }
   }
 
   // 4. Students

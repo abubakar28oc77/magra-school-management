@@ -91,6 +91,7 @@ import {
   getLeadershipData
 } from './mockData';
 import { requestApi } from './apiClient';
+import schoolLogo from '../public/school-logo.png';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   const [filterClass, setFilterClass] = useState('all');
@@ -101,12 +102,18 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
 
+  // Bengali helpers
+  const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  const formatTk = (n) => `৳ ${toBn(Number(n) || 0)}`;
+
   // Admission tab state
   const initialTab = menuKey?.includes('docs') ? 'docs' : menuKey?.includes('rules') ? 'rules' : menuKey?.includes('tracking') ? 'tracking' : 'apply';
   const [admTab, setAdmTab] = useState(initialTab);
+
   const emptyAdm = {
     academic_year: '2026',
     applied_class: '৬',
+    department: 'বিজ্ঞান',
     applicant_name_bn: '',
     applicant_name_en: '',
     date_of_birth: '',
@@ -115,16 +122,34 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     blood_group: 'A+',
     birth_registration_no: '',
     father_name: '',
+    father_nid: '',
     father_phone: '',
+    father_profession: '',
     mother_name: '',
+    mother_nid: '',
     mother_phone: '',
+    mother_profession: '',
     guardian_name: '',
+    guardian_relation: 'পিতা',
     guardian_phone: '',
     address: '',
     previous_school: '',
+    previous_gpa: '',
     quota: 'সাধারণ',
+    // Scanned documents
+    scanned_photo: '',
+    scanned_birth_cert: '',
+    scanned_tc: '',
+    scanned_nid: '',
+    // Online Fee Payment
+    payment_amount: 1400,
+    payment_method: 'bkash',
+    payment_trx_id: '',
+    payment_sender_mobile: '',
+    payment_verified: false,
     notes: ''
   };
+
   const [admForm, setAdmForm] = useState(emptyAdm);
   const [admReceipt, setAdmReceipt] = useState(null);
   const [admSubmitting, setAdmSubmitting] = useState(false);
@@ -133,6 +158,16 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [trackingResult, setTrackingResult] = useState(null);
   const [trackingMsg, setTrackingMsg] = useState('');
 
+  // Auto calculate total fee based on class and department
+  useEffect(() => {
+    let fee = 1400; // 6, 7, 8: 200 form + 1200 session/admission
+    if (['9', '10'].includes(String(admForm.applied_class))) {
+      if (admForm.department === 'বিজ্ঞান') fee = 1700; // 200 + 1500
+      else fee = 1600; // 200 + 1400
+    }
+    setAdmForm(prev => ({ ...prev, payment_amount: fee }));
+  }, [admForm.applied_class, admForm.department]);
+
   useEffect(() => {
     if (menuKey?.includes('docs')) setAdmTab('docs');
     else if (menuKey?.includes('rules')) setAdmTab('rules');
@@ -140,7 +175,59 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     else if (menuKey?.includes('apply') || menuKey?.startsWith('public.nav.admission')) setAdmTab('apply');
   }, [menuKey]);
 
-  if (!menuKey) return null;
+  // File Upload Helper to convert file to DataURL
+  const handleFileUpload = (field, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      setAdmForm(prev => ({ ...prev, [field]: uploadEvent.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Quick 1-click Demo Data Filler for ease of testing
+  const handleFillDemoData = () => {
+    setAdmForm({
+      academic_year: '2026',
+      applied_class: '৬',
+      department: 'সাধারণ',
+      applicant_name_bn: 'তানভীর আহমেদ',
+      applicant_name_en: 'Tanvir Ahmed',
+      date_of_birth: '2014-03-15',
+      gender: 'পুরুষ',
+      religion: 'ইসলাম',
+      blood_group: 'B+',
+      birth_registration_no: '20149315610004521',
+      father_name: 'মোঃ রফিকুল ইসলাম',
+      father_nid: '19829315610001234',
+      father_phone: '01712-345678',
+      father_profession: 'ব্যবসায়ী',
+      mother_name: 'রোকেয়া বেগম',
+      mother_nid: '19859315610005678',
+      mother_phone: '01715-987654',
+      mother_profession: 'গৃহিণী',
+      guardian_name: 'মোঃ রফিকুল ইসলাম',
+      guardian_relation: 'পিতা',
+      guardian_phone: '01712-345678',
+      address: 'গ্রাম: মগড়া উত্তর পাড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল',
+      previous_school: 'মগড়া সরকারি প্রাথমিক বিদ্যালয়',
+      previous_gpa: '৫.০০',
+      quota: 'সাধারণ',
+      scanned_photo: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23047857"/><text x="50" y="55" font-family="Arial" font-size="28" fill="%23ffffff" text-anchor="middle" dominant-baseline="middle">ছবি</text></svg>',
+      scanned_birth_cert: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23e0f2fe"/><text x="50" y="55" font-size="14" fill="%230369a1" text-anchor="middle">জন্মসনদ</text></svg>',
+      scanned_tc: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23fef3c7"/><text x="50" y="55" font-size="14" fill="%2392400e" text-anchor="middle">টিসি/মার্কশিট</text></svg>',
+      scanned_nid: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23dcfce7"/><text x="50" y="55" font-size="14" fill="%23166534" text-anchor="middle">পিতা এনআইডি</text></svg>',
+      payment_amount: 1400,
+      payment_method: 'bkash',
+      payment_trx_id: 'BK92837461',
+      payment_sender_mobile: '01712-345678',
+      payment_verified: true,
+      notes: 'কোনো শারীরিক প্রতিবন্ধিতা নেই। ক্রীড়ায় পারদর্শী।'
+    });
+    setAdmMsg('✓ ডেমো শিক্ষার্থীর সকল তথ্য, স্ক্যান কপি ও পেমেন্ট সফলভাবে পূরণ করা হয়েছে।');
+    setTimeout(() => setAdmMsg(''), 3000);
+  };
 
   const handleAdmSubmit = async (e) => {
     e.preventDefault();
@@ -152,6 +239,10 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       setAdmMsg('অনুগ্রহ করে অভিভাবকের সচল মোবাইল নম্বর প্রদান করুন।');
       return;
     }
+    if (!admForm.payment_trx_id.trim()) {
+      setAdmMsg('অনুগ্রহ করে অনলাইন পেমেন্টের Transaction ID (TrxID) প্রদান করুন।');
+      return;
+    }
     setAdmSubmitting(true);
     setAdmMsg('');
     try {
@@ -161,11 +252,12 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
           ...admForm,
           father_name: admForm.father_name || admForm.guardian_name,
           application_date: new Date().toISOString().slice(0, 10),
-          status: 'submitted'
+          status: 'submitted',
+          payment_status: 'paid'
         })
       });
       setAdmReceipt(res);
-      setAdmMsg('অভিনন্দন! আপনার অনলাইন ভর্তি আবেদন সফলভাবে গ্রহণ করা হয়েছে।');
+      setAdmMsg('অভিনন্দন! আপনার অনলাইন ভর্তি আবেদন ও ফি সফলভাবে গ্রহণ করা হয়েছে।');
     } catch (err) {
       setAdmMsg('আবেদন জমাদানে ত্রুটি: ' + err.message);
     } finally {
@@ -183,7 +275,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       if (Array.isArray(list) && list.length > 0) {
         setTrackingResult(list[0]);
       } else {
-        setTrackingMsg('প্রদত্ত নম্বর বা আবেদন আইডিতে কোনো আবেদন পাওয়া যায়নি।');
+        setTrackingMsg('প্রদত্ত আবেদন নম্বর বা মোবাইল নম্বরে কোনো আবেদন পাওয়া যায়নি।');
       }
     } catch {
       setTrackingMsg('তথ্য অনুসন্ধানে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
@@ -195,7 +287,10 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     if (menuKey.startsWith('public.nav.admission') || menuKey === 'public.nav.results.admission' || title.includes('ভর্তি')) {
       return (
         <div className="submenu-content admission-modal-flow">
-          <div className="modal-hero-badge">🎓 অনলাইন শিক্ষার্থী ভর্তি পোর্টাল — শিক্ষাবর্ষ ২০২৬</div>
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🎓 অনলাইন শিক্ষার্থী ভর্তি পোর্টাল — শিক্ষাবর্ষ ২০২৬</span>
+            <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</span>
+          </div>
           
           {/* Submenu Navigation Tabs */}
           <div className="adm-modal-tabs">
@@ -204,7 +299,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               className={`adm-tab-btn ${admTab === 'apply' ? 'active' : ''}`}
               onClick={() => setAdmTab('apply')}
             >
-              📝 ভর্তির আবেদন ফরম
+              📝 ভর্তির আবেদন ও ফি পরিশোধ
             </button>
             <button
               type="button"
@@ -218,45 +313,85 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               className={`adm-tab-btn ${admTab === 'rules' ? 'active' : ''}`}
               onClick={() => setAdmTab('rules')}
             >
-              📜 ভর্তি নিয়মাবলী ও যোগ্যতা
+              📜 ভর্তি নিয়মাবলী ও আসন সংখ্যা
             </button>
             <button
               type="button"
               className={`adm-tab-btn ${admTab === 'tracking' ? 'active' : ''}`}
               onClick={() => setAdmTab('tracking')}
             >
-              🔍 আবেদন ট্র্যাকিং ও রসিদ
+              🔍 আবেদন ট্র্যাকিং ও চূড়ান্ত স্থিতি
             </button>
           </div>
 
-          {/* TAB 1: Online Application Form */}
+          {/* TAB 1: Online Application Form & Fee Payment */}
           {admTab === 'apply' && (
             <div className="adm-tab-content">
               {admReceipt ? (
-                <div className="admission-slip">
-                  <span className="admission-slip-badge">✓ আবেদন সফলভাবে গৃহীত হয়েছে</span>
-                  <h3 className="admission-slip-title">{admReceipt.applicant_name_bn}</h3>
-                  <div className="admission-app-no">আবেদন নং: {admReceipt.application_no}</div>
-                  <p style={{ margin: '4px 0 10px', fontSize: '13px', color: '#475569' }}>
-                    শ্রেণি: <b>{admReceipt.applied_class}</b> • শিক্ষাবর্ষ: <b>{admReceipt.academic_year}</b>
-                  </p>
-                  <div className="admission-slip-details">
-                    <div><b>পিতা/অভিভাবক:</b> {admReceipt.guardian_name || admReceipt.father_name}</div>
-                    <div><b>মোবাইল:</b> {admReceipt.guardian_phone}</div>
-                    <div><b>জন্ম তারিখ:</b> {admReceipt.date_of_birth || '—'}</div>
-                    <div><b>আবেদনের তারিখ:</b> {admReceipt.application_date}</div>
-                    <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {admReceipt.address || '—'}</div>
+                <div className="admission-slip" style={{ border: '2px solid #047857', background: '#f8fafc', padding: '20px', borderRadius: '12px' }}>
+                  <div style={{ textAlign: 'center', borderBottom: '2px solid #047857', paddingBottom: '10px', marginBottom: '14px' }}>
+                    <img src={schoolLogo} style={{ height: '50px', width: 'auto', marginBottom: '4px' }} alt="Logo" />
+                    <h2 style={{ margin: 0, color: '#047857', fontSize: '20px', fontWeight: 900 }}>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
+                    <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#475569' }}>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</p>
+                    <div style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', borderRadius: '6px', padding: '5px 12px', margin: '6px auto', display: 'inline-block', fontWeight: 800, fontSize: '13px' }}>
+                      অনলাইন ভর্তি আবেদনপত্র ও ফি পরিশোধ রসিদ (শিক্ষাবর্ষ ২০২৬)
+                    </div>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#166534', background: '#dcfce7', padding: '10px', borderRadius: '6px' }}>
-                    📌 অনুগ্রহ করে এই আবেদনপত্রটি প্রিন্ট করে সংরক্ষণ করুন এবং ভর্তির দিন উল্লেখিত সকল মূল সনদসহ বিদ্যালয়ে উপস্থিত হোন।
-                  </p>
-                  <div className="admission-slip-actions">
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#e0f2fe', padding: '10px 14px', borderRadius: '8px', marginBottom: '14px' }}>
+                    <div>
+                      <span style={{ fontSize: '11px', color: '#0369a1', fontWeight: 700 }}>আবেদন ট্র্যাকিং নম্বর (Application No):</span>
+                      <div style={{ fontSize: '18px', fontWeight: 900, color: '#0369a1', fontFamily: 'monospace' }}>{admReceipt.application_no}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ background: '#059669', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '11.5px', fontWeight: 800 }}>
+                        ✓ ফি পরিশোধিত: {formatTk(admReceipt.payment_amount || 1400)}
+                      </span>
+                      <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '2px', fontFamily: 'monospace' }}>TrxID: {admReceipt.payment_trx_id || 'TRX-PAID'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
+                    <div style={{ width: '80px', height: '90px', borderRadius: '6px', overflow: 'hidden', border: '1.5px solid #047857', background: '#f1f5f9', flexShrink: 0, textAlign: 'center' }}>
+                      {admReceipt.scanned_photo ? (
+                        <img src={admReceipt.scanned_photo} alt="Student" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ paddingTop: '24px', fontSize: '11px', color: '#64748b' }}>ছবি সংযুক্ত</div>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '12px', textAlign: 'left' }}>
+                      <div><b>শিক্ষার্থীর নাম:</b> {admReceipt.applicant_name_bn}</div>
+                      <div><b>আবেদনকৃত শ্রেণি:</b> {toBn(admReceipt.applied_class)}ম শ্রেণি {admReceipt.department ? `(${admReceipt.department})` : ''}</div>
+                      <div><b>পিতার নাম:</b> {admReceipt.father_name || admReceipt.guardian_name}</div>
+                      <div><b>মাতার নাম:</b> {admReceipt.mother_name || '—'}</div>
+                      <div><b>জন্ম তারিখ:</b> {admReceipt.date_of_birth}</div>
+                      <div><b>জন্ম নিবন্ধন নং:</b> {admReceipt.birth_registration_no}</div>
+                      <div><b>মোবাইল:</b> {admReceipt.guardian_phone}</div>
+                      <div><b>আবেদনের তারিখ:</b> {admReceipt.application_date}</div>
+                      <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {admReceipt.address || '—'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f0fdf4', border: '1px solid #86efac', padding: '12px', borderRadius: '8px', fontSize: '11.5px', color: '#166534', textAlign: 'left', lineHeight: 1.6, marginBottom: '14px' }}>
+                    <b>📌 ভর্তি প্রক্রিয়া ও পরবর্তী করণীয়:</b><br/>
+                    ১. আপনার আবেদন ও ফি সফলভাবে গৃহীত হয়েছে। এটি এখন <b>প্রধান শিক্ষকের স্ক্রুটিনি ও অনুমোদনের</b> জন্য জমা হয়েছে।<br/>
+                    ২. প্রধান শিক্ষকের অনুমোদন শেষে <b>শ্রেণি শিক্ষক শিক্ষার্থীকে শ্রেণিতে রোল ও শাখা বরাদ্দ করবেন।</b><br/>
+                    ৩. উপরের <b>"আবেদন ট্র্যাকিং"</b> ট্যাবে আবেদন নম্বর বা মোবাইল দিয়ে যেকোনো সময় ভর্তির লাইভ স্থিতি ও বরাদ্দকৃত রোল নম্বর জানতে পারবেন।
+                  </div>
+
+                  <div className="admission-slip-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                     <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
-                      🖨️ আবেদনপত্র ও রসিদ প্রিন্ট করুন
+                      🖨️ আবেদনপত্র ও ফি রসিদ প্রিন্ট / Save as PDF
                     </button>
                     <button
                       type="button"
-                      className="mini"
+                      style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                      onClick={() => { setTrackingId(admReceipt.application_no); setAdmTab('tracking'); }}
+                    >
+                      🔍 আবেদন ট্র্যাক করুন
+                    </button>
+                    <button
+                      type="button"
                       style={{ background: '#e2e8f0', color: '#334155', border: 'none', padding: '10px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}
                       onClick={() => { setAdmReceipt(null); setAdmForm(emptyAdm); setAdmMsg(''); }}
                     >
@@ -266,40 +401,73 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 </div>
               ) : (
                 <form onSubmit={handleAdmSubmit} className="adm-form-grid">
+                  <div style={{ gridColumn: '1/-1', background: '#f0fdf4', border: '1px solid #86efac', padding: '8px 12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#166534', fontWeight: 700 }}>
+                      💡 ঘরে বসে সহজে অনলাইনে আবেদন ফরম পূরণ ও ফি পরিশোধ সম্পন্ন করুন
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleFillDemoData}
+                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '3px 9px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      ⚡ ডেমো ডেটা পূরণ করুন
+                    </button>
+                  </div>
+
+                  {/* Section 1: Academic & Personal */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '6px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>১. ভর্তির শ্রেণি ও শিক্ষার্থীর ব্যক্তিগত তথ্য</h4>
+                  </div>
+
                   <div className="adm-form-field">
                     <label>ভর্তির শ্রেণি *</label>
                     <select value={admForm.applied_class} onChange={e => setAdmForm({ ...admForm, applied_class: e.target.value })} required>
                       {['৬', '৭', '৮', '৯', '১০'].map(c => (
-                        <option key={c} value={c}>শ্রেণি {c}</option>
+                        <option key={c} value={c}>শ্রেণি {toBn(c)}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="adm-form-field">
-                    <label>শিক্ষাবর্ষ *</label>
-                    <select value={admForm.academic_year} onChange={e => setAdmForm({ ...admForm, academic_year: e.target.value })} required>
-                      <option value="2026">২০২৬</option>
-                      <option value="2027">২০২৭</option>
-                    </select>
-                  </div>
+
+                  {['9', '10', '৯', '১০'].includes(String(admForm.applied_class)) ? (
+                    <div className="adm-form-field">
+                      <label>বিভাগ (Department for Class 9/10) *</label>
+                      <select value={admForm.department} onChange={e => setAdmForm({ ...admForm, department: e.target.value })} required>
+                        <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
+                        <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
+                        <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা বিভাগ (Business Studies)</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="adm-form-field">
+                      <label>শিক্ষাবর্ষ *</label>
+                      <select value={admForm.academic_year} onChange={e => setAdmForm({ ...admForm, academic_year: e.target.value })} required>
+                        <option value="2026">২০২৬ খ্রি.</option>
+                        <option value="2027">২০২৭ খ্রি.</option>
+                      </select>
+                    </div>
+                  )}
+
                   <div className="adm-form-field full">
                     <label>শিক্ষার্থীর পুরো নাম (বাংলায়) *</label>
                     <input
                       type="text"
-                      placeholder="যেমন: মোঃ মাহির আহমেদ"
+                      placeholder="যেমন: তানভীর আহমেদ"
                       value={admForm.applicant_name_bn}
                       onChange={e => setAdmForm({ ...admForm, applicant_name_bn: e.target.value })}
                       required
                     />
                   </div>
+
                   <div className="adm-form-field full">
                     <label>Applicant Full Name (English)</label>
                     <input
                       type="text"
-                      placeholder="e.g. Md. Mahir Ahmed"
+                      placeholder="e.g. Tanvir Ahmed"
                       value={admForm.applicant_name_en}
                       onChange={e => setAdmForm({ ...admForm, applicant_name_en: e.target.value })}
                     />
                   </div>
+
                   <div className="adm-form-field">
                     <label>জন্ম তারিখ *</label>
                     <input
@@ -309,14 +477,15 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     />
                   </div>
+
                   <div className="adm-form-field">
                     <label>লিঙ্গ *</label>
                     <select value={admForm.gender} onChange={e => setAdmForm({ ...admForm, gender: e.target.value })} required>
                       <option value="পুরুষ">পুরুষ</option>
                       <option value="নারী">নারী</option>
-                      <option value="অন্যান্য">অন্যান্য</option>
                     </select>
                   </div>
+
                   <div className="adm-form-field">
                     <label>ধর্ম</label>
                     <select value={admForm.religion} onChange={e => setAdmForm({ ...admForm, religion: e.target.value })}>
@@ -326,6 +495,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       <option value="খ্রিষ্টান">খ্রিষ্টান</option>
                     </select>
                   </div>
+
                   <div className="adm-form-field">
                     <label>রক্তের গ্রুপ</label>
                     <select value={admForm.blood_group} onChange={e => setAdmForm({ ...admForm, blood_group: e.target.value })}>
@@ -334,16 +504,23 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       ))}
                     </select>
                   </div>
+
                   <div className="adm-form-field full">
-                    <label>অনলাইন ডিজিটাল জন্ম নিবন্ধন নম্বর (১৭ ডিজিট) *</label>
+                    <label>ডিজিটাল জন্ম নিবন্ধন নম্বর (অনলাইন ভেরিফায়েড ১৭ ডিজিট) *</label>
                     <input
                       type="text"
-                      placeholder="অনলাইন ভেরিফায়েড ১৭ ডিজিট নম্বর"
+                      placeholder="১৭ ডিজিটের অনলাইন জন্ম নিবন্ধন নম্বর"
                       value={admForm.birth_registration_no}
                       onChange={e => setAdmForm({ ...admForm, birth_registration_no: e.target.value })}
                       required
                     />
                   </div>
+
+                  {/* Section 2: Parents & Guardian */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>২. পিতা, মাতা ও অভিভাবকের তথ্যাদি</h4>
+                  </div>
+
                   <div className="adm-form-field">
                     <label>পিতার নাম *</label>
                     <input
@@ -354,6 +531,17 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     />
                   </div>
+
+                  <div className="adm-form-field">
+                    <label>পিতার NID নম্বর</label>
+                    <input
+                      type="text"
+                      placeholder="১০/১৩/১৭ ডিজিট NID"
+                      value={admForm.father_nid}
+                      onChange={e => setAdmForm({ ...admForm, father_nid: e.target.value })}
+                    />
+                  </div>
+
                   <div className="adm-form-field">
                     <label>মাতার নাম *</label>
                     <input
@@ -364,6 +552,17 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     />
                   </div>
+
+                  <div className="adm-form-field">
+                    <label>মাতার NID নম্বর</label>
+                    <input
+                      type="text"
+                      placeholder="১০/১৩/১৭ ডিজিট NID"
+                      value={admForm.mother_nid}
+                      onChange={e => setAdmForm({ ...admForm, mother_nid: e.target.value })}
+                    />
+                  </div>
+
                   <div className="adm-form-field">
                     <label>অভিভাবকের নাম *</label>
                     <input
@@ -374,6 +573,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     />
                   </div>
+
                   <div className="adm-form-field">
                     <label>অভিভাবকের সচল মোবাইল নম্বর *</label>
                     <input
@@ -384,6 +584,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     />
                   </div>
+
                   <div className="adm-form-field full">
                     <label>বর্তমান ঠিকানা (গ্রাম, ডাকঘর, উপজেলা, জেলা) *</label>
                     <textarea
@@ -394,6 +595,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       required
                     ></textarea>
                   </div>
+
                   <div className="adm-form-field">
                     <label>পূর্ববর্তী বিদ্যালয়ের নাম</label>
                     <input
@@ -403,18 +605,160 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       onChange={e => setAdmForm({ ...admForm, previous_school: e.target.value })}
                     />
                   </div>
+
                   <div className="adm-form-field">
-                    <label>কোটা (যদি থাকে)</label>
-                    <select value={admForm.quota} onChange={e => setAdmForm({ ...admForm, quota: e.target.value })}>
-                      <option value="সাধারণ">সাধারণ</option>
-                      <option value="মুক্তিযোদ্ধা">মুক্তিযোদ্ধা কোটা</option>
-                      <option value="ক্ষুদ্র নৃগোষ্ঠী">ক্ষুদ্র নৃগোষ্ঠী</option>
-                      <option value="বিশেষ চাহিদা সম্পন্ন">বিশেষ চাহিদা সম্পন্ন</option>
-                    </select>
+                    <label>পূর্ববর্তী শ্রেণির ফলাফল / GPA</label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: ৫.০০ বা ৪.৮০"
+                      value={admForm.previous_gpa}
+                      onChange={e => setAdmForm({ ...admForm, previous_gpa: e.target.value })}
+                    />
                   </div>
-                  <div className="adm-form-field full" style={{ marginTop: '8px' }}>
-                    <button type="submit" className="adm-submit-btn" disabled={admSubmitting}>
-                      {admSubmitting ? 'আবেদন জমা হচ্ছে...' : '✓ অনলাইনে ভর্তি আবেদন জমা দিন'}
+
+                  {/* Section 3: Document Uploads & Scans */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>৩. প্রয়োজনীয় ডকুমেন্ট স্ক্যান ও আপলোড (Document Scans)</h4>
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📷 শিক্ষার্থীর পাসপোর্ট সাইজের রঙিন ছবি *</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={e => handleFileUpload('scanned_photo', e)}
+                    />
+                    {admForm.scanned_photo && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                        <img src={admForm.scanned_photo} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #047857' }} />
+                        <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>✓ ছবি সংযুক্ত হয়েছে</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📑 ডিজিটাল জন্ম নিবন্ধন সনদের স্ক্যান কপি *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_birth_cert', e)}
+                    />
+                    {admForm.scanned_birth_cert && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ জন্ম সনদ সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>📋 পূর্ববর্তী ক্লাসের মার্কশিট / ছাড়পত্র (TC) *</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_tc', e)}
+                    />
+                    {admForm.scanned_tc && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ ছাড়পত্র/মার্কশিট সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  <div className="adm-form-field">
+                    <label>🪪 পিতা বা মাতার NID ফটোকপি</label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={e => handleFileUpload('scanned_nid', e)}
+                    />
+                    {admForm.scanned_nid && (
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700, marginTop: '4px', display: 'block' }}>✓ এনআইডি কপি সংযুক্ত হয়েছে</span>
+                    )}
+                  </div>
+
+                  {/* Section 4: Online Fee Payment Gateway */}
+                  <div style={{ gridColumn: '1/-1', borderBottom: '1.5px solid #047857', paddingBottom: '4px', margin: '8px 0 2px' }}>
+                    <h4 style={{ margin: 0, color: '#047857', fontSize: '13.5px' }}>৪. অনলাইনে ভর্তি সংক্রান্ত ফি পরিশোধ (Online Payment Gateway)</h4>
+                  </div>
+
+                  <div style={{ gridColumn: '1/-1', background: '#ecfdf5', border: '1.5px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                      <div>
+                        <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>ভর্তি শ্রেণি অনুযায়ী নির্ধারিত প্রদেয় ফি:</span>
+                        <div style={{ fontSize: '18px', fontWeight: 900, color: '#047857' }}>
+                          সর্বমোট: {formatTk(admForm.payment_amount)}
+                        </div>
+                        <small style={{ color: '#475569' }}>(আবেদন ফরম ফি ৳ ২০০ + সেশন চার্জ ও শ্রেণি ফি {formatTk(admForm.payment_amount - 200)})</small>
+                      </div>
+
+                      {/* Payment Method Selector */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {[
+                          ['bkash', 'বিকাশ', '#e11d48'],
+                          ['nagad', 'নগদ', '#ea580c'],
+                          ['rocket', 'রকেট', '#7c3aed'],
+                          ['bank', 'ব্যাংক', '#0284c7']
+                        ].map(([mKey, mLabel, mColor]) => {
+                          const isSel = admForm.payment_method === mKey;
+                          return (
+                            <button
+                              key={mKey}
+                              type="button"
+                              onClick={() => setAdmForm({ ...admForm, payment_method: mKey })}
+                              style={{
+                                background: isSel ? mColor : '#ffffff',
+                                color: isSel ? '#ffffff' : '#334155',
+                                border: `1.5px solid ${mColor}`,
+                                padding: '6px 12px', borderRadius: '6px', fontWeight: 800,
+                                fontSize: '11.5px', cursor: 'pointer'
+                              }}
+                            >
+                              {mLabel}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#ffffff', borderRadius: '6px', padding: '10px 12px', fontSize: '11.5px', border: '1px solid #cbd5e1' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span><b>মার্চেন্ট/হিসাব নম্বর:</b> <code style={{ fontSize: '13px', color: '#047857', fontWeight: 800 }}>01711-998877</code> (বিকাশ/নগদ পেমেন্ট)</span>
+                        <span style={{ fontSize: '10.5px', color: '#64748b' }}>সোনালী ব্যাংক কালিহাতি শাখা: ১২৩৪৫৬৭৮৯০</span>
+                      </div>
+                      <p style={{ margin: 0, color: '#475569', fontSize: '11px', lineHeight: 1.45 }}>
+                        ১. আপনার মোবাইল অ্যাপ থেকে উল্লেখিত নম্বরে নির্ধারিত <b>{formatTk(admForm.payment_amount)}</b> টাকা পাঠান।<br/>
+                        ২. ফিরতি SMS-এ প্রাপ্ত Transaction ID (TrxID) এবং আপনার মোবাইল নম্বর নিচে এন্ট্রি করুন।
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>
+                          Transaction ID (TrxID) *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="যেমন: BK92837461 বা 9H34DF98"
+                          value={admForm.payment_trx_id}
+                          onChange={e => setAdmForm({ ...admForm, payment_trx_id: e.target.value, payment_verified: true })}
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #047857', fontSize: '12.5px', fontWeight: 700 }}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>
+                          যে মোবাইল থেকে ফি পাঠিয়েছেন *
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder="01XXXXXXXXX"
+                          value={admForm.payment_sender_mobile}
+                          onChange={e => setAdmForm({ ...admForm, payment_sender_mobile: e.target.value })}
+                          style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="adm-form-field full" style={{ marginTop: '10px' }}>
+                    <button type="submit" className="adm-submit-btn" disabled={admSubmitting} style={{ width: '100%', padding: '12px', fontSize: '14px', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' }}>
+                      {admSubmitting ? 'আবেদন ও ফি জমা হচ্ছে...' : '✓ অনলাইনে ভর্তি আবেদন ও ফি জমা দিন'}
                     </button>
                   </div>
                 </form>
@@ -433,7 +777,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 <div className="doc-item">
                   <div className="doc-num">১</div>
                   <div className="doc-info">
-                    <h4>অনলাইন পূরণকৃত আবেদনপত্রের প্রিন্ট কপি</h4>
+                    <h4>অনলাইন পূরণকৃত আবেদনপত্র ও ফি রসিদের প্রিন্ট কপি</h4>
                     <p>অনলাইনে ফরম পূরণের পর প্রিন্টকৃত অথবা ডাউনলোডকৃত আবেদন কপি (১ সেট)।</p>
                     <span className="doc-tag">প্রিন্ট কপি</span>
                   </div>
@@ -502,22 +846,23 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 📜 ২০২৬ শিক্ষাবর্ষের ভর্তি সংক্রান্ত নীতিমালা ও নির্দেশনা:
               </h4>
               <div className="rules-section" style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <ul className="bullet-list">
+                <ul className="bullet-list" style={{ lineHeight: 1.8 }}>
                   <li><b>বয়সসীমা:</b> ৬ষ্ঠ শ্রেণিতে ভর্তির ক্ষেত্রে সরকারি নীতিমালা অনুযায়ী সর্বনিম্ন ১১+ বছর বয়স হতে হবে।</li>
                   <li><b>আবেদন মাধ্যম:</b> অনলাইনে ঘরে বসে অথবা বিদ্যালয়ের ডিজিটাল সেবা কেন্দ্র থেকে ফরম পূরণ করা যাবে।</li>
-                  <li><b>ভর্তি নির্বাচন:</b> সরকারি নীতিমালা অনুযায়ী লটারি / একাডেমিক মূল্যায়নের মাধ্যমে চূড়ান্ত তালিকা প্রকাশ করা হবে।</li>
-                  <li><b>মোবাইল নোটিফিকেশন:</b> ফলাফল ও ভর্তির তারিখ অভিভাবকের প্রদত্ত সচল মোবাইল নম্বরে SMS-এ জানানো হবে।</li>
-                  <li><b>ভর্তি ফি:</b> সরকারি ও গভর্নিং বডি কর্তৃক নির্ধারিত সেশন চার্জ ও ফি পরিশোধ করে ভর্তি নিশ্চিত করতে হবে।</li>
+                  <li><b>ভর্তি মূল্যায়ন ও নির্বাচন:</b> প্রধান শিক্ষক মহোদয়ের নেতৃত্বাধীন ভর্তি কমিটি দ্বারা আবেদনপত্র যাচাই ও নির্বাচন সম্পন্ন হবে।</li>
+                  <li><b>অনলাইন ফি পরিশোধ:</b> নির্ধারিত ভর্তি ফরম ও সেশন ফি বিকাশ, নগদ, রকেট বা ব্যাংকের মাধ্যমে পরিশোধ করতে হবে।</li>
+                  <li><b>শ্রেণি শিক্ষকের ভূমিকা:</b> প্রধান শিক্ষকের চূড়ান্ত অনুমোদনের পর সংশ্লিষ্ট শ্রেণির শ্রেণি শিক্ষক শিক্ষার্থীকে রোল নম্বর ও শাখা বরাদ্দ করবেন।</li>
+                  <li><b>জরুরি হেল্পলাইন:</b> প্রধান শিক্ষক: ০১৭৭৭-XXXXXX, অফিস সহকারী: ০১৭২২-৩৪৫৬৭৮।</li>
                 </ul>
               </div>
             </div>
           )}
 
-          {/* TAB 4: Application Tracking & Receipt Reprint */}
+          {/* TAB 4: Application Tracking & Status */}
           {admTab === 'tracking' && (
             <div className="adm-tab-content">
               <h4 style={{ margin: '0 0 12px 0', color: '#0f172a', fontSize: '16px' }}>
-                🔍 আবেদন ট্র্যাকিং ও রসিদ পুনর্মুদ্রণ:
+                🔍 আবেদন ট্র্যাকিং ও রিয়েল-টাইম ভর্তি স্থিতি:
               </h4>
               <form onSubmit={handleTrackingSearch} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
                 <input
@@ -532,24 +877,94 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                 </button>
               </form>
               {trackingMsg && <p className="msg" style={{ color: '#dc2626' }}>{trackingMsg}</p>}
+
               {trackingResult && (
-                <div className="admission-slip">
-                  <span className="admission-slip-badge">✓ আবেদন বিদ্যমান</span>
-                  <h3 className="admission-slip-title">{trackingResult.applicant_name_bn}</h3>
-                  <div className="admission-app-no">আবেদন নং: {trackingResult.application_no}</div>
-                  <p style={{ margin: '4px 0 10px', fontSize: '13px', color: '#475569' }}>
-                    শ্রেণি: <b>{trackingResult.applied_class}</b> • শিক্ষাবর্ষ: <b>{trackingResult.academic_year}</b>
-                  </p>
+                <div className="admission-slip" style={{ border: '2px solid #0284c7', background: '#f0f9ff', padding: '20px', borderRadius: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 2px', color: '#0369a1', fontSize: '18px' }}>{trackingResult.applicant_name_bn}</h3>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 800, color: '#047857', fontSize: '14px' }}>
+                        আবেদন নং: {trackingResult.application_no}
+                      </div>
+                    </div>
+                    <span style={{
+                      background: trackingResult.status === 'admitted' ? '#047857' : trackingResult.status === 'head_approved' ? '#0284c7' : '#f59e0b',
+                      color: '#fff', padding: '5px 14px', borderRadius: '15px', fontWeight: 800, fontSize: '12px'
+                    }}>
+                      {trackingResult.status === 'admitted' ? '🎓 চূড়ান্ত ভর্তি সম্পন্ন' : trackingResult.status === 'head_approved' ? '✓ প্রধান শিক্ষক অনুমোদিত' : '⏳ নিরীক্ষাধীন'}
+                    </span>
+                  </div>
+
+                  {/* 4-Step Progress Tracker */}
+                  <div style={{ background: '#fff', borderRadius: '8px', padding: '14px', border: '1px solid #bae6fd', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginBottom: '8px', textTransform: 'uppercase' }}>ভর্তি প্রক্রিয়ার অগ্রগতি স্থিতি:</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', textAlign: 'center', fontSize: '11px' }}>
+                      <div style={{ background: '#dcfce7', color: '#166534', padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #86efac' }}>
+                        ১. আবেদন ও ফি জমা<br/>✓ সম্পন্ন
+                      </div>
+                      <div style={{
+                        background: ['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '#dcfce7' : '#fef3c7',
+                        color: ['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '#166534' : '#92400e',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ২. প্রধান শিক্ষকের অনুমোদন<br/>{['head_approved', 'selected', 'admitted'].includes(trackingResult.status) ? '✓ অনুমোদিত' : '⏳ চলমান'}
+                      </div>
+                      <div style={{
+                        background: trackingResult.status === 'admitted' ? '#dcfce7' : '#f8fafc',
+                        color: trackingResult.status === 'admitted' ? '#166534' : '#64748b',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ৩. শ্রেণি শিক্ষক রোল বরাদ্দ<br/>{trackingResult.status === 'admitted' ? '✓ সম্পন্ন' : 'অপেক্ষমাণ'}
+                      </div>
+                      <div style={{
+                        background: trackingResult.status === 'admitted' ? '#dcfce7' : '#f8fafc',
+                        color: trackingResult.status === 'admitted' ? '#166534' : '#64748b',
+                        padding: '6px', borderRadius: '6px', fontWeight: 700, border: '1px solid #cbd5e1'
+                      }}>
+                        ৪. আইডি ও ক্লাসে অন্তর্ভুক্তি<br/>{trackingResult.status === 'admitted' ? '✓ সক্রিয়' : 'অপেক্ষমাণ'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* If Admitted, Celebrate with Class & Roll */}
+                  {trackingResult.status === 'admitted' && (
+                    <div style={{ background: '#dcfce7', border: '2px solid #22c55e', borderRadius: '8px', padding: '14px', marginBottom: '14px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '28px' }}>🎉</span>
+                      <h4 style={{ margin: '4px 0', fontSize: '17px', color: '#15803d', fontWeight: 900 }}>
+                        অভিনন্দন! আপনার ভর্তি সফলভাবে চূড়ান্ত সম্পন্ন হয়েছে!
+                      </h4>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>শ্রেণি</span>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#15803d' }}>{toBn(trackingResult.applied_class)}ম শ্রেণি</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>বরাদ্দকৃত রোল</span>
+                          <div style={{ fontSize: '18px', fontWeight: 900, color: '#047857' }}>{toBn(trackingResult.enrolled_roll_no || 1)}</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>শাখা</span>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#15803d' }}>{trackingResult.enrolled_section || 'পদ্মা'}</div>
+                        </div>
+                        <div style={{ background: '#fff', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b' }}>স্টুডেন্ট আইডি</span>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', fontFamily: 'monospace' }}>{trackingResult.enrolled_student_id || 'MPUHS-2026-601'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="admission-slip-details">
                     <div><b>পিতা/অভিভাবক:</b> {trackingResult.guardian_name || trackingResult.father_name}</div>
                     <div><b>মোবাইল:</b> {trackingResult.guardian_phone}</div>
                     <div><b>জন্ম তারিখ:</b> {trackingResult.date_of_birth || '—'}</div>
-                    <div><b>আবেদনের তারিখ:</b> {trackingResult.application_date}</div>
+                    <div><b>অনলাইন ফি:</b> <span style={{ color: '#047857', fontWeight: 700 }}>পরিশোধিত (TrxID: {trackingResult.payment_trx_id || 'TRX-OK'})</span></div>
                     <div style={{ gridColumn: '1/-1' }}><b>ঠিকানা:</b> {trackingResult.address || '—'}</div>
                   </div>
+
                   <div className="admission-slip-actions">
                     <button type="button" className="adm-submit-btn" onClick={() => window.print()}>
-                      🖨️ আবেদনপত্র ও রসিদ প্রিন্ট করুন
+                      🖨️ ভর্তি প্রত্যয়নপত্র ও রসিদ প্রিন্ট করুন
                     </button>
                   </div>
                 </div>
@@ -559,7 +974,6 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         </div>
       );
     }
-
     // 1. Leadership Speeches (President, Head Teacher, Assistant Head Teacher)
     if (menuKey.startsWith('public.nav.leadership') || title.includes('বাণী') || menuKey === 'public.nav.institution.message') {
       const leaderData = getLeadershipData();
