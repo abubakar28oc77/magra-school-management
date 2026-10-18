@@ -1140,19 +1140,22 @@ const MOTHER_PROFESSIONS = [
 
 function getStudentGroupPriority(s) {
   if (!s) return 99;
-  const g = [
-    s.department,
-    s.group_name,
-    s.group,
-    s.section,
-    s.student_id,
-    s.id
-  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+  const sid = String(s.student_id || s.id || '').toUpperCase();
+  if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) return 2;
+  if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) return 3;
+  if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) return 1;
 
-  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 1;
-  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 2;
-  if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) return 3;
-  return 4;
+  const dept = String(s.department || '').trim().toLowerCase();
+  if (dept.includes('মানবিক') || dept.includes('humanities') || dept.includes('arts')) return 2;
+  if (dept.includes('ব্যবসা') || dept.includes('ব্যবসায়') || dept.includes('ব্যবসায়') || dept.includes('বাণিজ্য') || dept.includes('business') || dept.includes('commerce') || dept === 'bs') return 3;
+  if (dept.includes('বিজ্ঞান') || dept.includes('science') || dept === 'sci') return 1;
+
+  const grp = String(s.group_name || s.group || s.section || '').trim().toLowerCase();
+  if (grp.includes('মানবিক') || grp.includes('humanities') || grp.includes('arts')) return 2;
+  if (grp.includes('ব্যবসা') || grp.includes('ব্যবসায়') || grp.includes('ব্যবসায়') || grp.includes('বাণিজ্য') || grp.includes('business') || grp.includes('commerce') || grp === 'bs') return 3;
+  if (grp.includes('বিজ্ঞান') || grp.includes('science') || grp === 'sci') return 1;
+
+  return 1;
 }
 
 function sortStudentsList(list) {

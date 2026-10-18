@@ -18,19 +18,22 @@ export function parseNum(val, fallback = 99999) {
 
 export function getStudentGroupPriority(s) {
   if (!s) return 99;
-  const g = [
-    s.department,
-    s.group_name,
-    s.group,
-    s.section,
-    s.student_id,
-    s.id
-  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+  const sid = String(s.student_id || s.id || '').toUpperCase();
+  if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) return 2;
+  if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) return 3;
+  if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) return 1;
 
-  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 1;
-  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 2;
-  if (g.includes('ব্যবসা') || g.includes('ব্যবসায়') || g.includes('ব্যবসায়') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce') || g.includes('bs')) return 3;
-  return 4;
+  const dept = String(s.department || '').trim().toLowerCase();
+  if (dept.includes('মানবিক') || dept.includes('humanities') || dept.includes('arts')) return 2;
+  if (dept.includes('ব্যবসা') || dept.includes('ব্যবসায়') || dept.includes('ব্যবসায়') || dept.includes('বাণিজ্য') || dept.includes('business') || dept.includes('commerce') || dept === 'bs') return 3;
+  if (dept.includes('বিজ্ঞান') || dept.includes('science') || dept === 'sci') return 1;
+
+  const grp = String(s.group_name || s.group || s.section || '').trim().toLowerCase();
+  if (grp.includes('মানবিক') || grp.includes('humanities') || grp.includes('arts')) return 2;
+  if (grp.includes('ব্যবসা') || grp.includes('ব্যবসায়') || grp.includes('ব্যবসায়') || grp.includes('বাণিজ্য') || grp.includes('business') || grp.includes('commerce') || grp === 'bs') return 3;
+  if (grp.includes('বিজ্ঞান') || grp.includes('science') || grp === 'sci') return 1;
+
+  return 1;
 }
 
 const DEFAULT_STUDENT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 115'%3E%3Cdefs%3E%3ClinearGradient id='bgA' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23e0f2fe'/%3E%3Cstop offset='100%25' stop-color='%23bae6fd'/%3E%3C/linearGradient%3E%3ClinearGradient id='skinA' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23fed7aa'/%3E%3Cstop offset='100%25' stop-color='%23fba96b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='115' fill='url(%23bgA)'/%3E%3Ccircle cx='50' cy='42' r='24' fill='url(%23skinA)'/%3E%3Cpath d='M26 36 C26 14 74 14 74 36 C74 18 64 8 50 8 C36 8 26 18 26 36 Z' fill='%231e293b'/%3E%3Ccircle cx='42' cy='40' r='2.5' fill='%230f172a'/%3E%3Ccircle cx='58' cy='40' r='2.5' fill='%230f172a'/%3E%3Cpath d='M44 52 Q50 57 56 52' stroke='%23b45309' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3Cpath d='M14 115 C14 82 28 72 50 72 C72 72 86 82 86 115 Z' fill='%230369a1'/%3E%3Cpath d='M40 72 L50 96 L60 72 Z' fill='%23ffffff'/%3E%3Cpolygon points='50,78 45,83 55,83' fill='%230284c7'/%3E%3C/svg%3E";

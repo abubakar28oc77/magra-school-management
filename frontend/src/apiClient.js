@@ -190,15 +190,55 @@ export function enrichStudentProfile(s) {
   ].filter(Boolean);
   const defaultAddress = addressParts.length ? addressParts.join(', ') : (s.address || '');
 
+  const c = s.class_name ? String(s.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '10';
+  const isSSC = ['9', '10'].includes(c);
+
+  let canonicalDept = 'সাধারণ';
+  let canonicalGroup = 'সাধারণ';
+
+  if (isSSC) {
+    const sid = String(s.student_id || s.id || '').toUpperCase();
+    if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) {
+      canonicalDept = 'মানবিক';
+    } else if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) {
+      canonicalDept = 'ব্যবসায় শিক্ষা';
+    } else if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) {
+      canonicalDept = 'বিজ্ঞান';
+    } else {
+      const explicitDept = String(s.department || '').trim().toLowerCase();
+      if (explicitDept.includes('মানবিক') || explicitDept.includes('humanities') || explicitDept.includes('arts')) {
+        canonicalDept = 'মানবিক';
+      } else if (explicitDept.includes('ব্যবসা') || explicitDept.includes('ব্যবসায়') || explicitDept.includes('ব্যবসায়') || explicitDept.includes('বাণিজ্য') || explicitDept.includes('business') || explicitDept.includes('commerce') || explicitDept === 'bs') {
+        canonicalDept = 'ব্যবসায় শিক্ষা';
+      } else if (explicitDept.includes('বিজ্ঞান') || explicitDept.includes('science') || explicitDept === 'sci') {
+        canonicalDept = 'বিজ্ঞান';
+      } else {
+        const grp = String(s.group_name || s.group || s.section || '').trim().toLowerCase();
+        if (grp.includes('মানবিক') || grp.includes('humanities') || grp.includes('arts')) {
+          canonicalDept = 'মানবিক';
+        } else if (grp.includes('ব্যবসা') || grp.includes('ব্যবসায়') || grp.includes('ব্যবসায়') || grp.includes('বাণিজ্য') || grp.includes('business') || grp.includes('commerce') || grp === 'bs') {
+          canonicalDept = 'ব্যবসায় শিক্ষা';
+        } else {
+          canonicalDept = 'বিজ্ঞান';
+        }
+      }
+    }
+    canonicalGroup = canonicalDept === 'বিজ্ঞান' ? 'বিজ্ঞান বিভাগ' : canonicalDept === 'মানবিক' ? 'মানবিক বিভাগ' : 'ব্যবসায় শিক্ষা শাখা';
+  }
+
+  const cleanSection = isSSC
+    ? canonicalGroup
+    : (s.section && !['বিজ্ঞান', 'মানবিক', 'ব্যবসায়'].some(d => String(s.section).includes(d)) ? s.section : 'ক');
+
   return {
     ...s,
     name_bn: s.name_bn || '',
     name_en: s.name_en || '',
-    class_name: s.class_name || '10',
-    department: s.department || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান' : 'সাধারণ'),
-    group_name: s.group_name || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
-    group: s.group || (['9','10','৯','১০'].includes(String(s.class_name)) ? 'বিজ্ঞান বিভাগ' : 'সাধারণ'),
-    section: s.section || (s.department ? `${s.department} বিভাগ` : 'A'),
+    class_name: c,
+    department: canonicalDept,
+    group_name: canonicalGroup,
+    group: canonicalGroup,
+    section: cleanSection,
     gender: s.gender || 'পুরুষ',
     father_name: s.father_name || '',
     father_name_en: s.father_name_en || '',
@@ -234,12 +274,16 @@ export function enrichStudentProfile(s) {
 try {
   const rawSt = localStorage.getItem('magra_db_students');
   if (!rawSt) {
-    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+    localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS.map(enrichStudentProfile)));
   } else {
     try {
       const parsed = JSON.parse(rawSt);
       if (!Array.isArray(parsed) || parsed.length === 0) {
-        localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+        localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS.map(enrichStudentProfile)));
+      } else {
+        // Heal any corrupted student departments in localStorage
+        const healed = parsed.map(enrichStudentProfile);
+        localStorage.setItem('magra_db_students', JSON.stringify(healed));
       }
     } catch {}
   }

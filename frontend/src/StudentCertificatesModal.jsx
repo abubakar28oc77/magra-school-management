@@ -9,11 +9,22 @@ export const toBengaliDigits = (num) => {
 };
 
 export function getDepartmentLabel(s) {
-  const g = [s?.department, s?.group_name, s?.group, s?.section, s?.student_id]
-    .filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
-  if (g.includes('বিজ্ঞান') || g.includes('science') || g.includes('sci')) return 'বিজ্ঞান বিভাগ';
-  if (g.includes('মানবিক') || g.includes('humanities') || g.includes('hum') || g.includes('arts')) return 'মানবিক বিভাগ';
-  if (g.includes('ব্যবসা') || g.includes('বাণিজ্য') || g.includes('business') || g.includes('commerce')) return 'ব্যবসায় শিক্ষা শাখা';
+  if (!s) return 'সাধারণ';
+  const sid = String(s.student_id || s.id || '').toUpperCase();
+  if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) return 'মানবিক বিভাগ';
+  if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) return 'ব্যবসায় শিক্ষা শাখা';
+  if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) return 'বিজ্ঞান বিভাগ';
+
+  const dept = String(s.department || '').trim().toLowerCase();
+  if (dept.includes('মানবিক') || dept.includes('humanities') || dept.includes('arts')) return 'মানবিক বিভাগ';
+  if (dept.includes('ব্যবসা') || dept.includes('বাণিজ্য') || dept.includes('business') || dept.includes('commerce') || dept === 'bs') return 'ব্যবসায় শিক্ষা শাখা';
+  if (dept.includes('বিজ্ঞান') || dept.includes('science') || dept === 'sci') return 'বিজ্ঞান বিভাগ';
+
+  const grp = String(s.group_name || s.group || s.section || '').trim().toLowerCase();
+  if (grp.includes('মানবিক') || grp.includes('humanities') || grp.includes('arts')) return 'মানবিক বিভাগ';
+  if (grp.includes('ব্যবসা') || grp.includes('বাণিজ্য') || grp.includes('business') || grp.includes('commerce') || grp === 'bs') return 'ব্যবসায় শিক্ষা শাখা';
+  if (grp.includes('বিজ্ঞান') || grp.includes('science') || grp === 'sci') return 'বিজ্ঞান বিভাগ';
+
   return s?.department || s?.group_name || 'সাধারণ';
 }
 

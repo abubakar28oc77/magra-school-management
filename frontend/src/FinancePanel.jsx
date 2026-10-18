@@ -35,19 +35,48 @@ export const normalizeClass = (val) => {
 
 export const getStudentDepartment = (s) => {
   if (!s) return 'সাধারণ';
-  const txt = [
-    s.department,
-    s.group_name,
-    s.group,
-    s.section,
-    s.student_id
-  ].filter(Boolean).map(x => String(x).toLowerCase()).join(' ');
+  const c = normalizeClass(s.class_name);
+  if (c !== '9' && c !== '10') return 'সাধারণ';
 
-  if (txt.includes('বিজ্ঞান') || txt.includes('science') || txt.includes('sci')) return 'বিজ্ঞান';
-  if (txt.includes('মানবিক') || txt.includes('humanities') || txt.includes('hum') || txt.includes('arts')) return 'মানবিক';
-  if (txt.includes('ব্যবসা') || txt.includes('ব্যবসায়') || txt.includes('ব্যবসায়') || txt.includes('বাণিজ্য') || txt.includes('business') || txt.includes('commerce') || txt.includes('bs')) return 'ব্যবসায় শিক্ষা';
-  return 'সাধারণ';
+  // 1. Authoritative check via student_id or id prefix
+  const sid = String(s.student_id || s.id || '').toUpperCase();
+  if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) {
+    return 'মানবিক';
+  }
+  if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) {
+    return 'ব্যবসায় শিক্ষা';
+  }
+  if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) {
+    return 'বিজ্ঞান';
+  }
+
+  // 2. Explicit department property
+  const dept = String(s.department || '').trim().toLowerCase();
+  if (dept.includes('মানবিক') || dept.includes('humanities') || dept.includes('arts')) {
+    return 'মানবিক';
+  }
+  if (dept.includes('ব্যবসা') || dept.includes('ব্যবসায়') || dept.includes('ব্যবসায়') || dept.includes('বাণিজ্য') || dept.includes('business') || dept.includes('commerce') || dept === 'bs') {
+    return 'ব্যবসায় শিক্ষা';
+  }
+  if (dept.includes('বিজ্ঞান') || dept.includes('science') || dept === 'sci') {
+    return 'বিজ্ঞান';
+  }
+
+  // 3. Fallback to group_name, group, section
+  const grp = String(s.group_name || s.group || s.section || '').trim().toLowerCase();
+  if (grp.includes('মানবিক') || grp.includes('humanities') || grp.includes('arts')) {
+    return 'মানবিক';
+  }
+  if (grp.includes('ব্যবসা') || grp.includes('ব্যবসায়') || grp.includes('ব্যবসায়') || grp.includes('বাণিজ্য') || grp.includes('business') || grp.includes('commerce') || grp === 'bs') {
+    return 'ব্যবসায় শিক্ষা';
+  }
+  if (grp.includes('বিজ্ঞান') || grp.includes('science') || grp === 'sci') {
+    return 'বিজ্ঞান';
+  }
+
+  return 'বিজ্ঞান';
 };
+
 
 export const formatDateBn = (dateStr) => {
   if (!dateStr) return '—';
@@ -643,16 +672,55 @@ export function FinancePanel({ sub }) {
     }
   });
 
-  // Students list from DB or mock
+  // Students list from DB or mock with automatic healing of department/group
   const students = useMemo(() => {
+    let list = null;
     try {
       const raw = localStorage.getItem('magra_db_students');
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
+        if (Array.isArray(parsed) && parsed.length) list = parsed;
       }
     } catch {}
-    return MOCK_STUDENTS;
+    if (!list) list = MOCK_STUDENTS;
+
+    let changed = false;
+    const healed = list.map(s => {
+      if (!s) return s;
+      const c = normalizeClass(s.class_name);
+      if (c === '9' || c === '10') {
+        const dept = getStudentDepartment(s);
+        const grpName = dept === 'বিজ্ঞান' ? 'বিজ্ঞান বিভাগ' : dept === 'মানবিক' ? 'মানবিক বিভাগ' : 'ব্যবসায় শিক্ষা শাখা';
+        if (s.department !== dept || s.group !== grpName || s.group_name !== grpName) {
+          changed = true;
+          return {
+            ...s,
+            department: dept,
+            group: grpName,
+            group_name: grpName,
+            section: s.section && ['বিজ্ঞান বিভাগ', 'মানবিক বিভাগ', 'ব্যবসায় শিক্ষা শাখা'].includes(s.section) ? grpName : (s.section || grpName)
+          };
+        }
+      } else {
+        if (s.department !== 'সাধারণ' || s.group !== 'সাধারণ') {
+          changed = true;
+          return {
+            ...s,
+            department: 'সাধারণ',
+            group: 'সাধারণ',
+            group_name: 'সাধারণ'
+          };
+        }
+      }
+      return s;
+    });
+
+    if (changed) {
+      try {
+        localStorage.setItem('magra_db_students', JSON.stringify(healed));
+      } catch {}
+    }
+    return healed;
   }, []);
 
   // Save changes to localStorage
@@ -677,31 +745,32 @@ export function FinancePanel({ sub }) {
   // ==========================================
   // Default to Class 8 as requested
   const [selectedClass, setSelectedClass] = useState('8');
-  // Group selection for Class 9 and 10
-  const [selectedGroup, setSelectedGroup] = useState('all');
+  // Group selection for Class 9 and 10 ('science' | 'humanities' | 'business')
+  const [selectedGroup, setSelectedGroup] = useState('science');
   // Roll number input for search
   const [searchRoll, setSearchRoll] = useState('1');
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [searchFeedback, setSearchFeedback] = useState(null);
 
   // Filtered and roll-sorted students for selected class and group
+  // Strictly according to user requirement:
+  // Class 6 to 8: strictly by Class & Roll (Roll 1, 2, 3...)
+  // Class 9 & 10: strictly by Class, Science (বিজ্ঞান বিভাগ), Humanities (মানবিক বিভাগ), Business (ব্যবসায় শিক্ষা) and Roll!
   const classStudents = useMemo(() => {
-    let list = (students || []).filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass));
-    if (selectedClass === '9' || selectedClass === '10') {
-      if (selectedGroup !== 'all') {
-        list = list.filter(s => {
-          const dept = getStudentDepartment(s);
-          if (selectedGroup === 'science' || selectedGroup === 'বিজ্ঞান') return dept === 'বিজ্ঞান';
-          if (selectedGroup === 'humanities' || selectedGroup === 'মানবিক') return dept === 'মানবিক';
-          if (selectedGroup === 'business' || selectedGroup === 'ব্যবসা' || selectedGroup === 'ব্যবসায় শিক্ষা') return dept === 'ব্যবসায় শিক্ষা';
-          return true;
-        });
-      }
+    const normC = normalizeClass(selectedClass);
+    let list = (students || []).filter(s => normalizeClass(s.class_name) === normC);
+
+    if (normC === '9' || normC === '10') {
+      const activeDept = (selectedGroup === 'humanities' || selectedGroup === 'মানবিক') ? 'মানবিক' :
+                         (selectedGroup === 'business' || selectedGroup === 'ব্যবসা' || selectedGroup === 'ব্যবসায় শিক্ষা') ? 'ব্যবসায় শিক্ষা' : 'বিজ্ঞান';
+      list = list.filter(s => getStudentDepartment(s) === activeDept);
     }
+
     return [...list].sort((a, b) => {
       const ra = parseRollNumber(a.roll_no) ?? 9999;
       const rb = parseRollNumber(b.roll_no) ?? 9999;
-      return ra - rb;
+      if (ra !== rb) return ra - rb;
+      return String(a.student_id || a.name_bn || '').localeCompare(String(b.student_id || b.name_bn || ''));
     });
   }, [students, selectedClass, selectedGroup]);
 
@@ -729,7 +798,7 @@ export function FinancePanel({ sub }) {
     return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || classStudents[0] || null;
   }, [students, selectedStudentId, classStudents]);
 
-  // Handle Search Student by Roll Number (Exact & Multi-stream)
+  // Handle Search Student by Roll Number (Strict per department in 9-10 and class in 6-8)
   const handleSearchStudent = (customRoll = null) => {
     const query = customRoll !== null ? customRoll : searchRoll;
     const targetRoll = parseRollNumber(query);
@@ -742,7 +811,7 @@ export function FinancePanel({ sub }) {
       return;
     }
 
-    // 1. Search in current classStudents
+    // 1. Search in current classStudents (strictly in active class & department)
     const found = classStudents.find(s => parseRollNumber(s.roll_no) === targetRoll);
     if (found) {
       setSelectedStudentId(found.id || found.student_id);
@@ -754,26 +823,11 @@ export function FinancePanel({ sub }) {
       return;
     }
 
-    // 2. If not found in current group, search across entire selected class
-    const inEntireClass = students.filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass))
-      .find(s => parseRollNumber(s.roll_no) === targetRoll);
-    if (inEntireClass) {
-      setSelectedGroup('all');
-      setSelectedStudentId(inEntireClass.id || inEntireClass.student_id);
-      setSearchRoll(String(inEntireClass.roll_no));
-      setSearchFeedback({
-        type: 'success',
-        text: `✅ পাওয়া গেছে: ${inEntireClass.name_bn} (রোল: ${toBnDigits(inEntireClass.roll_no)}, শ্রেণি: ${toBnDigits(inEntireClass.class_name)}${inEntireClass.group ? ` • ${inEntireClass.group}` : ''})`
-      });
-      return;
-    }
-
-    // 3. Fallback: search by student_id or name
-    const fuzzy = students.filter(s => normalizeClass(s.class_name) === normalizeClass(selectedClass))
-      .find(s => 
-        String(s.student_id || '').toLowerCase() === String(query).trim().toLowerCase() ||
-        String(s.name_bn || '').includes(String(query).trim())
-      );
+    // 2. Fallback: search by student_id or name in current classStudents
+    const fuzzy = classStudents.find(s => 
+      String(s.student_id || '').toLowerCase() === String(query).trim().toLowerCase() ||
+      String(s.name_bn || '').includes(String(query).trim())
+    );
     if (fuzzy) {
       setSelectedStudentId(fuzzy.id || fuzzy.student_id);
       setSearchRoll(String(fuzzy.roll_no));
@@ -784,9 +838,11 @@ export function FinancePanel({ sub }) {
       return;
     }
 
+    const isSSC = selectedClass === '9' || selectedClass === '10';
+    const deptLabel = isSSC ? (selectedGroup === 'humanities' ? 'মানবিক বিভাগে ' : selectedGroup === 'business' ? 'ব্যবসায় শিক্ষা শাখায় ' : 'বিজ্ঞান বিভাগে ') : '';
     setSearchFeedback({
       type: 'error',
-      text: `⚠️ শ্রেণি ${toBnDigits(selectedClass)}${selectedGroup !== 'all' ? ` (${selectedGroup} বিভাগ)` : ''}-এ রোল ${toBnDigits(query)} এর কোনো শিক্ষার্থী পাওয়া যায়নি। তালিকা থেকে নির্বাচন করুন।`
+      text: `⚠️ শ্রেণি ${toBnDigits(selectedClass)}-এর ${deptLabel}রোল ${toBnDigits(query)} এর কোনো শিক্ষার্থী পাওয়া যায়নি। তালিকা থেকে নির্বাচন করুন।`
     });
   };
 
@@ -829,8 +885,8 @@ export function FinancePanel({ sub }) {
   // Current month default
   const currentMonthIndex = new Date().getMonth(); // 0 = Jan
 
-  // Selected Months for Monthly Tuition Fee
-  const [selectedMonths, setSelectedMonths] = useState(() => [MONTHS_LIST[currentMonthIndex]]);
+  // Selected Months for Monthly Tuition Fee - DEFAULT UNSELECTED AS REQUESTED (Issue 3)
+  const [selectedMonths, setSelectedMonths] = useState([]);
 
   // Monthly Tuition Rate (Class based or custom)
   const [monthlyRate, setMonthlyRate] = useState(200);
@@ -1227,10 +1283,16 @@ export function FinancePanel({ sub }) {
       const teacherName = r.class_teacher_name || slipTeacher?.teacher_name || r.received_by || 'শ্রেণি শিক্ষক';
       const teacherTitle = r.class_teacher_designation || `শ্রেণি শিক্ষক (${slipTeacher?.class_name || `${toBnDigits(r.class_name)}ম শ্রেণি`})`;
 
+      const isSSC = ['9', '10'].includes(String(r.class_name));
+      const studentDept = isSSC ? (r.group || (getStudentDepartment ? getStudentDepartment(r) : 'বিজ্ঞান বিভাগ')) : 'সাধারণ';
+      const formattedGroup = isSSC 
+        ? (studentDept.includes('বিভাগ') || studentDept.includes('শাখা') ? studentDept : `${studentDept} বিভাগ`)
+        : (r.section ? `${r.section} শাখা` : 'সাধারণ');
+
       return `
         <div class="receipt-slip">
           <div class="slip-content-top">
-            <!-- Header -->
+            <!-- Header: School Name, Monogram & Address -->
             <div class="slip-header">
               <img src="${schoolLogo}" class="slip-logo" alt="Logo" />
               <div class="slip-header-titles">
@@ -1242,32 +1304,34 @@ export function FinancePanel({ sub }) {
 
             <div class="slip-green-line"></div>
 
-            <!-- Title Pill Banner -->
+            <!-- Title Pill Banner: একটু স্পেস দিয়ে মানি রিসিট -->
             <div class="slip-title-pill">
               <span>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</span>
             </div>
 
-            <!-- Metadata Box -->
+            <!-- Metadata Box: তার নিচে একটু স্পেস দিয়ে শিক্ষার্থীর তিনলাইনের পরিচয় -->
             <div class="slip-meta-card">
-              <div class="meta-col-left">
-                <div><b>রশিদ নম্বর:</b> <span class="meta-mono">${r.receipt_no}</span></div>
-                <div><b>শিক্ষার্থীর নাম:</b> <span style="font-weight: 700; color: #0f172a;">${r.student_name}</span></div>
-                <div><b>শ্রেণি:</b> ${toBnDigits(r.class_name)}ম • <b>শাখা/গ্রুপ:</b> ${r.group || (r.section ? `শাখা: ${r.section}` : 'বিজ্ঞান বিভাগ')}</div>
+              <div class="meta-row">
+                <div class="meta-left"><b>রশিদ নম্বর:</b> <span class="meta-mono">${r.receipt_no}</span></div>
+                <div class="meta-right"><b>তারিখ:</b> ${formatDateBn(r.date)} খ্রি.</div>
               </div>
-              <div class="meta-col-right">
-                <div><b>তারিখ:</b> ${formatDateBn(r.date)} খ্রি.</div>
-                <div><b>Student ID:</b> <span class="meta-mono">${r.student_id}</span></div>
-                <div><b>রোল নম্বর:</b> <span style="font-weight: 700;">${toBnDigits(r.roll_no)}</span></div>
+              <div class="meta-row">
+                <div class="meta-left"><b>শিক্ষার্থীর নাম:</b> <span class="meta-student-name">${r.student_name}</span></div>
+                <div class="meta-right"><b>Student ID:</b> <span class="meta-mono">${r.student_id}</span></div>
+              </div>
+              <div class="meta-row">
+                <div class="meta-left"><b>শ্রেণি:</b> ${toBnDigits(r.class_name)}ম • <b>শাখা/বিভাগ:</b> ${formattedGroup}</div>
+                <div class="meta-right"><b>রোল নম্বর:</b> <span class="meta-roll">${toBnDigits(r.roll_no)}</span></div>
               </div>
             </div>
 
-            <!-- Fee Table -->
+            <!-- Fee Table: তার নিচে একটু স্পেস দিয়ে ফি এর বিবরণ লেখার ব্যবস্থা -->
             <table class="slip-table">
               <thead>
                 <tr>
-                  <th style="width: 30px; text-align: center;">ক্র.</th>
+                  <th style="width: 35px; text-align: center;">ক্র.</th>
                   <th style="text-align: left;">ফি-এর বিবরণ / খাত</th>
-                  <th style="width: 95px; text-align: right;">পরিমাণ</th>
+                  <th style="width: 105px; text-align: right;">পরিমাণ</th>
                 </tr>
               </thead>
               <tbody>
@@ -1276,7 +1340,7 @@ export function FinancePanel({ sub }) {
                     <td style="text-align: center;">${toBnDigits(idx + 1)}</td>
                     <td>
                       <b>${it.name}</b>
-                      ${it.note ? `<small style="display:block;color:#64748b;font-size:9.5px">${it.note}</small>` : ''}
+                      ${it.note ? `<small style="display:block;color:#64748b;font-size:10px;margin-top:2px;">${it.note}</small>` : ''}
                     </td>
                     <td style="text-align: right; font-weight: 700;">${formatMoney(it.amount)}</td>
                   </tr>
@@ -1312,7 +1376,7 @@ export function FinancePanel({ sub }) {
             </div>
           </div>
 
-          <!-- Signatures -->
+          <!-- Signatures Section -->
           <div class="slip-signatures">
             <div class="sig-col">
               <div class="sig-line"></div>
@@ -1340,7 +1404,7 @@ export function FinancePanel({ sub }) {
         <style>
           @page {
             size: A4 landscape;
-            margin: 7mm 7mm 6mm 7mm;
+            margin: 6mm 7mm 6mm 7mm;
           }
           *, *::before, *::after {
             box-sizing: border-box;
@@ -1354,7 +1418,7 @@ export function FinancePanel({ sub }) {
             background: #ffffff;
             color: #0f172a;
             font-family: 'SolaimanLipi', 'Nikosh', 'Kalpurush', Arial, sans-serif;
-            font-size: 11px;
+            font-size: 11.5px;
             -webkit-font-smoothing: antialiased;
           }
           .dual-container {
@@ -1369,9 +1433,9 @@ export function FinancePanel({ sub }) {
           .receipt-slip {
             flex: 1;
             width: calc(50% - 9px);
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 10px 14px 12px;
+            border: 1.2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 14px 18px 16px;
             background: #ffffff;
             display: flex;
             flex-direction: column;
@@ -1385,12 +1449,12 @@ export function FinancePanel({ sub }) {
           .slip-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 4px;
+            gap: 14px;
+            margin-bottom: 6px;
           }
           .slip-logo {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             object-fit: contain;
             flex-shrink: 0;
           }
@@ -1400,58 +1464,64 @@ export function FinancePanel({ sub }) {
           }
           .slip-header-titles h2 {
             margin: 0;
-            font-size: 18.5px;
+            font-size: 20px;
             font-weight: 800;
             color: #047857;
             line-height: 1.2;
           }
           .slip-header-titles h4 {
-            margin: 2px 0 0;
-            font-size: 11px;
+            margin: 3px 0 0;
+            font-size: 11.5px;
             font-weight: 700;
             color: #1e293b;
             line-height: 1.2;
           }
           .slip-header-titles p {
-            margin: 2px 0 0;
-            font-size: 10px;
+            margin: 3px 0 0;
+            font-size: 10.5px;
             font-weight: 600;
             color: #b91c1c;
             line-height: 1.2;
           }
           .slip-green-line {
-            border-bottom: 2px solid #059669;
-            margin: 5px 0 7px;
+            border-bottom: 2.5px solid #059669;
+            margin: 8px 0 14px;
           }
           .slip-title-pill {
-            border: 1.2px solid #059669;
-            border-radius: 6px;
+            border: 1.5px solid #059669;
+            border-radius: 8px;
             background: #f0fdf4;
             text-align: center;
-            padding: 3px 0;
-            margin-bottom: 7px;
+            padding: 5px 0;
+            margin-bottom: 14px;
           }
           .slip-title-pill span {
             color: #047857;
             font-weight: 800;
-            font-size: 11px;
-            letter-spacing: 0.3px;
+            font-size: 12.5px;
+            letter-spacing: 0.4px;
           }
           .slip-meta-card {
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border: 1.2px solid #cbd5e1;
+            border-radius: 8px;
             background: #f8fafc;
-            padding: 6px 10px;
-            margin-bottom: 7px;
+            padding: 10px 14px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 11.5px;
+          }
+          .meta-row {
             display: flex;
             justify-content: space-between;
-            font-size: 10.5px;
-            line-height: 1.45;
+            align-items: center;
+            width: 100%;
           }
-          .meta-col-left {
+          .meta-left {
             text-align: left;
           }
-          .meta-col-right {
+          .meta-right {
             text-align: right;
           }
           .meta-mono {
@@ -1459,15 +1529,25 @@ export function FinancePanel({ sub }) {
             font-weight: 700;
             color: #0369a1;
           }
+          .meta-student-name {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 12.5px;
+          }
+          .meta-roll {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 12.5px;
+          }
           .slip-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10.5px;
-            margin-bottom: 6px;
+            font-size: 11.5px;
+            margin-bottom: 14px;
           }
           .slip-table th, .slip-table td {
             border: 1px solid #cbd5e1;
-            padding: 4px 6px;
+            padding: 7px 10px;
           }
           .slip-table th {
             background: #f0fdf4;
@@ -1480,6 +1560,7 @@ export function FinancePanel({ sub }) {
           .row-gross td {
             font-weight: 800;
             color: #0f172a;
+            background: #f8fafc;
           }
           .row-discount td {
             font-weight: 700;
@@ -1489,7 +1570,7 @@ export function FinancePanel({ sub }) {
             font-weight: 800;
             color: #047857;
             background: #dcfce7;
-            font-size: 11px;
+            font-size: 12px;
           }
           .row-due td {
             font-weight: 700;
@@ -1497,42 +1578,46 @@ export function FinancePanel({ sub }) {
           }
           .slip-in-words {
             background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 10.5px;
+            border: 1.2px solid #86efac;
+            border-radius: 6px;
+            padding: 7px 12px;
+            font-size: 11.5px;
             font-weight: 700;
             color: #166534;
-            margin-bottom: 6px;
+            margin-bottom: 16px;
           }
           .slip-signatures {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-top: 24px;
-            padding: 0 8px;
+            margin-top: 32px;
+            padding: 0 14px 4px;
           }
           .sig-col {
             text-align: center;
-            width: 140px;
-            font-size: 9.5px;
+            width: 155px;
+            font-size: 10.5px;
             color: #334155;
             line-height: 1.35;
           }
           .sig-line {
-            border-top: 1px dashed #64748b;
-            margin-bottom: 4px;
+            border-top: 1.2px dashed #64748b;
+            margin-bottom: 6px;
           }
           .sig-name {
-            font-weight: 700;
+            font-weight: 800;
             color: #0f172a;
+            font-size: 11px;
           }
           .sig-title {
-            color: #475569;
+            color: #047857;
+            font-weight: 700;
+            font-size: 10px;
           }
           .sig-sub {
-            font-size: 8.5px;
+            font-size: 9px;
             color: #64748b;
+            margin-top: 2px;
           }
           .center-cut-guide {
             width: 1px;
@@ -1820,7 +1905,11 @@ export function FinancePanel({ sub }) {
                       type="button"
                       onClick={() => {
                         setSelectedClass(c);
-                        if (c !== '9' && c !== '10') setSelectedGroup('all');
+                        if (c === '9' || c === '10') {
+                          if (!['science', 'humanities', 'business'].includes(selectedGroup)) {
+                            setSelectedGroup('science');
+                          }
+                        }
                         setSearchRoll('');
                         setSearchFeedback(null);
                       }}
@@ -1845,19 +1934,58 @@ export function FinancePanel({ sub }) {
 
               {/* Group / Stream Selector (Only for Class 9 and 10) */}
               {(selectedClass === '9' || selectedClass === '10') && (
-                <div style={{ marginBottom: '12px', background: '#f0fdf4', padding: '10px 12px', borderRadius: '8px', border: '1.5px solid #86efac' }}>
-                  <label style={{ fontSize: '11.5px', fontWeight: 800, color: '#065f46', display: 'block', marginBottom: '4px' }}>
+                <div style={{ marginBottom: '14px', background: '#f0fdf4', padding: '12px', borderRadius: '10px', border: '1.5px solid #86efac' }}>
+                  <label style={{ fontSize: '11.5px', fontWeight: 800, color: '#065f46', display: 'block', marginBottom: '8px' }}>
                     বিভাগ / গ্রুপ নির্বাচন (৯ম ও ১০ম শ্রেণির জন্য):
                   </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                    {[
+                      { id: 'science', label: 'বিজ্ঞান', fullLabel: 'বিজ্ঞান বিভাগ', icon: '🔬' },
+                      { id: 'humanities', label: 'মানবিক', fullLabel: 'মানবিক বিভাগ', icon: '📖' },
+                      { id: 'business', label: 'ব্যবসায় শিক্ষা', fullLabel: 'ব্যবসায় শিক্ষা শাখা', icon: '💼' }
+                    ].map(grp => {
+                      const isSelected = selectedGroup === grp.id || (grp.id === 'science' && !['humanities', 'business'].includes(selectedGroup));
+                      return (
+                        <button
+                          key={grp.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroup(grp.id);
+                            setSearchRoll('');
+                            setSearchFeedback(null);
+                          }}
+                          style={{
+                            padding: '8px 4px',
+                            borderRadius: '6px',
+                            border: isSelected ? '2px solid #047857' : '1px solid #cbd5e1',
+                            background: isSelected ? '#047857' : '#ffffff',
+                            color: isSelected ? '#ffffff' : '#1e293b',
+                            fontWeight: 800,
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '2px',
+                            boxShadow: isSelected ? '0 2px 6px rgba(4,120,87,0.25)' : 'none',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span style={{ fontSize: '14px' }}>{grp.icon}</span>
+                          <span>{grp.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                   <select
-                    value={selectedGroup}
+                    value={['science', 'humanities', 'business'].includes(selectedGroup) ? selectedGroup : 'science'}
                     onChange={e => {
                       setSelectedGroup(e.target.value);
+                      setSearchRoll('');
                       setSearchFeedback(null);
                     }}
-                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12.5px', fontWeight: 700, background: '#ffffff', color: '#065f46' }}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1.2px solid #059669', fontSize: '11.5px', fontWeight: 700, background: '#ffffff', color: '#065f46' }}
                   >
-                    <option value="all">সকল বিভাগ / গ্রুপ (All Groups)</option>
                     <option value="science">বিজ্ঞান বিভাগ (Science)</option>
                     <option value="humanities">মানবিক বিভাগ (Humanities)</option>
                     <option value="business">ব্যবসায় শিক্ষা শাখা (Business Studies)</option>
@@ -1873,7 +2001,7 @@ export function FinancePanel({ sub }) {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
-                    placeholder={selectedClass === '9' || selectedClass === '10' ? "রোল লিখুন (যেমন: ৭ বা 7)" : "রোল লিখুন (যেমন: ১ বা 1)"}
+                    placeholder={selectedClass === '9' || selectedClass === '10' ? "রোল লিখুন (যেমন: ১ বা 1)" : "রোল লিখুন (যেমন: ১ বা 1)"}
                     value={searchRoll}
                     onChange={e => setSearchRoll(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearchStudent(); } }}
@@ -1929,7 +2057,7 @@ export function FinancePanel({ sub }) {
               {/* Dropdown Selector (Sync with search) */}
               <div>
                 <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                  অথবা তালিকা থেকে নির্বাচন করুন ({classStudents.length} জন):
+                  অথবা তালিকা থেকে নির্বাচন করুন ({toBnDigits(classStudents.length)} জন):
                 </label>
                 <select
                   value={selectedStudentId}
@@ -1945,11 +2073,15 @@ export function FinancePanel({ sub }) {
                     color: '#065f46'
                   }}
                 >
-                  {classStudents.map(s => (
-                    <option key={s.id || s.student_id} value={s.id || s.student_id}>
-                      রোল {toBnDigits(s.roll_no)} - {s.name_bn} {s.group ? `(${s.group})` : ''}
-                    </option>
-                  ))}
+                  {classStudents.map(s => {
+                    const isSSC = selectedClass === '9' || selectedClass === '10';
+                    const deptLabel = isSSC ? ` (${getStudentDepartment(s)} বিভাগ)` : '';
+                    return (
+                      <option key={s.id || s.student_id} value={s.id || s.student_id}>
+                        রোল {toBnDigits(s.roll_no)} - {s.name_bn}{deptLabel}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
@@ -1975,9 +2107,15 @@ export function FinancePanel({ sub }) {
                   </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '5px', border: '1px solid #e2e8f0' }}>
                   <div><b>Student ID:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{selectedStudent.student_id || selectedStudent.id}</span></div>
-                  <div><b>শাখা / গ্রুপ:</b> {selectedStudent.section || 'ক'} {selectedStudent.group ? `(${selectedStudent.group})` : (selectedStudent.department ? `(${selectedStudent.department})` : '')}</div>
+                  <div>
+                    <b>শাখা / গ্রুপ:</b> {
+                      (['9','10'].includes(String(selectedStudent.class_name)))
+                        ? (getStudentDepartment(selectedStudent) === 'ব্যবসায় শিক্ষা' ? 'ব্যবসায় শিক্ষা শাখা' : `${getStudentDepartment(selectedStudent)} বিভাগ`)
+                        : (selectedStudent.section ? `${selectedStudent.section} শাখা` : 'সাধারণ শাখা')
+                    }
+                  </div>
                   <div><b>পিতা / অভিভাবক:</b> {selectedStudent.guardian_name_bn || selectedStudent.father_name || selectedStudent.father_name_bn || '—'}</div>
                   <div><b>মোবাইল:</b> {toBnDigits(selectedStudent.phone || selectedStudent.guardian_phone || selectedStudent.father_mobile || '—')}</div>
                 </div>
@@ -3636,36 +3774,52 @@ export function FinancePanel({ sub }) {
                   </div>
                 </div>
 
-                <div style={{ borderBottom: '2px solid #059669', margin: '6px 0 10px' }}></div>
+                <div style={{ borderBottom: '2.5px solid #059669', margin: '8px 0 14px' }}></div>
 
-                <div style={{ textAlign: 'center', background: '#f0fdf4', padding: '4px', borderRadius: '6px', border: '1.2px solid #059669', marginBottom: '10px' }}>
-                  <span style={{ margin: 0, fontSize: '12px', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</span>
+                <div style={{ textAlign: 'center', background: '#f0fdf4', padding: '6px 0', borderRadius: '8px', border: '1.5px solid #059669', marginBottom: '14px' }}>
+                  <span style={{ margin: 0, fontSize: '12.5px', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>ফি আদায়ের মানি রিসিট (MONEY RECEIPT)</span>
                 </div>
 
-                {/* Meta details */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '12px', background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', marginBottom: '12px', border: '1px solid #e2e8f0' }}>
-                  <div><b>রশিদ নম্বর:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{activeReceipt.receipt_no}</span></div>
-                  <div style={{ textAlign: 'right' }}><b>তারিখ:</b> {formatDateBn(activeReceipt.date)} খ্রি.</div>
-                  <div><b>শিক্ষার্থীর নাম:</b> <strong>{activeReceipt.student_name}</strong></div>
-                  <div style={{ textAlign: 'right' }}><b>Student ID:</b> <span style={{ fontFamily: 'monospace' }}>{activeReceipt.student_id}</span></div>
-                  <div><b>শ্রেণি:</b> {toBnDigits(activeReceipt.class_name)}ম • <b>শাখা/গ্রুপ:</b> {activeReceipt.section}</div>
-                  <div style={{ textAlign: 'right' }}><b>রোল নম্বর:</b> {toBnDigits(activeReceipt.roll_no)}</div>
+                {/* 3-Line Student Identity Card */}
+                <div style={{
+                  display: 'flex', flexDirection: 'column', gap: '8px',
+                  fontSize: '12px', background: '#f8fafc', padding: '12px 16px',
+                  borderRadius: '8px', marginBottom: '16px', border: '1.2px solid #cbd5e1'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div><b>রশিদ নম্বর:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{activeReceipt.receipt_no}</span></div>
+                    <div><b>তারিখ:</b> {formatDateBn(activeReceipt.date)} খ্রি.</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div><b>শিক্ষার্থীর নাম:</b> <strong style={{ color: '#0f172a', fontSize: '13px' }}>{activeReceipt.student_name}</strong></div>
+                    <div><b>Student ID:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{activeReceipt.student_id}</span></div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <b>শ্রেণি:</b> {toBnDigits(activeReceipt.class_name)}ম • <b>শাখা/বিভাগ:</b> {
+                        ['9', '10'].includes(String(activeReceipt.class_name))
+                          ? (activeReceipt.group ? (activeReceipt.group.includes('বিভাগ') || activeReceipt.group.includes('শাখা') ? activeReceipt.group : `${activeReceipt.group} বিভাগ`) : 'বিজ্ঞান বিভাগ')
+                          : (activeReceipt.section ? `${activeReceipt.section} শাখা` : 'সাধারণ')
+                      }
+                    </div>
+                    <div><b>রোল নম্বর:</b> <strong style={{ color: '#0f172a', fontSize: '13px' }}>{toBnDigits(activeReceipt.roll_no)}</strong></div>
+                  </div>
                 </div>
 
                 {/* Stipend Banner if applicable */}
                 {(activeReceipt.is_stipend || activeReceipt.is_scholarship) && (
-                  <div style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '6px 12px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, marginBottom: '10px', textAlign: 'center' }}>
+                  <div style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, marginBottom: '14px', textAlign: 'center' }}>
                     🎉 অত্র শিক্ষার্থী {activeReceipt.is_stipend ? 'উপবৃত্তি' : 'মেধাবৃত্তি'} সুবিধাভোগী বিধায় মাসিক বেতন ১০০% মওকুফ।
                   </div>
                 )}
 
                 {/* Items Table */}
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '12px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '16px' }}>
                   <thead>
-                    <tr style={{ background: '#f1f5f9' }}>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '35px', textAlign: 'center' }}>ক্র.</th>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left' }}>ফি-এর বিবরণ / খাত</th>
-                      <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'right', width: '120px' }}>পরিমাণ</th>
+                    <tr style={{ background: '#f0fdf4' }}>
+                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', width: '35px', textAlign: 'center', color: '#047857' }}>ক্র.</th>
+                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', color: '#047857' }}>ফি-এর বিবরণ / খাত</th>
+                      <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'right', width: '120px', color: '#047857' }}>পরিমাণ</th>
                     </tr>
                   </thead>
                   <tbody>
