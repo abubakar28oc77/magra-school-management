@@ -1434,59 +1434,135 @@ export function AdmissionPanel({ sub }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
-                    বরাদ্দকৃত ক্লাস রোল নম্বর *
-                  </label>
-                  <input
-                    type="number"
-                    value={enrollForm.roll_no}
-                    onChange={e => {
-                      const r = e.target.value;
-                      const yr = enrollModalApp.academic_year || '2026';
-                      const autoId = `MPUHS-${yr}-${enrollModalApp.applied_class}${String(r).padStart(2, '0')}`;
-                      setEnrollForm({ ...enrollForm, roll_no: r, student_id: autoId });
-                    }}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0284c7', fontSize: '14px', fontWeight: 800, color: '#0369a1' }}
-                    required
-                  />
-                  <small style={{ color: '#64748b', fontSize: '10.5px' }}>পরবর্তী উন্মুক্ত ক্রমিক রোল প্রস্তাব করা হয়েছে</small>
-                </div>
+              {/* Conditional Fields: 
+                  - ৬ষ্ঠ থেকে ৮ম শ্রেণি: শাখা নির্বাচনের জন্য ড্রপ-ডাউন মেনু না দিয়ে সরাসরি এডিট করার অপশন (Editable input with suggestions)
+                  - ৯ম ও ১০ম শ্রেণি: বিজ্ঞান বিভাগ, মানবিক বিভাগ, ব্যবসায় শিক্ষা সম্বলিত ড্রপ-ডাউন মেনু
+              */}
+              {(() => {
+                const clsStr = String(enrollModalApp.applied_class || '').trim();
+                const isClass9or10 = ['9', '10', '৯', '১০'].includes(clsStr);
+                const isClass6to8 = !isClass9or10;
 
-                <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
-                    শাখা নির্বাচন (Section) *
-                  </label>
-                  <select
-                    value={enrollForm.section}
-                    onChange={e => setEnrollForm({ ...enrollForm, section: e.target.value })}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
-                  >
-                    <option value="পদ্মা">পদ্মা শাখা</option>
-                    <option value="মেঘনা">মেঘনা শাখা</option>
-                    <option value="যমুনা">যমুনা শাখা</option>
-                    <option value="সাধারণ">সাধারণ শাখা</option>
-                  </select>
-                </div>
-              </div>
+                return (
+                  <>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      {/* Left Column: Roll Number */}
+                      <div>
+                        <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
+                          বরাদ্দকৃত ক্লাস রোল নম্বর *
+                        </label>
+                        <input
+                          type="number"
+                          value={enrollForm.roll_no}
+                          onChange={e => {
+                            const r = e.target.value;
+                            const yr = enrollModalApp.academic_year || '2026';
+                            const autoId = `MPUHS-${yr}-${enrollModalApp.applied_class}${String(r).padStart(2, '0')}`;
+                            setEnrollForm({ ...enrollForm, roll_no: r, student_id: autoId });
+                          }}
+                          style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0284c7', fontSize: '14px', fontWeight: 800, color: '#0369a1' }}
+                          required
+                        />
+                        <small style={{ color: '#64748b', fontSize: '10.5px' }}>পরবর্তী উন্মুক্ত ক্রমিক রোল প্রস্তাব করা হয়েছে</small>
+                      </div>
 
-              {['9', '10'].includes(String(enrollModalApp.applied_class)) && (
-                <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
-                    বিভাগ নির্বাচন (Department for Class 9/10) *
-                  </label>
-                  <select
-                    value={enrollForm.department}
-                    onChange={e => setEnrollForm({ ...enrollForm, department: e.target.value })}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
-                  >
-                    <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
-                    <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
-                    <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা বিভাগ (Business Studies)</option>
-                  </select>
-                </div>
-              )}
+                      {/* Right Column:
+                          - ৬ষ্ঠ-৮ম শ্রেণির শিক্ষার্থী হলে: শাখা নির্বাচনের ড্রপ-ডাউন মেনু ছাড়া সরাসরি এডিট করার টেক্সট ইনপুট
+                          - ৯ম-১০ম শ্রেণির শিক্ষার্থী হলে: বিজ্ঞান বিভাগ, মানবিক বিভাগ, ব্যবসায় শিক্ষা সম্বলিত ড্রপ-ডাউন মেনু
+                      */}
+                      {isClass6to8 ? (
+                        <div>
+                          <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: '3px' }}>
+                            শাখা নির্ধারণ / এডিট করুন (Section) *
+                          </label>
+                          <input
+                            type="text"
+                            value={enrollForm.section}
+                            onChange={e => setEnrollForm({ ...enrollForm, section: e.target.value })}
+                            placeholder="শাখার নাম লিখুন (যেমন: পদ্মা শাখা, ক শাখা বা সাধারণ)"
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #0284c7', fontSize: '13px', fontWeight: 700, color: '#0f172a' }}
+                            required
+                          />
+                          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                            <span style={{ fontSize: '10px', color: '#64748b' }}>সাজেশন:</span>
+                            {['পদ্মা শাখা', 'মেঘনা শাখা', 'যমুনা শাখা', 'ক শাখা', 'খ শাখা', 'সাধারণ শাখা'].map(secName => (
+                              <button
+                                key={secName}
+                                type="button"
+                                onClick={() => setEnrollForm({ ...enrollForm, section: secName })}
+                                style={{
+                                  background: enrollForm.section === secName ? '#e0f2fe' : '#f8fafc',
+                                  color: enrollForm.section === secName ? '#0369a1' : '#475569',
+                                  border: enrollForm.section === secName ? '1px solid #38bdf8' : '1px solid #cbd5e1',
+                                  borderRadius: '4px',
+                                  padding: '1px 6px',
+                                  fontSize: '10.5px',
+                                  cursor: 'pointer',
+                                  fontWeight: 600
+                                }}
+                              >
+                                {secName}
+                              </button>
+                            ))}
+                          </div>
+                          <small style={{ color: '#0369a1', fontSize: '10px', marginTop: '2px', display: 'block' }}>
+                            ✏️ ৬ষ্ঠ-৮ম শ্রেণির ক্ষেত্রে কোনো ফিক্সড ড্রপ-ডাউন মেনু নেই, সরাসরি এডিটযোগ্য
+                          </small>
+                        </div>
+                      ) : (
+                        <div>
+                          <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#15803d', display: 'block', marginBottom: '3px' }}>
+                            বিভাগ নির্বাচন (Department) *
+                          </label>
+                          <select
+                            value={enrollForm.department}
+                            onChange={e => {
+                              const dept = e.target.value;
+                              setEnrollForm(prev => ({
+                                ...prev,
+                                department: dept,
+                                section: (!prev.section || prev.section === 'বিজ্ঞান বিভাগ' || prev.section === 'মানবিক বিভাগ' || prev.section === 'ব্যবসায় শিক্ষা' || prev.section.includes('শাখা')) ? dept : prev.section
+                              }));
+                            }}
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #16a34a', fontSize: '13px', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}
+                            required
+                          >
+                            <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
+                            <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
+                            <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
+                          </select>
+                          <small style={{ color: '#15803d', fontSize: '10.5px', fontWeight: 600 }}>
+                            ৯ম ও ১০ম শ্রেণির জন্য বিজ্ঞান বিভাগ, মানবিক বিভাগ, ব্যবসায় শিক্ষা সম্বলিত ড্রপ-ডাউন মেনু
+                          </small>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* For 9-10: also provide optional editable section field if needed */}
+                    {isClass9or10 && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div>
+                          <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
+                            শাখা (Section - ঐচ্ছিক / বিভাগ অনুসারে এডিট করুন)
+                          </label>
+                          <input
+                            type="text"
+                            value={enrollForm.section}
+                            onChange={e => setEnrollForm({ ...enrollForm, section: e.target.value })}
+                            placeholder="যেমন: বিজ্ঞান - ক শাখা বা সাধারণ"
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 600 }}
+                          />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', paddingTop: '16px' }}>
+                          <small style={{ color: '#64748b', fontSize: '11px', lineHeight: 1.4 }}>
+                            💡 ৯ম-১০ম শ্রেণিতে বিভাগই মূলত প্রধান শাখা। প্রয়োজনবোধে উপ-শাখা থাকলে এডিট করতে পারেন।
+                          </small>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
