@@ -319,6 +319,40 @@ export const INSTITUTIONAL_EXPENSE_HEADS = [
   'বিবিধ জরুরি আকস্মিক ব্যয়'
 ];
 
+// Standard School Annual Budget Default Seed (বিদ্যালয়ের বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট)
+export const DEFAULT_ANNUAL_BUDGET = {
+  '2026': {
+    incomeHeads: [
+      { id: 'b-inc-1', category: 'শিক্ষার্থী নিয়মিত মাসিক বেতন ও টিউশন ফি', budgeted_amount: 1450000, note: '৬ষ্ঠ-১০ম শ্রেণি শিক্ষার্থী' },
+      { id: 'b-inc-2', category: 'ভর্তি ফি ও বার্ষিক সেশন চার্জ', budgeted_amount: 380000, note: 'নতুন ও পুরাতন ভর্তি' },
+      { id: 'b-inc-3', category: 'পরীক্ষার ফি (অর্ধ-বার্ষিক, বার্ষিক ও টেস্ট)', budgeted_amount: 420000, note: 'সকল শ্রেণির পরীক্ষা' },
+      { id: 'b-inc-4', category: 'সরকারি অনুদান ও উন্নয়ন থোক বরাদ্দ', budgeted_amount: 500000, note: 'শিক্ষা মন্ত্রণালয় ও জেলা পরিষদ' },
+      { id: 'b-inc-5', category: 'মার্কেট ও দোকান ভাড়া বাবদ আয়', budgeted_amount: 180000, note: 'বিদ্যালয় মার্কেট' },
+      { id: 'b-inc-6', category: 'জমি ও পুকুর ইজারা বাবদ আয়', budgeted_amount: 75000, note: 'বাৎসরিক ডাক ও ইজারা' },
+      { id: 'b-inc-7', category: 'বিজ্ঞান ল্যাব, স্কাউট ও কম্পিউটার ব্যবহার ফি', budgeted_amount: 95000, note: 'ব্যবহারিক ও আইসিটি ফি' },
+      { id: 'b-inc-8', category: 'সহশিক্ষা, সাংস্কৃতিক ও ক্রীড়া চাঁদা', budgeted_amount: 60000, note: 'বার্ষিক ক্রীড়া ও সাংস্কৃতিক অনুষ্ঠান' },
+      { id: 'b-inc-9', category: 'ম্যানেজিং কমিটি ও দাতা সদস্যের অনুদান', budgeted_amount: 120000, note: 'বিশেষ উন্নয়ন তহবিল' },
+      { id: 'b-inc-10', category: 'অন্যান্য বিবিধ প্রাতিষ্ঠানিক ও ব্যাংক মুনাফা', budgeted_amount: 40000, note: 'সঞ্চয়ী ব্যাংক সুদ ও বিবিধ' }
+    ],
+    expenseHeads: [
+      { id: 'b-exp-1', category: 'শিক্ষক-কর্মচারী বেতন-ভাতা (নন-এমপিও অংশ)', budgeted_amount: 1250000, note: 'নন-এমপিও শিক্ষক ও কর্মচারীবৃন্দ' },
+      { id: 'b-exp-2', category: 'উৎসব বোনাস ও বৈশাখী ভাতা (প্রাতিষ্ঠানিক অংশ)', budgeted_amount: 220000, note: 'ধর্মীয় উৎসব ও বাংলা নববর্ষ' },
+      { id: 'b-exp-3', category: 'দৈনিক মজুরি ও পরিচ্ছন্নতাকর্মীর মজুরি', budgeted_amount: 110000, note: 'ক্যাম্পাস নিরাপত্তা ও পরিচ্ছন্নতা' },
+      { id: 'b-exp-4', category: 'পরীক্ষা পরিচালনা, খাতা-কলম ও প্রশ্নপত্র মুদ্রণ খরচ', budgeted_amount: 320000, note: 'সকল সাময়িক ও অভ্যন্তরীণ পরীক্ষা' },
+      { id: 'b-exp-5', category: 'বিদ্যুৎ বিল, গ্যাস ও পানির ইউটিলিটি বিল', budgeted_amount: 140000, note: 'মাসিক ইউটিলিটি বিল' },
+      { id: 'b-exp-6', category: 'ইন্টারনেট, সফটওয়্যার ও ডিজিটাল ক্লাসরুম মেইনটেন্যান্স', budgeted_amount: 75000, note: 'আইসিটি ল্যাব ও ব্রডব্যান্ড বিল' },
+      { id: 'b-exp-7', category: 'দাপ্তরিক স্টেশনারি ও রেজিস্টার খাতা ক্রয়', budgeted_amount: 60000, note: 'অফিস রেজিস্টার ও খাতা-কলম' },
+      { id: 'b-exp-8', category: 'ভবন মেরামত, সংস্কার ও চুনকাম', budgeted_amount: 380000, note: 'অবকাঠামো উন্নয়ন ও সংস্কার' },
+      { id: 'b-exp-9', category: 'জাতীয় দিবস উদযাপন ও বার্ষিক মিলাদ মাহফিল ব্যয়', budgeted_amount: 150000, note: 'জাতীয় ও ধর্মীয় অনুষ্ঠানাদি' },
+      { id: 'b-exp-10', category: 'দরিদ্র শিক্ষার্থী কল্যাণ ও চিকিৎসা সহায়তা', budgeted_amount: 55000, note: 'অসচ্ছল শিক্ষার্থীদের ফি সহায়তা' },
+      { id: 'b-exp-11', category: 'আপ্যায়ন ও ম্যানেজিং কমিটির সভা ব্যয়', budgeted_amount: 45000, note: 'এসএমসি মিটিং ও অতিথি আপ্যায়ন' },
+      { id: 'b-exp-12', category: 'বোর্ড ও সরকারি পরিদর্শন/নবায়ন ফি', budgeted_amount: 35000, note: 'শিক্ষা বোর্ড ও সরকারি নবায়ন' },
+      { id: 'b-exp-13', category: 'বিবিধ জরুরি আকস্মিক ব্যয়', budgeted_amount: 80000, note: 'দুর্যোগ ও জরুরি পরিস্থিতি' }
+    ]
+  }
+};
+
+
 // Default Fee Rates setup per class
 const DEFAULT_CLASS_RATES = {
   '6': { tuition: 150, admission: 500, session: 800, exam: 350 },
@@ -544,6 +578,7 @@ export function FinancePanel({ sub }) {
     if (s === 'receipts' || s === 'history') return 'receipts';
     if (s === 'income') return 'income';
     if (s === 'expense' || s === 'expenses') return 'expense';
+    if (s === 'budget' || s === 'annual_budget') return 'budget';
     if (s === 'cashbook' || s === 'statement') return 'cashbook';
     if (s === 'rates' || s === 'setup') return 'rates';
     if (s === 'teachers' || s === 'class_teachers') return 'teachers';
@@ -1141,6 +1176,528 @@ export function FinancePanel({ sub }) {
 
   const handleCollectPayment = handleTakePayment;
 
+
+
+  // ==========================================
+  // DYNAMIC CATEGORIES (আয় ও ব্যয়ের খাত)
+  // ==========================================
+  const [incomeCategories, setIncomeCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_finance_income_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INSTITUTIONAL_INCOME_HEADS;
+  });
+
+  const [expenseCategories, setExpenseCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_finance_expense_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INSTITUTIONAL_EXPENSE_HEADS;
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('magra_finance_income_categories', JSON.stringify(incomeCategories)); } catch {}
+  }, [incomeCategories]);
+
+  useEffect(() => {
+    try { localStorage.setItem('magra_finance_expense_categories', JSON.stringify(expenseCategories)); } catch {}
+  }, [expenseCategories]);
+
+  // Category Manager Modal State
+  const [categoryModal, setCategoryModal] = useState({ isOpen: false, type: 'income' });
+  const [newCategoryInput, setNewCategoryInput] = useState('');
+  const [editingCategoryItem, setEditingCategoryItem] = useState(null); // { oldName: '', newName: '', type: 'income' | 'expense' }
+
+  // Income / Expense Records Edit State
+  const [editingIncome, setEditingIncome] = useState(null);
+  const [editingExpense, setEditingExpense] = useState(null);
+
+  // ==========================================
+  // ANNUAL BUDGET (বিদ্যালয়ের বার্ষিক বাজেট) STATE
+  // ==========================================
+  const [selectedBudgetYear, setSelectedBudgetYear] = useState('2026');
+  const [budgetMap, setBudgetMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_finance_annual_budget');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') return { ...DEFAULT_ANNUAL_BUDGET, ...parsed };
+      }
+    } catch {}
+    return DEFAULT_ANNUAL_BUDGET;
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('magra_finance_annual_budget', JSON.stringify(budgetMap)); } catch {}
+  }, [budgetMap]);
+
+  const [budgetSuccessMsg, setBudgetSuccessMsg] = useState('');
+  const [editingBudgetHead, setEditingBudgetHead] = useState(null); // { isOpen: true, type: 'income' | 'expense', head: item }
+  const [newBudgetModalType, setNewBudgetModalType] = useState(null); // 'income' | 'expense' | null
+  const [newBudgetHeadForm, setNewBudgetHeadForm] = useState({ category: '', amount: '', note: '' });
+
+  // Active Year Budget
+  const activeYearBudget = useMemo(() => {
+    if (!budgetMap[selectedBudgetYear]) {
+      return {
+        incomeHeads: (DEFAULT_ANNUAL_BUDGET['2026']?.incomeHeads || []).map(h => ({ ...h, id: `b-inc-${Date.now()}-${Math.random().toString(36).substring(2, 6)}` })),
+        expenseHeads: (DEFAULT_ANNUAL_BUDGET['2026']?.expenseHeads || []).map(h => ({ ...h, id: `b-exp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}` }))
+      };
+    }
+    return budgetMap[selectedBudgetYear];
+  }, [budgetMap, selectedBudgetYear]);
+
+  const totalBudgetIncome = useMemo(() => {
+    return (activeYearBudget.incomeHeads || []).reduce((acc, h) => acc + (Number(h.budgeted_amount) || 0), 0);
+  }, [activeYearBudget]);
+
+  const totalBudgetExpense = useMemo(() => {
+    return (activeYearBudget.expenseHeads || []).reduce((acc, h) => acc + (Number(h.budgeted_amount) || 0), 0);
+  }, [activeYearBudget]);
+
+  const budgetSurplusDeficit = totalBudgetIncome - totalBudgetExpense;
+
+  // Realized Actuals for Selected Budget Year
+  const yearActualFeeIncome = useMemo(() => {
+    return feeRecords
+      .filter(r => !r.date || String(r.date).startsWith(selectedBudgetYear))
+      .reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
+  }, [feeRecords, selectedBudgetYear]);
+
+  const yearActualOtherIncome = useMemo(() => {
+    return incomes
+      .filter(r => !r.date || String(r.date).startsWith(selectedBudgetYear))
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+  }, [incomes, selectedBudgetYear]);
+
+  const yearTotalActualIncome = yearActualFeeIncome + yearActualOtherIncome;
+
+  const yearTotalActualExpense = useMemo(() => {
+    return expenses
+      .filter(r => !r.date || String(r.date).startsWith(selectedBudgetYear))
+      .reduce((acc, r) => acc + (Number(r.amount) || 0), 0);
+  }, [expenses, selectedBudgetYear]);
+
+  // ==========================================
+  // CATEGORY OPERATIONS & ACTIONS
+  // ==========================================
+  const handleOpenCategoryManager = (type) => {
+    setCategoryModal({ isOpen: true, type });
+    setNewCategoryInput('');
+    setEditingCategoryItem(null);
+  };
+
+  const handleQuickAddCategory = (type) => {
+    const entered = window.prompt(`নতুন ${type === 'income' ? 'আয়ের' : 'ব্যয়ের'} খাতের নাম লিখুন:`, '');
+    if (!entered || !entered.trim()) return;
+    const clean = entered.trim();
+    if (type === 'income') {
+      if (incomeCategories.includes(clean)) {
+        alert('এই আয়ের খাতটি ইতিমধ্যে তালিকায় রয়েছে।');
+        setNewIncome(prev => ({ ...prev, category: clean }));
+        return;
+      }
+      setIncomeCategories(prev => [...prev, clean]);
+      setNewIncome(prev => ({ ...prev, category: clean }));
+      setIncomeMsg(`আয়ের খাত "${clean}" সফলভাবে যুক্ত হয়েছে।`);
+      setTimeout(() => setIncomeMsg(''), 3000);
+    } else {
+      if (expenseCategories.includes(clean)) {
+        alert('এই ব্যয়ের খাতটি ইতিমধ্যে তালিকায় রয়েছে।');
+        setNewExpense(prev => ({ ...prev, category: clean }));
+        return;
+      }
+      setExpenseCategories(prev => [...prev, clean]);
+      setNewExpense(prev => ({ ...prev, category: clean }));
+      setExpenseMsg(`ব্যয়ের খাত "${clean}" সফলভাবে যুক্ত হয়েছে।`);
+      setTimeout(() => setExpenseMsg(''), 3000);
+    }
+  };
+
+  const handleAddCategoryFromModal = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!newCategoryInput.trim()) return;
+    const clean = newCategoryInput.trim();
+    const type = categoryModal.type;
+    if (type === 'income') {
+      if (incomeCategories.includes(clean)) {
+        alert('এই আয়ের খাতটি ইতিমধ্যে তালিকায় রয়েছে।');
+        return;
+      }
+      setIncomeCategories(prev => [...prev, clean]);
+      setNewIncome(prev => ({ ...prev, category: clean }));
+    } else {
+      if (expenseCategories.includes(clean)) {
+        alert('এই ব্যয়ের খাতটি ইতিমধ্যে তালিকায় রয়েছে।');
+        return;
+      }
+      setExpenseCategories(prev => [...prev, clean]);
+      setNewExpense(prev => ({ ...prev, category: clean }));
+    }
+    setNewCategoryInput('');
+  };
+
+  const handleSaveRenameCategory = () => {
+    if (!editingCategoryItem || !editingCategoryItem.newName.trim()) return;
+    const { oldName, newName, type } = editingCategoryItem;
+    const clean = newName.trim();
+    if (clean === oldName) {
+      setEditingCategoryItem(null);
+      return;
+    }
+    if (type === 'income') {
+      if (incomeCategories.includes(clean)) {
+        alert('এই নামের অন্য একটি আয়ের খাত ইতিমধ্যেই রয়েছে।');
+        return;
+      }
+      setIncomeCategories(prev => prev.map(c => c === oldName ? clean : c));
+      setIncomes(prev => prev.map(r => r.category === oldName ? { ...r, category: clean } : r));
+      if (newIncome.category === oldName) setNewIncome(prev => ({ ...prev, category: clean }));
+      setBudgetMap(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(yr => {
+          if (next[yr]?.incomeHeads) {
+            next[yr].incomeHeads = next[yr].incomeHeads.map(h => h.category === oldName ? { ...h, category: clean } : h);
+          }
+        });
+        return next;
+      });
+    } else {
+      if (expenseCategories.includes(clean)) {
+        alert('এই নামের অন্য একটি ব্যয়ের খাত ইতিমধ্যেই রয়েছে।');
+        return;
+      }
+      setExpenseCategories(prev => prev.map(c => c === oldName ? clean : c));
+      setExpenses(prev => prev.map(r => r.category === oldName ? { ...r, category: clean } : r));
+      if (newExpense.category === oldName) setNewExpense(prev => ({ ...prev, category: clean }));
+      setBudgetMap(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(yr => {
+          if (next[yr]?.expenseHeads) {
+            next[yr].expenseHeads = next[yr].expenseHeads.map(h => h.category === oldName ? { ...h, category: clean } : h);
+          }
+        });
+        return next;
+      });
+    }
+    setEditingCategoryItem(null);
+  };
+
+  const handleDeleteCategory = (type, name) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${name}" খাতটি তালিকা থেকে মুছে ফেলতে চান?`)) return;
+    if (type === 'income') {
+      if (incomeCategories.length <= 1) {
+        alert('কমপক্ষে একটি আয়ের খাত থাকা আবশ্যক।');
+        return;
+      }
+      const updated = incomeCategories.filter(c => c !== name);
+      setIncomeCategories(updated);
+      if (newIncome.category === name) setNewIncome(prev => ({ ...prev, category: updated[0] }));
+    } else {
+      if (expenseCategories.length <= 1) {
+        alert('কমপক্ষে একটি ব্যয়ের খাত থাকা আবশ্যক।');
+        return;
+      }
+      const updated = expenseCategories.filter(c => c !== name);
+      setExpenseCategories(updated);
+      if (newExpense.category === name) setNewExpense(prev => ({ ...prev, category: updated[0] }));
+    }
+  };
+
+  // ==========================================
+  // INCOME & EXPENSE EDIT & DELETE ACTIONS
+  // ==========================================
+  const handleDeleteIncome = (id, voucher) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে ভাউচার নং "${voucher || 'চিহ্নিত'}" আয়ের রেকর্ডটি মুছে ফেলতে চান?`)) return;
+    setIncomes(prev => prev.filter(x => x.id !== id));
+    setIncomeMsg('আয়ের রেকর্ড সফলভাবে মুছে ফেলা হয়েছে।');
+    setTimeout(() => setIncomeMsg(''), 3500);
+  };
+
+  const handleSaveEditIncome = (e) => {
+    e.preventDefault();
+    if (!editingIncome || !editingIncome.title || !editingIncome.amount) {
+      alert('আয়ের বিবরণ ও টাকার পরিমাণ প্রদান করুন।');
+      return;
+    }
+    setIncomes(prev => prev.map(x => x.id === editingIncome.id ? {
+      ...editingIncome,
+      amount: Number(editingIncome.amount) || 0
+    } : x));
+    setEditingIncome(null);
+    setIncomeMsg('আয়ের রেকর্ড সফলভাবে হালনাগাদ (Edit) করা হয়েছে।');
+    setTimeout(() => setIncomeMsg(''), 3500);
+  };
+
+  const handleDeleteExpense = (id, voucher) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে ভাউচার নং "${voucher || 'চিহ্নিত'}" ব্যয়ের রেকর্ডটি মুছে ফেলতে চান?`)) return;
+    setExpenses(prev => prev.filter(x => x.id !== id));
+    setExpenseMsg('ব্যয়ের রেকর্ড সফলভাবে মুছে ফেলা হয়েছে।');
+    setTimeout(() => setExpenseMsg(''), 3500);
+  };
+
+  const handleSaveEditExpense = (e) => {
+    e.preventDefault();
+    if (!editingExpense || !editingExpense.title || !editingExpense.amount) {
+      alert('ব্যয়ের বিবরণ ও টাকার পরিমাণ প্রদান করুন।');
+      return;
+    }
+    setExpenses(prev => prev.map(x => x.id === editingExpense.id ? {
+      ...editingExpense,
+      amount: Number(editingExpense.amount) || 0
+    } : x));
+    setEditingExpense(null);
+    setExpenseMsg('ব্যয়ের রেকর্ড সফলভাবে হালনাগাদ (Edit) করা হয়েছে।');
+    setTimeout(() => setExpenseMsg(''), 3500);
+  };
+
+  // ==========================================
+  // ANNUAL BUDGET ACTIONS
+  // ==========================================
+  const handleAddBudgetHead = (type, { category, amount, note }) => {
+    if (!category || !category.trim()) {
+      alert('খাতের নাম নির্বাচন বা লিখুন।');
+      return;
+    }
+    const cleanCat = category.trim();
+    const newHead = {
+      id: `b-${type === 'income' ? 'inc' : 'exp'}-${Date.now()}`,
+      category: cleanCat,
+      budgeted_amount: Number(amount) || 0,
+      note: note || ''
+    };
+    setBudgetMap(prev => {
+      const yrData = prev[selectedBudgetYear] || { incomeHeads: [], expenseHeads: [] };
+      const key = type === 'income' ? 'incomeHeads' : 'expenseHeads';
+      return {
+        ...prev,
+        [selectedBudgetYear]: {
+          ...yrData,
+          [key]: [...(yrData[key] || []), newHead]
+        }
+      };
+    });
+    // If not in category list, add it
+    if (type === 'income' && !incomeCategories.includes(cleanCat)) {
+      setIncomeCategories(prev => [...prev, cleanCat]);
+    } else if (type === 'expense' && !expenseCategories.includes(cleanCat)) {
+      setExpenseCategories(prev => [...prev, cleanCat]);
+    }
+    setBudgetSuccessMsg(`নতুন ${type === 'income' ? 'আয়ের' : 'ব্যয়ের'} বাজেট খাত "${cleanCat}" সফলভাবে যুক্ত হয়েছে।`);
+    setTimeout(() => setBudgetSuccessMsg(''), 3500);
+    setNewBudgetModalType(null);
+    setNewBudgetHeadForm({ category: '', amount: '', note: '' });
+  };
+
+  const handleSaveEditBudgetHead = (e) => {
+    e.preventDefault();
+    if (!editingBudgetHead || !editingBudgetHead.head) return;
+    const { type, head } = editingBudgetHead;
+    if (!head.category || !head.category.trim()) {
+      alert('খাতের নাম আবশ্যক।');
+      return;
+    }
+    const cleanCat = head.category.trim();
+    setBudgetMap(prev => {
+      const yrData = prev[selectedBudgetYear] || { incomeHeads: [], expenseHeads: [] };
+      const key = type === 'income' ? 'incomeHeads' : 'expenseHeads';
+      return {
+        ...prev,
+        [selectedBudgetYear]: {
+          ...yrData,
+          [key]: (yrData[key] || []).map(h => h.id === head.id ? {
+            ...head,
+            category: cleanCat,
+            budgeted_amount: Number(head.budgeted_amount) || 0
+          } : h)
+        }
+      };
+    });
+    setEditingBudgetHead(null);
+    setBudgetSuccessMsg('বাজেট খাত সফলভাবে হালনাগাদ করা হয়েছে।');
+    setTimeout(() => setBudgetSuccessMsg(''), 3500);
+  };
+
+  const handleDeleteBudgetHead = (type, id, catName) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${catName}" বাজেট খাতটি মুছে ফেলতে চান?`)) return;
+    setBudgetMap(prev => {
+      const yrData = prev[selectedBudgetYear] || { incomeHeads: [], expenseHeads: [] };
+      const key = type === 'income' ? 'incomeHeads' : 'expenseHeads';
+      return {
+        ...prev,
+        [selectedBudgetYear]: {
+          ...yrData,
+          [key]: (yrData[key] || []).filter(h => h.id !== id)
+        }
+      };
+    });
+    setBudgetSuccessMsg('বাজেট খাত সফলভাবে মুছে ফেলা হয়েছে।');
+    setTimeout(() => setBudgetSuccessMsg(''), 3500);
+  };
+
+  const handleResetBudgetToDefault = () => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে ${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের বাজেট প্রমিত (Default) আকারে রিসেট করতে চান?`)) return;
+    setBudgetMap(prev => ({
+      ...prev,
+      [selectedBudgetYear]: DEFAULT_ANNUAL_BUDGET['2026']
+    }));
+    setBudgetSuccessMsg(`${toBnDigits(selectedBudgetYear)} সালের বাজেট সফলভাবে প্রমিত আকারে রিসেট করা হয়েছে।`);
+    setTimeout(() => setBudgetSuccessMsg(''), 3500);
+  };
+
+  const handlePrintBudget = () => {
+    const w = window.open('', '_blank', 'width=1100,height=900');
+    if (!w) return;
+    const school = MOCK_SCHOOL;
+    const incHeads = activeYearBudget.incomeHeads || [];
+    const expHeads = activeYearBudget.expenseHeads || [];
+    const maxRows = Math.max(incHeads.length, expHeads.length);
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>বার্ষিক প্রস্তাবিত বাজেট - ${selectedBudgetYear} - ${school.nameBn}</title>
+        <style>
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: 'SolaimanLipi', 'Nikosh', Arial, sans-serif; padding: 10px; font-size: 11.5px; color: #0f172a; margin: 0; }
+          .header { text-align: center; border-bottom: 2.5px solid #047857; padding-bottom: 8px; margin-bottom: 12px; }
+          .header h1 { margin: 0; font-size: 22px; color: #047857; font-weight: 800; }
+          .header p { margin: 2px 0; font-size: 11px; color: #334155; }
+          .title-banner { background: #f0fdf4; border: 1.5px solid #059669; border-radius: 6px; padding: 6px; margin: 8px 0 12px; text-align: center; }
+          .title-banner h2 { margin: 0; font-size: 15px; color: #047857; font-weight: 800; }
+          .kpi-row { display: flex; gap: 12px; margin-bottom: 14px; }
+          .kpi-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; text-align: center; background: #f8fafc; }
+          .kpi-box span { font-size: 10.5px; color: #475569; display: block; font-weight: 600; }
+          .kpi-box b { font-size: 15px; display: block; margin-top: 3px; }
+          .dual-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
+          .dual-table th, .dual-table td { border: 1px solid #475569; padding: 5px 7px; vertical-align: top; }
+          .dual-table th { background: #e2e8f0; font-weight: 700; }
+          .head-inc { background: #ecfdf5 !important; color: #065f46; font-size: 12px; }
+          .head-exp { background: #fef2f2 !important; color: #991b1b; font-size: 12px; }
+          .amt { text-align: right; font-weight: 700; white-space: nowrap; }
+          .amt-inc { color: #047857; }
+          .amt-exp { color: #b91c1c; }
+          .tot-row { background: #f1f5f9; font-weight: 800; font-size: 12px; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 45px; text-align: center; padding: 0 20px; }
+          .sig-box { width: 170px; }
+          .sig-line { border-top: 1px dashed #334155; margin-bottom: 5px; }
+          .sig-box b { font-size: 11.5px; color: #0f172a; display: block; }
+          .sig-box span { font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${school.nameBn}</h1>
+          <p>${school.address} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</p>
+          <div class="title-banner">
+            <h2>${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের অনুমোদিত বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট</h2>
+          </div>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi-box" style="border-left: 4px solid #059669;">
+            <span>মোট প্রস্তাবিত আয় (Budgeted Income)</span>
+            <b style="color: #047857;">${formatMoney(totalBudgetIncome)}</b>
+          </div>
+          <div class="kpi-box" style="border-left: 4px solid #dc2626;">
+            <span>মোট প্রস্তাবিত ব্যয় (Budgeted Expense)</span>
+            <b style="color: #dc2626;">${formatMoney(totalBudgetExpense)}</b>
+          </div>
+          <div class="kpi-box" style="border-left: 4px solid #0284c7; background: #f0f9ff;">
+            <span>অনুমিত উদ্বৃত্ত / ঘাটতি (Projected Surplus/Deficit)</span>
+            <b style="color: ${budgetSurplusDeficit >= 0 ? '#0369a1' : '#b91c1c'};">
+              ${budgetSurplusDeficit >= 0 ? `+ ${formatMoney(budgetSurplusDeficit)} (উদ্বৃত্ত)` : `- ${formatMoney(Math.abs(budgetSurplusDeficit))} (ঘাটতি)`}
+            </b>
+          </div>
+          <div class="kpi-box" style="border-left: 4px solid #6366f1;">
+            <span>তারিখ ও অনুমোদন সেশন</span>
+            <b style="color: #4338ca;">${formatDateBn(new Date().toISOString().slice(0, 10))} • সাধারণ বাজেট অধিবেশন</b>
+          </div>
+        </div>
+
+        <table class="dual-table">
+          <thead>
+            <tr>
+              <th colspan="3" class="head-inc" style="text-align: center;">📥 প্রস্তাবিত রাজস্ব ও প্রাতিষ্ঠানিক আয় খাতসমূহ</th>
+              <th colspan="3" class="head-exp" style="text-align: center;">📤 প্রস্তাবিত রাজস্ব, পরিচালন ও উন্নয়ন ব্যয় খাতসমূহ</th>
+            </tr>
+            <tr>
+              <th style="width: 25px; text-align: center;">ক্র.</th>
+              <th>আয়ের খাত ও বিবরণ</th>
+              <th style="width: 105px; text-align: right;">প্রস্তাবিত টাকা</th>
+              <th style="width: 25px; text-align: center;">ক্র.</th>
+              <th>ব্যয়ের খাত ও বিবরণ</th>
+              <th style="width: 105px; text-align: right;">প্রস্তাবিত টাকা</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.from({ length: maxRows }).map((_, idx) => {
+              const inc = incHeads[idx];
+              const exp = expHeads[idx];
+              return `
+                <tr>
+                  <td style="text-align: center; color: #64748b;">${inc ? toBnDigits(idx + 1) : ''}</td>
+                  <td>${inc ? `<b>${inc.category}</b>${inc.note ? `<br/><small style="color:#64748b">${inc.note}</small>` : ''}` : ''}</td>
+                  <td class="amt amt-inc">${inc ? formatMoney(inc.budgeted_amount) : ''}</td>
+                  <td style="text-align: center; color: #64748b;">${exp ? toBnDigits(idx + 1) : ''}</td>
+                  <td>${exp ? `<b>${exp.category}</b>${exp.note ? `<br/><small style="color:#64748b">${exp.note}</small>` : ''}` : ''}</td>
+                  <td class="amt amt-exp">${exp ? formatMoney(exp.budgeted_amount) : ''}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="tot-row">
+              <td colspan="2" style="text-align: right;">সর্বমোট প্রস্তাবিত আয়:</td>
+              <td class="amt amt-inc">${formatMoney(totalBudgetIncome)}</td>
+              <td colspan="2" style="text-align: right;">সর্বমোট প্রস্তাবিত ব্যয়:</td>
+              <td class="amt amt-exp">${formatMoney(totalBudgetExpense)}</td>
+            </tr>
+            <tr style="background: #f8fafc; font-weight: 800; font-size: 12px;">
+              <td colspan="3" style="text-align: left; padding: 7px 10px;">
+                <b>কথায় (আয়):</b> ${numberToWordsBn(totalBudgetIncome)}
+              </td>
+              <td colspan="3" style="text-align: left; padding: 7px 10px;">
+                <b>কথায় (ব্যয়):</b> ${numberToWordsBn(totalBudgetExpense)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <b>আহ্বায়ক</b>
+            <span>বাজেট প্রণয়ন উপ-কমিটি</span>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <b>${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</b>
+            <span>প্রধান শিক্ষক ও সদস্য সচিব</span>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <b>নেয়ামুল হক খান</b>
+            <span>সভাপতি, ম্যানেজিং কমিটি</span>
+          </div>
+        </div>
+
+        <script>window.onload = function() { window.print(); }</script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
 
   // ==========================================
   // INSTITUTIONAL INCOME FORM & LOGIC
@@ -1844,8 +2401,9 @@ export function FinancePanel({ sub }) {
         {[
           ['collect', '💵 শিক্ষার্থী ফি আদায় (Billing)'],
           ['receipts', '🧾 ফি আদায়ের ইতিহাস ও রশিদ'],
-          ['income', '📥 বিদ্যালয়ের আয় খাতা'],
-          ['expense', '📤 বিদ্যালয়ের ব্যয় খাতা'],
+          ['income', '📥 প্রাতিষ্ঠানিক আয় খাতা'],
+          ['expense', '📤 প্রাতিষ্ঠানিক ব্যয় খাতা'],
+          ['budget', '📑 বার্ষিক বাজেট (Annual Budget)'],
           ['cashbook', '📊 ক্যাশ বুক ও আর্থিক বিবরণী'],
           ['rates', '⚙️ ফি রেট সেটিংস'],
           ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
@@ -2946,16 +3504,43 @@ export function FinancePanel({ sub }) {
 
             <form onSubmit={handleAddIncome} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>আয়ের খাত *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>আয়ের খাত *</label>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickAddCategory('income')}
+                      style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #7dd3fc', borderRadius: '4px', padding: '2px 7px', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}
+                      title="নতুন খাত যুক্ত করুন"
+                    >
+                      ➕ নতুন খাত
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCategoryManager('income')}
+                      style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '2px 7px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}
+                      title="সকল আয়ের খাত পরিচালনা ও সম্পাদনা"
+                    >
+                      ⚙️ পরিচালনা
+                    </button>
+                  </div>
+                </div>
                 <select
                   value={newIncome.category}
-                  onChange={e => setNewIncome({ ...newIncome, category: e.target.value })}
+                  onChange={e => {
+                    if (e.target.value === '__NEW__') {
+                      handleQuickAddCategory('income');
+                    } else {
+                      setNewIncome({ ...newIncome, category: e.target.value });
+                    }
+                  }}
                   style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 600 }}
                   required
                 >
-                  {INSTITUTIONAL_INCOME_HEADS.map(h => (
+                  {incomeCategories.map(h => (
                     <option key={h} value={h}>{h}</option>
                   ))}
+                  <option value="__NEW__">➕ নতুন আয়ের খাত যুক্ত করুন...</option>
                 </select>
               </div>
 
@@ -3082,6 +3667,7 @@ export function FinancePanel({ sub }) {
                     <th style={{ padding: '8px 10px', textAlign: 'left', width: '120px' }}>উৎস / প্রদাতা</th>
                     <th style={{ padding: '8px', textAlign: 'center', width: '70px' }}>মাধ্যম</th>
                     <th style={{ padding: '8px 10px', textAlign: 'right', width: '100px' }}>পরিমাণ</th>
+                    <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -3097,6 +3683,32 @@ export function FinancePanel({ sub }) {
                       <td style={{ padding: '8px 10px', color: '#334155' }}>{inc.payer_name}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>{inc.method}</td>
                       <td style={{ textAlign: 'right', padding: '8px 10px', fontWeight: 800, color: '#0369a1' }}>{formatMoney(inc.amount)}</td>
+                      <td style={{ textAlign: 'center', padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingIncome({ ...inc })}
+                          style={{
+                            background: '#e0f2fe', color: '#0284c7', border: '1px solid #7dd3fc',
+                            padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                            cursor: 'pointer', marginRight: '4px'
+                          }}
+                          title="আয়ের এন্ট্রি সম্পাদনা করুন"
+                        >
+                          ✏️ এডিট
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteIncome(inc.id, inc.voucher_no)}
+                          style={{
+                            background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                            padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                          title="মুছে ফেলুন"
+                        >
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {!incomes.length && (
@@ -3133,16 +3745,43 @@ export function FinancePanel({ sub }) {
 
             <form onSubmit={handleAddExpense} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ব্যয়ের খাত *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>ব্যয়ের খাত *</label>
+                  <div style={{ display: 'flex', gap: '5px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickAddCategory('expense')}
+                      style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '4px', padding: '2px 7px', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer' }}
+                      title="নতুন ব্যয়ের খাত যুক্ত করুন"
+                    >
+                      ➕ নতুন খাত
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCategoryManager('expense')}
+                      style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '2px 7px', fontSize: '10.5px', fontWeight: 600, cursor: 'pointer' }}
+                      title="সকল ব্যয়ের খাত পরিচালনা ও সম্পাদনা"
+                    >
+                      ⚙️ পরিচালনা
+                    </button>
+                  </div>
+                </div>
                 <select
                   value={newExpense.category}
-                  onChange={e => setNewExpense({ ...newExpense, category: e.target.value })}
+                  onChange={e => {
+                    if (e.target.value === '__NEW__') {
+                      handleQuickAddCategory('expense');
+                    } else {
+                      setNewExpense({ ...newExpense, category: e.target.value });
+                    }
+                  }}
                   style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 600 }}
                   required
                 >
-                  {INSTITUTIONAL_EXPENSE_HEADS.map(h => (
+                  {expenseCategories.map(h => (
                     <option key={h} value={h}>{h}</option>
                   ))}
+                  <option value="__NEW__">➕ নতুন ব্যয়ের খাত যুক্ত করুন...</option>
                 </select>
               </div>
 
@@ -3268,6 +3907,7 @@ export function FinancePanel({ sub }) {
                     <th style={{ padding: '8px 10px', textAlign: 'left', width: '120px' }}>প্রাপক / ভেন্ডর</th>
                     <th style={{ padding: '8px', textAlign: 'center', width: '70px' }}>মাধ্যম</th>
                     <th style={{ padding: '8px 10px', textAlign: 'right', width: '100px' }}>পরিমাণ</th>
+                    <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -3283,6 +3923,32 @@ export function FinancePanel({ sub }) {
                       <td style={{ padding: '8px 10px', color: '#334155' }}>{exp.payee_name}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>{exp.method}</td>
                       <td style={{ textAlign: 'right', padding: '8px 10px', fontWeight: 800, color: '#dc2626' }}>{formatMoney(exp.amount)}</td>
+                      <td style={{ textAlign: 'center', padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingExpense({ ...exp })}
+                          style={{
+                            background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                            padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                            cursor: 'pointer', marginRight: '4px'
+                          }}
+                          title="ব্যয়ের এন্ট্রি সম্পাদনা করুন"
+                        >
+                          ✏️ এডিট
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExpense(exp.id, exp.voucher_no)}
+                          style={{
+                            background: '#fee2e2', color: '#991b1b', border: '1px solid #f87171',
+                            padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                          title="মুছে ফেলুন"
+                        >
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {!expenses.length && (
@@ -3295,6 +3961,475 @@ export function FinancePanel({ sub }) {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB: SCHOOL ANNUAL BUDGET (বিদ্যালয়ের বার্ষিক বাজেট)       */}
+      {/* ========================================================= */}
+      {activeTab === 'budget' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* Top Control Bar */}
+          <div style={{
+            background: '#ffffff', borderRadius: '12px', border: '1.5px solid #047857',
+            padding: '16px 20px', display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', flexWrap: 'wrap', gap: '14px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '24px' }}>📑</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#047857' }}>
+                    বিদ্যালয়ের বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট নির্ধারণ (Annual School Budget)
+                  </h3>
+                  <small style={{ color: '#64748b', fontSize: '12px' }}>
+                    অর্থবছর / শিক্ষাবর্ষ অনুযায়ী সম্ভাব্য আয় ও ব্যয়ের খাতভিত্তিক প্রাক্কলন ও বাস্তবায়ন পর্যবেক্ষণ
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>শিক্ষাবর্ষ / অর্থবছর:</label>
+                <select
+                  value={selectedBudgetYear}
+                  onChange={e => setSelectedBudgetYear(e.target.value)}
+                  style={{
+                    padding: '6px 12px', borderRadius: '6px', border: '1.5px solid #047857',
+                    fontWeight: 700, fontSize: '13px', color: '#047857', background: '#f0fdf4', cursor: 'pointer'
+                  }}
+                >
+                  {['2026', '2027', '2025', '2024'].map(yr => (
+                    <option key={yr} value={yr}>{toBnDigits(yr)} খ্রি. (শিক্ষাবর্ষ {yr})</option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePrintBudget}
+                style={{
+                  background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
+                  color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '7px',
+                  fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(4,120,87,0.2)'
+                }}
+              >
+                🖨️ বাজেট স্টেটমেন্ট প্রিন্ট
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetBudgetToDefault}
+                style={{
+                  background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1',
+                  padding: '7px 12px', borderRadius: '7px', fontWeight: 600, fontSize: '12px',
+                  cursor: 'pointer'
+                }}
+                title="প্রমিত ডিফল্ট বাজেটে রিসেট করুন"
+              >
+                🔄 আদর্শ বাজেট রিসেট
+              </button>
+            </div>
+          </div>
+
+          {/* Budget Success / Toast message */}
+          {budgetSuccessMsg && (
+            <div style={{
+              background: '#dcfce7', color: '#166534', border: '1px solid #86efac',
+              padding: '10px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+              display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              <span>✅</span> {budgetSuccessMsg}
+            </div>
+          )}
+
+          {/* 4 Summary Dashboard Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '14px' }}>
+            {/* Card 1: Budget Income */}
+            <div style={{
+              background: '#ffffff', borderRadius: '10px', padding: '16px',
+              border: '1.5px solid #86efac', borderLeft: '5px solid #059669', boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#166534' }}>📥 মোট প্রস্তাবিত বাজেট আয়</span>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#047857', marginTop: '4px' }}>
+                {formatMoney(totalBudgetIncome)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>বাস্তব অর্জিত: <b>{formatMoney(yearTotalActualIncome)}</b></span>
+                <span style={{ color: '#059669', fontWeight: 700 }}>
+                  {totalBudgetIncome > 0 ? toBnDigits(Math.min(100, Math.round((yearTotalActualIncome / totalBudgetIncome) * 100))) : '০'}% অর্জিত
+                </span>
+              </div>
+            </div>
+
+            {/* Card 2: Budget Expense */}
+            <div style={{
+              background: '#ffffff', borderRadius: '10px', padding: '16px',
+              border: '1.5px solid #fca5a5', borderLeft: '5px solid #dc2626', boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#991b1b' }}>📤 মোট প্রস্তাবিত বাজেট ব্যয়</span>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#b91c1c', marginTop: '4px' }}>
+                {formatMoney(totalBudgetExpense)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#475569', marginTop: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                <span>বাস্তব খরচ: <b>{formatMoney(yearTotalActualExpense)}</b></span>
+                <span style={{ color: '#dc2626', fontWeight: 700 }}>
+                  {totalBudgetExpense > 0 ? toBnDigits(Math.min(100, Math.round((yearTotalActualExpense / totalBudgetExpense) * 100))) : '০'}% ব্যবহৃত
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Surplus or Deficit */}
+            <div style={{
+              background: budgetSurplusDeficit >= 0 ? '#f0fdf4' : '#fef2f2',
+              borderRadius: '10px', padding: '16px',
+              border: budgetSurplusDeficit >= 0 ? '1.5px solid #86efac' : '1.5px solid #fca5a5',
+              borderLeft: budgetSurplusDeficit >= 0 ? '5px solid #059669' : '5px solid #dc2626',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: budgetSurplusDeficit >= 0 ? '#166534' : '#991b1b' }}>
+                ⚖️ অনুমিত নিট {budgetSurplusDeficit >= 0 ? 'উদ্বৃত্ত (Surplus)' : 'ঘাটতি (Deficit)'}
+              </span>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: budgetSurplusDeficit >= 0 ? '#047857' : '#b91c1c', marginTop: '4px' }}>
+                {budgetSurplusDeficit >= 0 ? '+ ' + formatMoney(budgetSurplusDeficit) : '- ' + formatMoney(Math.abs(budgetSurplusDeficit))}
+              </div>
+              <small style={{ fontSize: '10.5px', color: '#64748b' }}>
+                {budgetSurplusDeficit >= 0 ? 'আয় ও ব্যয়ের পর প্রত্যাশিত সঞ্চয় স্থিতি' : 'ঘাটতি মেটাতে বিশেষ তহবিল বা সরকারি অনুদান প্রয়োজন'}
+              </small>
+            </div>
+
+            {/* Card 4: Actual Realized Net Balance */}
+            <div style={{
+              background: '#ffffff', borderRadius: '10px', padding: '16px',
+              border: '1.5px solid #cbd5e1', borderLeft: '5px solid #0284c7', boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+            }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#0369a1' }}>🏦 বর্তমান বাস্তব নেট ব্যালেন্স</span>
+              <div style={{ fontSize: '22px', fontWeight: 900, color: '#0284c7', marginTop: '4px' }}>
+                {formatMoney(yearTotalActualIncome - yearTotalActualExpense)}
+              </div>
+              <small style={{ fontSize: '10.5px', color: '#64748b' }}>
+                {toBnDigits(selectedBudgetYear)} সালে ফি ও প্রাতিষ্ঠানিক খাতার বাস্তব নগদ স্থিতি
+              </small>
+            </div>
+          </div>
+
+          {/* Two-Column Side-by-Side Budget Workspaces */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))', gap: '20px', alignItems: 'start' }}>
+            
+            {/* LEFT COLUMN: INCOME BUDGET HEADS */}
+            <div style={{
+              background: '#ffffff', borderRadius: '12px', border: '1.5px solid #047857',
+              padding: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📥</span> প্রস্তাবিত রাজস্ব ও প্রাতিষ্ঠানিক আয় খাত
+                  </h3>
+                  <small style={{ color: '#64748b' }}>{toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের সকল সম্ভাব্য প্রাপ্তি খাত</small>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBudgetModalType('income');
+                      setNewBudgetHeadForm({ category: incomeCategories[0] || '', amount: '', note: '' });
+                    }}
+                    style={{
+                      background: '#ecfdf5', color: '#047857', border: '1px solid #86efac',
+                      padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer'
+                    }}
+                  >
+                    ➕ নতুন আয় খাত যোগ
+                  </button>
+                  <span style={{ background: '#dcfce7', color: '#047857', padding: '5px 10px', borderRadius: '15px', fontWeight: 800, fontSize: '12px' }}>
+                    মোট: {formatMoney(totalBudgetIncome)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Income Heads Table */}
+              <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '16px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ background: '#f0fdf4', borderBottom: '2px solid #86efac' }}>
+                      <th style={{ padding: '8px 6px', textAlign: 'center', width: '35px', color: '#047857' }}>ক্র.</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'left', color: '#047857' }}>আয়ের খাত</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', width: '110px', color: '#047857' }}>বাজেট টাকা</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'left', color: '#047857' }}>বিবরণ / নোট</th>
+                      <th style={{ padding: '8px 6px', textAlign: 'center', width: '90px', color: '#047857' }}>অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(activeYearBudget.incomeHeads || []).map((head, idx) => (
+                      <tr key={head.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ textAlign: 'center', padding: '8px 4px', color: '#64748b' }}>{toBnDigits(idx + 1)}</td>
+                        <td style={{ padding: '8px 10px' }}>
+                          <strong style={{ color: '#0f172a' }}>{head.category}</strong>
+                        </td>
+                        <td style={{ textAlign: 'right', padding: '8px 10px', fontWeight: 800, color: '#047857', whiteSpace: 'nowrap' }}>
+                          {formatMoney(head.budgeted_amount)}
+                        </td>
+                        <td style={{ padding: '8px 10px', color: '#475569', fontSize: '11.5px' }}>
+                          {head.note || '—'}
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '6px 4px', whiteSpace: 'nowrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => setEditingBudgetHead({ type: 'income', head: { ...head } })}
+                            style={{
+                              background: '#ecfdf5', color: '#047857', border: '1px solid #86efac',
+                              padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                              cursor: 'pointer', marginRight: '4px'
+                            }}
+                            title="বাজেট খাত ও টাকার পরিমাণ এডিট করুন"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBudgetHead('income', head.id, head.category)}
+                            style={{
+                              background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                              padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="মুছে ফেলুন"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {!(activeYearBudget.incomeHeads || []).length && (
+                      <tr>
+                        <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                          কোনো আয়ের বাজেট খাত যুক্ত করা হয়নি।
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ background: '#f8fafc', fontWeight: 800, borderTop: '2px solid #cbd5e1' }}>
+                      <td colSpan="2" style={{ padding: '8px 10px', textAlign: 'right' }}>মোট প্রস্তাবিত আয়:</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#047857', fontSize: '13px' }}>
+                        {formatMoney(totalBudgetIncome)}
+                      </td>
+                      <td colSpan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Quick Add Form: Income Head */}
+              <div style={{ background: '#f8fafc', border: '1px dashed #86efac', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '8px' }}>
+                  ➕ দ্রুত আয়ের নতুন বাজেট খাত যুক্ত করুন:
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr auto', gap: '8px', alignItems: 'center' }}>
+                  <select
+                    value={newBudgetHeadForm.category}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, category: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="">খাত নির্বাচন করুন...</option>
+                    {incomeCategories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="টাকা (যেমন: ৫০০০০)"
+                    value={newBudgetHeadForm.amount}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, amount: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="সংক্ষিপ্ত বিবরণ"
+                    value={newBudgetHeadForm.note}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, note: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newBudgetHeadForm.category) {
+                        alert('খাত নির্বাচন করুন বা উপরে নতুন যোগ করুন।');
+                        return;
+                      }
+                      handleAddBudgetHead('income', newBudgetHeadForm);
+                    }}
+                    style={{
+                      background: '#047857', color: '#fff', border: 'none', padding: '6px 12px',
+                      borderRadius: '5px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    যুক্ত করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN: EXPENSE BUDGET HEADS */}
+            <div style={{
+              background: '#ffffff', borderRadius: '12px', border: '1.5px solid #dc2626',
+              padding: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#b91c1c', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📤</span> প্রস্তাবিত রাজস্ব ও পরিচালন ব্যয় খাত
+                  </h3>
+                  <small style={{ color: '#64748b' }}>{toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের সকল সম্ভাব্য পরিচালন ব্যয়</small>
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBudgetModalType('expense');
+                      setNewBudgetHeadForm({ category: expenseCategories[0] || '', amount: '', note: '' });
+                    }}
+                    style={{
+                      background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                      padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer'
+                    }}
+                  >
+                    ➕ নতুন ব্যয় খাত যোগ
+                  </button>
+                  <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '5px 10px', borderRadius: '15px', fontWeight: 800, fontSize: '12px' }}>
+                    মোট: {formatMoney(totalBudgetExpense)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Expense Heads Table */}
+              <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '16px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ background: '#fef2f2', borderBottom: '2px solid #fca5a5' }}>
+                      <th style={{ padding: '8px 6px', textAlign: 'center', width: '35px', color: '#b91c1c' }}>ক্র.</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'left', color: '#b91c1c' }}>ব্যয়ের খাত</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', width: '110px', color: '#b91c1c' }}>বাজেট টাকা</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'left', color: '#b91c1c' }}>বিবরণ / নোট</th>
+                      <th style={{ padding: '8px 6px', textAlign: 'center', width: '90px', color: '#b91c1c' }}>অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(activeYearBudget.expenseHeads || []).map((head, idx) => (
+                      <tr key={head.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ textAlign: 'center', padding: '8px 4px', color: '#64748b' }}>{toBnDigits(idx + 1)}</td>
+                        <td style={{ padding: '8px 10px' }}>
+                          <strong style={{ color: '#0f172a' }}>{head.category}</strong>
+                        </td>
+                        <td style={{ textAlign: 'right', padding: '8px 10px', fontWeight: 800, color: '#dc2626', whiteSpace: 'nowrap' }}>
+                          {formatMoney(head.budgeted_amount)}
+                        </td>
+                        <td style={{ padding: '8px 10px', color: '#475569', fontSize: '11.5px' }}>
+                          {head.note || '—'}
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '6px 4px', whiteSpace: 'nowrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => setEditingBudgetHead({ type: 'expense', head: { ...head } })}
+                            style={{
+                              background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+                              padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                              cursor: 'pointer', marginRight: '4px'
+                            }}
+                            title="বাজেট খাত ও টাকার পরিমাণ এডিট করুন"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBudgetHead('expense', head.id, head.category)}
+                            style={{
+                              background: '#fee2e2', color: '#991b1b', border: '1px solid #f87171',
+                              padding: '3px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="মুছে ফেলুন"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {!(activeYearBudget.expenseHeads || []).length && (
+                      <tr>
+                        <td colSpan="5" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                          কোনো ব্যয়ের বাজেট খাত যুক্ত করা হয়নি।
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ background: '#f8fafc', fontWeight: 800, borderTop: '2px solid #cbd5e1' }}>
+                      <td colSpan="2" style={{ padding: '8px 10px', textAlign: 'right' }}>মোট প্রস্তাবিত ব্যয়:</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', color: '#dc2626', fontSize: '13px' }}>
+                        {formatMoney(totalBudgetExpense)}
+                      </td>
+                      <td colSpan="2"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Quick Add Form: Expense Head */}
+              <div style={{ background: '#f8fafc', border: '1px dashed #fca5a5', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#b91c1c', display: 'block', marginBottom: '8px' }}>
+                  ➕ দ্রুত ব্যয়ের নতুন বাজেট খাত যুক্ত করুন:
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr auto', gap: '8px', alignItems: 'center' }}>
+                  <select
+                    value={newBudgetHeadForm.category}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, category: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="">খাত নির্বাচন করুন...</option>
+                    {expenseCategories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    placeholder="টাকা (যেমন: ৩০০০০)"
+                    value={newBudgetHeadForm.amount}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, amount: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="সংক্ষিপ্ত বিবরণ"
+                    value={newBudgetHeadForm.note}
+                    onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, note: e.target.value })}
+                    style={{ padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!newBudgetHeadForm.category) {
+                        alert('খাত নির্বাচন করুন বা উপরে নতুন যোগ করুন।');
+                        return;
+                      }
+                      handleAddBudgetHead('expense', newBudgetHeadForm);
+                    }}
+                    style={{
+                      background: '#dc2626', color: '#fff', border: 'none', padding: '6px 12px',
+                      borderRadius: '5px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}
+                  >
+                    যুক্ত করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -3889,6 +5024,615 @@ export function FinancePanel({ sub }) {
           </div>
         </div>
       )}
+
+      {/* ========================================================= */}
+      {/* MODAL 1: CATEGORY MANAGER (খাত ব্যবস্থাপনা)                */}
+      {/* ========================================================= */}
+      {categoryModal.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '540px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden'
+          }}>
+            <div style={{
+              background: categoryModal.type === 'income' ? '#0284c7' : '#dc2626',
+              color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
+                {categoryModal.type === 'income' ? '📥 আয়ের খাতসমূহ পরিচালনা' : '📤 ব্যয়ের খাতসমূহ পরিচালনা'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => { setCategoryModal({ isOpen: false, type: 'income' }); setEditingCategoryItem(null); }}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '18px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Add New Category form */}
+              <form onSubmit={handleAddCategoryFromModal} style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder={categoryModal.type === 'income' ? 'যেমন: ওয়াইফাই ফি / বিশেষ অনুদান' : 'যেমন: জেনারেটর জ্বালানি / ক্রীড়া সামগ্রী'}
+                  value={newCategoryInput}
+                  onChange={e => setNewCategoryInput(e.target.value)}
+                  style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+                <button
+                  type="submit"
+                  style={{
+                    background: categoryModal.type === 'income' ? '#0284c7' : '#dc2626',
+                    color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px',
+                    fontWeight: 700, fontSize: '13px', cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}
+                >
+                  ➕ খাত যোগ
+                </button>
+              </form>
+
+              {/* List of categories */}
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '6px' }}>
+                  বিদ্যমান খাতসমূহ (মোট: {toBnDigits((categoryModal.type === 'income' ? incomeCategories : expenseCategories).length)} টি):
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '340px', overflowY: 'auto' }}>
+                  {(categoryModal.type === 'income' ? incomeCategories : expenseCategories).map((cat, idx) => {
+                    const isEditingThis = editingCategoryItem && editingCategoryItem.oldName === cat && editingCategoryItem.type === categoryModal.type;
+                    return (
+                      <div
+                        key={idx}
+                        style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: '7px 10px', borderRadius: '6px', background: '#f8fafc',
+                          border: '1px solid #e2e8f0', fontSize: '12.5px'
+                        }}
+                      >
+                        {isEditingThis ? (
+                          <div style={{ display: 'flex', gap: '6px', flex: 1, marginRight: '8px' }}>
+                            <input
+                              type="text"
+                              value={editingCategoryItem.newName}
+                              onChange={e => setEditingCategoryItem({ ...editingCategoryItem, newName: e.target.value })}
+                              style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid #0284c7', fontSize: '12px' }}
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              onClick={handleSaveRenameCategory}
+                              style={{ background: '#059669', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                            >
+                              সংরক্ষণ
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingCategoryItem(null)}
+                              style={{ background: '#e2e8f0', color: '#475569', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                            >
+                              বাতিল
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                              <span style={{ color: '#94a3b8', fontSize: '11px', width: '20px' }}>{toBnDigits(idx + 1)}.</span>
+                              <strong style={{ color: '#0f172a' }}>{cat}</strong>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setEditingCategoryItem({ oldName: cat, newName: cat, type: categoryModal.type })}
+                                style={{ background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                                title="খাতের নাম পরিবর্তন করুন"
+                              >
+                                ✏️ এডিট
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCategory(categoryModal.type, cat)}
+                                style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                                title="মুছে ফেলুন"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '12px 18px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'right' }}>
+              <button
+                type="button"
+                onClick={() => { setCategoryModal({ isOpen: false, type: 'income' }); setEditingCategoryItem(null); }}
+                style={{ background: '#475569', color: '#fff', border: 'none', padding: '7px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 2: EDIT INCOME RECORD (আয়ের এন্ট্রি সম্পাদনা)         */}
+      {/* ========================================================= */}
+      {editingIncome && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden'
+          }}>
+            <div style={{ background: '#0284c7', color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>✏️ প্রাতিষ্ঠানিক আয় ভাউচার সম্পাদনা</h3>
+              <button
+                type="button"
+                onClick={() => setEditingIncome(null)}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditIncome} style={{ padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ভাউচার নম্বর</label>
+                  <input
+                    type="text"
+                    value={editingIncome.voucher_no || ''}
+                    onChange={e => setEditingIncome({ ...editingIncome, voucher_no: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>তারিখ</label>
+                  <input
+                    type="date"
+                    value={editingIncome.date || ''}
+                    onChange={e => setEditingIncome({ ...editingIncome, date: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>আয়ের খাত</label>
+                <select
+                  value={editingIncome.category || ''}
+                  onChange={e => setEditingIncome({ ...editingIncome, category: e.target.value })}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 600 }}
+                  required
+                >
+                  {incomeCategories.map(h => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>আয়ের শিরোনাম / বিবরণ *</label>
+                <input
+                  type="text"
+                  value={editingIncome.title || ''}
+                  onChange={e => setEditingIncome({ ...editingIncome, title: e.target.value })}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>টাকার পরিমাণ *</label>
+                  <input
+                    type="number"
+                    value={editingIncome.amount || ''}
+                    onChange={e => setEditingIncome({ ...editingIncome, amount: e.target.value })}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 700, color: '#0369a1' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>গ্রহণের মাধ্যম</label>
+                  <select
+                    value={editingIncome.method || 'cash'}
+                    onChange={e => setEditingIncome({ ...editingIncome, method: e.target.value })}
+                    style={{ width: '100%', padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="cash">নগদ ক্যাশ</option>
+                    <option value="bank">ব্যাংক একাউন্ট</option>
+                    <option value="bkash">বিকাশ</option>
+                    <option value="check">ব্যাংক চেক / ড্রাফট</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>প্রদানকারীর নাম / উৎস</label>
+                <input
+                  type="text"
+                  value={editingIncome.payer_name || ''}
+                  onChange={e => setEditingIncome({ ...editingIncome, payer_name: e.target.value })}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মন্তব্য</label>
+                <input
+                  type="text"
+                  value={editingIncome.note || ''}
+                  onChange={e => setEditingIncome({ ...editingIncome, note: e.target.value })}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingIncome(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 3: EDIT EXPENSE RECORD (ব্যয়ের এন্ট্রি সম্পাদনা)         */}
+      {/* ========================================================= */}
+      {editingExpense && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden'
+          }}>
+            <div style={{ background: '#dc2626', color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>✏️ প্রাতিষ্ঠানিক ব্যয় ভাউচার সম্পাদনা</h3>
+              <button
+                type="button"
+                onClick={() => setEditingExpense(null)}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditExpense} style={{ padding: '18px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ভাউচার নম্বর</label>
+                  <input
+                    type="text"
+                    value={editingExpense.voucher_no || ''}
+                    onChange={e => setEditingExpense({ ...editingExpense, voucher_no: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontFamily: 'monospace', fontWeight: 700 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>তারিখ</label>
+                  <input
+                    type="date"
+                    value={editingExpense.date || ''}
+                    onChange={e => setEditingExpense({ ...editingExpense, date: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ব্যয়ের খাত</label>
+                <select
+                  value={editingExpense.category || ''}
+                  onChange={e => setEditingExpense({ ...editingExpense, category: e.target.value })}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 600 }}
+                  required
+                >
+                  {expenseCategories.map(h => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ব্যয়ের শিরোনাম / বিবরণ *</label>
+                <input
+                  type="text"
+                  value={editingExpense.title || ''}
+                  onChange={e => setEditingExpense({ ...editingExpense, title: e.target.value })}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>টাকার পরিমাণ *</label>
+                  <input
+                    type="number"
+                    value={editingExpense.amount || ''}
+                    onChange={e => setEditingExpense({ ...editingExpense, amount: e.target.value })}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 700, color: '#dc2626' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>পরিশোধ মাধ্যম</label>
+                  <select
+                    value={editingExpense.method || 'cash'}
+                    onChange={e => setEditingExpense({ ...editingExpense, method: e.target.value })}
+                    style={{ width: '100%', padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="cash">নগদ ক্যাশ</option>
+                    <option value="bank">ব্যাংক একাউন্ট</option>
+                    <option value="check">ব্যাংক চেক</option>
+                    <option value="bkash">বিকাশ</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>গ্রহীতার নাম / ভেন্ডর</label>
+                <input
+                  type="text"
+                  value={editingExpense.payee_name || ''}
+                  onChange={e => setEditingExpense({ ...editingExpense, payee_name: e.target.value })}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>অনুমোদনকারী কর্মকর্তা</label>
+                <input
+                  type="text"
+                  value={editingExpense.approved_by || ''}
+                  onChange={e => setEditingExpense({ ...editingExpense, approved_by: e.target.value })}
+                  style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingExpense(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 4: EDIT / ADD BUDGET HEAD (বাজেট খাত এডিট / যোগ)     */}
+      {/* ========================================================= */}
+      {editingBudgetHead && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '480px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              background: editingBudgetHead.type === 'income' ? '#047857' : '#b91c1c',
+              color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
+                ✏️ {editingBudgetHead.type === 'income' ? 'আয়ের বাজেট খাত ও বরাদ্দ সম্পাদনা' : 'ব্যয়ের বাজেট খাত ও বরাদ্দ সম্পাদনা'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingBudgetHead(null)}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditBudgetHead} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>খাতের নাম *</label>
+                <input
+                  type="text"
+                  value={editingBudgetHead.head.category || ''}
+                  onChange={e => setEditingBudgetHead({
+                    ...editingBudgetHead,
+                    head: { ...editingBudgetHead.head, category: e.target.value }
+                  })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 700 }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>প্রস্তাবিত বাজেট টাকা *</label>
+                <input
+                  type="number"
+                  value={editingBudgetHead.head.budgeted_amount || ''}
+                  onChange={e => setEditingBudgetHead({
+                    ...editingBudgetHead,
+                    head: { ...editingBudgetHead.head, budgeted_amount: e.target.value }
+                  })}
+                  style={{
+                    width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1',
+                    fontSize: '14px', fontWeight: 800, color: editingBudgetHead.type === 'income' ? '#047857' : '#b91c1c'
+                  }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>বিবরণ / নোট</label>
+                <input
+                  type="text"
+                  placeholder="যেমন: শ্রেণি ৬-১০ / বাৎসরিক প্রকল্প"
+                  value={editingBudgetHead.head.note || ''}
+                  onChange={e => setEditingBudgetHead({
+                    ...editingBudgetHead,
+                    head: { ...editingBudgetHead.head, note: e.target.value }
+                  })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingBudgetHead(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: editingBudgetHead.type === 'income' ? '#047857' : '#b91c1c',
+                    color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer'
+                  }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: ADD NEW BUDGET HEAD */}
+      {newBudgetModalType && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '480px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              background: newBudgetModalType === 'income' ? '#047857' : '#b91c1c',
+              color: '#fff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
+                ➕ নতুন {newBudgetModalType === 'income' ? 'আয়ের বাজেট খাত' : 'ব্যয়ের বাজেট খাত'} যোগ
+              </h3>
+              <button
+                type="button"
+                onClick={() => setNewBudgetModalType(null)}
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={e => { e.preventDefault(); handleAddBudgetHead(newBudgetModalType, newBudgetHeadForm); }} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>খাতের নাম *</label>
+                <input
+                  type="text"
+                  placeholder="খাতের নাম লিখুন"
+                  value={newBudgetHeadForm.category}
+                  onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, category: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>প্রস্তাবিত বাজেট টাকা *</label>
+                <input
+                  type="number"
+                  placeholder="যেমন: ১২০০০০"
+                  value={newBudgetHeadForm.amount}
+                  onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, amount: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', fontWeight: 700 }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>বিবরণ / নোট</label>
+                <input
+                  type="text"
+                  placeholder="সংক্ষিপ্ত মন্তব্য"
+                  value={newBudgetHeadForm.note}
+                  onChange={e => setNewBudgetHeadForm({ ...newBudgetHeadForm, note: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setNewBudgetModalType(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: newBudgetModalType === 'income' ? '#047857' : '#b91c1c',
+                    color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer'
+                  }}
+                >
+                  যুক্ত করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
