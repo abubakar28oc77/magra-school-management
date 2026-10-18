@@ -92,6 +92,7 @@ import {
 } from './mockData';
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
+import { RoutinePanel } from './RoutinePanel';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   const [filterClass, setFilterClass] = useState('all');
@@ -283,6 +284,14 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   };
 
   const renderContent = () => {
+    // Routine & Schedule (Class & Exam Routine)
+    if (menuKey?.includes('routine') || title?.includes('রুটিন')) {
+      return (
+        <div className="submenu-content" style={{ padding: '4px' }}>
+          <RoutinePanel sub={menuKey?.includes('exam') ? 'exam_routine' : 'class_routine'} />
+        </div>
+      );
+    }
     // 0. Online Admission Module & Submenus
     if (menuKey.startsWith('public.nav.admission') || menuKey === 'public.nav.results.admission' || title.includes('ভর্তি')) {
       return (

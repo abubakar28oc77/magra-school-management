@@ -91,6 +91,7 @@ import {
 } from './mockData.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
+import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES } from './routineData.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -1639,6 +1640,116 @@ function handleMockRequest(path, opts = {}) {
       return newGs;
     }
     return schemes;
+  }
+
+
+  // ==========================================
+  // ACADEMIC ROUTINE ENGINE: CLASS & EXAM
+  // ==========================================
+  if (cleanPath === '/routines') {
+    let routines = getLocalStore('routines', null);
+    if (!Array.isArray(routines) || !routines.length) {
+      routines = DEFAULT_CLASS_ROUTINES;
+      setLocalStore('routines', routines);
+    }
+    if (method === 'POST') {
+      const newR = {
+        id: 'cr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        ...body,
+        created_at: new Date().toISOString()
+      };
+      routines = [newR, ...routines];
+      setLocalStore('routines', routines);
+      return newR;
+    }
+    const cls = params.get('class_name');
+    const sec = params.get('section');
+    const day = params.get('day_of_week');
+    const teacherId = params.get('teacher_id');
+
+    let filtered = routines;
+    if (cls && cls !== 'all' && cls !== 'সকল শ্রেণি') {
+      filtered = filtered.filter(r => String(r.class_name) === String(cls));
+    }
+    if (sec && sec !== 'all' && sec !== 'সকল শাখা' && sec !== 'সকল বিভাগ') {
+      filtered = filtered.filter(r => String(r.section).includes(sec) || String(sec).includes(r.section));
+    }
+    if (day && day !== 'all') {
+      filtered = filtered.filter(r => String(r.day_of_week) === String(day));
+    }
+    if (teacherId && teacherId !== 'all') {
+      filtered = filtered.filter(r => String(r.teacher_name || '').includes(teacherId) || String(r.teacher_id || '') === String(teacherId));
+    }
+    return filtered;
+  }
+
+  if (cleanPath.startsWith('/routines/')) {
+    const id = cleanPath.replace('/routines/', '');
+    let routines = getLocalStore('routines', DEFAULT_CLASS_ROUTINES);
+    if (method === 'PUT' || method === 'PATCH') {
+      routines = routines.map(r => String(r.id) === String(id) ? { ...r, ...body, updated_at: new Date().toISOString() } : r);
+      setLocalStore('routines', routines);
+      const updated = routines.find(r => String(r.id) === String(id));
+      return updated || { success: true };
+    }
+    if (method === 'DELETE') {
+      routines = routines.filter(r => String(r.id) !== String(id));
+      setLocalStore('routines', routines);
+      return { success: true, message: 'ক্লাস রুটিন স্লট মুছে ফেলা হয়েছে' };
+    }
+  }
+
+  if (cleanPath === '/exam_routines') {
+    let examRoutines = getLocalStore('exam_routines', null);
+    if (!Array.isArray(examRoutines) || !examRoutines.length) {
+      examRoutines = DEFAULT_EXAM_ROUTINES;
+      setLocalStore('exam_routines', examRoutines);
+    }
+    if (method === 'POST') {
+      const newEx = {
+        id: 'exr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        ...body,
+        created_at: new Date().toISOString()
+      };
+      examRoutines = [newEx, ...examRoutines];
+      setLocalStore('exam_routines', examRoutines);
+      return newEx;
+    }
+    const examId = params.get('exam_id');
+    const examName = params.get('exam_name');
+    const cls = params.get('class_name');
+    const yr = params.get('academic_year');
+
+    let filtered = examRoutines;
+    if (examId && examId !== 'all') {
+      filtered = filtered.filter(e => String(e.exam_id) === String(examId));
+    }
+    if (examName && examName !== 'all') {
+      filtered = filtered.filter(e => String(e.exam_name || '').includes(examName));
+    }
+    if (cls && cls !== 'all' && cls !== 'সকল শ্রেণি') {
+      filtered = filtered.filter(e => String(e.class_name) === String(cls) || e.class_name === 'all' || e.class_name === 'সকল শ্রেণি');
+    }
+    if (yr && yr !== 'all') {
+      filtered = filtered.filter(e => String(e.academic_year) === String(yr));
+    }
+    return filtered;
+  }
+
+  if (cleanPath.startsWith('/exam_routines/')) {
+    const id = cleanPath.replace('/exam_routines/', '');
+    let examRoutines = getLocalStore('exam_routines', DEFAULT_EXAM_ROUTINES);
+    if (method === 'PUT' || method === 'PATCH') {
+      examRoutines = examRoutines.map(e => String(e.id) === String(id) ? { ...e, ...body, updated_at: new Date().toISOString() } : e);
+      setLocalStore('exam_routines', examRoutines);
+      const updated = examRoutines.find(e => String(e.id) === String(id));
+      return updated || { success: true };
+    }
+    if (method === 'DELETE') {
+      examRoutines = examRoutines.filter(e => String(e.id) !== String(id));
+      setLocalStore('exam_routines', examRoutines);
+      return { success: true, message: 'পরীক্ষার সময়সূচি মুছে ফেলা হয়েছে' };
+    }
   }
 
   if (cleanPath === '/marks') {
