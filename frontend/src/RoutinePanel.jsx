@@ -517,20 +517,20 @@ export function RoutinePanel({ sub }) {
       const clsLabel = selectedClass === 'all' ? 'সকল শ্রেণি' : `${toBnDigits(selectedClass)}ম শ্রেণি`;
       titleText = `${clsLabel}র প্রাতিষ্ঠানিক সাপ্তাহিক ক্লাস রুটিন - ২০২৬`;
 
-      // Build grid table for print
+      // Build grid table for print (ক্লাস রুটিনে শুধু বিষয়ের নাম ও শিক্ষকের নাম থাকবে, কক্ষ নং থাকবে না)
       bodyContent = `
-        <div style="text-align:center; margin-bottom: 15px;">
-          <h2 style="margin: 0 0 4px; font-size: 19px; color: #0f172a;">${titleText}</h2>
-          <p style="margin: 0; font-size: 13px; color: #475569;">শ্রেণি: <b>${clsLabel}</b> | শাখা/বিভাগ: <b>${selectedSection === 'all' ? 'সকল শাখা' : selectedSection}</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b></p>
+        <div style="text-align:center; margin-bottom: 5px;">
+          <h2 style="margin: 0 0 2px; font-size: 15px; color: #0f172a;">${titleText}</h2>
+          <p style="margin: 0; font-size: 11px; color: #475569;">শ্রেণি: <b>${clsLabel}</b> | শাখা/বিভাগ: <b>${selectedSection === 'all' ? 'সকল শাখা' : selectedSection}</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b></p>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 25px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 8px; table-layout: fixed;">
           <thead>
             <tr style="background: #f1f5f9; color: #0f172a;">
-              <th style="border: 1px solid #94a3b8; padding: 8px; width: 85px;">বার / দিন</th>
+              <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 80px; text-align: center;">বার / দিন</th>
               ${periods.map(p => `
-                <th style="border: 1px solid #94a3b8; padding: 6px; text-align: center; ${p.is_break ? 'background: #fffbeb; color: #92400e;' : p.is_assembly ? 'background: #f0fdf4; color: #166534;' : ''}">
+                <th style="border: 1px solid #94a3b8; padding: 4px 2px; text-align: center; ${p.is_break ? 'width: 75px; background: #fffbeb; color: #92400e;' : p.is_assembly ? 'width: 75px; background: #f0fdf4; color: #166534;' : ''}">
                   <b>${p.name_bn}</b><br/>
-                  <small style="font-size: 10px; color: #475569;">${toBnDigits(p.start_time)} - ${toBnDigits(p.end_time)}</small>
+                  <small style="font-size: 9px; color: #475569;">${toBnDigits(p.start_time)} - ${toBnDigits(p.end_time)}</small>
                 </th>
               `).join('')}
             </tr>
@@ -538,33 +538,32 @@ export function RoutinePanel({ sub }) {
           <tbody>
             ${WEEK_DAYS.map(day => `
               <tr>
-                <td style="border: 1px solid #94a3b8; padding: 8px; font-weight: bold; background: #f8fafc; text-align: center;">
+                <td style="border: 1px solid #94a3b8; padding: 5px 3px; font-weight: bold; background: #f8fafc; text-align: center;">
                   ${day.name_bn}
                 </td>
                 ${periods.map(period => {
                   if (period.is_assembly) {
                     return `
-                      <td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; background: #f0fdf4; font-size: 10px; color: #166534; font-weight: bold;">
+                      <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; background: #f0fdf4; font-size: 9.5px; color: #166534; font-weight: bold;">
                         🏛️ সমাবেশ ও শপথ
                       </td>
                     `;
                   }
                   if (period.is_break) {
                     return `
-                      <td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; background: #fffbeb; font-size: 10px; color: #b45309; font-weight: bold;">
+                      <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; background: #fffbeb; font-size: 9.5px; color: #b45309; font-weight: bold;">
                         🥪 টিফিন ও নামাজ
                       </td>
                     `;
                   }
                   const slot = filteredClassRoutines.find(r => normDay(r.day_of_week) === normDay(day.id) && normPeriod(r.period_no, r.start_time) === normPeriod(period.period_no, period.start_time));
                   if (!slot) {
-                    return `<td style="border: 1px solid #94a3b8; padding: 4px; text-align: center; color: #cbd5e1;">—</td>`;
+                    return `<td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; color: #cbd5e1;">—</td>`;
                   }
                   return `
-                    <td style="border: 1px solid #94a3b8; padding: 6px; text-align: center; background: #ffffff;">
-                      <b style="color: #0369a1; font-size: 12px;">${slot.subject_name}</b><br/>
-                      <small style="color: #334155;">👨‍🏫 ${slot.teacher_name}</small><br/>
-                      <small style="color: #64748b; font-size: 10px;">🚪 কক্ষ: ${slot.room || '১০১'}</small>
+                    <td style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; background: #ffffff;">
+                      <div style="font-weight: 800; color: #0369a1; font-size: 11px; line-height: 1.2;">${slot.subject_name}</div>
+                      <div style="color: #334155; font-size: 9.5px; font-weight: 600; margin-top: 2px;">👨‍🏫 ${slot.teacher_name}</div>
                     </td>
                   `;
                 }).join('')}
@@ -578,56 +577,56 @@ export function RoutinePanel({ sub }) {
       titleText = `${activeExamObj.name_bn} এর প্রাতিষ্ঠানিক সময়সূচি ও পরীক্ষার রুটিন`;
 
       bodyContent = `
-        <div style="text-align:center; margin-bottom: 15px;">
-          <h2 style="margin: 0 0 4px; font-size: 19px; color: #0f172a;">${titleText}</h2>
-          <p style="margin: 0; font-size: 13px; color: #475569;">শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b> | সময়: <b>সকাল ১০:০০ টা হতে দুপুর ০১:০০ টা</b></p>
+        <div style="text-align:center; margin-bottom: 5px;">
+          <h2 style="margin: 0 0 2px; font-size: 14.5px; color: #0f172a;">${titleText}</h2>
+          <p style="margin: 0; font-size: 10.5px; color: #475569;">শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b> | সময়: <b>সকাল ১০:০০ টা হতে দুপুর ০১:০০ টা</b></p>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 20px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 6px; table-layout: fixed;">
           <thead>
             <tr style="background: #f1f5f9; color: #0f172a;">
-              <th style="border: 1px solid #94a3b8; padding: 8px; width: 45px; text-align: center;">ক্র.</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px; text-align: center;">তারিখ ও বার</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px;">শ্রেণি ও বিভাগ</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px;">বিষয় ও বিষয় কোড</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px; text-align: center;">সময়</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px; text-align: center;">পূর্ণমান</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px;">পরীক্ষা কক্ষ</th>
-              <th style="border: 1px solid #94a3b8; padding: 8px;">হল পরিদর্শক</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 2px; width: 25px; text-align: center;">ক্র.</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 2px; width: 68px; text-align: center;">তারিখ ও বার</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 3px; width: 70px;">শ্রেণি ও বিভাগ</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 4px;">বিষয় ও বিষয় কোড</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 2px; width: 68px; text-align: center;">সময়</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 2px; width: 36px; text-align: center;">পূর্ণমান</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 2px; width: 45px; text-align: center;">পরীক্ষা কক্ষ</th>
+              <th style="border: 1px solid #94a3b8; padding: 3px 3px; width: 85px;">হল পরিদর্শক</th>
             </tr>
           </thead>
           <tbody>
             ${filteredExamRoutines.map((ex, idx) => `
               <tr>
-                <td style="border: 1px solid #94a3b8; padding: 7px; text-align: center; font-weight: bold;">${toBnDigits(idx + 1)}</td>
-                <td style="border: 1px solid #94a3b8; padding: 7px; text-align: center;">
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 2px; text-align: center; font-weight: bold;">${toBnDigits(idx + 1)}</td>
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 2px; text-align: center;">
                   <b>${formatDateBn(ex.exam_date)}</b><br/>
-                  <small style="color: #64748b;">${ex.day_name}</small>
+                  <small style="color: #64748b; font-size: 8.5px;">${ex.day_name}</small>
                 </td>
-                <td style="border: 1px solid #94a3b8; padding: 7px;">
-                  <b>${ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি' ? '৬ষ্ঠ থেকে ১০ম' : `${toBnDigits(ex.class_name)}ম শ্রেণি`}</b><br/>
-                  <small style="color: #475569;">${ex.section || 'সকল শাখা'}</small>
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 3px;">
+                  <b>${ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি' ? '৬ষ্ঠ থেকে ১০ম' : `${toBnDigits(ex.class_name)}ম`}</b><br/>
+                  <small style="color: #475569; font-size: 8.5px;">${ex.section || 'সকল শাখা'}</small>
                 </td>
-                <td style="border: 1px solid #94a3b8; padding: 7px;">
-                  <b style="color: #0369a1;">${ex.subject_name}</b><br/>
-                  <small style="color: #64748b;">বিষয় কোড: ${toBnDigits(ex.subject_code || '১০১')}</small>
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 4px;">
+                  <b style="color: #0369a1; font-size: 9.5px;">${ex.subject_name}</b><br/>
+                  <small style="color: #64748b; font-size: 8.5px;">কোড: ${toBnDigits(ex.subject_code || '১০১')}</small>
                 </td>
-                <td style="border: 1px solid #94a3b8; padding: 7px; text-align: center; font-weight: 600;">
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 2px; text-align: center; font-weight: 600; font-size: 9px;">
                   ${toBnDigits(ex.start_time)} - ${toBnDigits(ex.end_time)}
                 </td>
-                <td style="border: 1px solid #94a3b8; padding: 7px; text-align: center; font-weight: bold; color: #047857;">
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 2px; text-align: center; font-weight: bold; color: #047857;">
                   ${toBnDigits(ex.full_marks || 100)}
                 </td>
-                <td style="border: 1px solid #94a3b8; padding: 7px;">${ex.room_no || '১০১-২০৩'}</td>
-                <td style="border: 1px solid #94a3b8; padding: 7px; font-size: 11px;">${ex.invigilator || 'নির্ধারিত শিক্ষকবৃন্দ'}</td>
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 2px; text-align: center; font-size: 9px;">${ex.room_no || '১০১-২০৩'}</td>
+                <td style="border: 1px solid #94a3b8; padding: 2.5px 3px; font-size: 8.5px;">${ex.invigilator || 'নির্ধারিত শিক্ষক'}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
 
-        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 12px 16px; border-radius: 6px; font-size: 11.5px; margin-bottom: 25px;">
-          <h4 style="margin: 0 0 6px; color: #92400e; font-size: 12.5px;">📌 পরীক্ষার্থীদের জন্য জরুরি সাধারণ নির্দেশনাবলী:</h4>
-          <ol style="margin: 0; padding-left: 20px; color: #78350f; line-height: 1.6;">
-            ${EXAM_INSTRUCTIONS.slice(0, 5).map(ins => `<li>${ins}</li>`).join('')}
+        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 3.5px 8px; border-radius: 4px; font-size: 8.5px; line-height: 1.25; margin-bottom: 5px;">
+          <div style="font-weight: 800; color: #92400e; margin-bottom: 1px;">📌 পরীক্ষার্থীদের জরুরি সাধারণ নির্দেশনাবলী:</div>
+          <ol style="margin: 0; padding-left: 15px; color: #78350f;">
+            ${EXAM_INSTRUCTIONS.slice(0, 4).map(ins => `<li>${ins}</li>`).join('')}
           </ol>
         </div>
       `;
@@ -640,19 +639,22 @@ export function RoutinePanel({ sub }) {
         <title>${titleText} - ${school.nameBn || school.name}</title>
         <meta charset="utf-8" />
         <style>
-          @page { size: ${isClass ? 'landscape' : 'portrait'}; margin: 10mm 12mm; }
+          @page {
+            size: ${isClass ? 'landscape' : 'portrait'};
+            margin: ${isClass ? '5mm 8mm' : '4mm 6mm'};
+          }
           body {
             font-family: 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', 'Segoe UI', Tahoma, sans-serif;
             color: #0f172a;
             margin: 0;
-            padding: 12px;
+            padding: 4px 6px;
             background: #ffffff;
             position: relative;
           }
           .official-header {
-            border-bottom: 2.5px double #0284c7;
-            padding-bottom: 12px;
-            margin-bottom: 14px;
+            border-bottom: 2px double #0284c7;
+            padding-bottom: ${isClass ? '5px' : '4px'};
+            margin-bottom: ${isClass ? '6px' : '5px'};
             width: 100%;
           }
           .header-top {
@@ -660,68 +662,71 @@ export function RoutinePanel({ sub }) {
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
           }
           .header-logo-left {
             flex-shrink: 0;
-            width: 95px;
+            width: ${isClass ? '74px' : '66px'};
             text-align: left;
           }
           .school-logo {
-            width: 86px;
-            height: 86px;
+            width: ${isClass ? '68px' : '60px'};
+            height: ${isClass ? '68px' : '60px'};
             object-fit: contain;
             border-radius: 50%;
             background: #ffffff;
             padding: 2px;
             border: 2px solid #0369a1;
-            box-shadow: 0 2px 6px rgba(3, 105, 161, 0.15);
+            box-shadow: 0 1px 4px rgba(3, 105, 161, 0.12);
           }
           .school-titles {
             flex: 1;
             text-align: center;
-            padding: 0 10px;
+            padding: 0 6px;
           }
           .school-name-bn {
             margin: 0;
-            font-size: 29px;
+            font-size: ${isClass ? '24px' : '22px'};
             font-weight: 900;
             color: #1e3a8a;
-            letter-spacing: -0.3px;
-            line-height: 1.25;
+            letter-spacing: -0.2px;
+            line-height: 1.1;
             text-shadow: 0 1px 1px rgba(0,0,0,0.06);
           }
           .school-name-en {
-            margin: 3px 0 0;
-            font-size: 15px;
+            margin: 1px 0 0;
+            font-size: ${isClass ? '12.5px' : '11.5px'};
             font-family: 'Cinzel', 'Outfit', serif, sans-serif;
             font-weight: 800;
             color: #b45309;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
+            line-height: 1.1;
           }
           .school-meta {
-            margin: 6px 0 0;
-            font-size: 13px;
+            margin: 1.5px 0 0;
+            font-size: ${isClass ? '11px' : '10px'};
             font-weight: 700;
             color: #334155;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.1px;
+            line-height: 1.15;
           }
           .school-contact {
-            margin: 3px 0 0;
-            font-size: 11.5px;
+            margin: 1px 0 0;
+            font-size: ${isClass ? '10px' : '9px'};
             color: #64748b;
             font-weight: 600;
+            line-height: 1.15;
           }
           .header-right-shield {
             flex-shrink: 0;
-            width: 95px;
+            width: ${isClass ? '74px' : '66px'};
             display: flex;
             justify-content: flex-end;
           }
           .gov-seal-box {
-            width: 86px;
-            height: 86px;
+            width: ${isClass ? '68px' : '60px'};
+            height: ${isClass ? '68px' : '60px'};
             border-radius: 50%;
             border: 1.5px dashed #0284c7;
             background: #f0fdfa;
@@ -730,34 +735,34 @@ export function RoutinePanel({ sub }) {
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 3px;
+            padding: 2px;
             box-sizing: border-box;
           }
           .seal-icon {
-            font-size: 16px;
+            font-size: ${isClass ? '13px' : '11px'};
             line-height: 1;
           }
           .seal-text-top {
-            font-size: 8px;
+            font-size: ${isClass ? '7.5px' : '6.5px'};
             font-weight: 800;
             color: #0369a1;
             line-height: 1.1;
-            margin-top: 2px;
-          }
-          .seal-text-mid {
-            font-size: 7px;
-            color: #475569;
-            line-height: 1;
             margin-top: 1px;
           }
+          .seal-text-mid {
+            font-size: ${isClass ? '6px' : '5px'};
+            color: #475569;
+            line-height: 1;
+            margin-top: 0.5px;
+          }
           .seal-text-bot {
-            font-size: 8px;
+            font-size: ${isClass ? '7.5px' : '6.5px'};
             font-weight: 800;
             color: #b45309;
-            margin-top: 2px;
+            margin-top: 1px;
           }
           .header-ribbon-wrap {
-            margin: 8px 0 6px;
+            margin: ${isClass ? '4px 0 3px' : '3px 0 2px'};
             display: flex;
             justify-content: center;
           }
@@ -765,33 +770,33 @@ export function RoutinePanel({ sub }) {
             display: inline-block;
             background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
             color: #ffffff;
-            padding: 6px 40px;
-            border-radius: 20px;
-            border: 2px solid #f59e0b;
-            box-shadow: 0 3px 8px rgba(30, 58, 138, 0.25);
+            padding: ${isClass ? '3px 26px' : '2px 20px'};
+            border-radius: 16px;
+            border: 1.5px solid #f59e0b;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);
             text-align: center;
           }
           .ribbon-title-bn {
-            font-size: 17px;
+            font-size: ${isClass ? '14px' : '12.5px'};
             font-weight: 900;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             color: #ffffff;
           }
           .ribbon-title-en {
-            font-size: 9.5px;
+            font-size: ${isClass ? '8.5px' : '7.5px'};
             font-family: 'Outfit', sans-serif;
             font-weight: 700;
             color: #fef08a;
-            letter-spacing: 1.5px;
-            margin-top: 1px;
+            letter-spacing: 1.2px;
+            margin-top: 0.5px;
           }
           .header-memo-date {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
+            font-size: ${isClass ? '10.5px' : '9.5px'};
             color: #475569;
-            margin-top: 8px;
+            margin-top: ${isClass ? '4px' : '2px'};
             padding: 0 4px;
           }
           .watermark-bg {
@@ -799,13 +804,13 @@ export function RoutinePanel({ sub }) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 340px;
-            height: 340px;
+            width: ${isClass ? '270px' : '230px'};
+            height: ${isClass ? '270px' : '230px'};
             background-image: url('${schoolLogo}');
             background-repeat: no-repeat;
             background-position: center;
             background-size: contain;
-            opacity: 0.045;
+            opacity: 0.04;
             pointer-events: none;
             z-index: 0;
           }
@@ -816,30 +821,43 @@ export function RoutinePanel({ sub }) {
           .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 36px;
-            padding: 0 20px;
+            margin-top: ${isClass ? '14px' : '8px'};
+            padding: 0 15px;
             position: relative;
             z-index: 1;
+            page-break-inside: avoid;
           }
           .sig-box {
             text-align: center;
-            width: 190px;
+            width: ${isClass ? '170px' : '150px'};
           }
           .sig-line {
-            border-top: 1.5px dashed #475569;
-            margin-bottom: 5px;
+            border-top: 1.2px dashed #475569;
+            margin-bottom: 3px;
           }
           .sig-title {
-            font-size: 12px;
+            font-size: ${isClass ? '10.5px' : '9.5px'};
             font-weight: bold;
             color: #0f172a;
           }
           .sig-sub {
-            font-size: 10.5px;
+            font-size: ${isClass ? '9px' : '8px'};
             color: #64748b;
           }
           @media print {
-            body { padding: 0; }
+            html, body {
+              height: 100%;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            .content-wrap {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            table, tr, td, th {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
             .no-print { display: none; }
             .official-ribbon {
               background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
@@ -906,7 +924,7 @@ export function RoutinePanel({ sub }) {
             <div class="sig-box">
               <div class="sig-line"></div>
               <div class="sig-title">আহ্বায়ক / সদস্য সচিব</div>
-              <div class="sig-sub">রুটিন প্রণয়ন কমিটি</div>
+              <div class="sig-sub">${isClass ? 'রুটিন প্রণয়ন কমিটি' : 'পরীক্ষা পরিচালনা কমিটি'}</div>
             </div>
             <div class="sig-box">
               <div class="sig-line"></div>
@@ -1381,22 +1399,24 @@ export function RoutinePanel({ sub }) {
                 </div>
               </div>
 
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '950px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', minWidth: '950px' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ padding: '12px', textAlign: 'center', width: '110px', fontSize: '12.5px', color: '#334155', borderRight: '1px solid #e2e8f0' }}>
+                    <th style={{ padding: '10px 4px', textAlign: 'center', width: '92px', fontSize: '12px', color: '#334155', borderRight: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                       বার / দিন
                     </th>
                     {periods.map(p => (
                       <th
                         key={p.period_no}
                         style={{
-                          padding: '10px 6px',
+                          padding: '10px 4px',
                           textAlign: 'center',
+                          width: (p.is_break || p.is_assembly) ? '82px' : 'auto',
                           fontSize: '12px',
                           color: p.is_break ? '#b45309' : p.is_assembly ? '#166534' : '#0f766e',
                           borderRight: '1px solid #e2e8f0',
-                          background: p.is_break ? '#fefce8' : p.is_assembly ? '#f0fdf4' : '#f8fafc'
+                          background: p.is_break ? '#fefce8' : p.is_assembly ? '#f0fdf4' : '#f8fafc',
+                          boxSizing: 'border-box'
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px' }}>
@@ -1418,10 +1438,10 @@ export function RoutinePanel({ sub }) {
                             ✏️
                           </button>
                         </div>
-                        <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
+                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
                           {toBnDigits(p.start_time)} - {toBnDigits(p.end_time)}
                         </div>
-                        <div style={{ fontSize: '9.5px', color: '#94a3b8', fontWeight: 500 }}>
+                        <div style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 500 }}>
                           {p.duration || calculateDurationBn(p.start_time, p.end_time)}
                         </div>
                       </th>
@@ -1441,19 +1461,30 @@ export function RoutinePanel({ sub }) {
                       >
                         {/* Day Cell */}
                         <td style={{
-                          padding: '14px 10px',
+                          padding: '4px',
                           textAlign: 'center',
                           borderRight: '1px solid #e2e8f0',
-                          background: isToday ? '#dcfce7' : '#f8fafc'
+                          background: isToday ? '#dcfce7' : '#f8fafc',
+                          verticalAlign: 'middle',
+                          boxSizing: 'border-box'
                         }}>
-                          <div style={{ fontWeight: 800, fontSize: '13px', color: isToday ? '#15803d' : '#1e293b' }}>
-                            {day.name_bn}
+                          <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            height: '68px',
+                            boxSizing: 'border-box'
+                          }}>
+                            <div style={{ fontWeight: 800, fontSize: '13px', color: isToday ? '#15803d' : '#1e293b' }}>
+                              {day.name_bn}
+                            </div>
+                            {isToday && (
+                              <span style={{ display: 'inline-block', background: '#16a34a', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', marginTop: '3px' }}>
+                                আজকের ক্লাস
+                              </span>
+                            )}
                           </div>
-                          {isToday && (
-                            <span style={{ display: 'inline-block', background: '#16a34a', color: '#fff', fontSize: '9.5px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px', marginTop: '3px' }}>
-                              আজকের ক্লাস
-                            </span>
-                          )}
                         </td>
 
                         {/* Period Cells */}
@@ -1463,18 +1494,30 @@ export function RoutinePanel({ sub }) {
                               <td
                                 key={period.period_no}
                                 style={{
-                                  padding: '8px 4px',
+                                  padding: '4px',
                                   textAlign: 'center',
-                                  background: '#f0fdf4',
                                   borderRight: '1px solid #e2e8f0',
-                                  color: '#166534',
-                                  fontSize: '11px',
-                                  fontWeight: 700
+                                  verticalAlign: 'middle',
+                                  boxSizing: 'border-box'
                                 }}
                               >
-                                <div style={{ fontSize: '15px', marginBottom: '2px' }}>🏛️</div>
-                                <div>দৈনিক সমাবেশ</div>
-                                <small style={{ fontSize: '9.5px', color: '#15803d', display: 'block' }}>পতাকা ও শপথ</small>
+                                <div style={{
+                                  background: '#f0fdf4',
+                                  border: '1.5px dashed #86efac',
+                                  borderRadius: '8px',
+                                  padding: '6px 4px',
+                                  height: '68px',
+                                  boxSizing: 'border-box',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#166534'
+                                }}>
+                                  <div style={{ fontSize: '15px', lineHeight: 1 }}>🏛️</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 800, marginTop: '2px' }}>দৈনিক সমাবেশ</div>
+                                  <small style={{ fontSize: '9px', color: '#15803d', fontWeight: 600 }}>পতাকা ও শপথ</small>
+                                </div>
                               </td>
                             );
                           }
@@ -1484,18 +1527,30 @@ export function RoutinePanel({ sub }) {
                               <td
                                 key={period.period_no}
                                 style={{
-                                  padding: '8px 4px',
+                                  padding: '4px',
                                   textAlign: 'center',
-                                  background: '#fffbeb',
                                   borderRight: '1px solid #e2e8f0',
-                                  color: '#b45309',
-                                  fontSize: '11px',
-                                  fontWeight: 700
+                                  verticalAlign: 'middle',
+                                  boxSizing: 'border-box'
                                 }}
                               >
-                                <div style={{ fontSize: '15px', marginBottom: '2px' }}>🥪</div>
-                                <div>টিফিন ও নামাজ</div>
-                                <small style={{ fontSize: '9.5px', color: '#92400e', display: 'block' }}>বিরতি</small>
+                                <div style={{
+                                  background: '#fffbeb',
+                                  border: '1.5px dashed #fcd34d',
+                                  borderRadius: '8px',
+                                  padding: '6px 4px',
+                                  height: '68px',
+                                  boxSizing: 'border-box',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#b45309'
+                                }}>
+                                  <div style={{ fontSize: '15px', lineHeight: 1 }}>🥪</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 800, marginTop: '2px' }}>টিফিন ও নামাজ</div>
+                                  <small style={{ fontSize: '9px', color: '#92400e', fontWeight: 600 }}>বিরতি</small>
+                                </div>
                               </td>
                             );
                           }
@@ -1513,42 +1568,57 @@ export function RoutinePanel({ sub }) {
                               <td
                                 key={period.period_no}
                                 style={{
-                                  padding: '10px 8px',
+                                  padding: '4px',
                                   textAlign: 'center',
                                   borderRight: '1px solid #e2e8f0',
-                                  color: '#94a3b8'
+                                  verticalAlign: 'middle',
+                                  boxSizing: 'border-box'
                                 }}
                               >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingClassSlot(null);
-                                    setClassForm({
-                                      class_name: selectedClass !== 'all' ? selectedClass : '6',
-                                      section: ['9', '10'].includes(String(selectedClass)) ? 'বিজ্ঞান বিভাগ' : 'পদ্মা শাখা',
-                                      day_of_week: day.id,
-                                      period_no: period.period_no,
-                                      start_time: period.start_time,
-                                      end_time: period.end_time,
-                                      subject_name: 'বাংলা ১ম পত্র',
-                                      subject_code: '১০১',
-                                      teacher_name: 'মোঃ সাইদুর রহমান',
-                                      room: '১০১'
-                                    });
-                                    setShowClassModal(true);
-                                  }}
-                                  style={{
-                                    background: 'transparent',
-                                    border: '1px dashed #cbd5e1',
-                                    color: '#94a3b8',
-                                    padding: '4px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '11px',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  + যোগ করুন
-                                </button>
+                                <div style={{
+                                  background: '#f8fafc',
+                                  border: '1.5px dashed #cbd5e1',
+                                  borderRadius: '8px',
+                                  padding: '6px 4px',
+                                  height: '68px',
+                                  boxSizing: 'border-box',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingClassSlot(null);
+                                      setClassForm({
+                                        class_name: selectedClass !== 'all' ? selectedClass : '6',
+                                        section: ['9', '10'].includes(String(selectedClass)) ? 'বিজ্ঞান বিভাগ' : 'পদ্মা শাখা',
+                                        day_of_week: day.id,
+                                        period_no: period.period_no,
+                                        start_time: period.start_time,
+                                        end_time: period.end_time,
+                                        subject_name: 'বাংলা ১ম পত্র',
+                                        subject_code: '১০১',
+                                        teacher_name: 'মোঃ সাইদুর রহমান',
+                                        room: '১০১'
+                                      });
+                                      setShowClassModal(true);
+                                    }}
+                                    style={{
+                                      background: '#ffffff',
+                                      border: '1px solid #cbd5e1',
+                                      color: '#64748b',
+                                      padding: '4px 8px',
+                                      borderRadius: '5px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      cursor: 'pointer',
+                                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                                    }}
+                                  >
+                                    + যোগ করুন
+                                  </button>
+                                </div>
                               </td>
                             );
                           }
@@ -1559,28 +1629,44 @@ export function RoutinePanel({ sub }) {
                             <td
                               key={period.period_no}
                               style={{
-                                padding: '8px',
+                                padding: '4px',
                                 borderRight: '1px solid #e2e8f0',
-                                verticalAlign: 'top',
-                                background: '#ffffff'
+                                verticalAlign: 'middle',
+                                background: '#ffffff',
+                                boxSizing: 'border-box'
                               }}
                             >
                               <div style={{
                                 background: theme.bg,
                                 border: `1.5px solid ${theme.border}`,
                                 borderRadius: '8px',
-                                padding: '8px 10px',
+                                padding: '6px 8px',
                                 position: 'relative',
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '4px'
+                                justifyContent: 'space-between',
+                                height: '68px',
+                                boxSizing: 'border-box'
                               }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '4px' }}>
-                                  <div style={{ fontWeight: 800, fontSize: '12.5px', color: theme.text, lineHeight: 1.3 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '3px' }}>
+                                  <div
+                                    title={slot.subject_name}
+                                    style={{
+                                      fontWeight: 800,
+                                      fontSize: '12px',
+                                      color: theme.text,
+                                      lineHeight: 1.25,
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      wordBreak: 'break-word'
+                                    }}
+                                  >
                                     {theme.icon} {slot.subject_name}
                                   </div>
-                                  <div style={{ display: 'flex', gap: '3px', flexShrink: 0 }}>
+                                  <div style={{ display: 'flex', gap: '2px', flexShrink: 0 }}>
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -1599,8 +1685,9 @@ export function RoutinePanel({ sub }) {
                                         border: '1px solid #cbd5e1',
                                         borderRadius: '4px',
                                         cursor: 'pointer',
-                                        padding: '2px 5px',
-                                        fontSize: '11px',
+                                        padding: '1px 4px',
+                                        fontSize: '10px',
+                                        lineHeight: 1,
                                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                                       }}
                                     >
@@ -1615,8 +1702,9 @@ export function RoutinePanel({ sub }) {
                                         border: '1px solid #fca5a5',
                                         borderRadius: '4px',
                                         cursor: 'pointer',
-                                        padding: '2px 5px',
-                                        fontSize: '11px',
+                                        padding: '1px 4px',
+                                        fontSize: '10px',
+                                        lineHeight: 1,
                                         color: '#dc2626',
                                         boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                                       }}
@@ -1626,17 +1714,22 @@ export function RoutinePanel({ sub }) {
                                   </div>
                                 </div>
 
-                                <div style={{ fontSize: '11.5px', color: '#1e293b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                  <span>👨‍🏫</span> <span>{slot.teacher_name}</span>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2px', fontSize: '10.5px', color: '#64748b' }}>
-                                  <span style={{ fontWeight: 600 }}>🚪 কক্ষ {toBnDigits(slot.room || '১০১')}</span>
-                                  {slot.section && (
-                                    <span style={{ background: 'rgba(0,0,0,0.06)', color: '#475569', padding: '1px 5px', borderRadius: '4px', fontSize: '9.5px', fontWeight: 600 }}>
-                                      {slot.section}
-                                    </span>
-                                  )}
+                                <div
+                                  title={slot.teacher_name}
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#1e293b',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
+                                  <span style={{ fontSize: '11px' }}>👨‍🏫</span>
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{slot.teacher_name}</span>
                                 </div>
                               </div>
                             </td>
@@ -1804,7 +1897,6 @@ export function RoutinePanel({ sub }) {
                       <th style={{ padding: '10px 14px', textAlign: 'center' }}>সময়</th>
                       <th style={{ padding: '10px 14px', textAlign: 'left' }}>বিষয়</th>
                       <th style={{ padding: '10px 14px', textAlign: 'left' }}>শিক্ষক</th>
-                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>কক্ষ নং</th>
                       <th style={{ padding: '10px 14px', textAlign: 'center' }}>কাজ</th>
                     </tr>
                   </thead>
@@ -1830,9 +1922,6 @@ export function RoutinePanel({ sub }) {
                         </td>
                         <td style={{ padding: '10px 14px', color: '#334155' }}>
                           👨‍🏫 {r.teacher_name}
-                        </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600 }}>
-                          🚪 {toBnDigits(r.room || '১০১')}
                         </td>
                         <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                           <button
