@@ -1510,9 +1510,577 @@ export function FinancePanel({ sub }) {
     setTimeout(() => setBudgetSuccessMsg(''), 3500);
   };
 
+  // =========================================================
+  // PRINT & PDF GENERATION FUNCTIONS
+  // 1. Institutional Income Register & Statement
+  // 2. Institutional Expense Register & Statement
+  // 3. Comprehensive Annual Budget Statement & Financial Plan
+  // 4. Approved Category List Schedule
+  // =========================================================
+  const handlePrintIncomeStatement = () => {
+    const w = window.open('', '_blank', 'width=1150,height=900');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
+      return;
+    }
+    const school = MOCK_SCHOOL;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Grouping by category
+    const catSummary = incomeCategories.map(cat => {
+      const items = incomes.filter(i => i.category === cat);
+      const total = items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+      return {
+        category: cat,
+        count: items.length,
+        total,
+        pct: totalOtherIncome > 0 ? ((total / totalOtherIncome) * 100).toFixed(1) : '০'
+      };
+    }).filter(c => c.count > 0 || c.total > 0);
+
+    const otherIncomes = incomes.filter(i => !incomeCategories.includes(i.category));
+    if (otherIncomes.length > 0) {
+      const distinctOther = [...new Set(otherIncomes.map(i => i.category))];
+      distinctOther.forEach(cat => {
+        const items = otherIncomes.filter(i => i.category === cat);
+        const total = items.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+        catSummary.push({
+          category: cat,
+          count: items.length,
+          total,
+          pct: totalOtherIncome > 0 ? ((total / totalOtherIncome) * 100).toFixed(1) : '০'
+        });
+      });
+    }
+
+    const methodMap = {
+      cash: 'নগদ ক্যাশ',
+      bank: 'ব্যাংক হিসাব',
+      bkash: 'বিকাশ',
+      check: 'ব্যাংক চেক'
+    };
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>প্রাতিষ্ঠানিক আয় বিবরণী ও রেজিস্টার - ${school.nameBn}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 10mm 15mm; }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'SolaimanLipi', 'Nikosh', 'Kalpurush', Arial, sans-serif;
+            margin: 0; padding: 20px; font-size: 11.5px; color: #0f172a; background: #fff;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          }
+          .no-print {
+            position: sticky; top: 0; z-index: 9999;
+            background: #f8fafc; border: 1.5px solid #0284c7; border-radius: 8px;
+            padding: 12px 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+          }
+          .toolbar-info { font-size: 13px; color: #0369a1; font-weight: 700; }
+          .toolbar-hint { font-size: 11px; color: #64748b; display: block; font-weight: normal; margin-top: 2px; }
+          .btn-group { display: flex; gap: 8px; }
+          .btn {
+            padding: 7px 16px; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; gap: 5px;
+          }
+          .btn-print { background: #0284c7; color: #fff; }
+          .btn-print:hover { background: #0369a1; }
+          .btn-pdf { background: #059669; color: #fff; }
+          .btn-pdf:hover { background: #047857; }
+          .btn-close { background: #e2e8f0; color: #334155; }
+          .btn-close:hover { background: #cbd5e1; }
+
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+
+          .header { text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 8px; margin-bottom: 12px; }
+          .school-name { font-size: 22px; font-weight: 900; color: #0284c7; margin: 0; line-height: 1.2; }
+          .school-meta { font-size: 11px; color: #334155; margin: 3px 0 0; }
+          .title-box {
+            background: #f0f9ff; border: 1.5px solid #7dd3fc; border-radius: 6px;
+            padding: 7px 14px; margin: 10px auto 12px; display: inline-block;
+          }
+          .title-box h2 { margin: 0; font-size: 15px; color: #0369a1; font-weight: 800; letter-spacing: 0.3px; }
+          .meta-bar {
+            display: flex; justify-content: space-between; font-size: 11px; color: #475569;
+            margin-bottom: 12px; padding: 4px 8px; background: #f8fafc; border-radius: 5px;
+          }
+
+          .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+          .kpi-card { border: 1px solid #bae6fd; border-left: 4px solid #0284c7; border-radius: 6px; padding: 7px 10px; background: #f0f9ff; }
+          .kpi-label { font-size: 10.5px; color: #0369a1; display: block; font-weight: 600; }
+          .kpi-val { font-size: 15px; font-weight: 800; color: #0c4a6e; margin-top: 3px; display: block; }
+
+          .section-title { font-size: 12.5px; font-weight: 800; color: #0284c7; margin: 14px 0 6px; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 11px; }
+          th, td { border: 1px solid #64748b; padding: 5px 7px; vertical-align: middle; }
+          th { background: #e0f2fe; color: #0369a1; font-weight: 700; text-align: left; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .amt { font-weight: 800; color: #0369a1; text-align: right; white-space: nowrap; }
+          .voucher { font-family: monospace; font-weight: 700; color: #0284c7; }
+          tr:nth-child(even) td { background: #f8fafc; }
+
+          .tot-row td { background: #e0f2fe !important; font-weight: 800; font-size: 11.5px; color: #0c4a6e; }
+          .words-row td { background: #f0f9ff !important; font-size: 11px; padding: 6px 10px; }
+
+          .signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 15px; page-break-inside: avoid; }
+          .sig-box { width: 170px; text-align: center; }
+          .sig-line { border-top: 1px dashed #334155; margin-bottom: 5px; }
+          .sig-title { font-size: 11.5px; font-weight: 700; color: #0f172a; }
+          .sig-sub { font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <div>
+            <div class="toolbar-info">📥 প্রাতিষ্ঠানিক আয় বিবরণী ও রেজিস্টার — প্রিন্ট ও PDF প্রিভিউ</div>
+            <div class="toolbar-hint">📌 PDF ফাইল সংরক্ষণ করতে "Save as PDF" নির্বাচন করুন অথবা প্রিন্ট দিন।</div>
+          </div>
+          <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-print">🖨️ প্রিন্ট করুন</button>
+            <button onclick="window.print()" class="btn btn-pdf">📥 PDF হিসেবে সংরক্ষণ</button>
+            <button onclick="window.close()" class="btn btn-close">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
+        <div class="header">
+          <img src="${schoolLogo}" style="height: 55px; width: auto; margin-bottom: 4px;" alt="Logo" onerror="this.style.display='none'" />
+          <h1 class="school-name">${school.nameBn}</h1>
+          <div class="school-meta">${school.nameEn} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</div>
+          <div class="school-meta">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল</div>
+          <div class="title-box">
+            <h2>প্রাতিষ্ঠানিক আয় বিবরণী ও রেজিস্টার (Institutional Income Register)</h2>
+          </div>
+        </div>
+
+        <div class="meta-bar">
+          <span><b>প্রতিবেদন তৈরির তারিখ:</b> ${formatDateBn(today)} খ্রি.</span>
+          <span><b>আয় খাতসমূহ:</b> সাধারণ ও উন্নয়ন তহবিল</span>
+          <span><b>মোট ভাউচার সংখ্যা:</b> ${toBnDigits(incomes.length)} টি</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">মোট প্রাতিষ্ঠানিক আয়</span>
+            <span class="kpi-val">${formatMoney(totalOtherIncome)}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">মোট আয় ভাউচার</span>
+            <span class="kpi-val">${toBnDigits(incomes.length)} টি</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">অনুমোদিত আয়ের খাত</span>
+            <span class="kpi-val">${toBnDigits(incomeCategories.length)} টি</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">ক্যাশ বুক স্ট্যাটাস</span>
+            <span class="kpi-val" style="color:#059669;font-size:13px;margin-top:5px">নিয়মিত নিরীক্ষিত</span>
+          </div>
+        </div>
+
+        <!-- Category Summary Table -->
+        <div class="section-title">📊 খাতভিত্তিক প্রাতিষ্ঠানিক আয় সারসংক্ষেপ (Category Summary)</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;" class="text-center">ক্র.</th>
+              <th>আয়ের খাতের নাম</th>
+              <th style="width: 90px;" class="text-center">ভাউচার সংখ্যা</th>
+              <th style="width: 120px;" class="text-right">মোট আদায় (টাকা)</th>
+              <th style="width: 80px;" class="text-right">অনুপাত (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${catSummary.length > 0 ? catSummary.map((c, idx) => `
+              <tr>
+                <td class="text-center" style="color:#64748b">${toBnDigits(idx + 1)}</td>
+                <td><b>${c.category}</b></td>
+                <td class="text-center">${toBnDigits(c.count)} টি</td>
+                <td class="amt">${formatMoney(c.total)}</td>
+                <td class="text-right" style="font-weight:700;color:#0284c7">${toBnDigits(c.pct)}%</td>
+              </tr>
+            `).join('') : `
+              <tr><td colspan="5" class="text-center" style="padding:10px;color:#64748b">কোনো আয়ের তথ্য পাওয়া যায়নি।</td></tr>
+            `}
+          </tbody>
+          <tfoot>
+            <tr class="tot-row">
+              <td colspan="3" class="text-right">খাতভিত্তিক সর্বমোট আদায়:</td>
+              <td class="amt">${formatMoney(totalOtherIncome)}</td>
+              <td class="text-right">১০০%</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Detailed Ledger Table -->
+        <div class="section-title">📋 বিস্তারিত প্রাতিষ্ঠানিক আয় রেজিস্টার (Itemized Voucher Ledger)</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px;" class="text-center">ক্র.</th>
+              <th style="width: 100px;">ভাউচার নং</th>
+              <th style="width: 75px;" class="text-center">তারিখ</th>
+              <th style="width: 120px;">আয়ের খাত</th>
+              <th>আয়ের বিবরণ ও শিরোনাম</th>
+              <th style="width: 110px;">উৎস / প্রদাতা</th>
+              <th style="width: 65px;" class="text-center">মাধ্যম</th>
+              <th style="width: 90px;" class="text-right">পরিমাণ</th>
+              <th style="width: 90px;">মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${incomes.map((inc, idx) => `
+              <tr>
+                <td class="text-center" style="color:#64748b">${toBnDigits(idx + 1)}</td>
+                <td class="voucher">${inc.voucher_no || '—'}</td>
+                <td class="text-center">${formatDateBn(inc.date)}</td>
+                <td style="font-weight:600;color:#0369a1">${inc.category}</td>
+                <td><b>${inc.title}</b></td>
+                <td>${inc.payer_name || 'সাধারণ'}</td>
+                <td class="text-center">${methodMap[inc.method] || inc.method || 'ক্যাশ'}</td>
+                <td class="amt">${formatMoney(inc.amount)}</td>
+                <td style="color:#64748b;font-size:10px">${inc.note || '—'}</td>
+              </tr>
+            `).join('')}
+            ${!incomes.length ? `
+              <tr><td colspan="9" class="text-center" style="padding:15px;color:#64748b">কোনো আয়ের এন্ট্রি রেকর্ড নেই।</td></tr>
+            ` : ''}
+          </tbody>
+          <tfoot>
+            <tr class="tot-row">
+              <td colspan="7" class="text-right">সর্বমোট প্রাতিষ্ঠানিক আয়:</td>
+              <td class="amt">${formatMoney(totalOtherIncome)}</td>
+              <td></td>
+            </tr>
+            <tr class="words-row">
+              <td colspan="9">
+                <b>কথায়:</b> ${numberToWordsBn(totalOtherIncome)} मात्र।
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">হিসাব সহকারী</div>
+            <div class="sig-sub">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">আহ্বায়ক</div>
+            <div class="sig-sub">অর্থ ও নিরীক্ষা উপ-কমিটি</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
+            <div class="sig-sub">প্রধান শিক্ষক ও সম্পাদক</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
+  const handlePrintExpenseStatement = () => {
+    const w = window.open('', '_blank', 'width=1150,height=900');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
+      return;
+    }
+    const school = MOCK_SCHOOL;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Grouping by category
+    const catSummary = expenseCategories.map(cat => {
+      const items = expenses.filter(e => e.category === cat);
+      const total = items.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      return {
+        category: cat,
+        count: items.length,
+        total,
+        pct: totalExpense > 0 ? ((total / totalExpense) * 100).toFixed(1) : '০'
+      };
+    }).filter(c => c.count > 0 || c.total > 0);
+
+    const otherExpenses = expenses.filter(e => !expenseCategories.includes(e.category));
+    if (otherExpenses.length > 0) {
+      const distinctOther = [...new Set(otherExpenses.map(e => e.category))];
+      distinctOther.forEach(cat => {
+        const items = otherExpenses.filter(e => e.category === cat);
+        const total = items.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+        catSummary.push({
+          category: cat,
+          count: items.length,
+          total,
+          pct: totalExpense > 0 ? ((total / totalExpense) * 100).toFixed(1) : '০'
+        });
+      });
+    }
+
+    const methodMap = {
+      cash: 'নগদ ক্যাশ',
+      bank: 'ব্যাংক হিসাব',
+      bkash: 'বিকাশ',
+      check: 'ব্যাংক চেক'
+    };
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>প্রাতিষ্ঠানিক ব্যয়ের বিবরণী ও ভাউচার রেজিস্টার - ${school.nameBn}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 10mm 15mm; }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'SolaimanLipi', 'Nikosh', 'Kalpurush', Arial, sans-serif;
+            margin: 0; padding: 20px; font-size: 11.5px; color: #0f172a; background: #fff;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          }
+          .no-print {
+            position: sticky; top: 0; z-index: 9999;
+            background: #fef2f2; border: 1.5px solid #dc2626; border-radius: 8px;
+            padding: 12px 18px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+          }
+          .toolbar-info { font-size: 13px; color: #b91c1c; font-weight: 700; }
+          .toolbar-hint { font-size: 11px; color: #64748b; display: block; font-weight: normal; margin-top: 2px; }
+          .btn-group { display: flex; gap: 8px; }
+          .btn {
+            padding: 7px 16px; border-radius: 6px; font-size: 12.5px; font-weight: 700; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; gap: 5px;
+          }
+          .btn-print { background: #dc2626; color: #fff; }
+          .btn-print:hover { background: #b91c1c; }
+          .btn-pdf { background: #059669; color: #fff; }
+          .btn-pdf:hover { background: #047857; }
+          .btn-close { background: #e2e8f0; color: #334155; }
+          .btn-close:hover { background: #cbd5e1; }
+
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+
+          .header { text-align: center; border-bottom: 2.5px solid #dc2626; padding-bottom: 8px; margin-bottom: 12px; }
+          .school-name { font-size: 22px; font-weight: 900; color: #dc2626; margin: 0; line-height: 1.2; }
+          .school-meta { font-size: 11px; color: #334155; margin: 3px 0 0; }
+          .title-box {
+            background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 6px;
+            padding: 7px 14px; margin: 10px auto 12px; display: inline-block;
+          }
+          .title-box h2 { margin: 0; font-size: 15px; color: #b91c1c; font-weight: 800; letter-spacing: 0.3px; }
+          .meta-bar {
+            display: flex; justify-content: space-between; font-size: 11px; color: #475569;
+            margin-bottom: 12px; padding: 4px 8px; background: #f8fafc; border-radius: 5px;
+          }
+
+          .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+          .kpi-card { border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 6px; padding: 7px 10px; background: #fff5f5; }
+          .kpi-label { font-size: 10.5px; color: #b91c1c; display: block; font-weight: 600; }
+          .kpi-val { font-size: 15px; font-weight: 800; color: #7f1d1d; margin-top: 3px; display: block; }
+
+          .section-title { font-size: 12.5px; font-weight: 800; color: #b91c1c; margin: 14px 0 6px; border-bottom: 1px solid #cbd5e1; padding-bottom: 3px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 11px; }
+          th, td { border: 1px solid #64748b; padding: 5px 7px; vertical-align: middle; }
+          th { background: #fee2e2; color: #b91c1c; font-weight: 700; text-align: left; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .amt { font-weight: 800; color: #dc2626; text-align: right; white-space: nowrap; }
+          .voucher { font-family: monospace; font-weight: 700; color: #dc2626; }
+          tr:nth-child(even) td { background: #f8fafc; }
+
+          .tot-row td { background: #fee2e2 !important; font-weight: 800; font-size: 11.5px; color: #7f1d1d; }
+          .words-row td { background: #fef2f2 !important; font-size: 11px; padding: 6px 10px; }
+
+          .signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 15px; page-break-inside: avoid; }
+          .sig-box { width: 170px; text-align: center; }
+          .sig-line { border-top: 1px dashed #334155; margin-bottom: 5px; }
+          .sig-title { font-size: 11.5px; font-weight: 700; color: #0f172a; }
+          .sig-sub { font-size: 10px; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <div>
+            <div class="toolbar-info">📤 প্রাতিষ্ঠানিক ব্যয়ের বিবরণী ও ভাউচার রেজিস্টার — প্রিন্ট ও PDF প্রিভিউ</div>
+            <div class="toolbar-hint">📌 PDF ফাইল সংরক্ষণ করতে "Save as PDF" নির্বাচন করুন অথবা প্রিন্ট দিন।</div>
+          </div>
+          <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-print">🖨️ প্রিন্ট করুন</button>
+            <button onclick="window.print()" class="btn btn-pdf">📥 PDF হিসেবে সংরক্ষণ</button>
+            <button onclick="window.close()" class="btn btn-close">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
+        <div class="header">
+          <img src="${schoolLogo}" style="height: 55px; width: auto; margin-bottom: 4px;" alt="Logo" onerror="this.style.display='none'" />
+          <h1 class="school-name">${school.nameBn}</h1>
+          <div class="school-meta">${school.nameEn} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</div>
+          <div class="school-meta">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল</div>
+          <div class="title-box">
+            <h2>প্রাতিষ্ঠানিক ব্যয়ের বিবরণী ও ভাউচার রেজিস্টার (Institutional Expense Register)</h2>
+          </div>
+        </div>
+
+        <div class="meta-bar">
+          <span><b>প্রতিবেদন তৈরির তারিখ:</b> ${formatDateBn(today)} খ্রি.</span>
+          <span><b>ব্যয় খাতসমূহ:</b> পরিচালন, রক্ষণাবেক্ষণ ও উন্নয়ন</span>
+          <span><b>মোট ভাউচার সংখ্যা:</b> ${toBnDigits(expenses.length)} টি</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">মোট প্রাতিষ্ঠানিক ব্যয়</span>
+            <span class="kpi-val">${formatMoney(totalExpense)}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">মোট ব্যয় ভাউচার</span>
+            <span class="kpi-val">${toBnDigits(expenses.length)} টি</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">অনুমোদিত ব্যয়ের খাত</span>
+            <span class="kpi-val">${toBnDigits(expenseCategories.length)} টি</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">নিরীক্ষা ও অনুমোদন</span>
+            <span class="kpi-val" style="color:#059669;font-size:13px;margin-top:5px">যথাযথভাবে অনুমোদিত</span>
+          </div>
+        </div>
+
+        <!-- Category Summary Table -->
+        <div class="section-title">📊 খাতভিত্তিক প্রাতিষ্ঠানিক ব্যয় সারসংক্ষেপ (Category Summary)</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 35px;" class="text-center">ক্র.</th>
+              <th>ব্যয়ের খাতের নাম</th>
+              <th style="width: 90px;" class="text-center">ভাউচার সংখ্যা</th>
+              <th style="width: 120px;" class="text-right">মোট খরচ (টাকা)</th>
+              <th style="width: 80px;" class="text-right">ব্যয়ের হার (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${catSummary.length > 0 ? catSummary.map((c, idx) => `
+              <tr>
+                <td class="text-center" style="color:#64748b">${toBnDigits(idx + 1)}</td>
+                <td><b>${c.category}</b></td>
+                <td class="text-center">${toBnDigits(c.count)} টি</td>
+                <td class="amt">${formatMoney(c.total)}</td>
+                <td class="text-right" style="font-weight:700;color:#dc2626">${toBnDigits(c.pct)}%</td>
+              </tr>
+            `).join('') : `
+              <tr><td colspan="5" class="text-center" style="padding:10px;color:#64748b">কোনো ব্যয়ের তথ্য পাওয়া যায়নি।</td></tr>
+            `}
+          </tbody>
+          <tfoot>
+            <tr class="tot-row">
+              <td colspan="3" class="text-right">খাতভিত্তিক সর্বমোট খরচ:</td>
+              <td class="amt">${formatMoney(totalExpense)}</td>
+              <td class="text-right">১০০%</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Detailed Voucher Register Table -->
+        <div class="section-title">📋 বিস্তারিত প্রাতিষ্ঠানিক ব্যয়ের ভাউচার রেজিস্টার (Itemized Voucher Ledger)</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px;" class="text-center">ক্র.</th>
+              <th style="width: 100px;">ভাউচার নং</th>
+              <th style="width: 75px;" class="text-center">তারিখ</th>
+              <th style="width: 120px;">ব্যয়ের খাত</th>
+              <th>খরচের বিবরণ ও উদ্দেশ্য</th>
+              <th style="width: 110px;">প্রাপক / ভেন্ডর</th>
+              <th style="width: 65px;" class="text-center">মাধ্যম</th>
+              <th style="width: 90px;" class="text-right">পরিমাণ</th>
+              <th style="width: 90px;">অনুমোদনকারী</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${expenses.map((exp, idx) => `
+              <tr>
+                <td class="text-center" style="color:#64748b">${toBnDigits(idx + 1)}</td>
+                <td class="voucher">${exp.voucher_no || '—'}</td>
+                <td class="text-center">${formatDateBn(exp.date)}</td>
+                <td style="font-weight:600;color:#b91c1c">${exp.category}</td>
+                <td><b>${exp.title}</b></td>
+                <td>${exp.payee_name || 'সাধারণ ভেন্ডর'}</td>
+                <td class="text-center">${methodMap[exp.method] || exp.method || 'ক্যাশ'}</td>
+                <td class="amt">${formatMoney(exp.amount)}</td>
+                <td style="color:#334155;font-size:10px">${exp.approved_by || 'প্রধান শিক্ষক'}</td>
+              </tr>
+            `).join('')}
+            ${!expenses.length ? `
+              <tr><td colspan="9" class="text-center" style="padding:15px;color:#64748b">কোনো ব্যয়ের এন্ট্রি রেকর্ড নেই।</td></tr>
+            ` : ''}
+          </tbody>
+          <tfoot>
+            <tr class="tot-row">
+              <td colspan="7" class="text-right">সর্বমোট প্রাতিষ্ঠানিক ব্যয়:</td>
+              <td class="amt">${formatMoney(totalExpense)}</td>
+              <td></td>
+            </tr>
+            <tr class="words-row">
+              <td colspan="9">
+                <b>কথায়:</b> ${numberToWordsBn(totalExpense)} मात्र।
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">হিসাব সহকারী</div>
+            <div class="sig-sub">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">আহ্বায়ক</div>
+            <div class="sig-sub">অর্থ ও নিরীক্ষা উপ-কমিটি</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-title">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
+            <div class="sig-sub">প্রধান শিক্ষক ও সম্পাদক</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
   const handlePrintBudget = () => {
-    const w = window.open('', '_blank', 'width=1100,height=900');
-    if (!w) return;
+    const w = window.open('', '_blank', 'width=1150,height=900');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
+      return;
+    }
     const school = MOCK_SCHOOL;
     const incHeads = activeYearBudget.incomeHeads || [];
     const expHeads = activeYearBudget.expenseHeads || [];
@@ -1523,77 +2091,123 @@ export function FinancePanel({ sub }) {
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>বার্ষিক প্রস্তাবিত বাজেট - ${selectedBudgetYear} - ${school.nameBn}</title>
+        <title>পূর্ণাঙ্গ বার্ষিক প্রস্তাবিত বাজেট বিবরণী - ${selectedBudgetYear} - ${school.nameBn}</title>
         <style>
-          @page { size: A4 landscape; margin: 10mm; }
-          body { font-family: 'SolaimanLipi', 'Nikosh', Arial, sans-serif; padding: 10px; font-size: 11.5px; color: #0f172a; margin: 0; }
-          .header { text-align: center; border-bottom: 2.5px solid #047857; padding-bottom: 8px; margin-bottom: 12px; }
-          .header h1 { margin: 0; font-size: 22px; color: #047857; font-weight: 800; }
-          .header p { margin: 2px 0; font-size: 11px; color: #334155; }
-          .title-banner { background: #f0fdf4; border: 1.5px solid #059669; border-radius: 6px; padding: 6px; margin: 8px 0 12px; text-align: center; }
-          .title-banner h2 { margin: 0; font-size: 15px; color: #047857; font-weight: 800; }
-          .kpi-row { display: flex; gap: 12px; margin-bottom: 14px; }
-          .kpi-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; text-align: center; background: #f8fafc; }
-          .kpi-box span { font-size: 10.5px; color: #475569; display: block; font-weight: 600; }
-          .kpi-box b { font-size: 15px; display: block; margin-top: 3px; }
-          .dual-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11px; }
-          .dual-table th, .dual-table td { border: 1px solid #475569; padding: 5px 7px; vertical-align: top; }
+          @page { size: A4 landscape; margin: 8mm 10mm; }
+          * { box-sizing: border-box; }
+          body {
+            font-family: 'SolaimanLipi', 'Nikosh', 'Kalpurush', Arial, sans-serif;
+            padding: 14px; font-size: 11px; color: #0f172a; margin: 0; background: #fff;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          }
+          .no-print {
+            background: #f0fdf4; border: 1.5px solid #059669; border-radius: 8px;
+            padding: 10px 16px; margin-bottom: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+          }
+          .toolbar-info { font-size: 13px; color: #065f46; font-weight: 700; }
+          .toolbar-hint { font-size: 11px; color: #64748b; font-weight: normal; margin-top: 2px; }
+          .btn-group { display: flex; gap: 8px; }
+          .btn {
+            padding: 6px 15px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none;
+            display: inline-flex; align-items: center; gap: 5px;
+          }
+          .btn-print { background: #047857; color: #fff; }
+          .btn-pdf { background: #0284c7; color: #fff; }
+          .btn-close { background: #e2e8f0; color: #334155; }
+
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+
+          .header { text-align: center; border-bottom: 2.5px solid #047857; padding-bottom: 6px; margin-bottom: 8px; }
+          .header h1 { margin: 0; font-size: 21px; color: #047857; font-weight: 900; }
+          .header p { margin: 2px 0; font-size: 10.5px; color: #334155; }
+          .title-banner {
+            background: #f0fdf4; border: 1.5px solid #059669; border-radius: 6px;
+            padding: 5px 12px; margin: 6px auto; display: inline-block; text-align: center;
+          }
+          .title-banner h2 { margin: 0; font-size: 14px; color: #047857; font-weight: 800; }
+          .kpi-row { display: flex; gap: 10px; margin-bottom: 10px; }
+          .kpi-box { flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; text-align: center; background: #f8fafc; }
+          .kpi-box span { font-size: 10px; color: #475569; display: block; font-weight: 600; }
+          .kpi-box b { font-size: 14px; display: block; margin-top: 2px; }
+          .dual-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 10.5px; }
+          .dual-table th, .dual-table td { border: 1px solid #475569; padding: 4px 6px; vertical-align: top; }
           .dual-table th { background: #e2e8f0; font-weight: 700; }
-          .head-inc { background: #ecfdf5 !important; color: #065f46; font-size: 12px; }
-          .head-exp { background: #fef2f2 !important; color: #991b1b; font-size: 12px; }
+          .head-inc { background: #ecfdf5 !important; color: #065f46; font-size: 11.5px; font-weight: 800; }
+          .head-exp { background: #fef2f2 !important; color: #991b1b; font-size: 11.5px; font-weight: 800; }
           .amt { text-align: right; font-weight: 700; white-space: nowrap; }
           .amt-inc { color: #047857; }
           .amt-exp { color: #b91c1c; }
-          .tot-row { background: #f1f5f9; font-weight: 800; font-size: 12px; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 45px; text-align: center; padding: 0 20px; }
-          .sig-box { width: 170px; }
-          .sig-line { border-top: 1px dashed #334155; margin-bottom: 5px; }
-          .sig-box b { font-size: 11.5px; color: #0f172a; display: block; }
-          .sig-box span { font-size: 10px; color: #64748b; }
+          .tot-row { background: #f1f5f9; font-weight: 800; font-size: 11px; }
+          .guidelines {
+            margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc;
+            padding: 6px 10px; font-size: 9.5px; color: #475569; line-height: 1.4;
+          }
+          .signatures { display: flex; justify-content: space-between; margin-top: 26px; text-align: center; padding: 0 30px; page-break-inside: avoid; }
+          .sig-box { width: 180px; }
+          .sig-line { border-top: 1px dashed #334155; margin-bottom: 4px; }
+          .sig-box b { font-size: 11px; color: #0f172a; display: block; }
+          .sig-box span { font-size: 9.5px; color: #64748b; }
         </style>
       </head>
       <body>
+        <div class="no-print">
+          <div>
+            <div class="toolbar-info">📑 পূর্ণাঙ্গ বার্ষিক প্রস্তাবিত বাজেট বিবরণী — প্রিন্ট ও PDF প্রিভিউ</div>
+            <div class="toolbar-hint">📌 A4 ল্যান্ডস্কেপ মোডে প্রিন্ট অথবা PDF সংরক্ষণ করতে 'Save as PDF' অপশন নির্বাচন করুন।</div>
+          </div>
+          <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-print">🖨️ প্রিন্ট করুন</button>
+            <button onclick="window.print()" class="btn btn-pdf">📥 PDF হিসেবে সেভ করুন</button>
+            <button onclick="window.close()" class="btn btn-close">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
         <div class="header">
+          <img src="${schoolLogo}" style="height: 50px; width: auto; margin-bottom: 3px;" alt="Logo" onerror="this.style.display='none'" />
           <h1>${school.nameBn}</h1>
           <p>${school.address} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</p>
           <div class="title-banner">
-            <h2>${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের অনুমোদিত বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট</h2>
+            <h2>${toBnDigits(selectedBudgetYear)} শিক্ষাবর্ষের অনুমোদিত পূর্ণাঙ্গ বার্ষিক প্রস্তাবিত আয়-ব্যয় বাজেট বিবরণী ও আর্থিক কর্মপরিকল্পনা</h2>
           </div>
         </div>
 
         <div class="kpi-row">
           <div class="kpi-box" style="border-left: 4px solid #059669;">
-            <span>মোট প্রস্তাবিত আয় (Budgeted Income)</span>
+            <span>মোট প্রস্তাবিত রাজস্ব ও প্রাতিষ্ঠানিক আয়</span>
             <b style="color: #047857;">${formatMoney(totalBudgetIncome)}</b>
           </div>
           <div class="kpi-box" style="border-left: 4px solid #dc2626;">
-            <span>মোট প্রস্তাবিত ব্যয় (Budgeted Expense)</span>
+            <span>মোট প্রস্তাবিত পরিচালন ও উন্নয়ন ব্যয়</span>
             <b style="color: #dc2626;">${formatMoney(totalBudgetExpense)}</b>
           </div>
           <div class="kpi-box" style="border-left: 4px solid #0284c7; background: #f0f9ff;">
-            <span>অনুমিত উদ্বৃত্ত / ঘাটতি (Projected Surplus/Deficit)</span>
+            <span>অনুমিত নিট উদ্বৃত্ত / ঘাটতি স্থিতি</span>
             <b style="color: ${budgetSurplusDeficit >= 0 ? '#0369a1' : '#b91c1c'};">
               ${budgetSurplusDeficit >= 0 ? `+ ${formatMoney(budgetSurplusDeficit)} (উদ্বৃত্ত)` : `- ${formatMoney(Math.abs(budgetSurplusDeficit))} (ঘাটতি)`}
             </b>
           </div>
           <div class="kpi-box" style="border-left: 4px solid #6366f1;">
-            <span>তারিখ ও অনুমোদন সেশন</span>
-            <b style="color: #4338ca;">${formatDateBn(new Date().toISOString().slice(0, 10))} • সাধারণ বাজেট অধিবেশন</b>
+            <span>অনুমোদন অধিবেশন ও কার্যকর মেয়াদ</span>
+            <b style="color: #4338ca;">০১ জানুয়ারি ${toBnDigits(selectedBudgetYear)} হতে ৩১ ডিসেম্বর ${toBnDigits(selectedBudgetYear)}</b>
           </div>
         </div>
 
         <table class="dual-table">
           <thead>
             <tr>
-              <th colspan="3" class="head-inc" style="text-align: center;">📥 প্রস্তাবিত রাজস্ব ও প্রাতিষ্ঠানিক আয় খাতসমূহ</th>
-              <th colspan="3" class="head-exp" style="text-align: center;">📤 প্রস্তাবিত রাজস্ব, পরিচালন ও উন্নয়ন ব্যয় খাতসমূহ</th>
+              <th colspan="3" class="head-inc" style="text-align: center;">📥 প্রস্তাবিত রাজস্ব ও প্রাতিষ্ঠানিক আয় খাতসমূহ (Estimated Income)</th>
+              <th colspan="3" class="head-exp" style="text-align: center;">📤 প্রস্তাবিত রাজস্ব, পরিচালন ও উন্নয়ন ব্যয় খাতসমূহ (Estimated Expenditure)</th>
             </tr>
             <tr>
               <th style="width: 25px; text-align: center;">ক্র.</th>
-              <th>আয়ের খাত ও বিবরণ</th>
+              <th>আয়ের খাত ও প্রাক্কলন বিবরণ</th>
               <th style="width: 105px; text-align: right;">প্রস্তাবিত টাকা</th>
               <th style="width: 25px; text-align: center;">ক্র.</th>
-              <th>ব্যয়ের খাত ও বিবরণ</th>
+              <th>ব্যয়ের খাত ও প্রাক্কলন রূপরেখা</th>
               <th style="width: 105px; text-align: right;">প্রস্তাবিত টাকা</th>
             </tr>
           </thead>
@@ -1620,22 +2234,29 @@ export function FinancePanel({ sub }) {
               <td colspan="2" style="text-align: right;">সর্বমোট প্রস্তাবিত ব্যয়:</td>
               <td class="amt amt-exp">${formatMoney(totalBudgetExpense)}</td>
             </tr>
-            <tr style="background: #f8fafc; font-weight: 800; font-size: 12px;">
-              <td colspan="3" style="text-align: left; padding: 7px 10px;">
+            <tr style="background: #f8fafc; font-weight: 800; font-size: 11px;">
+              <td colspan="3" style="text-align: left; padding: 5px 8px;">
                 <b>কথায় (আয়):</b> ${numberToWordsBn(totalBudgetIncome)}
               </td>
-              <td colspan="3" style="text-align: left; padding: 7px 10px;">
+              <td colspan="3" style="text-align: left; padding: 5px 8px;">
                 <b>কথায় (ব্যয়):</b> ${numberToWordsBn(totalBudgetExpense)}
               </td>
             </tr>
           </tfoot>
         </table>
 
+        <div class="guidelines">
+          <b>📌 বাজেট বাস্তবায়ন ও আর্থিক পর্যবেক্ষণ নির্দেশনাসমূহ:</b><br/>
+          ১. অনুমোদিত এই বাজেট কেবল নির্ধারিত শিক্ষাবর্ষে প্রতিষ্ঠানের সার্বিক পাঠদান, শিক্ষক-কর্মচারী পারিতোষিক ও উন্নয়নমূলক ব্যয়ে ব্যয়যোগ্য হবে।<br/>
+          ২. কোনো খাতে বরাদ্দকৃত অর্থ অন্য খাতে পুনঃউপযোজন (Re-appropriation) প্রয়োজন হলে ম্যানেজিং কমিটির অনুমোদন সাপেক্ষে কার্যকর করতে হবে।<br/>
+          ৩. প্রতি ৩ মাস অন্তর অর্থ ও নিরীক্ষা কমিটি বাজেট বাস্তবায়ন পর্যালোচনা করে আয়-ব্যয়ের অগ্রগতি প্রধান শিক্ষকের নিকট উপস্থাপন করবে।
+        </div>
+
         <div class="signatures">
           <div class="sig-box">
             <div class="sig-line"></div>
             <b>আহ্বায়ক</b>
-            <span>বাজেট প্রণয়ন উপ-কমিটি</span>
+            <span>বাজেট প্রণয়ন ও অর্থ উপ-কমিটি</span>
           </div>
           <div class="sig-box">
             <div class="sig-line"></div>
@@ -1649,7 +2270,129 @@ export function FinancePanel({ sub }) {
           </div>
         </div>
 
-        <script>window.onload = function() { window.print(); }</script>
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
+  const handlePrintCategoryList = (type) => {
+    const w = window.open('', '_blank', 'width=1000,height=800');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
+      return;
+    }
+    const school = MOCK_SCHOOL;
+    const isInc = type === 'income';
+    const cats = isInc ? incomeCategories : expenseCategories;
+    const color = isInc ? '#0284c7' : '#dc2626';
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${isInc ? 'প্রাতিষ্ঠানিক আয়ের খাতসমূহের অনুমোদিত তালিকা' : 'প্রাতিষ্ঠানিক ব্যয়ের খাতসমূহের অনুমোদিত তালিকা'} - ${school.nameBn}</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body {
+            font-family: 'SolaimanLipi', 'Nikosh', Arial, sans-serif; padding: 20px; font-size: 12px; color: #0f172a;
+            -webkit-print-color-adjust: exact; print-color-adjust: exact;
+          }
+          .no-print {
+            background: #f8fafc; border: 1.5px solid ${color}; border-radius: 8px;
+            padding: 10px 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
+          }
+          .btn-group { display: flex; gap: 8px; }
+          .btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; border: none; }
+          .btn-print { background: ${color}; color: #fff; }
+          .btn-close { background: #e2e8f0; color: #334155; }
+          @media print { .no-print { display: none !important; } body { padding: 0; } }
+          .header { text-align: center; border-bottom: 2px solid ${color}; padding-bottom: 8px; margin-bottom: 15px; }
+          .header h1 { margin: 0; font-size: 22px; color: ${color}; font-weight: 800; }
+          .header p { margin: 2px 0; font-size: 11px; color: #475569; }
+          .title-box { background: ${isInc ? '#f0f9ff' : '#fef2f2'}; border: 1.5px solid ${color}; border-radius: 6px; padding: 6px; margin: 8px auto; display: inline-block; }
+          .title-box h2 { margin: 0; font-size: 15px; color: ${color}; font-weight: 800; }
+          table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+          th, td { border: 1px solid #475569; padding: 7px 10px; }
+          th { background: ${isInc ? '#e0f2fe' : '#fee2e2'}; color: ${color}; font-weight: 700; }
+          .signatures { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 20px; page-break-inside: avoid; }
+          .sig-box { width: 180px; text-align: center; border-top: 1px dashed #334155; padding-top: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <div>
+            <b>${isInc ? '📥 প্রাতিষ্ঠানিক অনুমোদিত আয়ের খাত তালিকা' : '📤 প্রাতিষ্ঠানিক অনুমোদিত ব্যয়ের খাত তালিকা'}</b>
+            <div style="font-size:11px;color:#64748b">PDF তৈরি করতে ব্রাউজার প্রিন্টে 'Save as PDF' নির্বাচন করুন।</div>
+          </div>
+          <div class="btn-group">
+            <button onclick="window.print()" class="btn btn-print">🖨️ প্রিন্ট / Save as PDF</button>
+            <button onclick="window.close()" class="btn btn-close">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
+        <div class="header">
+          <img src="${schoolLogo}" style="height: 55px; width: auto; margin-bottom: 4px;" alt="Logo" onerror="this.style.display='none'" />
+          <h1>${school.nameBn}</h1>
+          <p>${school.address} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</p>
+          <div class="title-box">
+            <h2>${isInc ? 'প্রাতিষ্ঠানিক আয়ের অনুমোদিত খাতসমূহের তালিকা (Approved Income Heads)' : 'প্রাতিষ্ঠানিক ব্যয়ের অনুমোদিত খাতসমূহের তালিকা (Approved Expense Heads)'}</h2>
+          </div>
+          <p style="margin-top:4px">শিক্ষাবর্ষ: ২০২৬ খ্রি. • কার্যকর তারিখ: ${formatDateBn(new Date().toISOString().slice(0, 10))} খ্রি.</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>খাতের নাম ও শিরোনাম</th>
+              <th style="width: 140px; text-align: center;">খাতের শ্রেণি</th>
+              <th style="width: 110px; text-align: center;">অনুমোদনের স্থিতি</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${cats.map((cat, idx) => `
+              <tr>
+                <td style="text-align: center; color: #64748b;">${toBnDigits(idx + 1)}</td>
+                <td><b>${cat}</b></td>
+                <td style="text-align: center; color: #475569;">${isInc ? 'রাজস্ব ও প্রাতিষ্ঠানিক আয়' : 'পরিচালন ও উন্নয়ন ব্যয়'}</td>
+                <td style="text-align: center; font-weight: 700; color: #059669;">অনুমোদিত ও সক্রিয়</td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background: #f8fafc; font-weight: 700;">
+              <td colspan="4" style="text-align: right;">মোট অনুমোদিত খাতের সংখ্যা: ${toBnDigits(cats.length)} টি</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="signatures">
+          <div class="sig-box">
+            <b>হিসাব সহকারী</b>
+            <div style="font-size: 10px; color: #64748b;">হিসাব ও অর্থ শাখা</div>
+          </div>
+          <div class="sig-box">
+            <b>আহ্বায়ক</b>
+            <div style="font-size: 10px; color: #64748b;">অর্থ ও নিরীক্ষা উপ-কমিটি</div>
+          </div>
+          <div class="sig-box">
+            <b>${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</b>
+            <div style="font-size: 10px; color: #64748b;">প্রধান শিক্ষক ও সদস্য সচিব</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
       </body>
       </html>
     `);
@@ -3608,9 +4351,24 @@ export function FinancePanel({ sub }) {
                 </h3>
                 <small style={{ color: '#64748b' }}>শিক্ষার্থীদের নিয়মিত ফি বহির্ভূত অন্যান্য আয়সমূহ</small>
               </div>
-              <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '5px 12px', borderRadius: '15px', fontWeight: 700, fontSize: '12px' }}>
-                মোট অন্যান্য আয়: {formatMoney(totalOtherIncome)}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '5px 12px', borderRadius: '15px', fontWeight: 700, fontSize: '12px' }}>
+                  মোট অন্যান্য আয়: {formatMoney(totalOtherIncome)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handlePrintIncomeStatement}
+                  style={{
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '7px',
+                    fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', gap: '5px', boxShadow: '0 2px 6px rgba(2,132,199,0.25)'
+                  }}
+                  title="প্রাতিষ্ঠানিক আয় বিবরণী ও রেজিস্টার প্রিন্ট অথবা PDF সংরক্ষণ করুন"
+                >
+                  🖨️ আয় বিবরণী প্রিন্ট / 📥 PDF
+                </button>
+              </div>
             </div>
 
             <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
@@ -3848,9 +4606,24 @@ export function FinancePanel({ sub }) {
                 </h3>
                 <small style={{ color: '#64748b' }}>শিক্ষক-কর্মচারী ভাতা, ইউটিলিটি, পরীক্ষা ও যাবতীয় প্রাতিষ্ঠানিক ব্যয়</small>
               </div>
-              <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '5px 12px', borderRadius: '15px', fontWeight: 700, fontSize: '12px' }}>
-                মোট ব্যয়: {formatMoney(totalExpense)}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '5px 12px', borderRadius: '15px', fontWeight: 700, fontSize: '12px' }}>
+                  মোট ব্যয়: {formatMoney(totalExpense)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handlePrintExpenseStatement}
+                  style={{
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '7px',
+                    fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', gap: '5px', boxShadow: '0 2px 6px rgba(220,38,38,0.25)'
+                  }}
+                  title="প্রাতিষ্ঠানিক ব্যয়ের বিবরণী ও ভাউচার রেজিস্টার প্রিন্ট অথবা PDF সংরক্ষণ করুন"
+                >
+                  🖨️ ব্যয় বিবরণী প্রিন্ট / 📥 PDF
+                </button>
+              </div>
             </div>
 
             <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
@@ -3970,12 +4743,13 @@ export function FinancePanel({ sub }) {
                 onClick={handlePrintBudget}
                 style={{
                   background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)',
-                  color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '7px',
-                  fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex',
+                  color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '7px',
+                  fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'flex',
                   alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(4,120,87,0.2)'
                 }}
+                title="পূর্ণাঙ্গ বার্ষিক বাজেট বিবরণী ও আর্থিক কর্মপরিকল্পনা প্রিন্ট বা PDF ডাউনলোড করুন"
               >
-                🖨️ বাজেট স্টেটমেন্ট প্রিন্ট
+                🖨️ পূর্ণাঙ্গ বাজেট প্রিন্ট / 📥 PDF ডাউনলোড
               </button>
 
               <button
@@ -5004,13 +5778,26 @@ export function FinancePanel({ sub }) {
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
                 {categoryModal.type === 'income' ? '📥 আয়ের খাতসমূহ পরিচালনা' : '📤 ব্যয়ের খাতসমূহ পরিচালনা'}
               </h3>
-              <button
-                type="button"
-                onClick={() => { setCategoryModal({ isOpen: false, type: 'income' }); setEditingCategoryItem(null); }}
-                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handlePrintCategoryList(categoryModal.type)}
+                  style={{
+                    background: 'rgba(255,255,255,0.22)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)',
+                    borderRadius: '6px', padding: '4px 10px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer'
+                  }}
+                  title="অনুমোদিত খাতসমূহের তালিকা প্রিন্ট বা PDF ডাউনলোড করুন"
+                >
+                  🖨️ খাতের তালিকা প্রিন্ট / PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setCategoryModal({ isOpen: false, type: 'income' }); setEditingCategoryItem(null); }}
+                  style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div style={{ padding: '18px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
