@@ -611,65 +611,222 @@ export function RoutinePanel({ sub }) {
 
     printWin.document.write(`
       <!DOCTYPE html>
-      <html>
+      <html lang="bn">
       <head>
-        <title>${titleText}</title>
+        <title>${titleText} - ${school.nameBn || school.name}</title>
         <meta charset="utf-8" />
         <style>
-          @page { size: ${isClass ? 'landscape' : 'portrait'}; margin: 12mm; }
-          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Segoe UI', Tahoma, sans-serif; color: #0f172a; margin: 0; padding: 10px; background: #fff; }
-          .official-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px double #0284c7; padding-bottom: 12px; margin-bottom: 16px; }
-          .header-left { display: flex; align-items: center; gap: 14px; }
-          .school-logo { width: 68px; height: 68px; object-fit: contain; }
-          .school-info h1 { margin: 0; font-size: 21px; font-weight: 800; color: #0369a1; }
-          .school-info p { margin: 2px 0 0; font-size: 12.5px; color: #334155; }
-          .header-right { text-align: right; font-size: 11.5px; color: #475569; }
-          .pill-badge { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold; margin-bottom: 3px; font-size: 11px; }
-          .signatures { display: flex; justify-content: space-between; margin-top: 40px; padding: 0 20px; }
-          .sig-box { text-align: center; width: 180px; }
-          .sig-line { border-top: 1.5px dashed #475569; margin-bottom: 5px; }
-          .sig-title { font-size: 12px; font-weight: bold; color: #0f172a; }
-          .sig-sub { font-size: 10.5px; color: #64748b; }
+          @page { size: ${isClass ? 'landscape' : 'portrait'}; margin: 10mm 12mm; }
+          body {
+            font-family: 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', 'Segoe UI', Tahoma, sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 12px;
+            background: #ffffff;
+            position: relative;
+          }
+          .official-header {
+            border-bottom: 2.5px double #0284c7;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+            text-align: center;
+          }
+          .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 6px;
+          }
+          .school-logo {
+            width: 74px;
+            height: 74px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: #ffffff;
+            padding: 2px;
+            border: 2px solid #0369a1;
+            box-shadow: 0 2px 6px rgba(3, 105, 161, 0.15);
+          }
+          .school-titles {
+            text-align: center;
+          }
+          .school-name-bn {
+            margin: 0;
+            font-size: 25px;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+          }
+          .school-name-en {
+            margin: 2px 0 0;
+            font-size: 14px;
+            font-family: 'Cinzel', 'Outfit', serif, sans-serif;
+            font-weight: 700;
+            color: #b45309;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+          }
+          .school-meta {
+            margin: 4px 0 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #334155;
+          }
+          .school-contact {
+            margin: 2px 0 0;
+            font-size: 10.5px;
+            color: #64748b;
+          }
+          .header-ribbon-wrap {
+            margin: 8px 0 6px;
+            display: flex;
+            justify-content: center;
+          }
+          .official-ribbon {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
+            color: #ffffff;
+            padding: 5px 36px;
+            border-radius: 20px;
+            border: 2px solid #f59e0b;
+            box-shadow: 0 3px 8px rgba(30, 58, 138, 0.25);
+            text-align: center;
+          }
+          .ribbon-title-bn {
+            font-size: 16.5px;
+            font-weight: 900;
+            letter-spacing: 0.8px;
+            color: #ffffff;
+          }
+          .ribbon-title-en {
+            font-size: 9px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #fef08a;
+            letter-spacing: 1.5px;
+            margin-top: 1px;
+          }
+          .header-memo-date {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            color: #475569;
+            margin-top: 8px;
+            padding: 0 4px;
+          }
+          .watermark-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 320px;
+            background-image: url('${schoolLogo}');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.045;
+            pointer-events: none;
+            z-index: 0;
+          }
+          .content-wrap {
+            position: relative;
+            z-index: 1;
+          }
+          .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 36px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+          }
+          .sig-box {
+            text-align: center;
+            width: 190px;
+          }
+          .sig-line {
+            border-top: 1.5px dashed #475569;
+            margin-bottom: 5px;
+          }
+          .sig-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #0f172a;
+          }
+          .sig-sub {
+            font-size: 10.5px;
+            color: #64748b;
+          }
           @media print {
             body { padding: 0; }
             .no-print { display: none; }
+            .official-ribbon {
+              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
+              color: #ffffff !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .ribbon-title-bn { color: #ffffff !important; }
+            .ribbon-title-en { color: #fef08a !important; }
           }
         </style>
       </head>
       <body>
-        <div class="official-header">
-          <div class="header-left">
-            <img src="${schoolLogo}" class="school-logo" alt="School Logo" />
-            <div class="school-info">
-              <h1>${school.name_bn}</h1>
-              <p>${school.address} • স্থাপিত: ১৯৪৬ খ্রি.</p>
-              <p style="font-size: 11px; color: #64748b;">ই-মেইল: magrapuhighschool@gmail.com | মোবাইল: ০১৭১২-৩৪৫৬৭৮</p>
+        <div class="watermark-bg"></div>
+        <div class="content-wrap">
+          <div class="official-header">
+            <div class="header-top">
+              <img src="${schoolLogo}" class="school-logo" alt="School Logo" />
+              <div class="school-titles">
+                <h1 class="school-name-bn">${school.nameBn || school.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'}</h1>
+                <h2 class="school-name-en">${school.nameEn || 'MAGRA PALS UNION HIGH SCHOOL'}</h2>
+                <p class="school-meta">
+                  EIIN: <b>${toBnDigits(school.eiin || 114290)}</b> &nbsp;•&nbsp;
+                  স্থাপিত: <b>${toBnDigits(school.established || 1946)} খ্রি.</b> &nbsp;•&nbsp;
+                  ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল
+                </p>
+                <p class="school-contact">
+                  ই-মেইল: ${school.email || 'magrapuhs.46@gmail.com'} &nbsp;|&nbsp;
+                  মোবাইল: ${toBnDigits(school.phone || '০১৭১২-৩৪৫৬৭৮')}
+                </p>
+              </div>
+            </div>
+
+            <div class="header-ribbon-wrap">
+              <div class="official-ribbon">
+                <div class="ribbon-title-bn">${titleText}</div>
+                <div class="ribbon-title-en">${isClass ? 'ACADEMIC CLASS ROUTINE & TIMETABLE - 2026' : 'OFFICIAL EXAMINATION TIMETABLE - 2026'}</div>
+              </div>
+            </div>
+
+            <div class="header-memo-date">
+              <div>স্মারক নং: <b>মপাউবি/একাডেমিক/${isClass ? 'ক্লাস-রুটিন' : 'পরীক্ষা-রুটিন'}/২০২৬</b></div>
+              <div>মুদ্রণের তারিখ: <b>${formatDateBn(new Date().toISOString().slice(0, 10))} খ্রি.</b></div>
             </div>
           </div>
-          <div class="header-right">
-            <span class="pill-badge">EIIN: ${toBnDigits(school.eiin || 114290)}</span><br/>
-            <span>স্মারক নং: মপাউবি/রুটিন/২০২৬</span><br/>
-            <span>মুদ্রণের তারিখ: ${formatDateBn(new Date().toISOString().slice(0, 10))}</span>
-          </div>
-        </div>
 
-        ${bodyContent}
+          ${bodyContent}
 
-        <div class="signatures">
-          <div class="sig-box">
-            <div class="sig-line"></div>
-            <div class="sig-title">আহ্বায়ক / সদস্য সচিব</div>
-            <div class="sig-sub">রুটিন প্রণয়ন কমিটি</div>
-          </div>
-          <div class="sig-box">
-            <div class="sig-line"></div>
-            <div class="sig-title">সহকারী প্রধান শিক্ষক</div>
-            <div class="sig-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
-          </div>
-          <div class="sig-box">
-            <div class="sig-line"></div>
-            <div class="sig-title">প্রধান শিক্ষক</div>
-            <div class="sig-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          <div class="signatures">
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <div class="sig-title">আহ্বায়ক / সদস্য সচিব</div>
+              <div class="sig-sub">রুটিন প্রণয়ন কমিটি</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <div class="sig-title">সহকারী প্রধান শিক্ষক</div>
+              <div class="sig-sub">${school.nameBn || school.name}</div>
+            </div>
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <div class="sig-title">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
+              <div class="sig-sub">প্রধান শিক্ষক, ${school.nameBn || school.name}</div>
+            </div>
           </div>
         </div>
       </body>
