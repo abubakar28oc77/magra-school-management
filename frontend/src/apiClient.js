@@ -1730,9 +1730,14 @@ function handleMockRequest(path, opts = {}) {
     }
   }
 
+  if (cleanPath === '/exam_routines/reset-defaults' && method === 'POST') {
+    setLocalStore('exam_routines', DEFAULT_EXAM_ROUTINES);
+    return { success: true, count: DEFAULT_EXAM_ROUTINES.length, examRoutines: DEFAULT_EXAM_ROUTINES };
+  }
+
   if (cleanPath === '/exam_routines') {
     let examRoutines = getLocalStore('exam_routines', null);
-    if (!Array.isArray(examRoutines) || !examRoutines.length) {
+    if (!Array.isArray(examRoutines) || !examRoutines.length || examRoutines.length < 12) {
       examRoutines = DEFAULT_EXAM_ROUTINES;
       setLocalStore('exam_routines', examRoutines);
     }

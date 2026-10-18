@@ -108,7 +108,18 @@ export function RoutinePanel({ sub }) {
     }
     return DEFAULT_CLASS_ROUTINES;
   });
-  const [examRoutines, setExamRoutines] = useState(DEFAULT_EXAM_ROUTINES);
+  const [examRoutines, setExamRoutines] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_db_exam_routines') || localStorage.getItem('exam_routines');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 12) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return DEFAULT_EXAM_ROUTINES;
+  });
   const [subjects, setSubjects] = useState(MOCK_SUBJECTS);
   const [teachers, setTeachers] = useState(MOCK_TEACHERS);
   const [exams, setExams] = useState(MOCK_EXAMS);
@@ -210,7 +221,7 @@ export function RoutinePanel({ sub }) {
 
       const validRoutines = Array.isArray(rData) && rData.length >= 10 ? rData : DEFAULT_CLASS_ROUTINES;
       setClassRoutines(validRoutines);
-      setExamRoutines(Array.isArray(erData) && erData.length ? erData : DEFAULT_EXAM_ROUTINES);
+      setExamRoutines(Array.isArray(erData) && erData.length >= 12 ? erData : DEFAULT_EXAM_ROUTINES);
       setSubjects(Array.isArray(sData) && sData.length ? sData : MOCK_SUBJECTS);
       setTeachers(Array.isArray(tData) && tData.length ? tData : MOCK_TEACHERS);
       setExams(Array.isArray(exData) && exData.length ? exData : MOCK_EXAMS);
@@ -258,6 +269,19 @@ export function RoutinePanel({ sub }) {
   }, [classRoutines, selectedClass, selectedSection, searchQuery]);
 
   // Reset to Govt Standard Routines
+  // Reset to 13-Day Govt Standard Exam Schedule
+  const handleResetDefaultExamRoutines = async () => {
+    if (!window.confirm('আপনি কি মাধ্যমিক বিদ্যালয়ের প্রমিত ১৩ দিবসের পূর্ণাঙ্গ পরীক্ষার রুটিন (৯ম-১০ম শ্রেণির ১২-১৩টি বিষয়সহ) লোড করতে চান?')) return;
+    try {
+      await requestApi('/exam_routines/reset-defaults', { method: 'POST' });
+      setMsg({ text: 'প্রমিত ১৩ দিবসের পরীক্ষার রুটিন সফলভাবে লোড করা হয়েছে!', type: 'success' });
+      await loadData();
+      setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
+    } catch (err) {
+      alert('ত্রুটি: ' + err.message);
+    }
+  };
+
   const handleResetDefaultRoutines = async () => {
     if (!window.confirm('আপনি কি সরকারি প্রমিত সাপ্তাহিক ক্লাস রুটিন (৬ষ্ঠ-১০ম শ্রেণি, দৈনিক ৬টি পিরিয়ড ও বিষয় শিক্ষকসহ) পুনরায় লোড করতে চান?')) return;
     try {
@@ -627,20 +651,25 @@ export function RoutinePanel({ sub }) {
           }
           .official-header {
             border-bottom: 2.5px double #0284c7;
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             margin-bottom: 14px;
-            text-align: center;
+            width: 100%;
           }
           .header-top {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
+            justify-content: space-between;
+            width: 100%;
             margin-bottom: 6px;
           }
+          .header-logo-left {
+            flex-shrink: 0;
+            width: 95px;
+            text-align: left;
+          }
           .school-logo {
-            width: 74px;
-            height: 74px;
+            width: 86px;
+            height: 86px;
             object-fit: contain;
             border-radius: 50%;
             background: #ffffff;
@@ -649,35 +678,83 @@ export function RoutinePanel({ sub }) {
             box-shadow: 0 2px 6px rgba(3, 105, 161, 0.15);
           }
           .school-titles {
+            flex: 1;
             text-align: center;
+            padding: 0 10px;
           }
           .school-name-bn {
             margin: 0;
-            font-size: 25px;
+            font-size: 29px;
             font-weight: 900;
             color: #1e3a8a;
             letter-spacing: -0.3px;
-            line-height: 1.2;
+            line-height: 1.25;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.06);
           }
           .school-name-en {
-            margin: 2px 0 0;
-            font-size: 14px;
+            margin: 3px 0 0;
+            font-size: 15px;
             font-family: 'Cinzel', 'Outfit', serif, sans-serif;
-            font-weight: 700;
+            font-weight: 800;
             color: #b45309;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             text-transform: uppercase;
           }
           .school-meta {
-            margin: 4px 0 0;
-            font-size: 11.5px;
+            margin: 6px 0 0;
+            font-size: 13px;
             font-weight: 700;
             color: #334155;
+            letter-spacing: 0.2px;
           }
           .school-contact {
-            margin: 2px 0 0;
-            font-size: 10.5px;
+            margin: 3px 0 0;
+            font-size: 11.5px;
             color: #64748b;
+            font-weight: 600;
+          }
+          .header-right-shield {
+            flex-shrink: 0;
+            width: 95px;
+            display: flex;
+            justify-content: flex-end;
+          }
+          .gov-seal-box {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            border: 1.5px dashed #0284c7;
+            background: #f0fdfa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3px;
+            box-sizing: border-box;
+          }
+          .seal-icon {
+            font-size: 16px;
+            line-height: 1;
+          }
+          .seal-text-top {
+            font-size: 8px;
+            font-weight: 800;
+            color: #0369a1;
+            line-height: 1.1;
+            margin-top: 2px;
+          }
+          .seal-text-mid {
+            font-size: 7px;
+            color: #475569;
+            line-height: 1;
+            margin-top: 1px;
+          }
+          .seal-text-bot {
+            font-size: 8px;
+            font-weight: 800;
+            color: #b45309;
+            margin-top: 2px;
           }
           .header-ribbon-wrap {
             margin: 8px 0 6px;
@@ -688,20 +765,20 @@ export function RoutinePanel({ sub }) {
             display: inline-block;
             background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
             color: #ffffff;
-            padding: 5px 36px;
+            padding: 6px 40px;
             border-radius: 20px;
             border: 2px solid #f59e0b;
             box-shadow: 0 3px 8px rgba(30, 58, 138, 0.25);
             text-align: center;
           }
           .ribbon-title-bn {
-            font-size: 16.5px;
+            font-size: 17px;
             font-weight: 900;
             letter-spacing: 0.8px;
             color: #ffffff;
           }
           .ribbon-title-en {
-            font-size: 9px;
+            font-size: 9.5px;
             font-family: 'Outfit', sans-serif;
             font-weight: 700;
             color: #fef08a;
@@ -712,7 +789,7 @@ export function RoutinePanel({ sub }) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 11.5px;
+            font-size: 12px;
             color: #475569;
             margin-top: 8px;
             padding: 0 4px;
@@ -722,8 +799,8 @@ export function RoutinePanel({ sub }) {
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 320px;
-            height: 320px;
+            width: 340px;
+            height: 340px;
             background-image: url('${schoolLogo}');
             background-repeat: no-repeat;
             background-position: center;
@@ -772,6 +849,10 @@ export function RoutinePanel({ sub }) {
             }
             .ribbon-title-bn { color: #ffffff !important; }
             .ribbon-title-en { color: #fef08a !important; }
+            .gov-seal-box {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
           }
         </style>
       </head>
@@ -780,7 +861,9 @@ export function RoutinePanel({ sub }) {
         <div class="content-wrap">
           <div class="official-header">
             <div class="header-top">
-              <img src="${schoolLogo}" class="school-logo" alt="School Logo" />
+              <div class="header-logo-left">
+                <img src="${schoolLogo}" class="school-logo" alt="School Logo" />
+              </div>
               <div class="school-titles">
                 <h1 class="school-name-bn">${school.nameBn || school.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'}</h1>
                 <h2 class="school-name-en">${school.nameEn || 'MAGRA PALS UNION HIGH SCHOOL'}</h2>
@@ -793,6 +876,14 @@ export function RoutinePanel({ sub }) {
                   ই-মেইল: ${school.email || 'magrapuhs.46@gmail.com'} &nbsp;|&nbsp;
                   মোবাইল: ${toBnDigits(school.phone || '০১৭১২-৩৪৫৬৭৮')}
                 </p>
+              </div>
+              <div class="header-right-shield">
+                <div class="gov-seal-box">
+                  <span class="seal-icon">🏛️</span>
+                  <div class="seal-text-top">গণপ্রজাতন্ত্রী বাংলাদেশ</div>
+                  <div class="seal-text-mid">মাধ্যমিক শিক্ষা অধিদপ্তর</div>
+                  <div class="seal-text-bot">EIIN: ${toBnDigits(school.eiin || 114290)}</div>
+                </div>
               </div>
             </div>
 
