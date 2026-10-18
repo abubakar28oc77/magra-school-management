@@ -519,18 +519,18 @@ export function RoutinePanel({ sub }) {
 
       // Build grid table for print (ক্লাস রুটিনে শুধু বিষয়ের নাম ও শিক্ষকের নাম থাকবে, কক্ষ নং থাকবে না)
       bodyContent = `
-        <div style="text-align:center; margin-bottom: 5px;">
-          <h2 style="margin: 0 0 2px; font-size: 15px; color: #0f172a;">${titleText}</h2>
-          <p style="margin: 0; font-size: 11px; color: #475569;">শ্রেণি: <b>${clsLabel}</b> | শাখা/বিভাগ: <b>${selectedSection === 'all' ? 'সকল শাখা' : selectedSection}</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b></p>
+        <div style="text-align:center; margin-bottom: 8px;">
+          <h2 style="margin: 0 0 2px; font-size: 16px; color: #0f172a;">${titleText}</h2>
+          <p style="margin: 0; font-size: 11.5px; color: #475569;">শ্রেণি: <b>${clsLabel}</b> | শাখা/বিভাগ: <b>${selectedSection === 'all' ? 'সকল শাখা' : selectedSection}</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b></p>
         </div>
-        <table style="width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 8px; table-layout: fixed;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; table-layout: fixed;">
           <thead>
             <tr style="background: #f1f5f9; color: #0f172a;">
-              <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 80px; text-align: center;">বার / দিন</th>
+              <th style="border: 1px solid #94a3b8; padding: 6px 2px; width: 85px; text-align: center; font-size: 11.5px;">বার / দিন</th>
               ${periods.map(p => `
-                <th style="border: 1px solid #94a3b8; padding: 4px 2px; text-align: center; ${p.is_break ? 'width: 75px; background: #fffbeb; color: #92400e;' : p.is_assembly ? 'width: 75px; background: #f0fdf4; color: #166534;' : ''}">
-                  <b>${p.name_bn}</b><br/>
-                  <small style="font-size: 9px; color: #475569;">${toBnDigits(p.start_time)} - ${toBnDigits(p.end_time)}</small>
+                <th style="border: 1px solid #94a3b8; padding: 6px 2px; text-align: center; ${p.is_break ? 'width: 80px; background: #fffbeb; color: #92400e;' : p.is_assembly ? 'width: 80px; background: #f0fdf4; color: #166534;' : ''}">
+                  <b style="font-size: 11.5px;">${p.name_bn}</b><br/>
+                  <small style="font-size: 9.5px; color: #475569;">${toBnDigits(p.start_time)} - ${toBnDigits(p.end_time)}</small>
                 </th>
               `).join('')}
             </tr>
@@ -538,32 +538,32 @@ export function RoutinePanel({ sub }) {
           <tbody>
             ${WEEK_DAYS.map(day => `
               <tr>
-                <td style="border: 1px solid #94a3b8; padding: 5px 3px; font-weight: bold; background: #f8fafc; text-align: center;">
+                <td style="border: 1px solid #94a3b8; padding: 6px 4px; font-weight: bold; background: #f8fafc; text-align: center; font-size: 12.5px;">
                   ${day.name_bn}
                 </td>
                 ${periods.map(period => {
                   if (period.is_assembly) {
                     return `
-                      <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; background: #f0fdf4; font-size: 9.5px; color: #166534; font-weight: bold;">
+                      <td style="border: 1px solid #94a3b8; padding: 5px 2px; text-align: center; background: #f0fdf4; font-size: 10px; color: #166534; font-weight: bold;">
                         🏛️ সমাবেশ ও শপথ
                       </td>
                     `;
                   }
                   if (period.is_break) {
                     return `
-                      <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; background: #fffbeb; font-size: 9.5px; color: #b45309; font-weight: bold;">
+                      <td style="border: 1px solid #94a3b8; padding: 5px 2px; text-align: center; background: #fffbeb; font-size: 10px; color: #b45309; font-weight: bold;">
                         🥪 টিফিন ও নামাজ
                       </td>
                     `;
                   }
                   const slot = filteredClassRoutines.find(r => normDay(r.day_of_week) === normDay(day.id) && normPeriod(r.period_no, r.start_time) === normPeriod(period.period_no, period.start_time));
                   if (!slot) {
-                    return `<td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; color: #cbd5e1;">—</td>`;
+                    return `<td style="border: 1px solid #94a3b8; padding: 5px 2px; text-align: center; color: #cbd5e1;">—</td>`;
                   }
                   return `
-                    <td style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; background: #ffffff;">
-                      <div style="font-weight: 800; color: #0369a1; font-size: 11px; line-height: 1.2;">${slot.subject_name}</div>
-                      <div style="color: #334155; font-size: 9.5px; font-weight: 600; margin-top: 2px;">👨‍🏫 ${slot.teacher_name}</div>
+                    <td style="border: 1px solid #94a3b8; padding: 6px 3px; text-align: center; background: #ffffff;">
+                      <div style="font-weight: 800; color: #0369a1; font-size: 11.5px; line-height: 1.25;">${slot.subject_name}</div>
+                      <div style="color: #334155; font-size: 10px; font-weight: 600; margin-top: 2px;">👨‍🏫 ${slot.teacher_name}</div>
                     </td>
                   `;
                 }).join('')}
@@ -821,28 +821,33 @@ export function RoutinePanel({ sub }) {
           .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: ${isClass ? '14px' : '8px'};
-            padding: 0 15px;
+            margin-top: ${isClass ? '55px' : '28px'};
+            padding: 0 20px;
             position: relative;
             z-index: 1;
             page-break-inside: avoid;
           }
           .sig-box {
             text-align: center;
-            width: ${isClass ? '170px' : '150px'};
+            width: ${isClass ? '195px' : '155px'};
+          }
+          .sig-space {
+            height: ${isClass ? '45px' : '26px'};
           }
           .sig-line {
-            border-top: 1.2px dashed #475569;
-            margin-bottom: 3px;
+            border-top: 1.5px dashed #475569;
+            margin-bottom: 5px;
           }
           .sig-title {
-            font-size: ${isClass ? '10.5px' : '9.5px'};
-            font-weight: bold;
+            font-size: ${isClass ? '11.5px' : '10px'};
+            font-weight: 800;
             color: #0f172a;
+            line-height: 1.25;
           }
           .sig-sub {
-            font-size: ${isClass ? '9px' : '8px'};
+            font-size: ${isClass ? '9.5px' : '8.5px'};
             color: #64748b;
+            margin-top: 2px;
           }
           @media print {
             html, body {
@@ -922,16 +927,19 @@ export function RoutinePanel({ sub }) {
 
           <div class="signatures">
             <div class="sig-box">
+              <div class="sig-space"></div>
               <div class="sig-line"></div>
               <div class="sig-title">আহ্বায়ক / সদস্য সচিব</div>
               <div class="sig-sub">${isClass ? 'রুটিন প্রণয়ন কমিটি' : 'পরীক্ষা পরিচালনা কমিটি'}</div>
             </div>
             <div class="sig-box">
+              <div class="sig-space"></div>
               <div class="sig-line"></div>
               <div class="sig-title">সহকারী প্রধান শিক্ষক</div>
               <div class="sig-sub">${school.nameBn || school.name}</div>
             </div>
             <div class="sig-box">
+              <div class="sig-space"></div>
               <div class="sig-line"></div>
               <div class="sig-title">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
               <div class="sig-sub">প্রধান শিক্ষক, ${school.nameBn || school.name}</div>
