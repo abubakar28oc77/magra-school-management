@@ -443,6 +443,14 @@ function getLocalStore(key, defaultVal = []) {
       }
       return healed;
     }
+    if (key === 'features' && Array.isArray(parsed)) {
+      const hasLibrary = parsed.some(f => f && f.feature_key === 'admin.library');
+      if (!hasLibrary) {
+        parsed.push({ feature_key: 'admin.library', label_bn: 'লাইব্রেরি', scope: 'admin', group_name: 'প্রশাসন', enabled: true });
+        try { localStorage.setItem('magra_db_features', JSON.stringify(parsed)); } catch {}
+      }
+      return parsed;
+    }
     return parsed !== null && parsed !== undefined ? parsed : defaultVal;
   } catch {
     return defaultVal;

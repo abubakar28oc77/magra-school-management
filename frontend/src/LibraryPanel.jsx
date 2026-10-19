@@ -553,7 +553,7 @@ export function LibraryPanel({ sub, setSub }) {
           remarks: `ফেরত: ${returnCondition}${returnFine > 0 ? ` (জরিমানা: ৳${toBn(returnFine)})` : ''}`
         };
       }
-      return b || l;
+      return l;
     }));
 
     // If condition is fine or minor, return to available shelf
