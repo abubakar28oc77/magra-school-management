@@ -57,6 +57,9 @@ import {
   PHOTO_STUDENT_MALE_1,
   PHOTO_STUDENT_MALE_2,
   PHOTO_STUDENT_FEMALE_1,
+  PHOTO_REAL_STUDENT_7,
+  PHOTO_REAL_STUDENT_8,
+  PHOTO_REAL_STUDENT_9,
   getTeacherPhoto,
   getStudentPhoto,
   getLeadershipData,
@@ -106,7 +109,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
         roll_no: 1,
         gender: 'পুরুষ',
         department: 'সাধারণ',
-        photo_url: PHOTO_STUDENT_MALE_1
+        photo_url: PHOTO_REAL_STUDENT_7
       }
     },
     {
@@ -126,7 +129,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
         roll_no: 1,
         gender: 'নারী',
         department: 'সাধারণ',
-        photo_url: PHOTO_STUDENT_FEMALE_1
+        photo_url: PHOTO_REAL_STUDENT_8
       }
     },
     {
@@ -147,7 +150,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
         gender: 'পুরুষ',
         department: 'বিজ্ঞান',
         group_name: 'বিজ্ঞান বিভাগ',
-        photo_url: PHOTO_STUDENT_MALE_2
+        photo_url: PHOTO_REAL_STUDENT_9
       }
     },
     {
@@ -168,7 +171,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
         gender: 'পুরুষ',
         department: 'বিজ্ঞান',
         group_name: 'বিজ্ঞান বিভাগ',
-        photo_url: PHOTO_STUDENT_MALE_1
+        photo_url: PHOTO_REAL_STUDENT_9
       }
     }
   ];
@@ -539,6 +542,8 @@ function Home(){
 
  const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 
+ const [photoUpdateVersion, setPhotoUpdateVersion] = useState(0);
+
  const resolvedDistinguished = useMemo(() => {
    let rawList = [];
    try {
@@ -552,7 +557,73 @@ function Home(){
      rawList = MOCK_STUDENTS;
    }
    return resolveDistinguishedStudents(rawList);
- }, []);
+ }, [photoUpdateVersion]);
+
+ const handleStudentPhotoDirectUpload = (e, targetStudent) => {
+   const f = e.target.files?.[0];
+   if (!f || !targetStudent) return;
+   if (f.size > 5 * 1024 * 1024) {
+     alert('ছবির আকার সর্বোচ্চ ৫ মেগাবাইট (5MB) হতে হবে');
+     return;
+   }
+   const r = new FileReader();
+   r.onload = () => {
+     const img = new Image();
+     img.onload = () => {
+       const canvas = document.createElement('canvas');
+       const maxW = 320, maxH = 380;
+       let w = img.width, h = img.height;
+       if (w > maxW || h > maxH) {
+         const ratio = Math.min(maxW / w, maxH / h);
+         w = Math.round(w * ratio);
+         h = Math.round(h * ratio);
+       }
+       canvas.width = w;
+       canvas.height = h;
+       const ctx = canvas.getContext('2d');
+       ctx.drawImage(img, 0, 0, w, h);
+       const compressed = canvas.toDataURL('image/jpeg', 0.88);
+
+       const sId = targetStudent.id || targetStudent.student_id;
+       const cName = String(targetStudent.class_name || targetStudent.classNum || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+       const rNo = String(targetStudent.roll_no || targetStudent.rollNo || '1').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+
+       try {
+         if (sId) localStorage.setItem('magra_photo_' + sId, compressed);
+         if (targetStudent.student_id) localStorage.setItem('magra_photo_' + targetStudent.student_id, compressed);
+         if (cName && rNo) {
+           localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, compressed);
+           localStorage.setItem(`magra_photo_${cName}_${rNo}`, compressed);
+         }
+         if (cName === '10' && rNo === '1') localStorage.setItem('magra_photo_STU-10-SCI-01', compressed);
+         if (cName === '9' && rNo === '1') localStorage.setItem('magra_photo_STU-09-SCI-01', compressed);
+         if (cName === '8' && rNo === '1') localStorage.setItem('magra_photo_STU-08-01', compressed);
+         if (cName === '7' && rNo === '1') localStorage.setItem('magra_photo_STU-07-01', compressed);
+
+         const raw = localStorage.getItem('magra_db_students');
+         if (raw) {
+           const list = JSON.parse(raw);
+           if (Array.isArray(list)) {
+             const updated = list.map(x => {
+               const xc = String(x.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+               const xr = String(x.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+               if (String(x.id) === String(sId) || String(x.student_id) === String(targetStudent.student_id) || (xc === cName && xr === rNo)) {
+                 return { ...x, photo_url: compressed, photo: compressed };
+               }
+               return x;
+             });
+             localStorage.setItem('magra_db_students', JSON.stringify(updated));
+           }
+         }
+       } catch {}
+
+       setPhotoUpdateVersion(v => v + 1);
+       alert(`${targetStudent.name_bn}-এর ছবি সফলভাবে আপলোড ও হালনাগাদ করা হয়েছে!`);
+     };
+     img.src = r.result;
+   };
+   r.readAsDataURL(f);
+ };
 
  const ensureTeachersEducation = (list) => {
    if (!Array.isArray(list) || !list.length) return list;
@@ -1073,10 +1144,23 @@ function Home(){
            loading="lazy"
            onError={(e)=>{
             e.currentTarget.onerror = null;
-            e.currentTarget.src = student.photo_url || PHOTO_STUDENT_MALE_1;
+            e.currentTarget.src = student.photo_url || PHOTO_REAL_STUDENT_7;
            }}
           />
           <span className="distinguished-rank-badge">১ম স্থান</span>
+          <label
+           className="distinguished-photo-change-btn"
+           title={`${student.name_bn}-এর ছবি আপলোড বা পরিবর্তন করুন`}
+           onClick={(e)=>e.stopPropagation()}
+          >
+           <input
+            type="file"
+            accept="image/*"
+            style={{display:'none'}}
+            onChange={(e)=>handleStudentPhotoDirectUpload(e, student)}
+           />
+           <span className="camera-btn-icon" aria-hidden="true">📷</span>
+          </label>
          </div>
          <h3 className="distinguished-student-name">{student.name_bn}</h3>
          <div className="distinguished-details">
