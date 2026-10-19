@@ -124,6 +124,8 @@ export function AttendancePanel({ sub = 'daily' }) {
   // Bulk WhatsApp Dispatch Modal State & Tracking
   const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
   const [whatsAppSentMap, setWhatsAppSentMap] = useState({});
+  const [copiedNumbers, setCopiedNumbers] = useState(false);
+  const [smsSentMap, setSmsSentMap] = useState({});
 
   // Printable ref
   const printReportRef = useRef(null);
@@ -379,7 +381,15 @@ export function AttendancePanel({ sub = 'daily' }) {
     return roster.filter(s => {
       const past = savedAttendance.filter(a => String(a.student_id) === String(s.id));
       const absentCount = past.filter(a => a.status === 'absent').length;
-      return absentCount >= 3 || (s.status === 'absent' && s.roll_no % 3 === 0);
+      const totalDays = past.length || 1;
+      const presCount = past.filter(a => a.status === 'present').length;
+      const pastRate = past.length > 0 ? (presCount / totalDays) * 100 : 100;
+      
+      const isSevenDaysAbsent = absentCount >= 7;
+      const isUnderSixty = pastRate < 60;
+      const isSimulatedChronic = (s.status === 'absent' && s.roll_no % 7 === 0);
+
+      return isSevenDaysAbsent || isUnderSixty || isSimulatedChronic;
     });
   }, [roster]);
 
@@ -416,6 +426,17 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
     setWhatsAppModalOpen(true);
   };
 
+  const buildSmsUrl = (phone, text) => {
+    const cleanPhone = (phone || '').replace(/[^\d+]/g, '');
+    return `sms:${cleanPhone}?body=${encodeURIComponent(text)}`;
+  };
+
+  const absentStudents = useMemo(() => roster.filter(s => s.status === 'absent'), [roster]);
+  const absentPhoneNumbers = useMemo(() => {
+    return absentStudents.map(s => (s.guardian_phone || '').replace(/[^\d+]/g, '')).filter(Boolean);
+  }, [absentStudents]);
+  const bulkPhoneString = useMemo(() => absentPhoneNumbers.join(', '), [absentPhoneNumbers]);
+
   const handleOpenSmsSingle = (student) => {
     setSmsTargetStudent(student);
     setSmsTemplate(student.status === 'late' ? 'late' : 'absent');
@@ -433,7 +454,7 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
       return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে দেরিতে বিদ্যালয়ে উপস্থিত হয়েছে। শিক্ষার্থীদের সময়নিষ্ঠ করতে সহযোগিতা কামনা করছি। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
     }
     if (smsTemplate === 'chronic') {
-      return `জরুরি নোটিশ: আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) একাধিক কার্যদিবস বিদ্যালয়ে অনুপস্থিত রয়েছে। অবিলম্বে প্রধান শিক্ষক/শ্রেণি শিক্ষকের সাথে সাক্ষাত করার জন্য অনুরোধ করা হলো। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
+      return `জরুরি নোটিশ: আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) টানা ৭ দিন বা ততোধিক কার্যদিবস বিদ্যালয়ে অনুপস্থিত রয়েছে / সামগ্রিক উপস্থিতি ৬০% এর কম। অবিলম্বে প্রধান শিক্ষক/শ্রেণি শিক্ষকের সাথে সাক্ষাত করার জন্য অনুরোধ করা হলো। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
     }
     return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে বিদ্যালয়ে অনুপস্থিত। কোনো সমস্যা থাকলে বিদ্যালয়কে জানান। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
   };
@@ -1726,7 +1747,7 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
               >
                 <option value="absent">১. দৈনিক অনুপস্থিতি নোটিশ (Daily Absence Alert)</option>
                 <option value="late">২. বিলম্বে আগমন নোটিশ (Late Arrival Notice)</option>
-                <option value="chronic">৩. ক্রমাগত অনুপস্থিতির জরুরি নোটিশ (Chronic Alert - 3+ Days)</option>
+                <option value="chronic">৩. ক্রমাগত অনুপস্থিতির জরুরি নোটিশ (Chronic Alert - ৭+ দিন / ৬০% এর কম)</option>
               </select>
             </div>
 
@@ -1868,7 +1889,7 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
                   ⚠️ ঝুঁকিপূর্ণ উপস্থিতি শনাক্তকরণ (Chronic Absenteeism Alert)
                 </h3>
                 <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>
-                  যেসব শিক্ষার্থী টানা ৩ দিন বা তার বেশি অনুপস্থিত অথবা যাদের সামগ্রিক উপস্থিতি ৭৫% এর কম, তাদের তালিকা।
+                  যেসব শিক্ষার্থী টানা ৭ দিন বা তার বেশি অনুপস্থিত অথবা যাদের সামগ্রিক উপস্থিতি ৬০% এর কম, তাদের তালিকা।
                 </p>
               </div>
               <span style={{
@@ -1911,7 +1932,7 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
                           background: '#fee2e2', color: '#991b1b',
                           padding: '3px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 800
                         }}>
-                          ৩+ দিন অনুপস্থিত
+                          ৭+ দিন অনুপস্থিত / উপস্থিতি ৬০% এর কম
                         </span>
                       </td>
                       <td style={{ padding: '10px', textAlign: 'center' }}>
@@ -2084,27 +2105,38 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
         </div>
       )}
 
-      {/* SMS Modal Dialog */}
+      {/* ============================================================== */}
+      {/* SMS MODAL DIALOG (REQ 1: Lists All Mobile Numbers & SMS Links)  */}
+      {/* ============================================================== */}
       {smsModalOpen && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1200,
-          display: 'grid', placeItems: 'center', padding: '16px'
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          zIndex: 1300, display: 'grid', placeItems: 'center', padding: '16px'
         }}>
           <div style={{
-            background: '#ffffff', width: '100%', maxWidth: '520px', borderRadius: '16px',
-            padding: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.25)', position: 'relative'
+            background: '#ffffff', width: '100%', maxWidth: '640px', borderRadius: '16px',
+            padding: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.25)', position: 'relative',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#0f172a' }}>
-                📱 {smsTargetStudent ? `${smsTargetStudent.name_bn}-এর অভিভাবককে SMS` : 'অনুপস্থিতদের বাল্ক SMS নোটিস'}
-              </h3>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#0284c7', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '22px' }}>
+                  📱
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', color: '#0369a1', fontWeight: 800 }}>
+                    {smsTargetStudent ? `${smsTargetStudent.name_bn}-এর অভিভাবককে SMS বার্তা` : 'অনুপস্থিত শিক্ষার্থীদের বাল্ক SMS নোটিস ও মোবাইল নম্বর'}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `(${selectedGroup})` : ''} • তারিখ: {selectedDate} • প্রাপক: {toBn(smsTargetStudent ? 1 : metrics.absent)} জন
+                  </div>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setSmsModalOpen(false)}
-                style={{
-                  background: 'none', border: 'none', fontSize: '20px',
-                  cursor: 'pointer', color: '#64748b'
-                }}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
               >
                 ✕
               </button>
@@ -2112,65 +2144,189 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
 
             {smsSuccessMsg ? (
               <div style={{
-                background: '#ecfdf5', color: '#065f46', padding: '16px', borderRadius: '10px',
-                textAlign: 'center', fontWeight: 700, fontSize: '14px'
+                background: '#ecfdf5', color: '#065f46', padding: '24px', borderRadius: '12px',
+                textAlign: 'center', fontWeight: 700, fontSize: '15px', border: '1.5px solid #a7f3d0', margin: 'auto 0'
               }}>
+                <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎉</div>
                 {smsSuccessMsg}
               </div>
             ) : (
-              <div>
-                <div style={{ marginBottom: '14px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    প্রাপকের সংখ্যা
-                  </label>
-                  <div style={{
-                    background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px',
-                    fontSize: '13px', fontWeight: 700, color: '#1e293b'
-                  }}>
-                    {smsTargetStudent 
-                      ? `${smsTargetStudent.name_bn} (অভিভাবক ফোন: ${smsTargetStudent.guardian_phone || '01712-345678'})` 
-                      : `মোট ${toBn(metrics.absent)} জন অনুপস্থিত শিক্ষার্থীর অভিভাবক`}
+              <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
+                {/* Recipients and phone numbers list */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#334155' }}>
+                      📋 অনুপস্থিত শিক্ষার্থীদের তালিকা ও অভিভাবকের মোবাইল নম্বর:
+                    </label>
+                    {!smsTargetStudent && absentPhoneNumbers.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(bulkPhoneString);
+                          setCopiedNumbers(true);
+                          setTimeout(() => setCopiedNumbers(false), 2000);
+                        }}
+                        style={{
+                          background: copiedNumbers ? '#10b981' : '#f0f9ff',
+                          color: copiedNumbers ? '#ffffff' : '#0369a1',
+                          border: '1px solid #bae6fd', borderRadius: '6px',
+                          padding: '4px 10px', fontSize: '11.5px', fontWeight: 800, cursor: 'pointer'
+                        }}
+                      >
+                        {copiedNumbers ? '✓ নম্বরগুলো কপি হয়েছে' : '📋 সকল নম্বর কপি করুন'}
+                      </button>
+                    )}
                   </div>
+
+                  {smsTargetStudent ? (
+                    <div style={{
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      padding: '12px 14px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #cbd5e1'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>
+                          রোল {toBn(smsTargetStudent.roll_no)} - {smsTargetStudent.name_bn}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#475569' }}>
+                          অভিভাবক: {smsTargetStudent.guardian_name || 'পিতা'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '4px 10px', borderRadius: '6px' }}>
+                          📞 {smsTargetStudent.guardian_phone || '01712-345678'}
+                        </span>
+                        <a
+                          href={buildSmsUrl(smsTargetStudent.guardian_phone, getSmsMessageText(smsTargetStudent))}
+                          style={{
+                            background: '#0284c7', color: '#ffffff', padding: '6px 12px',
+                            borderRadius: '6px', fontSize: '12px', fontWeight: 800, textDecoration: 'none'
+                          }}
+                        >
+                          📱 মেসেজ অ্যাপ
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                      {roster.filter(s => s.status === 'absent').map((s) => {
+                        const isSent = !!smsSentMap[s.id];
+                        return (
+                          <div
+                            key={s.id}
+                            style={{
+                              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                              padding: '9px 12px', borderRadius: '8px', background: isSent ? '#f0fdf4' : '#f8fafc',
+                              border: isSent ? '1px solid #86efac' : '1px solid #e2e8f0', fontSize: '12.5px'
+                            }}
+                          >
+                            <div>
+                              <span style={{ fontWeight: 800, color: '#0f172a' }}>
+                                রোল {toBn(s.roll_no)} - {s.name_bn}
+                              </span>
+                              <span style={{ color: '#64748b', marginLeft: '6px' }}>
+                                ({s.guardian_name || 'অভিভাবক'})
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontWeight: 800, color: '#0369a1', background: '#e0f2fe', padding: '3px 8px', borderRadius: '6px', fontSize: '12px' }}>
+                                📞 {s.guardian_phone || '01712-345678'}
+                              </span>
+                              {isSent && (
+                                <span style={{ fontSize: '11px', color: '#166534', fontWeight: 800, background: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>
+                                  ✓ পাঠানো হয়েছে
+                                </span>
+                              )}
+                              <a
+                                href={buildSmsUrl(s.guardian_phone, getSmsMessageText(s))}
+                                onClick={() => setSmsSentMap(prev => ({ ...prev, [s.id]: true }))}
+                                style={{
+                                  background: '#0284c7', color: '#ffffff', padding: '5px 10px',
+                                  borderRadius: '5px', fontSize: '11.5px', fontWeight: 800, textDecoration: 'none',
+                                  display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                }}
+                              >
+                                📱 SMS
+                              </a>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
+                {/* Comma-separated Phone numbers field for Bulk SMS portals */}
+                {!smsTargetStudent && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      একত্রিত মোবাইল নম্বরসমূহ (কমা দিয়ে পৃথকীকৃত):
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={bulkPhoneString}
+                      style={{
+                        width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1',
+                        borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, color: '#0369a1',
+                        background: '#f8fafc', boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Message body */}
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    SMS বার্তার বিবরণ
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    SMS বার্তার বিবরণ (Message Text)
                   </label>
                   <textarea
-                    rows="5"
+                    rows="4"
                     defaultValue={getSmsMessageText(smsTargetStudent)}
                     style={{
                       width: '100%', padding: '10px', border: '1px solid #cbd5e1',
                       borderRadius: '8px', fontSize: '13px', lineHeight: 1.5, boxSizing: 'border-box'
                     }}
                   />
-                  <small style={{ color: '#64748b', display: 'block', marginTop: '4px' }}>
-                    বর্ণ সংখ্যা: আনুমানিক ১৩০ বর্ণ • বাংলা ইউনিকোড SMS ১ ক্রেডিট
-                  </small>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '11.5px', color: '#64748b' }}>
+                    <span>বর্ণ সংখ্যা: আনুমানিক ১৩০ বর্ণ • বাংলা ইউনিকোড SMS ১ ক্রেডিট</span>
+                    <span>প্রেরক: {headTeacher.name_bn || 'প্রধান শিক্ষক'}</span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                {/* Action buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
                   <button
                     type="button"
                     onClick={() => setSmsModalOpen(false)}
                     style={{
                       background: '#f1f5f9', color: '#475569', border: 'none',
-                      borderRadius: '6px', padding: '9px 16px', fontWeight: 700, cursor: 'pointer'
+                      borderRadius: '8px', padding: '9px 16px', fontWeight: 700, cursor: 'pointer'
                     }}
                   >
                     বাতিল
                   </button>
+                  {!smsTargetStudent && (
+                    <a
+                      href={buildSmsUrl(bulkPhoneString, getSmsMessageText(null))}
+                      style={{
+                        background: '#059669', color: '#ffffff',
+                        borderRadius: '8px', padding: '9px 16px', fontWeight: 800, textDecoration: 'none',
+                        display: 'inline-flex', alignItems: 'center', gap: '6px'
+                      }}
+                    >
+                      📱 মোবাইলের মেসেজ অ্যাপে খুলুন
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={handleSendSimulatedSms}
                     style={{
                       background: '#0284c7', color: '#ffffff', border: 'none',
-                      borderRadius: '6px', padding: '9px 18px', fontWeight: 800, cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
+                      borderRadius: '8px', padding: '9px 20px', fontWeight: 800, cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(2,132,199,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px'
                     }}
                   >
-                    📩 SMS প্রেরণ সম্পন্ন করুন
+                    📩 SMS প্রেরণ সম্পন্ন করুন ({toBn(smsTargetStudent ? 1 : metrics.absent)} জন)
                   </button>
                 </div>
               </div>
