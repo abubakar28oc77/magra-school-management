@@ -84,6 +84,7 @@ import {
   MOCK_BOOKS,
   MOCK_ADMISSIONS,
   getStudentPhoto,
+  saveStudentCustomPhoto,
   MOCK_SCHOLARSHIPS,
   MOCK_PUBLIC_CONTENT,
   MOCK_SSC_RESULTS,
@@ -1012,6 +1013,9 @@ function handleMockRequest(path, opts = {}) {
         religion: normalizeReligion(body.religion),
         status: st
       };
+      if (newSt.photo_url) {
+        saveStudentCustomPhoto(newSt, newSt.photo_url);
+      }
       allStudents.unshift(newSt);
       setLocalStore('students', allStudents);
       return newSt;
@@ -1117,15 +1121,29 @@ function handleMockRequest(path, opts = {}) {
   }
 
   if (cleanPath.startsWith('/students/') && !cleanPath.includes('village-wise')) {
-    const id = cleanPath.replace('/students/', '');
+    const id = cleanPath.replace('/students/', '').trim();
     let students = getLocalStore('students', MOCK_STUDENTS);
     if (method === 'PUT') {
-      students = students.map(s => String(s.id) === String(id) ? { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) } : s);
+      let updatedObj = null;
+      students = students.map(s => {
+        const match = String(s.id).toLowerCase() === id.toLowerCase() ||
+                      String(s.student_id).toLowerCase() === id.toLowerCase() ||
+                      (body.class_name && body.roll_no && String(s.class_name) === String(body.class_name) && String(s.roll_no) === String(body.roll_no));
+        if (match) {
+          const merged = { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) };
+          updatedObj = merged;
+          return merged;
+        }
+        return s;
+      });
+      if (updatedObj && (body.photo_url || body.photo)) {
+        saveStudentCustomPhoto(updatedObj, body.photo_url || body.photo);
+      }
       setLocalStore('students', students);
       return { success: true };
     }
     if (method === 'DELETE') {
-      students = students.filter(s => String(s.id) !== String(id));
+      students = students.filter(s => String(s.id).toLowerCase() !== id.toLowerCase() && String(s.student_id).toLowerCase() !== id.toLowerCase());
       setLocalStore('students', students);
       return { success: true };
     }

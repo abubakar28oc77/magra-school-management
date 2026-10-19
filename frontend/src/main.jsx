@@ -62,6 +62,7 @@ import {
   PHOTO_REAL_STUDENT_9,
   getTeacherPhoto,
   getStudentPhoto,
+  saveStudentCustomPhoto,
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
@@ -2174,65 +2175,105 @@ function StudentPanel({sub}){
  const updateEdu=(i,k,v)=>ext('education',(form.extended_profile?.education||[]).map((r,n)=>n===i?{...r,[k]:v}:r));
  const removeEdu=i=>ext('education',(form.extended_profile?.education||[]).filter((_,n)=>n!==i));
 
- const file=e=>{
-  const f=e.target.files?.[0];
-  if(!f)return;
-  if(f.size>5*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 5MB হতে হবে');return;}
-  const r=new FileReader();
-  r.onload=()=>{
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxW = 320, maxH = 380;
-      let w = img.width, h = img.height;
-      if (w > maxW || h > maxH) {
-        const ratio = Math.min(maxW / w, maxH / h);
-        w = Math.round(w * ratio);
-        h = Math.round(h * ratio);
-      }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const compressed = canvas.toDataURL('image/jpeg', 0.88);
-      change('photo_url', compressed);
-      try {
-        const id = editing || form.id || form.student_id;
-        if (id) {
-          localStorage.setItem('magra_photo_' + id, compressed);
+  const handleTableStudentPhotoUpload = (e, targetStudent) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f || !targetStudent) return;
+    if (f.size > 5 * 1024 * 1024) {
+      setMsg('ছবির আকার সর্বোচ্চ 5MB হতে হবে');
+      return;
+    }
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 320, maxH = 380;
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
         }
-      } catch {}
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.88);
+        saveStudentCustomPhoto(targetStudent, compressed);
+        setStudents(prev => prev.map(item => {
+          if (String(item.id).toLowerCase() === String(targetStudent.id).toLowerCase() || String(item.student_id).toLowerCase() === String(targetStudent.student_id).toLowerCase()) {
+            return { ...item, photo_url: compressed, photo: compressed };
+          }
+          return item;
+        }));
+        setMsg(`✓ ${targetStudent.name_bn || 'শিক্ষার্থী'}-এর ছবি সফলভাবে আপডেট হয়েছে`);
+      };
+      img.src = r.result;
     };
-    img.src = r.result;
+    r.readAsDataURL(f);
   };
-  r.readAsDataURL(f);
- };
 
- const save=async e=>{
-  e.preventDefault();
-  if (form.is_special_needs === 'হ্যাঁ' && !form.disability_type) {
-    setMsg('অনুগ্রহ করে বিশেষ চাহিদাসম্পন্ন শিক্ষার্থীর প্রতিবন্ধিতার ধরন নির্বাচন করুন');
-    setStep(0);
-    return;
-  }
-  setMsg('সংরক্ষণ হচ্ছে...');
-  try{
-   const method=editing?'PUT':'POST';
-   const path=editing?`/students/${editing}`:'/students';
-   const payload = {
-     ...form,
-     is_special_needs: form.is_special_needs || 'না',
-     disability_type: form.is_special_needs === 'হ্যাঁ' ? form.disability_type : '',
-     special_needs: form.is_special_needs === 'হ্যাঁ' ? (form.disability_type || form.special_needs || 'হ্যাঁ') : ''
-   };
-   await api(path,{method,body:JSON.stringify(payload)});
-   setMsg(editing?'শিক্ষার্থী তথ্য আপডেট হয়েছে':'নতুন শিক্ষার্থী সংরক্ষিত হয়েছে');
-   setEditing(null);
-   setForm({...emptyStudent,extended_profile:{education:[]}});
-   setView('list');
-   load();
-  }catch(e){setMsg(e.message)}
- };
+  const file = e => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) { setMsg('ছবির আকার সর্বোচ্চ 5MB হতে হবে'); return; }
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 320, maxH = 380;
+        let w = img.width, h = img.height;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.88);
+        change('photo_url', compressed);
+        change('photo', compressed);
+        saveStudentCustomPhoto(form, compressed);
+        setMsg('✓ ছবি সিলেক্ট ও প্রস্তুত হয়েছে। নিচে "তথ্য আপডেট করুন" বাটনে ক্লিক করে সেভ করুন।');
+      };
+      img.src = r.result;
+    };
+    r.readAsDataURL(f);
+  };
+
+  const save = async e => {
+    e.preventDefault();
+    if (form.is_special_needs === 'হ্যাঁ' && !form.disability_type) {
+      setMsg('অনুগ্রহ করে বিশেষ চাহিদাসম্পন্ন শিক্ষার্থীর প্রতিবন্ধিতার ধরন নির্বাচন করুন');
+      setStep(0);
+      return;
+    }
+    setMsg('সংরক্ষণ হচ্ছে...');
+    try {
+      const method = editing ? 'PUT' : 'POST';
+      const path = editing ? `/students/${editing}` : '/students';
+      const payload = {
+        ...form,
+        is_special_needs: form.is_special_needs || 'না',
+        disability_type: form.is_special_needs === 'হ্যাঁ' ? form.disability_type : '',
+        special_needs: form.is_special_needs === 'হ্যাঁ' ? (form.disability_type || form.special_needs || 'হ্যাঁ') : ''
+      };
+      if (form.photo_url) {
+        saveStudentCustomPhoto(form, form.photo_url);
+      }
+      await api(path, { method, body: JSON.stringify(payload) });
+      setMsg(editing ? 'শিক্ষার্থী তথ্য আপডেট হয়েছে' : 'নতুন শিক্ষার্থী সংরক্ষিত হয়েছে');
+      setEditing(null);
+      setForm({ ...emptyStudent, extended_profile: { education: [] } });
+      setView('list');
+      load();
+    } catch (e) { setMsg(e.message) }
+  };
 
  const edit=s=>{
   setEditing(s.id);
@@ -2407,6 +2448,40 @@ function StudentPanel({sub}){
     <form onSubmit={save} className="form-grid">
      {step===0&&<>
        <div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div>
+       <div className="field full" style={{background:'#f0fdf4',border:'1.5px dashed #16a34a',borderRadius:'10px',padding:'14px 18px',display:'flex',alignItems:'center',gap:'20px',flexWrap:'wrap',marginBottom:'12px'}}>
+         <div style={{position:'relative',width:'84px',height:'84px',flexShrink:0}}>
+           <img
+             src={form.photo_url || getStudentPhoto(form)}
+             alt="শিক্ষার্থীর ছবি"
+             style={{width:'84px',height:'84px',borderRadius:'50%',objectFit:'cover',border:'2.5px solid #16a34a',display:'block',boxShadow:'0 3px 10px rgba(0,0,0,0.12)',background:'#fff'}}
+             onError={(e)=>{e.currentTarget.onerror=null;e.currentTarget.src=PHOTO_STUDENT_MALE_1;}}
+           />
+         </div>
+         <div style={{flex:1,minWidth:'220px'}}>
+           <label style={{fontSize:'14px',fontWeight:700,color:'#0f172a',marginBottom:'4px',display:'block'}}>
+             📷 শিক্ষার্থীর ছবি (Student Photo)
+           </label>
+           <p style={{fontSize:'12.5px',color:'#475569',margin:'0 0 10px 0'}}>
+             {form.photo_url ? '✓ কাস্টম পাসপোর্ট ছবি সংযুক্ত রয়েছে। পরিবর্তন করতে নিচের বাটনে চাপুন।' : 'বর্তমানে সিস্টেম ডিফল্ট ছবি সক্রিয় রয়েছে। শিক্ষার্থীর নিজস্ব ছবি আপলোড করতে নিচের বাটনে চাপুন।'}
+           </p>
+           <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
+             <label className="btn mini" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',background:'#16a34a',color:'#fff',fontWeight:700,padding:'7px 16px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(22,163,74,0.3)'}}>
+               📁 ছবি বাছাই ও আপলোড করুন
+               <input type="file" accept="image/*" hidden onChange={file}/>
+             </label>
+             {form.photo_url && (
+               <button
+                 type="button"
+                 className="mini"
+                 onClick={()=>{ change('photo_url',''); change('photo',''); setMsg('ছবি সরানো হয়েছে'); }}
+                 style={{background:'#fff1f2',border:'1px solid #fecdd3',color:'#e11d48',fontWeight:600,padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}
+               >
+                 🗑️ ছবি বাতিল
+               </button>
+             )}
+           </div>
+         </div>
+       </div>
        <div className="field"><label>Student ID *</label><input value={form.student_id} onChange={e=>change('student_id',e.target.value)} required disabled={!!editing}/></div>
        <div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn} onChange={e=>change('name_bn',e.target.value)} required/></div>
        <div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en} onChange={e=>change('name_en',e.target.value)}/></div>
@@ -2495,7 +2570,7 @@ function StudentPanel({sub}){
       </>}
      {step===2&&<><div className="form-section-title full"><b>বর্তমান ঠিকানা</b></div>{[['current_village','গ্রাম/মহল্লা'],['current_post_office','ডাকঘর'],['current_upazila','উপজেলা'],['current_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="form-section-title full"><b>স্থায়ী ঠিকানা</b></div><div className="field full" style={{background:'#f0fdf4',border:'1.5px solid #86efac',padding:'10px 14px',borderRadius:'8px',margin:'4px 0 10px'}}><label style={{cursor:'pointer',fontSize:'14px',fontWeight:700,display:'inline-flex',alignItems:'center',gap:'10px',color:'#166534',margin:0}}><input type="checkbox" style={{width:'18px',height:'18px',accentColor:'#16a34a',cursor:'pointer'}} checked={sameAddress} onChange={handleSameAddress}/> ☑️ বর্তমান ঠিকানা ও স্থায়ী ঠিকানা একই (স্বয়ংক্রিয় পূরণ)</label></div>{[['permanent_village','গ্রাম/মহল্লা'],['permanent_post_office','ডাকঘর'],['permanent_upazila','উপজেলা'],['permanent_district','জেলা']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}<div className="field full"><label>সম্পূর্ণ ঠিকানা বিবরণ</label><textarea rows="2" value={form.address} onChange={e=>change('address',e.target.value)}/></div></>}
      {step===3&&<><div className="form-section-title full"><b>অভিভাবকের তথ্য (পিতা-মাতা উভয়ের অনুপস্থিতিতে প্রযোজ্য)</b></div><div className="field"><label>অভিভাবকের নাম (বাংলা)</label><input value={form.guardian_name} onChange={e=>change('guardian_name',e.target.value)}/></div><div className="field"><label>অভিভাবকের নাম (ইংরেজি)</label><input value={form.guardian_name_en} onChange={e=>change('guardian_name_en',e.target.value)}/></div><div className="field"><label>সম্পর্ক</label><input value={form.guardian_relation} onChange={e=>change('guardian_relation',e.target.value)}/></div><div className="field"><label>অভিভাবকের মোবাইল</label><input value={form.guardian_phone} onChange={e=>change('guardian_phone',e.target.value)}/></div><div className="field"><label>অভিভাবকের NID</label><input value={form.guardian_nid_no} onChange={e=>change('guardian_nid_no',e.target.value)}/></div><div className="field"><label>অভিভাবকের ইমেইল</label><input value={form.guardian_email} onChange={e=>change('guardian_email',e.target.value)}/></div></>}
-     {step===4&&<><div className="form-section-title full"><b>ভর্তি ও অতিরিক্ত তথ্য</b></div><div className="field"><label>ভর্তির শ্রেণি</label><select value={form.admission_class} onChange={e=>change('admission_class',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>ভর্তির বিভাগ {['9','10','৯','১০'].includes(String(form.admission_class).trim())?'* (৯ম/১০ম শ্রেণির জন্য)':'(৯ম ও ১০ম শ্রেণির জন্য)'}</label><select value={form.admission_group||''} onChange={e=>change('admission_group',e.target.value)} style={{borderColor:['9','10','৯','১০'].includes(String(form.admission_class).trim())?'#16a34a':undefined,fontWeight:['9','10','৯','১০'].includes(String(form.admission_class).trim())?600:'normal'}}><option value="">{['9','10','৯','১০'].includes(String(form.admission_class).trim())?'বিভাগ নির্বাচন করুন *':'প্রযোজ্য নয় / সাধারণ (৬ষ্ঠ-৮ম)'}</option><option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option><option value="মানবিক বিভাগ">মানবিক বিভাগ</option><option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option></select></div><div className="field"><label>ভর্তির তারিখ</label><input type="date" value={form.admission_date} onChange={e=>change('admission_date',e.target.value)}/></div><div className="field"><label>জরুরি মোবাইল</label><input value={form.emergency_phone} onChange={e=>change('emergency_phone',e.target.value)}/></div><div className="field"><label>বিশেষ চাহিদা/মন্তব্য</label><input value={form.special_needs} onChange={e=>change('special_needs',e.target.value)}/></div><div className="field"><label>অবস্থা</label><select value={form.status} onChange={e=>change('status',e.target.value)}><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option><option value="graduated">উত্তীর্ণ</option><option value="transferred">স্থানান্তরিত</option><option value="dropped_out">ঝরে পড়া</option></select></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div><div className="field full"><label>অতিরিক্ত নোট</label><textarea rows="3" value={form.additional_notes} onChange={e=>change('additional_notes',e.target.value)}/></div><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার ইতিহাস</b><button type="button" className="mini" onClick={addEdu}>+ নতুন রেকর্ড</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam} onChange={e=>updateEdu(i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution} onChange={e=>updateEdu(i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board} onChange={e=>updateEdu(i,'board',e.target.value)}/><input placeholder="পাশের সন" value={r.year} onChange={e=>updateEdu(i,'year',e.target.value)}/><input placeholder="ফলাফল" value={r.result} onChange={e=>updateEdu(i,'result',e.target.value)}/><input placeholder="বিষয়" value={r.subject} onChange={e=>updateEdu(i,'subject',e.target.value)}/><button type="button" className="mini" onClick={()=>removeEdu(i)}>মুছুন</button></div>)}{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="শিক্ষার্থীর ছবি"/>}</>}
+     {step===4&&<><div className="form-section-title full"><b>ভর্তি ও অতিরিক্ত তথ্য</b></div><div className="field"><label>ভর্তির শ্রেণি</label><select value={form.admission_class} onChange={e=>change('admission_class',e.target.value)}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select></div><div className="field"><label>ভর্তির বিভাগ {['9','10','৯','১০'].includes(String(form.admission_class).trim())?'* (৯ম/১০ম শ্রেণির জন্য)':'(৯ম ও ১০ম শ্রেণির জন্য)'}</label><select value={form.admission_group||''} onChange={e=>change('admission_group',e.target.value)} style={{borderColor:['9','10','৯','১০'].includes(String(form.admission_class).trim())?'#16a34a':undefined,fontWeight:['9','10','৯','১০'].includes(String(form.admission_class).trim())?600:'normal'}}><option value="">{['9','10','৯','১০'].includes(String(form.admission_class).trim())?'বিভাগ নির্বাচন করুন *':'প্রযোজ্য নয় / সাধারণ (৬ষ্ঠ-৮ম)'}</option><option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option><option value="মানবিক বিভাগ">মানবিক বিভাগ</option><option value="ব্যবসায় শিক্ষা শাখা">ব্যবসায় শিক্ষা শাখা</option></select></div><div className="field"><label>ভর্তির তারিখ</label><input type="date" value={form.admission_date} onChange={e=>change('admission_date',e.target.value)}/></div><div className="field"><label>জরুরি মোবাইল</label><input value={form.emergency_phone} onChange={e=>change('emergency_phone',e.target.value)}/></div><div className="field"><label>বিশেষ চাহিদা/মন্তব্য</label><input value={form.special_needs} onChange={e=>change('special_needs',e.target.value)}/></div><div className="field"><label>অবস্থা</label><select value={form.status} onChange={e=>change('status',e.target.value)}><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option><option value="graduated">উত্তীর্ণ</option><option value="transferred">স্থানান্তরিত</option><option value="dropped_out">ঝরে পড়া</option></select></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/*" onChange={file}/><small>JPG/PNG/WebP, সর্বোচ্চ 5MB</small></div><div className="field full"><label>অতিরিক্ত নোট</label><textarea rows="3" value={form.additional_notes} onChange={e=>change('additional_notes',e.target.value)}/></div><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার ইতিহাস</b><button type="button" className="mini" onClick={addEdu}>+ নতুন রেকর্ড</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i}><input placeholder="পরীক্ষার নাম" value={r.exam} onChange={e=>updateEdu(i,'exam',e.target.value)}/><input placeholder="প্রতিষ্ঠান" value={r.institution} onChange={e=>updateEdu(i,'institution',e.target.value)}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board} onChange={e=>updateEdu(i,'board',e.target.value)}/><input placeholder="পাশের সন" value={r.year} onChange={e=>updateEdu(i,'year',e.target.value)}/><input placeholder="ফলাফল" value={r.result} onChange={e=>updateEdu(i,'result',e.target.value)}/><input placeholder="বিষয়" value={r.subject} onChange={e=>updateEdu(i,'subject',e.target.value)}/><button type="button" className="mini" onClick={()=>removeEdu(i)}>মুছুন</button></div>)}{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="শিক্ষার্থীর ছবি"/>}</>}
      {step===4&&<CustomFields formKey="student" form={form} setForm={setForm}/>}
      <div className="form-actions full">
       <button type="button" className="mini" onClick={()=>setForm({...emptyStudent,extended_profile:{education:[]}})}>↺ ফর্ম রিসেট</button>
@@ -2636,6 +2711,7 @@ function StudentPanel({sub}){
       <thead>
        <tr style={{whiteSpace:'nowrap'}}>
         <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={studentList.length>0 && selectedIds.length===studentList.length} onChange={toggleSelectAll}/></th>
+        <th style={{width:'50px',textAlign:'center'}}>{lang==='en'?'Photo':'ছবি'}</th>
         <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
         <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
         <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Class':'শ্রেণি'}</th>
@@ -2660,6 +2736,39 @@ function StudentPanel({sub}){
          return (
            <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined,whiteSpace:'nowrap'}}>
             <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
+            <td style={{textAlign:'center',padding:'4px 6px'}}>
+              <div style={{position:'relative',width:'36px',height:'36px',margin:'0 auto'}}>
+                <img
+                  src={getStudentPhoto(s)}
+                  alt=""
+                  style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #0284c7',display:'block',background:'#f1f5f9'}}
+                  onError={(e)=>{ e.currentTarget.onerror=null; e.currentTarget.src=PHOTO_STUDENT_MALE_1; }}
+                />
+                <label
+                  title={`${studentName}-এর ছবি সরাসরি আপলোড বা পরিবর্তন করুন`}
+                  style={{
+                    position:'absolute',
+                    bottom:'-2px',
+                    right:'-2px',
+                    background:'#0284c7',
+                    color:'#fff',
+                    width:'16px',
+                    height:'16px',
+                    borderRadius:'50%',
+                    display:'grid',
+                    placeItems:'center',
+                    fontSize:'9px',
+                    cursor:'pointer',
+                    border:'1.5px solid #fff',
+                    boxShadow:'0 1px 3px rgba(0,0,0,0.35)'
+                  }}
+                  onClick={(e)=>e.stopPropagation()}
+                >
+                  <input type="file" accept="image/*" style={{display:'none'}} onChange={(e)=>handleTableStudentPhotoUpload(e, s)}/>
+                  📷
+                </label>
+              </div>
+            </td>
             <td style={{whiteSpace:'nowrap'}}><code>{s.student_id}</code></td>
             <td style={{whiteSpace:'nowrap'}}><b>{studentName || '—'}</b></td>
             <td style={{whiteSpace:'nowrap'}}>{classDisplay}</td>
@@ -2705,7 +2814,7 @@ function StudentPanel({sub}){
            </tr>
          );
        })}
-       {!studentList.length&&<tr><td colSpan="11" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
+       {!studentList.length&&<tr><td colSpan="12" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
       </tbody>
      </table>
      {actionMenu && (
