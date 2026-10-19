@@ -285,19 +285,51 @@ try {
       if (!Array.isArray(parsed) || parsed.length === 0) {
         localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS.map(enrichStudentProfile)));
       } else {
-        // Heal any corrupted student departments in localStorage and safely include missing default seed students
-        const existingIds = new Set(parsed.map(s => String(s.student_id || s.id || '').toUpperCase()));
-        const hasClass8Roll1 = parsed.some(s => {
+        // Deduplicate and heal any duplicated or corrupted student records in localStorage
+        const seenIds = new Set();
+        const seenClassRoll = new Set();
+        const clean = [];
+
+        for (const s of parsed) {
+          if (!s) continue;
+          const sid = String(s.student_id || s.id || '').toUpperCase().trim();
           const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
           const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          return c === '8' && r === '1';
-        });
-        const missingSeed = MOCK_STUDENTS.filter(s => {
-          const sid = String(s.student_id || s.id || '').toUpperCase();
-          if (sid === 'STU-08-01' && !hasClass8Roll1) return true;
-          return sid && !existingIds.has(sid);
-        }).map(enrichStudentProfile);
-        const healed = [...parsed.map(enrichStudentProfile), ...missingSeed];
+          const dept = String(s.department || s.group_name || s.group || '').trim();
+          const sec = String(s.section || '').trim();
+
+          const classRollKey = (parseInt(c, 10) >= 9) 
+            ? (c + '_' + dept + '_' + r).toLowerCase()
+            : (c + '_' + sec + '_' + r).toLowerCase();
+
+          // If duplicate student_id or duplicate class+dept/sec+roll, keep the first / best record
+          if (sid && seenIds.has(sid)) continue;
+          if (c && r && seenClassRoll.has(classRollKey)) continue;
+
+          if (sid) seenIds.add(sid);
+          if (c && r) seenClassRoll.add(classRollKey);
+          clean.push(enrichStudentProfile(s));
+        }
+
+        // Restore missing default seed students (e.g. Class 8 Roll 1 or overwritten Humanities/Commerce students)
+        for (const m of MOCK_STUDENTS) {
+          const msid = String(m.student_id || m.id || '').toUpperCase().trim();
+          const mc = String(m.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          const mr = String(m.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          const mdept = String(m.department || m.group_name || m.group || '').trim();
+          const msec = String(m.section || '').trim();
+          const mkey = (parseInt(mc, 10) >= 9) 
+            ? (mc + '_' + mdept + '_' + mr).toLowerCase()
+            : (mc + '_' + msec + '_' + mr).toLowerCase();
+
+          if (!seenIds.has(msid) && !seenClassRoll.has(mkey)) {
+            seenIds.add(msid);
+            seenClassRoll.add(mkey);
+            clean.push(enrichStudentProfile(m));
+          }
+        }
+
+        const healed = clean;
         try {
           localStorage.setItem('magra_db_students', JSON.stringify(healed));
         } catch {
@@ -339,8 +371,50 @@ function getLocalStore(key, defaultVal = []) {
       return filtered;
     }
     if (key === 'students' && Array.isArray(parsed)) {
-      const enriched = parsed.map(enrichStudentProfile);
-      return enriched;
+      const seenIds = new Set();
+      const seenClassRoll = new Set();
+      let hasDuplicates = false;
+      const deduplicated = [];
+
+      for (const s of parsed) {
+        if (!s) continue;
+        const sid = String(s.student_id || s.id || '').toUpperCase().trim();
+        const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+        const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+        const dept = String(s.department || s.group_name || s.group || '').trim();
+        const sec = String(s.section || '').trim();
+
+        const classRollKey = (parseInt(c, 10) >= 9) 
+          ? (c + '_' + dept + '_' + r).toLowerCase()
+          : (c + '_' + sec + '_' + r).toLowerCase();
+
+        if (sid && seenIds.has(sid)) {
+          hasDuplicates = true;
+          continue;
+        }
+        if (c && r && seenClassRoll.has(classRollKey)) {
+          hasDuplicates = true;
+          continue;
+        }
+
+        if (sid) seenIds.add(sid);
+        if (c && r) seenClassRoll.add(classRollKey);
+        deduplicated.push(enrichStudentProfile(s));
+      }
+
+      if (hasDuplicates) {
+        try {
+          localStorage.setItem('magra_db_students', JSON.stringify(deduplicated));
+        } catch {
+          const light = deduplicated.map(s => {
+            const { photo_url, photo, image, ...rest } = s;
+            return rest;
+          });
+          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch {}
+        }
+      }
+
+      return deduplicated;
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       let changed = false;
@@ -1040,16 +1114,38 @@ function handleMockRequest(path, opts = {}) {
   // 4. Students
   if (cleanPath === '/students') {
     if (method === 'POST') {
-      const allStudents = getLocalStore('students', MOCK_STUDENTS);
+      let allStudents = getLocalStore('students', MOCK_STUDENTS);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
       const c = body.class_name ? String(body.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '6';
       const r = body.roll_no ? String(body.roll_no).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '1';
       const defaultSid = 'STU-' + String(c).padStart(2, '0') + '-' + String(r).padStart(2, '0');
+      const targetSid = (body.student_id || defaultSid).toUpperCase().trim();
+
+      // Check if student with this id or student_id already exists
+      const existingIdx = allStudents.findIndex(s => {
+        if (!s) return false;
+        if (body.id && s.id && String(s.id).toLowerCase() === String(body.id).toLowerCase()) return true;
+        if (s.student_id && String(s.student_id).toUpperCase().trim() === targetSid) return true;
+        return false;
+      });
+
+      if (existingIdx >= 0) {
+        const merged = { ...allStudents[existingIdx], ...body, student_id: targetSid, religion: normalizeReligion(body.religion), status: st };
+        if (body.photo_url || body.photo) {
+          merged.photo_url = body.photo_url || body.photo;
+          merged.photo = body.photo_url || body.photo;
+          saveStudentCustomPhoto(merged, body.photo_url || body.photo);
+        }
+        allStudents[existingIdx] = merged;
+        setLocalStore('students', allStudents);
+        return merged;
+      }
+
       const newSt = { 
         ...body,
         id: body.id || ('std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)), 
-        student_id: body.student_id || defaultSid, 
+        student_id: targetSid, 
         religion: normalizeReligion(body.religion),
         status: st
       };
@@ -1166,9 +1262,8 @@ function handleMockRequest(path, opts = {}) {
     if (method === 'PUT') {
       let updatedObj = null;
       students = students.map(s => {
-        const match = String(s.id).toLowerCase() === id.toLowerCase() ||
-                      String(s.student_id).toLowerCase() === id.toLowerCase() ||
-                      (body.class_name && body.roll_no && String(s.class_name) === String(body.class_name) && String(s.roll_no) === String(body.roll_no));
+        const match = (s.id && String(s.id).toLowerCase() === id.toLowerCase()) ||
+                      (s.student_id && String(s.student_id).toLowerCase() === id.toLowerCase());
         if (match) {
           const merged = { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) };
           if (body.photo_url || body.photo) {

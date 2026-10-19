@@ -72,13 +72,20 @@ export function saveStudentCustomPhoto(student, dataUrl) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
         let updated = false;
+        const sId = (student.id || student.student_id || '').toLowerCase().trim();
+        const sDept = String(student.department || student.group_name || student.group || '').trim().toLowerCase();
         const newList = list.map(x => {
           if (!x) return x;
-          const matchId = (student.id && String(x.id).toLowerCase() === String(student.id).toLowerCase()) ||
-                          (student.student_id && String(x.student_id).toLowerCase() === String(student.student_id).toLowerCase());
+          const xId = String(x.id || '').toLowerCase().trim();
+          const xSid = String(x.student_id || '').toLowerCase().trim();
+          const matchId = sId && (xId === sId || xSid === sId);
+
           const xc = String(x.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
           const xr = String(x.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          const matchRoll = cName && rNo && xc === cName && xr === rNo;
+          const xDept = String(x.department || x.group_name || x.group || '').trim().toLowerCase();
+          const matchDept = !sDept || !xDept || sDept === xDept;
+          const matchRoll = !sId && cName && rNo && xc === cName && xr === rNo && matchDept;
+
           if (matchId || matchRoll) {
             updated = true;
             return { ...x, photo_url: dataUrl, photo: dataUrl, image: dataUrl };
