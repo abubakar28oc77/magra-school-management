@@ -1681,7 +1681,7 @@ button,.btn{touch-action:manipulation}
     width: 100% !important;
   }
 
-  header, nav, aside, .top, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
+  header, nav, aside, main, #main-content, .reference-public > header, .reference-public > main, .ref-section, .ref-bottom, .ref-hero-wrap, .ref-stats, .ref-demographic-stats, .ref-main, .ref-footer-line, .top, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
     display: none !important;
   }
 

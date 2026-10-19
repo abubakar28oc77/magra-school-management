@@ -230,6 +230,101 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
     });
   }, [currentMonthData]);
 
+  // Dedicated A4 Single-Page Print Handler (Eliminates the 5 pages of the main website completely)
+  const handlePrintCertificate = () => {
+    const certEl = document.getElementById('printable-attendance-certificate-content');
+    if (certEl) {
+      try {
+        const w = window.open('', '_blank', 'width=880,height=850');
+        if (w) {
+          const certHtml = certEl.outerHTML;
+          const pageTitle = certType === 'yearly' 
+            ? `শিক্ষার্থী বার্ষিক উপস্থিতি বিবরণী ও প্রত্যয়নপত্র - ${matchedStudent?.name_bn || ''}`
+            : `শিক্ষার্থী মাসিক উপস্থিতি প্রতিবেদন ও প্রত্যয়নপত্র (${currentMonthData?.month || ''}) - ${matchedStudent?.name_bn || ''}`;
+          
+          w.document.write(`<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>${pageTitle}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm 10mm 12mm;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, Arial, sans-serif;
+      margin: 0;
+      padding: 10px 0;
+      background: #ffffff;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .no-print {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 8px 16px;
+      background: #ecfdf5;
+      border-bottom: 1.5px solid #a7f3d0;
+      margin-bottom: 14px;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+    }
+    .printable-attendance-certificate {
+      width: 100% !important;
+      max-width: 186mm !important;
+      margin: 0 auto !important;
+      border: 2px solid #065f46 !important;
+      border-radius: 8px !important;
+      padding: 10mm 14mm !important;
+      box-sizing: border-box !important;
+      page-break-after: avoid !important;
+      page-break-before: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      background: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print">
+    <button onclick="window.print()" style="background:#047857;color:#fff;border:none;padding:7px 18px;border-radius:6px;font-weight:800;font-size:13px;cursor:pointer;">🖨️ A4 সাইজে প্রিন্ট / PDF সংরক্ষণ</button>
+    <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;">✕ বন্ধ করুন</button>
+  </div>
+  ${certHtml}
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 300);
+    };
+  </script>
+</body>
+</html>`);
+          w.document.close();
+          return;
+        }
+      } catch (err) {
+        console.warn('Dedicated print window error, fallback to window.print():', err);
+      }
+    }
+
+    // Direct window.print() fallback (CSS @media print will hide all other 5 pages)
+    window.print();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -254,6 +349,49 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
           margin: 10mm 12mm 10mm 12mm;
         }
         @media print {
+          /* 1. HIDE ALL 5 PAGES OF THE MAIN WEBSITE COMPLETELY */
+          body > *:not(.portal-modal-overlay):not(#root),
+          #root > *:not(.reference-public):not(.portal-modal-overlay),
+          .reference-public > header,
+          .reference-public > main,
+          .reference-public > .skip-link,
+          #main-content,
+          header,
+          nav,
+          footer,
+          main,
+          section,
+          aside,
+          article,
+          .ref-hero-wrap,
+          .ref-stats,
+          .ref-demographic-stats,
+          .ref-main,
+          .ref-section,
+          .ref-bottom,
+          .ref-footer-line,
+          .hero-section,
+          .service-grid,
+          .notice-table,
+          .rolling-teachers-viewport,
+          .link-panels,
+          .public-header,
+          .public-footer,
+          .app-header,
+          .app-footer,
+          .marquee-bar,
+          .no-print,
+          .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            max-height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            opacity: 0 !important;
+          }
+
           html, body {
             background: #ffffff !important;
             color: #000000 !important;
@@ -261,19 +399,35 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
             padding: 0 !important;
             width: 100% !important;
             height: auto !important;
+            overflow: visible !important;
           }
-          .no-print, .no-print * {
-            display: none !important;
+
+          #root, .reference-public {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
           }
+
           .portal-modal-overlay {
             position: static !important;
             background: transparent !important;
             backdrop-filter: none !important;
             padding: 0 !important;
+            margin: 0 !important;
             display: block !important;
             width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            box-shadow: none !important;
           }
+
           .portal-modal-container {
+            position: static !important;
+            display: block !important;
+            background: transparent !important;
             width: 100% !important;
             max-width: 100% !important;
             box-shadow: none !important;
@@ -281,16 +435,21 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
             border-radius: 0 !important;
             padding: 0 !important;
             margin: 0 !important;
-            background: transparent !important;
             overflow: visible !important;
             max-height: none !important;
           }
+
           .portal-scroll-area {
+            display: block !important;
             padding: 0 !important;
+            margin: 0 !important;
             overflow: visible !important;
             background: transparent !important;
           }
+
           .printable-attendance-certificate {
+            display: block !important;
+            visibility: visible !important;
             width: 100% !important;
             max-width: 186mm !important;
             margin: 0 auto !important;
@@ -299,6 +458,8 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
             box-shadow: none !important;
             padding: 10mm 14mm !important;
             box-sizing: border-box !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
@@ -439,7 +600,7 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={handlePrintCertificate}
                   style={{
                     background: '#ffd34f',
                     color: '#064e3b',
@@ -491,6 +652,7 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
             >
               {/* THE OFFICIAL CERTIFICATE: Starts DIRECTLY with the School Pad Header */}
               <div
+                id="printable-attendance-certificate-content"
                 className="printable-attendance-certificate"
                 style={{
                   background: '#ffffff',
@@ -1213,7 +1375,7 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
                       onClick={() => {
                         setCertType('yearly');
                         setViewMode('certificate');
-                        setTimeout(() => window.print(), 250);
+                        setTimeout(() => handlePrintCertificate(), 200);
                       }}
                       style={{
                         background: '#047857',
