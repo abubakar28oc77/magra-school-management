@@ -520,7 +520,8 @@ export function RoutinePanel({ sub }) {
       // Build grid table for print (ক্লাস রুটিনে শুধু বিষয়ের নাম ও শিক্ষকের নাম থাকবে, কক্ষ নং থাকবে না)
       bodyContent = `
         <div style="text-align:center; margin-bottom: 8px;">
-          <h2 style="margin: 0 0 2px; font-size: 16px; color: #0f172a;">${titleText}</h2>
+          <h2 style="margin: 0 0 2px; font-size: 16px; color: #0f172a; font-weight: 900;">${titleText}</h2>
+          <div style="font-size: 10.5px; color: #b45309; font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: 0.8px; margin-bottom: 3px;">ACADEMIC CLASS ROUTINE & TIMETABLE - 2026</div>
           <p style="margin: 0; font-size: 11.5px; color: #475569;">শ্রেণি: <b>${clsLabel}</b> | শাখা/বিভাগ: <b>${selectedSection === 'all' ? 'সকল শাখা' : selectedSection}</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b></p>
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; table-layout: fixed;">
@@ -577,8 +578,9 @@ export function RoutinePanel({ sub }) {
       titleText = `${activeExamObj.name_bn} এর প্রাতিষ্ঠানিক সময়সূচি ও পরীক্ষার রুটিন`;
 
       bodyContent = `
-        <div style="text-align:center; margin-bottom: 5px;">
-          <h2 style="margin: 0 0 2px; font-size: 14.5px; color: #0f172a;">${titleText}</h2>
+        <div style="text-align:center; margin-bottom: 6px;">
+          <h2 style="margin: 0 0 2px; font-size: 15px; color: #0f172a; font-weight: 900;">${titleText}</h2>
+          <div style="font-size: 9.5px; color: #b45309; font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: 0.8px; margin-bottom: 3px;">OFFICIAL EXAMINATION TIMETABLE - 2026</div>
           <p style="margin: 0; font-size: 10.5px; color: #475569;">শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b> | সময়: <b>সকাল ১০:০০ টা হতে দুপুর ০১:০০ টা</b></p>
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 6px; table-layout: fixed;">
@@ -761,42 +763,13 @@ export function RoutinePanel({ sub }) {
             color: #b45309;
             margin-top: 1px;
           }
-          .header-ribbon-wrap {
-            margin: ${isClass ? '4px 0 3px' : '3px 0 2px'};
-            display: flex;
-            justify-content: center;
-          }
-          .official-ribbon {
-            display: inline-block;
-            background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
-            color: #ffffff;
-            padding: ${isClass ? '3px 26px' : '2px 20px'};
-            border-radius: 16px;
-            border: 1.5px solid #f59e0b;
-            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.2);
-            text-align: center;
-          }
-          .ribbon-title-bn {
-            font-size: ${isClass ? '14px' : '12.5px'};
-            font-weight: 900;
-            letter-spacing: 0.6px;
-            color: #ffffff;
-          }
-          .ribbon-title-en {
-            font-size: ${isClass ? '8.5px' : '7.5px'};
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            color: #fef08a;
-            letter-spacing: 1.2px;
-            margin-top: 0.5px;
-          }
           .header-memo-date {
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-size: ${isClass ? '10.5px' : '9.5px'};
             color: #475569;
-            margin-top: ${isClass ? '4px' : '2px'};
+            margin-top: 6px;
             padding: 0 4px;
           }
           .watermark-bg {
@@ -864,14 +837,6 @@ export function RoutinePanel({ sub }) {
               break-inside: avoid !important;
             }
             .no-print { display: none; }
-            .official-ribbon {
-              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
-              color: #ffffff !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .ribbon-title-bn { color: #ffffff !important; }
-            .ribbon-title-en { color: #fef08a !important; }
             .gov-seal-box {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
@@ -907,13 +872,6 @@ export function RoutinePanel({ sub }) {
                   <div class="seal-text-mid">মাধ্যমিক শিক্ষা অধিদপ্তর</div>
                   <div class="seal-text-bot">EIIN: ${toBnDigits(school.eiin || 114290)}</div>
                 </div>
-              </div>
-            </div>
-
-            <div class="header-ribbon-wrap">
-              <div class="official-ribbon">
-                <div class="ribbon-title-bn">${titleText}</div>
-                <div class="ribbon-title-en">${isClass ? 'ACADEMIC CLASS ROUTINE & TIMETABLE - 2026' : 'OFFICIAL EXAMINATION TIMETABLE - 2026'}</div>
               </div>
             </div>
 
