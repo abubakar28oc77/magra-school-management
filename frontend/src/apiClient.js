@@ -283,8 +283,13 @@ try {
       if (!Array.isArray(parsed) || parsed.length === 0) {
         localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS.map(enrichStudentProfile)));
       } else {
-        // Heal any corrupted student departments in localStorage
-        const healed = parsed.map(enrichStudentProfile);
+        // Heal any corrupted student departments in localStorage and safely include missing default seed students
+        const existingIds = new Set(parsed.map(s => String(s.student_id || s.id || '').toUpperCase()));
+        const missingSeed = MOCK_STUDENTS.filter(s => {
+          const sid = String(s.student_id || s.id || '').toUpperCase();
+          return sid && !existingIds.has(sid);
+        }).map(enrichStudentProfile);
+        const healed = [...parsed.map(enrichStudentProfile), ...missingSeed];
         localStorage.setItem('magra_db_students', JSON.stringify(healed));
       }
     } catch {}

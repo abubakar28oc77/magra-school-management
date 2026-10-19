@@ -101,16 +101,16 @@ export function getStudentPhoto(student) {
   const name = (student.name_bn || student.name_en || '').toLowerCase();
   const stuId = String(student.student_id || student.id || '').toLowerCase();
   const roll = parseInt(student.roll_no, 10) || 1;
-  const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা');
+  const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা') || name.includes('সাদিয়া');
 
-  if (name.includes('আহনাফ') || name.includes('ahnaf') || stuId.includes('stu-10-sci-01') || roll === 1) {
-    return PHOTO_STUDENT_MALE_1;
-  }
-  if (name.includes('শিহাব') || name.includes('shihab') || roll === 2) {
-    return PHOTO_STUDENT_MALE_2;
-  }
   if (isFemale) {
     return (roll % 2 === 0) ? PHOTO_STUDENT_FEMALE_2 : PHOTO_STUDENT_FEMALE_1;
+  }
+  if (name.includes('আহনাফ') || name.includes('ahnaf') || stuId.includes('stu-10-sci-01')) {
+    return PHOTO_STUDENT_MALE_1;
+  }
+  if (name.includes('শিহাব') || name.includes('shihab') || stuId.includes('stu-09-sci-01') || roll === 2) {
+    return PHOTO_STUDENT_MALE_2;
   }
   return (roll % 2 === 0) ? PHOTO_STUDENT_MALE_2 : PHOTO_STUDENT_MALE_1;
 }
@@ -294,6 +294,132 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_STUDENTS = [
+  {
+    "id": "stu-07-01",
+    "photo_url": PHOTO_STUDENT_MALE_1,
+    "student_id": "STU-07-01",
+    "roll_no": 1,
+    "name_bn": "মাহির ফয়সাল",
+    "name_en": "Mahir Faysal",
+    "class_name": "7",
+    "department": "সাধারণ",
+    "group_name": "সাধারণ",
+    "group": "সাধারণ",
+    "section": "ক",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ ফয়সাল আহমেদ",
+    "father_name_en": "",
+    "father_mobile": "01712000007",
+    "father_profession": "ব্যবসায়ী",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ ফয়সাল আহমেদ",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000007",
+    "emergency_phone": "01712000007",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "7",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
+  {
+    "id": "stu-08-01",
+    "photo_url": PHOTO_STUDENT_FEMALE_1,
+    "student_id": "STU-08-01",
+    "roll_no": 1,
+    "name_bn": "সাদিয়া আক্তার",
+    "name_en": "Sadia Akter",
+    "class_name": "8",
+    "department": "সাধারণ",
+    "group_name": "সাধারণ",
+    "group": "সাধারণ",
+    "section": "ক",
+    "gender": "নারী",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ আনোয়ার হোসেন",
+    "father_name_en": "",
+    "father_mobile": "01712000008",
+    "father_profession": "ব্যবসায়ী",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ আনোয়ার হোসেন",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000008",
+    "emergency_phone": "01712000008",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "8",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
+  {
+    "id": "stu-09-sci-01",
+    "photo_url": PHOTO_STUDENT_MALE_2,
+    "student_id": "STU-09-SCI-01",
+    "roll_no": 1,
+    "name_bn": "তাহমিদ হাসান",
+    "name_en": "Tahmid Hasan",
+    "class_name": "9",
+    "department": "বিজ্ঞান",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ",
+    "section": "বিজ্ঞান বিভাগ",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ হাসানুজ্জামান",
+    "father_name_en": "",
+    "father_mobile": "01712000009",
+    "father_profession": "শিক্ষক",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ হাসানুজ্জামান",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000009",
+    "emergency_phone": "01712000009",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "9",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
   {
     "id": "stu-10-sci-1",
     "photo_url": PHOTO_STUDENT_MALE_1,

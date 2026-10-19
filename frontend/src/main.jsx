@@ -48,15 +48,158 @@ import {
   MOCK_USERS,
   MOCK_TEACHERS,
   MOCK_STAFF,
+  MOCK_STUDENTS,
   PHOTO_PRESIDENT,
   PHOTO_HEAD_TEACHER,
   PHOTO_ASST_HEAD_TEACHER,
   PHOTO_ICT_TEACHER,
   PHOTO_OFFICE_ASSISTANT,
+  PHOTO_STUDENT_MALE_1,
+  PHOTO_STUDENT_MALE_2,
+  PHOTO_STUDENT_FEMALE_1,
   getTeacherPhoto,
+  getStudentPhoto,
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
+
+export function resolveDistinguishedStudents(allStudents = []) {
+  const normClass = (c) => {
+    if (c === null || c === undefined) return '';
+    return String(c)
+      .replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d)
+      .replace(/[^0-9]/g, '');
+  };
+
+  const normRoll = (r) => {
+    if (r === null || r === undefined || r === '') return -1;
+    const clean = String(r).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+    const n = parseInt(clean, 10);
+    return isNaN(n) ? -1 : n;
+  };
+
+  const isScience = (s) => {
+    const sid = String(s.student_id || s.id || '').toUpperCase();
+    if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('SCI-') || sid.includes('/SCI')) return true;
+    const dept = (s.department || '').toLowerCase();
+    if (dept.includes('বিজ্ঞান') || dept.includes('science') || dept === 'sci') return true;
+    const grp = (s.group_name || s.group || s.section || '').toLowerCase();
+    if (grp.includes('বিজ্ঞান') || grp.includes('science')) return true;
+    return false;
+  };
+
+  const targets = [
+    {
+      slotKey: 'class-7-roll-1',
+      classNum: '7',
+      classLabel: '৭ম শ্রেণি',
+      rollNo: 1,
+      rollLabel: '১',
+      hasDept: false,
+      deptLabel: '',
+      fallback: {
+        id: 'stu-07-01',
+        student_id: 'STU-07-01',
+        name_bn: 'মাহির ফয়সাল',
+        name_en: 'Mahir Faysal',
+        class_name: '7',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'সাধারণ',
+        photo_url: PHOTO_STUDENT_MALE_1
+      }
+    },
+    {
+      slotKey: 'class-8-roll-1',
+      classNum: '8',
+      classLabel: '৮ম শ্রেণি',
+      rollNo: 1,
+      rollLabel: '১',
+      hasDept: false,
+      deptLabel: '',
+      fallback: {
+        id: 'stu-08-01',
+        student_id: 'STU-08-01',
+        name_bn: 'সাদিয়া আক্তার',
+        name_en: 'Sadia Akter',
+        class_name: '8',
+        roll_no: 1,
+        gender: 'নারী',
+        department: 'সাধারণ',
+        photo_url: PHOTO_STUDENT_FEMALE_1
+      }
+    },
+    {
+      slotKey: 'class-9-sci-roll-1',
+      classNum: '9',
+      classLabel: '৯ম শ্রেণি',
+      rollNo: 1,
+      rollLabel: '১',
+      hasDept: true,
+      deptLabel: 'বিজ্ঞান',
+      fallback: {
+        id: 'stu-09-sci-01',
+        student_id: 'STU-09-SCI-01',
+        name_bn: 'তাহমিদ হাসান',
+        name_en: 'Tahmid Hasan',
+        class_name: '9',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'বিজ্ঞান',
+        group_name: 'বিজ্ঞান বিভাগ',
+        photo_url: PHOTO_STUDENT_MALE_2
+      }
+    },
+    {
+      slotKey: 'class-10-sci-roll-1',
+      classNum: '10',
+      classLabel: '১০ম শ্রেণি',
+      rollNo: 1,
+      rollLabel: '১',
+      hasDept: true,
+      deptLabel: 'বিজ্ঞান',
+      fallback: {
+        id: 'stu-10-sci-1',
+        student_id: 'STU-10-SCI-01',
+        name_bn: 'আহনাফ সিদ্দিক',
+        name_en: 'Ahnaf Siddique',
+        class_name: '10',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'বিজ্ঞান',
+        group_name: 'বিজ্ঞান বিভাগ',
+        photo_url: PHOTO_STUDENT_MALE_1
+      }
+    }
+  ];
+
+  return targets.map(target => {
+    let found = null;
+    if (Array.isArray(allStudents) && allStudents.length > 0) {
+      found = allStudents.find(s => {
+        if (!s) return false;
+        if (s.status && s.status !== 'active') return false;
+        const c = normClass(s.class_name);
+        const r = normRoll(s.roll_no);
+        if (c !== target.classNum || r !== target.rollNo) return false;
+        if (target.hasDept) {
+          return isScience(s);
+        }
+        return true;
+      });
+    }
+
+    const s = found || target.fallback;
+    return {
+      ...s,
+      slotKey: target.slotKey,
+      displayClass: target.classLabel,
+      displayRoll: target.rollLabel,
+      hasDept: target.hasDept,
+      displayDept: target.hasDept ? (s.department && s.department !== 'সাধারণ' ? s.department : 'বিজ্ঞান') : null
+    };
+  });
+}
 import logo from '../public/school-logo.png';
 import building from '../public/school-building.jpg';
 
@@ -395,6 +538,21 @@ function Home(){
  const[admissionReceipt,setAdmissionReceipt]=useState(null);
 
  const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+
+ const resolvedDistinguished = useMemo(() => {
+   let rawList = [];
+   try {
+     const local = localStorage.getItem('magra_db_students');
+     if (local) {
+       const parsed = JSON.parse(local);
+       if (Array.isArray(parsed) && parsed.length) rawList = parsed;
+     }
+   } catch {}
+   if (!rawList.length && Array.isArray(MOCK_STUDENTS)) {
+     rawList = MOCK_STUDENTS;
+   }
+   return resolveDistinguishedStudents(rawList);
+ }, []);
 
  const ensureTeachersEducation = (list) => {
    if (!Array.isArray(list) || !list.length) return list;
@@ -891,7 +1049,57 @@ function Home(){
      </div>
     </section>
 
-    <section id="distinguished" className="ref-section distinguished"><div className="distinguished-head"><h2>কৃতি শিক্ষার্থী</h2><p>বিদ্যালয়ের মেধাবী ও কৃতিত্বপূর্ণ শিক্ষার্থীদের তথ্য</p></div><div className="distinguished-grid">{[1,2,3,4].map(n=><article key={n} style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'})}><div className="student-silhouette">●</div><h3>কৃতি শিক্ষার্থী</h3><p>শিক্ষাবর্ষ ও অর্জনের তথ্য দেখুন</p></article>)}</div></section>
+    <section id="distinguished" className="ref-section distinguished">
+     <div className="distinguished-head">
+      <h2>কৃতি শিক্ষার্থী</h2>
+      <p>বিদ্যালয়ের বর্তমান শিক্ষাবর্ষের মেধাবী ও কৃতিত্বপূর্ণ শিক্ষার্থীদের তথ্য</p>
+     </div>
+     <div className="distinguished-grid">
+      {resolvedDistinguished.map((student, idx) => {
+       const photoSrc = getStudentPhoto(student);
+       return (
+        <article
+         key={student.slotKey || idx}
+         className="distinguished-card"
+         style={{cursor:'pointer'}}
+         onClick={()=>setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'})}
+         title={`${student.name_bn} • ${student.displayClass} • রোল নং ${student.displayRoll}${student.hasDept && student.displayDept ? ` • বিভাগ: ${student.displayDept}` : ''}`}
+        >
+         <div className="distinguished-avatar-box">
+          <img
+           src={photoSrc}
+           alt={student.name_bn}
+           className="distinguished-avatar-img"
+           loading="lazy"
+           onError={(e)=>{
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = student.photo_url || PHOTO_STUDENT_MALE_1;
+           }}
+          />
+          <span className="distinguished-rank-badge">১ম স্থান</span>
+         </div>
+         <h3 className="distinguished-student-name">{student.name_bn}</h3>
+         <div className="distinguished-details">
+          <div className="dist-class-roll">
+           <span className="dist-class">{student.displayClass}</span>
+           <span className="dist-dot">•</span>
+           <span className="dist-roll">রোল নং {student.displayRoll}</span>
+          </div>
+          {student.hasDept && student.displayDept ? (
+           <div className="dist-dept">
+            বিভাগ: {student.displayDept}
+           </div>
+          ) : (
+           <div className="dist-dept dist-dept-empty" aria-hidden="true">
+            &nbsp;
+           </div>
+          )}
+         </div>
+        </article>
+       );
+      })}
+     </div>
+    </section>
 
     <section id="gallery" className="ref-section"><div className="ref-title"><h2>ফটো ও ভিডিও গ্যালারি</h2><span></span></div><div className="gallery-tabs"><b>All</b><span>Photo</span><span>Video</span></div>{gallery.length?<div className="ref-gallery">{gallery.map(x=><button key={x.id} className="ref-gallery-item" onClick={()=>setLightbox(x)} aria-label={`${x.title_bn} বড় করে দেখুন`}><img src={x.image_url} alt={x.title_bn}/></button>)}</div>:<div className="gallery-placeholder"><span>🖼️</span><p>বিদ্যালয়ের ছবি ও ভিডিও এখানে প্রকাশিত হবে।</p></div>}</section>{lightbox&&<div className="ref-lightbox" role="dialog" aria-modal="true" aria-label="ছবির পূর্বরূপ" onClick={()=>setLightbox(null)}><div className="ref-lightbox-card" onClick={e=>e.stopPropagation()}><button className="ref-lightbox-close" onClick={()=>setLightbox(null)} aria-label="বন্ধ করুন">×</button><img src={lightbox.image_url} alt={lightbox.title_bn}/><h3>{lightbox.title_bn}</h3></div></div>}
    </div></section>
