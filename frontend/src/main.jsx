@@ -100,18 +100,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: false,
-      deptLabel: '',
-      fallback: {
-        id: 'stu-07-01',
-        student_id: 'STU-07-01',
-        name_bn: 'মাহির ফয়সাল',
-        name_en: 'Mahir Faysal',
-        class_name: '7',
-        roll_no: 1,
-        gender: 'পুরুষ',
-        department: 'সাধারণ',
-        photo_url: PHOTO_REAL_STUDENT_7
-      }
+      deptLabel: ''
     },
     {
       slotKey: 'class-8-roll-1',
@@ -120,18 +109,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: false,
-      deptLabel: '',
-      fallback: {
-        id: 'stu-08-01',
-        student_id: 'STU-08-01',
-        name_bn: 'সাদিয়া আক্তার',
-        name_en: 'Sadia Akter',
-        class_name: '8',
-        roll_no: 1,
-        gender: 'নারী',
-        department: 'সাধারণ',
-        photo_url: PHOTO_REAL_STUDENT_8
-      }
+      deptLabel: ''
     },
     {
       slotKey: 'class-9-sci-roll-1',
@@ -140,19 +118,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: true,
-      deptLabel: 'বিজ্ঞান',
-      fallback: {
-        id: 'stu-09-sci-01',
-        student_id: 'STU-09-SCI-01',
-        name_bn: 'তাহমিদ হাসান',
-        name_en: 'Tahmid Hasan',
-        class_name: '9',
-        roll_no: 1,
-        gender: 'পুরুষ',
-        department: 'বিজ্ঞান',
-        group_name: 'বিজ্ঞান বিভাগ',
-        photo_url: PHOTO_REAL_STUDENT_9
-      }
+      deptLabel: 'বিজ্ঞান বিভাগ'
     },
     {
       slotKey: 'class-10-sci-roll-1',
@@ -161,19 +127,7 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: true,
-      deptLabel: 'বিজ্ঞান',
-      fallback: {
-        id: 'stu-10-sci-1',
-        student_id: 'STU-10-SCI-01',
-        name_bn: 'আহনাফ সিদ্দিক',
-        name_en: 'Ahnaf Siddique',
-        class_name: '10',
-        roll_no: 1,
-        gender: 'পুরুষ',
-        department: 'বিজ্ঞান',
-        group_name: 'বিজ্ঞান বিভাগ',
-        photo_url: PHOTO_REAL_STUDENT_9
-      }
+      deptLabel: 'বিজ্ঞান বিভাগ'
     }
   ];
 
@@ -193,14 +147,31 @@ export function resolveDistinguishedStudents(allStudents = []) {
       });
     }
 
-    const s = found || target.fallback;
+    if (found) {
+      return {
+        ...found,
+        slotKey: target.slotKey,
+        displayClass: target.classLabel,
+        displayRoll: target.rollLabel,
+        hasDept: target.hasDept,
+        displayDept: target.hasDept ? (found.department && found.department !== 'সাধারণ' ? found.department : 'বিজ্ঞান বিভাগ') : null,
+        isEntered: true
+      };
+    }
+
     return {
-      ...s,
+      id: `empty-${target.slotKey}`,
+      student_id: '',
+      name_bn: 'শিক্ষার্থী এন্ট্রি অপেক্ষমাণ',
+      class_name: target.classNum,
+      roll_no: target.rollNo,
       slotKey: target.slotKey,
       displayClass: target.classLabel,
       displayRoll: target.rollLabel,
       hasDept: target.hasDept,
-      displayDept: target.hasDept ? (s.department && s.department !== 'সাধারণ' ? s.department : 'বিজ্ঞান') : null
+      displayDept: target.hasDept ? target.deptLabel : null,
+      isEntered: false,
+      photo_url: null
     };
   });
 }
@@ -1128,14 +1099,18 @@ function Home(){
      </div>
      <div className="distinguished-grid">
       {resolvedDistinguished.map((student, idx) => {
-       const photoSrc = getStudentPhoto(student);
+       const photoSrc = student.isEntered ? getStudentPhoto(student) : PHOTO_STUDENT_MALE_1;
        return (
         <article
          key={student.slotKey || idx}
          className="distinguished-card"
-         style={{cursor:'pointer'}}
-         onClick={()=>setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'})}
-         title={`${student.name_bn} • ${student.displayClass} • রোল নং ${student.displayRoll}${student.hasDept && student.displayDept ? ` • বিভাগ: ${student.displayDept}` : ''}`}
+         style={{cursor: student.isEntered ? 'pointer' : 'default', opacity: student.isEntered ? 1 : 0.85}}
+         onClick={()=>{
+          if (student.isEntered) {
+           setActiveModal({key:'public.nav.students.distinguished',title:'কৃতি ও বৃত্তিপ্রাপ্ত শিক্ষার্থী'});
+          }
+         }}
+         title={student.isEntered ? `${student.name_bn} • ${student.displayClass} • রোল নং ${student.displayRoll}${student.hasDept && student.displayDept ? ` • বিভাগ: ${student.displayDept}` : ''}` : `${student.displayClass} রোল নং ${student.displayRoll}: লগইন পেজ থেকে শিক্ষার্থী তালিকা হালনাগাদ করা হলে স্বয়ংক্রিয়ভাবে প্রদর্শিত হবে`}
         >
          <div className="distinguished-avatar-box">
           <img
@@ -1143,27 +1118,32 @@ function Home(){
            alt={student.name_bn}
            className="distinguished-avatar-img"
            loading="lazy"
+           style={{filter: student.isEntered ? 'none' : 'grayscale(40%)'}}
            onError={(e)=>{
             e.currentTarget.onerror = null;
-            e.currentTarget.src = student.photo_url || PHOTO_REAL_STUDENT_7;
+            e.currentTarget.src = PHOTO_STUDENT_MALE_1;
            }}
           />
           <span className="distinguished-rank-badge">১ম স্থান</span>
-          <label
-           className="distinguished-photo-change-btn"
-           title={`${student.name_bn}-এর ছবি আপলোড বা পরিবর্তন করুন`}
-           onClick={(e)=>e.stopPropagation()}
-          >
-           <input
-            type="file"
-            accept="image/*"
-            style={{display:'none'}}
-            onChange={(e)=>handleStudentPhotoDirectUpload(e, student)}
-           />
-           <span className="camera-btn-icon" aria-hidden="true">📷</span>
-          </label>
+          {student.isEntered && (
+           <label
+            className="distinguished-photo-change-btn"
+            title={`${student.name_bn}-এর ছবি আপলোড বা পরিবর্তন করুন`}
+            onClick={(e)=>e.stopPropagation()}
+           >
+            <input
+             type="file"
+             accept="image/*"
+             style={{display:'none'}}
+             onChange={(e)=>handleStudentPhotoDirectUpload(e, student)}
+            />
+            <span className="camera-btn-icon" aria-hidden="true">📷</span>
+           </label>
+          )}
          </div>
-         <h3 className="distinguished-student-name">{student.name_bn}</h3>
+         <h3 className="distinguished-student-name" style={{color: student.isEntered ? '#0f172a' : '#64748b'}}>
+          {student.name_bn}
+         </h3>
          <div className="distinguished-details">
           <div className="dist-class-roll">
            <span className="dist-class">{student.displayClass}</span>
