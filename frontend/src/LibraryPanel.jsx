@@ -130,6 +130,44 @@ export function LibraryPanel({ sub, setSub }) {
     if (setSub) setSub(valid);
   };
 
+  // Refresh library & student dataset from storage / defaults
+  const fetchLibraryData = () => {
+    try {
+      const b = localStorage.getItem('magra_db_library_books');
+      setBooks(b ? JSON.parse(b) : SEED_BOOKS);
+    } catch {
+      setBooks(SEED_BOOKS);
+    }
+    try {
+      const l = localStorage.getItem('magra_db_library_loans');
+      setLoans(l ? JSON.parse(l) : SEED_LOANS);
+    } catch {
+      setLoans(SEED_LOANS);
+    }
+    try {
+      const d = localStorage.getItem('magra_db_library_damaged');
+      setDamaged(d ? JSON.parse(d) : SEED_DAMAGED);
+    } catch {
+      setDamaged(SEED_DAMAGED);
+    }
+    try {
+      const raw = localStorage.getItem('magra_db_students');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          setStudents(parsed);
+        } else {
+          setStudents(MOCK_STUDENTS || []);
+        }
+      } else {
+        setStudents(MOCK_STUDENTS || []);
+      }
+    } catch {
+      setStudents(MOCK_STUDENTS || []);
+    }
+    showNotification('লাইব্রেরি ও শিক্ষার্থী ডাটা সফলভাবে রিফ্রেশ করা হয়েছে।', 'success');
+  };
+
   // Reset or reload default library dataset
   const handleResetLibraryData = () => {
     if (window.confirm('আপনি কি লাইব্রেরির সকল বই, ইস্যু ও রেজিস্টার ডাটা ডিফল্ট অবস্থায় রিলোড করতে চান?')) {
