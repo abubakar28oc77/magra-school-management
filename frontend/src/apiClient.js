@@ -93,6 +93,7 @@ import {
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
+import { SEED_BOOKS, SEED_LOANS, SEED_DAMAGED } from './libraryData.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -2177,13 +2178,123 @@ function handleMockRequest(path, opts = {}) {
   }
 
 
+  // 17. Library Management Endpoints
+  if (cleanPath === '/library/books') {
+    let books = getLocalStore('library_books', SEED_BOOKS);
+    if (method === 'POST') {
+      const newBook = {
+        id: 'bk-' + Date.now(),
+        ...body,
+        accession_no: body.accession_no || `MAG-BK-${String(books.length + 1).padStart(3, '0')}`,
+        quantity: parseInt(body.quantity, 10) || 1,
+        available_quantity: parseInt(body.quantity, 10) || 1
+      };
+      books.unshift(newBook);
+      setLocalStore('library_books', books);
+      return newBook;
+    }
+    return books;
+  }
+
+  if (cleanPath.startsWith('/library/books/') && (method === 'PUT' || method === 'PATCH')) {
+    const id = cleanPath.replace('/library/books/', '');
+    let books = getLocalStore('library_books', SEED_BOOKS);
+    books = books.map(b => String(b.id) === String(id) ? { ...b, ...body } : b);
+    setLocalStore('library_books', books);
+    return { success: true };
+  }
+
+  if (cleanPath.startsWith('/library/books/') && method === 'DELETE') {
+    const id = cleanPath.replace('/library/books/', '');
+    let books = getLocalStore('library_books', SEED_BOOKS);
+    books = books.filter(b => String(b.id) !== String(id));
+    setLocalStore('library_books', books);
+    return { success: true };
+  }
+
+  if (cleanPath === '/library/loans') {
+    let loans = getLocalStore('library_loans', SEED_LOANS);
+    if (method === 'POST') {
+      let books = getLocalStore('library_books', SEED_BOOKS);
+      const targetBook = books.find(b => String(b.id) === String(body.book_id));
+      const students = getLocalStore('students', MOCK_STUDENTS);
+      const student = students.find(s => String(s.id) === String(body.student_id));
+
+      const newLoan = {
+        id: 'loan-' + Date.now(),
+        book_id: body.book_id,
+        book_title: targetBook?.title || body.title || 'বই',
+        author: targetBook?.author || body.author || '—',
+        accession_no: targetBook?.accession_no || '',
+        student_id: body.student_id,
+        student_uid: student?.student_id || body.student_id,
+        name_bn: student?.name_bn || body.name_bn || 'শিক্ষার্থী',
+        class_name: student?.class_name || '—',
+        roll_no: student?.roll_no || '—',
+        guardian_phone: student?.guardian_phone || student?.father_mobile || '01712000000',
+        issued_at: body.issued_at || new Date().toISOString().slice(0, 10),
+        due_at: body.due_at || '',
+        returned_at: null,
+        return_condition: null,
+        fine: 0,
+        status: 'active',
+        remarks: body.remarks || 'ইস্যুকৃত'
+      };
+
+      if (targetBook) {
+        targetBook.available_quantity = Math.max(0, (targetBook.available_quantity || 1) - 1);
+        setLocalStore('library_books', books);
+      }
+
+      loans.unshift(newLoan);
+      setLocalStore('library_loans', loans);
+      return newLoan;
+    }
+    return loans;
+  }
+
+  if (cleanPath.startsWith('/library/loans/') && cleanPath.endsWith('/return') && method === 'POST') {
+    const id = cleanPath.replace('/library/loans/', '').replace('/return', '');
+    let loans = getLocalStore('library_loans', SEED_LOANS);
+    let books = getLocalStore('library_books', SEED_BOOKS);
+
+    const loan = loans.find(l => String(l.id) === String(id));
+    if (loan) {
+      loan.returned_at = new Date().toISOString().slice(0, 10);
+      loan.return_condition = body.condition || 'ভালো';
+      loan.fine = body.fine || 0;
+      loan.status = 'returned';
+
+      const targetBook = books.find(b => String(b.id) === String(loan.book_id));
+      if (targetBook) {
+        targetBook.available_quantity = Math.min(targetBook.quantity, (targetBook.available_quantity || 0) + 1);
+        setLocalStore('library_books', books);
+      }
+      setLocalStore('library_loans', loans);
+    }
+    return { success: true };
+  }
+
+  if (cleanPath === '/library/damaged') {
+    let damaged = getLocalStore('library_damaged', SEED_DAMAGED);
+    if (method === 'POST') {
+      const item = { id: 'dmg-' + Date.now(), ...body };
+      damaged.unshift(item);
+      setLocalStore('library_damaged', damaged);
+      return item;
+    }
+    return damaged;
+  }
+
   if (cleanPath === '/reports/overview') {
+    const libraryLoans = getLocalStore('library_loans', SEED_LOANS);
+    const outstandingCount = libraryLoans.filter(l => !l.returned_at).length;
     return {
       students: { active: 654 },
       teachers: { active: 24 },
       attendance: { present: 598, absent: 42, late: 14, total: 654 },
       finance: { collected: 285000, due: 35000, expense: 64900 },
-      library: { outstanding: 18 },
+      library: { outstanding: outstandingCount || 18 },
       results: { avg_marks: 78.4, below_pass: 4 },
       admission: { total: 45, admitted: 10 }
     };
