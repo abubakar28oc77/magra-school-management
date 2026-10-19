@@ -93,8 +93,12 @@ import {
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
+import { PublicAttendancePortal } from './PublicAttendancePortal';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
+  if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
+    return <PublicAttendancePortal isOpen={true} onClose={onClose} />;
+  }
   const [filterClass, setFilterClass] = useState('all');
   const [filterGroup, setFilterGroup] = useState('all');
   const [filterReligion, setFilterReligion] = useState('all');

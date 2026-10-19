@@ -2202,26 +2202,109 @@ function handleMockRequest(path, opts = {}) {
   }
 
   
-  // Teacher Portal Endpoints (Smart Attendance & Marks Roster)
-  if (cleanPath === '/portal/teacher/roster') {
+  // Teacher Portal & Smart Attendance Endpoints
+  if (cleanPath === '/portal/teacher/roster' || cleanPath === '/attendance/roster') {
+    const d = params.get('date') || new Date().toISOString().slice(0, 10);
     const cls = params.get('class_name') || '6';
     const sec = params.get('section') || '';
+    const grp = params.get('group') || params.get('department') || '';
     const students = getLocalStore('students', MOCK_STUDENTS);
     let filtered = students.filter(s => String(s.class_name).trim() === String(cls).trim());
-    if (sec) {
+    if (grp && grp !== 'all' && (cls === '9' || cls === '10' || cls === '৯' || cls === '১০')) {
+      filtered = filtered.filter(s => {
+        const dpt = String(s.department || s.group || s.group_name || '').toLowerCase();
+        return dpt.includes(grp.toLowerCase());
+      });
+    }
+    if (sec && sec !== 'all') {
       filtered = filtered.filter(s => !s.section || String(s.section).includes(sec));
     }
     if (!filtered.length && students.length) {
       filtered = students.slice(0, 15);
     }
-    return filtered.map(s => ({
-      id: s.id,
-      student_id: s.student_id,
-      name_bn: s.name_bn,
-      roll_no: s.roll_no,
-      status: 'present',
-      remarks: ''
-    }));
+    filtered = sortStudentsList(filtered);
+
+    const attDb = getLocalStore('attendance', []);
+    return filtered.map(s => {
+      const rec = attDb.find(a => a.date === d && String(a.student_id) === String(s.id));
+      let defaultStatus = 'present';
+      if (!rec) {
+        const hash = ((parseInt(s.roll_no, 10) || 1) * 19 + new Date(d).getDate() * 11) % 100;
+        if (hash === 7 || hash === 23) defaultStatus = 'absent';
+        else if (hash === 42) defaultStatus = 'late';
+        else if (hash === 91) defaultStatus = 'leave';
+      }
+      return {
+        id: s.id,
+        student_id: s.student_id,
+        name_bn: s.name_bn,
+        name_en: s.name_en,
+        roll_no: s.roll_no,
+        class_name: s.class_name,
+        section: s.section || 'সাধারণ',
+        department: s.department || s.group || '',
+        guardian_name: s.guardian_name || s.father_name || 'অভিভাবক',
+        guardian_phone: s.guardian_phone || s.father_mobile || '01712345678',
+        status: rec ? rec.status : defaultStatus,
+        remarks: rec ? (rec.remarks || '') : ''
+      };
+    });
+  }
+
+  if (cleanPath === '/attendance/bulk' && method === 'POST') {
+    const { date, records } = body || {};
+    let attDb = getLocalStore('attendance', []);
+    const recMap = new Map();
+    attDb.forEach(a => recMap.set(`${a.date}_${a.student_id}`, a));
+    (records || []).forEach(r => {
+      recMap.set(`${date}_${r.student_id}`, {
+        date,
+        student_id: r.student_id,
+        status: r.status,
+        remarks: r.remarks || '',
+        recorded_at: new Date().toISOString()
+      });
+    });
+    const updated = Array.from(recMap.values());
+    setLocalStore('attendance', updated);
+    return { ok: true, count: (records || []).length };
+  }
+
+  if (cleanPath === '/reports/attendance-trend') {
+    const days = parseInt(params.get('days') || '30', 10);
+    const result = [];
+    const today = new Date();
+    for (let i = days - 1; i >= 0; i--) {
+      const dt = new Date(today);
+      dt.setDate(today.getDate() - i);
+      const dStr = dt.toISOString().slice(0, 10);
+      const dayOfWeek = dt.getDay(); // 5 is Friday
+      if (dayOfWeek === 5) continue;
+      const total = 420;
+      const rate = 90 + ((i * 7) % 9);
+      const present = Math.round(total * rate / 100);
+      const absent = total - present;
+      const late = Math.round(present * 0.04);
+      result.push({
+        attendance_date: dStr,
+        total,
+        present,
+        absent,
+        late,
+        rate
+      });
+    }
+    return result;
+  }
+
+  if (cleanPath === '/reports/class-attendance') {
+    return [
+      { class_name: '৬ষ্ঠ', total: 95, present: 90, absent: 5, late: 2, rate: 94.7 },
+      { class_name: '৭ম', total: 88, present: 83, absent: 5, late: 3, rate: 94.3 },
+      { class_name: '৮ম', total: 92, present: 86, absent: 6, late: 1, rate: 93.5 },
+      { class_name: '৯ম', total: 85, present: 79, absent: 6, late: 4, rate: 92.9 },
+      { class_name: '১০ম', total: 80, present: 76, absent: 4, late: 2, rate: 95.0 }
+    ];
   }
 
   if (cleanPath === '/portal/teacher/marks-roster') {

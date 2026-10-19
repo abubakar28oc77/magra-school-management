@@ -11,7 +11,7 @@ export const publicNavConfig = [
   ['public.nav.staff.head','প্রধান শিক্ষক','#headteacher'],['public.nav.staff.assistant','সহকারী প্রধান শিক্ষক','#assistant-headteacher'],['public.nav.staff.active','সক্রিয় শিক্ষকবৃন্দ','#teachers'],['public.nav.staff.former','সাবেক শিক্ষকবৃন্দ','#former-teachers'],['public.nav.staff.employees','কর্মচারীবৃন্দ','#staff'],['public.nav.staff.formerEmployees','সাবেক কর্মচারীবৃন্দ','#former-staff']
  ]},
  {key:'public.nav.students',label:'শিক্ষার্থীর তথ্য',children:[
-  ['public.nav.students.all','সকল শিক্ষার্থী','#students'],['public.nav.students.scholarship','বৃত্তিপ্রাপ্ত শিক্ষার্থী','#scholarship'],['public.nav.students.seats','শ্রেণি ও আসন তথ্য','#class-seats'],['public.nav.students.distinguished','কৃতি শিক্ষার্থী','#distinguished'],['public.nav.students.formerDistinguished','সাবেক কৃতি শিক্ষার্থী','#former-distinguished']
+  ['public.nav.students.attendance','স্মার্ট উপস্থিতি ও রিপোর্ট','#attendance'],['public.nav.students.all','সকল শিক্ষার্থী','#students'],['public.nav.students.scholarship','বৃত্তিপ্রাপ্ত শিক্ষার্থী','#scholarship'],['public.nav.students.seats','শ্রেণি ও আসন তথ্য','#class-seats'],['public.nav.students.distinguished','কৃতি শিক্ষার্থী','#distinguished'],['public.nav.students.formerDistinguished','সাবেক কৃতি শিক্ষার্থী','#former-distinguished']
  ]},
  {key:'public.nav.results',label:'পরীক্ষার ফলাফল',children:[
   ['public.nav.results.admission','ভর্তি পরীক্ষা','#admission-test'],['public.nav.results.internal','অভ্যন্তরীণ পরীক্ষা','#internal-results'],['public.nav.results.ssc','SSC ফলাফল','#ssc-results'],['public.nav.results.analysis','ফলাফল বিশ্লেষণ','#result-analysis'],['public.nav.results.marksheet','মার্কশিট','#marksheet'],['public.nav.results.progress','প্রগ্রেস রিপোর্ট','#progress-report']

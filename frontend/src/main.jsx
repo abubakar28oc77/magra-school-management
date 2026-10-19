@@ -42,6 +42,8 @@ import { ResultPanel } from './ResultPanel.jsx';
 import { FinancePanel } from './FinancePanel.jsx';
 import { AdmissionPanel } from './AdmissionPanel.jsx';
 import { RoutinePanel } from './RoutinePanel.jsx';
+import { AttendancePanel } from './AttendancePanel.jsx';
+import { PublicAttendancePortal } from './PublicAttendancePortal.jsx';
 import {
   MOCK_USERS,
   MOCK_TEACHERS,
@@ -549,7 +551,7 @@ function Home(){
    'অনলাইন ভর্তি':'public.nav.admission.apply',
    'অনলাইন ফলাফল':'public.nav.results.analysis',
    'ডিজিটাল শিক্ষা':'public.nav.guide.learning',
-   'স্মার্ট উপস্থিতি':'public.nav.guide.syllabus',
+   'স্মার্ট উপস্থিতি':'public.nav.students.attendance',
    'ডিজিটাল রুটিন':'public.nav.institution.curriculum',
    'অনলাইন পরীক্ষা':'public.nav.guide.online',
    'বৃত্তি ও অর্জন':'public.nav.students.scholarship',
@@ -671,6 +673,42 @@ function Home(){
    </section>
 
    <section className="ref-main ref-container"><div className="ref-layout"><div className="ref-primary">
+    {/* Guardian Quick Smart Attendance Banner */}
+    <div style={{
+      background: 'linear-gradient(135deg, #064e3b 0%, #065f46 55%, #047857 100%)',
+      borderRadius: '16px', padding: '16px 22px', color: '#ffffff', marginBottom: '20px',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
+      boxShadow: '0 4px 16px rgba(6,78,59,0.18)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{
+          fontSize: '30px', background: 'rgba(255,255,255,0.18)', borderRadius: '12px',
+          width: '50px', height: '50px', display: 'grid', placeItems: 'center'
+        }}>
+          🕘
+        </div>
+        <div>
+          <h3 style={{ margin: '0 0 3px', fontSize: '17px', fontWeight: 800 }}>
+            অভিভাবক কর্নার: শিক্ষার্থীর স্মার্ট উপস্থিতি ও প্রত্যয়নপত্র অনুসন্ধান
+          </h3>
+          <p style={{ margin: 0, fontSize: '12px', opacity: 0.9 }}>
+            শ্রেণি, বিভাগ (৯ম/১০ম শ্রেণির জন্য বাধ্যতামূলক), শাখা ও রোল নম্বর দিয়ে শিক্ষার্থীর উপস্থিতি খতিয়ান ও ডাউনলোডযোগ্য প্রত্যয়নপত্র দেখুন
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setActiveModal({ key: 'public.nav.students.attendance', title: 'শিক্ষার্থী স্মার্ট উপস্থিতি পোর্টাল' })}
+        style={{
+          background: '#ffd34f', color: '#17352a', border: 'none',
+          borderRadius: '8px', padding: '10px 18px', fontWeight: 800, fontSize: '13px',
+          cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', whiteSpace: 'nowrap'
+        }}
+      >
+        🔍 উপস্থিতি দেখুন ও প্রিন্ট করুন →
+      </button>
+    </div>
+
     <section id="services" className="ref-section"><div className="ref-title"><h2>আমাদের বিভিন্ন শিক্ষা কার্যক্রম</h2><span></span></div><div className="service-grid">{services.map(([icon,title,desc])=><a className="service-card" href="#school-info" onClick={(e)=>handleServiceClick(e,title)} key={title}><div className="service-icon">{icon}</div><h3>{title}</h3><p>{desc}</p></a>)}</div></section>
 
     <section id="notice" className="ref-section"><div className="ref-panel"><div className="panel-head"><h2>নোটিশবোর্ড</h2><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'বিদ্যালয়ের সকল নোটিশবোর্ড'});}}>🔗 সকল নোটিশ দেখুন</a></div><div className="notice-table"><div className="notice-row notice-head"><span>আইডি</span><span>টাইটেল</span><span>তারিখ</span><span>প্রকাশ</span></div>{notices.length?notices.slice(0,6).map((n,i)=><div className="notice-row" key={n.id}><span>{n.id?.toString().slice(-3)||i+1}</span><span>{n.title_bn}</span><span>{n.notice_date||'—'}</span><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:n.title_bn});}}>View</a></div>):<div className="notice-empty-row">এখনও কোনো নোটিশ প্রকাশিত হয়নি।</div>}</div></div></section>
@@ -1067,7 +1105,7 @@ function Admin(){
  const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
  const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled['admin.'+x.k+'.'+sk]!==false)}))})).filter(g=>g.items.length);
   if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
-  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div><ErrorBoundary>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel sub={sub}/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel sub={sub}/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div><ErrorBoundary>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel sub={sub}/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel sub={sub}/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel sub={sub}/>} {active==='library'&&<LibraryPanel/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionPanel/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
  }
 
  const adminEn={
@@ -1097,7 +1135,7 @@ function Admin(){
  ];
 
 
-function AttendancePanel(){const today=new Date().toISOString().slice(0,10);const[d,setD]=useState(today),[c,setC]=useState('6'),[rows,setRows]=useState([]),[msg,setMsg]=useState('');const load=()=>api(`/attendance/roster?date=${d}&class_name=${c}`).then(setRows).catch(e=>setMsg(e.message));useEffect(()=>{load();},[d,c]);const mark=(id,status)=>setRows(a=>a.map(x=>x.id===id?{...x,status}:x));const all=status=>setRows(a=>a.map(x=>({...x,status})));async function save(){try{const x=await api('/attendance/bulk',{method:'POST',body:JSON.stringify({date:d,records:rows.map(x=>({student_id:x.id,status:x.status}))})});setMsg(`${x.count} জনের উপস্থিতি সংরক্ষণ হয়েছে`)}catch(e){setMsg(e.message)}}return <div className="form-card"><div className="toolbar"><h2>Smart Attendance</h2><span>{rows.length} জন</span></div><div className="filters"><input type="date" value={d} onChange={e=>setD(e.target.value)}/><select value={c} onChange={e=>setC(e.target.value)}>{classes.map(x=><option key={x} value={x}>শ্রেণি {x}</option>)}</select></div><div className="attendance-actions"><button className="mini" onClick={()=>all('present')}>সবাই উপস্থিত</button><button className="mini" onClick={()=>all('absent')}>সবাই অনুপস্থিত</button><button className="btn" onClick={save}>সংরক্ষণ</button></div><div className="table-wrap"><table><thead><tr><th>রোল</th><th>Student ID</th><th>নাম</th><th>অবস্থা</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{x.roll_no||'—'}</td><td>{x.student_id}</td><td>{x.name_bn}</td><td>{['present','absent','late','leave'].map(v=><button key={v} className={x.status===v?'mini active':''} onClick={()=>mark(x.id,v)}>{v==='present'?'উপস্থিত':v==='absent'?'অনুপস্থিত':v==='late'?'দেরি':'ছুটি'}</button>)}</td></tr>)}</tbody></table></div>{msg&&<p className="success">{msg}</p>}</div>}
+
 function Dashboard({data}){const d=data||{};return <><div className="stats adminstats"><div><b>{d.students??'—'}</b><span>সক্রিয় শিক্ষার্থী</span></div><div><b>{d.teachers??'—'}</b><span>সক্রিয় শিক্ষক</span></div><div><b>{d.notices??'—'}</b><span>প্রকাশিত নোটিশ</span></div><div><b>{d.users??'—'}</b><span>সক্রিয় ব্যবহারকারী</span></div></div><div className="dash-grid"><article><h2>V118 সিস্টেম স্ট্যাটাস</h2><p>শিক্ষার্থী, শিক্ষক, attendance, result, learning, portal ও official document workflows সক্রিয় আছে।</p></article><article><h2>Pilot Ready</h2><p>লাইভ পর্যবেক্ষণ ইঞ্জিন, ডেটাবেস ফলব্যাক এবং RBAC পোর্টাল সক্রিয়।</p></article><article><h2>নিরাপত্তা</h2><p>RBAC, JWT session, password hashing, audit log ও rate limiting চালু আছে।</p></article></div></>}
 const FATHER_PROFESSIONS = [
   'কৃষি শ্রমিক',
@@ -5470,6 +5508,46 @@ function TeacherPortal({data}){
  async function gradeSubmission(id){const d=gradeDraft[id]||{};try{await api(`/portal/teacher/assignment-submissions/${id}`,{method:'PATCH',body:JSON.stringify({marks:d.marks,teacher_feedback:d.teacher_feedback})});setSubmissionMsg('মূল্যায়ন সংরক্ষণ হয়েছে');loadSubmissions(d.assignment_id)}catch(e){setSubmissionMsg(e.message)}}
  async function saveMarks(){try{if(!marks.length)return;const d=await api('/portal/teacher/marks-save',{method:'POST',body:JSON.stringify({exam_id:examId,class_name:chosen.class_name,section:chosen.section||'',records:marks.map(x=>({student_id:x.id,subject_id:subjectId,written:x.written,mcq:x.mcq,practical:x.practical,absent:x.absent,remarks:x.remarks}))})});setMarksMsg(`${d.count} জনের নম্বর সংরক্ষণ হয়েছে`);loadMarks()}catch(e){setMarksMsg(e.message)}}
 
+ // VIEW: Attendance Panel (Class Teacher Smart Attendance Suite)
+ if (portalTab === 'attendance') {
+   return (
+     <div className="portal-shell">
+       <div style={{
+         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
+         background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+         color: '#ffffff', padding: '16px 20px', borderRadius: '12px', marginBottom: '20px',
+         boxShadow: '0 4px 12px rgba(6,78,59,0.2)'
+       }}>
+         <div>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <span style={{ fontSize: '24px' }}>🕘</span>
+             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>
+               স্মার্ট শিক্ষার্থী উপস্থিতি ও অভিভাবক যোগাযোগ (শ্রেণি শিক্ষক প্যানেল)
+             </h2>
+             <span style={{ background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+               অনলাইন ও অফলাইন মোড
+             </span>
+           </div>
+           <p style={{ margin: '4px 0 0', fontSize: '12.5px', opacity: 0.9 }}>
+             {data.teacher?.name_bn || data.user.full_name} • শ্রেণি শিক্ষক হিসেবে উপস্থিতি গ্রহণ করুন, WhatsApp/SMS সতর্কবার্তা পাঠান এবং দৈনিক, সাপ্তাহিক ও মাসিক রিপোর্ট প্রস্তুত করুন
+           </p>
+         </div>
+         <div style={{ display: 'flex', gap: '10px' }}>
+           <button
+             type="button"
+             className="btn"
+             onClick={() => setPortalTab('overview')}
+             style={{ background: '#ffffff', color: '#064e3b', fontWeight: 800, fontSize: '13px' }}
+           >
+             ← শিক্ষক পোর্টালে ফিরুন
+           </button>
+         </div>
+       </div>
+       <AttendancePanel sub="daily" />
+     </div>
+   );
+ }
+
  // VIEW: Finance Panel (Class Teacher Fee Collection)
  if (portalTab === 'finance') {
    return (
@@ -5575,6 +5653,17 @@ function TeacherPortal({data}){
        </div>
 
        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+         <button
+           type="button"
+           onClick={() => setPortalTab('attendance')}
+           style={{
+             background: '#059669', color: '#ffffff', border: 'none',
+             padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
+             fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+           }}
+         >
+           🕘 স্মার্ট উপস্থিতি ও রিপোর্ট
+         </button>
          <button
            type="button"
            onClick={() => setPortalTab('finance')}
