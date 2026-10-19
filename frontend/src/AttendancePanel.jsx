@@ -14,8 +14,61 @@ export const BANGLA_MONTHS = [
 export const BANGLA_DAYS = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
 export const SHORT_BANGLA_DAYS = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
 
+// Dynamic Head Teacher & Assistant Head Teacher resolver from teachers list
+export function getHeadTeacher(customTeachers) {
+  let list = customTeachers;
+  if (!Array.isArray(list) || !list.length) {
+    try {
+      const raw = localStorage.getItem('magra_db_teachers');
+      if (raw) list = JSON.parse(raw);
+    } catch {}
+  }
+  if (!Array.isArray(list) || !list.length) {
+    list = MOCK_TEACHERS;
+  }
+  const head = list.find(t => 
+    t && (
+      t.public_contact_role === 'head_teacher' ||
+      (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী'))
+    )
+  ) || list[0] || {
+    name_bn: 'মুহাম্মদ শফিকুল ইসলাম',
+    name_en: 'MUHAMMAD SHAFIQUL ISLAM',
+    designation: 'প্রধান শিক্ষক',
+    phone: '01753539680',
+    email: 'headteacher.magra@gmail.com'
+  };
+  return head;
+}
+
+export function getAssistantHeadTeacher(customTeachers) {
+  let list = customTeachers;
+  if (!Array.isArray(list) || !list.length) {
+    try {
+      const raw = localStorage.getItem('magra_db_teachers');
+      if (raw) list = JSON.parse(raw);
+    } catch {}
+  }
+  if (!Array.isArray(list) || !list.length) {
+    list = MOCK_TEACHERS;
+  }
+  const asst = list.find(t => 
+    t && (
+      t.public_contact_role === 'assistant_head_teacher' ||
+      (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক'))
+    )
+  ) || list[1] || {
+    name_bn: 'তাপসী সরকার',
+    name_en: 'TAPASI SARKER',
+    designation: 'সহকারী প্রধান শিক্ষক',
+    phone: '01721750647',
+    email: 'assthead.magra@gmail.com'
+  };
+  return asst;
+}
+
 export function AttendancePanel({ sub = 'daily' }) {
-  // Navigation tabs
+  // Navigation tabs:
   // 'daily' | 'daily_report' | 'weekly_report' | 'monthly_report' | 'alerts' | 'analytics'
   const [tab, setTab] = useState(sub === 'reports' ? 'daily_report' : sub === 'alerts' ? 'alerts' : 'daily');
 
@@ -29,14 +82,27 @@ export function AttendancePanel({ sub = 'daily' }) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const [selectedDate, setSelectedDate] = useState(todayStr);
   const [selectedClass, setSelectedClass] = useState('10');
-  const [selectedGroup, setSelectedGroup] = useState('all'); // For classes 9 & 10: 'all' | 'বিজ্ঞান' | 'মানবিক' | 'ব্যবসায় শিক্ষা'
+  const [selectedGroup, setSelectedGroup] = useState('all'); // 'all' | 'বিজ্ঞান' | 'মানবিক' | 'ব্যবসায় শিক্ষা'
   const [selectedSection, setSelectedSection] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Weekly & Monthly Filter States
-  const [selectedWeekStart, setSelectedWeekStart] = useState(todayStr);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
+  // Weekly Register: Default to nearest Sunday (Sunday to Thursday school week)
+  const getSundayOfCurrentWeek = () => {
+    const d = new Date();
+    const day = d.getDay(); // 0 is Sunday
+    const diff = d.getDate() - day;
+    const sun = new Date(d.setDate(diff));
+    return sun.toISOString().slice(0, 10);
+  };
+  const [selectedWeekStart, setSelectedWeekStart] = useState(getSundayOfCurrentWeek());
+
+  // Monthly Register States (Month 0-11, Year)
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(2026);
+
+  // Dynamic Head & Assistant Head Teachers from teacher database
+  const headTeacher = useMemo(() => getHeadTeacher(), []);
+  const asstHeadTeacher = useMemo(() => getAssistantHeadTeacher(), []);
 
   // Attendance Roster Data
   const [roster, setRoster] = useState([]);
@@ -51,10 +117,13 @@ export function AttendancePanel({ sub = 'daily' }) {
 
   // Guardian WhatsApp & SMS Modal States
   const [smsModalOpen, setSmsModalOpen] = useState(false);
-  const [smsTargetStudent, setSmsTargetStudent] = useState(null); // null = bulk absent
-  const [smsTemplate, setSmsTemplate] = useState('absent'); // 'absent' | 'late' | 'chronic'
-  const [customSmsText, setCustomSmsText] = useState('');
+  const [smsTargetStudent, setSmsTargetStudent] = useState(null);
+  const [smsTemplate, setSmsTemplate] = useState('absent');
   const [smsSuccessMsg, setSmsSuccessMsg] = useState('');
+
+  // Bulk WhatsApp Dispatch Modal State & Tracking
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
+  const [whatsAppSentMap, setWhatsAppSentMap] = useState({});
 
   // Printable ref
   const printReportRef = useRef(null);
@@ -63,7 +132,6 @@ export function AttendancePanel({ sub = 'daily' }) {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Auto-flush offline queue
       flushOfflineQueue();
     };
     const handleOffline = () => setIsOnline(false);
@@ -71,7 +139,6 @@ export function AttendancePanel({ sub = 'daily' }) {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Load initial offline queue from localStorage
     try {
       const q = JSON.parse(localStorage.getItem('magra_attendance_offline_queue') || '[]');
       if (Array.isArray(q)) setOfflineQueue(q);
@@ -83,18 +150,15 @@ export function AttendancePanel({ sub = 'daily' }) {
     };
   }, []);
 
-  // Determine effective connection mode
   const effectiveOnline = isOnline && !manualOffline;
 
-  // Load roster whenever date, class, group, or section changes
+  // Load roster
   const loadRoster = async () => {
     setLoading(true);
     try {
-      // 1. First check local storage cache if in offline mode
       const localCacheKey = `magra_roster_cache_${selectedClass}_${selectedDate}`;
       const savedAttendance = JSON.parse(localStorage.getItem('magra_db_attendance') || '[]');
 
-      // Try fetching via API / Client Engine
       let data = [];
       try {
         const queryParams = new URLSearchParams({
@@ -105,10 +169,9 @@ export function AttendancePanel({ sub = 'daily' }) {
         });
         data = await requestApi(`/attendance/roster?${queryParams.toString()}`);
       } catch (err) {
-        console.warn('API roster fetch failed, using fallback:', err);
+        console.warn('API roster fetch fallback:', err);
       }
 
-      // If data is empty or offline, build from MOCK_STUDENTS + savedAttendance
       if (!Array.isArray(data) || !data.length) {
         let allStudents = [];
         try {
@@ -120,7 +183,6 @@ export function AttendancePanel({ sub = 'daily' }) {
 
         let filtered = allStudents.filter(s => String(s.class_name).trim() === String(selectedClass).trim());
         
-        // Filter by group for Class 9 & 10
         if (['9', '10', '৯', '১০'].includes(String(selectedClass)) && selectedGroup !== 'all') {
           filtered = filtered.filter(s => {
             const grp = String(s.department || s.group || s.group_name || '').toLowerCase();
@@ -128,7 +190,6 @@ export function AttendancePanel({ sub = 'daily' }) {
           });
         }
 
-        // Filter by section
         if (selectedSection !== 'all') {
           filtered = filtered.filter(s => String(s.section || '').includes(selectedSection));
         }
@@ -136,12 +197,10 @@ export function AttendancePanel({ sub = 'daily' }) {
         filtered = sortStudentsList(filtered);
 
         data = filtered.map(s => {
-          // Check saved attendance in localStorage
           const existing = savedAttendance.find(a => 
             a.date === selectedDate && String(a.student_id) === String(s.id)
           );
 
-          // Deterministic default if not set
           let defStatus = 'present';
           if (!existing) {
             const h = ((parseInt(s.roll_no, 10) || 1) * 19 + new Date(selectedDate).getDate() * 11) % 100;
@@ -168,7 +227,6 @@ export function AttendancePanel({ sub = 'daily' }) {
       }
 
       setRoster(data);
-      // Cache this roster for offline usage
       try {
         localStorage.setItem(localCacheKey, JSON.stringify(data));
       } catch {}
@@ -183,22 +241,18 @@ export function AttendancePanel({ sub = 'daily' }) {
     loadRoster();
   }, [selectedDate, selectedClass, selectedGroup, selectedSection]);
 
-  // Mark single student status
   const handleMark = (studentId, status) => {
     setRoster(prev => prev.map(s => s.id === studentId ? { ...s, status } : s));
   };
 
-  // Mark all students
   const handleMarkAll = (status) => {
     setRoster(prev => prev.map(s => ({ ...s, status })));
   };
 
-  // Update remarks
   const handleRemarksChange = (studentId, remarks) => {
     setRoster(prev => prev.map(s => s.id === studentId ? { ...s, remarks } : s));
   };
 
-  // Save Attendance (Works seamlessly both Online and Offline)
   const handleSaveAttendance = async () => {
     if (!roster.length) return;
     setLoading(true);
@@ -217,7 +271,6 @@ export function AttendancePanel({ sub = 'daily' }) {
       date: selectedDate
     }));
 
-    // 1. Immediately persist to localStorage database
     try {
       let savedAttendance = JSON.parse(localStorage.getItem('magra_db_attendance') || '[]');
       const map = new Map();
@@ -237,10 +290,9 @@ export function AttendancePanel({ sub = 'daily' }) {
       console.warn('LocalStorage save error:', err);
     }
 
-    // 2. If online and not manual offline, post to API
     if (effectiveOnline) {
       try {
-        const res = await requestApi('/attendance/bulk', {
+        await requestApi('/attendance/bulk', {
           method: 'POST',
           body: JSON.stringify({ date: selectedDate, records })
         });
@@ -249,7 +301,6 @@ export function AttendancePanel({ sub = 'daily' }) {
           type: 'success'
         });
       } catch (err) {
-        // Fall back to offline queue
         enqueueOffline(selectedDate, records);
         setMsg({
           text: `⚠️ সার্ভার কানেকশন না থাকায় উপস্থিতি অফলাইনে সংরক্ষিত হয়েছে। ইন্টারনেট পেলে স্বয়ংক্রিয়ভাবে সিঙ্ক হবে।`,
@@ -257,7 +308,6 @@ export function AttendancePanel({ sub = 'daily' }) {
         });
       }
     } else {
-      // Offline mode
       enqueueOffline(selectedDate, records);
       setMsg({
         text: `📴 অফলাইন মোডে উপস্থিতি সফলভাবে ডিভাইসে সংরক্ষিত হয়েছে! (সিঙ্ক বাকি: ${toBn(offlineQueue.length + 1)} টি ব্যাচ)`,
@@ -268,7 +318,6 @@ export function AttendancePanel({ sub = 'daily' }) {
     setLoading(false);
   };
 
-  // Helper: Enqueue to offline queue
   const enqueueOffline = (date, records) => {
     const queueItem = {
       id: 'q_' + Date.now(),
@@ -282,7 +331,6 @@ export function AttendancePanel({ sub = 'daily' }) {
     localStorage.setItem('magra_attendance_offline_queue', JSON.stringify(updatedQ));
   };
 
-  // Helper: Flush offline queue when online
   const flushOfflineQueue = async () => {
     try {
       const q = JSON.parse(localStorage.getItem('magra_attendance_offline_queue') || '[]');
@@ -304,7 +352,7 @@ export function AttendancePanel({ sub = 'daily' }) {
     }
   };
 
-  // Metrics Calculation
+  // Metrics
   const filteredRoster = useMemo(() => {
     if (!searchTerm.trim()) return roster;
     const term = searchTerm.trim().toLowerCase();
@@ -326,18 +374,16 @@ export function AttendancePanel({ sub = 'daily' }) {
     return { total, present, absent, late, leave, rate };
   }, [roster]);
 
-  // Identify at-risk students (Chronic Absenteeism / 3+ days absent)
   const atRiskStudents = useMemo(() => {
     const savedAttendance = JSON.parse(localStorage.getItem('magra_db_attendance') || '[]');
     return roster.filter(s => {
-      // Find past records for this student
       const past = savedAttendance.filter(a => String(a.student_id) === String(s.id));
       const absentCount = past.filter(a => a.status === 'absent').length;
       return absentCount >= 3 || (s.status === 'absent' && s.roll_no % 3 === 0);
     });
   }, [roster]);
 
-  // Pre-formatted Bengali WhatsApp message builder
+  // Pre-formatted Bengali WhatsApp message builder with Head Teacher info from teacher list
   const buildWhatsAppUrl = (student) => {
     const phone = (student.guardian_phone || '').replace(/\D/g, '');
     let fullPhone = phone;
@@ -352,49 +398,46 @@ export function AttendancePanel({ sub = 'daily' }) {
 আপনার সন্তান *${student.name_bn}*, শ্রেণি: *${toBn(student.class_name)}*${deptStr}, রোল: *${toBn(student.roll_no)}* আজ *${selectedDate}* তারিখে বিদ্যালয়ে অনুপস্থিত রয়েছে। 
 অনুপস্থিতির জরুরি কারণ থাকলে বিদ্যালয় কর্তৃপক্ষকে অবহিত করার অনুরোধ করা হলো।
 
-প্রধান শিক্ষক
-মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়, টাঙ্গাইল
-মোবাইল: ০১৭১২-৩৪৫৬৭৮`;
+${headTeacher.name_bn || 'প্রধান শিক্ষক'}
+${headTeacher.designation || 'প্রধান শিক্ষক'}
+${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়, টাঙ্গাইল'}
+মোবাইল: ${toBn(headTeacher.phone || '01753539680')}`;
 
     return `https://wa.me/${fullPhone}?text=${encodeURIComponent(message)}`;
   };
 
-  // Open Bulk WhatsApp Modal or Links
+  // Bulk WhatsApp Handler: Opens dedicated WhatsApp modal
   const handleBulkWhatsApp = () => {
     const absentees = roster.filter(s => s.status === 'absent');
     if (!absentees.length) {
       alert('বর্তমানে কোনো অনুপস্থিত শিক্ষার্থী নেই।');
       return;
     }
-    setSmsTargetStudent(null);
-    setSmsTemplate('absent');
-    setSmsModalOpen(true);
+    setWhatsAppModalOpen(true);
   };
 
-  // Open SMS modal for single student
   const handleOpenSmsSingle = (student) => {
     setSmsTargetStudent(student);
     setSmsTemplate(student.status === 'late' ? 'late' : 'absent');
     setSmsModalOpen(true);
   };
 
-  // SMS Text Builder
   const getSmsMessageText = (student) => {
     const sName = student?.name_bn || 'শিক্ষার্থী';
     const sRoll = toBn(student?.roll_no || '—');
     const sClass = toBn(student?.class_name || selectedClass);
     const dStr = selectedDate;
+    const htSign = `${headTeacher.name_bn || 'প্রধান শিক্ষক'} (${headTeacher.designation || 'প্রধান শিক্ষক'})`;
 
     if (smsTemplate === 'late') {
-      return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে দেরিতে বিদ্যালয়ে উপস্থিত হয়েছে। শিক্ষার্থীদের সময়নিষ্ঠ করতে সহযোগিতা কামনা করছি। - প্রধান শিক্ষক, মগড়া পালস উচ্চ বিদ্যালয়।`;
+      return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে দেরিতে বিদ্যালয়ে উপস্থিত হয়েছে। শিক্ষার্থীদের সময়নিষ্ঠ করতে সহযোগিতা কামনা করছি। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
     }
     if (smsTemplate === 'chronic') {
-      return `জরুরি নোটিশ: আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) একাধিক কার্যদিবস বিদ্যালয়ে অনুপস্থিত রয়েছে। অবিলম্বে প্রধান শিক্ষক/শ্রেণি শিক্ষকের সাথে সাক্ষাত করার জন্য অনুরোধ করা হলো। - প্রধান শিক্ষক, মগড়া পালস উচ্চ বিদ্যালয়।`;
+      return `জরুরি নোটিশ: আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) একাধিক কার্যদিবস বিদ্যালয়ে অনুপস্থিত রয়েছে। অবিলম্বে প্রধান শিক্ষক/শ্রেণি শিক্ষকের সাথে সাক্ষাত করার জন্য অনুরোধ করা হলো। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
     }
-    return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে বিদ্যালয়ে অনুপস্থিত। কোনো সমস্যা থাকলে বিদ্যালয়কে জানান। - প্রধান শিক্ষক, মগড়া পালস উচ্চ বিদ্যালয়।`;
+    return `সম্মানিত অভিভাবক, আপনার সন্তান ${sName} (শ্রেণি: ${sClass}, রোল: ${sRoll}) আজ ${dStr} তারিখে বিদ্যালয়ে অনুপস্থিত। কোনো সমস্যা থাকলে বিদ্যালয়কে জানান। - ${htSign}, মগড়া পালস উচ্চ বিদ্যালয়।`;
   };
 
-  // Send Simulated SMS
   const handleSendSimulatedSms = () => {
     const targetCount = smsTargetStudent ? 1 : roster.filter(s => s.status === 'absent').length;
     setSmsSuccessMsg(`✅ সফলভাবে ${toBn(targetCount)} জন অভিভাবকের মোবাইলে SMS বার্তা প্রেরণ সম্পন্ন হয়েছে।`);
@@ -404,216 +447,484 @@ export function AttendancePanel({ sub = 'daily' }) {
     }, 2500);
   };
 
-  // Date Shift Helpers
   const shiftDate = (days) => {
     const cur = new Date(selectedDate);
     cur.setDate(cur.getDate() + days);
     setSelectedDate(cur.toISOString().slice(0, 10));
   };
 
-  // Printable Handler
   const handlePrint = () => {
     window.print();
   };
 
+  // MONTHLY DYNAMIC CALENDAR ENGINE (REQ 4: Exact days in month & Fri+Sat off-days)
+  const monthDaysList = useMemo(() => {
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const dateObj = new Date(selectedYear, selectedMonth, day);
+      const dayOfWeek = dateObj.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+      const isFriday = (dayOfWeek === 5);
+      const isSaturday = (dayOfWeek === 6);
+      const isOffDay = isFriday || isSaturday;
+      return {
+        day,
+        dateObj,
+        dayOfWeek,
+        isFriday,
+        isSaturday,
+        isOffDay,
+        label: isFriday ? 'শুক্র' : isSaturday ? 'শনি' : SHORT_BANGLA_DAYS[dayOfWeek]
+      };
+    });
+  }, [selectedYear, selectedMonth]);
+
+  const monthlyWorkingDays = useMemo(() => {
+    return monthDaysList.filter(d => !d.isOffDay).length;
+  }, [monthDaysList]);
+
+  // Is this currently a printable report tab? (REQ 2: Remove 3rd photo from daily, weekly, monthly reports)
+  const isReportTab = ['daily_report', 'weekly_report', 'monthly_report'].includes(tab);
+
   return (
     <div className="attendance-suite">
-      {/* Top Banner & Online/Offline Bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
-        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
-        color: '#ffffff', padding: '18px 24px', borderRadius: '16px', marginBottom: '20px',
-        boxShadow: '0 8px 24px rgba(6,78,59,0.18)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+      <style>{`
+        @media print {
+          .no-print, header, nav, .portal-shell > div:first-child, .admin-sidebar, footer {
+            display: none !important;
+          }
+          body, .attendance-suite {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .printable-attendance-sheet {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
+      {/* ============================================================== */}
+      {/* CONDITIONAL RENDER: TOP BANNER, FILTERS & KPI CARDS            */}
+      {/* Renders ONLY on Entry ('daily'), Alerts, and Analytics tabs    */}
+      {/* EXCLUDED completely from daily, weekly, and monthly reports   */}
+      {/* ============================================================== */}
+      {!isReportTab && (
+        <>
+          {/* Top Banner & Online/Offline Bar */}
           <div style={{
-            width: '54px', height: '54px', borderRadius: '14px', background: 'rgba(255,255,255,0.15)',
-            display: 'grid', placeItems: 'center', fontSize: '28px'
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
+            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
+            color: '#ffffff', padding: '18px 24px', borderRadius: '16px', marginBottom: '20px',
+            boxShadow: '0 8px 24px rgba(6,78,59,0.18)'
           }}>
-            🕘
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>
-                স্মার্ট শিক্ষার্থী উপস্থিতি ব্যবস্থাপনা (Smart Attendance Suite)
-              </h2>
-              <span style={{
-                background: effectiveOnline ? '#dcfce7' : '#fef3c7',
-                color: effectiveOnline ? '#166534' : '#92400e',
-                padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 800,
-                display: 'inline-flex', alignItems: 'center', gap: '6px'
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '54px', height: '54px', borderRadius: '14px', background: 'rgba(255,255,255,0.15)',
+                display: 'grid', placeItems: 'center', fontSize: '28px'
               }}>
-                <span style={{
-                  width: '8px', height: '8px', borderRadius: '50%',
-                  background: effectiveOnline ? '#16a34a' : '#d97706',
-                  animation: 'pulse 1.8s infinite'
-                }}></span>
-                {effectiveOnline ? 'অনলাইন মোড (স্বয়ংক্রিয় সিঙ্ক)' : 'অফলাইন মোড (লোকাল স্টোরেজ)'}
-              </span>
+                🕘
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>
+                    স্মার্ট শিক্ষার্থী উপস্থিতি ব্যবস্থাপনা (Smart Attendance Suite)
+                  </h2>
+                  <span style={{
+                    background: effectiveOnline ? '#dcfce7' : '#fef3c7',
+                    color: effectiveOnline ? '#166534' : '#92400e',
+                    padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 800,
+                    display: 'inline-flex', alignItems: 'center', gap: '6px'
+                  }}>
+                    <span style={{
+                      width: '8px', height: '8px', borderRadius: '50%',
+                      background: effectiveOnline ? '#16a34a' : '#d97706',
+                      animation: 'pulse 1.8s infinite'
+                    }}></span>
+                    {effectiveOnline ? 'অনলাইন মোড (স্বয়ংক্রিয় সিঙ্ক)' : 'অফলাইন মোড (লোকাল স্টোরেজ)'}
+                  </span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.9 }}>
+                  শ্রেণি শিক্ষক ও প্রশাসন পোর্টাল • অনলাইন ও অফলাইন হাজিরা এন্ট্রি, অভিভাবক WhatsApp/SMS বার্তা এবং দৈনিক, সাপ্তাহিক ও মাসিক রিপোর্ট প্রস্তুতকরণ
+                </p>
+              </div>
             </div>
-            <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.9 }}>
-              শ্রেণি শিক্ষক ও প্রশাসন পোর্টাল • অনলাইন ও অফলাইন হাজিরা এন্ট্রি, অভিভাবক WhatsApp/SMS বার্তা এবং দৈনিক, সাপ্তাহিক ও মাসিক রিপোর্ট প্রস্তুতকরণ
-            </p>
-          </div>
-        </div>
 
-        {/* Offline / Online Controls */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={() => setManualOffline(!manualOffline)}
-            style={{
-              background: manualOffline ? '#f59e0b' : 'rgba(255,255,255,0.18)',
-              color: '#ffffff', border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '8px', padding: '8px 14px', fontSize: '12.5px', fontWeight: 700,
-              cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-            }}
-            title="ইন্টারনেট সংযোগ ছাড়াও লোকালবেসে হাজিরা সম্পন্ন করতে অফলাইন মোড চালু করুন"
-          >
-            {manualOffline ? '🌐 অনলাইন মোডে ফিরুন' : '📴 অফলাইন মোডে যান'}
-          </button>
+            {/* Offline / Online Controls */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setManualOffline(!manualOffline)}
+                style={{
+                  background: manualOffline ? '#f59e0b' : 'rgba(255,255,255,0.18)',
+                  color: '#ffffff', border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '8px', padding: '8px 14px', fontSize: '12.5px', fontWeight: 700,
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                }}
+              >
+                {manualOffline ? '🌐 অনলাইন মোডে ফিরুন' : '📴 অফলাইন মোডে যান'}
+              </button>
 
-          {offlineQueue.length > 0 && (
-            <button
-              type="button"
-              onClick={flushOfflineQueue}
-              style={{
-                background: '#fbbf24', color: '#78350f', border: 'none',
-                borderRadius: '8px', padding: '8px 14px', fontSize: '12.5px', fontWeight: 800,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-              }}
-            >
-              🔄 সিঙ্ক করুন ({toBn(offlineQueue.length)} ব্যাচ পেন্ডিং)
-            </button>
-          )}
-        </div>
-      </div>
-
-      {syncStatus && (
-        <div style={{
-          background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0',
-          padding: '10px 16px', borderRadius: '8px', marginBottom: '14px',
-          fontWeight: 700, fontSize: '13px'
-        }}>
-          {syncStatus}
-        </div>
-      )}
-
-      {/* Main Navigation Sub-Tabs */}
-      <div style={{
-        display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '12px',
-        marginBottom: '20px', flexWrap: 'wrap'
-      }}>
-        {[
-          ['daily', '📝 দৈনিক হাজিরা গ্রহণ (Daily Entry)', 'শ্রেণিভিত্তিক দ্রুত উপস্থিতি গ্রহণ'],
-          ['daily_report', '📊 দৈনিক রিপোর্ট (Daily PDF)', 'দৈনিক পূর্ণাঙ্গ হাজিরা শিট ও প্রিন্ট'],
-          ['weekly_report', '📅 সাপ্তাহিক রেজিস্টার (Weekly)', '৬ দিনের পূর্ণাঙ্গ সাপ্তাহিক হাজিরা শিট'],
-          ['monthly_report', '📑 মাসিক খাতা ও রেজিস্টার (Monthly)', 'মাসব্যাপী হাজিরা খাতা ও পরিসংখ্যান'],
-          ['alerts', '💬 অভিভাবক সতর্কতা ও SMS', 'WhatsApp ও SMS নোটিফিকেশন সেন্টার'],
-          ['analytics', '📈 উপস্থিতি অ্যানালিটিক্স ও ঝুঁকি', 'ঝুঁকিপূর্ণ শিক্ষার্থী ও গ্রাফ']
-        ].map(([key, label, desc]) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            style={{
-              background: tab === key ? '#065f46' : '#ffffff',
-              color: tab === key ? '#ffffff' : '#334155',
-              border: tab === key ? '1px solid #065f46' : '1px solid #cbd5e1',
-              borderRadius: '10px', padding: '10px 16px', fontWeight: 700, fontSize: '13.5px',
-              cursor: 'pointer', transition: 'all 0.15s ease',
-              boxShadow: tab === key ? '0 4px 10px rgba(6,95,70,0.2)' : 'none'
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Top Filter Bar (Applicable across tabs) */}
-      <div style={{
-        background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '14px',
-        padding: '16px 20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-      }}>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '12px', alignItems: 'end'
-        }}>
-          {/* Date Picker */}
-          {(tab === 'daily' || tab === 'daily_report' || tab === 'alerts') && (
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-                তারিখ নির্বাচন
-              </label>
-              <div style={{ display: 'flex', gap: '4px' }}>
+              {offlineQueue.length > 0 && (
                 <button
                   type="button"
-                  onClick={() => shiftDate(-1)}
+                  onClick={flushOfflineQueue}
                   style={{
-                    background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px',
-                    padding: '6px 10px', cursor: 'pointer', fontWeight: 700
+                    background: '#fbbf24', color: '#78350f', border: 'none',
+                    borderRadius: '8px', padding: '8px 14px', fontSize: '12.5px', fontWeight: 800,
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                   }}
-                  title="পূর্ববর্তী দিন"
                 >
-                  ◀
+                  🔄 সিঙ্ক করুন ({toBn(offlineQueue.length)} ব্যাচ পেন্ডিং)
                 </button>
+              )}
+            </div>
+          </div>
+
+          {syncStatus && (
+            <div style={{
+              background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0',
+              padding: '10px 16px', borderRadius: '8px', marginBottom: '14px',
+              fontWeight: 700, fontSize: '13px'
+            }}>
+              {syncStatus}
+            </div>
+          )}
+
+          {/* Main Navigation Sub-Tabs */}
+          <div style={{
+            display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '12px',
+            marginBottom: '20px', flexWrap: 'wrap'
+          }}>
+            {[
+              ['daily', '📝 দৈনিক হাজিরা গ্রহণ (Daily Entry)'],
+              ['daily_report', '📊 দৈনিক রিপোর্ট (Daily PDF)'],
+              ['weekly_report', '📅 সাপ্তাহিক রেজিস্টার (Weekly)'],
+              ['monthly_report', '📑 মাসিক খাতা ও রেজিস্টার (Monthly)'],
+              ['alerts', '💬 অভিভাবক সতর্কতা ও SMS'],
+              ['analytics', '📈 উপস্থিতি অ্যানালিটিক্স ও ঝুঁকি']
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                style={{
+                  background: tab === key ? '#065f46' : '#ffffff',
+                  color: tab === key ? '#ffffff' : '#334155',
+                  border: tab === key ? '1px solid #065f46' : '1px solid #cbd5e1',
+                  borderRadius: '10px', padding: '10px 16px', fontWeight: 700, fontSize: '13.5px',
+                  cursor: 'pointer', transition: 'all 0.15s ease',
+                  boxShadow: tab === key ? '0 4px 10px rgba(6,95,70,0.2)' : 'none'
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Top Filter Bar for Daily Entry / Alerts */}
+          <div style={{
+            background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '14px',
+            padding: '16px 20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+          }}>
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: '12px', alignItems: 'end'
+            }}>
+              {/* Date Picker */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+                  তারিখ নির্বাচন
+                </label>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => shiftDate(-1)}
+                    style={{
+                      background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px',
+                      padding: '6px 10px', cursor: 'pointer', fontWeight: 700
+                    }}
+                    title="পূর্ববর্তী দিন"
+                  >
+                    ◀
+                  </button>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={e => setSelectedDate(e.target.value)}
+                    style={{
+                      flex: 1, padding: '7px 10px', border: '1px solid #cbd5e1',
+                      borderRadius: '6px', fontWeight: 700, fontSize: '13px'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => shiftDate(1)}
+                    style={{
+                      background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px',
+                      padding: '6px 10px', cursor: 'pointer', fontWeight: 700
+                    }}
+                    title="পরবর্তী দিন"
+                  >
+                    ▶
+                  </button>
+                </div>
+              </div>
+
+              {/* Class Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+                  শ্রেণি
+                </label>
+                <select
+                  value={selectedClass}
+                  onChange={e => {
+                    setSelectedClass(e.target.value);
+                    if (!['9', '10', '৯', '১০'].includes(e.target.value)) {
+                      setSelectedGroup('all');
+                    }
+                  }}
+                  style={{
+                    width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
+                    borderRadius: '6px', fontWeight: 700, fontSize: '13px'
+                  }}
+                >
+                  <option value="6">শ্রেণি ৬ষ্ঠ (Class 6)</option>
+                  <option value="7">শ্রেণি ৭ম (Class 7)</option>
+                  <option value="8">শ্রেণি ৮ম (Class 8)</option>
+                  <option value="9">শ্রেণি ৯ম (Class 9)</option>
+                  <option value="10">শ্রেণি ১০ম (Class 10)</option>
+                </select>
+              </div>
+
+              {/* Department / Group Selector (Mandatory for 9th and 10th) */}
+              {['9', '10', '৯', '১০'].includes(String(selectedClass)) ? (
+                <div>
+                  <label style={{
+                    display: 'block', fontSize: '12px', fontWeight: 800, color: '#047857', marginBottom: '5px'
+                  }}>
+                    📚 বিভাগ (৯ম ও ১০ম শ্রেণির জন্য)
+                  </label>
+                  <select
+                    value={selectedGroup}
+                    onChange={e => setSelectedGroup(e.target.value)}
+                    style={{
+                      width: '100%', padding: '7px 10px', border: '2px solid #059669',
+                      borderRadius: '6px', fontWeight: 800, fontSize: '13px', background: '#ecfdf5', color: '#064e3b'
+                    }}
+                  >
+                    <option value="all">সকল বিভাগ (All Groups)</option>
+                    <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
+                    <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
+                    <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা শাখা (Business Studies)</option>
+                  </select>
+                </div>
+              ) : (
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '5px' }}>
+                    বিভাগ
+                  </label>
+                  <input
+                    disabled
+                    value="সাধারণ (প্রযোজ্য নয়)"
+                    style={{
+                      width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0',
+                      borderRadius: '6px', background: '#f8fafc', color: '#94a3b8', fontSize: '13px'
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Section Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+                  শাখা (Section)
+                </label>
+                <select
+                  value={selectedSection}
+                  onChange={e => setSelectedSection(e.target.value)}
+                  style={{
+                    width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
+                    borderRadius: '6px', fontWeight: 700, fontSize: '13px'
+                  }}
+                >
+                  <option value="all">সকল শাখা</option>
+                  <option value="পদ্মা">পদ্মা শাখা</option>
+                  <option value="মেঘনা">মেঘনা শাখা</option>
+                  <option value="যমুনা">যমুনা শাখা</option>
+                  <option value="সুরমা">সুরমা শাখা</option>
+                </select>
+              </div>
+
+              {/* Student Search */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
+                  শিক্ষার্থী খুঁজুন
+                </label>
+                <input
+                  type="text"
+                  placeholder="রোল বা নাম লিখুন..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
+                    borderRadius: '6px', fontSize: '13px'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 6 KPI Counters Bar */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '12px', marginBottom: '20px'
+          }}>
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #3b82f6', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>মোট শিক্ষার্থী</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#1e293b' }}>{toBn(metrics.total)} জন</div>
+            </div>
+
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #10b981', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>উপস্থিত</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#047857' }}>
+                {toBn(metrics.present)} জন <small style={{ fontSize: '14px', opacity: 0.8 }}>({toBn(metrics.rate)}%)</small>
+              </div>
+            </div>
+
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #ef4444', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>অনুপস্থিত</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#b91c1c' }}>{toBn(metrics.absent)} জন</div>
+            </div>
+
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #f59e0b', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>দেরিতে আগমন</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#b45309' }}>{toBn(metrics.late)} জন</div>
+            </div>
+
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #6366f1', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>ছুটি (Leave)</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#4338ca' }}>{toBn(metrics.leave)} জন</div>
+            </div>
+
+            <div style={{
+              background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
+              padding: '14px 18px', borderLeft: '5px solid #0f766e', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>উপস্থিতির হার</span>
+              <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f766e' }}>
+                {toBn(metrics.rate)}%
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ============================================================== */}
+      {/* COMPACT SCREEN-ONLY NAVIGATION & FILTERS FOR REPORT TABS       */}
+      {/* (REQ 2: 3rd Photo elements removed; pad starts immediately)     */}
+      {/* ============================================================== */}
+      {isReportTab && (
+        <div className="no-print" style={{
+          background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '14px',
+          padding: '14px 18px', marginBottom: '18px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        }}>
+          {/* Sub-tab navigation bar */}
+          <div style={{
+            display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px',
+            marginBottom: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                ['daily', '📝 দৈনিক হাজিরা এন্ট্রি'],
+                ['daily_report', '📊 দৈনিক রিপোর্ট (Daily PDF)'],
+                ['weekly_report', '📅 সাপ্তাহিক রেজিস্টার (Weekly)'],
+                ['monthly_report', '📑 মাসিক খাতা ও রেজিস্টার (Monthly)'],
+                ['alerts', '💬 অভিভাবক সতর্কতা'],
+                ['analytics', '📈 অ্যানালিটিক্স']
+              ].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  style={{
+                    background: tab === key ? '#065f46' : '#f8fafc',
+                    color: tab === key ? '#ffffff' : '#334155',
+                    border: tab === key ? '1px solid #065f46' : '1px solid #cbd5e1',
+                    borderRadius: '8px', padding: '7px 14px', fontWeight: 700, fontSize: '12.5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handlePrint}
+              style={{
+                background: '#047857', color: '#ffffff', border: 'none',
+                borderRadius: '8px', padding: '8px 18px', fontSize: '13px', fontWeight: 800,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+              }}
+            >
+              🖨️ প্রিন্ট / PDF রিপোর্ট ডাউনলোড
+            </button>
+          </div>
+
+          {/* Compact Inline Filters for Report */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', fontSize: '13px' }}>
+            {tab === 'daily_report' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700, color: '#475569' }}>তারিখ:</span>
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={e => setSelectedDate(e.target.value)}
-                  style={{
-                    flex: 1, padding: '7px 10px', border: '1px solid #cbd5e1',
-                    borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-                  }}
+                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
                 />
-                <button
-                  type="button"
-                  onClick={() => shiftDate(1)}
-                  style={{
-                    background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px',
-                    padding: '6px 10px', cursor: 'pointer', fontWeight: 700
-                  }}
-                  title="পরবর্তী দিন"
-                >
-                  ▶
-                </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Week Selector for Weekly Register */}
-          {tab === 'weekly_report' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-                সপ্তাহের শুরুর তারিখ (শনিবার)
-              </label>
-              <input
-                type="date"
-                value={selectedWeekStart}
-                onChange={e => setSelectedWeekStart(e.target.value)}
-                style={{
-                  width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
-                  borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-                }}
-              />
-            </div>
-          )}
+            {tab === 'weekly_report' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700, color: '#475569' }}>সপ্তাহের প্রারম্ভ (রবিবার):</span>
+                <input
+                  type="date"
+                  value={selectedWeekStart}
+                  onChange={e => setSelectedWeekStart(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
+                />
+              </div>
+            )}
 
-          {/* Month Selector for Monthly Register */}
-          {tab === 'monthly_report' && (
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-                মাস ও বছর নির্বাচন
-              </label>
-              <div style={{ display: 'flex', gap: '6px' }}>
+            {tab === 'monthly_report' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700, color: '#475569' }}>মাস:</span>
                 <select
                   value={selectedMonth}
                   onChange={e => setSelectedMonth(Number(e.target.value))}
-                  style={{
-                    flex: 2, padding: '7px 10px', border: '1px solid #cbd5e1',
-                    borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-                  }}
+                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
                 >
                   {BANGLA_MONTHS.map((m, idx) => (
                     <option key={idx} value={idx}>{m}</option>
@@ -622,179 +933,64 @@ export function AttendancePanel({ sub = 'daily' }) {
                 <select
                   value={selectedYear}
                   onChange={e => setSelectedYear(Number(e.target.value))}
-                  style={{
-                    flex: 1, padding: '7px 10px', border: '1px solid #cbd5e1',
-                    borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-                  }}
+                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
                 >
                   <option value={2026}>২০২৬</option>
                   <option value={2025}>২০২৫</option>
                 </select>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Class Selector */}
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-              শ্রেণি
-            </label>
-            <select
-              value={selectedClass}
-              onChange={e => {
-                setSelectedClass(e.target.value);
-                if (!['9', '10', '৯', '১০'].includes(e.target.value)) {
-                  setSelectedGroup('all');
-                }
-              }}
-              style={{
-                width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
-                borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-              }}
-            >
-              <option value="6">শ্রেণি ৬ষ্ঠ (Class 6)</option>
-              <option value="7">শ্রেণি ৭ম (Class 7)</option>
-              <option value="8">শ্রেণি ৮ম (Class 8)</option>
-              <option value="9">শ্রেণি ৯ম (Class 9)</option>
-              <option value="10">শ্রেণি ১০ম (Class 10)</option>
-            </select>
-          </div>
-
-          {/* Department / Group Selector (Mandatory for 9th and 10th) */}
-          {['9', '10', '৯', '১০'].includes(String(selectedClass)) ? (
-            <div>
-              <label style={{
-                display: 'block', fontSize: '12px', fontWeight: 800, color: '#047857', marginBottom: '5px'
-              }}>
-                📚 বিভাগ (৯ম ও ১০ম শ্রেণির জন্য)
-              </label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontWeight: 700, color: '#475569' }}>শ্রেণি:</span>
               <select
-                value={selectedGroup}
-                onChange={e => setSelectedGroup(e.target.value)}
-                style={{
-                  width: '100%', padding: '7px 10px', border: '2px solid #059669',
-                  borderRadius: '6px', fontWeight: 800, fontSize: '13px', background: '#ecfdf5', color: '#064e3b'
-                }}
+                value={selectedClass}
+                onChange={e => setSelectedClass(e.target.value)}
+                style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
               >
-                <option value="all">সকল বিভাগ (All Groups)</option>
-                <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (Science)</option>
-                <option value="মানবিক">মানবিক বিভাগ (Humanities)</option>
-                <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা শাখা (Business Studies)</option>
+                <option value="6">৬ষ্ঠ শ্রেণি</option>
+                <option value="7">৭ম শ্রেণি</option>
+                <option value="8">৮ম শ্রেণি</option>
+                <option value="9">৯ম শ্রেণি</option>
+                <option value="10">১০ম শ্রেণি</option>
               </select>
             </div>
-          ) : (
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '5px' }}>
-                বিভাগ
-              </label>
-              <input
-                disabled
-                value="সাধারণ (প্রযোজ্য নয়)"
-                style={{
-                  width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0',
-                  borderRadius: '6px', background: '#f8fafc', color: '#94a3b8', fontSize: '13px'
-                }}
-              />
-            </div>
-          )}
 
-          {/* Section Selector */}
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-              শাখা (Section)
-            </label>
-            <select
-              value={selectedSection}
-              onChange={e => setSelectedSection(e.target.value)}
-              style={{
-                width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
-                borderRadius: '6px', fontWeight: 700, fontSize: '13px'
-              }}
-            >
-              <option value="all">সকল শাখা</option>
-              <option value="পদ্মা">পদ্মা শাখা</option>
-              <option value="মেঘনা">মেঘনা শাখা</option>
-              <option value="যমুনা">যমুনা শাখা</option>
-              <option value="সুরমা">সুরমা শাখা</option>
-            </select>
-          </div>
+            {['9', '10', '৯', '১০'].includes(String(selectedClass)) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 800, color: '#047857' }}>বিভাগ:</span>
+                <select
+                  value={selectedGroup}
+                  onChange={e => setSelectedGroup(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1.5px solid #059669', borderRadius: '6px', fontWeight: 800, background: '#ecfdf5', color: '#064e3b' }}
+                >
+                  <option value="all">সকল বিভাগ</option>
+                  <option value="বিজ্ঞান">বিজ্ঞান</option>
+                  <option value="মানবিক">মানবিক</option>
+                  <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
+                </select>
+              </div>
+            )}
 
-          {/* Student Search */}
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '5px' }}>
-              শিক্ষার্থী খুঁজুন
-            </label>
-            <input
-              type="text"
-              placeholder="রোল বা নাম লিখুন..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              style={{
-                width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1',
-                borderRadius: '6px', fontSize: '13px'
-              }}
-            />
+            {tab === 'daily_report' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 700, color: '#475569' }}>শাখা:</span>
+                <select
+                  value={selectedSection}
+                  onChange={e => setSelectedSection(e.target.value)}
+                  style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: 700 }}
+                >
+                  <option value="all">সকল শাখা</option>
+                  <option value="পদ্মা">পদ্মা</option>
+                  <option value="মেঘনা">মেঘনা</option>
+                  <option value="যমুনা">যমুনা</option>
+                  <option value="সুরমা">সুরমা</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-
-      {/* KPI Counters Bar */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '12px', marginBottom: '20px'
-      }}>
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #3b82f6', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>মোট শিক্ষার্থী</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#1e293b' }}>{toBn(metrics.total)} জন</div>
-        </div>
-
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #10b981', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>উপস্থিত</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#047857' }}>
-            {toBn(metrics.present)} জন <small style={{ fontSize: '14px', opacity: 0.8 }}>({toBn(metrics.rate)}%)</small>
-          </div>
-        </div>
-
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #ef4444', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>অনুপস্থিত</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#b91c1c' }}>{toBn(metrics.absent)} জন</div>
-        </div>
-
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #f59e0b', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>দেরিতে আগমন</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#b45309' }}>{toBn(metrics.late)} জন</div>
-        </div>
-
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #6366f1', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>ছুটি (Leave)</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#4338ca' }}>{toBn(metrics.leave)} জন</div>
-        </div>
-
-        <div style={{
-          background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px',
-          padding: '14px 18px', borderLeft: '5px solid #0f766e', boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-        }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>উপস্থিতির হার</span>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f766e' }}>
-            {toBn(metrics.rate)}%
-          </div>
-        </div>
-      </div>
+      )}
 
       {msg.text && (
         <div style={{
@@ -849,8 +1045,10 @@ export function AttendancePanel({ sub = 'daily' }) {
                   color: '#ffffff', border: 'none',
                   borderRadius: '6px', padding: '8px 14px', fontSize: '12.5px', fontWeight: 800,
                   cursor: metrics.absent ? 'pointer' : 'not-allowed',
-                  display: 'inline-flex', alignItems: 'center', gap: '6px'
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  boxShadow: metrics.absent ? '0 2px 6px rgba(37,211,102,0.3)' : 'none'
                 }}
+                title="অনুপস্থিত শিক্ষার্থীদের অভিভাবকদের WhatsApp বার্তা পাঠানোর ডায়ালগ খুলুন"
               >
                 💬 অনুপস্থিতদের WhatsApp নোটিশ ({toBn(metrics.absent)})
               </button>
@@ -1059,155 +1257,142 @@ export function AttendancePanel({ sub = 'daily' }) {
       )}
 
       {/* ============================================================== */}
-      {/* TAB 2: DAILY ATTENDANCE REPORT (PRINT & PDF VIEW)              */}
+      {/* TAB 2: DAILY ATTENDANCE REPORT (OFFICIAL SCHOOL PAD DIRECTLY)   */}
       {/* ============================================================== */}
       {tab === 'daily_report' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
-            <button
-              type="button"
-              onClick={handlePrint}
-              style={{
-                background: '#047857', color: '#ffffff', border: 'none',
-                borderRadius: '8px', padding: '9px 18px', fontSize: '13.5px', fontWeight: 800,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-              }}
-            >
-              🖨️ দৈনিক রিপোর্ট প্রিন্ট / PDF ডাউনলোড
-            </button>
+        <div
+          ref={printReportRef}
+          className="printable-attendance-sheet"
+          style={{
+            background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
+            padding: '28px 32px', boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+            color: '#0f172a'
+          }}
+        >
+          {/* Formal Institutional Header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
+            paddingBottom: '14px', marginBottom: '16px'
+          }}>
+            <div style={{ flex: '0 0 85px' }}>
+              <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+            </div>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
+                মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
+              </h1>
+              <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b', letterSpacing: '0.5px' }}>
+                MAGRA PALS UNION HIGH SCHOOL
+              </h3>
+              <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
+                ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল | স্থাপিত: ১৯৪৬ খ্রি. | EIIN: ১১৪২৯০
+              </p>
+            </div>
+            <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
+              <div><strong>প্রিন্ট তারিখ:</strong></div>
+              <div>{new Date().toLocaleDateString('bn-BD')}</div>
+              <div>সময়: {new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
           </div>
 
-          <div
-            ref={printReportRef}
-            className="printable-attendance-sheet"
-            style={{
-              background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
-              padding: '28px 32px', boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
-              color: '#0f172a'
-            }}
-          >
-            {/* Formal Institutional Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
-              paddingBottom: '14px', marginBottom: '16px'
-            }}>
-              <div style={{ flex: '0 0 85px' }}>
-                <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-              </div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
-                  মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
-                </h1>
-                <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b', letterSpacing: '0.5px' }}>
-                  MAGRA PALS UNION HIGH SCHOOL
-                </h3>
-                <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
-                  ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল | স্থাপিত: ১৯৪৬ খ্রি. | EIIN: ১১৪২৯০
-                </p>
-              </div>
-              <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
-                <div><strong>প্রিন্ট তারিখ:</strong></div>
-                <div>{new Date().toLocaleDateString('bn-BD')}</div>
-                <div>সময়: {new Date().toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}</div>
+          {/* Document Title Bar */}
+          <div style={{
+            textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
+            borderRadius: '8px', padding: '8px', marginBottom: '16px'
+          }}>
+            <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
+              দৈনিক শিক্ষার্থী উপস্থিতি বিবরণী - ২০২৬ (DAILY ATTENDANCE SHEET)
+            </h2>
+            <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
+              তারিখ: {selectedDate} | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''} {selectedSection !== 'all' ? `• শাখা: ${selectedSection}` : ''}
+            </div>
+          </div>
+
+          {/* Summary KPI Mini Table */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '12.5px' }}>
+            <tbody>
+              <tr style={{ background: '#f8fafc' }}>
+                <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center' }}>
+                  মোট শিক্ষার্থী: <strong>{toBn(metrics.total)}</strong>
+                </td>
+                <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#166534' }}>
+                  উপস্থিত: <strong>{toBn(metrics.present)}</strong> ({toBn(metrics.rate)}%)
+                </td>
+                <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#991b1b' }}>
+                  অনুপস্থিত: <strong>{toBn(metrics.absent)}</strong>
+                </td>
+                <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#b45309' }}>
+                  দেরিতে আগমন: <strong>{toBn(metrics.late)}</strong>
+                </td>
+                <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#4338ca' }}>
+                  ছুটি (Leave): <strong>{toBn(metrics.leave)}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Detailed Roster Table */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '50px', textAlign: 'center' }}>রোল</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '100px' }}>Student ID</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px' }}>শিক্ষার্থীর নাম</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '110px' }}>বিভাগ / শাখা</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '90px', textAlign: 'center' }}>হাজিরা</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '110px' }}>অভিভাবকের ফোন</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px' }}>মন্তব্য</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roster.map((s, idx) => (
+                <tr key={idx} style={{ background: s.status === 'absent' ? '#fef2f2' : idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>
+                    {toBn(s.roll_no)}
+                  </td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.student_id}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', fontWeight: 700 }}>{s.name_bn}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.department || s.section || '—'}</td>
+                  <td style={{
+                    border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 800,
+                    color: s.status === 'present' ? '#166534' : s.status === 'absent' ? '#b91c1c' : '#b45309'
+                  }}>
+                    {s.status === 'present' ? 'উপস্থিত' : s.status === 'absent' ? 'অনুপস্থিত' : s.status === 'late' ? 'দেরি' : 'ছুটি'}
+                  </td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.guardian_phone || '—'}</td>
+                  <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.remarks || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Official Signature Blocks with Teacher List Names & Designations (REQ 5) */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', marginTop: '60px',
+            paddingTop: '10px', textAlign: 'center', fontSize: '12px'
+          }}>
+            <div style={{ width: '150px' }}>
+              <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+                <div>শ্রেণি শিক্ষক</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>স্বাক্ষর ও তারিখ</div>
               </div>
             </div>
-
-            {/* Document Title Bar */}
-            <div style={{
-              textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
-              borderRadius: '8px', padding: '8px', marginBottom: '16px'
-            }}>
-              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
-                দৈনিক শিক্ষার্থী উপস্থিতি বিবরণী - ২০২৬ (DAILY ATTENDANCE SHEET)
-              </h2>
-              <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
-                তারিখ: {selectedDate} | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''} {selectedSection !== 'all' ? `• শাখা: ${selectedSection}` : ''}
+            <div style={{ width: '150px' }}>
+              <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+                <div>সদস্য সচিব</div>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>উপস্থিতি ও শৃঙ্খলা কমিটি</div>
               </div>
             </div>
-
-            {/* Summary KPI Mini Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px', fontSize: '12.5px' }}>
-              <tbody>
-                <tr style={{ background: '#f8fafc' }}>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center' }}>
-                    মোট শিক্ষার্থী: <strong>{toBn(metrics.total)}</strong>
-                  </td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#166534' }}>
-                    উপস্থিত: <strong>{toBn(metrics.present)}</strong> ({toBn(metrics.rate)}%)
-                  </td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#991b1b' }}>
-                    অনুপস্থিত: <strong>{toBn(metrics.absent)}</strong>
-                  </td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#b45309' }}>
-                    দেরিতে আগমন: <strong>{toBn(metrics.late)}</strong>
-                  </td>
-                  <td style={{ border: '1px solid #cbd5e1', padding: '6px 12px', textAlign: 'center', color: '#4338ca' }}>
-                    ছুটি (Leave): <strong>{toBn(metrics.leave)}</strong>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            {/* Detailed Roster Table */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '50px', textAlign: 'center' }}>রোল</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '100px' }}>Student ID</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px' }}>শিক্ষার্থীর নাম</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '110px' }}>বিভাগ / শাখা</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '90px', textAlign: 'center' }}>হাজিরা</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px', width: '110px' }}>অভিভাবকের ফোন</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px 8px' }}>মন্তব্য</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roster.map((s, idx) => (
-                  <tr key={idx} style={{ background: s.status === 'absent' ? '#fef2f2' : idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 700 }}>
-                      {toBn(s.roll_no)}
-                    </td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.student_id}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', fontWeight: 700 }}>{s.name_bn}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.department || s.section || '—'}</td>
-                    <td style={{
-                      border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'center', fontWeight: 800,
-                      color: s.status === 'present' ? '#166534' : s.status === 'absent' ? '#b91c1c' : '#b45309'
-                    }}>
-                      {s.status === 'present' ? 'উপস্থিত' : s.status === 'absent' ? 'অনুপস্থিত' : s.status === 'late' ? 'দেরি' : 'ছুটি'}
-                    </td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.guardian_phone || '—'}</td>
-                    <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px' }}>{s.remarks || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Official Signature Blocks */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', marginTop: '60px',
-              paddingTop: '10px', textAlign: 'center', fontSize: '12px'
-            }}>
-              <div style={{ width: '140px' }}>
-                <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
-                  শ্রেণি শিক্ষক
-                </div>
+            <div style={{ width: '160px' }}>
+              <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+                <div>{asstHeadTeacher.name_bn}</div>
+                <div style={{ fontSize: '11px', color: '#475569' }}>{asstHeadTeacher.designation || 'সহকারী প্রধান শিক্ষক'}</div>
               </div>
-              <div style={{ width: '140px' }}>
-                <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
-                  সদস্য সচিব
-                </div>
-              </div>
-              <div style={{ width: '160px' }}>
-                <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
-                  সহকারী প্রধান শিক্ষক
-                </div>
-              </div>
-              <div style={{ width: '140px' }}>
-                <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
-                  প্রধান শিক্ষক
-                </div>
+            </div>
+            <div style={{ width: '160px' }}>
+              <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+                <div>{headTeacher.name_bn}</div>
+                <div style={{ fontSize: '11px', color: '#475569' }}>{headTeacher.designation || 'প্রধান শিক্ষক'}</div>
               </div>
             </div>
           </div>
@@ -1216,137 +1401,131 @@ export function AttendancePanel({ sub = 'daily' }) {
 
       {/* ============================================================== */}
       {/* TAB 3: WEEKLY ATTENDANCE REGISTER                              */}
+      {/* (REQ 3: Sunday to Thursday, 5 school days, Saturday removed)    */}
       {/* ============================================================== */}
       {tab === 'weekly_report' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
-            <button
-              type="button"
-              onClick={handlePrint}
-              style={{
-                background: '#047857', color: '#ffffff', border: 'none',
-                borderRadius: '8px', padding: '9px 18px', fontSize: '13.5px', fontWeight: 800,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-              }}
-            >
-              🖨️ সাপ্তাহিক রেজিস্টার প্রিন্ট / PDF
-            </button>
+        <div
+          className="printable-attendance-sheet"
+          style={{
+            background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
+            padding: '28px 32px', color: '#0f172a'
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
+            paddingBottom: '14px', marginBottom: '16px'
+          }}>
+            <div style={{ flex: '0 0 85px' }}>
+              <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+            </div>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
+                মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
+              </h1>
+              <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
+                MAGRA PALS UNION HIGH SCHOOL
+              </h3>
+              <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
+                ডাকঘর: মগড়া, কালিহাতী, টাঙ্গাইল | EIIN: ১১৪২৯০ | স্থাপিত: ১৯৪৬ খ্রি.
+              </p>
+            </div>
+            <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
+              <div><strong>প্রিন্ট তারিখ:</strong></div>
+              <div>{new Date().toLocaleDateString('bn-BD')}</div>
+            </div>
           </div>
 
-          <div
-            className="printable-attendance-sheet"
-            style={{
-              background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
-              padding: '28px 32px', color: '#0f172a'
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
-              paddingBottom: '14px', marginBottom: '16px'
-            }}>
-              <div style={{ flex: '0 0 85px' }}>
-                <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-              </div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
-                  মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
-                </h1>
-                <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
-                  MAGRA PALS UNION HIGH SCHOOL
-                </h3>
-                <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
-                  ডাকঘর: মগড়া, কালিহাতী, টাঙ্গাইল | EIIN: ১১৪২৯০ | স্থাপিত: ১৯৪৬ খ্রি.
-                </p>
-              </div>
-              <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
-                <div><strong>প্রিন্ট তারিখ:</strong></div>
-                <div>{new Date().toLocaleDateString('bn-BD')}</div>
-              </div>
+          {/* Title */}
+          <div style={{
+            textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
+            borderRadius: '8px', padding: '8px', marginBottom: '16px'
+          }}>
+            <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
+              সাপ্তাহিক শিক্ষার্থী হাজিরা রেজিস্টার - ২০২৬ (WEEKLY ATTENDANCE REGISTER)
+            </h2>
+            <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
+              সপ্তাহের প্রারম্ভ: {selectedWeekStart} (রবিবার) | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''} | মোট কার্যদিবস: ৫ দিন
             </div>
+          </div>
 
-            {/* Title */}
-            <div style={{
-              textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
-              borderRadius: '8px', padding: '8px', marginBottom: '16px'
-            }}>
-              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
-                সাপ্তাহিক শিক্ষার্থী হাজিরা রেজিস্টার - ২০২৬ (WEEKLY ATTENDANCE REGISTER)
-              </h2>
-              <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
-                সপ্তাহের প্রারম্ভ: {selectedWeekStart} | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''}
-              </div>
+          {/* 5-Day School Week Grid: রবিবার থেকে বৃহস্পতিবার (Saturday & Friday are Weekend) */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'center' }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '50px' }}>রোল</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 10px', textAlign: 'left', minWidth: '160px' }}>শিক্ষার্থীর নাম</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '85px' }}>রবিবার</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '85px' }}>সোমবার</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '85px' }}>মঙ্গলবার</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '85px' }}>বুধবার</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '85px' }}>বৃহস্পতিবার</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '90px', background: '#ecfdf5' }}>মোট উপস্থিতি</th>
+                <th style={{ border: '1px solid #cbd5e1', padding: '7px 6px', width: '80px', background: '#ecfdf5' }}>হার (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {roster.map((s, idx) => {
+                const seed = (s.roll_no * 13) % 100;
+                // 5-day week: Sun, Mon, Tue, Wed, Thu
+                const daysMarks = [
+                  seed === 7 ? 'A' : 'P',
+                  seed === 23 ? 'A' : 'P',
+                  seed === 42 ? 'L' : 'P',
+                  seed === 91 ? 'E' : 'P',
+                  'P'
+                ];
+                const presCount = daysMarks.filter(m => m === 'P' || m === 'L').length;
+                const pct = Math.round((presCount / 5) * 100);
+
+                return (
+                  <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                    <td style={{ border: '1px solid #cbd5e1', padding: '6px', fontWeight: 800 }}>{toBn(s.roll_no)}</td>
+                    <td style={{ border: '1px solid #cbd5e1', padding: '6px 10px', textAlign: 'left', fontWeight: 700 }}>{s.name_bn}</td>
+                    {daysMarks.map((m, dIdx) => (
+                      <td
+                        key={dIdx}
+                        style={{
+                          border: '1px solid #cbd5e1', padding: '6px', fontWeight: 800,
+                          color: m === 'P' ? '#166534' : m === 'A' ? '#b91c1c' : m === 'L' ? '#b45309' : '#4338ca',
+                          background: m === 'A' ? '#fee2e2' : 'transparent'
+                        }}
+                      >
+                        {m}
+                      </td>
+                    ))}
+                    <td style={{ border: '1px solid #cbd5e1', padding: '6px', fontWeight: 800, background: '#f0fdf4', color: '#166534' }}>
+                      {toBn(presCount)}/৫
+                    </td>
+                    <td style={{ border: '1px solid #cbd5e1', padding: '6px', fontWeight: 800, background: '#f0fdf4', color: '#166534' }}>
+                      {toBn(pct)}%
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {/* Signatures with Dynamic Names (REQ 5) */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', marginTop: '60px',
+            paddingTop: '10px', textAlign: 'center', fontSize: '12px'
+          }}>
+            <div style={{ width: '150px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>শ্রেণি শিক্ষক</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>স্বাক্ষর ও তারিখ</div>
             </div>
-
-            {/* 6-Day School Week Grid (শনি থেকে বৃহস্পতি) */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'center' }}>
-              <thead>
-                <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '50px' }}>রোল</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', textAlign: 'left', minWidth: '150px' }}>শিক্ষার্থীর নাম</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>শনিবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>রবিবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>সোমবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>মঙ্গলবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>বুধবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '70px' }}>বৃহস্পতিবার</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '80px', background: '#ecfdf5' }}>মোট উপস্থিতি</th>
-                  <th style={{ border: '1px solid #cbd5e1', padding: '6px', width: '75px', background: '#ecfdf5' }}>হার (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roster.map((s, idx) => {
-                  // Simulate realistic 6-day week attendance for student
-                  const seed = (s.roll_no * 13) % 100;
-                  const daysMarks = [
-                    seed === 7 ? 'A' : 'P',
-                    seed === 23 ? 'A' : 'P',
-                    seed === 42 ? 'L' : 'P',
-                    seed === 7 ? 'A' : 'P',
-                    seed === 91 ? 'E' : 'P',
-                    'P'
-                  ];
-                  const presCount = daysMarks.filter(m => m === 'P' || m === 'L').length;
-                  const pct = Math.round((presCount / 6) * 100);
-
-                  return (
-                    <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
-                      <td style={{ border: '1px solid #cbd5e1', padding: '5px', fontWeight: 800 }}>{toBn(s.roll_no)}</td>
-                      <td style={{ border: '1px solid #cbd5e1', padding: '5px 8px', textAlign: 'left', fontWeight: 700 }}>{s.name_bn}</td>
-                      {daysMarks.map((m, dIdx) => (
-                        <td
-                          key={dIdx}
-                          style={{
-                            border: '1px solid #cbd5e1', padding: '5px', fontWeight: 800,
-                            color: m === 'P' ? '#166534' : m === 'A' ? '#b91c1c' : m === 'L' ? '#b45309' : '#4338ca',
-                            background: m === 'A' ? '#fee2e2' : 'transparent'
-                          }}
-                        >
-                          {m}
-                        </td>
-                      ))}
-                      <td style={{ border: '1px solid #cbd5e1', padding: '5px', fontWeight: 800, background: '#f0fdf4', color: '#166534' }}>
-                        {toBn(presCount)}/৬
-                      </td>
-                      <td style={{ border: '1px solid #cbd5e1', padding: '5px', fontWeight: 800, background: '#f0fdf4', color: '#166534' }}>
-                        {toBn(pct)}%
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Signatures */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', marginTop: '60px',
-              paddingTop: '10px', textAlign: 'center', fontSize: '12px'
-            }}>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>শ্রেণি শিক্ষক</div>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>সদস্য সচিব</div>
-              <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>সহকারী প্রধান শিক্ষক</div>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>প্রধান শিক্ষক</div>
+            <div style={{ width: '150px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>সদস্য সচিব</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>উপস্থিতি ও শৃঙ্খলা কমিটি</div>
+            </div>
+            <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>{asstHeadTeacher.name_bn}</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>{asstHeadTeacher.designation || 'সহকারী প্রধান শিক্ষক'}</div>
+            </div>
+            <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>{headTeacher.name_bn}</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>{headTeacher.designation || 'প্রধান শিক্ষক'}</div>
             </div>
           </div>
         </div>
@@ -1354,164 +1533,164 @@ export function AttendancePanel({ sub = 'daily' }) {
 
       {/* ============================================================== */}
       {/* TAB 4: MONTHLY ATTENDANCE REGISTER & TABULATION SHEET           */}
+      {/* (REQ 4: Exact days in month, e.g. Oct 31; Fri & Sat off-days)  */}
       {/* ============================================================== */}
       {tab === 'monthly_report' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '14px' }}>
-            <button
-              type="button"
-              onClick={handlePrint}
-              style={{
-                background: '#047857', color: '#ffffff', border: 'none',
-                borderRadius: '8px', padding: '9px 18px', fontSize: '13.5px', fontWeight: 800,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-              }}
-            >
-              🖨️ মাসিক খাতা ও রেজিস্টার প্রিন্ট / PDF
-            </button>
+        <div
+          className="printable-attendance-sheet"
+          style={{
+            background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
+            padding: '24px 28px', color: '#0f172a'
+          }}
+        >
+          {/* Header */}
+          <div style={{
+            display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
+            paddingBottom: '14px', marginBottom: '16px'
+          }}>
+            <div style={{ flex: '0 0 85px' }}>
+              <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+            </div>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
+                মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
+              </h1>
+              <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
+                MAGRA PALS UNION HIGH SCHOOL
+              </h3>
+              <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
+                ডাকঘর: মগড়া, কালিহাতী, টাঙ্গাইল | EIIN: ১১৪২৯০ | স্থাপিত: ১৯৪৬ খ্রি.
+              </p>
+            </div>
+            <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
+              <div><strong>প্রিন্ট তারিখ:</strong></div>
+              <div>{new Date().toLocaleDateString('bn-BD')}</div>
+            </div>
           </div>
 
-          <div
-            className="printable-attendance-sheet"
-            style={{
-              background: '#ffffff', border: '1.5px solid #065f46', borderRadius: '12px',
-              padding: '24px 28px', color: '#0f172a'
-            }}
-          >
-            {/* Header */}
-            <div style={{
-              display: 'flex', alignItems: 'center', borderBottom: '2px solid #065f46',
-              paddingBottom: '14px', marginBottom: '16px'
-            }}>
-              <div style={{ flex: '0 0 85px' }}>
-                <img src={schoolLogo} alt="" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-              </div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <h1 style={{ margin: '0 0 2px', fontSize: '24px', fontWeight: 900, color: '#064e3b' }}>
-                  মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়
-                </h1>
-                <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>
-                  MAGRA PALS UNION HIGH SCHOOL
-                </h3>
-                <p style={{ margin: '0', fontSize: '12.5px', color: '#334155' }}>
-                  ডাকঘর: মগড়া, কালিহাতী, টাঙ্গাইল | EIIN: ১১৪২৯০ | স্থাপিত: ১৯৪৬ খ্রি.
-                </p>
-              </div>
-              <div style={{ flex: '0 0 130px', textAlign: 'right', fontSize: '11px', color: '#475569' }}>
-                <div><strong>প্রিন্ট তারিখ:</strong></div>
-                <div>{new Date().toLocaleDateString('bn-BD')}</div>
-              </div>
+          {/* Title with exact working days and off-day notice */}
+          <div style={{
+            textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
+            borderRadius: '8px', padding: '8px', marginBottom: '16px'
+          }}>
+            <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
+              মাসিক শিক্ষার্থী হাজিরা রেজিস্টার ও পরিসংখ্যান - {toBn(selectedYear)} (MONTHLY ATTENDANCE REGISTER)
+            </h2>
+            <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
+              মাস: {BANGLA_MONTHS[selectedMonth]} {toBn(selectedYear)} (মোট {toBn(monthDaysList.length)} দিন) | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''} | মোট কার্যদিবস: {toBn(monthlyWorkingDays)} দিন (সাপ্তাহিক ছুটি: শুক্র ও শনিবার)
             </div>
+          </div>
 
-            {/* Title */}
-            <div style={{
-              textAlign: 'center', background: '#ecfdf5', border: '1px solid #a7f3d0',
-              borderRadius: '8px', padding: '8px', marginBottom: '16px'
-            }}>
-              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 900, color: '#065f46' }}>
-                মাসিক শিক্ষার্থী হাজিরা রেজিস্টার ও পরিসংখ্যান - {toBn(selectedYear)} (MONTHLY ATTENDANCE REGISTER)
-              </h2>
-              <div style={{ fontSize: '12.5px', color: '#047857', marginTop: '3px', fontWeight: 700 }}>
-                মাস: {BANGLA_MONTHS[selectedMonth]} {toBn(selectedYear)} | শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `• বিভাগ: ${selectedGroup}` : ''} | মোট কার্যদিবস: ২৪ দিন
-              </div>
-            </div>
+          {/* Monthly Tabulation Grid */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'center' }}>
+              <thead>
+                <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '32px' }}>রোল</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px 6px', textAlign: 'left', minWidth: '120px' }}>শিক্ষার্থীর নাম</th>
+                  {/* Dynamic Days from 1 to daysInMonth */}
+                  {monthDaysList.map(d => (
+                    <th
+                      key={d.day}
+                      title={d.isFriday ? 'শুক্রবার (সাপ্তাহিক ছুটি)' : d.isSaturday ? 'শনিবার (সাপ্তাহিক ছুটি)' : `${d.day} ${BANGLA_MONTHS[selectedMonth]}`}
+                      style={{
+                        border: '1px solid #cbd5e1', padding: '3px 1px', width: '22px',
+                        background: d.isOffDay ? '#fee2e2' : '#f1f5f9',
+                        color: d.isOffDay ? '#991b1b' : '#1e293b',
+                        fontSize: '10px',
+                        fontWeight: d.isOffDay ? 800 : 700
+                      }}
+                    >
+                      {toBn(d.day)}
+                    </th>
+                  ))}
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '45px', background: '#ecfdf5' }}>উপস্থিত</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '45px', background: '#fef2f2' }}>অনুপস্থিত</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '50px', background: '#ecfdf5' }}>হার (%)</th>
+                  <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '65px' }}>মূল্যায়ন</th>
+                </tr>
+              </thead>
+              <tbody>
+                {roster.map((s, idx) => {
+                  const seed = (s.roll_no * 17 + selectedMonth * 7) % 100;
+                  const absCount = seed === 7 || seed === 23 ? 3 : seed === 42 ? 2 : 1;
+                  const presCount = Math.max(0, monthlyWorkingDays - absCount);
+                  const pct = monthlyWorkingDays > 0 ? Math.round((presCount / monthlyWorkingDays) * 100) : 0;
 
-            {/* Monthly Tabulation Grid */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', textAlign: 'center' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #475569' }}>
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '35px' }}>রোল</th>
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px 6px', textAlign: 'left', minWidth: '130px' }}>শিক্ষার্থীর নাম</th>
-                    {/* Days 1 to 30 */}
-                    {Array.from({ length: 30 }, (_, i) => i + 1).map(d => {
-                      const isFriday = (d % 7 === 6); // Mock Friday
-                      return (
-                        <th
-                          key={d}
-                          style={{
-                            border: '1px solid #cbd5e1', padding: '3px 1px', width: '22px',
-                            background: isFriday ? '#fee2e2' : '#f1f5f9',
-                            color: isFriday ? '#991b1b' : '#1e293b',
-                            fontSize: '10.5px'
-                          }}
-                        >
-                          {toBn(d)}
-                        </th>
-                      );
-                    })}
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '45px', background: '#ecfdf5' }}>উপস্থিত</th>
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '45px', background: '#fef2f2' }}>অনুপস্থিত</th>
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '50px', background: '#ecfdf5' }}>হার (%)</th>
-                    <th style={{ border: '1px solid #cbd5e1', padding: '4px', width: '65px' }}>মূল্যায়ন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {roster.map((s, idx) => {
-                    const workingDays = 24;
-                    const seed = (s.roll_no * 17 + selectedMonth * 7) % 100;
-                    const absCount = seed === 7 || seed === 23 ? 3 : seed === 42 ? 2 : 1;
-                    const presCount = workingDays - absCount;
-                    const pct = Math.round((presCount / workingDays) * 100);
-
-                    return (
-                      <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800 }}>{toBn(s.roll_no)}</td>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px 6px', textAlign: 'left', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                          {s.name_bn}
-                        </td>
-                        {Array.from({ length: 30 }, (_, i) => i + 1).map(d => {
-                          const isFriday = (d % 7 === 6);
-                          if (isFriday) {
-                            return (
-                              <td key={d} style={{ border: '1px solid #cbd5e1', padding: '2px', background: '#fee2e2', color: '#991b1b', fontSize: '9px' }}>
-                                শুক্র
-                              </td>
-                            );
-                          }
-                          const isAbsDay = (d === (seed % 25) + 1);
+                  return (
+                    <tr key={idx} style={{ background: idx % 2 === 0 ? '#ffffff' : '#fafafa' }}>
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800 }}>{toBn(s.roll_no)}</td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px 6px', textAlign: 'left', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        {s.name_bn}
+                      </td>
+                      {monthDaysList.map(d => {
+                        if (d.isFriday) {
                           return (
-                            <td
-                              key={d}
-                              style={{
-                                border: '1px solid #cbd5e1', padding: '2px', fontSize: '10px', fontWeight: 700,
-                                color: isAbsDay ? '#b91c1c' : '#166534',
-                                background: isAbsDay ? '#fecaca' : 'transparent'
-                              }}
-                            >
-                              {isAbsDay ? 'A' : 'P'}
+                            <td key={d.day} style={{ border: '1px solid #cbd5e1', padding: '2px', background: '#fee2e2', color: '#991b1b', fontSize: '9px', fontWeight: 800 }}>
+                              শুক্র
                             </td>
                           );
-                        })}
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#166534', background: '#f0fdf4' }}>
-                          {toBn(presCount)}
-                        </td>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#b91c1c', background: '#fef2f2' }}>
-                          {toBn(absCount)}
-                        </td>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#047857', background: '#f0fdf4' }}>
-                          {toBn(pct)}%
-                        </td>
-                        <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontSize: '10.5px', fontWeight: 700 }}>
-                          {pct >= 90 ? 'উত্তম' : pct >= 75 ? 'সন্তোষজনক' : 'ঝুঁকিপূর্ণ'}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        }
+                        if (d.isSaturday) {
+                          return (
+                            <td key={d.day} style={{ border: '1px solid #cbd5e1', padding: '2px', background: '#fee2e2', color: '#991b1b', fontSize: '9px', fontWeight: 800 }}>
+                              শনি
+                            </td>
+                          );
+                        }
+                        const isAbsDay = (d.day === (seed % 22) + 2);
+                        return (
+                          <td
+                            key={d.day}
+                            style={{
+                              border: '1px solid #cbd5e1', padding: '2px', fontSize: '10px', fontWeight: 700,
+                              color: isAbsDay ? '#b91c1c' : '#166534',
+                              background: isAbsDay ? '#fecaca' : 'transparent'
+                            }}
+                          >
+                            {isAbsDay ? 'A' : 'P'}
+                          </td>
+                        );
+                      })}
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#166534', background: '#f0fdf4' }}>
+                        {toBn(presCount)}
+                      </td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#b91c1c', background: '#fef2f2' }}>
+                        {toBn(absCount)}
+                      </td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontWeight: 800, color: '#047857', background: '#f0fdf4' }}>
+                        {toBn(pct)}%
+                      </td>
+                      <td style={{ border: '1px solid #cbd5e1', padding: '3px', fontSize: '10px', fontWeight: 700 }}>
+                        {pct >= 90 ? 'উত্তম' : pct >= 75 ? 'সন্তোষজনক' : 'ঝুঁকিপূর্ণ'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-            {/* Signatures */}
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', marginTop: '60px',
-              paddingTop: '10px', textAlign: 'center', fontSize: '12px'
-            }}>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>শ্রেণি শিক্ষক</div>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>সদস্য সচিব</div>
-              <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>সহকারী প্রধান শিক্ষক</div>
-              <div style={{ width: '140px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>প্রধান শিক্ষক</div>
+          {/* Signatures with Dynamic Names (REQ 5) */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', marginTop: '60px',
+            paddingTop: '10px', textAlign: 'center', fontSize: '12px'
+          }}>
+            <div style={{ width: '150px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>শ্রেণি শিক্ষক</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>স্বাক্ষর ও তারিখ</div>
+            </div>
+            <div style={{ width: '150px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>সদস্য সচিব</div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>উপস্থিতি ও শৃঙ্খলা কমিটি</div>
+            </div>
+            <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>{asstHeadTeacher.name_bn}</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>{asstHeadTeacher.designation || 'সহকারী প্রধান শিক্ষক'}</div>
+            </div>
+            <div style={{ width: '160px', borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 700 }}>
+              <div>{headTeacher.name_bn}</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>{headTeacher.designation || 'প্রধান শিক্ষক'}</div>
             </div>
           </div>
         </div>
@@ -1522,7 +1701,6 @@ export function AttendancePanel({ sub = 'daily' }) {
       {/* ============================================================== */}
       {tab === 'alerts' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 420px) 1fr', gap: '20px' }}>
-          {/* SMS / WhatsApp Dispatch Tool */}
           <div style={{
             background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '14px',
             padding: '22px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
@@ -1596,7 +1774,7 @@ export function AttendancePanel({ sub = 'daily' }) {
             </div>
           </div>
 
-          {/* Absent Students List for selected date */}
+          {/* Absent Students List */}
           <div style={{
             background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '14px',
             padding: '22px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
@@ -1774,6 +1952,133 @@ export function AttendancePanel({ sub = 'daily' }) {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* WHATSAPP BULK DISPATCH MODAL (REQ 1: Fixed & Fully Functional) */}
+      {/* ============================================================== */}
+      {whatsAppModalOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          zIndex: 1300, display: 'grid', placeItems: 'center', padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', width: '100%', maxWidth: '640px', borderRadius: '16px',
+            padding: '24px', boxShadow: '0 20px 50px rgba(0,0,0,0.25)', position: 'relative',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#25d366', color: '#fff', display: 'grid', placeItems: 'center', fontSize: '22px' }}>
+                  💬
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', color: '#065f46', fontWeight: 800 }}>
+                    অনুপস্থিত শিক্ষার্থীদের WhatsApp নোটিশ প্রেরক
+                  </h3>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    শ্রেণি: {selectedClass}ম {selectedGroup !== 'all' ? `(${selectedGroup})` : ''} • তারিখ: {selectedDate} • মোট অনুপস্থিত: {toBn(metrics.absent)} জন
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWhatsAppModalOpen(false)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '4px' }}>
+              {/* Message preview */}
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '12px 14px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '4px' }}>
+                  📋 প্রেরিতব্য WhatsApp বার্তা প্রিভিউ:
+                </div>
+                <div style={{ fontSize: '12.5px', color: '#1e293b', whiteSpace: 'pre-line', lineHeight: 1.5, background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                  {`সম্মানিত অভিভাবক, আসসালামু আলাইকুম।
+আপনার সন্তান [শিক্ষার্থীর নাম], শ্রেণি: [${toBn(selectedClass)}ম], রোল: [রোল] আজ ${selectedDate} তারিখে বিদ্যালয়ে অনুপস্থিত রয়েছে। 
+অনুপস্থিতির জরুরি কারণ থাকলে বিদ্যালয় কর্তৃপক্ষকে অবহিত করার অনুরোধ করা হলো।
+
+${headTeacher.name_bn || 'প্রধান শিক্ষক'}
+${headTeacher.designation || 'প্রধান শিক্ষক'}
+${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়, টাঙ্গাইল'}
+মোবাইল: ${toBn(headTeacher.phone || '01753539680')}`}
+                </div>
+              </div>
+
+              {/* Absent students list with individual WhatsApp buttons */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                  অনুপস্থিত শিক্ষার্থীদের তালিকা ও WhatsApp লিঙ্ক:
+                </div>
+                <div style={{ display: 'grid', gap: '8px' }}>
+                  {roster.filter(s => s.status === 'absent').map((s) => {
+                    const isSent = !!whatsAppSentMap[s.id];
+                    return (
+                      <div
+                        key={s.id}
+                        style={{
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          padding: '10px 14px', borderRadius: '10px', background: isSent ? '#f0fdf4' : '#ffffff',
+                          border: isSent ? '1px solid #86efac' : '1px solid #cbd5e1',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px' }}>
+                            রোল {toBn(s.roll_no)} - {s.name_bn}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                            অভিভাবক: {s.guardian_name || 'পিতা'} • মোবাইল: <strong>{s.guardian_phone || '01712-345678'}</strong>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {isSent && (
+                            <span style={{ fontSize: '11.5px', color: '#166534', fontWeight: 800, background: '#dcfce7', padding: '3px 8px', borderRadius: '6px' }}>
+                              ✓ খোলা হয়েছে
+                            </span>
+                          )}
+                          <a
+                            href={buildWhatsAppUrl(s)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setWhatsAppSentMap(prev => ({ ...prev, [s.id]: true }))}
+                            style={{
+                              background: '#25d366', color: '#ffffff', padding: '7px 14px',
+                              borderRadius: '7px', fontSize: '12.5px', fontWeight: 800,
+                              textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px',
+                              boxShadow: '0 2px 6px rgba(37,211,102,0.3)'
+                            }}
+                          >
+                            💬 WhatsApp এ পাঠান
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '14px', borderTop: '1px solid #e2e8f0', marginTop: '10px' }}>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
+                টিপস: লিঙ্কে ক্লিক করলেই মোবাইল বা কম্পিউটারের WhatsApp সরাসরি চালু হবে।
+              </div>
+              <button
+                type="button"
+                onClick={() => setWhatsAppModalOpen(false)}
+                style={{
+                  background: '#047857', color: '#ffffff', border: 'none',
+                  borderRadius: '8px', padding: '8px 18px', fontWeight: 800, cursor: 'pointer'
+                }}
+              >
+                সম্পন্ন / বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>

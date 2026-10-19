@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { MOCK_STUDENTS, getStudentPhoto } from './mockData';
 import schoolLogo from '../public/school-logo.png';
 import { sortStudentsList } from './apiClient';
+import { getHeadTeacher, getAssistantHeadTeacher } from './AttendancePanel';
 
 // Bengali digit helper
 const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -12,6 +13,10 @@ const BANGLA_MONTHS = [
 ];
 
 export function PublicAttendancePortal({ isOpen, onClose }) {
+  // Dynamic Head Teacher & Assistant Head Teacher from teacher list
+  const headTeacher = useMemo(() => getHeadTeacher(), []);
+  const asstHeadTeacher = useMemo(() => getAssistantHeadTeacher(), []);
+
   // Search parameters
   const [searchClass, setSearchClass] = useState('10');
   const [searchGroup, setSearchGroup] = useState('বিজ্ঞান'); // Mandatory choice for 9/10
@@ -143,11 +148,15 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
       };
     });
 
-    // Recent 30 school days dot matrix
+    // Recent 30 school days dot matrix (Friday & Saturday are weekly holidays)
     const recentDays = Array.from({ length: 30 }, (_, i) => {
       const dayNum = 30 - i;
-      const isFriday = (dayNum % 7 === 5);
-      if (isFriday) return { day: dayNum, status: 'holiday', label: 'শুক্রবার (ছুটি)' };
+      const dObj = new Date(2026, 9, dayNum); // October 2026
+      const dow = dObj.getDay();
+      const isFri = (dow === 5);
+      const isSat = (dow === 6);
+      if (isFri) return { day: dayNum, status: 'holiday', label: `${toBn(dayNum)} অক্টোবর: শুক্রবার (সাপ্তাহিক ছুটি)` };
+      if (isSat) return { day: dayNum, status: 'holiday', label: `${toBn(dayNum)} অক্টোবর: শনিবার (সাপ্তাহিক ছুটি)` };
       const isAbs = (dayNum === (seed % 28) + 1);
       const isLateDay = (dayNum === (seed % 14) + 1);
       const isLeaveDay = (dayNum === 14);
@@ -602,7 +611,7 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
                         <span>🔴 অনুপস্থিত</span>
                         <span>🟡 বিলম্ব</span>
                         <span>🔵 ছুটি</span>
-                        <span>⚪ শুক্রবার</span>
+                        <span>⚪ শুক্র ও শনিবার (সাপ্তাহিক ছুটি)</span>
                       </div>
                     </div>
 
@@ -777,24 +786,27 @@ export function PublicAttendancePortal({ isOpen, onClose }) {
                     </tbody>
                   </table>
 
-                  {/* Signatures */}
+                  {/* Signatures with dynamic teacher list names and designations (REQ 5) */}
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', marginTop: '60px',
                     paddingTop: '10px', textAlign: 'center', fontSize: '13px'
                   }}>
                     <div style={{ width: '160px' }}>
                       <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 800 }}>
-                        শ্রেণি শিক্ষক
+                        <div>শ্রেণি শিক্ষক</div>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>স্বাক্ষর ও তারিখ</div>
                       </div>
                     </div>
                     <div style={{ width: '180px' }}>
                       <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 800 }}>
-                        সহকারী প্রধান শিক্ষক
+                        <div>{asstHeadTeacher.name_bn}</div>
+                        <div style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>{asstHeadTeacher.designation || 'সহকারী প্রধান শিক্ষক'}</div>
                       </div>
                     </div>
                     <div style={{ width: '160px' }}>
                       <div style={{ borderTop: '1px dashed #334155', paddingTop: '4px', fontWeight: 800 }}>
-                        প্রধান শিক্ষক
+                        <div>{headTeacher.name_bn}</div>
+                        <div style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>{headTeacher.designation || 'প্রধান শিক্ষক'}</div>
                       </div>
                     </div>
                   </div>
