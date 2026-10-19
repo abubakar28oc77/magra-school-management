@@ -287,12 +287,26 @@ try {
       } else {
         // Heal any corrupted student departments in localStorage and safely include missing default seed students
         const existingIds = new Set(parsed.map(s => String(s.student_id || s.id || '').toUpperCase()));
+        const hasClass8Roll1 = parsed.some(s => {
+          const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          return c === '8' && r === '1';
+        });
         const missingSeed = MOCK_STUDENTS.filter(s => {
           const sid = String(s.student_id || s.id || '').toUpperCase();
+          if (sid === 'STU-08-01' && !hasClass8Roll1) return true;
           return sid && !existingIds.has(sid);
         }).map(enrichStudentProfile);
         const healed = [...parsed.map(enrichStudentProfile), ...missingSeed];
-        localStorage.setItem('magra_db_students', JSON.stringify(healed));
+        try {
+          localStorage.setItem('magra_db_students', JSON.stringify(healed));
+        } catch {
+          const light = healed.map(s => {
+            const { photo_url, photo, image, ...rest } = s;
+            return rest;
+          });
+          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch {}
+        }
       }
     } catch {}
   }
@@ -364,9 +378,31 @@ function setLocalStore(key, val) {
   try {
     if (key === 'students' && Array.isArray(val)) {
       val = val.map(enrichStudentProfile);
+      val.forEach(s => {
+        if (s && (s.photo_url || s.photo)) {
+          saveStudentCustomPhoto(s, s.photo_url || s.photo);
+        }
+      });
     }
     localStorage.setItem('magra_db_' + key, JSON.stringify(val));
-  } catch {}
+  } catch (err) {
+    console.warn('localStorage quota error for ' + key + ':', err);
+    if (key === 'students' && Array.isArray(val)) {
+      try {
+        const light = val.map(s => {
+          const copy = { ...s };
+          delete copy.photo_url;
+          delete copy.photo;
+          delete copy.image;
+          return copy;
+        });
+        localStorage.setItem('magra_db_' + key, JSON.stringify(light));
+        console.log('Saved students directory successfully in lightweight format (photos preserved in Photo Vault)');
+      } catch (e2) {
+        console.error('Failed to save to localStorage:', e2);
+      }
+    }
+  }
 }
 
 let backendState = 'probing'; // 'probing' | 'online' | 'offline'
@@ -1007,10 +1043,13 @@ function handleMockRequest(path, opts = {}) {
       const allStudents = getLocalStore('students', MOCK_STUDENTS);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
+      const c = body.class_name ? String(body.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '6';
+      const r = body.roll_no ? String(body.roll_no).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '1';
+      const defaultSid = 'STU-' + String(c).padStart(2, '0') + '-' + String(r).padStart(2, '0');
       const newSt = { 
         ...body,
-        id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
-        student_id: body.student_id || ('STU-' + new Date().getFullYear() + '-' + String(allStudents.length + 1).padStart(4, '0')), 
+        id: body.id || ('std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)), 
+        student_id: body.student_id || defaultSid, 
         religion: normalizeReligion(body.religion),
         status: st
       };
@@ -1132,6 +1171,10 @@ function handleMockRequest(path, opts = {}) {
                       (body.class_name && body.roll_no && String(s.class_name) === String(body.class_name) && String(s.roll_no) === String(body.roll_no));
         if (match) {
           const merged = { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) };
+          if (body.photo_url || body.photo) {
+            merged.photo_url = body.photo_url || body.photo;
+            merged.photo = body.photo_url || body.photo;
+          }
           updatedObj = merged;
           return merged;
         }

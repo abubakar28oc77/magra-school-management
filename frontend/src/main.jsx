@@ -1575,6 +1575,13 @@ function StudentPanel({sub}){
  const [showCertModal, setShowCertModal] = useState(false);
  const [certStudentId, setCertStudentId] = useState('');
  const [certType, setCertType] = useState('testimonial');
+ const [, setPhotoVersion] = useState(0);
+
+ useEffect(() => {
+   const handlePhotoSync = () => setPhotoVersion(v => v + 1);
+   window.addEventListener('magra_photos_synced', handlePhotoSync);
+   return () => window.removeEventListener('magra_photos_synced', handlePhotoSync);
+ }, []);
 
  const handleOpenIdCard = (stuId = '') => {
    setIdCardStudentId(stuId || (students[0]?.id || ''));
@@ -2254,7 +2261,7 @@ function StudentPanel({sub}){
         const compressed = canvas.toDataURL('image/jpeg', 0.82);
         change('photo_url', compressed);
         change('photo', compressed);
-        saveStudentCustomPhoto(form, compressed);
+        saveStudentCustomPhoto({ ...form, photo_url: compressed, photo: compressed }, compressed);
         setMsg('✓ ছবি সিলেক্ট ও প্রস্তুত হয়েছে। নিচের "তথ্য আপডেট করুন" বাটনে ক্লিক করে সেভ সম্পন্ন করুন।');
       };
       img.src = r.result;
@@ -2273,17 +2280,45 @@ function StudentPanel({sub}){
     try {
       const method = editing ? 'PUT' : 'POST';
       const path = editing ? `/students/${editing}` : '/students';
+      const cleanClass = form.class_name ? String(form.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '6';
+      const cleanRoll = form.roll_no ? String(form.roll_no).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '1';
+      const defaultSid = 'STU-' + String(cleanClass).padStart(2, '0') + '-' + String(cleanRoll).padStart(2, '0');
       const payload = {
         ...form,
+        student_id: form.student_id || defaultSid,
+        class_name: cleanClass,
+        roll_no: parseInt(cleanRoll, 10) || cleanRoll,
         is_special_needs: form.is_special_needs || 'না',
         disability_type: form.is_special_needs === 'হ্যাঁ' ? form.disability_type : '',
         special_needs: form.is_special_needs === 'হ্যাঁ' ? (form.disability_type || form.special_needs || 'হ্যাঁ') : ''
       };
-      if (form.photo_url) {
-        saveStudentCustomPhoto(form, form.photo_url);
+      if (form.photo_url || form.photo) {
+        payload.photo_url = form.photo_url || form.photo;
+        payload.photo = form.photo_url || form.photo;
+        saveStudentCustomPhoto(payload, form.photo_url || form.photo);
       }
-      await api(path, { method, body: JSON.stringify(payload) });
-      setMsg(editing ? 'শিক্ষার্থী তথ্য আপডেট হয়েছে' : 'নতুন শিক্ষার্থী সংরক্ষিত হয়েছে');
+      const savedStudent = await api(path, { method, body: JSON.stringify(payload) });
+
+      if (editing) {
+        setStudents(prev => prev.map(s => {
+          if (String(s.id).toLowerCase() === String(editing).toLowerCase() || 
+              String(s.student_id).toLowerCase() === String(payload.student_id || editing).toLowerCase()) {
+            return { ...s, ...payload, photo_url: form.photo_url || s.photo_url, photo: form.photo_url || s.photo };
+          }
+          return s;
+        }));
+      } else {
+        setClassName(cleanClass);
+        setGroupFilter('');
+        setSection('');
+        setQ('');
+        setStatus('active');
+        if (savedStudent) {
+          setStudents(prev => [savedStudent, ...prev.filter(x => x.id !== savedStudent.id && x.student_id !== savedStudent.student_id)]);
+        }
+      }
+
+      setMsg(editing ? '✓ শিক্ষার্থী তথ্য ও ছবি সফলভাবে আপডেট হয়েছে' : '✓ নতুন শিক্ষার্থী সফলভাবে তালিকায় যুক্ত হয়েছে');
       setEditing(null);
       setForm({ ...emptyStudent, extended_profile: { education: [] } });
       setView('list');
