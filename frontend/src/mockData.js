@@ -57,30 +57,18 @@ export function saveStudentCustomPhoto(student, dataUrl) {
     const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
     const rNo = String(student.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
 
-    const keysToSet = new Set();
+    // 1. Save canonical local photo keys
     if (student.id) {
-      keysToSet.add('magra_photo_' + student.id);
-      keysToSet.add('magra_photo_' + String(student.id).toLowerCase());
-      keysToSet.add('magra_photo_' + String(student.id).toUpperCase());
+      try { localStorage.setItem('magra_photo_' + student.id, dataUrl); } catch {}
     }
     if (student.student_id) {
-      keysToSet.add('magra_photo_' + student.student_id);
-      keysToSet.add('magra_photo_' + String(student.student_id).toLowerCase());
-      keysToSet.add('magra_photo_' + String(student.student_id).toUpperCase());
+      try { localStorage.setItem('magra_photo_' + student.student_id, dataUrl); } catch {}
     }
     if (cName && rNo) {
-      keysToSet.add(`magra_photo_cls_${cName}_roll_${rNo}`);
-      keysToSet.add(`magra_photo_${cName}_${rNo}`);
-      keysToSet.add(`magra_photo_cls_${cName}_${rNo}`);
-      keysToSet.add(`magra_photo_std_${cName}_${rNo}`);
-      keysToSet.add(`magra_photo_class_${cName}_roll_${rNo}`);
+      try { localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, dataUrl); } catch {}
     }
 
-    keysToSet.forEach(k => {
-      try { localStorage.setItem(k, dataUrl); } catch {}
-    });
-
-    // Also update in magra_db_students in localStorage
+    // 2. Also update in magra_db_students in localStorage
     const raw = localStorage.getItem('magra_db_students');
     if (raw) {
       const list = JSON.parse(raw);
@@ -100,7 +88,7 @@ export function saveStudentCustomPhoto(student, dataUrl) {
           return x;
         });
         if (updated) {
-          localStorage.setItem('magra_db_students', JSON.stringify(newList));
+          try { localStorage.setItem('magra_db_students', JSON.stringify(newList)); } catch {}
         }
       }
     }
@@ -112,7 +100,14 @@ export function saveStudentCustomPhoto(student, dataUrl) {
 export function getStudentPhoto(student) {
   if (!student) return PHOTO_STUDENT_MALE_1;
 
-  // 1. Direct candidate properties on student object (uploaded photo, custom image, or assigned photo)
+  const isCustom = (url) => {
+    if (!url || typeof url !== 'string') return false;
+    if (url.includes('fakepath')) return false;
+    if (url.startsWith('data:image/svg+xml') || url.includes('<svg')) return false;
+    return url.length > 20;
+  };
+
+  // 1. First priority: Real custom photo on the student object itself
   const candidates = [
     student.photo_url,
     student.photo,
@@ -122,21 +117,19 @@ export function getStudentPhoto(student) {
     student.extended_profile?.photo_url
   ];
   for (const c of candidates) {
-    if (typeof c === 'string' && c.length > 20 && !c.includes('fakepath')) {
-      return c;
-    }
+    if (isCustom(c)) return c;
   }
 
-  // 2. Direct local storage cached photo by ID, student_id, or Class+Roll
+  // 2. Second priority: Real custom photo cached in localStorage
   try {
     const sId = student.id || student.student_id;
     if (sId) {
       const p1 = localStorage.getItem('magra_photo_' + sId);
-      if (p1 && p1.length > 20 && !p1.includes('fakepath')) return p1;
+      if (isCustom(p1)) return p1;
       const pLower = localStorage.getItem('magra_photo_' + String(sId).toLowerCase());
-      if (pLower && pLower.length > 20 && !pLower.includes('fakepath')) return pLower;
+      if (isCustom(pLower)) return pLower;
       const pUpper = localStorage.getItem('magra_photo_' + String(sId).toUpperCase());
-      if (pUpper && pUpper.length > 20 && !pUpper.includes('fakepath')) return pUpper;
+      if (isCustom(pUpper)) return pUpper;
     }
 
     const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
@@ -151,17 +144,12 @@ export function getStudentPhoto(student) {
       ];
       for (const k of keys) {
         const p = localStorage.getItem(k);
-        if (p && p.length > 20 && !p.includes('fakepath')) return p;
+        if (isCustom(p)) return p;
       }
-    }
-
-    const pStu = localStorage.getItem('magra_photo_STU-10-SCI-01');
-    if (pStu && pStu.length > 20 && (student.id === 'stu-10-sci-1' || student.student_id === 'STU-10-SCI-01' || (cName === '10' && rNo === '1'))) {
-      return pStu;
     }
   } catch {}
 
-  // 3. Search magra_db_students in localStorage
+  // 3. Third priority: Real custom photo from magra_db_students in localStorage
   try {
     const raw = localStorage.getItem('magra_db_students');
     if (raw) {
@@ -181,27 +169,39 @@ export function getStudentPhoto(student) {
         if (found) {
           const fcand = [found.photo_url, found.photo, found.image, found.avatar, found.student_photo, found.extended_profile?.photo_url];
           for (const c of fcand) {
-            if (typeof c === 'string' && c.length > 20 && !c.includes('fakepath')) {
-              return c;
-            }
+            if (isCustom(c)) return c;
           }
         }
       }
     }
   } catch {}
 
-  // 4. Default high-definition student portrait SVGs (fallback only when student has no photo)
+  // 4. Fourth priority: Default high-definition realistic student studio portrait photos for top classes
+  const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
+  const rNo = String(student.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d);
   const name = (student.name_bn || student.name_en || '').toLowerCase();
   const stuId = String(student.student_id || student.id || '').toLowerCase();
-  const roll = parseInt(student.roll_no, 10) || 1;
-  const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা') || name.includes('সাদিয়া');
 
-  if (name.includes('আহনাফ') || name.includes('ahnaf') || stuId.includes('stu-10-sci-01') || roll === 1) {
-    return PHOTO_STUDENT_MALE_1;
+  // Class 7 Roll 1
+  if ((cName === '7' && rNo === '1') || stuId.includes('stu-07-01') || name.includes('মাহির')) {
+    return PHOTO_REAL_STUDENT_7;
   }
-  if (name.includes('শিহাব') || name.includes('shihab') || roll === 2) {
-    return PHOTO_STUDENT_MALE_2;
+  // Class 8 Roll 1
+  if ((cName === '8' && rNo === '1') || stuId.includes('stu-08-01') || name.includes('সাদিয়া')) {
+    return PHOTO_REAL_STUDENT_8;
   }
+  // Class 9 Science Roll 1
+  if ((cName === '9' && rNo === '1') || stuId.includes('stu-09-sci-01') || name.includes('তাহমিদ')) {
+    return PHOTO_REAL_STUDENT_9;
+  }
+  // Class 10 Science Roll 1
+  if ((cName === '10' && rNo === '1') || stuId.includes('stu-10-sci-01') || name.includes('আহনাফ')) {
+    return PHOTO_REAL_STUDENT_9;
+  }
+
+  // 5. Fallback SVGs
+  const roll = parseInt(rNo, 10) || 1;
+  const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা') || name.includes('সাদিয়া');
   if (isFemale) {
     return (roll % 2 === 0) ? PHOTO_STUDENT_FEMALE_2 : PHOTO_STUDENT_FEMALE_1;
   }
@@ -388,8 +388,134 @@ export const MOCK_USERS = [
 
 export const MOCK_STUDENTS = [
   {
+    "id": "stu-07-01",
+    "photo_url": PHOTO_REAL_STUDENT_7,
+    "student_id": "STU-07-01",
+    "roll_no": 1,
+    "name_bn": "মাহির ফয়সাল",
+    "name_en": "Mahir Faysal",
+    "class_name": "7",
+    "department": "সাধারণ",
+    "group_name": "সাধারণ",
+    "group": "সাধারণ",
+    "section": "ক",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ ফয়সাল আহমেদ",
+    "father_name_en": "",
+    "father_mobile": "01712000007",
+    "father_profession": "ব্যবসায়ী",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ ফয়সাল আহমেদ",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000007",
+    "emergency_phone": "01712000007",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "7",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
+  {
+    "id": "stu-08-01",
+    "photo_url": PHOTO_REAL_STUDENT_8,
+    "student_id": "STU-08-01",
+    "roll_no": 1,
+    "name_bn": "সাদিয়া আক্তার",
+    "name_en": "Sadia Akter",
+    "class_name": "8",
+    "department": "সাধারণ",
+    "group_name": "সাধারণ",
+    "group": "সাধারণ",
+    "section": "ক",
+    "gender": "নারী",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ আনোয়ার হোসেন",
+    "father_name_en": "",
+    "father_mobile": "01712000008",
+    "father_profession": "ব্যবসায়ী",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ আনোয়ার হোসেন",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000008",
+    "emergency_phone": "01712000008",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "8",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
+  {
+    "id": "stu-09-sci-01",
+    "photo_url": PHOTO_REAL_STUDENT_9,
+    "student_id": "STU-09-SCI-01",
+    "roll_no": 1,
+    "name_bn": "তাহমিদ হাসান",
+    "name_en": "Tahmid Hasan",
+    "class_name": "9",
+    "department": "বিজ্ঞান",
+    "group_name": "বিজ্ঞান বিভাগ",
+    "group": "বিজ্ঞান বিভাগ",
+    "section": "বিজ্ঞান বিভাগ",
+    "gender": "পুরুষ",
+    "religion": "ইসলাম",
+    "father_name": "মোঃ হাসানুজ্জামান",
+    "father_name_en": "",
+    "father_mobile": "01712000009",
+    "father_profession": "শিক্ষক",
+    "father_nid_no": "",
+    "mother_name": "",
+    "mother_name_en": "",
+    "mother_mobile": "",
+    "mother_profession": "গৃহিনী",
+    "mother_nid_no": "",
+    "guardian_name": "মোঃ হাসানুজ্জামান",
+    "guardian_name_en": "",
+    "guardian_relation": "পিতা",
+    "guardian_phone": "01712000009",
+    "emergency_phone": "01712000009",
+    "current_village": "",
+    "current_post_office": "",
+    "current_upazila": "",
+    "current_district": "",
+    "permanent_village": "",
+    "permanent_post_office": "",
+    "permanent_upazila": "",
+    "permanent_district": "",
+    "address": "",
+    "admission_class": "9",
+    "admission_date": "2026-01-01",
+    "status": "active"
+  },
+  {
     "id": "stu-10-sci-1",
-    "photo_url": PHOTO_STUDENT_MALE_1,
+    "photo_url": PHOTO_REAL_STUDENT_9,
     "student_id": "STU-10-SCI-01",
     "roll_no": 1,
     "name_bn": "আহনাফ সিদ্দিক",

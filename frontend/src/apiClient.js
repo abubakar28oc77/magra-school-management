@@ -113,22 +113,6 @@ try {
   }
 } catch {}
 
-// Purge fake mock students (stu-07-01, stu-08-01, stu-09-sci-01) from localStorage on startup
-try {
-  const rawStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
-  if (Array.isArray(rawStudents)) {
-    const cleaned = rawStudents.filter(s => {
-      if (!s) return false;
-      const isFake = s.id === 'stu-07-01' || s.id === 'stu-08-01' || s.id === 'stu-09-sci-01' ||
-                     s.student_id === 'STU-07-01' || s.student_id === 'STU-08-01' || s.student_id === 'STU-09-SCI-01' ||
-                     (s.name_bn && (s.name_bn === 'মাহির ফয়সাল' || s.name_bn === 'সাদিয়া আক্তার' || s.name_bn === 'তাহমিদ হাসান'));
-      return !isFake;
-    });
-    if (cleaned.length !== rawStudents.length) {
-      localStorage.setItem('magra_db_students', JSON.stringify(cleaned));
-    }
-  }
-} catch {}
 
 // Purge deleted/legacy exams from localStorage on startup
 try {

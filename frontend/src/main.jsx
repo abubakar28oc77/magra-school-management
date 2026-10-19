@@ -100,7 +100,18 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: false,
-      deptLabel: ''
+      deptLabel: '',
+      fallback: {
+        id: 'stu-07-01',
+        student_id: 'STU-07-01',
+        name_bn: 'মাহির ফয়সাল',
+        name_en: 'Mahir Faysal',
+        class_name: '7',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'সাধারণ',
+        photo_url: PHOTO_REAL_STUDENT_7
+      }
     },
     {
       slotKey: 'class-8-roll-1',
@@ -109,7 +120,18 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: false,
-      deptLabel: ''
+      deptLabel: '',
+      fallback: {
+        id: 'stu-08-01',
+        student_id: 'STU-08-01',
+        name_bn: 'সাদিয়া আক্তার',
+        name_en: 'Sadia Akter',
+        class_name: '8',
+        roll_no: 1,
+        gender: 'নারী',
+        department: 'সাধারণ',
+        photo_url: PHOTO_REAL_STUDENT_8
+      }
     },
     {
       slotKey: 'class-9-sci-roll-1',
@@ -118,7 +140,19 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: true,
-      deptLabel: 'বিজ্ঞান বিভাগ'
+      deptLabel: 'বিজ্ঞান বিভাগ',
+      fallback: {
+        id: 'stu-09-sci-01',
+        student_id: 'STU-09-SCI-01',
+        name_bn: 'তাহমিদ হাসান',
+        name_en: 'Tahmid Hasan',
+        class_name: '9',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'বিজ্ঞান',
+        group_name: 'বিজ্ঞান বিভাগ',
+        photo_url: PHOTO_REAL_STUDENT_9
+      }
     },
     {
       slotKey: 'class-10-sci-roll-1',
@@ -127,7 +161,19 @@ export function resolveDistinguishedStudents(allStudents = []) {
       rollNo: 1,
       rollLabel: '১',
       hasDept: true,
-      deptLabel: 'বিজ্ঞান বিভাগ'
+      deptLabel: 'বিজ্ঞান বিভাগ',
+      fallback: {
+        id: 'stu-10-sci-1',
+        student_id: 'STU-10-SCI-01',
+        name_bn: 'আহনাফ সিদ্দিক',
+        name_en: 'Ahnaf Siddique',
+        class_name: '10',
+        roll_no: 1,
+        gender: 'পুরুষ',
+        department: 'বিজ্ঞান',
+        group_name: 'বিজ্ঞান বিভাগ',
+        photo_url: PHOTO_REAL_STUDENT_9
+      }
     }
   ];
 
@@ -147,31 +193,15 @@ export function resolveDistinguishedStudents(allStudents = []) {
       });
     }
 
-    if (found) {
-      return {
-        ...found,
-        slotKey: target.slotKey,
-        displayClass: target.classLabel,
-        displayRoll: target.rollLabel,
-        hasDept: target.hasDept,
-        displayDept: target.hasDept ? (found.department && found.department !== 'সাধারণ' ? found.department : 'বিজ্ঞান বিভাগ') : null,
-        isEntered: true
-      };
-    }
-
+    const s = found || target.fallback;
     return {
-      id: `empty-${target.slotKey}`,
-      student_id: '',
-      name_bn: 'শিক্ষার্থী এন্ট্রি অপেক্ষমাণ',
-      class_name: target.classNum,
-      roll_no: target.rollNo,
+      ...s,
       slotKey: target.slotKey,
       displayClass: target.classLabel,
       displayRoll: target.rollLabel,
       hasDept: target.hasDept,
-      displayDept: target.hasDept ? target.deptLabel : null,
-      isEntered: false,
-      photo_url: null
+      displayDept: target.hasDept ? (s.department && s.department !== 'সাধারণ' ? s.department : 'বিজ্ঞান বিভাগ') : null,
+      isEntered: true
     };
   });
 }
@@ -2166,9 +2196,9 @@ function StudentPanel({sub}){
     const r = new FileReader();
     r.onload = () => {
       const img = new Image();
-      img.onload = () => {
+      img.onload = async () => {
         const canvas = document.createElement('canvas');
-        const maxW = 320, maxH = 380;
+        const maxW = 240, maxH = 280;
         let w = img.width, h = img.height;
         if (w > maxW || h > maxH) {
           const ratio = Math.min(maxW / w, maxH / h);
@@ -2179,8 +2209,14 @@ function StudentPanel({sub}){
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.88);
+        const compressed = canvas.toDataURL('image/jpeg', 0.82);
         saveStudentCustomPhoto(targetStudent, compressed);
+        try {
+          await api('/students/' + targetStudent.id, {
+            method: 'PUT',
+            body: JSON.stringify({ ...targetStudent, photo_url: compressed, photo: compressed })
+          });
+        } catch {}
         setStudents(prev => prev.map(item => {
           if (String(item.id).toLowerCase() === String(targetStudent.id).toLowerCase() || String(item.student_id).toLowerCase() === String(targetStudent.student_id).toLowerCase()) {
             return { ...item, photo_url: compressed, photo: compressed };
@@ -2204,7 +2240,7 @@ function StudentPanel({sub}){
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const maxW = 320, maxH = 380;
+        const maxW = 240, maxH = 280;
         let w = img.width, h = img.height;
         if (w > maxW || h > maxH) {
           const ratio = Math.min(maxW / w, maxH / h);
@@ -2215,11 +2251,11 @@ function StudentPanel({sub}){
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.88);
+        const compressed = canvas.toDataURL('image/jpeg', 0.82);
         change('photo_url', compressed);
         change('photo', compressed);
         saveStudentCustomPhoto(form, compressed);
-        setMsg('✓ ছবি সিলেক্ট ও প্রস্তুত হয়েছে। নিচে "তথ্য আপডেট করুন" বাটনে ক্লিক করে সেভ করুন।');
+        setMsg('✓ ছবি সিলেক্ট ও প্রস্তুত হয়েছে। নিচের "তথ্য আপডেট করুন" বাটনে ক্লিক করে সেভ সম্পন্ন করুন।');
       };
       img.src = r.result;
     };
@@ -2449,6 +2485,29 @@ function StudentPanel({sub}){
                📁 ছবি বাছাই ও আপলোড করুন
                <input type="file" accept="image/*" hidden onChange={file}/>
              </label>
+             {editing && form.photo_url && (
+               <button
+                 type="button"
+                 className="btn mini"
+                 onClick={async () => {
+                   try {
+                     setMsg('ছবি সংরক্ষণ হচ্ছে...');
+                     saveStudentCustomPhoto(form, form.photo_url);
+                     await api('/students/' + editing, {
+                       method: 'PUT',
+                       body: JSON.stringify({ ...form, photo_url: form.photo_url, photo: form.photo_url })
+                     });
+                     setMsg('✓ ' + (form.name_bn || 'শিক্ষার্থী') + '-এর ছবি সফলভাবে সংরক্ষণ ও আপডেট করা হয়েছে!');
+                     load();
+                   } catch (err) {
+                     setMsg(err.message || 'ছবি সংরক্ষণ ব্যর্থ হয়েছে');
+                   }
+                 }}
+                 style={{background:'#0284c7',color:'#fff',fontWeight:700,padding:'7px 16px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.3)',cursor:'pointer'}}
+               >
+                 💾 ছবি অবিলম্বে সেভ করুন
+               </button>
+             )}
              {form.photo_url && (
                <button
                  type="button"
@@ -2555,14 +2614,17 @@ function StudentPanel({sub}){
      <div className="form-actions full">
       <button type="button" className="mini" onClick={()=>setForm({...emptyStudent,extended_profile:{education:[]}})}>↺ ফর্ম রিসেট</button>
       {step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}
-      {step<4?<button type="button" className="btn" onClick={()=>{
+      {step<4 && <button type="button" className="btn" onClick={()=>{
         if(step===0 && form.is_special_needs==='হ্যাঁ' && !form.disability_type){
           setMsg('অনুগ্রহ করে বিশেষ চাহিদাসম্পন্ন শিক্ষার্থীর প্রতিবন্ধিতার ধরন নির্বাচন করুন');
           return;
         }
         setMsg('');
         setStep(step+1);
-      }}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}</button>}
+      }}>পরবর্তী ধাপ →</button>}
+      <button type="submit" className="btn" style={{background:editing?'#0284c7':'#16a34a',fontWeight:700}}>
+        ✓ {editing?'তথ্য আপডেট করুন':'শিক্ষার্থী সংরক্ষণ করুন'}
+      </button>
      </div>
     </form>
     {msg&&<p className="msg" role="status">{msg}</p>}
