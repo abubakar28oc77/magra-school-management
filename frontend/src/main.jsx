@@ -2500,11 +2500,11 @@ function StudentPanel({sub}){
      {step===0&&<>
        <div className="form-section-title full"><b>ব্যক্তিগত ও পরিচিতি</b></div>
        <div className="field full" style={{background:'#f0fdf4',border:'1.5px dashed #16a34a',borderRadius:'10px',padding:'14px 18px',display:'flex',alignItems:'center',gap:'20px',flexWrap:'wrap',marginBottom:'12px'}}>
-         <div style={{position:'relative',width:'84px',height:'84px',flexShrink:0}}>
+         <div style={{position:'relative',width:'84px',height:'96px',flexShrink:0}}>
            <img
              src={form.photo_url || getStudentPhoto(form)}
              alt="শিক্ষার্থীর ছবি"
-             style={{width:'84px',height:'84px',borderRadius:'50%',objectFit:'cover',border:'2.5px solid #16a34a',display:'block',boxShadow:'0 3px 10px rgba(0,0,0,0.12)',background:'#fff'}}
+             style={{width:'84px',height:'96px',borderRadius:'8px',objectFit:'cover',border:'2px solid #16a34a',display:'block',boxShadow:'0 3px 10px rgba(0,0,0,0.12)',background:'#fff'}}
              onError={(e)=>{e.currentTarget.onerror=null;e.currentTarget.src=PHOTO_STUDENT_MALE_1;}}
            />
          </div>
@@ -2814,24 +2814,26 @@ function StudentPanel({sub}){
            <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined,whiteSpace:'nowrap'}}>
             <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
             <td style={{textAlign:'center',padding:'4px 6px'}}>
-              <div style={{position:'relative',width:'36px',height:'36px',margin:'0 auto'}}>
-                <img
-                  src={getStudentPhoto(s)}
-                  alt=""
-                  style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover',border:'1.5px solid #0284c7',display:'block',background:'#f1f5f9'}}
-                  onError={(e)=>{ e.currentTarget.onerror=null; e.currentTarget.src=PHOTO_STUDENT_MALE_1; }}
-                />
+              <div style={{position:'relative',width:'38px',height:'42px',margin:'0 auto'}}>
+                <div style={{width:'38px',height:'42px',borderRadius:'5px',overflow:'hidden',border:'1.5px solid #cbd5e1',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.06)'}}>
+                  <img
+                    src={getStudentPhoto(s)}
+                    alt=""
+                    style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
+                    onError={(e)=>{ e.currentTarget.onerror=null; e.currentTarget.src=PHOTO_STUDENT_MALE_1; }}
+                  />
+                </div>
                 <label
                   title={`${studentName}-এর ছবি সরাসরি আপলোড বা পরিবর্তন করুন`}
                   style={{
                     position:'absolute',
-                    bottom:'-2px',
-                    right:'-2px',
+                    bottom:'-3px',
+                    right:'-3px',
                     background:'#0284c7',
                     color:'#fff',
                     width:'16px',
                     height:'16px',
-                    borderRadius:'50%',
+                    borderRadius:'4px',
                     display:'grid',
                     placeItems:'center',
                     fontSize:'9px',
