@@ -765,11 +765,11 @@ export function RoutinePanel({ sub }) {
           }
           .header-memo-date {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             font-size: ${isClass ? '10.5px' : '9.5px'};
             color: #475569;
-            margin-top: 6px;
+            margin-top: 5px;
             padding: 0 4px;
           }
           .watermark-bg {
@@ -876,7 +876,6 @@ export function RoutinePanel({ sub }) {
             </div>
 
             <div class="header-memo-date">
-              <div>স্মারক নং: <b>মপাউবি/একাডেমিক/${isClass ? 'ক্লাস-রুটিন' : 'পরীক্ষা-রুটিন'}/২০২৬</b></div>
               <div>মুদ্রণের তারিখ: <b>${formatDateBn(new Date().toISOString().slice(0, 10))} খ্রি.</b></div>
             </div>
           </div>
