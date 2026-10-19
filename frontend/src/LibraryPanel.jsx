@@ -16,17 +16,37 @@ import {
   getOverdueDays
 } from './libraryData';
 import { requestApi } from './apiClient';
+import { MOCK_STUDENTS } from './mockData';
 import schoolLogo from '../public/school-logo.png';
+
+const VALID_TABS = ['catalog', 'issue', 'overdue', 'reports', 'damaged'];
+
+// Normalizes Bengali & English class identifiers for robust filtering
+export const normClass = (c) => {
+  if (c === null || c === undefined) return '';
+  const bnMap = { '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' };
+  return String(c)
+    .replace(/[০-৯]/g, d => bnMap[d] || d)
+    .replace(/^(class\s*|শ্রেণি\s*)/i, '')
+    .trim();
+};
 
 export function LibraryPanel({ sub, setSub }) {
   // Navigation tab: 'catalog' | 'issue' | 'overdue' | 'reports' | 'damaged'
-  const [activeTab, setActiveTab] = useState(sub || 'catalog');
+  // Guarantee activeTab always matches one of the valid tabs (defaults to 'catalog')
+  const [activeTab, setActiveTab] = useState(() => {
+    return VALID_TABS.includes(sub) ? sub : 'catalog';
+  });
 
-  // Core Library Data States
+  // Core Library Data States - Fallback to SEED data if localStorage is empty or null
   const [books, setBooks] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_db_library_books');
-      return saved ? JSON.parse(saved) : SEED_BOOKS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return SEED_BOOKS;
     } catch {
       return SEED_BOOKS;
     }
@@ -35,7 +55,11 @@ export function LibraryPanel({ sub, setSub }) {
   const [loans, setLoans] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_db_library_loans');
-      return saved ? JSON.parse(saved) : SEED_LOANS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return SEED_LOANS;
     } catch {
       return SEED_LOANS;
     }
@@ -44,13 +68,26 @@ export function LibraryPanel({ sub, setSub }) {
   const [damaged, setDamaged] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_db_library_damaged');
-      return saved ? JSON.parse(saved) : SEED_DAMAGED;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return SEED_DAMAGED;
     } catch {
       return SEED_DAMAGED;
     }
   });
 
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState(() => {
+    try {
+      const raw = localStorage.getItem('magra_db_students');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return MOCK_STUDENTS || [];
+  });
   const [msg, setMsg] = useState({ text: '', type: 'info' });
 
   // Sync state changes with localStorage
@@ -78,32 +115,59 @@ export function LibraryPanel({ sub, setSub }) {
     }
   }, [damaged]);
 
-  // Sync sub route if changed from sidebar
+  // Sync sub route if changed from sidebar or URL - always maintain a valid activeTab
   useEffect(() => {
-    if (sub && ['catalog', 'issue', 'overdue', 'reports', 'damaged'].includes(sub)) {
+    if (VALID_TABS.includes(sub)) {
       setActiveTab(sub);
+    } else {
+      setActiveTab('catalog');
     }
   }, [sub]);
 
   const switchTab = (tab) => {
-    setActiveTab(tab);
-    if (setSub) setSub(tab);
+    const valid = VALID_TABS.includes(tab) ? tab : 'catalog';
+    setActiveTab(valid);
+    if (setSub) setSub(valid);
   };
 
-  // Load students for loan issuance
+  // Reset or reload default library dataset
+  const handleResetLibraryData = () => {
+    if (window.confirm('আপনি কি লাইব্রেরির সকল বই, ইস্যু ও রেজিস্টার ডাটা ডিফল্ট অবস্থায় রিলোড করতে চান?')) {
+      try {
+        localStorage.removeItem('magra_db_library_books');
+        localStorage.removeItem('magra_db_library_loans');
+        localStorage.removeItem('magra_db_library_damaged');
+      } catch {}
+      setBooks(SEED_BOOKS);
+      setLoans(SEED_LOANS);
+      setDamaged(SEED_DAMAGED);
+      showNotification('লাইব্রেরির সম্পূর্ণ ডাটা সফলভাবে রিলোড হয়েছে।', 'success');
+    }
+  };
+
+  // Load students for loan issuance with solid multi-tier fallbacks
   useEffect(() => {
     async function fetchStudents() {
       try {
         const res = await requestApi('/students?status=active');
         if (Array.isArray(res) && res.length) {
           setStudents(res);
-        } else {
-          const raw = localStorage.getItem('magra_db_students');
-          if (raw) setStudents(JSON.parse(raw));
+          return;
         }
       } catch (err) {
         console.warn('Student load fallback:', err);
       }
+      try {
+        const raw = localStorage.getItem('magra_db_students');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) {
+            setStudents(parsed);
+            return;
+          }
+        }
+      } catch {}
+      setStudents(MOCK_STUDENTS || []);
     }
     fetchStudents();
   }, []);
@@ -433,7 +497,7 @@ export function LibraryPanel({ sub, setSub }) {
   // Filter students for picker
   const filteredStudentsForIssue = useMemo(() => {
     return students.filter(s => {
-      if (issueFilterClass !== 'all' && String(s.class_name).trim() !== String(issueFilterClass).trim()) return false;
+      if (issueFilterClass !== 'all' && normClass(s.class_name) !== normClass(issueFilterClass)) return false;
       if (issueFilterStudentSearch.trim()) {
         const q = issueFilterStudentSearch.toLowerCase().trim();
         const matchName = (s.name_bn || '').toLowerCase().includes(q) || (s.name_en || '').toLowerCase().includes(q);
@@ -442,7 +506,7 @@ export function LibraryPanel({ sub, setSub }) {
         if (!matchName && !matchRoll && !matchId) return false;
       }
       return true;
-    }).slice(0, 60);
+    }).slice(0, 80);
   }, [students, issueFilterClass, issueFilterStudentSearch]);
 
   // Selected student object & their active overdue warning
@@ -613,8 +677,7 @@ export function LibraryPanel({ sub, setSub }) {
       const days = getOverdueDays(l.due_at);
       if (days <= 0) return false;
       if (overdueFilterDays === 'week' && days < 7) return false;
-      if (overdueFilterDays === 'month' && days < 30) return false;
-      if (overdueClassFilter !== 'all' && String(l.class_name).trim() !== String(overdueClassFilter).trim()) return false;
+      if (overdueClassFilter !== 'all' && normClass(l.class_name) !== normClass(overdueClassFilter)) return false;
       return true;
     }).sort((a, b) => getOverdueDays(b.due_at) - getOverdueDays(a.due_at));
   }, [loans, overdueFilterDays, overdueClassFilter]);
@@ -823,6 +886,26 @@ export function LibraryPanel({ sub, setSub }) {
             }}
           >
             <span>📤</span> শিক্ষার্থীকে বই ইস্যু
+          </button>
+          <button
+            type="button"
+            onClick={fetchLibraryData}
+            title="সার্ভার ও স্টোরেজ থেকে লাইব্রেরি ও শিক্ষার্থী ডাটা রিলোড করুন"
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '13px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.4)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>🔄</span> রিলোড
           </button>
         </div>
       </div>
