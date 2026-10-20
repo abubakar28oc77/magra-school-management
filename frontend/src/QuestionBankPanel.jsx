@@ -1833,7 +1833,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                           border: '1px solid #cbd5e1'
                         }}>
                           <b style={{ fontSize: '13.5px' }}>
-                            ‘ক’ বিভাগ — বহুনির্বাচনি অভীক্ষা (মান: {toBn(activePaper.mcqs.length)})
+                            {['6', '7', '8'].includes(String(activePaper.className)) ? 'বহুনির্বাচনি প্রশ্ন' : '‘ক’ বিভাগ — বহুনির্বাচনি অভীক্ষা'} (পূর্ণমান: {toBn(activePaper.mcqs.length)})
                           </b>
                           <span style={{ fontSize: '12px' }}>
                             {activePaper.mcqRule ? `[${activePaper.mcqRule}]` : '[বিশেষ দ্রষ্টব্য: সরবরাহকৃত OMR শিটে সঠিক উত্তরের বৃত্তটি কালো বলপয়েন্ট কলম দ্বারা ভরাট কর। সকল প্রশ্নের উত্তর দিতে হবে।]'}
@@ -1948,7 +1948,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                           border: '1px solid #cbd5e1'
                         }}>
                           <b style={{ fontSize: '13.5px' }}>
-                            ‘খ’ বিভাগ — সৃজনশীল প্রশ্ন (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})
+                            {['6', '7', '8'].includes(String(activePaper.className)) ? 'সৃজনশীল প্রশ্ন' : '‘খ’ বিভাগ — সৃজনশীল প্রশ্ন'} (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})
                           </b>
                           <span style={{ fontSize: '12px' }}>
                             {activePaper.cqRule ? `[${activePaper.cqRule}]` : `[যেকোনো ${toBn(activePaper.cqToAnswer || activePaper.cqs.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০]`}
@@ -2020,7 +2020,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                           border: '1px solid #cbd5e1'
                         }}>
                           <b style={{ fontSize: '13.5px' }}>
-                            ‘গ’ বিভাগ — সংক্ষিপ্ত-উত্তর প্রশ্ন (পূর্ণমান: {toBn(activePaper.shortMarks || (activePaper.shortToAnswer ? activePaper.shortToAnswer * 2 : activePaper.shortQuestions.length * 2))})
+                            {['6', '7', '8'].includes(String(activePaper.className)) ? 'সংক্ষিপ্ত উত্তর-প্রশ্ন' : '‘গ’ বিভাগ — সংক্ষিপ্ত-উত্তর প্রশ্ন'} (পূর্ণমান: {toBn(activePaper.shortMarks || (activePaper.shortToAnswer ? activePaper.shortToAnswer * 2 : activePaper.shortQuestions.length * 2))})
                           </b>
                           <span style={{ fontSize: '12px' }}>
                             {activePaper.shortRule ? `[${activePaper.shortRule}]` : `[যেকোনো ${toBn(activePaper.shortToAnswer || activePaper.shortQuestions.length)}টি প্রশ্নের সংক্ষিপ্ত উত্তর দাও। প্রতিটি প্রশ্নের মান ২]`}
@@ -3347,13 +3347,31 @@ export function QuestionBankPanel({ sub, setSub }) {
                 desc: 'পর্যায় সারণি, বন্ধন ও মোলের ধারণার ওপর ২৫টি MCQ এবং ৮টি সৃজনশীল প্রশ্ন।'
               },
               {
+                title: '৮ম শ্রেণি গণিত পূর্ণাঙ্গ বোর্ড মডেল টেস্ট',
+                className: '8',
+                subjectId: 'math',
+                subjectName: 'গণিত',
+                code: '109',
+                marks: 100,
+                desc: '৪টি বিভাগ (পাটিগণিত, বীজগণিত, জ্যামিতি, তথ্য ও উপাত্ত)-এর সমন্বয়ে ৮টি CQ, ১৫টি সংক্ষিপ্ত প্রশ্ন ও ৩০টি বহুনির্বাচনি।'
+              },
+              {
                 title: '৮ম শ্রেণি সাধারণ বিজ্ঞান পূর্ণাঙ্গ মডেল টেস্ট',
                 className: '8',
                 subjectId: 'general_science',
                 subjectName: 'সাধারণ বিজ্ঞান',
                 code: '127',
                 marks: 100,
-                desc: 'প্রাণিজগতের শ্রেণিবিন্যাস ও রাসায়নিক বিক্রিয়ার সমন্বয়ে তৈরি চূড়ান্ত প্রস্তুতিমূলক পেপার।'
+                desc: '৮টি সৃজনশীল (উত্তর ৫টি), ১৫টি সংক্ষিপ্ত প্রশ্ন (উত্তর ১০টি) ও ৩০টি বহুনির্বাচনির বোর্ড স্ট্যান্ডার্ড সমন্বিত পেপার।'
+              },
+              {
+                title: '৮ম শ্রেণি বাংলাদেশ ও বিশ্বপরিচয় মডেল টেস্ট',
+                className: '8',
+                subjectId: 'bgs',
+                subjectName: 'বাংলাদেশ ও বিশ্বপরিচয়',
+                code: '150',
+                marks: 100,
+                desc: 'সৃজনশীল ৫০ নম্বর (৮টি থেকে ৫টি), সংক্ষিপ্ত উত্তর ২০ নম্বর (১৫টি থেকে ১০টি) ও বহুনির্বাচনি ৩০ নম্বর।'
               },
               {
                 title: '৯ম শ্রেণি তথ্য ও যোগাযোগ প্রযুক্তি (ICT)',
