@@ -1224,6 +1224,21 @@ export function QuestionBankPanel({ sub, setSub }) {
                     <span>সময়: {activePaper.timeAllowed}</span>
                     <span>পূর্ণমান: {toBn(activePaper.totalMarks)}</span>
                   </div>
+                  {activePaper.subjectId === 'ict' && ['6', '7', '8'].includes(String(activePaper.className)) && (
+                    <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '12.5px', fontWeight: 800, color: '#047857' }}>
+                      [তত্ত্বীয় অংশের জন্য ২৫ নম্বর এবং ব্যবহারিক অংশের জন্য ২৫ নম্বর বরাদ্দ আছে]
+                    </div>
+                  )}
+                  {(activePaper.subjectId === 'agriculture' || activePaper.subjectId === 'home_science') && ['6', '7', '8'].includes(String(activePaper.className)) && (
+                    <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '12.5px', fontWeight: 800, color: '#047857' }}>
+                      [সৃজনশীল প্রশ্নের জন্য ৩০ নম্বর এবং বহুনির্বাচনি প্রশ্নের জন্য ২০ নম্বর বরাদ্দ আছে। প্রতিটি সৃজনশীল প্রশ্নের নম্বর ১০ এবং প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১]
+                    </div>
+                  )}
+                  {activePaper.subjectId === 'physical_edu' && (
+                    <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '12.5px', fontWeight: 800, color: '#047857' }}>
+                      [বিদ্যালয়ভিত্তিক ধারাবাহিক মূল্যায়ন — পূর্ণমান: ৫০ নম্বর]
+                    </div>
+                  )}
                 </div>
 
                 {/* ========================================================= */}
@@ -1814,9 +1829,110 @@ export function QuestionBankPanel({ sub, setSub }) {
                       </div>
                     )}
                   </div>
+                ) : activePaper.subjectId === 'physical_edu' ? (
+                  /* ========================================================= */
+                  /* 4. PHYSICAL EDUCATION & HEALTH (CONTINUOUS EVALUATION)    */
+                  /* ========================================================= */
+                  <div>
+                    {/* Instructions Banner */}
+                    <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '14px 18px', marginBottom: '20px' }}>
+                      <h3 style={{ margin: '0 0 6px', fontSize: '15.5px', fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>📋</span> প্রশ্নের ধারা ও মানবণ্টন নির্দেশিকা (বিদ্যালয়ভিত্তিক ধারাবাহিক মূল্যায়ন)
+                      </h3>
+                      <p style={{ margin: '0 0 10px', fontSize: '12.5px', color: '#15803d', lineHeight: 1.6 }}>
+                        জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) সার্কুলার অনুযায়ী ৬ষ্ঠ থেকে ৮ম শ্রেণির ‘শারীরিক শিক্ষা ও স্বাস্থ্য’ বিষয়ের ৫০ নম্বরের মূল্যায়ন বছরব্যাপী বিদ্যালয়ভিত্তিক ধারাবাহিক কার্যক্রমের মাধ্যমে সম্পন্ন হবে।
+                      </p>
+                      
+                      {/* Human-readable 3 component breakdown exactly matching NCTB circular */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginTop: '12px' }}>
+                        <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#14532d', marginBottom: '2px' }}>১. শ্রেণির কাজ</div>
+                          <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>নিয়মিত শরীরচর্চা, পিটি, সমাবেশ, খেলাধুলায় সক্রিয় অংশগ্রহণ ও স্বাস্থ্যবিধি পালন।</div>
+                          <div style={{ fontWeight: 800, fontSize: '13px', color: '#047857', marginTop: '6px' }}>মান : ২০</div>
+                        </div>
+
+                        <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#14532d', marginBottom: '2px' }}>২. অনুসন্ধানী কাজ/ব্যবহারিক কাজ/প্রজেক্ট/অ্যাসাইনমেন্ট</div>
+                          <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>স্বাস্থ্যসুরক্ষা প্রতিবেদন, ফার্স্ট এইড ও প্রাথমিক চিকিৎসা অনুশীলন বা নির্ধারিত প্রজেক্ট।</div>
+                          <div style={{ fontWeight: 800, fontSize: '13px', color: '#047857', marginTop: '6px' }}>মান : ১০</div>
+                        </div>
+
+                        <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#14532d', marginBottom: '2px' }}>৩. শ্রেণি অভীক্ষা</div>
+                          <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>শারীরিক সক্ষমতা ও মৌলিক ক্রীড়া কৌশল দক্ষতা যাচাই অভীক্ষা বা ক্লাস টেস্ট।</div>
+                          <div style={{ fontWeight: 800, fontSize: '13px', color: '#047857', marginTop: '6px' }}>মান : ২০</div>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right', marginTop: '12px', fontWeight: 800, fontSize: '14px', color: '#0f172a' }}>
+                        সর্বমোট মান = ২০ + ১০ + ২০ = ৫০
+                      </div>
+                    </div>
+
+                    {/* Printable Continuous Assessment Register */}
+                    <div style={{ marginTop: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <b style={{ fontSize: '14px', color: '#0f172a' }}>
+                          ধারাবাহিক মূল্যায়ন মার্কস রেজিস্টার ছক (Continuous Evaluation Marks Register)
+                        </b>
+                        <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                          [বিষয় শিক্ষক কর্তৃক বছরব্যাপী মূল্যায়ন লিপিবদ্ধকরণ ও প্রিন্টযোগ্য রেকর্ড শিট]
+                        </span>
+                      </div>
+
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', background: '#fff' }}>
+                        <thead>
+                          <tr style={{ background: '#f1f5f9', textAlign: 'center' }}>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '50px' }}>রোল</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', textAlign: 'left', minWidth: '150px' }}>শিক্ষার্থীর নাম</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '110px' }}>১. শ্রেণির কাজ<br />(মান: ২০)</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '150px' }}>২. অনুসন্ধানী কাজ/ব্যবহারিক/প্রজেক্ট/অ্যাসাইনমেন্ট<br />(মান: ১০)</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '110px' }}>৩. শ্রেণি অভীক্ষা<br />(মান: ২০)</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '100px' }}>সর্বমোট নম্বর<br />(মান: ৫০)</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '80px' }}>প্রাপ্ত গ্রেড</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '6px', width: '100px' }}>মন্তব্য</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { roll: '০১', name: 'আব্দুল্লাহ আল নোমান', w1: '১৮', w2: '০৯', w3: '১৯', total: '৪৬', grade: 'A+' },
+                            { roll: '০২', name: 'তানজিনা আক্তার', w1: '১৭', w2: '০৮', w3: '১৮', total: '৪৩', grade: 'A' },
+                            { roll: '০৩', name: 'মোঃ রাফিউল ইসলাম', w1: '১৯', w2: '০৯', w3: '১৮', total: '৪৬', grade: 'A+' },
+                            { roll: '০৪', name: 'মায়িশা ফারজানা', w1: '১৬', w2: '০৮', w3: '১৭', total: '৪১', grade: 'A' },
+                            { roll: '০৫', name: 'সাদিয়া তাসনিম', w1: '১৮', w2: '০৯', w3: '১৯', total: '৪৬', grade: 'A+' },
+                            { roll: '০৬', name: 'রিয়াদ হাসান', w1: '১৫', w2: '০৭', w3: '১৬', total: '৩৮', grade: 'A-' },
+                            { roll: '০৭', name: '', w1: '', w2: '', w3: '', total: '', grade: '' },
+                            { roll: '০৮', name: '', w1: '', w2: '', w3: '', total: '', grade: '' },
+                            { roll: '০৯', name: '', w1: '', w2: '', w3: '', total: '', grade: '' },
+                            { roll: '১০', name: '', w1: '', w2: '', w3: '', total: '', grade: '' }
+                          ].map((row, rIdx) => (
+                            <tr key={rIdx} style={{ height: '32px' }}>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', fontWeight: 700 }}>{row.roll}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{row.name}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.w1}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.w2}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center' }}>{row.w3}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', fontWeight: 800 }}>{row.total}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px', textAlign: 'center', fontWeight: 700, color: '#047857' }}>{row.grade}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px' }}></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* Signature Section */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '48px', paddingTop: '10px' }}>
+                        <div style={{ textAlign: 'center', borderTop: '1px dotted #64748b', minWidth: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                          <b>বিষয় শিক্ষকের স্বাক্ষর</b>
+                        </div>
+                        <div style={{ textAlign: 'center', borderTop: '1px dotted #64748b', minWidth: '180px', paddingTop: '4px', fontSize: '12px' }}>
+                          <b>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</b>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   /* ========================================================= */
-                  /* 4. GENERAL SUBJECTS (BANGLA 1, MATH, SCIENCE, BGS, ETC.)  */
+                  /* 5. GENERAL SUBJECTS (BANGLA 1, MATH, SCIENCE, BGS, ETC.)  */
                   /* ========================================================= */
                   <div>
                     {/* Section A: MCQ (বহুনির্বাচনি অভীক্ষা) */}
@@ -2114,10 +2230,20 @@ export function QuestionBankPanel({ sub, setSub }) {
                             ২. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
                           </div>
                         ) : activePaper.subjectId === 'ict' ? (
-                          <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
-                            ১. ব্যবহারিক পরীক্ষণ সম্পাদন (স্প্রেডশিট বিশ্লেষণ / ডেটাবেস ডিজাইন / প্রেজেন্টেশন স্লাইড): <b>{toBn(15)} নম্বর</b><br />
-                            ২. কার্যবিবরণী ও প্র্যাকটিক্যাল নোটবুক: <b>{toBn(5)} নম্বর</b><br />
-                            ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                          <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.8 }}>
+                            {['6', '7', '8'].includes(String(activePaper.className)) ? (
+                              <>
+                                ১. যন্ত্র/উপকরণ সংযোজন ও ব্যবহার / প্রক্রিয়া অনুসরণ / উপাত্ত সংগ্রহ ও প্রক্রিয়াকরণ / অঙ্কন / পর্যবেক্ষণ / শনাক্তকরণ / অনুশীলন : <b>{toBn(15)} নম্বর</b><br />
+                                ২. প্রতিবেদন প্রণয়ন : <b>{toBn(5)} নম্বর</b><br />
+                                ৩. মৌখিক অভীক্ষা : <b>{toBn(5)} নম্বর</b>
+                              </>
+                            ) : (
+                              <>
+                                ১. ব্যবহারিক পরীক্ষণ সম্পাদন (স্প্রেডশিট বিশ্লেষণ / ডেটাবেস ডিজাইন / প্রেজেন্টেশন স্লাইড): <b>{toBn(15)} নম্বর</b><br />
+                                ২. কার্যবিবরণী ও প্র্যাকটিক্যাল নোটবুক: <b>{toBn(5)} নম্বর</b><br />
+                                ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
@@ -3372,6 +3498,33 @@ export function QuestionBankPanel({ sub, setSub }) {
                 code: '150',
                 marks: 100,
                 desc: 'সৃজনশীল ৫০ নম্বর (৮টি থেকে ৫টি), সংক্ষিপ্ত উত্তর ২০ নম্বর (১৫টি থেকে ১০টি) ও বহুনির্বাচনি ৩০ নম্বর।'
+              },
+              {
+                title: '৮ম শ্রেণি তথ্য ও যোগাযোগ প্রযুক্তি (ICT) মডেল টেস্ট',
+                className: '8',
+                subjectId: 'ict',
+                subjectName: 'তথ্য ও যোগাযোগ প্রযুক্তি',
+                code: '154',
+                marks: 50,
+                desc: 'তত্ত্বীয় ২৫ নম্বর (১৫টি বহুনির্বাচনি ও ৮টি সংক্ষিপ্ত প্রশ্ন থেকে ৫টির উত্তর) এবং ব্যবহারিক ২৫ নম্বর।'
+              },
+              {
+                title: '৮ম শ্রেণি কৃষি শিক্ষা পূর্ণাঙ্গ মডেল টেস্ট',
+                className: '8',
+                subjectId: 'agriculture',
+                subjectName: 'কৃষি শিক্ষা',
+                code: '134',
+                marks: 50,
+                desc: '৫টি সৃজনশীল প্রশ্ন (যেকোনো ৩টি: ৩০ নম্বর) ও ২০টি বহুনির্বাচনি প্রশ্ন (২০ নম্বর) সংবলিত সমন্বিত পেপার।'
+              },
+              {
+                title: '৮ম শ্রেণি শারীরিক শিক্ষা ও স্বাস্থ্য ধারাবাহিক মূল্যায়ন ছক',
+                className: '8',
+                subjectId: 'physical_edu',
+                subjectName: 'শারীরিক শিক্ষা ও স্বাস্থ্য',
+                code: '147',
+                marks: 50,
+                desc: 'শ্রেণির কাজ ২০ নম্বর, অনুসন্ধানী কাজ ১০ নম্বর ও শ্রেণি অভীক্ষা ২০ নম্বরের ধারাবাহিক মূল্যায়ন রেজিস্টার।'
               },
               {
                 title: '৯ম শ্রেণি তথ্য ও যোগাযোগ প্রযুক্তি (ICT)',

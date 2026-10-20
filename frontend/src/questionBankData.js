@@ -606,20 +606,23 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
   // ৮. তথ্য ও যোগাযোগ প্রযুক্তি (পূর্ণমান: ৫০)
   ict: {
     full_marks: 50,
-    written_max: 0,
-    written_pass: 0,
-    mcq_max: 25,
-    mcq_pass: 8,
+    written_max: 10, // তত্ত্বীয় অংশের সংক্ষিপ্ত উত্তর প্রশ্ন ১০
+    written_pass: 4,
+    short_max: 10,
+    short_count: 8,
+    short_to_answer: 5,
+    mcq_max: 15,
+    mcq_pass: 5,
     practical_max: 25,
     practical_pass: 8,
+    cq_max: 0,
     cq_count: 0,
     cq_to_answer: 0,
-    short_max: 0,
-    short_count: 0,
-    short_to_answer: 0,
-    time_allowed: '২ ঘণ্টা',
-    pattern: 'mcq_practical',
-    mcq_rule: '২৫টি বহুনির্বাচনি প্রশ্ন (২৫ নম্বর) এবং ব্যবহারিক অভীক্ষা (২৫ নম্বর)।'
+    time_allowed: '১ ঘণ্টা ৩০ মিনিট',
+    pattern: 'nctb_junior_ict',
+    short_rule: 'সংক্ষিপ্ত উত্তর প্রশ্ন ৮টি থাকবে, ৫টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি সংক্ষিপ্ত-উত্তর প্রশ্নের নম্বর ২। (৫ × ২ = ১০)',
+    mcq_rule: 'তত্ত্বীয় অংশ: ১৫টি বহুনির্বাচনি প্রশ্ন থাকবে। সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১। (১ × ১৫ = ১৫)',
+    practical_rule: 'ব্যবহারিক অংশ (২৫ নম্বর): ১. যন্ত্র/উপকরণ সংযোজন ও ব্যবহার/প্রক্রিয়া অনুসরণ/উপাত্ত সংগ্রহ ও প্রক্রিয়াকরণ/অঙ্কন/পর্যবেক্ষণ/শনাক্তকরণ/অনুশীলন : ১৫ নম্বর, ২. প্রতিবেদন প্রণয়ন : ৫ নম্বর, ৩. মৌখিক অভীক্ষা : ৫ নম্বর।'
   },
 
   // ৯. ইসলাম ধর্ম / ইসলাম ও নৈতিক শিক্ষা (পূর্ণমান: ১০০)
@@ -669,36 +672,59 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
     full_marks: 50,
     written_max: 30,
     written_pass: 10,
-    mcq_max: 0,
-    practical_max: 20,
-    practical_pass: 7,
+    cq_max: 30,
     cq_count: 5,
     cq_to_answer: 3,
     short_max: 0,
     short_count: 0,
     short_to_answer: 0,
-    time_allowed: '২ ঘণ্টা',
-    pattern: 'science_practical',
-    cq_rule: 'সৃজনশীল/তত্ত্বীয় অংশ ৩০ নম্বর ও ব্যবহারিক অংশ ২০ নম্বর।'
+    mcq_max: 20,
+    mcq_pass: 7,
+    practical_max: 0,
+    time_allowed: '১ ঘণ্টা ৪৫ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '৫টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৩টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি সৃজনশীল প্রশ্নের নম্বর ১০। (৩ × ১০ = ৩০)',
+    mcq_rule: '২০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১। (১ × ২০ = ২০)'
   },
 
-  // ১২. শারীরিক শিক্ষা ও স্বাস্থ্য (পূর্ণমান: ৫০)
-  physical_edu: {
+  // ১২. গার্হস্থ্য বিজ্ঞান (ঐচ্ছিক/সাধারণ) (পূর্ণমান: ৫০)
+  home_science: {
     full_marks: 50,
-    written_max: 20,
-    written_pass: 7,
-    mcq_max: 10,
-    mcq_pass: 3,
-    practical_max: 20,
-    practical_pass: 7,
-    cq_count: 3,
-    cq_to_answer: 2,
+    written_max: 30,
+    written_pass: 10,
+    cq_max: 30,
+    cq_count: 5,
+    cq_to_answer: 3,
     short_max: 0,
     short_count: 0,
     short_to_answer: 0,
-    time_allowed: '১ ঘণ্টা ৩০ মিনিট',
-    pattern: 'practical_continuous',
-    practical_rule: 'তত্ত্বীয় ও ব্যবহারিক/ধারাবাহিক মূল্যায়ন (৫০ নম্বর)।'
+    mcq_max: 20,
+    mcq_pass: 7,
+    practical_max: 0,
+    time_allowed: '১ ঘণ্টা ৪৫ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '৫টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৩টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি সৃজনশীল প্রশ্নের নম্বর ১০। (৩ × ১০ = ৩০)',
+    mcq_rule: '২০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১। (১ × ২০ = ২০)'
+  },
+
+  // ১৩. শারীরিক শিক্ষা ও স্বাস্থ্য (পূর্ণমান: ৫০)
+  physical_edu: {
+    full_marks: 50,
+    written_max: 0,
+    written_pass: 0,
+    mcq_max: 0,
+    mcq_pass: 0,
+    cq_max: 0,
+    cq_count: 0,
+    cq_to_answer: 0,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 50,
+    practical_pass: 17,
+    time_allowed: 'ধারাবাহিক মূল্যায়ন',
+    pattern: 'continuous_assessment',
+    practical_rule: '১. শ্রেণির কাজ: মান ২০, ২. অনুসন্ধানী কাজ/ব্যবহারিক কাজ/প্রজেক্ট/অ্যাসাইনমেন্ট: মান ১০, ৩. শ্রেণি অভীক্ষা: মান ২০ (সর্বমোট = ৫০ নম্বর)। বিদ্যালয় পর্যায়ে শিক্ষক কর্তৃক বছরব্যাপী ধারাবাহিক মূল্যায়নের মাধ্যমে নম্বর প্রদান করা হবে।'
   }
 };
 
@@ -2127,8 +2153,99 @@ export const SUBJECT_SHORT_QUESTIONS_POOL = {
     'পরিবেশ রক্ষায় তুলসী, বটবৃক্ষ ও প্রকৃতির প্রতি সনাতন ধর্মের শ্রদ্ধা ব্যাখ্যা কর।',
     'শ্রীরামকৃষ্ণ পরমহংসদেবের “যত মত, তত পথ” বাণীর অন্তর্নিহিত অর্থ কী?',
     'মাতা-পিতা ও গুরুজনদের সেবা ও শ্রদ্ধার ধর্মীয় গুরুত্ব সংক্ষেপে লিখ।'
+  ],
+  ict: [
+    'তথ্য ও যোগাযোগ প্রযুক্তি (ICT) বলতে কী বোঝায়? এর দুটি বাস্তব উপযোগিতা লিখ।',
+    'হার্ডওয়্যার ও সফটওয়্যার-এর মধ্যে প্রধান দুটি পার্থক্য লিখ।',
+    'ইনপুট ডিভাইস ও আউটপুট ডিভাইস কাকে বলে? প্রতিটির একটি করে উদাহরণ দাও।',
+    'কম্পিউটার ভাইরাস কী? দুটি ক্ষতিকারক ভাইরাসের নাম উল্লেখ কর।',
+    'কম্পিউটার নেটওয়ার্কের মূল উদ্দেশ্য কী? LAN ও WAN-এর পূর্ণরূপ লিখ।',
+    'ইন্টারনেট ও ই-মেইলের মধ্যে পার্থক্য কী? ই-মেইলের দুটি সুবিধা লিখ।',
+    'সার্চ ইঞ্জিন কাকে বলে? দুটি জনপ্রিয় সার্চ ইঞ্জিনের নাম লিখ।',
+    'শক্তিশালী পাসওয়ার্ড কেন প্রয়োজন? পাসওয়ার্ড সুরক্ষিত রাখার দুটি উপায় লিখ।',
+    'কম্পিউটার বা স্মার্টফোনে অপারেটিং সিস্টেম (OS) কেন অপরিহার্য?',
+    'ই-লার্নিং (E-Learning) কী? দূরশিক্ষণে এর গুরুত্ব সংক্ষেপে লিখ।',
+    'সামাজিক যোগাযোগ মাধ্যম (Social Media) ব্যবহারের দুটি ইতিবাচক ও নেতিবাচক দিক লিখ।',
+    'স্প্রেডশিট সফটওয়্যারের (MS Excel) দুটি প্রধান ব্যবহার উল্লেখ কর।',
+    'সাইবার অপরাধ (Cyber Crime) কী? এর দুটি উদাহরণ দাও।',
+    'টেলিমেডিসিন সেবা কী? স্বাস্থ্যসেবায় এর ভূমিকা ব্যাখ্যা কর।',
+    'ক্লাউড স্টোরেজ বলতে কী বোঝায়? এর একটি সুবিধা লিখ।'
+  ],
+  agriculture: [
+    'মাটির অম্লত্ব ও ক্ষারত্ব বলতে কী বোঝায়? এটি ফসলের জন্য কেন গুরুত্বপূর্ণ?',
+    'বীজ সংরক্ষণ ও বিশুদ্ধতা রক্ষার দুটি প্রধান উপায় লিখ।',
+    'সমন্বিত বালাই ব্যবস্থাপনা (IPM) বলতে কী বোঝায়?',
+    'সবুজ সার কী এবং মাটিতে এর উপযোগিতা কী?',
+    'মাছ চাষে সম্পূরক খাদ্যের প্রয়োজনীয়তা ব্যাখ্যা কর।',
+    'হাঁস-মুরগির দুটি মারাত্মক সংক্রামক রোগের নাম ও লক্ষণ লিখ।',
+    'কৃষিবনায়ন (Agro-forestry) কাকে বলে? এর দুটি সুবিধা লিখ।',
+    'উন্নত জাতের বীজ ব্যবহারের দুটি উপকারিতা উল্লেখ কর।'
   ]
 };
+
+// ৬ষ্ঠ থেকে ৮ম শ্রেণির কৃষি শিক্ষা ও গার্হস্থ্য বিজ্ঞান সৃজনশীল প্রশ্ন ব্যাংক (৫টি প্রশ্ন হতে ৩টির উত্তর - প্রতিটির মান ১০)
+export const JUNIOR_AGRICULTURE_CQ_POOL = [
+  {
+    id: 'j-agri-cq-1',
+    chapter: 'মাটি ও কৃষিজ উৎপাদন',
+    stimulus: 'উদ্দীপক: কৃষক জয়নাল মিয়া তার জমিতে মাটির নমুনা সংগ্রহ করে উপজেলা কৃষি অফিসে নিয়ে যান। কৃষি কর্মকর্তা মাটি পরীক্ষা করে জানালেন এতে নাইট্রোজেন ও জৈব পদার্থের ঘাটতি রয়েছে এবং দোআঁশ মাটিতে ইউরিয়া ও সবুজ সার প্রয়োগের পরামর্শ দিলেন।',
+    sub_questions: [
+      { label: 'ক', text: 'মাটির অম্লমান বা pH কী?', marks: 1 },
+      { label: 'খ', text: 'ফসল উৎপাদনে জৈব সারকে মাটির প্রাণ বলা হয় কেন? ব্যাখ্যা কর।', marks: 2 },
+      { label: 'গ', text: 'কৃষি কর্মকর্তার পরামর্শ অনুযায়ী জয়নাল মিয়ার জমিতে সবুজ সার তৈরির বৈজ্ঞানিক উপায় ব্যাখ্যা কর।', marks: 3 },
+      { label: 'ঘ', text: 'উদ্দীপকের মাটির স্বাস্থ্য সুরক্ষা ও টেকসই ফসল উৎপাদনে জয়নাল মিয়ার পদক্ষেপের কার্যকারিতা মূল্যায়ন কর।', marks: 4 }
+    ],
+    marks: 10
+  },
+  {
+    id: 'j-agri-cq-2',
+    chapter: 'বীজ ও চারা উৎপাদন প্রযুক্তি',
+    stimulus: 'উদ্দীপক: কৃষক মোবারক হোসেন আগামী মৌসুমে ধান চাষের জন্য বাজার থেকে প্রত্যয়িত বীজ সংগ্রহ করেন। তিনি ইউরিয়া ও ছত্রাকনাশক দ্রবণ ব্যবহার করে বীজ শোধন করে একটি আদর্শ বীজতলায় চারা উৎপাদন করলেন।',
+    sub_questions: [
+      { label: 'ক', text: 'বীজ বিশুদ্ধতা বলতে কী বোঝায়?', marks: 1 },
+      { label: 'খ', text: 'বীজ বপনের পূর্বে বীজ শোধন করা জরুরি কেন? বুঝিয়ে লিখ।', marks: 2 },
+      { label: 'গ', text: 'মোবারক হোসেন কীভাবে একটি শুকনো বা ভেজা আদর্শ বীজতলা প্রস্তুত করেছিলেন? বর্ণনা কর।', marks: 3 },
+      { label: 'ঘ', text: 'সুস্থ ও সবল চারা উৎপাদনের মাধ্যমে কাঙ্ক্ষিত ফলন অর্জনে মোবারকের কৌশল যৌক্তিক কি না—বিশ্লেষণ কর।', marks: 4 }
+    ],
+    marks: 10
+  },
+  {
+    id: 'j-agri-cq-3',
+    chapter: 'মাছের মিশ্র চাষ ও পুকুর ব্যবস্থাপনা',
+    stimulus: 'উদ্দীপক: একটি আদর্শ পুকুরে রফিক সাহেব ওপরের স্তরের কাতলা, মধ্য স্তরের রুই এবং তলদেশের মৃগেল মাছের সমন্বয়ে একটি সমন্বিত মিশ্র চাষ শুরু করলেন। তিনি নিয়মিত পুকুরে চুন ও সম্পূরক খাদ্য সরবরাহ করেন।',
+    sub_questions: [
+      { label: 'ক', text: 'মাছের সম্পূরক খাদ্য কাকে বলে?', marks: 1 },
+      { label: 'খ', text: 'পুকুর প্রস্তুতির সময় চুন প্রয়োগের দুটি প্রয়োজনীয়তা ব্যাখ্যা কর।', marks: 2 },
+      { label: 'গ', text: 'রফিক সাহেব যে স্তরভিত্তিক মিশ্র চাষ পদ্ধতি বেছে নিয়েছেন তার খাদ্যশৃঙ্খল ব্যবস্থাপনা ব্যাখ্যা কর।', marks: 3 },
+      { label: 'ঘ', text: 'পুকুরের প্রাকৃতিক খাদ্য ব্যবহারের মাধ্যমে রফিক সাহেবের বাণিজ্যিক মাছ চাষে লাভবান হওয়ার সম্ভাবনা মূল্যায়ন কর।', marks: 4 }
+    ],
+    marks: 10
+  },
+  {
+    id: 'j-agri-cq-4',
+    chapter: 'গবাদিপশু ও হাঁস-মুরগি পালন',
+    stimulus: 'উদ্দীপক: বেকার যুবক শফিক ১০০টি ব্রয়লার মুরগি ও ২টি উন্নত জাতের সংকর গাভী নিয়ে একটি সমন্বিত ডেইরি ও পোল্ট্রি খামার শুরু করেন। তিনি নিয়মিত টিকা প্রদান ও পুষ্টিকর সুষম খাদ্য নিশ্চিত করেন।',
+    sub_questions: [
+      { label: 'ক', text: 'সাইলেজ (Silage) কাকে বলে?', marks: 1 },
+      { label: 'খ', text: 'গবাদিপশুর জন্য সুষম দানাদার খাদ্যের প্রয়োজনীয়তা বুঝিয়ে লিখ।', marks: 2 },
+      { label: 'গ', text: 'শফিকের খামারে মুরগির রানীক্ষেত রোগ প্রতিরোধে কী কী জৈব নিরাপত্তা ও প্রতিষেধক ব্যবস্থা গ্রহণ করা প্রয়োজন? ব্যাখ্যা কর।', marks: 3 },
+      { label: 'ঘ', text: 'জাতীয় অর্থনীতি ও আত্মকর্মসংস্থানে শফিকের মতো খামার উদ্যোগের অবদান বিশ্লেষণ কর।', marks: 4 }
+    ],
+    marks: 10
+  },
+  {
+    id: 'j-agri-cq-5',
+    chapter: 'কৃষিবনায়ন ও পরিবেশ সুরক্ষা',
+    stimulus: 'উদ্দীপক: মিজান সাহেব তার পতিত জমিতে একই সাথে কাঠ উৎপাদনকারী মেহগনি গাছের নিচে ছায়াপ্রেমী আদা ও হলুদ চাষ করেন। ফলে অল্প জমিতে দ্বিগুণ ফলন ও মাটির উর্বরতা বৃদ্ধি পায়।',
+    sub_questions: [
+      { label: 'ক', text: 'কৃষিবনায়ন (Agro-forestry) কাকে বলে?', marks: 1 },
+      { label: 'খ', text: 'কৃষিবনায়ন পরিবেশের ভারসাম্য রক্ষায় কীভাবে সহায়তা করে?', marks: 2 },
+      { label: 'গ', text: 'উদ্দীপকে মিজান সাহেবের অনুসৃত বহুস্তরীয় কৃষিবনায়ন মডেলটির বৈশিষ্ট্য ব্যাখ্যা কর।', marks: 3 },
+      { label: 'ঘ', text: 'জলবায়ু পরিবর্তনের ঝুঁকি মোকাবেলা ও খাদ্য নিরাপত্তা নিশ্চিতকরণে এ ধরনের সমন্বিত চাষের গুরুত্ব মূল্যায়ন কর।', marks: 4 }
+    ],
+    marks: 10
+  }
+];
 
 // ৬ষ্ঠ থেকে ৮ম শ্রেণির গণিত সংক্ষিপ্ত-উত্তর প্রশ্ন ব্যাংক (১৫টি প্রশ্ন - পাটিগণিত, বীজগণিত, জ্যামিতি ও তথ্য-উপাত্ত)
 export const JUNIOR_MATH_SHORT_QUESTIONS_POOL = [
@@ -2690,6 +2807,9 @@ export function generateQuestionPaper({
     else if (subjectId === 'english1') effectiveMcqCount = 7;
     else if (subjectId === 'english2') effectiveMcqCount = 0;
     else if (['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) effectiveMcqCount = 30;
+    else if (subjectId === 'ict') effectiveMcqCount = 15;
+    else if (subjectId === 'agriculture' || subjectId === 'home_science') effectiveMcqCount = 20;
+    else if (subjectId === 'physical_edu') effectiveMcqCount = 0;
   }
 
   // 1. Pick or synthesize MCQs
@@ -2756,12 +2876,15 @@ export function generateQuestionPaper({
     if (subjectId === 'bangla1') {
       effectiveCqCount = 8;
       effectiveCqToAnswer = 5;
-    } else if (subjectId === 'bangla2' || subjectId === 'english1' || subjectId === 'english2') {
+    } else if (subjectId === 'bangla2' || subjectId === 'english1' || subjectId === 'english2' || subjectId === 'ict' || subjectId === 'physical_edu') {
       effectiveCqCount = 0;
       effectiveCqToAnswer = 0;
     } else if (['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) {
       effectiveCqCount = 8;
       effectiveCqToAnswer = 5;
+    } else if (subjectId === 'agriculture' || subjectId === 'home_science') {
+      effectiveCqCount = 5;
+      effectiveCqToAnswer = 3;
     }
   }
 
@@ -2770,6 +2893,8 @@ export function generateQuestionPaper({
   if (effectiveCqCount > 0) {
     if (isJunior && subjectId === 'math' && cqPool.length === 0) {
       pickedCq = [...JUNIOR_MATH_CQ_POOL];
+    } else if (isJunior && (subjectId === 'agriculture' || subjectId === 'home_science') && cqPool.length === 0) {
+      pickedCq = [...JUNIOR_AGRICULTURE_CQ_POOL];
     } else {
       pickedCq = shuffle(cqPool).slice(0, effectiveCqCount);
     }
@@ -2812,8 +2937,10 @@ export function generateQuestionPaper({
 
   // 3. Pick or synthesize Short-Answer Questions (সংক্ষিপ্ত-উত্তর প্রশ্ন)
   let pickedShort = [];
-  const effectiveShortCount = isJunior && ['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)
-    ? 15
+  const effectiveShortCount = isJunior
+    ? (['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)
+        ? 15
+        : (subjectId === 'ict' ? 8 : 0))
     : shortCount;
   if (effectiveShortCount > 0) {
     const isJuniorMath = isJunior && subjectId === 'math';
@@ -2873,11 +3000,8 @@ export function generateQuestionPaper({
   // Calculated effective total marks
   let effectiveTotalMarks = totalMarks;
   if (isJunior) {
-    if (subjectId === 'bangla1') effectiveTotalMarks = 100;
-    else if (subjectId === 'bangla2') effectiveTotalMarks = 50;
-    else if (subjectId === 'english1') effectiveTotalMarks = 100;
-    else if (subjectId === 'english2') effectiveTotalMarks = 50;
-    else if (['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) effectiveTotalMarks = 100;
+    if (['bangla1', 'english1', 'math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) effectiveTotalMarks = 100;
+    else if (['bangla2', 'english2', 'ict', 'agriculture', 'home_science', 'physical_edu'].includes(subjectId)) effectiveTotalMarks = 50;
   }
 
   return {
@@ -2890,7 +3014,11 @@ export function generateQuestionPaper({
     subjectId,
     subjectName,
     subjectCode,
-    timeAllowed: (isJunior && (subjectId === 'bangla2' || subjectId === 'english2')) ? '২ ঘণ্টা' : timeAllowed,
+    timeAllowed: (isJunior && (subjectId === 'bangla2' || subjectId === 'english2')) ? '২ ঘণ্টা'
+      : (isJunior && subjectId === 'ict') ? '১ ঘণ্টা ৩০ মিনিট'
+      : (isJunior && (subjectId === 'agriculture' || subjectId === 'home_science')) ? '১ ঘণ্টা ৪৫ মিনিট'
+      : (isJunior && subjectId === 'physical_edu') ? 'ধারাবাহিক মূল্যায়ন'
+      : timeAllowed,
     totalMarks: effectiveTotalMarks,
     mcqCount: pickedMcq.length,
     cqCount: pickedCq.length,
@@ -2901,16 +3029,24 @@ export function generateQuestionPaper({
       ? '‘ক’ বিভাগ (পাটিগণিত) অংশ থেকে ২টি, ‘খ’ বিভাগ (বীজগণিত) অংশ থেকে ২টি, ‘গ’ বিভাগ (জ্যামিতি) অংশ থেকে ২টি ও ‘ঘ’ বিভাগ (তথ্য ও উপাত্ত) অংশ থেকে ২টি করে মোট ৮টি সৃজনশীল প্রশ্ন থাকবে। প্রত্যেক অংশ থেকে ন্যূনতম ১টি করে প্রশ্নসহ মোট ৫টি প্রশ্নের উত্তর দিতে হবে। (প্রতিটি প্রশ্নের মান ১০; ৫ × ১০ = ৫০)'
       : (isJunior && ['general_science', 'bgs', 'islam', 'hindu'].includes(subjectId))
       ? '৮টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৫টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০; ৫ × ১০ = ৫০)।'
+      : (isJunior && (subjectId === 'agriculture' || subjectId === 'home_science'))
+      ? '৫টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৩টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি সৃজনশীল প্রশ্নের নম্বর ১০। (৩ × ১০ = ৩০)'
       : cqRule,
     shortCount: pickedShort.length,
-    shortToAnswer: (isJunior && ['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) ? 10 : shortToAnswer,
-    shortMarks: (isJunior && ['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId)) ? 20 : shortMarks,
+    shortToAnswer: (isJunior && ['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId))
+      ? 10
+      : (isJunior && subjectId === 'ict' ? 5 : shortToAnswer),
+    shortMarks: (isJunior && ['math', 'general_science', 'bgs', 'islam', 'hindu'].includes(subjectId))
+      ? 20
+      : (isJunior && subjectId === 'ict' ? 10 : shortMarks),
     shortRule: (isJunior && subjectId === 'math')
       ? '১৫টি প্রশ্ন থাকবে ১০টির উত্তর দিতে হবে। (প্রতিটি প্রশ্নের মান ২; ১০ × ২ = ২০)'
       : (isJunior && subjectId === 'general_science')
       ? '১৫টি সংক্ষিপ্ত-উত্তর প্রশ্ন থাকবে, ১০টির উত্তর দিতে হবে। সিলেবাসের অন্তর্ভুক্ত প্রতিটি অধ্যায় থেকে ন্যূনতম ১টি প্রশ্ন থাকতে হবে। (প্রতিটি প্রশ্নের মান ২; ১০ × ২ = ২০)'
       : (isJunior && ['bgs', 'islam', 'hindu'].includes(subjectId))
       ? '১৫টি সংক্ষিপ্ত-উত্তর প্রশ্ন থাকবে, ১০টি প্রশ্নের উত্তর দিতে হবে। (প্রতিটি প্রশ্নের মান ২; ১০ × ২ = ২০)'
+      : (isJunior && subjectId === 'ict')
+      ? 'সংক্ষিপ্ত উত্তর প্রশ্ন ৮টি থাকবে, ৫টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি সংক্ষিপ্ত-উত্তর প্রশ্নের নম্বর ২। (৫ × ২ = ১০)'
       : shortRule,
     mcqRule: (isJunior && subjectId === 'math')
       ? '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে। সবকয়টি প্রশ্নের উত্তর দিতে হবে। পাটিগণিত থেকে ৮-১০টি, বীজগণিত থেকে ৮-১০টি, জ্যামিতি থেকে ৬-৮টি এবং তথ্য ও উপাত্ত অংশ থেকে ৩-৪টি প্রশ্ন থাকবে। (প্রতিটির মান ১; ৩০ × ১ = ৩০)'
@@ -2918,9 +3054,20 @@ export function generateQuestionPaper({
       ? '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে। সবকয়টি প্রশ্নের উত্তর দিতে হবে। সিলেবাসের অন্তর্ভুক্ত প্রতিটি অধ্যায় থেকে ন্যূনতম ২টি প্রশ্ন থাকতে হবে। (প্রতিটির মান ১; ৩০ × ১ = ৩০)'
       : (isJunior && ['bgs', 'islam', 'hindu'].includes(subjectId))
       ? '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে। (প্রতিটির মান ১; ৩০ × ১ = ৩০)'
+      : (isJunior && subjectId === 'ict')
+      ? 'তত্ত্বীয় অংশ: ১৫টি বহুনির্বাচনি প্রশ্ন থাকবে। সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১। (১ × ১৫ = ১৫)'
+      : (isJunior && (subjectId === 'agriculture' || subjectId === 'home_science'))
+      ? '২০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি বহুনির্বাচনি প্রশ্নের নম্বর ১। (১ × ২০ = ২০)'
       : mcqRule,
-    practicalMarks,
-    practicalRule,
+    practicalMarks: (isJunior && subjectId === 'ict') ? 25
+      : (isJunior && subjectId === 'physical_edu') ? 50
+      : (isJunior && (subjectId === 'agriculture' || subjectId === 'home_science')) ? 0
+      : practicalMarks,
+    practicalRule: (isJunior && subjectId === 'ict')
+      ? 'ব্যবহারিক অংশ (২৫ নম্বর): ১. যন্ত্র/উপকরণ সংযোজন ও ব্যবহার/প্রক্রিয়া অনুসরণ/উপাত্ত সংগ্রহ ও প্রক্রিয়াকরণ/অঙ্কন/পর্যবেক্ষণ/শনাক্তকরণ/অনুশীলন : ১৫ নম্বর, ২. প্রতিবেদন প্রণয়ন : ৫ নম্বর, ৩. মৌখিক অভীক্ষা : ৫ নম্বর।'
+      : (isJunior && subjectId === 'physical_edu')
+      ? '১. শ্রেণির কাজ: মান ২০, ২. অনুসন্ধানী কাজ/ব্যবহারিক কাজ/প্রজেক্ট/অ্যাসাইনমেন্ট: মান ১০, ৩. শ্রেণি অভীক্ষা: মান ২০ (সর্বমোট = ৫০ নম্বর)। বিদ্যালয় পর্যায়ে শিক্ষক কর্তৃক বছরব্যাপী ধারাবাহিক মূল্যায়নের মাধ্যমে নম্বর প্রদান করা হবে।'
+      : practicalRule,
     descriptiveMarks: (subjectId === 'bangla1') ? 20 : descriptiveMarks,
     descriptiveRule: isJunior && subjectId === 'bangla1'
       ? 'আনন্দ পাঠ থেকে ৪টি বর্ণনামূলক প্রশ্ন থাকবে। এর মধ্যে ২টি প্রশ্নের উত্তর দিতে হবে। প্রত্যেকটি প্রশ্নের ২টি অংশ থাকবে (ক অংশের জন্য ৩ এবং খ অংশের জন্য ৭ নম্বর মোট ২০ নম্বর বরাদ্দ থাকবে)। (২ × ১০ = ২০)'
