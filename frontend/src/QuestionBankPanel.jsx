@@ -61,13 +61,15 @@ export function QuestionBankPanel({ sub, setSub }) {
   const [genSchoolName, setGenSchoolName] = useState('মাগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়');
   const [genExamName, setGenExamName] = useState('অর্ধবার্ষিক পরীক্ষা ২০২৬');
   const [genClass, setGenClass] = useState('10');
-  const [genSubjectId, setGenSubjectId] = useState('physics');
+  const [genDepartment, setGenDepartment] = useState('সকল বিভাগ');
+  const [genSubjectId, setGenSubjectId] = useState('bangla1');
   const [genSelectedChapters, setGenSelectedChapters] = useState([]);
   const [genTimeAllowed, setGenTimeAllowed] = useState('২ ঘণ্টা ৩০ মিনিট');
   const [genTotalMarks, setGenTotalMarks] = useState(100);
-  const [genMcqCount, setGenMcqCount] = useState(25);
-  const [genCqCount, setGenCqCount] = useState(8);
-  const [genCqToAnswer, setGenCqToAnswer] = useState(5);
+  const [genMcqCount, setGenMcqCount] = useState(30);
+  const [genCqCount, setGenCqCount] = useState(11);
+  const [genCqToAnswer, setGenCqToAnswer] = useState(7);
+  const [genPracticalMarks, setGenPracticalMarks] = useState(0);
   const [genDifficulty, setGenDifficulty] = useState('standard');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -75,22 +77,43 @@ export function QuestionBankPanel({ sub, setSub }) {
   const [activePaper, setActivePaper] = useState(null);
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
 
-  // Available subjects for the selected class
-  const availableSubjects = useMemo(() => {
-    return SUBJECT_METADATA.filter(s => s.classes.includes(genClass));
-  }, [genClass]);
+  // Check if Class 9/10 has department/grouping
+  const isHighSchoolGrouped = ['9', '10'].includes(genClass);
 
-  // Sync subject if not available in current class
+  // Available subjects for the selected class and department
+  const availableSubjects = useMemo(() => {
+    return SUBJECT_METADATA.filter(s => {
+      if (!s.classes.includes(genClass)) return false;
+      if (!isHighSchoolGrouped) return true; // Class 6, 7, 8 are general
+      if (!genDepartment || genDepartment === 'সকল বিভাগ') return true;
+      return s.departments.includes(genDepartment);
+    });
+  }, [genClass, genDepartment, isHighSchoolGrouped]);
+
+  // Sync subject if not available in current class/department filter
   useEffect(() => {
     if (!availableSubjects.find(s => s.id === genSubjectId) && availableSubjects.length > 0) {
       setGenSubjectId(availableSubjects[0].id);
     }
-  }, [genClass, availableSubjects, genSubjectId]);
+  }, [availableSubjects, genSubjectId]);
 
   // Current subject metadata
   const currentSubject = useMemo(() => {
     return SUBJECT_METADATA.find(s => s.id === genSubjectId) || availableSubjects[0] || SUBJECT_METADATA[0];
   }, [genSubjectId, availableSubjects]);
+
+  // Auto-sync NCTB Marks Distribution when Subject or Class changes
+  useEffect(() => {
+    if (currentSubject && currentSubject.marks_scheme) {
+      const scheme = currentSubject.marks_scheme;
+      setGenTotalMarks(scheme.full_marks || 100);
+      setGenMcqCount(scheme.mcq_max !== undefined ? scheme.mcq_max : 25);
+      setGenCqCount(scheme.cq_count || (scheme.written_max ? 11 : 0));
+      setGenCqToAnswer(scheme.cq_to_answer || (scheme.cq_count === 8 ? 5 : 7));
+      setGenPracticalMarks(scheme.practical_max || 0);
+      setGenTimeAllowed(scheme.time_allowed || '২ ঘণ্টা ৩০ মিনিট');
+    }
+  }, [currentSubject]);
 
   // Available chapters for selected subject & class
   const availableChapters = useMemo(() => {
@@ -100,15 +123,20 @@ export function QuestionBankPanel({ sub, setSub }) {
     return [];
   }, [genSubjectId, genClass]);
 
-  // Handle 1-Click Generation
+  // Handle 1-Click Generation with NCTB Blueprint
   const handleGeneratePaper = () => {
     setIsGenerating(true);
     setTimeout(() => {
       try {
+        const effectiveDept = !isHighSchoolGrouped 
+          ? 'সাধারণ' 
+          : (genDepartment !== 'সকল বিভাগ' ? genDepartment : (currentSubject.departments[0] || 'আবশ্যিক'));
+
         const paper = generateQuestionPaper({
           schoolName: genSchoolName,
           examName: genExamName,
           className: genClass,
+          department: effectiveDept,
           subjectId: currentSubject.id,
           subjectName: currentSubject.name,
           subjectCode: currentSubject.code,
@@ -118,6 +146,9 @@ export function QuestionBankPanel({ sub, setSub }) {
           mcqCount: Number(genMcqCount),
           cqCount: Number(genCqCount),
           cqToAnswer: Number(genCqToAnswer),
+          practicalMarks: Number(genPracticalMarks),
+          shortMarks: currentSubject.marks_scheme?.pattern === 'mcq_practical' ? 25 : 0,
+          pattern: currentSubject.marks_scheme?.pattern || 'cq_mcq',
           difficulty: genDifficulty
         });
         setActivePaper(paper);
@@ -717,8 +748,14 @@ export function QuestionBankPanel({ sub, setSub }) {
                 <select
                   value={genClass}
                   onChange={e => {
-                    setGenClass(e.target.value);
+                    const c = e.target.value;
+                    setGenClass(c);
                     setGenSelectedChapters([]);
+                    if (['6', '7', '8'].includes(c)) {
+                      setGenDepartment('সাধারণ');
+                    } else if (genDepartment === 'সাধারণ') {
+                      setGenDepartment('সকল বিভাগ');
+                    }
                   }}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
                 >
@@ -731,7 +768,41 @@ export function QuestionBankPanel({ sub, setSub }) {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিষয়:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিভাগ (Department / Group):</label>
+                <select
+                  value={genDepartment}
+                  disabled={!isHighSchoolGrouped}
+                  onChange={e => {
+                    setGenDepartment(e.target.value);
+                    setGenSelectedChapters([]);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    background: isHighSchoolGrouped ? '#fff' : '#f1f5f9',
+                    color: isHighSchoolGrouped ? '#0f172a' : '#64748b',
+                    cursor: isHighSchoolGrouped ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  {!isHighSchoolGrouped ? (
+                    <option value="সাধারণ">সাধারণ (৬ষ্ঠ–৮ম শ্রেণিতে বিভাগ বিভাজন প্রযোজ্য নয়)</option>
+                  ) : (
+                    <>
+                      <option value="সকল বিভাগ">সকল বিভাগ (আবশ্যিক + সকল গ্রুপ)</option>
+                      <option value="আবশ্যিক">আবশ্যিক বিষয়সমূহ (বাংলা, ইংরেজি, গণিত, আইসিটি, ধর্ম)</option>
+                      <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (পদার্থ, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত)</option>
+                      <option value="মানবিক">মানবিক বিভাগ (ইতিহাস, ভূগোল, পৌরনীতি, অর্থনীতি, বিজ্ঞান)</option>
+                      <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা (হিসাববিজ্ঞান, উদ্যোগ, ফিন্যান্স, বিজ্ঞান)</option>
+                    </>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিষয় নির্বাচন (এনসিটিবি কারিকুলাম):</label>
                 <select
                   value={genSubjectId}
                   onChange={e => {
@@ -741,7 +812,9 @@ export function QuestionBankPanel({ sub, setSub }) {
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
                 >
                   {availableSubjects.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} (কোড: {s.code})</option>
+                    <option key={s.id} value={s.id}>
+                      {s.name} (কোড: {s.code}) {isHighSchoolGrouped && s.departments.length > 0 ? `[${s.departments[0]}]` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -758,51 +831,116 @@ export function QuestionBankPanel({ sub, setSub }) {
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>মোট পূর্ণমান:</label>
-                <select
+                <input
+                  type="number"
                   value={genTotalMarks}
                   onChange={e => setGenTotalMarks(Number(e.target.value))}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
-                >
-                  <option value="100">১০০ নম্বর (বোর্ড পূর্ণাঙ্গ)</option>
-                  <option value="75">৭৫ নম্বর (ব্যবহারিক বিষয়)</option>
-                  <option value="50">৫০ নম্বর (আইসিটি/অর্ধেক)</option>
-                  <option value="25">২৫ নম্বর (শুধুমাত্র MCQ/মডেল)</option>
-                </select>
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>MCQ প্রশ্ন সংখ্যা:</label>
-                <select
+                <input
+                  type="number"
                   value={genMcqCount}
                   onChange={e => setGenMcqCount(Number(e.target.value))}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
-                >
-                  <option value="30">৩০ টি (৩০ নম্বর)</option>
-                  <option value="25">২৫ টি (২৫ নম্বর - স্ট্যান্ডার্ড)</option>
-                  <option value="20">২০ টি (২০ নম্বর)</option>
-                  <option value="15">১৫ টি (১৫ নম্বর)</option>
-                  <option value="0">কোনো MCQ থাকবে না</option>
-                </select>
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>সৃজনশীল (CQ) সংখ্যা:</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <select
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>সৃজনশীল (CQ) উদ্দীপক সংখ্যা:</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="number"
                     value={genCqCount}
                     onChange={e => setGenCqCount(Number(e.target.value))}
-                    style={{ flex: 1, padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
-                  >
-                    <option value="11">১১ টি উদ্দীপক</option>
-                    <option value="8">৮ টি উদ্দীপক (স্ট্যান্ডার্ড)</option>
-                    <option value="6">৬ টি উদ্দীপক</option>
-                    <option value="4">৪ টি উদ্দীপক</option>
-                    <option value="0">কোনো CQ থাকবে না</option>
-                  </select>
-                  <span style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#64748b' }}>থেকে {toBn(genCqToAnswer)}টির উত্তর</span>
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>থেকে উত্তর:</span>
+                  <input
+                    type="number"
+                    value={genCqToAnswer}
+                    onChange={e => setGenCqToAnswer(Number(e.target.value))}
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
                 </div>
               </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>ব্যবহারিক / সংক্ষিপ্ত মান:</label>
+                <input
+                  type="number"
+                  value={genPracticalMarks}
+                  onChange={e => setGenPracticalMarks(Number(e.target.value))}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
             </div>
+
+            {/* NCTB Official Marks Blueprint Card */}
+            {currentSubject && currentSubject.marks_scheme && (
+              <div style={{
+                background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                border: '1px solid #a7f3d0',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>🏛️</span>
+                    <b style={{ fontSize: '14px', color: '#065f46' }}>
+                      জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত মানবন্টন ও পরীক্ষার ধরন
+                    </b>
+                  </div>
+                  <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
+                    বিষয় কোড: {toBn(currentSubject.code)} | {genClass === '10' ? '১০ম' : genClass === '9' ? '৯ম' : genClass === '8' ? '৮ম' : genClass === '7' ? '৭ম' : '৬ষ্ঠ'} শ্রেণি
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>পূর্ণমান</div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#047857' }}>{toBn(currentSubject.marks_scheme.full_marks)} নম্বর</div>
+                  </div>
+
+                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সৃজনশীল / লিখিত</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0284c7' }}>
+                      {currentSubject.marks_scheme.written_max > 0 ? (
+                        `${toBn(currentSubject.marks_scheme.written_max)} নম্বর (${toBn(currentSubject.marks_scheme.cq_count)}টি থেকে ${toBn(currentSubject.marks_scheme.cq_to_answer)}টি)`
+                      ) : 'প্রযোজ্য নয়'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বহুনির্বাচনী (MCQ)</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#d97706' }}>
+                      {currentSubject.marks_scheme.mcq_max > 0 ? `${toBn(currentSubject.marks_scheme.mcq_max)} নম্বর (${toBn(currentSubject.marks_scheme.mcq_max)}টি প্রশ্ন)` : 'MCQ নেই'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>ব্যবহারিক / সংক্ষিপ্ত</div>
+                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#7c3aed' }}>
+                      {currentSubject.marks_scheme.practical_max > 0 ? `${toBn(currentSubject.marks_scheme.practical_max)} নম্বর (ল্যাব পরীক্ষা)` : 'ব্যবহারিক নেই'}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বরাদ্দকৃত সময়</div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#334155' }}>{currentSubject.marks_scheme.time_allowed}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '10px', fontSize: '11.5px', color: '#065f46', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', borderTop: '1px dashed #a7f3d0', paddingTop: '8px' }}>
+                  <span>🎯 পাস নম্বর বণ্টন: লিখিত {toBn(currentSubject.marks_scheme.written_pass || 0)} | MCQ {toBn(currentSubject.marks_scheme.mcq_pass || 0)} | ব্যবহারিক {toBn(currentSubject.marks_scheme.practical_pass || (currentSubject.marks_scheme.practical_max ? 8 : 0))} (পরীক্ষা ও ফলাফল অংশের সাথে হুবহু সামঞ্জস্যপূর্ণ)</span>
+                  <span style={{ fontWeight: 700 }}>প্যাটার্ন: {currentSubject.marks_scheme.pattern === 'cq_mcq_practical' ? 'CQ + MCQ + Practical' : currentSubject.marks_scheme.pattern === 'mcq_practical' ? 'MCQ + Practical' : currentSubject.marks_scheme.pattern === 'reading_writing' ? 'Reading & Guided Writing' : currentSubject.marks_scheme.pattern === 'grammar_composition' ? 'Grammar & Composition' : 'CQ (৭০) + MCQ (৩০)'}</span>
+                </div>
+              </div>
+            )}
 
             {/* Chapters Selection Box */}
             {availableChapters.length > 0 && (
@@ -1002,7 +1140,9 @@ export function QuestionBankPanel({ sub, setSub }) {
                     {activePaper.examName}
                   </div>
                   <div style={{ fontSize: '14px', fontWeight: 700, marginTop: '2px' }}>
-                    শ্রেণি: {activePaper.className === '10' ? '১০ম' : activePaper.className === '9' ? '৯ম' : activePaper.className === '8' ? '৮ম' : activePaper.className === '7' ? '৭ম' : '৬ষ্ঠ'} • বিষয়: {activePaper.subjectName} (বিষয় কোড: {toBn(activePaper.subjectCode)})
+                    শ্রেণি: {activePaper.className === '10' ? '১০ম' : activePaper.className === '9' ? '৯ম' : activePaper.className === '8' ? '৮ম' : activePaper.className === '7' ? '৭ম' : '৬ষ্ঠ'}
+                    {activePaper.department && activePaper.department !== 'সাধারণ' ? ` • বিভাগ: ${activePaper.department}` : ''}
+                    • বিষয়: {activePaper.subjectName} (বিষয় কোড: {toBn(activePaper.subjectCode)})
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '12.5px', fontWeight: 700, borderTop: '1px solid #ccc', paddingTop: '6px' }}>
@@ -1092,6 +1232,21 @@ export function QuestionBankPanel({ sub, setSub }) {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section C: Practical Exam (if practicalMarks > 0) */}
+                {activePaper.practicalMarks && activePaper.practicalMarks > 0 && (
+                  <div style={{ marginTop: '24px', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '12px 14px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', marginBottom: '8px' }}>
+                      <b style={{ fontSize: '13.5px' }}>‘গ’ বিভাগ — ব্যবহারিক অভীক্ষা (মান: {toBn(activePaper.practicalMarks)})</b>
+                      <span style={{ fontSize: '12px', color: '#475569' }}>[বিদ্যালয়ের বিজ্ঞান ল্যাবরেটরি / আইসিটি ল্যাবে নির্ধারিত সময়ে অনুষ্ঠিত হবে]</span>
+                    </div>
+                    <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.6 }}>
+                      ১. নির্ধারিত পরীক্ষণ সম্পাদন, উপাত্ত সংগ্রহ ও ফলাফল নির্ণয়: <b>{toBn(15)} নম্বর</b><br />
+                      ২. ব্যবহারিক নোটবুক / ল্যাব কার্যবিবরণী উপস্থাপন: <b>{toBn(5)} নম্বর</b><br />
+                      ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
                     </div>
                   </div>
                 )}
@@ -2182,7 +2337,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 800 }}>
-                        {paper.className === '10' ? '১০ম' : paper.className === '9' ? '৯ম' : paper.className === '8' ? '৮ম' : paper.className === '7' ? '৭ম' : '৬ষ্ঠ'} শ্রেণি
+                        {paper.className === '10' ? '১০ম' : paper.className === '9' ? '৯ম' : paper.className === '8' ? '৮ম' : paper.className === '7' ? '৭ম' : '৬ষ্ঠ'} শ্রেণি {paper.department && paper.department !== 'সাধারণ' ? `(${paper.department})` : ''}
                       </span>
                       <span style={{ fontSize: '11px', color: '#64748b' }}>
                         {new Date(paper.saved_at || paper.createdAt).toLocaleDateString('bn-BD')}
