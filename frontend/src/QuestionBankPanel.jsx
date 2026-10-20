@@ -16,7 +16,9 @@ import {
   getOmrResults,
   saveOmrEvaluation,
   deleteOmrEvaluation,
-  generateQuestionPaper
+  generateQuestionPaper,
+  getSubjectMarksScheme,
+  NCTB_SSC_EVALUATION_SPECS
 } from './questionBankData';
 import schoolLogo from '../public/school-logo.png';
 
@@ -67,8 +69,11 @@ export function QuestionBankPanel({ sub, setSub }) {
   const [genTimeAllowed, setGenTimeAllowed] = useState('২ ঘণ্টা ৩০ মিনিট');
   const [genTotalMarks, setGenTotalMarks] = useState(100);
   const [genMcqCount, setGenMcqCount] = useState(30);
-  const [genCqCount, setGenCqCount] = useState(11);
-  const [genCqToAnswer, setGenCqToAnswer] = useState(7);
+  const [genCqCount, setGenCqCount] = useState(8);
+  const [genCqToAnswer, setGenCqToAnswer] = useState(5);
+  const [genShortCount, setGenShortCount] = useState(0);
+  const [genShortToAnswer, setGenShortToAnswer] = useState(0);
+  const [genShortMarks, setGenShortMarks] = useState(0);
   const [genPracticalMarks, setGenPracticalMarks] = useState(0);
   const [genDifficulty, setGenDifficulty] = useState('standard');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -102,18 +107,23 @@ export function QuestionBankPanel({ sub, setSub }) {
     return SUBJECT_METADATA.find(s => s.id === genSubjectId) || availableSubjects[0] || SUBJECT_METADATA[0];
   }, [genSubjectId, availableSubjects]);
 
-  // Auto-sync NCTB Marks Distribution when Subject or Class changes
+  // Auto-sync NCTB Marks Distribution when Subject or Class changes (using official SSC circular)
   useEffect(() => {
-    if (currentSubject && currentSubject.marks_scheme) {
-      const scheme = currentSubject.marks_scheme;
-      setGenTotalMarks(scheme.full_marks || 100);
-      setGenMcqCount(scheme.mcq_max !== undefined ? scheme.mcq_max : 25);
-      setGenCqCount(scheme.cq_count || (scheme.written_max ? 11 : 0));
-      setGenCqToAnswer(scheme.cq_to_answer || (scheme.cq_count === 8 ? 5 : 7));
-      setGenPracticalMarks(scheme.practical_max || 0);
-      setGenTimeAllowed(scheme.time_allowed || '২ ঘণ্টা ৩০ মিনিট');
+    if (currentSubject) {
+      const scheme = getSubjectMarksScheme(currentSubject, genClass);
+      if (scheme) {
+        setGenTotalMarks(scheme.full_marks || 100);
+        setGenMcqCount(scheme.mcq_max !== undefined ? scheme.mcq_max : 25);
+        setGenCqCount(scheme.cq_count !== undefined ? scheme.cq_count : (scheme.written_max ? 8 : 0));
+        setGenCqToAnswer(scheme.cq_to_answer !== undefined ? scheme.cq_to_answer : 5);
+        setGenShortCount(scheme.short_count || 0);
+        setGenShortToAnswer(scheme.short_to_answer || 0);
+        setGenShortMarks(scheme.short_max || 0);
+        setGenPracticalMarks(scheme.practical_max || 0);
+        setGenTimeAllowed(scheme.time_allowed || '৩ ঘণ্টা');
+      }
     }
-  }, [currentSubject]);
+  }, [currentSubject, genClass]);
 
   // Available chapters for selected subject & class
   const availableChapters = useMemo(() => {
@@ -132,6 +142,8 @@ export function QuestionBankPanel({ sub, setSub }) {
           ? 'সাধারণ' 
           : (genDepartment !== 'সকল বিভাগ' ? genDepartment : (currentSubject.departments[0] || 'আবশ্যিক'));
 
+        const scheme = getSubjectMarksScheme(currentSubject, genClass);
+
         const paper = generateQuestionPaper({
           schoolName: genSchoolName,
           examName: genExamName,
@@ -146,9 +158,16 @@ export function QuestionBankPanel({ sub, setSub }) {
           mcqCount: Number(genMcqCount),
           cqCount: Number(genCqCount),
           cqToAnswer: Number(genCqToAnswer),
+          shortCount: Number(genShortCount),
+          shortToAnswer: Number(genShortToAnswer),
+          shortMarks: Number(genShortMarks),
           practicalMarks: Number(genPracticalMarks),
-          shortMarks: currentSubject.marks_scheme?.pattern === 'mcq_practical' ? 25 : 0,
-          pattern: currentSubject.marks_scheme?.pattern || 'cq_mcq',
+          pattern: scheme?.pattern || currentSubject.marks_scheme?.pattern || 'cq_mcq',
+          cqRule: scheme?.cq_rule,
+          shortRule: scheme?.short_rule,
+          mcqRule: scheme?.mcq_rule,
+          practicalRule: scheme?.practical_rule,
+          descriptiveRule: scheme?.descriptive_rule,
           difficulty: genDifficulty
         });
         setActivePaper(paper);
@@ -868,8 +887,35 @@ export function QuestionBankPanel({ sub, setSub }) {
                 </div>
               </div>
 
+              {/* Short Questions Input (NCTB SSC Standard: 2 marks each) */}
+              {(genShortCount > 0 || ['9', '10'].includes(genClass)) && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    সংক্ষিপ্ত-উত্তর প্রশ্ন (প্রতিটি ২ নম্বর):
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      value={genShortCount}
+                      onChange={e => setGenShortCount(Number(e.target.value))}
+                      style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    />
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>থেকে উত্তর:</span>
+                    <input
+                      type="number"
+                      value={genShortToAnswer}
+                      onChange={e => setGenShortToAnswer(Number(e.target.value))}
+                      style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    />
+                    <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>
+                      ({toBn(genShortToAnswer * 2)} নম্বর)
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>ব্যবহারিক / সংক্ষিপ্ত মান:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>ব্যবহারিক / বিশেষ অংশ মান:</label>
                 <input
                   type="number"
                   value={genPracticalMarks}
@@ -880,67 +926,95 @@ export function QuestionBankPanel({ sub, setSub }) {
             </div>
 
             {/* NCTB Official Marks Blueprint Card */}
-            {currentSubject && currentSubject.marks_scheme && (
-              <div style={{
-                background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-                border: '1px solid #a7f3d0',
-                borderRadius: '12px',
-                padding: '16px 20px',
-                marginBottom: '20px'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '18px' }}>🏛️</span>
-                    <b style={{ fontSize: '14px', color: '#065f46' }}>
-                      জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) অনুমোদিত মানবন্টন ও পরীক্ষার ধরন
-                    </b>
-                  </div>
-                  <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
-                    বিষয় কোড: {toBn(currentSubject.code)} | {genClass === '10' ? '১০ম' : genClass === '9' ? '৯ম' : genClass === '8' ? '৮ম' : genClass === '7' ? '৭ম' : '৬ষ্ঠ'} শ্রেণি
-                  </span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
-                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>পূর্ণমান</div>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: '#047857' }}>{toBn(currentSubject.marks_scheme.full_marks)} নম্বর</div>
+            {currentSubject && (() => {
+              const currentScheme = getSubjectMarksScheme(currentSubject, genClass) || currentSubject.marks_scheme;
+              if (!currentScheme) return null;
+              return (
+                <div style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>🏛️</span>
+                      <b style={{ fontSize: '14px', color: '#065f46' }}>
+                        জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) বিষয়ভিত্তিক মূল্যায়ন নির্দেশনা ও নম্বর বিভাজন
+                      </b>
+                    </div>
+                    <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
+                      বিষয় কোড: {toBn(currentSubject.code)} | {['9', '10'].includes(genClass) ? `${toBn(genClass)}ম শ্রেণি (এসএসসি পরিপত্র অনুযায়ী)` : `${toBn(genClass)}ম শ্রেণি`}
+                    </span>
                   </div>
 
-                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সৃজনশীল / লিখিত</div>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0284c7' }}>
-                      {currentSubject.marks_scheme.written_max > 0 ? (
-                        `${toBn(currentSubject.marks_scheme.written_max)} নম্বর (${toBn(currentSubject.marks_scheme.cq_count)}টি থেকে ${toBn(currentSubject.marks_scheme.cq_to_answer)}টি)`
-                      ) : 'প্রযোজ্য নয়'}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>পূর্ণমান</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#047857' }}>{toBn(currentScheme.full_marks)} নম্বর</div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সৃজনশীল / লিখিত</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0284c7' }}>
+                        {currentScheme.written_max > 0 ? (
+                          `${toBn(currentScheme.written_max)} নম্বর (${toBn(currentScheme.cq_count)}টি হতে ${toBn(currentScheme.cq_to_answer)}টি)`
+                        ) : 'লিখিত নেই'}
+                      </div>
+                    </div>
+
+                    {currentScheme.short_max > 0 && (
+                      <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সংক্ষিপ্ত-উত্তর প্রশ্ন</div>
+                        <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f766e' }}>
+                          {toBn(currentScheme.short_max)} নম্বর ({toBn(currentScheme.short_count)}টি হতে {toBn(currentScheme.short_to_answer)}টি)
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বহুনির্বাচনী (MCQ)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#d97706' }}>
+                        {currentScheme.mcq_max > 0 ? `${toBn(currentScheme.mcq_max)} নম্বর (${toBn(currentScheme.mcq_max)}টি প্রশ্ন)` : 'MCQ নেই'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>ব্যবহারিক / বিশেষ অংশ</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#7c3aed' }}>
+                        {currentScheme.practical_max > 0 ? `${toBn(currentScheme.practical_max)} নম্বর (ল্যাব)` : currentScheme.descriptive_max > 0 ? `${toBn(currentScheme.descriptive_max)} নম্বর (বর্ণনামূলক)` : currentScheme.financial_max > 0 ? `${toBn(currentScheme.financial_max)} নম্বর (আর্থিক বিবরণী)` : 'নেই'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বরাদ্দকৃত সময়</div>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#334155' }}>{currentScheme.time_allowed}</div>
                     </div>
                   </div>
 
-                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বহুনির্বাচনী (MCQ)</div>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#d97706' }}>
-                      {currentSubject.marks_scheme.mcq_max > 0 ? `${toBn(currentSubject.marks_scheme.mcq_max)} নম্বর (${toBn(currentSubject.marks_scheme.mcq_max)}টি প্রশ্ন)` : 'MCQ নেই'}
+                  {/* Section & Exam Directives */}
+                  <div style={{ marginTop: '10px', fontSize: '12px', color: '#065f46', display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px dashed #a7f3d0', paddingTop: '8px' }}>
+                    {currentScheme.cq_rule && (
+                      <div>📌 <b>সৃজনশীল নির্দেশিকা:</b> {currentScheme.cq_rule}</div>
+                    )}
+                    {currentScheme.short_rule && (
+                      <div>✏️ <b>সংক্ষিপ্ত-উত্তর নির্দেশিকা:</b> {currentScheme.short_rule}</div>
+                    )}
+                    {currentScheme.descriptive_rule && (
+                      <div>📖 <b>বর্ণনামূলক অংশ নির্দেশিকা:</b> {currentScheme.descriptive_rule}</div>
+                    )}
+                    {currentScheme.practical_rule && (
+                      <div>🔬 <b>ব্যবহারিক নির্দেশিকা:</b> {currentScheme.practical_rule}</div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', marginTop: '4px', fontSize: '11.5px', color: '#047857' }}>
+                      <span>🎯 পাস নম্বর বণ্টন: লিখিত {toBn(currentScheme.written_pass || 0)} | MCQ {toBn(currentScheme.mcq_pass || 0)} | ব্যবহারিক {toBn(currentScheme.practical_pass || (currentScheme.practical_max ? 8 : 0))} (পরীক্ষা ও ফলাফল অংশের সাথে হুবহু সামঞ্জস্যপূর্ণ)</span>
+                      <span style={{ fontWeight: 700 }}>প্যাটার্ন: {currentScheme.pattern || 'বোর্ড স্ট্যান্ডার্ড'}</span>
                     </div>
                   </div>
-
-                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>ব্যবহারিক / সংক্ষিপ্ত</div>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#7c3aed' }}>
-                      {currentSubject.marks_scheme.practical_max > 0 ? `${toBn(currentSubject.marks_scheme.practical_max)} নম্বর (ল্যাব পরীক্ষা)` : 'ব্যবহারিক নেই'}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বরাদ্দকৃত সময়</div>
-                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#334155' }}>{currentSubject.marks_scheme.time_allowed}</div>
-                  </div>
                 </div>
-
-                <div style={{ marginTop: '10px', fontSize: '11.5px', color: '#065f46', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', borderTop: '1px dashed #a7f3d0', paddingTop: '8px' }}>
-                  <span>🎯 পাস নম্বর বণ্টন: লিখিত {toBn(currentSubject.marks_scheme.written_pass || 0)} | MCQ {toBn(currentSubject.marks_scheme.mcq_pass || 0)} | ব্যবহারিক {toBn(currentSubject.marks_scheme.practical_pass || (currentSubject.marks_scheme.practical_max ? 8 : 0))} (পরীক্ষা ও ফলাফল অংশের সাথে হুবহু সামঞ্জস্যপূর্ণ)</span>
-                  <span style={{ fontWeight: 700 }}>প্যাটার্ন: {currentSubject.marks_scheme.pattern === 'cq_mcq_practical' ? 'CQ + MCQ + Practical' : currentSubject.marks_scheme.pattern === 'mcq_practical' ? 'MCQ + Practical' : currentSubject.marks_scheme.pattern === 'reading_writing' ? 'Reading & Guided Writing' : currentSubject.marks_scheme.pattern === 'grammar_composition' ? 'Grammar & Composition' : 'CQ (৭০) + MCQ (৩০)'}</span>
-                </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Chapters Selection Box */}
             {availableChapters.length > 0 && (
@@ -1151,7 +1225,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                   </div>
                 </div>
 
-                {/* Section A: MCQ */}
+                {/* Section A: MCQ (বহুনির্বাচনি অভীক্ষা) */}
                 {activePaper.mcqs && activePaper.mcqs.length > 0 && (
                   <div style={{ marginBottom: '26px' }}>
                     <div style={{
@@ -1164,8 +1238,12 @@ export function QuestionBankPanel({ sub, setSub }) {
                       marginBottom: '14px',
                       border: '1px solid #cbd5e1'
                     }}>
-                      <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — বহুনির্বাচনী অভীক্ষা (মান: {toBn(activePaper.mcqs.length)})</b>
-                      <span style={{ fontSize: '12px' }}>[বিশেষ দ্রষ্টব্য: সরবরাহকৃত OMR শিটে সঠিক উত্তরের বৃত্তটি কালো বলপয়েন্ট কলম দ্বারা ভরাট কর। সকল প্রশ্নের মান সমান।]</span>
+                      <b style={{ fontSize: '13.5px' }}>
+                        {activePaper.subjectId === 'bangla2' ? '‘খ’ বিভাগ — ব্যাকরণ অংশ (বহুনির্বাচনি অভীক্ষা)' : '‘ক’ বিভাগ — বহুনির্বাচনি অভীক্ষা'} (মান: {toBn(activePaper.mcqs.length)})
+                      </b>
+                      <span style={{ fontSize: '12px' }}>
+                        {activePaper.mcqRule ? `[${activePaper.mcqRule}]` : '[বিশেষ দ্রষ্টব্য: সরবরাহকৃত OMR শিটে সঠিক উত্তরের বৃত্তটি কালো বলপয়েন্ট কলম দ্বারা ভরাট কর। সকল প্রশ্নের উত্তর দিতে হবে।]'}
+                      </span>
                     </div>
 
                     {/* 2-Column Print Layout for MCQ */}
@@ -1189,9 +1267,9 @@ export function QuestionBankPanel({ sub, setSub }) {
                   </div>
                 )}
 
-                {/* Section B: Creative Questions (CQ) */}
-                {activePaper.cqs && activePaper.cqs.length > 0 && (
-                  <div style={{ marginTop: '20px' }}>
+                {/* Section: হিসাববিজ্ঞান আর্থিক বিবরণী প্রস্তুতকরণ (বাধ্যতামূলক, মান ২০) */}
+                {activePaper.financialStatement && (
+                  <div style={{ marginBottom: '26px' }}>
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -1202,25 +1280,206 @@ export function QuestionBankPanel({ sub, setSub }) {
                       marginBottom: '14px',
                       border: '1px solid #cbd5e1'
                     }}>
-                      <b style={{ fontSize: '13.5px' }}>‘খ’ বিভাগ — সৃজনশীল প্রশ্ন (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})</b>
-                      <span style={{ fontSize: '12px' }}>[যেকোনো {toBn(activePaper.cqToAnswer || activePaper.cqs.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০]</span>
+                      <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — আর্থিক বিবরণী প্রস্তুতকরণ (পূর্ণমান: ২০)</b>
+                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#b91c1c' }}>
+                        [১ নম্বর প্রশ্নের উত্তর দেওয়া আবশ্যিক]
+                      </span>
+                    </div>
+
+                    <div style={{ border: '1px solid #cbd5e1', padding: '14px', borderRadius: '6px', background: '#f8fafc', marginBottom: '16px' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px' }}>
+                        ১ নম্বর প্রশ্ন (আবশ্যিক):
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>
+                        {activePaper.financialStatement.stimulus}
+                      </div>
+
+                      {/* Trial Balance Table */}
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', marginBottom: '10px', background: '#fff' }}>
+                        <thead>
+                          <tr style={{ background: '#e2e8f0' }}>
+                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'left' }}>হিসাবের শিরোনাম</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ডেবিট (টাকা)</th>
+                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ক্রেডিট (টাকা)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activePaper.financialStatement.trial_balance.map((row, rIdx) => (
+                            <tr key={rIdx}>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{row.account}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.debit ? toBn(row.debit) : '—'}</td>
+                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.credit ? toBn(row.credit) : '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* Adjustments */}
+                      <div style={{ fontSize: '12.5px', marginBottom: '10px' }}>
+                        <b>অন্যান্য সমন্বয়সমূহ:</b>
+                        <ol style={{ margin: '4px 0 0 18px', padding: 0 }}>
+                          {activePaper.financialStatement.adjustments.map((adj, aIdx) => (
+                            <li key={aIdx} style={{ margin: '2px 0' }}>{adj}</li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      {/* Sub Questions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+                        {activePaper.financialStatement.sub_questions.map((sub, sIdx) => (
+                          <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
+                            <div>
+                              <b style={{ marginRight: '6px' }}>({sub.label})</b>
+                              <span>{sub.text}</span>
+                            </div>
+                            <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section B: Creative Questions (CQ) */}
+                {activePaper.cqs && activePaper.cqs.length > 0 && (
+                  <div style={{ marginTop: '20px', marginBottom: '26px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#f1f5f9',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      marginBottom: '14px',
+                      border: '1px solid #cbd5e1'
+                    }}>
+                      <b style={{ fontSize: '13.5px' }}>
+                        {activePaper.financialStatement ? '‘খ’ বিভাগ — সৃজনশীল প্রশ্ন' : '‘খ’ বিভাগ — সৃজনশীল প্রশ্ন'} (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})
+                      </b>
+                      <span style={{ fontSize: '12px' }}>
+                        {activePaper.cqRule ? `[${activePaper.cqRule}]` : `[যেকোনো ${toBn(activePaper.cqToAnswer || activePaper.cqs.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০]`}
+                      </span>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {activePaper.cqs.map((cq, idx) => (
-                        <div key={cq.id || idx} className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '12px' }}>
-                          <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
-                            {toBn(idx + 1)} নম্বর প্রশ্ন:
-                          </div>
-                          
-                          {/* Stimulus Box */}
-                          <div className="stimulus-box" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', fontSize: '13px', lineHeight: 1.5 }}>
-                            {cq.stimulus}
-                          </div>
+                      {activePaper.cqs.map((cq, idx) => {
+                        const showSectionHeader = cq.sectionName && (idx === 0 || activePaper.cqs[idx - 1]?.sectionName !== cq.sectionName);
+                        return (
+                          <React.Fragment key={cq.id || idx}>
+                            {showSectionHeader && (
+                              <div style={{
+                                background: '#e2e8f0',
+                                color: '#0f172a',
+                                padding: '4px 10px',
+                                borderRadius: '4px',
+                                fontWeight: 800,
+                                fontSize: '13px',
+                                marginTop: idx > 0 ? '10px' : '0',
+                                borderLeft: '4px solid #047857'
+                              }}>
+                                {cq.sectionName}
+                              </div>
+                            )}
+                            <div className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '12px' }}>
+                              <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
+                                {toBn(idx + (activePaper.financialStatement ? 2 : 1))} নম্বর প্রশ্ন:
+                              </div>
+                              
+                              {/* Stimulus Box */}
+                              <div className="stimulus-box" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', fontSize: '13px', lineHeight: 1.5 }}>
+                                {cq.stimulus}
+                              </div>
 
-                          {/* Sub Questions */}
+                              {/* Sub Questions */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
+                                {cq.sub_questions && cq.sub_questions.map((sub, sIdx) => (
+                                  <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
+                                    <div>
+                                      <b style={{ marginRight: '6px' }}>({sub.label})</b>
+                                      <span>{sub.text}</span>
+                                    </div>
+                                    <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section C: Short-Answer Questions (সংক্ষিপ্ত-উত্তর প্রশ্ন - প্রতিটি ২ নম্বর) */}
+                {activePaper.shortQuestions && activePaper.shortQuestions.length > 0 && (
+                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#f1f5f9',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      marginBottom: '14px',
+                      border: '1px solid #cbd5e1'
+                    }}>
+                      <b style={{ fontSize: '13.5px' }}>
+                        ‘গ’ বিভাগ — সংক্ষিপ্ত-উত্তর প্রশ্ন (পূর্ণমান: {toBn(activePaper.shortMarks || (activePaper.shortToAnswer ? activePaper.shortToAnswer * 2 : activePaper.shortQuestions.length * 2))})
+                      </b>
+                      <span style={{ fontSize: '12px' }}>
+                        {activePaper.shortRule ? `[${activePaper.shortRule}]` : `[যেকোনো ${toBn(activePaper.shortToAnswer || activePaper.shortQuestions.length)}টি প্রশ্নের সংক্ষিপ্ত উত্তর দাও। প্রতিটি প্রশ্নের মান ২]`}
+                      </span>
+                    </div>
+
+                    {/* 2-Column Print Layout for Short Questions */}
+                    <div className="print-cols-2" style={{ columnCount: 2, columnGap: '28px' }}>
+                      {activePaper.shortQuestions.map((sq, sqIdx) => (
+                        <div key={sq.id || sqIdx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '12px', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dotted #e2e8f0', paddingBottom: '6px' }}>
+                          <div style={{ paddingRight: '8px', lineHeight: 1.45 }}>
+                            <b style={{ marginRight: '4px' }}>{toBn(sqIdx + 1)}.</b>
+                            <span>{sq.question_bn}</span>
+                          </div>
+                          <b style={{ paddingLeft: '8px', whiteSpace: 'nowrap', color: '#0f172a' }}>
+                            [{toBn(sq.marks || 2)}]
+                          </b>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section D: सहপাঠ বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র - উপন্যাস ও নাটক) */}
+                {activePaper.descriptiveQuestions && activePaper.descriptiveQuestions.length > 0 && (
+                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#f1f5f9',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      marginBottom: '14px',
+                      border: '1px solid #cbd5e1'
+                    }}>
+                      <b style={{ fontSize: '13.5px' }}>
+                        ‘ঘ’ বিভাগ — বর্ণনামূলক প্রশ্ন: সহপাঠ (উপন্যাস ও নাটক) (পূর্ণমান: ২০)
+                      </b>
+                      <span style={{ fontSize: '12px' }}>
+                        {activePaper.descriptiveRule ? `[${activePaper.descriptiveRule}]` : '[উপন্যাস থেকে ১টি এবং নাটক থেকে ১টি করে মোট ২টি প্রশ্নের উত্তর দিতে হবে। প্রতিটির মান ১০ (ক-৩, খ-৭)]'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {activePaper.descriptiveQuestions.map((dq, dIdx) => (
+                        <div key={dq.id || dIdx} className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
+                            {toBn(dIdx + 1)} নম্বর বর্ণনামূলক প্রশ্ন ({dq.book_type === 'novel' ? 'উপন্যাস অংশ' : 'নাটক অংশ'}):
+                          </div>
+                          <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '6px' }}>
+                            {dq.context}
+                          </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
-                            {cq.sub_questions && cq.sub_questions.map((sub, sIdx) => (
+                            {dq.sub_questions && dq.sub_questions.map((sub, sIdx) => (
                               <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
                                 <div>
                                   <b style={{ marginRight: '6px' }}>({sub.label})</b>
@@ -1236,18 +1495,134 @@ export function QuestionBankPanel({ sub, setSub }) {
                   </div>
                 )}
 
-                {/* Section C: Practical Exam (if practicalMarks > 0) */}
+                {/* Section E: বাংলা ২য় পত্র নির্মিতি অংশ (৭০ নম্বর) */}
+                {activePaper.bangla2Composition && (
+                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#f1f5f9',
+                      padding: '6px 12px',
+                      borderRadius: '4px',
+                      marginBottom: '14px',
+                      border: '1px solid #cbd5e1'
+                    }}>
+                      <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — নির্মিতি অংশ (পূর্ণমান: ৭০)</b>
+                      <span style={{ fontSize: '12px' }}>[নির্ধারিত বিকল্প থেকে যথারীতি উত্তর দাও]</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {/* ১. অনুচ্ছেদ রচনা */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>১. যেকোনো একটি বিষয়ে অনুচ্ছেদ রচনা কর (২টি থেকে ১টি):</span>
+                          <span>[১০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                          (ক) {activePaper.bangla2Composition.paragraph[0]} &nbsp;&nbsp;&nbsp;&nbsp;অথবা,&nbsp;&nbsp;&nbsp;&nbsp; (খ) {activePaper.bangla2Composition.paragraph[1]}
+                        </div>
+                      </div>
+
+                      {/* ২. চিঠিপত্র / সংবাদ প্রতিবেদন */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>২. চিঠিপত্র / সংবাদ প্রতিবেদন (যেকোনো ১টির উত্তর দাও):</span>
+                          <span>[১০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                          (ক) {activePaper.bangla2Composition.letter[0]}<br />
+                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                          (খ) {activePaper.bangla2Composition.letter[1]}
+                        </div>
+                      </div>
+
+                      {/* ৩. সারাংশ বা সারমর্ম */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>৩. সারাংশ বা সারমর্ম লেখ (যেকোনো ১টি):</span>
+                          <span>[১০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                          (ক) সারাংশ: {activePaper.bangla2Composition.summary[0]}<br />
+                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                          (খ) সারমর্ম: {activePaper.bangla2Composition.summary[1]}
+                        </div>
+                      </div>
+
+                      {/* ৪. ভাব-সম্প্রসারণ */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>৪. ভাব-সম্প্রসারণ কর (যেকোনো ১টি):</span>
+                          <span>[১০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                          (ক) “{activePaper.bangla2Composition.amplification[0]}”<br />
+                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                          (খ) “{activePaper.bangla2Composition.amplification[1]}”
+                        </div>
+                      </div>
+
+                      {/* ৫. বাংলায় অনুবাদ */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>৫. বাংলায় অনুবাদ কর (যেকোনো ১টি):</span>
+                          <span>[১০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                          (ক) {activePaper.bangla2Composition.translation[0]}<br />
+                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                          (খ) {activePaper.bangla2Composition.translation[1]}
+                        </div>
+                      </div>
+
+                      {/* ৬. প্রবন্ধ রচনা */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>৬. যেকোনো একটি বিষয়ে প্রবন্ধ রচনা কর (৩টি থেকে ১টি):</span>
+                          <span>[২০]</span>
+                        </div>
+                        <div style={{ paddingLeft: '14px', fontSize: '13px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                          <span>(ক) {activePaper.bangla2Composition.essay[0]}</span>
+                          <span>(খ) {activePaper.bangla2Composition.essay[1]}</span>
+                          <span>(গ) {activePaper.bangla2Composition.essay[2]}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Section F: Practical Exam (ব্যবহারিক অভীক্ষা - যদি প্রযোজ্য হয়) */}
                 {activePaper.practicalMarks && activePaper.practicalMarks > 0 && (
-                  <div style={{ marginTop: '24px', border: '1px solid #cbd5e1', borderRadius: '4px', padding: '12px 14px', background: '#f8fafc' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', marginBottom: '8px' }}>
-                      <b style={{ fontSize: '13.5px' }}>‘গ’ বিভাগ — ব্যবহারিক অভীক্ষা (মান: {toBn(activePaper.practicalMarks)})</b>
-                      <span style={{ fontSize: '12px', color: '#475569' }}>[বিদ্যালয়ের বিজ্ঞান ল্যাবরেটরি / আইসিটি ল্যাবে নির্ধারিত সময়ে অনুষ্ঠিত হবে]</span>
+                  <div style={{ marginTop: '24px', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px 16px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '8px', marginBottom: '10px' }}>
+                      <b style={{ fontSize: '13.5px' }}>
+                        {activePaper.subjectId === 'higher_math' ? '‘ঘ’ বিভাগ — ব্যবহারিক অভীক্ষা' : '‘গ’ বিভাগ — ব্যবহারিক অভীক্ষা'} (পূর্ণমান: {toBn(activePaper.practicalMarks)})
+                      </b>
+                      <span style={{ fontSize: '12px', color: '#475569' }}>
+                        [বিদ্যালয়ের বিজ্ঞান ল্যাবরেটরি / আইসিটি ল্যাবে নির্দিষ্ট তদারকিতে অনুষ্ঠিত হবে]
+                      </span>
                     </div>
-                    <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.6 }}>
-                      ১. নির্ধারিত পরীক্ষণ সম্পাদন, উপাত্ত সংগ্রহ ও ফলাফল নির্ণয়: <b>{toBn(15)} নম্বর</b><br />
-                      ২. ব্যবহারিক নোটবুক / ল্যাব কার্যবিবরণী উপস্থাপন: <b>{toBn(5)} নম্বর</b><br />
-                      ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
-                    </div>
+
+                    {activePaper.subjectId === 'higher_math' ? (
+                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                        ১. পরীক্ষণের ২টি কার্যক্রম সম্পন্ন করতে হবে (১০ × ২ = <b>{toBn(20)} নম্বর</b>):<br />
+                        &nbsp;&nbsp;&nbsp;• প্রত্যেক কার্যক্রমে পরিকল্পনা প্রণয়ন: ২ নম্বর; সঠিক প্রক্রিয়া অনুসরণ: ৩ নম্বর; লেখচিত্র অঙ্কন ও উপাত্ত বিশ্লেষণ: ৩ নম্বর; ফলাফল ও ব্যাখ্যা: ২ নম্বর<br />
+                        ২. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                      </div>
+                    ) : activePaper.subjectId === 'ict' ? (
+                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                        ১. ব্যবহারিক পরীক্ষণ সম্পাদন (স্প্রেডশিট বিশ্লেষণ / ডেটাবেস ডিজাইন / প্রেজেন্টেশন স্লাইড): <b>{toBn(15)} নম্বর</b><br />
+                        ২. কার্যবিবরণী ও প্র্যাকটিক্যাল নোটবুক: <b>{toBn(5)} নম্বর</b><br />
+                        ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                        ১. নির্ধারিত পরীক্ষণ (যন্ত্র/উপকরণ সংযোজন, সঠিক প্রক্রিয়া অনুসরণ, উপাত্ত সংগ্রহ, পর্যবেক্ষণ ও শনাক্তকরণ): <b>{toBn(15)} নম্বর</b><br />
+                        ২. ব্যাখ্যাসহ ফলাফল উপস্থাপন ও বিশ্লেষণ: <b>{toBn(5)} নম্বর</b><br />
+                        ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2499,16 +2874,28 @@ export function QuestionBankPanel({ sub, setSub }) {
                 <button
                   type="button"
                   onClick={() => {
+                    const fakeSub = { id: m.subjectId, name: m.subjectName, code: m.code };
+                    const scheme = getSubjectMarksScheme(fakeSub, m.className);
                     const paper = generateQuestionPaper({
                       examName: m.title,
                       className: m.className,
                       subjectId: m.subjectId,
                       subjectName: m.subjectName,
                       subjectCode: m.code,
-                      totalMarks: m.marks,
-                      mcqCount: m.marks === 50 ? 25 : 25,
-                      cqCount: m.marks === 50 ? 0 : 8,
-                      cqToAnswer: m.marks === 50 ? 0 : 5
+                      totalMarks: scheme?.full_marks || m.marks,
+                      mcqCount: scheme?.mcq_max !== undefined ? scheme.mcq_max : (m.marks === 50 ? 25 : 25),
+                      cqCount: scheme?.cq_count !== undefined ? scheme.cq_count : (m.marks === 50 ? 0 : 8),
+                      cqToAnswer: scheme?.cq_to_answer !== undefined ? scheme.cq_to_answer : (m.marks === 50 ? 0 : 5),
+                      shortCount: scheme?.short_count || 0,
+                      shortToAnswer: scheme?.short_to_answer || 0,
+                      shortMarks: scheme?.short_max || 0,
+                      practicalMarks: scheme?.practical_max || 0,
+                      pattern: scheme?.pattern,
+                      cqRule: scheme?.cq_rule,
+                      shortRule: scheme?.short_rule,
+                      mcqRule: scheme?.mcq_rule,
+                      practicalRule: scheme?.practical_rule,
+                      descriptiveRule: scheme?.descriptive_rule
                     });
                     setActivePaper(paper);
                     switchTab('generator');
