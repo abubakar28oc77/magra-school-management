@@ -452,12 +452,248 @@ export const NCTB_SSC_EVALUATION_SPECS = {
   }
 };
 
+// =========================================================================
+// OFFICIAL NCTB JUNIOR (CLASS 6, 7 & 8) EVALUATION GUIDELINES & MARKS BREAKDOWN
+// ৬ষ্ঠ শ্রেণি থেকে ৮ম শ্রেণি পর্যন্ত বিষয় কাঠামো ও নম্বর বণ্টন
+// =========================================================================
+export const NCTB_JUNIOR_EVALUATION_SPECS = {
+  // ১. বাংলা ১ম পত্র (পূর্ণমান: ১০০)
+  bangla1: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ২. বাংলা ২য় পত্র (পূর্ণমান: ৫০)
+  bangla2: {
+    full_marks: 50,
+    written_max: 30,
+    written_pass: 10,
+    mcq_max: 20,
+    mcq_pass: 7,
+    cq_count: 0,
+    cq_to_answer: 0,
+    composition_max: 30,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '১ ঘণ্টা ৩০ মিনিট',
+    pattern: 'grammar_composition',
+    composition_rule: 'নির্মিতি অংশ (অনুচ্ছেদ, সারাংশ/সারমর্ম, ভাবসম্প্রসারণ, আবেদনপত্র): ৩০ নম্বর।',
+    mcq_rule: 'ব্যাকরণ অংশ: ২০টি বহুনির্বাচনি প্রশ্ন (প্রতিটির মান ১)।'
+  },
+
+  // ৩. ইংরেজী ১ম পত্র (পূর্ণমান: ১০০)
+  english1: {
+    full_marks: 100,
+    reading_max: 70,
+    writing_max: 30,
+    written_max: 100,
+    written_pass: 33,
+    cq_max: 0,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    mcq_max: 0,
+    practical_max: 0,
+    time_allowed: '৩ ঘণ্টা',
+    pattern: 'reading_writing',
+    reading_rule: 'Part-A: Reading Test (70 Marks), Part-B: Writing Test (30 Marks).'
+  },
+
+  // ৪. ইংরেজী ২য় পত্র (পূর্ণমান: ৫০)
+  english2: {
+    full_marks: 50,
+    grammar_max: 30,
+    writing_max: 20,
+    written_max: 50,
+    written_pass: 17,
+    cq_max: 0,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    mcq_max: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা',
+    pattern: 'grammar_composition',
+    grammar_rule: 'Part-A: Grammar (30 Marks), Part-B: Composition (20 Marks).'
+  },
+
+  // ৫. গণিত (পূর্ণমান: ১০০)
+  math: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ৬. বাংলাদেশ ও বিশ্বপরিচয় (পূর্ণমান: ১০০)
+  bgs: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ৭. বিজ্ঞান (পূর্ণমান: ১০০)
+  general_science: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ৮. তথ্য ও যোগাযোগ প্রযুক্তি (পূর্ণমান: ৫০)
+  ict: {
+    full_marks: 50,
+    written_max: 0,
+    written_pass: 0,
+    mcq_max: 25,
+    mcq_pass: 8,
+    practical_max: 25,
+    practical_pass: 8,
+    cq_count: 0,
+    cq_to_answer: 0,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    time_allowed: '২ ঘণ্টা',
+    pattern: 'mcq_practical',
+    mcq_rule: '২৫টি বহুনির্বাচনি প্রশ্ন (২৫ নম্বর) এবং ব্যবহারিক অভীক্ষা (২৫ নম্বর)।'
+  },
+
+  // ৯. ইসলাম ধর্ম / ইসলাম ও নৈতিক শিক্ষা (পূর্ণমান: ১০০)
+  islam: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ১০. হিন্দু ধর্ম / হিন্দুধর্ম ও নৈতিক শিক্ষা (পূর্ণমান: ১০০)
+  hindu: {
+    full_marks: 100,
+    written_max: 70,
+    written_pass: 23,
+    mcq_max: 30,
+    mcq_pass: 10,
+    cq_count: 11,
+    cq_to_answer: 7,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    practical_max: 0,
+    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
+    pattern: 'cq_mcq',
+    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
+    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+  },
+
+  // ১১. কৃষি শিক্ষা (পূর্ণমান: ৫০)
+  agriculture: {
+    full_marks: 50,
+    written_max: 30,
+    written_pass: 10,
+    mcq_max: 0,
+    practical_max: 20,
+    practical_pass: 7,
+    cq_count: 5,
+    cq_to_answer: 3,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    time_allowed: '২ ঘণ্টা',
+    pattern: 'science_practical',
+    cq_rule: 'সৃজনশীল/তত্ত্বীয় অংশ ৩০ নম্বর ও ব্যবহারিক অংশ ২০ নম্বর।'
+  },
+
+  // ১২. শারীরিক শিক্ষা ও স্বাস্থ্য (পূর্ণমান: ৫০)
+  physical_edu: {
+    full_marks: 50,
+    written_max: 20,
+    written_pass: 7,
+    mcq_max: 10,
+    mcq_pass: 3,
+    practical_max: 20,
+    practical_pass: 7,
+    cq_count: 3,
+    cq_to_answer: 2,
+    short_max: 0,
+    short_count: 0,
+    short_to_answer: 0,
+    time_allowed: '১ ঘণ্টা ৩০ মিনিট',
+    pattern: 'practical_continuous',
+    practical_rule: 'তত্ত্বীয় ও ব্যবহারিক/ধারাবাহিক মূল্যায়ন (৫০ নম্বর)।'
+  }
+};
+
 // Helper to get Marks Scheme depending on Class
 export function getSubjectMarksScheme(subject, className) {
   if (!subject) return null;
   const isSsc = String(className) === '9' || String(className) === '10';
   if (isSsc && NCTB_SSC_EVALUATION_SPECS[subject.id]) {
     return NCTB_SSC_EVALUATION_SPECS[subject.id];
+  }
+  const isJunior = ['6', '7', '8'].includes(String(className));
+  if (isJunior && NCTB_JUNIOR_EVALUATION_SPECS[subject.id]) {
+    return NCTB_JUNIOR_EVALUATION_SPECS[subject.id];
   }
   return subject.marks_scheme;
 }
@@ -705,6 +941,26 @@ export const SUBJECT_METADATA = [
       cq_to_answer: 5,
       time_allowed: '২ ঘণ্টা ৩৫ মিনিট',
       pattern: 'science_practical'
+    }
+  },
+  {
+    id: 'physical_edu',
+    code: '147',
+    name: 'শারীরিক শিক্ষা ও স্বাস্থ্য',
+    name_en: 'Physical Education & Health',
+    classes: ['6', '7', '8'],
+    departments: ['সাধারণ', 'আবশ্যিক'],
+    marks_scheme: {
+      full_marks: 50,
+      written_max: 20,
+      written_pass: 7,
+      mcq_max: 10,
+      mcq_pass: 3,
+      practical_max: 20,
+      cq_count: 3,
+      cq_to_answer: 2,
+      time_allowed: '১ ঘণ্টা ৩০ মিনিট',
+      pattern: 'practical_continuous'
     }
   },
 
@@ -1080,6 +1336,12 @@ export const CHAPTERS_DATA = {
     '8': ['১ম অধ্যায়: গৃহের অভ্যন্তরীণ পরিবেশ ও আলো-বাতাস', '২য় অধ্যায়: পারিবারিক বাজেট ও সঞ্চয়', '৩য় অধ্যায়: বয়ঃসন্ধিকালীন স্বাস্থ্য', '৪র্থ অধ্যায়: পুষ্টি ও রান্নাবান্নার কৌশল'],
     '9': ['১ম অধ্যায়: গৃহ ব্যবস্থাপনা ও গৃহের সম্পদ', '২য় অধ্যায়: পারিবারিক অর্থ ব্যবস্থাপনা ও সময়-শক্তি', '৩য় অধ্যায়: শিশুর বিকাশ ও বিশেষ চাহিদাসম্পন্ন শিশু', '৪র্থ অধ্যায়: বয়ঃসন্ধিকাল ও মানসিক স্বাস্থ্য'],
     '10': ['৫ম অধ্যায়: খাদ্যের উপাদান, পরিপাক ও পুষ্টিহীনতা', '৬ষ্ঠ অধ্যায়: খাদ্য সংরক্ষণ ও খাদ্য নিরাপত্তা', '৭ম অধ্যায়: পোশাকের নির্বাচন ও বস্ত্র বিজ্ঞান', '৮ম অধ্যায়: পারিবারিক সংকট ব্যবস্থাপনা']
+  },
+
+  physical_edu: {
+    '6': ['১ম অধ্যায়: শরীরচর্চা ও সুস্থ জীবন', '২য় অধ্যায়: স্কাউটিং ও গার্ল গাইড', '৩য় অধ্যায়: স্বাস্থ্যবিজ্ঞান ও স্বাস্থ্যবিধি', '৪র্থ অধ্যায়: জীবনের জন্য খেলাধুলা (ফুটবল, অ্যাথলেটিক্স)'],
+    '7': ['১ম অধ্যায়: শরীরচর্চা ও শারীরিক সক্ষমতা', '২য় অধ্যায়: স্বাস্থ্যবিধি ও রোগ প্রতিরোধ', '৩য় অধ্যায়: খেলাধুলায় নেতৃত্ব ও দলগত সহযোগিতা', '৪র্থ অধ্যায়: প্রাথমিক চিকিৎসা ও নিরাপত্তা'],
+    '8': ['১ম অধ্যায়: শরীরচর্চা, যোগব্যায়াম ও বিশ্রাম', '২য় অধ্যায়: স্বাস্থ্যবিধি ও বয়ঃসন্ধিকালীন স্বাস্থ্য', '৩য় অধ্যায়: খেলাধুলার নিয়মাবলী ও কৌশল (ভলিবল, ক্রিকেট)', '৪র্থ অধ্যায়: ফার্স্ট এইড ও দুর্ঘটনা ব্যবস্থাপনা']
   },
 
   // --- বিজ্ঞান বিভাগ (Science Group) ---
@@ -1536,6 +1798,52 @@ export const SEED_QUESTIONS = [
     correct_answer: '২৮',
     correct_index: 1,
     explanation: 'প্রতিবার পার্থক্য ৫ করে বৃদ্ধি পাচ্ছে; ২৩ + ৫ = ২৮।',
+    marks: 1
+  },
+
+  // Class 8 Physical Education
+  {
+    id: 'q-pe-8-01',
+    class_name: '8',
+    subject_id: 'physical_edu',
+    subject_name: 'শারীরিক শিক্ষা ও স্বাস্থ্য',
+    chapter: '১ম অধ্যায়: শরীরচর্চা, যোগব্যায়াম ও বিশ্রাম',
+    question_type: 'mcq',
+    question_bn: 'শরীরচর্চার মূল উদ্দেশ্য কী?',
+    options: ['শারীরিক সক্ষমতা বৃদ্ধি ও সুস্বাস্থ্য বজায় রাখা', 'শুধুমাত্র শক্তি অর্জন', 'মেধা যাচাই', 'মানসিক চাপ বৃদ্ধি'],
+    correct_answer: 'শারীরিক সক্ষমতা বৃদ্ধি ও সুস্বাস্থ্য বজায় রাখা',
+    correct_index: 0,
+    explanation: 'নিয়মিত শরীরচর্চা ও যোগব্যায়াম শরীরের রক্ত সঞ্চালন বৃদ্ধি করে এবং শারীরিক ও মানসিক সুস্থতা নিশ্চিত করে।',
+    marks: 1
+  },
+  {
+    id: 'q-pe-8-02',
+    class_name: '8',
+    subject_id: 'physical_edu',
+    subject_name: 'শারীরিক শিক্ষা ও স্বাস্থ্য',
+    chapter: '৪র্থ অধ্যায়: ফার্স্ট এইড ও দুর্ঘটনা ব্যবস্থাপনা',
+    question_type: 'mcq',
+    question_bn: 'খেলাধুলায় মাংসপেশিতে হঠাৎ টান পড়লে প্রাথমিক চিকিৎসা হিসেবে কোনটি প্রযোজ্য?',
+    options: ['বরফ বা ঠান্ডা সেক দেওয়া (RICE পদ্ধতি)', 'গরম তেল মালিশ', 'তীব্র ব্যায়াম করানো', 'ভারী কাজ করা'],
+    correct_answer: 'বরফ বা ঠান্ডা সেক দেওয়া (RICE পদ্ধতি)',
+    correct_index: 0,
+    explanation: 'মাংসপেশিতে টান বা আঘাত লাগলে Rest, Ice, Compression, Elevation (RICE) পদ্ধতি অনুসরণ করতে হয়।',
+    marks: 1
+  },
+
+  // Class 8 Agriculture
+  {
+    id: 'q-agri-8-01',
+    class_name: '8',
+    subject_id: 'agriculture',
+    subject_name: 'কৃষি শিক্ষা',
+    chapter: '২য় অধ্যায়: মাটির উর্বরতা ও সার ব্যবস্থাপনা',
+    question_type: 'mcq',
+    question_bn: 'ইউরিয়া সার থেকে উদ্ভিদ কোন অত্যাবশ্যকীয় পুষ্টি উপাদান গ্রহণ করে?',
+    options: ['নাইট্রোজেন', 'ফসফরাস', 'পটাশিয়াম', 'ক্যালসিয়াম'],
+    correct_answer: 'নাইট্রোজেন',
+    correct_index: 0,
+    explanation: 'ইউরিয়া সারে প্রায় ৪৬% নাইট্রোজেন থাকে যা উদ্ভিদের দৈহিক বৃদ্ধি ত্বরান্বিত করে।',
     marks: 1
   }
 ];

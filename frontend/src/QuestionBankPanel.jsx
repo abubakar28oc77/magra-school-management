@@ -18,7 +18,8 @@ import {
   deleteOmrEvaluation,
   generateQuestionPaper,
   getSubjectMarksScheme,
-  NCTB_SSC_EVALUATION_SPECS
+  NCTB_SSC_EVALUATION_SPECS,
+  NCTB_JUNIOR_EVALUATION_SPECS
 } from './questionBankData';
 import schoolLogo from '../public/school-logo.png';
 
@@ -945,7 +946,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                       </b>
                     </div>
                     <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
-                      বিষয় কোড: {toBn(currentSubject.code)} | {['9', '10'].includes(genClass) ? `${toBn(genClass)}ম শ্রেণি (এসএসসি পরিপত্র অনুযায়ী)` : `${toBn(genClass)}ম শ্রেণি`}
+                      বিষয় কোড: {toBn(currentSubject.code)} | {['9', '10'].includes(genClass) ? `${toBn(genClass)}ম শ্রেণি (এসএসসি পরিপত্র অনুযায়ী)` : `${toBn(genClass)}ম শ্রেণি (৬ষ্ঠ–৮ম কাঠামো অনুযায়ী)`}
                     </span>
                   </div>
 
