@@ -2237,20 +2237,41 @@ export function createCustomExamPaper({
   timeAllowed = '৩ ঘণ্টা',
   totalMarks = 100,
   instructions = '',
+  cqCount = 0,
+  cqToAnswer = 0,
+  shortCount = 0,
+  shortToAnswer = 0,
+  practicalMarks = 0,
   selectedQuestions = []
 }) {
+  const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
   const mcqs = selectedQuestions.filter(q => q.question_type === 'mcq');
   const cqs = selectedQuestions.filter(q => q.question_type === 'cq');
   const shortQuestions = selectedQuestions.filter(q => q.question_type === 'short');
   const descriptiveQuestions = selectedQuestions.filter(q => q.question_type === 'descriptive');
 
-  // Calculate CQ & Short marks
-  const cqMarksTotal = cqs.reduce((acc, q) => acc + (q.marks || 10), 0);
-  const mcqMarksTotal = mcqs.reduce((acc, q) => acc + (q.marks || 1), 0);
-  const shortMarksTotal = shortQuestions.reduce((acc, q) => acc + (q.marks || 2), 0);
+  // Effective to-answer counts
+  const effectiveCqToAnswer = cqToAnswer > 0 ? Math.min(cqToAnswer, cqs.length) : cqs.length;
+  const effectiveShortToAnswer = shortToAnswer > 0 ? Math.min(shortToAnswer, shortQuestions.length) : shortQuestions.length;
+
+  const cqMarksTotal = effectiveCqToAnswer * 10;
+  const mcqMarksTotal = mcqs.length * 1;
+  const shortMarksTotal = effectiveShortToAnswer * 2;
   const descriptiveMarksTotal = descriptiveQuestions.reduce((acc, q) => acc + (q.marks || 10), 0);
 
   const calculatedTotal = cqMarksTotal + mcqMarksTotal + shortMarksTotal + descriptiveMarksTotal;
+
+  const cqRuleText = cqs.length > 0
+    ? (effectiveCqToAnswer < cqs.length
+        ? `যেকোনো ${toBn(effectiveCqToAnswer)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০। (${toBn(effectiveCqToAnswer)} × ১০ = ${toBn(cqMarksTotal)})`
+        : `সকল সৃজনশীল প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০। (মোট: ${toBn(cqMarksTotal)} নম্বর)`)
+    : '';
+
+  const shortRuleText = shortQuestions.length > 0
+    ? (effectiveShortToAnswer < shortQuestions.length
+        ? `যেকোনো ${toBn(effectiveShortToAnswer)}টি প্রশ্নের সংক্ষিপ্ত উত্তর দাও। প্রতিটি প্রশ্নের মান ২। (${toBn(effectiveShortToAnswer)} × ২ = ${toBn(shortMarksTotal)})`
+        : `সকল সংক্ষিপ্ত প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ২। (মোট: ${toBn(shortMarksTotal)} নম্বর)`)
+    : '';
 
   return {
     id: 'paper-custom-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 4),
@@ -2263,17 +2284,17 @@ export function createCustomExamPaper({
     subjectId,
     subjectName,
     subjectCode: subjectCode || 101,
-    timeAllowed: timeAllowed || '২ ঘণ্টা ৩০ মিনিট',
+    timeAllowed: timeAllowed || '১ ঘণ্টা ৩০ মিনিট',
     totalMarks: totalMarks || (calculatedTotal > 0 ? calculatedTotal : 100),
     instructions: instructions || '',
     mcqCount: mcqs.length,
     cqCount: cqs.length,
-    cqToAnswer: cqs.length,
-    cqRule: cqs.length > 0 ? (instructions || `সকল সৃজনশীল প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০। (মোট: ${cqMarksTotal} নম্বর)`) : '',
+    cqToAnswer: effectiveCqToAnswer,
+    cqRule: cqRuleText,
     shortCount: shortQuestions.length,
-    shortToAnswer: shortQuestions.length,
+    shortToAnswer: effectiveShortToAnswer,
     shortMarks: shortMarksTotal,
-    shortRule: shortQuestions.length > 0 ? `সকল সংক্ষিপ্ত প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ২। (মোট: ${shortMarksTotal} নম্বর)` : '',
+    shortRule: shortRuleText,
     descriptiveCount: descriptiveQuestions.length,
     descriptiveToAnswer: descriptiveQuestions.length,
     descriptiveMarks: descriptiveMarksTotal,
@@ -2281,6 +2302,7 @@ export function createCustomExamPaper({
     cqs,
     shortQuestions,
     descriptiveQuestions,
+    practicalMarks,
     created_at: new Date().toISOString()
   };
 }

@@ -330,60 +330,121 @@ export function QuestionBankPanel({ sub, setSub }) {
   // -------------------------------------------------------------
   // Custom Exam Builder (Checkbox-based Question Selection) State
   // -------------------------------------------------------------
-  const [customExamType, setCustomExamType] = useState('annual');
-  const [customExamName, setCustomExamName] = useState('বার্ষিক পরীক্ষা ২০২৬');
-  const [customClass, setCustomClass] = useState('10');
-  const [customDepartment, setCustomDepartment] = useState('সকল বিভাগ');
-  const [customSubjectId, setCustomSubjectId] = useState('bangla1');
+  const [customSchoolName, setCustomSchoolName] = useState('মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়');
+  const [customExamType, setCustomExamType] = useState('half_yearly');
+  const [customExamName, setCustomExamName] = useState('অর্ধবার্ষিক পরীক্ষা ২০২৬');
+  const [customClass, setCustomClass] = useState('8');
+  const [customDepartment, setCustomDepartment] = useState('সাধারণ');
+  const [customSubjectId, setCustomSubjectId] = useState('ict');
   const [customSelectedChapters, setCustomSelectedChapters] = useState([]);
-  const [customTimeAllowed, setCustomTimeAllowed] = useState('৩ ঘণ্টা');
-  const [customTotalMarks, setCustomTotalMarks] = useState(100);
-  const [customInstructions, setCustomInstructions] = useState('সকল সৃজনশীল ও বহুনির্বাচনি প্রশ্নের উত্তর দেওয়া আবশ্যক।');
+  const [customTimeAllowed, setCustomTimeAllowed] = useState('১ ঘণ্টা ৩০ মিনিট');
+  const [customTotalMarks, setCustomTotalMarks] = useState(25);
+  const [customMcqCount, setCustomMcqCount] = useState(15);
+  const [customCqCount, setCustomCqCount] = useState(0);
+  const [customCqToAnswer, setCustomCqToAnswer] = useState(0);
+  const [customShortCount, setCustomShortCount] = useState(8);
+  const [customShortToAnswer, setCustomShortToAnswer] = useState(5);
+  const [customPracticalMarks, setCustomPracticalMarks] = useState(0);
+  const [customInstructions, setCustomInstructions] = useState('বোর্ড মডেল অনুযায়ী পূর্ণাঙ্গ উত্তর প্রদান কর।');
   const [customSelectedQuestionIds, setCustomSelectedQuestionIds] = useState(new Set());
   const [customFilterType, setCustomFilterType] = useState('all'); // all, cq, mcq, short
   const [customSearch, setCustomSearch] = useState('');
 
+  // Check if Class 9/10 has department/grouping for custom builder
+  const isCustomHighSchoolGrouped = ['9', '10'].includes(customClass);
+
+  // Available subjects for custom builder
+  const customAvailableSubjects = useMemo(() => {
+    return SUBJECT_METADATA.filter(s => {
+      if (!s.classes.includes(customClass)) return false;
+      if (!isCustomHighSchoolGrouped) return true; // Class 6, 7, 8 are general
+      if (!customDepartment || customDepartment === 'সকল বিভাগ') return true;
+      return s.departments.includes(customDepartment);
+    });
+  }, [customClass, customDepartment, isCustomHighSchoolGrouped]);
+
+  // Sync subject if not available in current custom class/department filter
+  useEffect(() => {
+    if (!customAvailableSubjects.find(s => s.id === customSubjectId) && customAvailableSubjects.length > 0) {
+      setCustomSubjectId(customAvailableSubjects[0].id);
+    }
+  }, [customAvailableSubjects, customSubjectId]);
+
+  // Current custom subject metadata and NCTB evaluation scheme
+  const customCurrentSubject = useMemo(() => {
+    return SUBJECT_METADATA.find(s => s.id === customSubjectId) || customAvailableSubjects[0] || SUBJECT_METADATA[0];
+  }, [customSubjectId, customAvailableSubjects]);
+
+  const customScheme = useMemo(() => {
+    return getSubjectMarksScheme(customCurrentSubject, customClass) || customCurrentSubject?.marks_scheme;
+  }, [customCurrentSubject, customClass]);
+
+  // Auto-sync NCTB Marks Distribution when Custom Subject or Class changes
+  useEffect(() => {
+    if (customCurrentSubject) {
+      const scheme = getSubjectMarksScheme(customCurrentSubject, customClass);
+      if (scheme) {
+        const isJuniorIct = scheme.pattern === 'nctb_junior_ict';
+        const isSscIct = scheme.pattern === 'nctb_ssc_ict';
+        const paperTotal = isJuniorIct ? 25 : (isSscIct ? 25 : (scheme.full_marks || 100));
+
+        setCustomTotalMarks(paperTotal);
+        setCustomTimeAllowed(scheme.time_allowed || '৩ ঘণ্টা');
+        setCustomMcqCount(scheme.mcq_max !== undefined ? scheme.mcq_max : 25);
+        setCustomCqCount(scheme.cq_count !== undefined ? scheme.cq_count : (scheme.written_max ? 8 : 0));
+        setCustomCqToAnswer(scheme.cq_to_answer !== undefined ? scheme.cq_to_answer : (scheme.written_max ? 5 : 0));
+        setCustomShortCount(scheme.short_count || 0);
+        setCustomShortToAnswer(scheme.short_to_answer || 0);
+        setCustomPracticalMarks(0);
+      }
+    }
+  }, [customCurrentSubject, customClass]);
+
   const handleCustomExamTypeChange = (type) => {
     setCustomExamType(type);
+    const isJuniorIct = customScheme?.pattern === 'nctb_junior_ict';
+    const isSscIct = customScheme?.pattern === 'nctb_ssc_ict';
+    const defaultPaperMarks = (isJuniorIct || isSscIct) ? 25 : (customScheme?.full_marks || 100);
+
     if (type === 'weekly') {
       setCustomExamName('সাপ্তাহিক মূল্যায়ন পরীক্ষা ২০২৬');
       setCustomTimeAllowed('৪০ মিনিট');
-      setCustomTotalMarks(25);
+      setCustomTotalMarks(isJuniorIct ? 15 : 25);
       setCustomInstructions('সময় ও পূর্ণমান অনুসারে সকল প্রশ্নের উত্তর দাও।');
     } else if (type === 'monthly') {
       setCustomExamName('মাসিক মূল্যায়ন পরীক্ষা ২০২৬');
       setCustomTimeAllowed('১ ঘণ্টা');
-      setCustomTotalMarks(40);
+      setCustomTotalMarks(isJuniorIct ? 20 : 40);
       setCustomInstructions('সৃজনশীল ও বহুনির্বাচনি অংশ হতে নির্ধারিত প্রশ্নের উত্তর দাও।');
     } else if (type === 'chapter') {
       setCustomExamName('অধ্যায় ভিত্তিক ক্লাস টেস্ট ২০২৬');
       setCustomTimeAllowed('৪৫ মিনিট');
-      setCustomTotalMarks(25);
+      setCustomTotalMarks(isJuniorIct ? 15 : 25);
       setCustomInstructions('নির্ধারিত অধ্যায়ের ওপর প্রস্তুতকৃত প্রশ্নের সঠিক উত্তর দাও।');
     } else if (type === 'half_yearly') {
       setCustomExamName('অর্ধ-বার্ষিক পরীক্ষা ২০২৬');
-      setCustomTimeAllowed('২ ঘণ্টা ৩০ মিনিট');
-      setCustomTotalMarks(100);
-      setCustomInstructions('বিভাগ অনুযায়ী প্রয়োজনীয় সংখ্যক প্রশ্নের উত্তর দাও।');
+      setCustomTimeAllowed(customScheme?.time_allowed || '১ ঘণ্টা ৩০ মিনিট');
+      setCustomTotalMarks(defaultPaperMarks);
+      setCustomInstructions('বোর্ড মডেল অনুযায়ী পূর্ণাঙ্গ উত্তর প্রদান কর।');
     } else if (type === 'pre_test') {
       setCustomExamName('প্রাক-নির্বাচনি পরীক্ষা ২০২৬');
-      setCustomTimeAllowed('৩ ঘণ্টা');
-      setCustomTotalMarks(100);
+      setCustomTimeAllowed(customScheme?.time_allowed || '৩ ঘণ্টা');
+      setCustomTotalMarks(defaultPaperMarks);
       setCustomInstructions('বোর্ড নীতিমালা অনুসারে প্রতিটি বিভাগের প্রশ্নের উত্তর দাও।');
     } else if (type === 'test') {
       setCustomExamName('নির্বাচনি পরীক্ষা ২০২৬');
-      setCustomTimeAllowed('৩ ঘণ্টা');
-      setCustomTotalMarks(100);
+      setCustomTimeAllowed(customScheme?.time_allowed || '৩ ঘণ্টা');
+      setCustomTotalMarks(defaultPaperMarks);
       setCustomInstructions('বোর্ড মডেল অনুযায়ী পূর্ণাঙ্গ উত্তর প্রদান কর।');
     } else if (type === 'annual') {
       setCustomExamName('বার্ষিক পরীক্ষা ২০২৬');
-      setCustomTimeAllowed('৩ ঘণ্টা');
-      setCustomTotalMarks(100);
+      setCustomTimeAllowed(customScheme?.time_allowed || '৩ ঘণ্টা');
+      setCustomTotalMarks(defaultPaperMarks);
       setCustomInstructions('সিলেবাস অনুযায়ী সকল বিভাগের প্রশ্নের যথাযথ উত্তর দাও।');
     } else {
       setCustomExamName('বিশেষ মূল্যায়ন পরীক্ষা ২০২৬');
       setCustomTimeAllowed('১ ঘণ্টা ৩০ মিনিট');
-      setCustomTotalMarks(50);
+      setCustomTotalMarks(defaultPaperMarks);
       setCustomInstructions('');
     }
   };
@@ -436,29 +497,44 @@ export function QuestionBankPanel({ sub, setSub }) {
     return questions.filter(q => customSelectedQuestionIds.has(q.id));
   }, [questions, customSelectedQuestionIds]);
 
-  // Selection statistics
+  // Selection statistics (accounting for optional questions: answer X out of Y)
   const customStats = useMemo(() => {
     const cqs = selectedQuestionsList.filter(q => q.question_type === 'cq');
     const mcqs = selectedQuestionsList.filter(q => q.question_type === 'mcq');
     const shorts = selectedQuestionsList.filter(q => q.question_type === 'short');
+    const descriptives = selectedQuestionsList.filter(q => q.question_type === 'descriptive');
 
-    const cqMarks = cqs.reduce((acc, q) => acc + (q.marks || 10), 0);
-    const mcqMarks = mcqs.reduce((acc, q) => acc + (q.marks || 1), 0);
-    const shortMarks = shorts.reduce((acc, q) => acc + (q.marks || 2), 0);
-    const totalSelectedMarks = cqMarks + mcqMarks + shortMarks;
+    const effectiveCqToAnswer = customCqToAnswer > 0 
+      ? Math.min(customCqToAnswer, cqs.length) 
+      : cqs.length;
+
+    const effectiveShortToAnswer = customShortToAnswer > 0 
+      ? Math.min(customShortToAnswer, shorts.length) 
+      : shorts.length;
+
+    const mcqMarks = mcqs.length * 1;
+    const shortMarks = effectiveShortToAnswer * 2;
+    const cqMarks = effectiveCqToAnswer * 10;
+    const descMarks = descriptives.reduce((acc, q) => acc + (q.marks || 10), 0);
+
+    const totalSelectedMarks = cqMarks + mcqMarks + shortMarks + descMarks;
 
     return {
       cqCount: cqs.length,
+      cqToAnswer: effectiveCqToAnswer,
       cqMarks,
       mcqCount: mcqs.length,
       mcqMarks,
       shortCount: shorts.length,
+      shortToAnswer: effectiveShortToAnswer,
       shortMarks,
+      descriptiveCount: descriptives.length,
+      descriptiveMarks: descMarks,
       totalCount: selectedQuestionsList.length,
       totalSelectedMarks,
-      difference: totalSelectedMarks - customTotalMarks
+      difference: totalSelectedMarks - Number(customTotalMarks)
     };
-  }, [selectedQuestionsList, customTotalMarks]);
+  }, [selectedQuestionsList, customTotalMarks, customCqToAnswer, customShortToAnswer]);
 
   const handleGenerateCustomPaper = () => {
     if (selectedQuestionsList.length === 0) {
@@ -467,7 +543,7 @@ export function QuestionBankPanel({ sub, setSub }) {
     }
     const subMeta = SUBJECT_METADATA.find(s => s.id === customSubjectId);
     const paper = createCustomExamPaper({
-      schoolName: genSchoolName,
+      schoolName: customSchoolName || genSchoolName || 'মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়',
       examType: customExamType,
       examName: customExamName,
       className: customClass,
@@ -478,6 +554,11 @@ export function QuestionBankPanel({ sub, setSub }) {
       timeAllowed: customTimeAllowed,
       totalMarks: Number(customTotalMarks) || customStats.totalSelectedMarks,
       instructions: customInstructions,
+      cqCount: customCqCount,
+      cqToAnswer: customCqToAnswer,
+      shortCount: customShortCount,
+      shortToAnswer: customShortToAnswer,
+      practicalMarks: customPracticalMarks,
       selectedQuestions: selectedQuestionsList
     });
 
@@ -3030,110 +3111,299 @@ export function QuestionBankPanel({ sub, setSub }) {
               </div>
             </div>
 
-            {/* Grid of Inputs: Exam Name, Class, Subject, Time, Marks */}
+            {/* Parameter Grid aligned with NCTB specs (Identical to 1-Click Generator Layout) */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-              gap: '14px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '16px',
               background: '#f8fafc',
               padding: '16px',
               borderRadius: '12px',
-              border: '1px solid #e2e8f0'
+              border: '1px solid #cbd5e1',
+              marginBottom: '16px'
             }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>পরীক্ষার নাম / শিরোনাম:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিদ্যালয়ের নাম:</label>
                 <input
                   type="text"
-                  value={customExamName}
-                  onChange={e => setCustomExamName(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                  value={customSchoolName}
+                  onChange={e => setCustomSchoolName(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>শ্রেণি:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>পরীক্ষার নাম:</label>
+                <input
+                  type="text"
+                  value={customExamName}
+                  onChange={e => setCustomExamName(e.target.value)}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>শ্রেণি:</label>
                 <select
                   value={customClass}
                   onChange={e => {
-                    setCustomClass(e.target.value);
+                    const c = e.target.value;
+                    setCustomClass(c);
                     setCustomSelectedChapters([]);
+                    if (['6', '7', '8'].includes(c)) {
+                      setCustomDepartment('সাধারণ');
+                    } else if (customDepartment === 'সাধারণ') {
+                      setCustomDepartment('সকল বিভাগ');
+                    }
                   }}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
                 >
                   <option value="6">৬ষ্ঠ শ্রেণি</option>
                   <option value="7">৭ম শ্রেণি</option>
                   <option value="8">৮ম শ্রেণি</option>
                   <option value="9">৯ম শ্রেণি</option>
-                  <option value="10">১০ম শ্রেণি</option>
+                  <option value="10">১০ম শ্রেণি (SSC পরীক্ষার্থী)</option>
                 </select>
               </div>
 
-              {['9', '10'].includes(customClass) && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>বিভাগ:</label>
-                  <select
-                    value={customDepartment}
-                    onChange={e => setCustomDepartment(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
-                  >
-                    <option value="সকল বিভাগ">সকল বিভাগ</option>
-                    <option value="বিজ্ঞান">বিজ্ঞান</option>
-                    <option value="মানবিক">মানবিক</option>
-                    <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
-                  </select>
-                </div>
-              )}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিভাগ (Department / Group):</label>
+                <select
+                  value={customDepartment}
+                  disabled={!isCustomHighSchoolGrouped}
+                  onChange={e => {
+                    setCustomDepartment(e.target.value);
+                    setCustomSelectedChapters([]);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    background: isCustomHighSchoolGrouped ? '#fff' : '#f1f5f9',
+                    color: isCustomHighSchoolGrouped ? '#0f172a' : '#64748b',
+                    cursor: isCustomHighSchoolGrouped ? 'pointer' : 'not-allowed'
+                  }}
+                >
+                  {!isCustomHighSchoolGrouped ? (
+                    <option value="সাধারণ">সাধারণ (৬ষ্ঠ–৮ম শ্রেণিতে বিভাগ বিভাজন প্রযোজ্য নয়)</option>
+                  ) : (
+                    <>
+                      <option value="সকল বিভাগ">সকল বিভাগ (আবশ্যিক + সকল গ্রুপ)</option>
+                      <option value="আবশ্যিক">আবশ্যিক বিষয়সমূহ (বাংলা, ইংরেজি, গণিত, আইসিটি, ধর্ম)</option>
+                      <option value="বিজ্ঞান">বিজ্ঞান বিভাগ (পদার্থ, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত)</option>
+                      <option value="মানবিক">মানবিক বিভাগ (ইতিহাস, ভূগোল, পৌরনীতি, অর্থনীতি, বিজ্ঞান)</option>
+                      <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা (হিসাববিজ্ঞান, উদ্যোগ, ফিন্যান্স, বিজ্ঞান)</option>
+                    </>
+                  )}
+                </select>
+              </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>বিষয়:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>বিষয় নির্বাচন (এনসিটিবি কারিকুলাম):</label>
                 <select
                   value={customSubjectId}
                   onChange={e => {
                     setCustomSubjectId(e.target.value);
                     setCustomSelectedChapters([]);
                   }}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
                 >
-                  {SUBJECT_METADATA.filter(s => s.classes.includes(customClass)).map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  {customAvailableSubjects.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} (কোড: {s.code}) {isCustomHighSchoolGrouped && s.departments.length > 0 ? `[${s.departments[0]}]` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>সময় বরাদ্দ:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>সময় বরাদ্দ:</label>
                 <input
                   type="text"
                   value={customTimeAllowed}
                   onChange={e => setCustomTimeAllowed(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>লক্ষ্যমাত্রা পূর্ণমান (Marks):</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>মোট পূর্ণমান:</label>
                 <input
                   type="number"
-                  min={5}
-                  max={100}
                   value={customTotalMarks}
                   onChange={e => setCustomTotalMarks(Number(e.target.value))}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 700, color: '#047857' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>MCQ প্রশ্ন সংখ্যা:</label>
+                <input
+                  type="number"
+                  value={customMcqCount}
+                  onChange={e => setCustomMcqCount(Number(e.target.value))}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>সৃজনশীল (CQ) উদ্দীপক সংখ্যা:</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    value={customCqCount}
+                    onChange={e => setCustomCqCount(Number(e.target.value))}
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>থেকে উত্তর:</span>
+                  <input
+                    type="number"
+                    value={customCqToAnswer}
+                    onChange={e => setCustomCqToAnswer(Number(e.target.value))}
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Short Questions Input (NCTB Standard: 2 marks each) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  সংক্ষিপ্ত-উত্তর প্রশ্ন (প্রতিটি ২ নম্বর):
+                </label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="number"
+                    value={customShortCount}
+                    onChange={e => setCustomShortCount(Number(e.target.value))}
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>থেকে উত্তর:</span>
+                  <input
+                    type="number"
+                    value={customShortToAnswer}
+                    onChange={e => setCustomShortToAnswer(Number(e.target.value))}
+                    style={{ width: '80px', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                  <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>
+                    ({toBn(customShortToAnswer * 2)} নম্বর)
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>ব্যবহারিক / বিশেষ অংশ মান:</label>
+                <input
+                  type="number"
+                  value={customPracticalMarks}
+                  onChange={e => setCustomPracticalMarks(Number(e.target.value))}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                 />
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>শিক্ষার্থীদের জন্য বিশেষ নির্দেশনা:</label>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>শিক্ষার্থীদের জন্য বিশেষ নির্দেশনা:</label>
                 <input
                   type="text"
-                  placeholder="যেমন: সকল বহুনির্বাচনি প্রশ্নের উত্তর আবশ্যক। সৃজনশীল অংশ থেকে যেকোনো ৫টি প্রশ্নের উত্তর দাও।"
+                  placeholder="যেমন: বোর্ড মডেল অনুযায়ী পূর্ণাঙ্গ উত্তর প্রদান কর।"
                   value={customInstructions}
                   onChange={e => setCustomInstructions(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                 />
               </div>
             </div>
 
+            {/* NCTB Official Marks Blueprint Card for Custom Builder */}
+            {customCurrentSubject && (() => {
+              const currentScheme = customScheme;
+              if (!currentScheme) return null;
+              return (
+                <div style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                  border: '1px solid #a7f3d0',
+                  borderRadius: '12px',
+                  padding: '16px 20px',
+                  marginBottom: '18px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '18px' }}>🏛️</span>
+                      <b style={{ fontSize: '14px', color: '#065f46' }}>
+                        জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) বিষয়ভিত্তিক মূল্যায়ন নির্দেশনা ও নম্বর বিভাজন
+                      </b>
+                    </div>
+                    <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 800, padding: '3px 10px', borderRadius: '12px' }}>
+                      বিষয় কোড: {toBn(customCurrentSubject.code)} | {['9', '10'].includes(customClass) ? `${toBn(customClass)}ম শ্রেণি (এসএসসি পরিপত্র অনুযায়ী)` : `${toBn(customClass)}ম শ্রেণি (৬ষ্ঠ–৮ম কাঠামো অনুযায়ী)`}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>পূর্ণমান</div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#047857' }}>{toBn(currentScheme.full_marks)} নম্বর</div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সৃজনশীল / লিখিত</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0284c7' }}>
+                        {currentScheme.written_max > 0 ? (
+                          `${toBn(currentScheme.written_max)} নম্বর (${toBn(currentScheme.cq_count)}টি হতে ${toBn(currentScheme.cq_to_answer)}টি)`
+                        ) : 'লিখিত নেই'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>সংক্ষিপ্ত-উত্তর প্রশ্ন</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#059669' }}>
+                        {currentScheme.short_max > 0 ? (
+                          `${toBn(currentScheme.short_max)} নম্বর (${toBn(currentScheme.short_count)}টি হতে ${toBn(currentScheme.short_to_answer)}টি)`
+                        ) : 'সংক্ষিপ্ত নেই'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বহুনির্বাচনী (MCQ)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#d97706' }}>
+                        {currentScheme.mcq_max > 0 ? `${toBn(currentScheme.mcq_max)} নম্বর (${toBn(currentScheme.mcq_max)}টি প্রশ্ন)` : 'MCQ নেই'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>ব্যবহারিক / বিশেষ অংশ</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#7c3aed' }}>
+                        {currentScheme.practical_max > 0 ? `${toBn(currentScheme.practical_max)} নম্বর (ল্যাব)` : 'প্রযোজ্য নয়'}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#fff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                      <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>বরাদ্দকৃত সময়</div>
+                      <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{currentScheme.time_allowed || '৩ ঘণ্টা'}</div>
+                    </div>
+                  </div>
+
+                  {/* Directives & Pass marks note */}
+                  <div style={{ marginTop: '12px', fontSize: '12px', color: '#065f46', lineHeight: 1.6, borderTop: '1px dashed #a7f3d0', paddingTop: '10px' }}>
+                    {currentScheme.cq_rule && (
+                      <div style={{ marginBottom: '4px' }}><b>📌 সৃজনশীল নির্দেশিকা:</b> {currentScheme.cq_rule}</div>
+                    )}
+                    {currentScheme.short_rule && (
+                      <div style={{ marginBottom: '4px' }}><b>📌 সংক্ষিপ্ত-উত্তর নির্দেশিকা:</b> {currentScheme.short_rule}</div>
+                    )}
+                    {currentScheme.mcq_rule && (
+                      <div style={{ marginBottom: '4px' }}><b>📌 বহুনির্বাচনী নির্দেশিকা:</b> {currentScheme.mcq_rule}</div>
+                    )}
+                    {currentScheme.practical_rule && (
+                      <div style={{ marginBottom: '4px' }}><b>🔬 ব্যবহারিক নির্দেশিকা:</b> {currentScheme.practical_rule}</div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '6px', fontSize: '11.5px', color: '#047857' }}>
+                      <span>🎯 <b>পাস নম্বর বণ্টন:</b> লিখিত {toBn(currentScheme.written_pass || 0)} | MCQ {toBn(currentScheme.mcq_pass || 0)} {currentScheme.practical_pass ? `| ব্যবহারিক ${toBn(currentScheme.practical_pass)}` : ''} (পরীক্ষা ও ফলাফল অংশের সাথে হুবহু সামঞ্জস্যপূর্ণ)</span>
+                      <span style={{ fontStyle: 'italic', color: '#64748b' }}>প্যাটার্ন: {currentScheme.pattern || 'nctb_standard'}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             {/* Chapter Selection Filter for Question Pool */}
             <div style={{ marginTop: '16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
@@ -3231,16 +3501,16 @@ export function QuestionBankPanel({ sub, setSub }) {
 
               <div style={{ display: 'flex', gap: '12px', fontSize: '12.5px', flexWrap: 'wrap' }}>
                 <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
-                  <span>সৃজনশীল (CQ): </span>
-                  <b>{toBn(customStats.cqCount)} টি</b> ({toBn(customStats.cqMarks)} নম্বর)
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
                   <span>বহুনির্বাচনী (MCQ): </span>
-                  <b>{toBn(customStats.mcqCount)} টি</b> ({toBn(customStats.mcqMarks)} নম্বর)
+                  <b>{toBn(customStats.mcqCount)}/{toBn(customMcqCount)} টি</b> ({toBn(customStats.mcqMarks)} নম্বর)
                 </div>
                 <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
                   <span>সংক্ষিপ্ত: </span>
-                  <b>{toBn(customStats.shortCount)} টি</b> ({toBn(customStats.shortMarks)} নম্বর)
+                  <b>{toBn(customStats.shortCount)}/{toBn(customShortCount)} টি</b> {customShortToAnswer > 0 ? `[উত্তর: ${toBn(customStats.shortToAnswer)}টি]` : ''} ({toBn(customStats.shortMarks)} নম্বর)
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
+                  <span>সৃজনশীল (CQ): </span>
+                  <b>{toBn(customStats.cqCount)}/{toBn(customCqCount)} টি</b> {customCqToAnswer > 0 ? `[উত্তর: ${toBn(customStats.cqToAnswer)}টি]` : ''} ({toBn(customStats.cqMarks)} নম্বর)
                 </div>
               </div>
 
@@ -3248,7 +3518,7 @@ export function QuestionBankPanel({ sub, setSub }) {
 
               <div>
                 <div style={{ fontSize: '11px', color: '#fed7aa', fontWeight: 600 }}>বর্তমান মান / লক্ষ্যমাত্রা</div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: customStats.totalSelectedMarks === customTotalMarks ? '#86efac' : (customStats.totalSelectedMarks > customTotalMarks ? '#fca5a5' : '#fde047') }}>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: customStats.totalSelectedMarks === Number(customTotalMarks) ? '#86efac' : (customStats.totalSelectedMarks > Number(customTotalMarks) ? '#fca5a5' : '#fde047') }}>
                   {toBn(customStats.totalSelectedMarks)} / {toBn(customTotalMarks)} নম্বর
                 </div>
               </div>
