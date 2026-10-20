@@ -1226,261 +1226,701 @@ export function QuestionBankPanel({ sub, setSub }) {
                   </div>
                 </div>
 
-                {/* Section A: MCQ (বহুনির্বাচনি অভীক্ষা) */}
-                {activePaper.mcqs && activePaper.mcqs.length > 0 && (
-                  <div style={{ marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>
-                        {activePaper.subjectId === 'bangla2' ? '‘খ’ বিভাগ — ব্যাকরণ অংশ (বহুনির্বাচনি অভীক্ষা)' : '‘ক’ বিভাগ — বহুনির্বাচনি অভীক্ষা'} (মান: {toBn(activePaper.mcqs.length)})
-                      </b>
-                      <span style={{ fontSize: '12px' }}>
-                        {activePaper.mcqRule ? `[${activePaper.mcqRule}]` : '[বিশেষ দ্রষ্টব্য: সরবরাহকৃত OMR শিটে সঠিক উত্তরের বৃত্তটি কালো বলপয়েন্ট কলম দ্বারা ভরাট কর। সকল প্রশ্নের উত্তর দিতে হবে।]'}
-                      </span>
+                {/* ========================================================= */}
+                {/* 1. ENGLISH FIRST PAPER SPECIAL LAYOUT                     */}
+                {/* ========================================================= */}
+                {activePaper.subjectId === 'english1' && activePaper.english1Paper ? (
+                  <div>
+                    {/* Part A: Reading (70 Marks) */}
+                    <div style={{ textAlign: 'center', background: '#0f172a', color: '#fff', padding: '6px', fontWeight: 800, fontSize: '14px', borderRadius: '4px', marginBottom: '16px' }}>
+                      Part-A : Reading (70 Marks)
                     </div>
 
-                    {/* 2-Column Print Layout for MCQ */}
-                    <div className="print-cols-2" style={{ columnCount: 2, columnGap: '30px' }}>
-                      {activePaper.mcqs.map((q, idx) => (
-                        <div key={q.id || idx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '14px', fontSize: '13px' }}>
-                          <div style={{ fontWeight: 700, marginBottom: '4px', lineHeight: 1.4 }}>
-                            {toBn(idx + 1)}. {q.question_bn}
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 8px', fontSize: '12px', paddingLeft: '8px' }}>
-                            {q.options && q.options.map((opt, optIdx) => (
-                              <div key={optIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                                <span style={{ fontWeight: 700 }}>({['ক', 'খ', 'গ', 'ঘ'][optIdx]})</span>
-                                <span>{opt}</span>
-                              </div>
-                            ))}
-                          </div>
+                    {/* Seen Passage-1 */}
+                    <div style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px', marginBottom: '18px', background: '#f8fafc' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px', color: '#047857' }}>
+                        Read the passage carefully and answer questions 1 and 2 [{activePaper.english1Paper.seenPassage1.source}]:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '14px', borderLeft: '3px solid #047857', paddingLeft: '10px' }}>
+                        "{activePaper.english1Paper.seenPassage1.text}"
+                      </div>
+
+                      {/* 1. MCQ (1x7=7) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>1. Choose the correct answer from the following alternatives:</span>
+                          <span>1 × 7 = 7</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section: হিসাববিজ্ঞান আর্থিক বিবরণী প্রস্তুতকরণ (বাধ্যতামূলক, মান ২০) */}
-                {activePaper.financialStatement && (
-                  <div style={{ marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — আর্থিক বিবরণী প্রস্তুতকরণ (পূর্ণমান: ২০)</b>
-                      <span style={{ fontSize: '12px', fontWeight: 800, color: '#b91c1c' }}>
-                        [১ নম্বর প্রশ্নের উত্তর দেওয়া আবশ্যিক]
-                      </span>
-                    </div>
-
-                    <div style={{ border: '1px solid #cbd5e1', padding: '14px', borderRadius: '6px', background: '#f8fafc', marginBottom: '16px' }}>
-                      <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px' }}>
-                        ১ নম্বর প্রশ্ন (আবশ্যিক):
-                      </div>
-                      <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>
-                        {activePaper.financialStatement.stimulus}
-                      </div>
-
-                      {/* Trial Balance Table */}
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', marginBottom: '10px', background: '#fff' }}>
-                        <thead>
-                          <tr style={{ background: '#e2e8f0' }}>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'left' }}>হিসাবের শিরোনাম</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ডেবিট (টাকা)</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ক্রেডিট (টাকা)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {activePaper.financialStatement.trial_balance.map((row, rIdx) => (
-                            <tr key={rIdx}>
-                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{row.account}</td>
-                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.debit ? toBn(row.debit) : '—'}</td>
-                              <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.credit ? toBn(row.credit) : '—'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-
-                      {/* Adjustments */}
-                      <div style={{ fontSize: '12.5px', marginBottom: '10px' }}>
-                        <b>অন্যান্য সমন্বয়সমূহ:</b>
-                        <ol style={{ margin: '4px 0 0 18px', padding: 0 }}>
-                          {activePaper.financialStatement.adjustments.map((adj, aIdx) => (
-                            <li key={aIdx} style={{ margin: '2px 0' }}>{adj}</li>
-                          ))}
-                        </ol>
-                      </div>
-
-                      {/* Sub Questions */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
-                        {activePaper.financialStatement.sub_questions.map((sub, sIdx) => (
-                          <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
-                            <div>
-                              <b style={{ marginRight: '6px' }}>({sub.label})</b>
-                              <span>{sub.text}</span>
+                        <div className="print-cols-2" style={{ columnCount: 2, columnGap: '20px' }}>
+                          {activePaper.english1Paper.seenPassage1.mcqs.map((m, mIdx) => (
+                            <div key={mIdx} style={{ breakInside: 'avoid', marginBottom: '8px', fontSize: '12.5px' }}>
+                              <div style={{ fontWeight: 700 }}>({String.fromCharCode(97 + mIdx)}) {m.q}</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 6px', paddingLeft: '8px', fontSize: '12px' }}>
+                                {m.options.map((opt, oIdx) => (
+                                  <span key={oIdx}>({['i', 'ii', 'iii', 'iv'][oIdx]}) {opt}</span>
+                                ))}
+                              </div>
                             </div>
-                            <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 2. Answering Questions (2x5=10) */}
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>2. Answer the following questions:</span>
+                          <span>2 × 5 = 10</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '6px' }}>
+                          {activePaper.english1Paper.seenPassage1.questions.map((q, qIdx) => (
+                            <div key={qIdx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px' }}>
+                              <span><b>({q.label})</b> {q.text}</span>
+                              <b>[2]</b>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Seen Passage-2 */}
+                    <div style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px', marginBottom: '18px', background: '#f8fafc' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px', color: '#047857' }}>
+                        Read the following text and answer questions 3 and 4 [{activePaper.english1Paper.seenPassage2.source}]:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: 1.6, fontStyle: 'italic', marginBottom: '14px', borderLeft: '3px solid #047857', paddingLeft: '10px' }}>
+                        "{activePaper.english1Paper.seenPassage2.text}"
+                      </div>
+
+                      {/* 3. Gap Filling (1x5=5) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>3. {activePaper.english1Paper.seenPassage2.gapFilling.instruction}</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          {activePaper.english1Paper.seenPassage2.gapFilling.items.map((it, itIdx) => (
+                            <div key={itIdx}>{it}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 4. Vocabulary (Synonyms & Antonyms) (1x5=5) */}
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>4. {activePaper.english1Paper.seenPassage2.vocabulary.instruction}</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '6px', paddingLeft: '8px', fontSize: '12.5px' }}>
+                          {activePaper.english1Paper.seenPassage2.vocabulary.items.map((it, itIdx) => (
+                            <div key={itIdx} style={{ background: '#fff', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px' }}>
+                              <b>({String.fromCharCode(97 + itIdx)}) {it.word}</b> &rarr; <i>{it.directive}</i>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Unseen Passage */}
+                    <div style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px', marginBottom: '18px', background: '#f8fafc' }}>
+                      <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px', color: '#047857' }}>
+                        Read the following text carefully and answer questions 5, 6, 7, 8, 9 and 10:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: 1.6, marginBottom: '14px', borderLeft: '3px solid #047857', paddingLeft: '10px' }}>
+                        {activePaper.english1Paper.unseenPassage.text}
+                      </div>
+
+                      {/* 5. Information Transfer (1x5=5) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>5. {activePaper.english1Paper.unseenPassage.infoTransfer.instruction}</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', background: '#fff' }}>
+                          <thead>
+                            <tr style={{ background: '#e2e8f0' }}>
+                              {activePaper.english1Paper.unseenPassage.infoTransfer.headers.map((h, hIdx) => (
+                                <th key={hIdx} style={{ border: '1px solid #94a3b8', padding: '5px 8px', textAlign: 'left' }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activePaper.english1Paper.unseenPassage.infoTransfer.rows.map((r, rIdx) => (
+                              <tr key={rIdx}>
+                                {r.map((c, cIdx) => (
+                                  <td key={cIdx} style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>
+                                    {cIdx === 1 ? (rIdx % 2 === 0 ? `(i) _________` : c) : (cIdx === 2 && rIdx % 2 !== 0 ? `(ii) _________` : c)}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 6. True / False (1x5=5) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>6. Write whether the following statements are True or False. If false, give the correct information:</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          {activePaper.english1Paper.unseenPassage.trueFalse.map((tf, tfIdx) => (
+                            <div key={tfIdx}>({String.fromCharCode(97 + tfIdx)}) {tf.text}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 7. Writing Summary (10) */}
+                      <div style={{ marginBottom: '14px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>7. {activePaper.english1Paper.unseenPassage.summaryPrompt}</span>
+                        </div>
+                      </div>
+
+                      {/* 8. Matching (1x5=5) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>8. {activePaper.english1Paper.unseenPassage.matching.instruction}</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', background: '#fff' }}>
+                          <thead>
+                            <tr style={{ background: '#e2e8f0' }}>
+                              <th style={{ border: '1px solid #94a3b8', padding: '4px 8px', width: '30%' }}>Column A</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '4px 8px', width: '35%' }}>Column B</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '4px 8px', width: '35%' }}>Column C</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activePaper.english1Paper.unseenPassage.matching.colA.map((a, idx) => (
+                              <tr key={idx}>
+                                <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{a}</td>
+                                <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{activePaper.english1Paper.unseenPassage.matching.colB[idx]}</td>
+                                <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{activePaper.english1Paper.unseenPassage.matching.colC[idx]}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 9. Re-arranging Sentences (1x8=8) */}
+                      <div style={{ marginBottom: '14px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>9. Put the following sentences in correct order to make a continuous story:</span>
+                          <span>1 × 8 = 8</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          {activePaper.english1Paper.unseenPassage.rearranging.map((s, sIdx) => (
+                            <div key={sIdx}>{s}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 10. Poem Q&A from English for Today (any 5 out of 8) (2x5=10) */}
+                      <div>
+                        <div style={{ fontWeight: 800, fontSize: '13px', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
+                          <span>10. {activePaper.english1Paper.unseenPassage.poemQuestions.instruction}</span>
+                          <span>2 × 5 = 10</span>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 12px', paddingLeft: '8px', fontSize: '12.5px' }}>
+                          {activePaper.english1Paper.unseenPassage.poemQuestions.questions.map((pq, pqIdx) => (
+                            <div key={pqIdx}><b>({pq.label})</b> {pq.text}</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Part B: Writing (30 Marks) */}
+                    <div style={{ textAlign: 'center', background: '#0f172a', color: '#fff', padding: '6px', fontWeight: 800, fontSize: '14px', borderRadius: '4px', margin: '24px 0 16px' }}>
+                      Part-B : Writing (30 Marks)
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {/* 11. Completing Stories (10) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>11. {activePaper.english1Paper.writing.story.title}</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                          {activePaper.english1Paper.writing.story.prompt}
+                        </div>
+                      </div>
+
+                      {/* 12. Writing Paragraph in 120 words (10) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>12. {activePaper.english1Paper.writing.paragraph.title}</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                          {activePaper.english1Paper.writing.paragraph.prompt}
+                        </div>
+                      </div>
+
+                      {/* 13. Writing Dialogues (10) */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>13. {activePaper.english1Paper.writing.dialogue.title}</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', lineHeight: 1.5 }}>
+                          {activePaper.english1Paper.writing.dialogue.prompt}
+                        </div>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Section B: Creative Questions (CQ) */}
-                {activePaper.cqs && activePaper.cqs.length > 0 && (
-                  <div style={{ marginTop: '20px', marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>
-                        {activePaper.financialStatement ? '‘খ’ বিভাগ — সৃজনশীল প্রশ্ন' : '‘খ’ বিভাগ — সৃজনশীল প্রশ্ন'} (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})
-                      </b>
-                      <span style={{ fontSize: '12px' }}>
-                        {activePaper.cqRule ? `[${activePaper.cqRule}]` : `[যেকোনো ${toBn(activePaper.cqToAnswer || activePaper.cqs.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০]`}
-                      </span>
+                ) : activePaper.subjectId === 'english2' && activePaper.english2Paper ? (
+                  /* ========================================================= */
+                  /* 2. ENGLISH SECOND PAPER SPECIAL LAYOUT                    */
+                  /* ========================================================= */
+                  <div>
+                    {/* Part A: Grammar (30 Marks) */}
+                    <div style={{ textAlign: 'center', background: '#0f172a', color: '#fff', padding: '6px', fontWeight: 800, fontSize: '14px', borderRadius: '4px', marginBottom: '16px' }}>
+                      Part-A : Grammar (30 Marks)
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      {activePaper.cqs.map((cq, idx) => {
-                        const showSectionHeader = cq.sectionName && (idx === 0 || activePaper.cqs[idx - 1]?.sectionName !== cq.sectionName);
-                        return (
-                          <React.Fragment key={cq.id || idx}>
-                            {showSectionHeader && (
-                              <div style={{
-                                background: '#e2e8f0',
-                                color: '#0f172a',
-                                padding: '4px 10px',
-                                borderRadius: '4px',
-                                fontWeight: 800,
-                                fontSize: '13px',
-                                marginTop: idx > 0 ? '10px' : '0',
-                                borderLeft: '4px solid #047857'
-                              }}>
-                                {cq.sectionName}
-                              </div>
-                            )}
-                            <div className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '12px' }}>
-                              <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
-                                {toBn(idx + (activePaper.financialStatement ? 2 : 1))} নম্বর প্রশ্ন:
-                              </div>
-                              
-                              {/* Stimulus Box */}
-                              <div className="stimulus-box" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', fontSize: '13px', lineHeight: 1.5 }}>
-                                {cq.stimulus}
-                              </div>
+                      {/* 1. Identification of Part of Speech (0.5x10=05) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>1. Identification of Part of Speech:</span>
+                          <span>0.5 × 10 = 05</span>
+                        </div>
+                        <div style={{ fontSize: '12.5px', marginBottom: '6px' }}>
+                          Read the following passage and identify the parts of speech of the 10 numbered words:
+                        </div>
+                        <div style={{ fontSize: '13px', lineHeight: 1.6, padding: '8px 12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
+                          {activePaper.english2Paper.grammar.partOfSpeech.text}
+                        </div>
+                      </div>
 
-                              {/* Sub Questions */}
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
-                                {cq.sub_questions && cq.sub_questions.map((sub, sIdx) => (
-                                  <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
-                                    <div>
-                                      <b style={{ marginRight: '6px' }}>({sub.label})</b>
-                                      <span>{sub.text}</span>
-                                    </div>
-                                    <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
+                      {/* 2. Gap filling with clues (0.5x10=05) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>2. Gap filling with clues (Parts of speech, articles, prepositions):</span>
+                          <span>0.5 × 10 = 05</span>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '6px 10px', background: '#e2e8f0', borderRadius: '4px', marginBottom: '8px', fontSize: '12.5px' }}>
+                          {activePaper.english2Paper.grammar.gapFilling.clues.map((c, cIdx) => (
+                            <span key={cIdx} style={{ background: '#fff', padding: '2px 8px', borderRadius: '3px', fontWeight: 700 }}>{c}</span>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '13px', lineHeight: 1.6 }}>
+                          {activePaper.english2Paper.grammar.gapFilling.text}
+                        </div>
+                      </div>
+
+                      {/* 3. Substitution Table (1x5=5) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>3. Make five meaningful sentences from the substitution table below:</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', background: '#fff' }}>
+                          <thead>
+                            <tr style={{ background: '#f1f5f9' }}>
+                              {activePaper.english2Paper.grammar.substitutionTable.headers.map((h, hIdx) => (
+                                <th key={hIdx} style={{ border: '1px solid #94a3b8', padding: '5px 8px', textAlign: 'left' }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {activePaper.english2Paper.grammar.substitutionTable.rows.map((r, rIdx) => (
+                              <tr key={rIdx}>
+                                {r.map((c, cIdx) => (
+                                  <td key={cIdx} style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{c}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* 4. Right form of Verbs (1x5=5) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>4. Complete the text with the right form of verbs given in brackets:</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <div style={{ fontSize: '13px', lineHeight: 1.6 }}>
+                          {activePaper.english2Paper.grammar.rightFormOfVerbs.text}
+                        </div>
+                      </div>
+
+                      {/* 5. Changing sentences (1x5=5) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>5. Change the following sentences as directed in brackets:</span>
+                          <span>1 × 5 = 5</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px', fontSize: '13px' }}>
+                          {activePaper.english2Paper.grammar.changingSentences.items.map((it, itIdx) => (
+                            <div key={itIdx}>
+                              {it.text} &nbsp;<b>({it.target})</b>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 6. Punctuation and Capitalization (05) */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>6. Use punctuation marks and capital letters where necessary in the following text:</span>
+                          <span>05</span>
+                        </div>
+                        <div style={{ fontSize: '13px', lineHeight: 1.6, padding: '8px 12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px' }}>
+                          {activePaper.english2Paper.grammar.punctuation.text}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Part B: Writing (20 Marks) */}
+                    <div style={{ textAlign: 'center', background: '#0f172a', color: '#fff', padding: '6px', fontWeight: 800, fontSize: '14px', borderRadius: '4px', margin: '24px 0 16px' }}>
+                      Part-B : Writing (20 Marks)
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {/* 7. Letters / E-mail (Formal & Informal) (08) */}
+                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>7. Letters / E-mail (Formal & Informal):</span>
+                          <span>08</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                          {activePaper.english2Paper.writing.letter.prompt}
+                        </div>
+                      </div>
+
+                      {/* 8. Writing Short Composition in 200 words (12) */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                          <span>8. Writing Short Composition in 200 words:</span>
+                          <span>12</span>
+                        </div>
+                        <div style={{ paddingLeft: '8px', fontSize: '12.5px', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                          {activePaper.english2Paper.writing.composition.prompt}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : activePaper.subjectId === 'bangla2' ? (
+                  /* ========================================================= */
+                  /* 3. BANGLA SECOND PAPER SPECIAL LAYOUT                     */
+                  /* ========================================================= */
+                  <div>
+                    {/* Section 1: ‘ক’ বিভাগ — নির্মিতি অংশ */}
+                    {activePaper.bangla2Composition && (
+                      <div style={{ marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            {['6', '7', '8'].includes(String(activePaper.className))
+                              ? '‘ক’ বিভাগ — নির্মিতি অংশ (পূর্ণমান: ৩৫)'
+                              : '‘ক’ বিভাগ — নির্মিতি অংশ (পূর্ণমান: ৭০)'}
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {['6', '7', '8'].includes(String(activePaper.className))
+                              ? '[নির্মিতি অংশ হতে ৫টি আইটেমের প্রতিটিতে নির্ধারিত সংখ্যক প্রশ্নের উত্তর দাও]'
+                              : '[নির্ধারিত বিকল্প থেকে যথারীতি উত্তর দাও]'}
+                          </span>
+                        </div>
+
+                        {['6', '7', '8'].includes(String(activePaper.className)) ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            {/* ১. অনুধাবন দক্ষতা/অনুচ্ছেদ রচনা: ২টি থাকবে যেকোনো ১টি (০৫ x ১ = ০৫) */}
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>১. অনুধাবন দক্ষতা / অনুচ্ছেদ রচনা (২টি থেকে যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[০৫]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.paragraph[0]} &nbsp;&nbsp;&nbsp;&nbsp;অথবা,&nbsp;&nbsp;&nbsp;&nbsp; (খ) {activePaper.bangla2Composition.paragraph[1]}
+                              </div>
+                            </div>
+
+                            {/* ২. পত্র / দরখাস্ত: ২টি থাকবে যেকোনো ১টি (০৫ x ১ = ০৫) */}
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>২. পত্র / দরখাস্ত (২টি থেকে যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[০৫]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.letter[0]}<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) {activePaper.bangla2Composition.letter[1]}
+                              </div>
+                            </div>
+
+                            {/* ৩. সারাংশ / সারমর্ম: ২টি থাকবে যেকোনো ১টি (০৫ x ১ = ০৫) */}
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৩. সারাংশ / সারমর্ম (২টি থেকে যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[০৫]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.summary[0]}<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) {activePaper.bangla2Composition.summary[1]}
+                              </div>
+                            </div>
+
+                            {/* ৪. ভাবসম্প্রসারণ: ২টি থাকবে যেকোনো ১টি (০৫ x ১ = ০৫) */}
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৪. ভাবসম্প্রসারণ (২টি থেকে যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[০৫]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) “{activePaper.bangla2Composition.amplification[0]}”<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) “{activePaper.bangla2Composition.amplification[1]}”
+                              </div>
+                            </div>
+
+                            {/* ৫. প্রবন্ধ রচনা (সংকেতসহ): ৩টি থাকবে যেকোনো ১টি (১৫ x ১ = ১৫) */}
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৫. প্রবন্ধ রচনা (সংকেতসহ যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[১৫]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <div>(ক) {activePaper.bangla2Composition.essay[0]}</div>
+                                <div>(খ) {activePaper.bangla2Composition.essay[1]}</div>
+                                <div>(গ) {activePaper.bangla2Composition.essay[2]}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* SSC 70 Marks Format */
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>১. যেকোনো একটি বিষয়ে অনুচ্ছেদ রচনা কর (২টি থেকে ১টি):</span>
+                                <span>[১০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.paragraph[0]} &nbsp;&nbsp;&nbsp;&nbsp;অথবা,&nbsp;&nbsp;&nbsp;&nbsp; (খ) {activePaper.bangla2Composition.paragraph[1]}
+                              </div>
+                            </div>
+
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>২. চিঠিপত্র / সংবাদ প্রতিবেদন (যেকোনো ১টির উত্তর দাও):</span>
+                                <span>[১০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.letter[0]}<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) {activePaper.bangla2Composition.letter[1]}
+                              </div>
+                            </div>
+
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৩. সারাংশ বা সারমর্ম লেখ (যেকোনো ১টি):</span>
+                                <span>[১০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) সারাংশ: {activePaper.bangla2Composition.summary[0]}<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) সারমর্ম: {activePaper.bangla2Composition.summary[1]}
+                              </div>
+                            </div>
+
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৪. ভাব-সম্প্রসারণ কর (যেকোনো ১টি):</span>
+                                <span>[১০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) “{activePaper.bangla2Composition.amplification[0]}”<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) “{activePaper.bangla2Composition.amplification[1]}”
+                              </div>
+                            </div>
+
+                            <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৫. বাংলায় অনুবাদ কর (যেকোনো ১টি):</span>
+                                <span>[১০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
+                                (ক) {activePaper.bangla2Composition.translation[0]}<br />
+                                <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
+                                (খ) {activePaper.bangla2Composition.translation[1]}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
+                                <span>৬. যেকোনো একটি বিষয়ে প্রবন্ধ রচনা কর (৩টি থেকে ১টি):</span>
+                                <span>[২০]</span>
+                              </div>
+                              <div style={{ paddingLeft: '14px', fontSize: '13px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+                                <span>(ক) {activePaper.bangla2Composition.essay[0]}</span>
+                                <span>(খ) {activePaper.bangla2Composition.essay[1]}</span>
+                                <span>(গ) {activePaper.bangla2Composition.essay[2]}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Section 2: ‘খ’ বিভাগ — বহুনির্বাচনি প্রশ্ন (ব্যাকরণ অংশ) */}
+                    {activePaper.mcqs && activePaper.mcqs.length > 0 && (
+                      <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            ‘খ’ বিভাগ — বহুনির্বাচনি প্রশ্ন (ব্যাকরণ অংশ) (পূর্ণমান: {toBn(activePaper.mcqs.length)})
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {activePaper.mcqRule ? `[${activePaper.mcqRule}]` : `[${toBn(activePaper.mcqs.length)}টি বহুনির্বাচনি প্রশ্ন (শুধু ব্যাকরণ অংশ হতে)। সবকয়টি প্রশ্নের উত্তর দিতে হবে।]`}
+                          </span>
+                        </div>
+
+                        <div className="print-cols-2" style={{ columnCount: 2, columnGap: '30px' }}>
+                          {activePaper.mcqs.map((q, idx) => (
+                            <div key={q.id || idx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '14px', fontSize: '13px' }}>
+                              <div style={{ fontWeight: 700, marginBottom: '4px', lineHeight: 1.4 }}>
+                                {toBn(idx + 1)}. {q.question_bn}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 8px', fontSize: '12px', paddingLeft: '8px' }}>
+                                {q.options && q.options.map((opt, optIdx) => (
+                                  <div key={optIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                    <span style={{ fontWeight: 700 }}>({['ক', 'খ', 'গ', 'ঘ'][optIdx]})</span>
+                                    <span>{opt}</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
-                          </React.Fragment>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Section C: Short-Answer Questions (সংক্ষিপ্ত-উত্তর প্রশ্ন - প্রতিটি ২ নম্বর) */}
-                {activePaper.shortQuestions && activePaper.shortQuestions.length > 0 && (
-                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>
-                        ‘গ’ বিভাগ — সংক্ষিপ্ত-উত্তর প্রশ্ন (পূর্ণমান: {toBn(activePaper.shortMarks || (activePaper.shortToAnswer ? activePaper.shortToAnswer * 2 : activePaper.shortQuestions.length * 2))})
-                      </b>
-                      <span style={{ fontSize: '12px' }}>
-                        {activePaper.shortRule ? `[${activePaper.shortRule}]` : `[যেকোনো ${toBn(activePaper.shortToAnswer || activePaper.shortQuestions.length)}টি প্রশ্নের সংক্ষিপ্ত উত্তর দাও। প্রতিটি প্রশ্নের মান ২]`}
-                      </span>
-                    </div>
-
-                    {/* 2-Column Print Layout for Short Questions */}
-                    <div className="print-cols-2" style={{ columnCount: 2, columnGap: '28px' }}>
-                      {activePaper.shortQuestions.map((sq, sqIdx) => (
-                        <div key={sq.id || sqIdx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '12px', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dotted #e2e8f0', paddingBottom: '6px' }}>
-                          <div style={{ paddingRight: '8px', lineHeight: 1.45 }}>
-                            <b style={{ marginRight: '4px' }}>{toBn(sqIdx + 1)}.</b>
-                            <span>{sq.question_bn}</span>
-                          </div>
-                          <b style={{ paddingLeft: '8px', whiteSpace: 'nowrap', color: '#0f172a' }}>
-                            [{toBn(sq.marks || 2)}]
-                          </b>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ) : (
+                  /* ========================================================= */
+                  /* 4. GENERAL SUBJECTS (BANGLA 1, MATH, SCIENCE, BGS, ETC.)  */
+                  /* ========================================================= */
+                  <div>
+                    {/* Section A: MCQ (বহুনির্বাচনি অভীক্ষা) */}
+                    {activePaper.mcqs && activePaper.mcqs.length > 0 && (
+                      <div style={{ marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            ‘ক’ বিভাগ — বহুনির্বাচনি অভীক্ষা (মান: {toBn(activePaper.mcqs.length)})
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {activePaper.mcqRule ? `[${activePaper.mcqRule}]` : '[বিশেষ দ্রষ্টব্য: সরবরাহকৃত OMR শিটে সঠিক উত্তরের বৃত্তটি কালো বলপয়েন্ট কলম দ্বারা ভরাট কর। সকল প্রশ্নের উত্তর দিতে হবে।]'}
+                          </span>
+                        </div>
 
-                {/* Section D: सहপাঠ বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র - উপন্যাস ও নাটক) */}
-                {activePaper.descriptiveQuestions && activePaper.descriptiveQuestions.length > 0 && (
-                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>
-                        ‘ঘ’ বিভাগ — বর্ণনামূলক প্রশ্ন: সহপাঠ (উপন্যাস ও নাটক) (পূর্ণমান: ২০)
-                      </b>
-                      <span style={{ fontSize: '12px' }}>
-                        {activePaper.descriptiveRule ? `[${activePaper.descriptiveRule}]` : '[উপন্যাস থেকে ১টি এবং নাটক থেকে ১টি করে মোট ২টি প্রশ্নের উত্তর দিতে হবে। প্রতিটির মান ১০ (ক-৩, খ-৭)]'}
-                      </span>
-                    </div>
+                        {/* 2-Column Print Layout for MCQ */}
+                        <div className="print-cols-2" style={{ columnCount: 2, columnGap: '30px' }}>
+                          {activePaper.mcqs.map((q, idx) => (
+                            <div key={q.id || idx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '14px', fontSize: '13px' }}>
+                              <div style={{ fontWeight: 700, marginBottom: '4px', lineHeight: 1.4 }}>
+                                {toBn(idx + 1)}. {q.question_bn}
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3px 8px', fontSize: '12px', paddingLeft: '8px' }}>
+                                {q.options && q.options.map((opt, optIdx) => (
+                                  <div key={optIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                    <span style={{ fontWeight: 700 }}>({['ক', 'খ', 'গ', 'ঘ'][optIdx]})</span>
+                                    <span>{opt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {activePaper.descriptiveQuestions.map((dq, dIdx) => (
-                        <div key={dq.id || dIdx} className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
-                          <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
-                            {toBn(dIdx + 1)} নম্বর বর্ণনামূলক প্রশ্ন ({dq.book_type === 'novel' ? 'উপন্যাস অংশ' : 'নাটক অংশ'}):
+                    {/* Section: হিসাববিজ্ঞান আর্থিক বিবরণী প্রস্তুতকরণ (বাধ্যতামূলক, মান ২০) */}
+                    {activePaper.financialStatement && (
+                      <div style={{ marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — আর্থিক বিবরণী প্রস্তুতকরণ (পূর্ণমান: ২০)</b>
+                          <span style={{ fontSize: '12px', fontWeight: 800, color: '#b91c1c' }}>
+                            [১ নম্বর প্রশ্নের উত্তর দেওয়া আবশ্যিক]
+                          </span>
+                        </div>
+
+                        <div style={{ border: '1px solid #cbd5e1', padding: '14px', borderRadius: '6px', background: '#f8fafc', marginBottom: '16px' }}>
+                          <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '6px' }}>
+                            ১ নম্বর প্রশ্ন (আবশ্যিক):
                           </div>
-                          <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '6px' }}>
-                            {dq.context}
+                          <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '10px' }}>
+                            {activePaper.financialStatement.stimulus}
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
-                            {dq.sub_questions && dq.sub_questions.map((sub, sIdx) => (
+
+                          {/* Trial Balance Table */}
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', marginBottom: '10px', background: '#fff' }}>
+                            <thead>
+                              <tr style={{ background: '#e2e8f0' }}>
+                                <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'left' }}>হিসাবের শিরোনাম</th>
+                                <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ডেবিট (টাকা)</th>
+                                <th style={{ border: '1px solid #94a3b8', padding: '5px', textAlign: 'right', width: '110px' }}>ক্রেডিট (টাকা)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {activePaper.financialStatement.trial_balance && activePaper.financialStatement.trial_balance.map((row, rIdx) => (
+                                <tr key={rIdx}>
+                                  <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px' }}>{row.account}</td>
+                                  <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.debit ? toBn(row.debit) : '—'}</td>
+                                  <td style={{ border: '1px solid #cbd5e1', padding: '4px 8px', textAlign: 'right' }}>{row.credit ? toBn(row.credit) : '—'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+
+                          {/* Adjustments */}
+                          <div style={{ fontSize: '12.5px', marginBottom: '10px' }}>
+                            <b>অন্যান্য সমন্বয়সমূহ:</b>
+                            <ol style={{ margin: '4px 0 0 18px', padding: 0 }}>
+                              {activePaper.financialStatement.adjustments && activePaper.financialStatement.adjustments.map((adj, aIdx) => (
+                                <li key={aIdx} style={{ margin: '2px 0' }}>{adj}</li>
+                              ))}
+                            </ol>
+                          </div>
+
+                          {/* Sub Questions */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+                            {activePaper.financialStatement.sub_questions && activePaper.financialStatement.sub_questions.map((sub, sIdx) => (
                               <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
                                 <div>
                                   <b style={{ marginRight: '6px' }}>({sub.label})</b>
@@ -1491,137 +1931,201 @@ export function QuestionBankPanel({ sub, setSub }) {
                             ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                    )}
 
-                {/* Section E: বাংলা ২য় পত্র নির্মিতি অংশ (৭০ নম্বর) */}
-                {activePaper.bangla2Composition && (
-                  <div style={{ marginTop: '24px', marginBottom: '26px' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: '#f1f5f9',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      marginBottom: '14px',
-                      border: '1px solid #cbd5e1'
-                    }}>
-                      <b style={{ fontSize: '13.5px' }}>‘ক’ বিভাগ — নির্মিতি অংশ (পূর্ণমান: ৭০)</b>
-                      <span style={{ fontSize: '12px' }}>[নির্ধারিত বিকল্প থেকে যথারীতি উত্তর দাও]</span>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {/* ১. অনুচ্ছেদ রচনা */}
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>১. যেকোনো একটি বিষয়ে অনুচ্ছেদ রচনা কর (২টি থেকে ১টি):</span>
-                          <span>[১০]</span>
+                    {/* Section B: Creative Questions (CQ) */}
+                    {activePaper.cqs && activePaper.cqs.length > 0 && (
+                      <div style={{ marginTop: '20px', marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            ‘খ’ বিভাগ — সৃজনশীল প্রশ্ন (পূর্ণমান: {toBn((activePaper.cqToAnswer || activePaper.cqs.length) * 10)})
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {activePaper.cqRule ? `[${activePaper.cqRule}]` : `[যেকোনো ${toBn(activePaper.cqToAnswer || activePaper.cqs.length)}টি প্রশ্নের উত্তর দাও। প্রতিটি প্রশ্নের মান ১০]`}
+                          </span>
                         </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
-                          (ক) {activePaper.bangla2Composition.paragraph[0]} &nbsp;&nbsp;&nbsp;&nbsp;অথবা,&nbsp;&nbsp;&nbsp;&nbsp; (খ) {activePaper.bangla2Composition.paragraph[1]}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {activePaper.cqs.map((cq, idx) => {
+                            const sectionTitle = cq.sectionName || cq.section_label;
+                            const prevSectionTitle = idx > 0 ? (activePaper.cqs[idx - 1]?.sectionName || activePaper.cqs[idx - 1]?.section_label) : null;
+                            const showSectionHeader = sectionTitle && (idx === 0 || prevSectionTitle !== sectionTitle);
+                            return (
+                              <React.Fragment key={cq.id || idx}>
+                                {showSectionHeader && (
+                                  <div style={{
+                                    background: '#e2e8f0',
+                                    color: '#0f172a',
+                                    padding: '5px 12px',
+                                    borderRadius: '4px',
+                                    fontWeight: 800,
+                                    fontSize: '13px',
+                                    marginTop: idx > 0 ? '10px' : '0',
+                                    borderLeft: '4px solid #047857'
+                                  }}>
+                                    {sectionTitle}
+                                  </div>
+                                )}
+                                <div className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '12px' }}>
+                                  <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
+                                    {toBn(idx + (activePaper.financialStatement ? 2 : 1))} নম্বর প্রশ্ন:
+                                  </div>
+                                  
+                                  {/* Stimulus Box */}
+                                  <div className="stimulus-box" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '4px', marginBottom: '8px', fontSize: '13px', lineHeight: 1.5 }}>
+                                    {cq.stimulus}
+                                  </div>
+
+                                  {/* Sub Questions */}
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
+                                    {cq.sub_questions && cq.sub_questions.map((sub, sIdx) => (
+                                      <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
+                                        <div>
+                                          <b style={{ marginRight: '6px' }}>({sub.label})</b>
+                                          <span>{sub.text}</span>
+                                        </div>
+                                        <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </React.Fragment>
+                            );
+                          })}
                         </div>
                       </div>
+                    )}
 
-                      {/* ২. চিঠিপত্র / সংবাদ প্রতিবেদন */}
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>২. চিঠিপত্র / সংবাদ প্রতিবেদন (যেকোনো ১টির উত্তর দাও):</span>
-                          <span>[১০]</span>
+                    {/* Section C: Short-Answer Questions (সংক্ষিপ্ত-উত্তর প্রশ্ন - প্রতিটি ২ নম্বর) */}
+                    {activePaper.shortQuestions && activePaper.shortQuestions.length > 0 && (
+                      <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            ‘গ’ বিভাগ — সংক্ষিপ্ত-উত্তর প্রশ্ন (পূর্ণমান: {toBn(activePaper.shortMarks || (activePaper.shortToAnswer ? activePaper.shortToAnswer * 2 : activePaper.shortQuestions.length * 2))})
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {activePaper.shortRule ? `[${activePaper.shortRule}]` : `[যেকোনো ${toBn(activePaper.shortToAnswer || activePaper.shortQuestions.length)}টি প্রশ্নের সংক্ষিপ্ত উত্তর দাও। প্রতিটি প্রশ্নের মান ২]`}
+                          </span>
                         </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
-                          (ক) {activePaper.bangla2Composition.letter[0]}<br />
-                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
-                          (খ) {activePaper.bangla2Composition.letter[1]}
+
+                        {/* 2-Column Print Layout for Short Questions */}
+                        <div className="print-cols-2" style={{ columnCount: 2, columnGap: '28px' }}>
+                          {activePaper.shortQuestions.map((sq, sqIdx) => (
+                            <div key={sq.id || sqIdx} className="question-item" style={{ breakInside: 'avoid', marginBottom: '12px', fontSize: '13px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px dotted #e2e8f0', paddingBottom: '6px' }}>
+                              <div style={{ paddingRight: '8px', lineHeight: 1.45 }}>
+                                <b style={{ marginRight: '4px' }}>{toBn(sqIdx + 1)}.</b>
+                                <span>{sq.question_bn}</span>
+                              </div>
+                              <b style={{ paddingLeft: '8px', whiteSpace: 'nowrap', color: '#0f172a' }}>
+                                [{toBn(sq.marks || 2)}]
+                              </b>
+                            </div>
+                          ))}
                         </div>
                       </div>
+                    )}
 
-                      {/* ৩. সারাংশ বা সারমর্ম */}
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>৩. সারাংশ বা সারমর্ম লেখ (যেকোনো ১টি):</span>
-                          <span>[১০]</span>
+                    {/* Section D: আনন্দ পাঠ / সহপাঠ বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র) */}
+                    {activePaper.descriptiveQuestions && activePaper.descriptiveQuestions.length > 0 && (
+                      <div style={{ marginTop: '24px', marginBottom: '26px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          background: '#f1f5f9',
+                          padding: '6px 12px',
+                          borderRadius: '4px',
+                          marginBottom: '14px',
+                          border: '1px solid #cbd5e1'
+                        }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            {['6', '7', '8'].includes(String(activePaper.className))
+                              ? '‘গ’ বিভাগ — বর্ণনামূলক প্রশ্ন: আনন্দ পাঠ (পূর্ণমান: ২০)'
+                              : '‘ঘ’ বিভাগ — বর্ণনামূলক প্রশ্ন: সহপাঠ (উপন্যাস ও নাটক) (পূর্ণমান: ২০)'}
+                          </b>
+                          <span style={{ fontSize: '12px' }}>
+                            {activePaper.descriptiveRule ? `[${activePaper.descriptiveRule}]` : (['6', '7', '8'].includes(String(activePaper.className))
+                              ? '[আনন্দ পাঠ থেকে ৪টি বর্ণনামূলক প্রশ্ন থাকবে। এর মধ্যে ২টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি প্রশ্নের ২টি অংশ থাকবে (ক অংশের জন্য ৩ এবং খ অংশের জন্য ৭ নম্বর, মোট ২০ নম্বর)]'
+                              : '[উপন্যাস থেকে ১টি এবং নাটক থেকে ১টি করে মোট ২টি প্রশ্নের উত্তর দিতে হবে। প্রতিটির মান ১০ (ক-৩, খ-৭)]')}
+                          </span>
                         </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
-                          (ক) সারাংশ: {activePaper.bangla2Composition.summary[0]}<br />
-                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
-                          (খ) সারমর্ম: {activePaper.bangla2Composition.summary[1]}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                          {activePaper.descriptiveQuestions.map((dq, dIdx) => (
+                            <div key={dq.id || dIdx} className="question-item" style={{ breakInside: 'avoid', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px' }}>
+                              <div style={{ fontWeight: 800, fontSize: '13.5px', marginBottom: '4px' }}>
+                                {toBn(dIdx + 1)} নম্বর বর্ণনামূলক প্রশ্ন ({dq.book_type === 'ananda_path' ? dq.title : (dq.book_type === 'novel' ? 'উপন্যাস অংশ' : 'নাটক অংশ')}):
+                              </div>
+                              <div style={{ fontSize: '13px', lineHeight: 1.5, marginBottom: '6px' }}>
+                                {dq.context}
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '8px' }}>
+                                {dq.sub_questions && dq.sub_questions.map((sub, sIdx) => (
+                                  <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', fontSize: '13px' }}>
+                                    <div>
+                                      <b style={{ marginRight: '6px' }}>({sub.label})</b>
+                                      <span>{sub.text}</span>
+                                    </div>
+                                    <b style={{ paddingLeft: '12px', whiteSpace: 'nowrap' }}>[{toBn(sub.marks)}]</b>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
+                    )}
 
-                      {/* ৪. ভাব-সম্প্রসারণ */}
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>৪. ভাব-সম্প্রসারণ কর (যেকোনো ১টি):</span>
-                          <span>[১০]</span>
+                    {/* Section F: Practical Exam (ব্যবহারিক অভীক্ষা - যদি প্রযোজ্য হয়) */}
+                    {activePaper.practicalMarks && activePaper.practicalMarks > 0 && (
+                      <div style={{ marginTop: '24px', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px 16px', background: '#f8fafc' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '8px', marginBottom: '10px' }}>
+                          <b style={{ fontSize: '13.5px' }}>
+                            {activePaper.subjectId === 'higher_math' ? '‘ঘ’ বিভাগ — ব্যবহারিক অভীক্ষা' : '‘গ’ বিভাগ — ব্যবহারিক অভীক্ষা'} (পূর্ণমান: {toBn(activePaper.practicalMarks)})
+                          </b>
+                          <span style={{ fontSize: '12px', color: '#475569' }}>
+                            [বিদ্যালয়ের বিজ্ঞান ল্যাবরেটরি / আইসিটি ল্যাবে নির্দিষ্ট তদারকিতে অনুষ্ঠিত হবে]
+                          </span>
                         </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
-                          (ক) “{activePaper.bangla2Composition.amplification[0]}”<br />
-                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
-                          (খ) “{activePaper.bangla2Composition.amplification[1]}”
-                        </div>
-                      </div>
 
-                      {/* ৫. বাংলায় অনুবাদ */}
-                      <div style={{ borderBottom: '1px dashed #cbd5e1', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>৫. বাংলায় অনুবাদ কর (যেকোনো ১টি):</span>
-                          <span>[১০]</span>
-                        </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px' }}>
-                          (ক) {activePaper.bangla2Composition.translation[0]}<br />
-                          <div style={{ margin: '2px 0 2px 20px', fontWeight: 700, color: '#475569' }}>অথবা,</div>
-                          (খ) {activePaper.bangla2Composition.translation[1]}
-                        </div>
-                      </div>
-
-                      {/* ৬. প্রবন্ধ রচনা */}
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '13px', marginBottom: '4px' }}>
-                          <span>৬. যেকোনো একটি বিষয়ে প্রবন্ধ রচনা কর (৩টি থেকে ১টি):</span>
-                          <span>[২০]</span>
-                        </div>
-                        <div style={{ paddingLeft: '14px', fontSize: '13px', display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                          <span>(ক) {activePaper.bangla2Composition.essay[0]}</span>
-                          <span>(খ) {activePaper.bangla2Composition.essay[1]}</span>
-                          <span>(গ) {activePaper.bangla2Composition.essay[2]}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section F: Practical Exam (ব্যবহারিক অভীক্ষা - যদি প্রযোজ্য হয়) */}
-                {activePaper.practicalMarks && activePaper.practicalMarks > 0 && (
-                  <div style={{ marginTop: '24px', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px 16px', background: '#f8fafc' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #cbd5e1', paddingBottom: '8px', marginBottom: '10px' }}>
-                      <b style={{ fontSize: '13.5px' }}>
-                        {activePaper.subjectId === 'higher_math' ? '‘ঘ’ বিভাগ — ব্যবহারিক অভীক্ষা' : '‘গ’ বিভাগ — ব্যবহারিক অভীক্ষা'} (পূর্ণমান: {toBn(activePaper.practicalMarks)})
-                      </b>
-                      <span style={{ fontSize: '12px', color: '#475569' }}>
-                        [বিদ্যালয়ের বিজ্ঞান ল্যাবরেটরি / আইসিটি ল্যাবে নির্দিষ্ট তদারকিতে অনুষ্ঠিত হবে]
-                      </span>
-                    </div>
-
-                    {activePaper.subjectId === 'higher_math' ? (
-                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
-                        ১. পরীক্ষণের ২টি কার্যক্রম সম্পন্ন করতে হবে (১০ × ২ = <b>{toBn(20)} নম্বর</b>):<br />
-                        &nbsp;&nbsp;&nbsp;• প্রত্যেক কার্যক্রমে পরিকল্পনা প্রণয়ন: ২ নম্বর; সঠিক প্রক্রিয়া অনুসরণ: ৩ নম্বর; লেখচিত্র অঙ্কন ও উপাত্ত বিশ্লেষণ: ৩ নম্বর; ফলাফল ও ব্যাখ্যা: ২ নম্বর<br />
-                        ২. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
-                      </div>
-                    ) : activePaper.subjectId === 'ict' ? (
-                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
-                        ১. ব্যবহারিক পরীক্ষণ সম্পাদন (স্প্রেডশিট বিশ্লেষণ / ডেটাবেস ডিজাইন / প্রেজেন্টেশন স্লাইড): <b>{toBn(15)} নম্বর</b><br />
-                        ২. কার্যবিবরণী ও প্র্যাকটিক্যাল নোটবুক: <b>{toBn(5)} নম্বর</b><br />
-                        ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
-                        ১. নির্ধারিত পরীক্ষণ (যন্ত্র/উপকরণ সংযোজন, সঠিক প্রক্রিয়া অনুসরণ, উপাত্ত সংগ্রহ, পর্যবেক্ষণ ও শনাক্তকরণ): <b>{toBn(15)} নম্বর</b><br />
-                        ২. ব্যাখ্যাসহ ফলাফল উপস্থাপন ও বিশ্লেষণ: <b>{toBn(5)} নম্বর</b><br />
-                        ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                        {activePaper.subjectId === 'higher_math' ? (
+                          <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                            ১. পরীক্ষণের ২টি কার্যক্রম সম্পন্ন করতে হবে (১০ × ২ = <b>{toBn(20)} নম্বর</b>):<br />
+                            &nbsp;&nbsp;&nbsp;• প্রত্যেক কার্যক্রমে পরিকল্পনা প্রণয়ন: ২ নম্বর; সঠিক প্রক্রিয়া অনুসরণ: ৩ নম্বর; লেখচিত্র অঙ্কন ও উপাত্ত বিশ্লেষণ: ৩ নম্বর; ফলাফল ও ব্যাখ্যা: ২ নম্বর<br />
+                            ২. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                          </div>
+                        ) : activePaper.subjectId === 'ict' ? (
+                          <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                            ১. ব্যবহারিক পরীক্ষণ সম্পাদন (স্প্রেডশিট বিশ্লেষণ / ডেটাবেস ডিজাইন / প্রেজেন্টেশন স্লাইড): <b>{toBn(15)} নম্বর</b><br />
+                            ২. কার্যবিবরণী ও প্র্যাকটিক্যাল নোটবুক: <b>{toBn(5)} নম্বর</b><br />
+                            ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '12.5px', color: '#1e293b', lineHeight: 1.7 }}>
+                            ১. নির্ধারিত পরীক্ষণ (যন্ত্র/উপকরণ সংযোজন, সঠিক প্রক্রিয়া অনুসরণ, উপাত্ত সংগ্রহ, পর্যবেক্ষণ ও শনাক্তকরণ): <b>{toBn(15)} নম্বর</b><br />
+                            ২. ব্যাখ্যাসহ ফলাফল উপস্থাপন ও বিশ্লেষণ: <b>{toBn(5)} নম্বর</b><br />
+                            ৩. মৌখিক অভীক্ষা (Viva-Voce): <b>{toBn(5)} নম্বর</b>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1632,46 +2136,74 @@ export function QuestionBankPanel({ sub, setSub }) {
                   <div style={{ marginTop: '36px', borderTop: '2px solid #047857', paddingTop: '18px' }}>
                     <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '10px 14px', borderRadius: '6px', marginBottom: '14px' }}>
                       <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#065f46' }}>
-                        🔑 শিক্ষক মূল্যায়ন নির্দেশিকা ও MCQ উত্তর সংকেত (Answer Key)
+                        🔑 শিক্ষক মূল্যায়ন নির্দেশিকা ও উত্তর সংকেত (Answer Key & Solutions)
                       </h3>
                     </div>
 
-                    {/* Quick Answer Key Matrix */}
-                    <div style={{ marginBottom: '16px' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
-                        <thead>
-                          <tr style={{ background: '#f1f5f9' }}>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
-                            <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {Array.from({ length: Math.ceil(activePaper.mcqs.length / 4) }).map((_, rIdx) => (
-                            <tr key={rIdx}>
-                              {[0, 1, 2, 3].map(colIdx => {
-                                const qIdx = rIdx * 4 + colIdx;
-                                const q = activePaper.mcqs[qIdx];
-                                if (!q) return <React.Fragment key={colIdx}><td style={{ border: '1px solid #cbd5e1' }}>—</td><td style={{ border: '1px solid #cbd5e1' }}>—</td></React.Fragment>;
-                                return (
-                                  <React.Fragment key={colIdx}>
-                                    <td style={{ border: '1px solid #cbd5e1', padding: '4px', fontWeight: 700 }}>{toBn(qIdx + 1)}</td>
-                                    <td style={{ border: '1px solid #cbd5e1', padding: '4px', color: '#047857', fontWeight: 800 }}>
-                                      {['ক', 'খ', 'গ', 'ঘ'][q.correct_index !== undefined ? q.correct_index : 0]}
-                                    </td>
-                                  </React.Fragment>
-                                );
-                              })}
+                    {/* English 1st Paper Solutions */}
+                    {activePaper.subjectId === 'english1' && activePaper.english1Paper && (
+                      <div style={{ fontSize: '12.5px', lineHeight: 1.6, background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px' }}>
+                        <div style={{ fontWeight: 800, color: '#047857', marginBottom: '6px' }}>Part-A: Reading Answer Guide:</div>
+                        <p style={{ margin: '0 0 6px' }}><b>1. MCQ:</b> (a) ii. two-way, (b) iii. informal, (c) ii. courteous, (d) iii. pay attention, (e) ii. Thank you, (f) ii. strangers and elders, (g) iii. disrespectful</p>
+                        <p style={{ margin: '0 0 6px' }}><b>3. Gap Filling:</b> (a) mighty, (b) eternity, (c) virtue, (d) kindness, (e) Eden</p>
+                        <p style={{ margin: '0 0 6px' }}><b>4. Vocabulary:</b> (a) Mighty = Powerful, (b) Pleasant = Unpleasant, (c) Kindness = Compassion, (d) Error = Mistake, (e) Virtue = Vice</p>
+                        <p style={{ margin: '0 0 6px' }}><b>5. Info Transfer:</b> (i) Born in 1885, (ii) Sorbonne University, Paris (1928), (iii) Compiled Regional Dialect Dictionary</p>
+                        <p style={{ margin: '0 0 6px' }}><b>6. True/False:</b> (a) False (Born in Peyara, West Bengal), (b) True, (c) False (Sorbonne University), (d) True, (e) True</p>
+                        <p style={{ margin: '0 0 6px' }}><b>9. Re-arranging Sequence:</b> (b) &rarr; (d) &rarr; (f) &rarr; (a) &rarr; (c) &rarr; (g) &rarr; (e) &rarr; (h)</p>
+                      </div>
+                    )}
+
+                    {/* English 2nd Paper Solutions */}
+                    {activePaper.subjectId === 'english2' && activePaper.english2Paper && (
+                      <div style={{ fontSize: '12.5px', lineHeight: 1.6, background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '14px' }}>
+                        <div style={{ fontWeight: 800, color: '#047857', marginBottom: '6px' }}>Part-A: Grammar Answer Guide:</div>
+                        <p style={{ margin: '0 0 6px' }}><b>1. Parts of Speech:</b> (1) Noun, (2) Adjective, (3) Verb, (4) Preposition, (5) Adjective, (6) Pronoun, (7) Adverb, (8) Conjunction, (9) Interjection, (10) Adverb</p>
+                        <p style={{ margin: '0 0 6px' }}><b>2. Gap Filling:</b> (a) light, (b) removes, (c) nation, (d) a, (e) to, (f) educated, (g) to, (h) the, (i) for, (j) in</p>
+                        <p style={{ margin: '0 0 6px' }}><b>4. Right Form of Verbs:</b> (a) is, (b) keeps, (c) suffer, (d) exercise, (e) build</p>
+                        <p style={{ margin: '0 0 6px' }}><b>5. Changing Sentences:</b> (a) Patriotism is not an ignoble virtue. (b) Everybody hates an unpatriotic person. (c) Doesn't a patriot love his country deeply? (d) He sacrificed his comfort for his motherland. (e) The life of a patriot is very glorious.</p>
+                        <p style={{ margin: 0 }}><b>6. Punctuation:</b> The teacher said to Rafi, "Why are you talking in the class? You should listen to my lecture attentively." "Sir, I am sorry. I was asking Fahim for a pen," replied Rafi.</p>
+                      </div>
+                    )}
+
+                    {/* Quick Answer Key Matrix for MCQs */}
+                    {activePaper.mcqs && activePaper.mcqs.length > 0 && (
+                      <div style={{ marginBottom: '16px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>বহুনির্বাচনি প্রশ্নের উত্তরমালা:</div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+                          <thead>
+                            <tr style={{ background: '#f1f5f9' }}>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>প্রশ্ন</th>
+                              <th style={{ border: '1px solid #94a3b8', padding: '5px' }}>উত্তর</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody>
+                            {Array.from({ length: Math.ceil(activePaper.mcqs.length / 4) }).map((_, rIdx) => (
+                              <tr key={rIdx}>
+                                {[0, 1, 2, 3].map(colIdx => {
+                                  const qIdx = rIdx * 4 + colIdx;
+                                  const q = activePaper.mcqs[qIdx];
+                                  if (!q) return <React.Fragment key={colIdx}><td style={{ border: '1px solid #cbd5e1' }}>—</td><td style={{ border: '1px solid #cbd5e1' }}>—</td></React.Fragment>;
+                                  return (
+                                    <React.Fragment key={colIdx}>
+                                      <td style={{ border: '1px solid #cbd5e1', padding: '4px', fontWeight: 700 }}>{toBn(qIdx + 1)}</td>
+                                      <td style={{ border: '1px solid #cbd5e1', padding: '4px', color: '#047857', fontWeight: 800 }}>
+                                        {['ক', 'খ', 'গ', 'ঘ'][q.correct_index !== undefined ? q.correct_index : 0]}
+                                      </td>
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

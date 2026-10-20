@@ -460,40 +460,46 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
   // ১. বাংলা ১ম পত্র (পূর্ণমান: ১০০)
   bangla1: {
     full_marks: 100,
-    written_max: 70,
+    written_max: 50,
     written_pass: 23,
-    mcq_max: 30,
-    mcq_pass: 10,
-    cq_count: 11,
-    cq_to_answer: 7,
+    cq_max: 50,
+    cq_count: 8,
+    cq_to_answer: 5,
+    cq_rule: 'গদ্য থেকে ৪টি এবং কবিতা থেকে ৪টি করে মোট ৮টি সৃজনশীল প্রশ্ন থাকবে। গদ্য ও কবিতা থেকে কমপক্ষে ২টি করে মোট ৫টি প্রশ্নের উত্তর দিতে হবে। (৫ × ১০ = ৫০)',
+    descriptive_max: 20,
+    descriptive_count: 4,
+    descriptive_to_answer: 2,
+    descriptive_rule: 'আনন্দ পাঠ থেকে ৪টি বর্ণনামূলক প্রশ্ন থাকবে। এর মধ্যে ২টি প্রশ্নের উত্তর দিতে হবে। প্রত্যেকটি প্রশ্নের ২টি অংশ থাকবে। ক অংশের জন্য ৩ এবং খ অংশের জন্য ৭ নম্বর মোট ২০ নম্বর বরাদ্দ থাকবে। (২ × ১০ = ২০)',
     short_max: 0,
     short_count: 0,
     short_to_answer: 0,
+    mcq_max: 30,
+    mcq_rule: 'গদ্য থেকে ১৫টি এবং কবিতা থেকে ১৫টি করে মোট ৩০টি বহুনির্বাচনি প্রশ্ন থাকবে। সব কয়টি প্রশ্নের উত্তর দিতে হবে। (১ × ৩০ = ৩০)',
     practical_max: 0,
-    time_allowed: '২ ঘণ্টা ৩০ মিনিট',
-    pattern: 'cq_mcq',
-    cq_rule: '১১টি সৃজনশীল প্রশ্ন থাকবে, যেকোনো ৭টি প্রশ্নের উত্তর দিতে হবে (প্রতিটির মান ১০)।',
-    mcq_rule: '৩০টি বহুনির্বাচনি প্রশ্ন থাকবে, সবকয়টি প্রশ্নের উত্তর দিতে হবে।'
+    time_allowed: '৩ ঘণ্টা',
+    pattern: 'nctb_junior_bangla1',
+    mcq_pass: 10
   },
 
   // ২. বাংলা ২য় পত্র (পূর্ণমান: ৫০)
   bangla2: {
     full_marks: 50,
-    written_max: 30,
-    written_pass: 10,
-    mcq_max: 20,
-    mcq_pass: 7,
+    written_max: 35,
+    written_pass: 12,
+    composition_max: 35,
+    composition_rule: 'নির্মিতি অংশ (৩৫ নম্বর): ১. অনুধাবন দক্ষতা/অনুচ্ছেদ রচনা (২টি থেকে ১টি: ৫), ২. পত্র/দরখাস্ত (২টি থেকে ১টি: ৫), ৩. সারাংশ/সারমর্ম (২টি থেকে ১টি: ৫), ৪. ভাবসম্প্রসারণ (২টি থেকে ১টি: ৫), ৫. প্রবন্ধ রচনা সংকেতসহ (৩টি থেকে ১টি: ১৫)।',
+    cq_max: 0,
     cq_count: 0,
     cq_to_answer: 0,
-    composition_max: 30,
     short_max: 0,
     short_count: 0,
     short_to_answer: 0,
+    mcq_max: 15,
+    mcq_rule: 'বহুনির্বাচনি প্রশ্ন (ব্যাকরণ) (১৫ নম্বর): ১৫টি বহুনির্বাচনি প্রশ্ন (শুধু ব্যাকরণ অংশ হতে) থাকবে। সবকয়টি প্রশ্নের উত্তর দিতে হবে। প্রতিটি প্রশ্নের মান ১। (১ × ১৫ = ১৫)',
     practical_max: 0,
-    time_allowed: '১ ঘণ্টা ৩০ মিনিট',
-    pattern: 'grammar_composition',
-    composition_rule: 'নির্মিতি অংশ (অনুচ্ছেদ, সারাংশ/সারমর্ম, ভাবসম্প্রসারণ, আবেদনপত্র): ৩০ নম্বর।',
-    mcq_rule: 'ব্যাকরণ অংশ: ২০টি বহুনির্বাচনি প্রশ্ন (প্রতিটির মান ১)।'
+    time_allowed: '২ ঘণ্টা',
+    pattern: 'nctb_junior_bangla2',
+    mcq_pass: 5
   },
 
   // ৩. ইংরেজী ১ম পত্র (পূর্ণমান: ১০০)
@@ -503,15 +509,16 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
     writing_max: 30,
     written_max: 100,
     written_pass: 33,
+    reading_rule: 'Part-A: Reading (70 Marks) — Seen Passage-1: 1. MCQ (1x7=7), 2. Answering questions (2x5=10); Seen Passage-2: 3. Gap filling (1x5=5), 4. Vocabulary (Synonyms & Antonyms) (1x5=5); Unseen Passage: 5. Information Transfer (1x5=5), 6. True/False (1x5=5), 7. Writing Summary (10), 8. Matching (1x5=5), 9. Re-arranging sentences (1x8=8), 10. Answering questions from Poems in English for Today (any 5 out of 8) (2x5=10).',
+    writing_rule: 'Part-B: Writing (30 Marks) — 11. Completing Stories (10), 12. Writing Paragraph in 120 words (10), 13. Writing Dialogues (10).',
     cq_max: 0,
     short_max: 0,
     short_count: 0,
     short_to_answer: 0,
-    mcq_max: 0,
+    mcq_max: 7,
     practical_max: 0,
     time_allowed: '৩ ঘণ্টা',
-    pattern: 'reading_writing',
-    reading_rule: 'Part-A: Reading Test (70 Marks), Part-B: Writing Test (30 Marks).'
+    pattern: 'nctb_junior_english1'
   },
 
   // ৪. ইংরেজী ২য় পত্র (পূর্ণমান: ৫০)
@@ -521,6 +528,8 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
     writing_max: 20,
     written_max: 50,
     written_pass: 17,
+    grammar_rule: 'Part-A: Grammar (30 Marks) — 1. Identification of Part of Speech (0.5x10=05), 2. Gap filling with clues (0.5x10=05), 3. Substitution table (1x5=5), 4. Right form of Verbs (1x5=5), 5. Changing sentences (Tense, Affirmative, Negative, Assertive, Interrogative, Optative, Imperative & Exclamatory) (1x5=5), 6. Punctuation and Capitalization (05).',
+    writing_rule: 'Part-B: Writing (20 Marks) — 7. Letters/E-mail (Formal & Informal) (08), 8. Writing Short Composition in 200 words (12).',
     cq_max: 0,
     short_max: 0,
     short_count: 0,
@@ -528,8 +537,7 @@ export const NCTB_JUNIOR_EVALUATION_SPECS = {
     mcq_max: 0,
     practical_max: 0,
     time_allowed: '২ ঘণ্টা',
-    pattern: 'grammar_composition',
-    grammar_rule: 'Part-A: Grammar (30 Marks), Part-B: Composition (20 Marks).'
+    pattern: 'nctb_junior_english2'
   },
 
   // ৫. গণিত (পূর্ণমান: ১০০)
@@ -2078,55 +2086,175 @@ export const SUBJECT_SHORT_QUESTIONS_POOL = {
   ]
 };
 
-// সহপাঠ উপন্যাস ও নাটক বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র)
+// সহপাঠ উপন্যাস ও নাটক বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র - SSC ৯ম ও ১০ম শ্রেণি)
 export const BANGLA1_DESCRIPTIVE_POOL = [
   {
     type: 'উপন্যাস',
+    book_type: 'novel',
     title: 'উপন্যাস: কাকতাড়ুয়া (সেলিনা হোসেন)',
-    sub_q_a: 'বুধা কেন পাকিস্তানি বাহিনীর বাংকারে কেরোসিন ঢেলে আগুন ধরিয়ে দিয়েছিল? ব্যাখ্যা কর।',
-    marks_a: 3,
-    sub_q_b: '“মুক্তিযুদ্ধ কেবল সম্মুখ সমরের নয়, দেশপ্রেম ও আত্মত্যাগেরও”—উপন্যাসটির আলোকে বুধার চরিত্র বিশ্লেষণ কর।',
-    marks_b: 7
+    context: 'উদ্দীপক: পাকিস্তানি হানাদার বাহিনীর নির্বিচার নির্যাতন ও গ্রাম পোড়ানোর বিভীষিকার মধ্যে অনাথ কিশোর বুধা তার সাহস ও বুদ্ধিমত্তা দিয়ে প্রতিরোধ গড়ে তোলে।',
+    sub_questions: [
+      { label: 'ক', text: 'বুধা কেন পাকিস্তানি বাহিনীর বাংকারে কেরোসিন ঢেলে আগুন ধরিয়ে দিয়েছিল? ব্যাখ্যা কর।', marks: 3 },
+      { label: 'খ', text: '“মুক্তিযুদ্ধ কেবল সম্মুখ সমরের নয়, দেশপ্রেম ও আত্মত্যাগেরও”—উপন্যাসটির আলোকে বুধার চরিত্র বিশ্লেষণ কর।', marks: 7 }
+    ]
   },
   {
     type: 'উপন্যাস',
+    book_type: 'novel',
     title: 'উপন্যাস: লালসালু (সৈয়দ ওয়ালীউল্লাহ্)',
-    sub_q_a: 'মজিদ কীভাবে মহব্বতনগর গ্রামে নিজের কর্তৃত্ব প্রতিষ্ঠা করেছিল? সংক্ষেপে লিখ।',
-    marks_a: 3,
-    sub_q_b: 'ধর্মের অপব্যবহার ও কুসংস্কারের বিরুদ্ধে জমিলা চরিত্রের নীরব বিদ্রোহ মূল্যায়ন কর।',
-    marks_b: 7
+    context: 'উদ্দীপক: গ্রামবাসীর সরল বিশ্বাস ও ধর্মীয় অনুভূতিকে পুঁজি করে অস্তিত্বহীন মাজারের ভিত্তি গড়ে তোলে ধূর্ত মজিদ।',
+    sub_questions: [
+      { label: 'ক', text: 'মজিদ কীভাবে মহব্বতনগর গ্রামে নিজের কর্তৃত্ব প্রতিষ্ঠা করেছিল? সংক্ষেপে লিখ।', marks: 3 },
+      { label: 'খ', text: 'ধর্মের অপব্যবহার ও কুসংস্কারের বিরুদ্ধে জমিলা চরিত্রের নীরব বিদ্রোহ মূল্যায়ন কর।', marks: 7 }
+    ]
   },
   {
     type: 'নাটক',
+    book_type: 'drama',
     title: 'নাটক: বহিপীর (সৈয়দ ওয়ালীউল্লাহ্)',
-    sub_q_a: 'হাতেম আলী জমিদারি রক্ষায় বহিপীরের শরণাপন্ন হয়েছিলেন কেন?',
-    marks_a: 3,
-    sub_q_b: 'তাহেরা চরিত্রের প্রতিবাদের স্বরূপ ও আত্মমর্যাদাবোধ নাটকের আলোকে বিচার কর।',
-    marks_b: 7
+    context: 'উদ্দীপক: জমিদার হাতেম আলী নিজের জমিদারি বাঁচাতে বহিপীরের অনুদানের দ্বারস্থ হন, যেখানে তাহেরা নামের এক অসহায় মেয়ে প্রতিবাদের প্রতীক হয়ে দাঁড়ায়।',
+    sub_questions: [
+      { label: 'ক', text: 'হাতেম আলী জমিদারি রক্ষায় বহিপীরের শরণাপন্ন হয়েছিলেন কেন?', marks: 3 },
+      { label: 'খ', text: 'তাহেরা চরিত্রের প্রতিবাদের স্বরূপ ও আত্মমর্যাদাবোধ নাটকের আলোকে বিচার কর।', marks: 7 }
+    ]
   },
   {
     type: 'নাটক',
+    book_type: 'drama',
     title: 'নাটক: সিরাজউদ্দৌলা (সিকান্দার আবু জাফর)',
-    sub_q_a: 'পলাশীর যুদ্ধে নবাবের সেনাপতি মীর জাফরের দ্বিচারিতা তুলে ধর।',
-    marks_a: 3,
-    sub_q_b: 'নবাব সিরাজউদ্দৌলার স্বদেশপ্রেম ও ট্র্যাজিক পরিণতির ঐতিহাসিক কারণ নাটকের আলোকে মূল্যায়ন কর।',
-    marks_b: 7
+    context: 'উদ্দীপক: পলাশীর আম্রকাননে বিশ্বাসঘাতক সেনাপতিদের চক্রান্তে বাংলার স্বাধীনতা অস্তমিত হয়, কিন্তু নবাব শেষ মুহূর্ত পর্যন্ত দেশপ্রেমে অবিচল ছিলেন।',
+    sub_questions: [
+      { label: 'ক', text: 'পলাশীর যুদ্ধে নবাবের সেনাপতি মীর জাফরের দ্বিচারিতা তুলে ধর।', marks: 3 },
+      { label: 'খ', text: 'নবাব সিরাজউদ্দৌলার স্বদেশপ্রেম ও ট্র্যাজিক পরিণতির ঐতিহাসিক কারণ নাটকের আলোকে মূল্যায়ন কর।', marks: 7 }
+    ]
+  }
+];
+
+// আনন্দ পাঠ বর্ণনামূলক প্রশ্ন (বাংলা ১ম পত্র - ৬ষ্ঠ, ৭ম ও ৮ম শ্রেণি: ৪টি থেকে ২টি, ক-৩ ও খ-৭ = ২০ নম্বর)
+export const BANGLA1_JUNIOR_ANANDA_PATH_POOL = [
+  {
+    id: 'ap-1',
+    book_type: 'ananda_path',
+    title: 'আনন্দ পাঠ: সাত ভাই চম্পা',
+    context: 'উদ্দীপক: বড় রানীদের ঈর্ষা ও চক্রান্তে ছোট রানীর সাতটি ফুটফুটে রাজপুত্র ও একটি কন্যা সন্তানকে মাটির নিচে ফেলে দেওয়া হয়। পরবর্তীতে পারুল বন ও চম্পা ফুলের গাছে রূপ নিয়ে তারা সত্য প্রকাশ করে।',
+    sub_questions: [
+      { label: 'ক', text: 'বড় রানীদের হিংসুটে মনোভাব ও চক্রান্তের স্বরূপ সংক্ষেপে তুলে ধর।', marks: 3 },
+      { label: 'খ', text: '“সত্য ও স্নেহের জয় চিরন্তন, অসত্যের পরাজয় অনিবার্য”—গল্পটির মূল সুরের আলোকে ব্যাখ্যা কর।', marks: 7 }
+    ]
+  },
+  {
+    id: 'ap-2',
+    book_type: 'ananda_path',
+    title: 'আনন্দ পাঠ: রবিনসন ক্রুসো (ড্যানিয়েল ডিফো)',
+    context: 'উদ্দীপক: জাহাজডুবির পর জনমানবহীন নির্জন দ্বীপে আটকা পড়ে রবিনসন ক্রুসো। হতাশ না হয়ে সে নিজের বুদ্ধি, ধৈর্য ও শ্রম দিয়ে দ্বীপে নতুন করে বেঁচে থাকার পরিবেশ গড়ে তোলে।',
+    sub_questions: [
+      { label: 'ক', text: 'জনমানবহীন দ্বীপে ক্রুসোর প্রাথমিক সংকট ও টিকে থাকার উপায় কী ছিল?', marks: 3 },
+      { label: 'খ', text: 'প্রতিকূল পরিবেশকে জয় করে মানুষের টিকে থাকার যে অদম্য স্পৃহা গল্পটিতে প্রতিফলিত হয়েছে তা বিশ্লেষণ কর।', marks: 7 }
+    ]
+  },
+  {
+    id: 'ap-3',
+    book_type: 'ananda_path',
+    title: 'আনন্দ পাঠ: সিন্ধবাদের জলযাত্রা',
+    context: 'উদ্দীপক: বাণিজ্যের উদ্দেশ্যে বারবার উত্তাল সমুদ্রে দুঃসাহসিক অভিযানে বের হন নাবিক সিন্ধবাদ। একের পর এক বিপদ, তিমি মাছের দ্বীপ ও দানব পাখির আক্রমণ সত্ত্বেও তিনি সাহস হারাননি।',
+    sub_questions: [
+      { label: 'ক', text: 'সিন্ধবাদের প্রথম সমুদ্রযাত্রায় তিমি মাছের দ্বীপের ঘটনাটি সংক্ষেপে বর্ণনা কর।', marks: 3 },
+      { label: 'খ', text: 'সিন্ধবাদের চরিত্রটিতে সাহস, উপস্থিত বুদ্ধি ও অনুসন্ধানমূলক মনোভাব কীভাবে প্রকাশিত হয়েছে তা আলোচনা কর।', marks: 7 }
+    ]
+  },
+  {
+    id: 'ap-4',
+    book_type: 'ananda_path',
+    title: 'আনন্দ পাঠ: তোতা কাহিনী (রবীন্দ্রনাথ ঠাকুর)',
+    context: 'উদ্দীপক: খাঁচার পাখিকে পণ্ডিতরা পুঁথির পাতার পর পাতা গিলিয়ে শিক্ষিত করতে চাইলেন। বাহ্যিক আড়ম্বর ও শিক্ষার মোড়কে পাখির আসল জীবন ও স্বাধীনতা স্তব্ধ হয়ে গেল।',
+    sub_questions: [
+      { label: 'ক', text: 'তোতা পাখিকে শিক্ষিত করার জন্য রাজার পণ্ডিত ও পারিষদবর্গ কী কী ব্যবস্থা গ্রহণ করেছিল?', marks: 3 },
+      { label: 'খ', text: '“পুঁথিগত অন্ধ শিক্ষাব্যবস্থা কীভাবে স্বাভাবিক সৃজনশীলতা ও জীবনবোধকে ধ্বংস করে”—গল্পের আলোকে মূল্যায়ন কর।', marks: 7 }
+    ]
   }
 ];
 
 // আর্থিক বিবরণী প্রস্তুতকরণ (হিসাববিজ্ঞান - বাধ্যতামূলক প্রশ্ন)
 export const ACCOUNTING_FINANCIAL_STIMULUS = {
   title: 'আর্থিক বিবরণী প্রস্তুতকরণ (বাধ্যতামূলক প্রশ্ন)',
-  stimulus: 'মেসার্স চৌধুরী ব্রাদার্সের ২০২৫ সালের ৩১ ডিসেম্বর তারিখের রেওয়ামিল ও অন্যান্য তথ্যাবলি নিম্নরূপ:\nরেওয়ামিল: প্রারম্ভিক মজুদ পণ্য ৫০,০০০ টাকা; ক্রয় ও বিক্রয় যথাক্রমে ৩,৫০,০০০ ও ৫,২০,০০০ টাকা; বেতন ও ভাড়া যথাক্রমে ৩০,০০০ ও ২০,০০০ টাকা; দেনাদার ও পাওনাদার যথাক্রমে ৮০,০০০ ও ৫০,০০০ টাকা; যন্ত্রপাতি ১,০০,০০০ টাকা।\nসমন্বয়সমূহ: ১. সমাপনী মজুদ পণ্য ৬০,০০০ টাকায় মূল্যায়ন করা হয়েছে। ২. অনাদায়ি পাওনা সঞ্চিতি ৫% হারে ধার্য করতে হবে। ৩. যন্ত্রপাতির ওপর ১০% অবচয় ধার্য কর।',
-  requirements: [
+  stimulus: 'মেসার্স চৌধুরী ব্রাদার্সের ২০২৫ সালের ৩১ ডিসেম্বর তারিখের রেওয়ামিল ও অন্যান্য তথ্যাবলি নিম্নরূপ:',
+  trial_balance: [
+    { account: 'প্রারম্ভিক মজুদ পণ্য (০১-০১-২০২৫)', debit: 50000, credit: null },
+    { account: 'ক্রয় ও বিক্রয়', debit: 350000, credit: 520000 },
+    { account: 'বেতন ও ভাড়া খরচ', debit: 30000, credit: null },
+    { account: 'দেনাদার ও পাওনাদার', debit: 80000, credit: 50000 },
+    { account: 'যন্ত্রপাতি', debit: 100000, credit: null },
+    { account: 'মূলধন হিসাব', debit: null, credit: 140000 },
+    { account: 'হাতে নগদ ও ব্যাংক জমা', debit: 150000, credit: null }
+  ],
+  adjustments: [
+    'সমাপনী মজুদ পণ্য ৬০,০০০ টাকায় মূল্যায়ন করা হয়েছে।',
+    'দেনাদারের ওপর ৫% হারে অনাদায়ি পাওনা সঞ্চিতি ধার্য করতে হবে।',
+    'যন্ত্রপাতির ওপর ১০% অবচয় ধার্য কর।'
+  ],
+  sub_questions: [
     { label: 'ক', text: 'বিক্রিত পণ্যের ব্যয় ও মোট মুনাফা নির্ণয় কর।', marks: 8 },
-    { label: 'খ', text: 'প্রতিষ্ঠানের বিশদ আয় বিবরণী ও সমাপ্ত বছরের নিট লাভ/ক্ষতি প্রস্তুত কর।', marks: 6 },
+    { label: 'খ', text: 'উক্ত তারিখে সমাপ্ত বছরের জন্য বিশদ আয় বিবরণী প্রস্তুত কর।', marks: 6 },
     { label: 'গ', text: 'উক্ত তারিখে প্রতিষ্ঠানের আর্থিক অবস্থার বিবরণী প্রস্তুত কর।', marks: 6 }
   ],
   totalMarks: 20
 };
 
-// বাংলা ২য় পত্র নির্মিতি অংশ (৭০ নম্বর)
+// বাংলা ২য় পত্র নির্মিতি অংশ (SSC ৯ম ও ১০ম শ্রেণি - পূর্ণমান: ৭০)
+export const BANGLA2_SSC_COMPOSITION = {
+  paragraph: [
+    'ডিজিটাল বাংলাদেশ ও স্মার্ট সিটিজেন',
+    'জাতীয় জীবনে বই পড়ার গুরুত্ব'
+  ],
+  letter: [
+    'বৃক্ষরোপণের প্রয়োজনীয়তা উল্লেখ করে তোমার ছোট ভাইকে একটি উপদেশমূলক পত্র লেখ।',
+    'তোমার এলাকায় ডেঙ্গু রোগের প্রাদুর্ভাব রোধে সংশ্লিষ্ট কর্তৃপক্ষের দৃষ্টি আকর্ষণ করে সংবাদপত্রে প্রকাশের জন্য একটি প্রতিবেদন তৈরি কর।'
+  ],
+  summary: [
+    'মানুষের মূল্য কোথায়? চরিত্র, মনুষ্যত্ব, জ্ঞান ও কর্মে। কেবল সম্পদে মানুষ বড় হয় না, নৈতিক গুণাবলি ও আত্মত্যাগের মহিমায় একজন মানুষ সত্যিকারের মানুষ হয়ে ওঠে...',
+    'দৈন্য যদি আসে আসুক, লজ্জা কিবা তাহে? / দুই হাত বাড়ায়ে দাও বুক ফুলিয়ে চাহে / ক্ষুদ্র ক্ষুদ্র সুখ যত যাক ভেসে যাক দূরে / অনন্ত মহত্ত্ব জাগুক অন্তরের অন্তঃপুরে...'
+  ],
+  amplification: [
+    'দুর্জন বিদ্বান হইলেও পরিত্যাজ্য।',
+    'অন্যায় যে করে আর অন্যায় যে সহে / তব ঘৃণা তারে যেন তৃণসম দহে।'
+  ],
+  translation: [
+    'Books are the greatest treasure of human civilization. They preserve the knowledge, culture, and wisdom of past generations. A person who reads regularly never feels lonely because good books are ever-faithful friends.',
+    'Time is precious and waits for no one. A lost moment is lost forever. Success in life depends on the proper division and disciplined utilization of time.'
+  ],
+  essay: [
+    'অধ্যবসায় ও মানবকল্যাণ',
+    'কৃষিকাজে আধুনিক বিজ্ঞান ও প্রযুক্তি',
+    'বাংলাদেশের স্বাধীনতা সংগ্রাম ও মুক্তিযুদ্ধ'
+  ]
+};
+
+// বাংলা ২য় পত্র নির্মিতি অংশ (৬ষ্ঠ, ৭ম ও ৮ম শ্রেণি - পূর্ণমান: ৩৫)
+// সার্কুলার অনুযায়ী: অনুধাবন/অনুচ্ছেদ ৫, পত্র/দরখাস্ত ৫, সারাংশ/সারমর্ম ৫, ভাবসম্প্রসারণ ৫, প্রবন্ধ সংকেতসহ ১৫
+export const BANGLA2_JUNIOR_COMPOSITION = {
+  paragraph: [
+    'অধ্যবসায় ও সময়নিষ্ঠা',
+    'বৃক্ষরোপণ ও আমাদের পরিবেশ'
+  ],
+  letter: [
+    'বিদ্যালয়ের বার্ষিক ক্রীড়া প্রতিযোগিতা দেখার আমন্ত্রণ জানিয়ে বন্ধুর কাছে একটি পত্র লেখ।',
+    'অসুস্থতার কারণে ছুটির জন্য প্রধান শিক্ষকের নিকট একটি দরখাস্ত লেখ।'
+  ],
+  summary: [
+    'সারাংশ: মানুষের মূল্য কোথায়? চরিত্র, মনুষ্যত্ব, জ্ঞান ও কর্মে। বস্তুত চরিত্র বলেই মানুষের জীবনের শ্রেষ্ঠ সম্পদ। চরিত্রহীন ব্যক্তির কোনো সম্মান নেই...',
+    'সারমর্ম: শৈবাল দীঘিরে বলে উচ্চ করি শির, / লিখে রেখো একবিন্দু দিলেম শিশির...'
+  ],
+  amplification: [
+    'পরিশ্রম সৌভাগ্যের প্রসূতি।',
+    'কীর্তিমানের মৃত্যু নেই।'
+  ],
+  essay: [
+    'কম্পিউটার ও আধুনিক জীবন (সংকেত: ভূমিকা, আবিষ্কার ও ক্রমবিকাশ, প্রয়োজনীয়তা, অপব্যবহার ও উপসংহার)',
+    'আমাদের প্রিয় মাতৃভূমি বাংলাদেশ (সংকেত: ভূমিকা, প্রাকৃতিক সৌন্দর্য, জাতীয় ঐতিহ্য, অর্থনৈতিক সম্ভাবনা ও উপসংহার)',
+    'ছাত্রজীবনের দায়িত্ব ও কর্তব্য (সংকেত: ভূমিকা, প্রধান কাজ, চরিত্র গঠন, সমাজসেবা ও উপসংহার)'
+  ]
+};
+
 export const BANGLA2_COMPOSITION_ITEMS = [
   { item: '১. অনুচ্ছেদ রচনা', prompt: 'যেকোনো একটি বিষয়ে অনুচ্ছেদ লিখ: (ক) জাতীয় পতাকা অথবা (খ) ডিজিটাল বাংলাদেশ ও স্মার্ট সিটিজেন।', marks: 10 },
   { item: '২. চিঠিপত্র / সংবাদ প্রতিবেদন', prompt: 'যেকোনো একটির উত্তর দাও: (ক) বৃক্ষরোপণের প্রয়োজনীয়তা উল্লেখ করে বন্ধুকে একটি পত্র লিখ, অথবা (খ) এলাকায় ডেঙ্গু প্রতিরোধে সচেতনতা বৃদ্ধির লক্ষ্যে সংবাদপত্রে প্রকাশের জন্য একটি প্রতিবেদন তৈরি কর।', marks: 10 },
@@ -2135,6 +2263,190 @@ export const BANGLA2_COMPOSITION_ITEMS = [
   { item: '৫. বাংলায় অনুবাদ', prompt: 'যেকোনো একটি ইংরেজি অনুচ্ছেদের বঙ্গানুবাদ কর: "Books are our best friends. They give us knowledge, pleasure, and inspiration in life..."', marks: 10 },
   { item: '৬. প্রবন্ধ রচনা', prompt: 'যেকোনো একটি বিষয়ে প্রবন্ধ রচনা কর: (ক) অধ্যবসায়, (খ) কৃষিকাজে বিজ্ঞান ও প্রযুক্তি, অথবা (গ) বাংলাদেশের মুক্তিযুদ্ধ ও স্বাধীনতা।', marks: 20 }
 ];
+
+// ENGLISH 1ST PAPER COMPLETE SPEC & CONTENT (Classes 6-8: 100 Marks)
+export const ENGLISH1_JUNIOR_SAMPLE_PAPER = {
+  seenPassage1: {
+    source: 'English for Today (Unit 1: Talking to People / A Day in the Life)',
+    text: `Communication is a two-way process of sharing information, ideas, and feelings between people. When we talk to elders or persons in authority, we use formal language. On the other hand, while speaking with our friends and peers, we use informal expressions. Greetings and polite words like 'please', 'thank you', 'excuse me', and 'sorry' make our daily conversations respectful and pleasant. Good listeners always pay attention, maintain eye contact, and respond politely without interrupting the speaker.`,
+    mcqs: [
+      { q: 'Communication is fundamentally a — process.', options: ['one-way', 'two-way', 'silent', 'negative'], ans: 1 },
+      { q: 'With friends and classmates, we usually use — language.', options: ['formal', 'archaic', 'informal', 'official'], ans: 2 },
+      { q: 'The word "polite" is closest in meaning to —.', options: ['rude', 'courteous', 'angry', 'harsh'], ans: 1 },
+      { q: 'When someone speaks, a good listener should —.', options: ['interrupt quickly', 'look away', 'pay attention and maintain eye contact', 'leave the room'], ans: 2 },
+      { q: 'Which of the following is an expression of politeness?', options: ['Get lost', 'Thank you', 'Shut up', 'Hurry away'], ans: 1 },
+      { q: 'We use formal expressions when talking to —.', options: ['pets', 'strangers and elders', 'younger siblings only', 'nobody'], ans: 1 },
+      { q: 'The antonym of "respectful" is —.', options: ['obedient', 'humble', 'disrespectful', 'kind'], ans: 2 }
+    ],
+    questions: [
+      { label: 'a', text: 'What is communication according to the text?' },
+      { label: 'b', text: 'Where and when should we use formal language?' },
+      { label: 'c', text: 'Name three polite words mentioned in the passage.' },
+      { label: 'd', text: 'What are the qualities of a good listener?' },
+      { label: 'e', text: 'How do polite expressions make our conversations pleasant?' }
+    ]
+  },
+  seenPassage2: {
+    source: 'English for Today (Unit 2: Little Things / Nature)',
+    text: `Little drops of water, little grains of sand, make the mighty ocean and the pleasant land. Thus the little moments, humble though they be, make the mighty ages of eternity. Our little errors lead the soul away from the path of virtue into sin to stray. Little deeds of kindness, little words of love, make our earth an Eden, like the heaven above.`,
+    gapFilling: {
+      instruction: 'Fill in the blanks with suitable words from the text (1x5=5):',
+      items: [
+        'Little drops of water make the (a) _____ ocean.',
+        'Little moments make the mighty ages of (b) _____.',
+        'Small mistakes lead our soul away from the path of (c) _____.',
+        'Little deeds of (d) _____ bring happiness to everyone.',
+        'Loving words can transform this earth into an (e) _____ like heaven.'
+      ],
+      answers: ['mighty', 'eternity', 'virtue', 'kindness', 'Eden']
+    },
+    vocabulary: {
+      instruction: 'Give synonyms or antonyms as directed (1x5=5):',
+      items: [
+        { word: 'Mighty', directive: 'Synonym', ans: 'Powerful / Huge' },
+        { word: 'Pleasant', directive: 'Antonym', ans: 'Unpleasant / Harsh' },
+        { word: 'Kindness', directive: 'Synonym', ans: 'Compassion / Generosity' },
+        { word: 'Error', directive: 'Synonym', ans: 'Mistake' },
+        { word: 'Virtue', directive: 'Antonym', ans: 'Vice / Sin' }
+      ]
+    }
+  },
+  unseenPassage: {
+    title: 'Dr. Muhammad Shahidullah: Great Scholar & Linguist',
+    text: `Dr. Muhammad Shahidullah was one of the greatest polyglots, scholars, and linguists of Bangladesh. He was born on 10 July 1885 in the village of Peyara, 24 Parganas, West Bengal. He passed his Entrance examination in 1904 and completed his BA Honours in Sanskrit from City College, Kolkata in 1910. Later, he earned his PhD from the Sorbonne University in Paris in 1928 for his research on the origins of the Bengali language. He knew more than twenty languages and compiled the monumental Bengali Regional Dialect Dictionary. He breathed his last on 13 July 1969 in Dhaka.`,
+    infoTransfer: {
+      instruction: 'Complete the information transfer grid below (1x5=5):',
+      headers: ['Who / Event', 'Activity / Achievement', 'Place / Year'],
+      rows: [
+        ['Dr. Muhammad Shahidullah', 'Born', 'Peyara village, 10 July 1885'],
+        ['Entrance Examination', 'Passed successfully', '1904'],
+        ['BA Honours in Sanskrit', 'Graduated from City College', 'Kolkata, 1910'],
+        ['PhD Degree', 'Earned from Sorbonne University', 'Paris, 1928'],
+        ['Regional Dialect Dictionary', 'Compiled with great research', 'Bangla Academy']
+      ]
+    },
+    trueFalse: [
+      { text: 'Dr. Muhammad Shahidullah was born in Dhaka in 1885.', isTrue: false, correct: 'He was born in Peyara, West Bengal in 1885.' },
+      { text: 'He completed his BA Honours in Sanskrit from Kolkata.', isTrue: true, correct: 'True' },
+      { text: 'He obtained his PhD from Oxford University.', isTrue: false, correct: 'He obtained his PhD from Sorbonne University in Paris.' },
+      { text: 'He had proficiency in more than twenty languages.', isTrue: true, correct: 'True' },
+      { text: 'He passed away on 13 July 1969 in Dhaka.', isTrue: true, correct: 'True' }
+    ],
+    summaryPrompt: 'Write a summary of the passage above in your own words (not exceeding 80 words). [10 Marks]',
+    matching: {
+      instruction: 'Match the phrase in Column A with Column B and Column C to make 5 meaningful sentences (1x5=5):',
+      colA: ['(i) Dr. Shahidullah', '(ii) His research in Paris', '(iii) Polyglots are those', '(iv) His compilation of dictionary', '(v) We remember him'],
+      colB: ['was awarded PhD', 'who have mastery', 'is respected as', 'is a treasure of', 'with profound gratitude'],
+      colC: ['for his lifelong literary service.', 'over numerous languages.', 'for his thesis on Bangla origins.', 'a pioneer linguist in Bengal.', 'the Bengali national language.']
+    },
+    rearranging: [
+      '(a) He earned his PhD degree from the prestigious Sorbonne University in Paris.',
+      '(b) Dr. Muhammad Shahidullah was born in 1885 in West Bengal.',
+      '(c) After completing his education, he joined Dhaka University as a teacher.',
+      '(d) From childhood, he was exceptionally devoted to reading and learning languages.',
+      '(e) His immense contribution to Bengali linguistics remains unforgettable.',
+      '(f) He passed his Entrance exam in 1904 and completed his BA Honours in 1910.',
+      '(g) He compiled the historic Regional Dictionary of Bengali Language.',
+      '(h) This noble scholar passed away in Dhaka on 13 July 1969.'
+    ],
+    poemQuestions: {
+      instruction: 'Answer any 5 out of the following 8 questions from the poems in English for Today (2x5=10):',
+      questions: [
+        { label: 'a', text: 'What makes the earth like an Eden according to the poem "Little Things"?' },
+        { label: 'b', text: 'How do small drops of water contribute to the ocean?' },
+        { label: 'c', text: 'What does the poet mean by "mighty ages of eternity"?' },
+        { label: 'd', text: 'Why is kindness compared to heaven in the poem?' },
+        { label: 'e', text: 'What message does the poem "Together We Are One" convey?' },
+        { label: 'f', text: 'How do little errors lead human souls away from virtue?' },
+        { label: 'g', text: 'What role does unity play in achieving great goals?' },
+        { label: 'h', text: 'How can small good deeds inspire society?' }
+      ]
+    }
+  },
+  writing: {
+    story: {
+      title: 'Completing Stories (10 Marks)',
+      prompt: 'Read the beginning of the story below and complete it in your own words. Give a suitable title.\n"Once a thirsty crow was flying all over the fields looking for water. For a long time, he could not find any. Suddenly, he saw a water pitcher below a tree..."'
+    },
+    paragraph: {
+      title: 'Writing Paragraph in 120 words (10 Marks)',
+      prompt: 'Write a paragraph on "Your School Library" or "A Rainy Day" in about 120 words answering the following questions:\n(a) What is it? (b) Where is it situated? (c) How do you spend time there? (d) What benefits do you get from it? (e) Why is it important in student life?'
+    },
+    dialogue: {
+      title: 'Writing Dialogues (10 Marks)',
+      prompt: 'Write a dialogue between two friends, Tanvir and Fahim, about the importance of reading newspapers daily.'
+    }
+  }
+};
+
+// ENGLISH 2ND PAPER COMPLETE SPEC & CONTENT (Classes 6-8: 50 Marks)
+export const ENGLISH2_JUNIOR_SAMPLE_PAPER = {
+  grammar: {
+    partOfSpeech: {
+      instruction: '1. Identification of Part of Speech (0.5x10=05):\nRead the following passage and identify the parts of speech of the 10 numbered words:',
+      text: 'Honesty (1) is a great (2) virtue. It helps (3) a man to succeed in (4) life. An honest (5) person is respected by all (6). He never (7) tells a lie because (8) falsehood leads to destruction. Oh (9)! How peacefully (10) he sleeps at night!',
+      words: [
+        { num: 1, word: 'Honesty', pos: 'Noun' },
+        { num: 2, word: 'great', pos: 'Adjective' },
+        { num: 3, word: 'helps', pos: 'Verb' },
+        { num: 4, word: 'in', pos: 'Preposition' },
+        { num: 5, word: 'honest', pos: 'Adjective' },
+        { num: 6, word: 'all', pos: 'Pronoun' },
+        { num: 7, word: 'never', pos: 'Adverb' },
+        { num: 8, word: 'because', pos: 'Conjunction' },
+        { num: 9, word: 'Oh', pos: 'Interjection' },
+        { num: 10, word: 'peacefully', pos: 'Adverb' }
+      ]
+    },
+    gapFilling: {
+      instruction: '2. Fill in the blanks with suitable words from the box. (You may change the form of words if necessary. Use articles, prepositions and parts of speech) (0.5x10=05):',
+      clues: ['the', 'in', 'of', 'a', 'educate', 'nation', 'for', 'light', 'remove', 'to'],
+      text: 'Education is the (a) _____ of life. It (b) _____ the darkness of ignorance from our mind. Without education, no (c) _____ can prosper. It prepares (d) _____ child for facing the challenges of life. It enables us (e) _____ distinguish between right and wrong. An (f) _____ person can contribute significantly (g) _____ the welfare of (h) _____ society. So, everyone must strive (i) _____ acquiring proper education (j) _____ childhood.',
+      answers: ['(a) light', '(b) removes', '(c) nation', '(d) a', '(e) to', '(f) educated', '(g) to', '(h) the', '(i) for', '(j) in']
+    },
+    substitutionTable: {
+      instruction: '3. Make five meaningful sentences from the substitution table below (1x5=5):',
+      headers: ['Subject', 'Verb', 'Extension'],
+      rows: [
+        ['Discipline', 'means', 'the backbone of all human success.'],
+        ['It', 'is', 'obedience to rules and regulations.'],
+        ['A disciplined person', 'leads', 'a happy and peaceful life.'],
+        ['Without discipline, society', 'cannot function', 'in an orderly manner.'],
+        ['Students', 'should practice', 'discipline from their school days.']
+      ]
+    },
+    rightFormOfVerbs: {
+      instruction: '4. Complete the text with the right form of verbs given in brackets (1x5=5):',
+      text: 'Physical exercise (a) _____ (be) essential for our body and mind. It (b) _____ (keep) us fit and active. Those who do not take regular exercise (c) _____ (suffer) from various diseases. If we (d) _____ (exercise) regularly, our blood circulation improves. Therefore, we should (e) _____ (build) the habit of exercising daily.',
+      answers: ['(a) is', '(b) keeps', '(c) suffer', '(d) exercise', '(e) build']
+    },
+    changingSentences: {
+      instruction: '5. Change the following sentences as directed in brackets (1x5=5):',
+      items: [
+        { text: '(a) Patriotism is a noble virtue.', target: 'Negative', ans: 'Patriotism is not a mean virtue.' },
+        { text: '(b) An unpatriotic person is hated by everybody.', target: 'Affirmative / Active', ans: 'Everybody hates an unpatriotic person.' },
+        { text: '(c) A patriot loves his country deeply.', target: 'Interrogative', ans: 'Doesn’t a patriot love his country deeply?' },
+        { text: '(d) He sacrifice his comfort for his motherland.', target: 'Past Tense', ans: 'He sacrificed his comfort for his motherland.' },
+        { text: '(e) How glorious the life of a patriot is!', target: 'Assertive', ans: 'The life of a patriot is very glorious.' }
+      ]
+    },
+    punctuation: {
+      instruction: '6. Use punctuation marks and capital letters where necessary in the following text (05):',
+      text: 'the teacher said to rafi why are you talking in the class you should listen to my lecture attentively sir i am sorry i was asking fahim for a pen replied rafi',
+      solution: 'The teacher said to Rafi, "Why are you talking in the class? You should listen to my lecture attentively." "Sir, I am sorry. I was asking Fahim for a pen," replied Rafi.'
+    }
+  },
+  writing: {
+    letter: {
+      title: '7. Letters / E-mail (Formal & Informal) (08 Marks)',
+      prompt: 'Write an application to the Headmaster of your school requesting a Transfer Certificate (TC) as your father has been transferred to another district.\nOR,\nWrite an e-mail to your friend congratulating him on his brilliant success in the Junior Scholarship Examination.'
+    },
+    composition: {
+      title: '8. Writing Short Composition in 200 words (12 Marks)',
+      prompt: 'Write a short composition in about 200 words on any one of the following topics:\n(a) Your Aim in Life\n(b) Duties of a Student\n(c) Wonders of Modern Science'
+    }
+  }
+};
 
 export function generateQuestionPaper({
   schoolName = 'মাগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়',
@@ -2164,6 +2476,7 @@ export function generateQuestionPaper({
 }) {
   const allQuestions = getStoredQuestions();
   const isSsc = String(className) === '9' || String(className) === '10';
+  const isJunior = ['6', '7', '8'].includes(String(className));
   
   // Filter questions matching class and subject
   let pool = allQuestions.filter(q => 
@@ -2186,12 +2499,21 @@ export function generateQuestionPaper({
   // Shuffle helper
   const shuffle = arr => [...arr].sort(() => 0.5 - Math.random());
 
+  // Effective MCQ Count
+  let effectiveMcqCount = mcqCount;
+  if (isJunior) {
+    if (subjectId === 'bangla1') effectiveMcqCount = 30;
+    else if (subjectId === 'bangla2') effectiveMcqCount = 15;
+    else if (subjectId === 'english1') effectiveMcqCount = 7;
+    else if (subjectId === 'english2') effectiveMcqCount = 0;
+  }
+
   // 1. Pick or synthesize MCQs
   let pickedMcq = [];
-  if (mcqCount > 0) {
-    pickedMcq = shuffle(mcqPool).slice(0, mcqCount);
-    if (pickedMcq.length < mcqCount) {
-      const needed = mcqCount - pickedMcq.length;
+  if (effectiveMcqCount > 0) {
+    pickedMcq = shuffle(mcqPool).slice(0, effectiveMcqCount);
+    if (pickedMcq.length < effectiveMcqCount) {
+      const needed = effectiveMcqCount - pickedMcq.length;
       for (let i = 1; i <= needed; i++) {
         const idx = pickedMcq.length + 1;
         pickedMcq.push({
@@ -2214,6 +2536,10 @@ export function generateQuestionPaper({
 
   // Section Grouping Helper for CQs based on NCTB guidelines
   const getSectionLabel = (idx, total) => {
+    if (subjectId === 'bangla1') {
+      if (idx < 4) return '‘ক’ বিভাগ — গদ্য';
+      return '‘খ’ বিভাগ — কবিতা';
+    }
     if (!isSsc) return '';
     if (subjectId === 'math') {
       if (idx < 2) return 'ক বিভাগ — বীজগণিত';
@@ -2230,22 +2556,31 @@ export function generateQuestionPaper({
       if (idx < 5) return 'ক বিভাগ — ফিন্যান্স';
       return 'খ বিভাগ — ব্যাংকিং';
     }
-    if (subjectId === 'bangla1') {
-      if (idx < 4) return 'ক বিভাগ — গদ্য';
-      return 'খ বিভাগ — কবিতা';
-    }
     return '';
   };
 
+  // Effective CQ Count
+  let effectiveCqCount = cqCount;
+  let effectiveCqToAnswer = cqToAnswer;
+  if (isJunior) {
+    if (subjectId === 'bangla1') {
+      effectiveCqCount = 8;
+      effectiveCqToAnswer = 5;
+    } else if (subjectId === 'bangla2' || subjectId === 'english1' || subjectId === 'english2') {
+      effectiveCqCount = 0;
+      effectiveCqToAnswer = 0;
+    }
+  }
+
   // 2. Pick or synthesize CQs
   let pickedCq = [];
-  if (cqCount > 0) {
-    pickedCq = shuffle(cqPool).slice(0, cqCount);
-    if (pickedCq.length < cqCount) {
-      const needed = cqCount - pickedCq.length;
+  if (effectiveCqCount > 0) {
+    pickedCq = shuffle(cqPool).slice(0, effectiveCqCount);
+    if (pickedCq.length < effectiveCqCount) {
+      const needed = effectiveCqCount - pickedCq.length;
       for (let i = 1; i <= needed; i++) {
         const idx = pickedCq.length + 1;
-        const secLabel = getSectionLabel(idx - 1, cqCount);
+        const secLabel = getSectionLabel(idx - 1, effectiveCqCount);
         pickedCq.push({
           id: `gen-cq-${idx}-${Date.now()}`,
           class_name: className,
@@ -2254,28 +2589,33 @@ export function generateQuestionPaper({
           chapter: selectedChapters[0] || 'সংশ্লিষ্ট অধ্যায়',
           question_type: 'cq',
           section_label: secLabel,
-          stimulus: `উদ্দীপক ${idx}: শিক্ষক ক্লাসে ${subjectName}-এর গুরুত্ব ও বাস্তব প্রয়োগ আলোচনা করছিলেন। তিনি শিক্ষার্থীদের একটি পরীক্ষা পর্যবেক্ষণ করালেন যেখানে দুটি উপাদান পারস্পরিক মিথস্ক্রিয়ায় নতুন ধর্ম প্রদর্শন করল।`,
+          sectionName: secLabel,
+          stimulus: `উদ্দীপক ${idx}: শিক্ষক ক্লাসে ${subjectName}-এর গুরুত্ব ও বাস্তব প্রয়োগ আলোচনা করছিলেন। তিনি শিক্ষার্থীদের একটি বিষয় পর্যবেক্ষণ করালেন যেখানে বাস্তব জীবনের সাথে পাঠ্যপুস্তকের চমৎকার প্রতিফলন রয়েছে।`,
           sub_questions: [
-            { label: 'ক', text: `${subjectName} সংশ্লিষ্ট মূল সংজ্ঞাটি লিখ।`, marks: 1 },
-            { label: 'খ', text: 'প্রদত্ত ঘটনার অন্তর্নিহিত তাত্ত্বিক কারণ ব্যাখ্যা কর।', marks: 2 },
-            { label: 'গ', text: 'উদ্দীপকের পরীক্ষার কার্যপ্রণালী ও পর্যবেক্ষণ ছকের সাহায্যে তুলে ধর।', marks: 3 },
-            { label: 'ঘ', text: 'বাস্তব জীবনে এর সুদূরপ্রসারী গুরুত্ব ও উপযোগিতা মূল্যায়ন কর।', marks: 4 }
+            { label: 'ক', text: `${subjectName} সংশ্লিষ্ট মূল ধারণা বা জ্ঞানমূলক প্রশ্নের উত্তর লিখ।`, marks: 1 },
+            { label: 'খ', text: 'প্রদত্ত বিষয়ের অন্তর্নিহিত অনুধাবনমূলক তাৎপর্য ব্যাখ্যা কর।', marks: 2 },
+            { label: 'গ', text: 'উদ্দীপকের সাথে পাঠ্যপুস্তকের সাদৃশ্যপূর্ণ দিকটি ব্যাখ্যা কর।', marks: 3 },
+            { label: 'ঘ', text: 'উক্ত বিষয়ের আলোকে উদ্দীপকের বক্তব্যটি মূল্যায়ন কর।', marks: 4 }
           ],
-          explanation: 'ক) সংজ্ঞা নির্ভুল হতে হবে। খ) ২ নম্বরের তাত্ত্বিক ব্যাখ্যা। গ) সূত্র প্রয়োগ ও গাণিতিক মান। ঘ) উচ্চতর দক্ষতার তুলনামূলক বিশ্লেষণ।',
+          explanation: 'ক) জ্ঞানমূলক ১ নম্বর। খ) অনুধাবন ২ নম্বর। গ) প্রয়োগ ৩ নম্বর। ঘ) উচ্চতর দক্ষতা ৪ নম্বর।',
           marks: 10
         });
       }
     }
     // Tag section labels on all picked CQs
-    pickedCq = pickedCq.map((q, idx) => ({
-      ...q,
-      section_label: q.section_label || getSectionLabel(idx, cqCount)
-    }));
+    pickedCq = pickedCq.map((q, idx) => {
+      const label = q.section_label || q.sectionName || getSectionLabel(idx, effectiveCqCount);
+      return {
+        ...q,
+        section_label: label,
+        sectionName: label
+      };
+    });
   }
 
   // 3. Pick or synthesize Short-Answer Questions (সংক্ষিপ্ত-উত্তর প্রশ্ন)
   let pickedShort = [];
-  if (shortCount > 0) {
+  if (shortCount > 0 && !isJunior) {
     const defaultPool = SUBJECT_SHORT_QUESTIONS_POOL[subjectId] || SUBJECT_SHORT_QUESTIONS_POOL.general_science;
     const shuffledPool = shuffle(defaultPool);
     for (let i = 0; i < shortCount; i++) {
@@ -2290,10 +2630,14 @@ export function generateQuestionPaper({
     }
   }
 
-  // 4. Special descriptive questions for Bangla 1st Paper (সহপাঠ: উপন্যাস ও নাটক)
+  // 4. Special descriptive questions for Bangla 1st Paper (সহপাঠ: উপন্যাস ও নাটক / আনন্দ পাঠ)
   let pickedDescriptive = [];
-  if (subjectId === 'bangla1' && isSsc) {
-    pickedDescriptive = BANGLA1_DESCRIPTIVE_POOL;
+  if (subjectId === 'bangla1') {
+    if (isJunior) {
+      pickedDescriptive = BANGLA1_JUNIOR_ANANDA_PATH_POOL;
+    } else {
+      pickedDescriptive = BANGLA1_DESCRIPTIVE_POOL;
+    }
   }
 
   // 5. Special financial statement for Accounting
@@ -2303,9 +2647,33 @@ export function generateQuestionPaper({
   }
 
   // 6. Special composition items for Bangla 2nd Paper
+  let bangla2Composition = null;
   let compositionItems = [];
-  if (subjectId === 'bangla2' && isSsc) {
-    compositionItems = BANGLA2_COMPOSITION_ITEMS;
+  if (subjectId === 'bangla2') {
+    if (isJunior) {
+      bangla2Composition = BANGLA2_JUNIOR_COMPOSITION;
+    } else {
+      bangla2Composition = BANGLA2_SSC_COMPOSITION;
+      compositionItems = BANGLA2_COMPOSITION_ITEMS;
+    }
+  }
+
+  // 7. Special English Papers
+  let english1Paper = null;
+  let english2Paper = null;
+  if (subjectId === 'english1') {
+    english1Paper = ENGLISH1_JUNIOR_SAMPLE_PAPER;
+  } else if (subjectId === 'english2') {
+    english2Paper = ENGLISH2_JUNIOR_SAMPLE_PAPER;
+  }
+
+  // Calculated effective total marks
+  let effectiveTotalMarks = totalMarks;
+  if (isJunior) {
+    if (subjectId === 'bangla1') effectiveTotalMarks = 100;
+    else if (subjectId === 'bangla2') effectiveTotalMarks = 50;
+    else if (subjectId === 'english1') effectiveTotalMarks = 100;
+    else if (subjectId === 'english2') effectiveTotalMarks = 50;
   }
 
   return {
@@ -2318,20 +2686,24 @@ export function generateQuestionPaper({
     subjectId,
     subjectName,
     subjectCode,
-    timeAllowed,
-    totalMarks,
+    timeAllowed: (isJunior && (subjectId === 'bangla2' || subjectId === 'english2')) ? '২ ঘণ্টা' : timeAllowed,
+    totalMarks: effectiveTotalMarks,
     mcqCount: pickedMcq.length,
     cqCount: pickedCq.length,
-    cqToAnswer,
-    cqRule,
+    cqToAnswer: effectiveCqToAnswer,
+    cqRule: isJunior && subjectId === 'bangla1'
+      ? 'গদ্য থেকে ৪টি এবং কবিতা থেকে ৪টি করে মোট ৮টি সৃজনশীল প্রশ্ন থাকবে। গদ্য ও কবিতা থেকে কমপক্ষে ২টি করে মোট ৫টি প্রশ্নের উত্তর দিতে হবে। (৫ × ১০ = ৫০)'
+      : cqRule,
     shortCount: pickedShort.length,
     shortToAnswer,
     shortMarks,
     shortRule,
     practicalMarks,
     practicalRule,
-    descriptiveMarks,
-    descriptiveRule,
+    descriptiveMarks: (subjectId === 'bangla1') ? 20 : descriptiveMarks,
+    descriptiveRule: isJunior && subjectId === 'bangla1'
+      ? 'আনন্দ পাঠ থেকে ৪টি বর্ণনামূলক প্রশ্ন থাকবে। এর মধ্যে ২টি প্রশ্নের উত্তর দিতে হবে। প্রত্যেকটি প্রশ্নের ২টি অংশ থাকবে (ক অংশের জন্য ৩ এবং খ অংশের জন্য ৭ নম্বর মোট ২০ নম্বর বরাদ্দ থাকবে)। (২ × ১০ = ২০)'
+      : descriptiveRule,
     pattern,
     mcqs: pickedMcq,
     cqs: pickedCq,
@@ -2339,6 +2711,10 @@ export function generateQuestionPaper({
     descriptiveQuestions: pickedDescriptive,
     financialStatement,
     compositionItems,
+    bangla2Composition,
+    english1Paper,
+    english2Paper,
     createdAt: new Date().toISOString()
   };
 }
+
