@@ -9,6 +9,7 @@ import {
   SEED_QUESTIONS,
   getStoredQuestions,
   saveQuestionItem,
+  saveBulkQuestions,
   deleteQuestionItem,
   getSavedExamPapers,
   saveExamPaperToArchive,
@@ -19,12 +20,192 @@ import {
   generateQuestionPaper,
   getSubjectMarksScheme,
   NCTB_SSC_EVALUATION_SPECS,
-  NCTB_JUNIOR_EVALUATION_SPECS
+  NCTB_JUNIOR_EVALUATION_SPECS,
+  getStoredChapters,
+  saveCustomChapters,
+  resetCustomChapters
 } from './questionBankData';
 import schoolLogo from '../public/school-logo.png';
 
 // Utility for Bengali Digits
 export const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+// Intelligent Bengali Question Parser for Chapter-Wise Upload
+export function parseBengaliQuestions(rawText, questionType, className, subjectId, subjectName, chapter) {
+  if (!rawText || !rawText.trim()) return [];
+  const text = rawText.trim();
+  
+  // 1. Direct JSON Array Support
+  if (text.startsWith('[') && text.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) {
+        return parsed.map((item, idx) => ({
+          ...item,
+          id: item.id || `q-json-${Date.now()}-${idx}`,
+          class_name: item.class_name || className,
+          subject_id: item.subject_id || subjectId,
+          subject_name: item.subject_name || subjectName,
+          chapter: item.chapter || chapter,
+          question_type: item.question_type || questionType
+        }));
+      }
+    } catch (e) {
+      console.warn('JSON parse error, falling back to text parsing', e);
+    }
+  }
+
+  const results = [];
+
+  if (questionType === 'mcq') {
+    const rawBlocks = text.split(/(?:\r?\n){2,}|(?=^(?:\d+[\.\)]|প্রশ্ন\s*[:：\-]))/m).filter(b => b.trim().length > 0);
+    for (const block of rawBlocks) {
+      const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length < 2) continue;
+
+      let qText = '';
+      const options = [];
+      let correctIndex = 0;
+      let explanation = '';
+
+      for (const line of lines) {
+        // Detect Answer
+        const ansMatch = line.match(/^(?:উত্তর|সঠিক|Ans(?:wer)?)\s*[:：\-]?\s*([কখগঘabcdABCD১-৪1-4])/i);
+        if (ansMatch) {
+          const char = ansMatch[1].toLowerCase();
+          if (['ক', 'a', '১', '1'].includes(char)) correctIndex = 0;
+          else if (['খ', 'b', '২', '2'].includes(char)) correctIndex = 1;
+          else if (['গ', 'c', '৩', '3'].includes(char)) correctIndex = 2;
+          else if (['ঘ', 'd', '৪', '4'].includes(char)) correctIndex = 3;
+          continue;
+        }
+
+        // Detect Explanation
+        const expMatch = line.match(/^(?:ব্যাখ্যা|সূত্র|Explanation|Note)\s*[:：\-]?\s*(.+)/i);
+        if (expMatch) {
+          explanation = expMatch[1].trim();
+          continue;
+        }
+
+        // Detect inline options: (ক) ... (খ) ...
+        const inlineOpts = [...line.matchAll(/(?:\(([কখগঘabcd])\)|([কখগঘabcd])[\)\.])\s*([^(\n\r]+)/gi)];
+        if (inlineOpts.length >= 2) {
+          for (const m of inlineOpts) {
+            options.push(m[3].trim());
+          }
+          continue;
+        }
+
+        // Detect single option line
+        const optMatch = line.match(/^(?:\(([কখগঘabcd])\)|([কখগঘabcd])[\)\.])\s*(.+)/i);
+        if (optMatch) {
+          options.push(optMatch[3].trim());
+          continue;
+        }
+
+        // Question text
+        if (!qText) {
+          qText = line.replace(/^\d+[\.\)]\s*/, '').replace(/^(?:প্রশ্ন|Q(?:uestion)?)\s*[:：\-]?\s*/i, '');
+        } else {
+          qText += ' ' + line;
+        }
+      }
+
+      if (qText && options.length >= 2) {
+        while (options.length < 4) {
+          options.push(`বিকল্প ${options.length + 1}`);
+        }
+        results.push({
+          id: `q-mcq-${Date.now()}-${results.length}-${Math.random().toString(36).substr(2, 4)}`,
+          class_name: className,
+          subject_id: subjectId,
+          subject_name: subjectName,
+          chapter: chapter,
+          question_type: 'mcq',
+          question_bn: qText,
+          options: options.slice(0, 4),
+          correct_answer: options[correctIndex] || options[0],
+          correct_index: correctIndex,
+          marks: 1,
+          explanation: explanation || 'পাঠ্যবইয়ের সংশ্লিষ্ট অধ্যায় অনুযায়ী সঠিক তথ্য।'
+        });
+      }
+    }
+  } else if (questionType === 'cq') {
+    const rawBlocks = text.split(/---+|(?=^(?:উদ্দীপক|সৃজনশীল প্রশ্ন|\d+[\.\)]\s*উদ্দীপক))/im).filter(b => b.trim().length > 0);
+    for (const block of rawBlocks) {
+      const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let stimulus = '';
+      const subQuestions = [];
+
+      for (const line of lines) {
+        const subMatch = line.match(/^(?:\(([কখগঘ])\)|([কখগঘ])[\)\.])\s*(.+)/i);
+        if (subMatch) {
+          const label = subMatch[1] || subMatch[2];
+          let subText = subMatch[3].trim();
+          let marks = (label === 'ক' ? 1 : label === 'খ' ? 2 : label === 'গ' ? 3 : 4);
+          const marksMatch = subText.match(/\[([১-৪1-4])\]$/);
+          if (marksMatch) {
+            marks = Number(marksMatch[1].replace('১', 1).replace('২', 2).replace('৩', 3).replace('৪', 4));
+            subText = subText.replace(/\[[১-৪1-4]\]$/, '').trim();
+          }
+          subQuestions.push({ label, text: subText, marks });
+        } else {
+          const stimLine = line.replace(/^(?:উদ্দীপক|সৃজনশীল প্রশ্ন|দৃশ্যপট|\d+[\.\)])\s*[:：\-]?\s*/i, '');
+          if (!stimulus) stimulus = stimLine;
+          else stimulus += ' ' + stimLine;
+        }
+      }
+
+      if (stimulus && subQuestions.length > 0) {
+        results.push({
+          id: `q-cq-${Date.now()}-${results.length}-${Math.random().toString(36).substr(2, 4)}`,
+          class_name: className,
+          subject_id: subjectId,
+          subject_name: subjectName,
+          chapter: chapter,
+          question_type: 'cq',
+          stimulus: stimulus,
+          sub_questions: subQuestions,
+          marks: 10,
+          explanation: 'ক) জ্ঞানমূলক ১ নম্বর। খ) অনুধাবন ২ নম্বর। গ) প্রয়োগ ৩ নম্বর। ঘ) উচ্চতর দক্ষতা ৪ নম্বর।'
+        });
+      }
+    }
+  } else {
+    // Short questions
+    const rawBlocks = text.split(/(?:\r?\n){2,}|---+/).filter(b => b.trim().length > 0);
+    for (const block of rawBlocks) {
+      const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      let qText = '';
+      let ansText = '';
+      for (const line of lines) {
+        const aMatch = line.match(/^(?:উত্তর|সমাধান|Ans(?:wer)?)\s*[:：\-]?\s*(.+)/i);
+        if (aMatch) {
+          ansText = aMatch[1].trim();
+        } else {
+          if (!qText) qText = line.replace(/^\d+[\.\)]\s*/, '').replace(/^(?:প্রশ্ন|সংক্ষিপ্ত প্রশ্ন)\s*[:：\-]?\s*/i, '');
+          else qText += ' ' + line;
+        }
+      }
+      if (qText) {
+        results.push({
+          id: `q-short-${Date.now()}-${results.length}-${Math.random().toString(36).substr(2, 4)}`,
+          class_name: className,
+          subject_id: subjectId,
+          subject_name: subjectName,
+          chapter: chapter,
+          question_type: 'short',
+          question_bn: qText,
+          marks: 2,
+          explanation: ansText || 'সংক্ষিপ্ত ও নির্ভুল তথ্যমূলক উত্তর।'
+        });
+      }
+    }
+  }
+
+  return results;
+}
 
 const VALID_TABS = ['generator', 'bank', 'omr', 'saved', 'model'];
 
@@ -83,6 +264,22 @@ export function QuestionBankPanel({ sub, setSub }) {
   const [activePaper, setActivePaper] = useState(null);
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
 
+  // Chapter Customization & Editing State
+  const [chaptersVersion, setChaptersVersion] = useState(0);
+  const [isChapterEditorOpen, setIsChapterEditorOpen] = useState(false);
+  const [editingChapters, setEditingChapters] = useState([]);
+
+  // Bulk Question Uploader & Guide State
+  const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [bulkUploadTab, setBulkUploadTab] = useState('upload'); // 'upload' | 'guide'
+  const [bulkClass, setBulkClass] = useState('8');
+  const [bulkSubject, setBulkSubject] = useState('ict');
+  const [bulkChapter, setBulkChapter] = useState('');
+  const [bulkCustomChapter, setBulkCustomChapter] = useState('');
+  const [bulkType, setBulkType] = useState('mcq'); // 'mcq' | 'cq' | 'short'
+  const [bulkRawText, setBulkRawText] = useState('');
+  const [parsedBulkQuestions, setParsedBulkQuestions] = useState([]);
+
   // Check if Class 9/10 has department/grouping
   const isHighSchoolGrouped = ['9', '10'].includes(genClass);
 
@@ -126,13 +323,127 @@ export function QuestionBankPanel({ sub, setSub }) {
     }
   }, [currentSubject, genClass]);
 
-  // Available chapters for selected subject & class
+  // Available chapters for selected subject & class (customized from localStorage or NCTB defaults)
   const availableChapters = useMemo(() => {
-    if (CHAPTERS_DATA[genSubjectId] && CHAPTERS_DATA[genSubjectId][genClass]) {
-      return CHAPTERS_DATA[genSubjectId][genClass];
+    return getStoredChapters(genSubjectId, genClass);
+  }, [genSubjectId, genClass, chaptersVersion]);
+
+  // Chapter Editor Handlers
+  const handleOpenChapterEditor = () => {
+    const currentList = getStoredChapters(genSubjectId, genClass);
+    setEditingChapters([...currentList]);
+    setIsChapterEditorOpen(true);
+  };
+
+  // Bulk Upload Handlers
+  const handleOpenBulkUpload = (subjectId = genSubjectId || 'ict', className = genClass || '8', chapterName = '') => {
+    setBulkSubject(subjectId);
+    setBulkClass(className);
+    const chList = getStoredChapters(subjectId, className);
+    setBulkChapter(chapterName || (chList[0] || ''));
+    setBulkCustomChapter('');
+    setBulkType('mcq');
+    setParsedBulkQuestions([]);
+    setBulkRawText(`১. তথ্য ও যোগাযোগ প্রযুক্তির মূল চালিকাশক্তি কোনটি?
+(ক) রেডিও
+(খ) টেলিভিশন
+(গ) কম্পিউটার ও ইন্টারনেট
+(ঘ) ক্যামেরা
+উত্তর: গ
+ব্যাখ্যা: কম্পিউটার ও ইন্টারনেট নেটওয়ার্কিং আধুনিক তথ্যপ্রযুক্তির কেন্দ্রীয় উপকরণ।
+
+২. নিচের কোনটি আধুনিক ইনপুট ডিভাইস?
+ক) ওএমআর ও কিবোর্ড
+খ) মনিটর ও স্পিকার
+গ) প্রিন্টার ও প্রজেক্টর
+ঘ) হেডফোন
+উত্তর: ক
+ব্যাখ্যা: ওএমআর ও কিবোর্ড ডেটা ইনপুট করার কাজে ব্যবহৃত হয়।`);
+    setBulkUploadTab('upload');
+    setIsBulkUploadOpen(true);
+  };
+
+  const handleLoadSampleText = (type = bulkType) => {
+    if (type === 'mcq') {
+      setBulkRawText(`১. তথ্য ও যোগাযোগ প্রযুক্তির মূল চালিকাশক্তি কোনটি?
+(ক) রেডিও
+(খ) টেলিভিশন
+(গ) কম্পিউটার ও ইন্টারনেট
+(ঘ) ক্যামেরা
+উত্তর: গ
+ব্যাখ্যা: কম্পিউটার ও ইন্টারনেট নেটওয়ার্কিং আধুনিক তথ্যপ্রযুক্তির কেন্দ্রীয় উপকরণ।
+
+২. নিচের কোনটি আধুনিক ইনপুট ডিভাইস?
+ক) ওএমআর ও কিবোর্ড
+খ) মনিটর ও স্পিকার
+গ) প্রিন্টার ও প্রজেক্টর
+ঘ) হেডফোন
+উত্তর: ক
+ব্যাখ্যা: ওএমআর ও কিবোর্ড ডেটা ইনপুট করার কাজে ব্যবহৃত হয়।`);
+    } else if (type === 'cq') {
+      setBulkRawText(`উদ্দীপক: কৃষক জয়নাল মিয়া মাটির স্বাস্থ্য সুরক্ষায় উপজেলা কৃষি কর্মকর্তার পরামর্শে দোআঁশ মাটিতে ইউরিয়া ও সবুজ সার প্রয়োগ করলেন। ফলে অল্প খরচে তার ফলন দ্বিগুণ হলো।
+ক) মাটির pH কী? [১]
+খ) জৈব সারকে মাটির প্রাণ বলা হয় কেন? [২]
+গ) জয়নাল মিয়ার সবুজ সার তৈরির বৈজ্ঞানিক উপায় ব্যাখ্যা কর। [৩]
+ঘ) টেকসই ফসল উৎপাদনে জয়নাল মিয়ার গৃহীত পদক্ষেপের কার্যকারিতা মূল্যায়ন কর। [৪]`);
+    } else {
+      setBulkRawText(`১. তথ্য ও যোগাযোগ প্রযুক্তি (ICT) বলতে কী বোঝায়?
+উত্তর: তথ্য সংগ্রহ, সংরক্ষণ, প্রক্রিয়াকরণ এবং আদান-প্রদানের জন্য ব্যবহৃত ডিজিটাল প্রযুক্তিই হলো তথ্য ও যোগাযোগ প্রযুক্তি।
+
+২. হার্ডওয়্যার ও সফটওয়্যার-এর প্রধান পার্থক্য কী?
+উত্তর: কম্পিউটারের বাহ্যিক দৃশ্যমান যন্ত্রাংশ হলো হার্ডওয়্যার এবং কম্পিউটার পরিচালনার প্রোগ্রাম বা নির্দেশাবলি হলো সফটওয়্যার।`);
     }
-    return [];
-  }, [genSubjectId, genClass]);
+  };
+
+  const handleParseQuestions = () => {
+    const effectiveSubject = SUBJECT_METADATA.find(s => s.id === bulkSubject) || { name: bulkSubject };
+    const effectiveChapter = (bulkChapter === '__custom__' || !bulkChapter) ? (bulkCustomChapter.trim() || 'নির্ধারিত অধ্যায়') : bulkChapter;
+    const list = parseBengaliQuestions(bulkRawText, bulkType, bulkClass, bulkSubject, effectiveSubject.name, effectiveChapter);
+    setParsedBulkQuestions(list);
+    if (list.length > 0) {
+      showToast(`${toBn(list.length)}টি প্রশ্ন সফলভাবে পার্স ও সনাক্ত হয়েছে!`);
+    } else {
+      showToast('কোনো প্রশ্ন সনাক্ত করা যায়নি। অনুগ্রহ করে লেখার ফরম্যাট পরীক্ষা করুন।');
+    }
+  };
+
+  const handleSaveBulkUploadedQuestions = () => {
+    if (parsedBulkQuestions.length === 0) {
+      showToast('সংরক্ষণ করার মতো কোনো পার্সকৃত প্রশ্ন পাওয়া যায়নি।');
+      return;
+    }
+    const updated = saveBulkQuestions(parsedBulkQuestions);
+    setQuestions(updated);
+    showToast(`${toBn(parsedBulkQuestions.length)}টি প্রশ্ন অধ্যায়ভাণ্ডারে সফলভাবে সংরক্ষিত হয়েছে!`);
+    setIsBulkUploadOpen(false);
+    setParsedBulkQuestions([]);
+  };
+
+  const handleDownloadSampleJson = () => {
+    const sample = [
+      {
+        question_type: bulkType,
+        class_name: bulkClass,
+        subject_id: bulkSubject,
+        subject_name: (SUBJECT_METADATA.find(s => s.id === bulkSubject)?.name) || "বিষয়",
+        chapter: bulkChapter || "১ম অধ্যায়",
+        question_bn: "নমুনা বহুনির্বাচনি প্রশ্ন?",
+        options: ["বিকল্প ক", "বিকল্প খ", "বিকল্প গ", "বিকল্প ঘ"],
+        correct_answer: "বিকল্প ক",
+        correct_index: 0,
+        marks: 1,
+        explanation: "সঠিক উত্তরের ব্যাখ্যা..."
+      }
+    ];
+    const blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `magra_question_template_${bulkSubject}_class${bulkClass}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('নমুনা JSON ফাইল ডাউনলোড হয়েছে!');
+  };
 
   // Handle 1-Click Generation with NCTB Blueprint
   const handleGeneratePaper = () => {
@@ -1017,38 +1328,123 @@ export function QuestionBankPanel({ sub, setSub }) {
               );
             })()}
 
-            {/* Chapters Selection Box */}
-            {availableChapters.length > 0 && (
-              <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
-                    📖 অধ্যায়ভিত্তিক ফিল্টার (সিলেক্ট না করলে স্বয়ংক্রিয়ভাবে পূর্ণাঙ্গ সিলেবাস থেকে প্রশ্ন নির্বাচন হবে):
-                  </label>
+            {/* Chapters Selection Box (Customizable Chapter Number & Name) */}
+            <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📖</span>
+                  <span>অধ্যায়ভিত্তিক ফিল্টার (সিলেক্ট না করলে স্বয়ংক্রিয়ভাবে পূর্ণাঙ্গ সিলেবাস থেকে প্রশ্ন নির্বাচন হবে):</span>
+                </label>
+                
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* Edit Chapters Button */}
                   <button
                     type="button"
-                    onClick={() => setGenSelectedChapters(genSelectedChapters.length === availableChapters.length ? [] : [...availableChapters])}
-                    style={{ background: 'none', border: 'none', color: '#047857', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={handleOpenChapterEditor}
+                    style={{
+                      background: '#ecfdf5',
+                      border: '1px solid #a7f3d0',
+                      color: '#047857',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                    }}
+                    title="এই শ্রেণির এই বিষয়ের অধ্যায় নং ও নাম পরিবর্তন/যোগ/মুছে ফেলুন"
                   >
-                    {genSelectedChapters.length === availableChapters.length ? 'সব আনচেক করুন' : 'সব অধ্যায় নির্বাচন করুন'}
+                    <span>✏️</span>
+                    <span>অধ্যায় নং ও নাম এডিট করুন</span>
                   </button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px' }}>
-                  {availableChapters.map((ch, idx) => (
-                    <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#475569', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={genSelectedChapters.includes(ch)}
-                        onChange={(e) => {
-                          if (e.target.checked) setGenSelectedChapters([...genSelectedChapters, ch]);
-                          else setGenSelectedChapters(genSelectedChapters.filter(c => c !== ch));
-                        }}
-                      />
-                      <span>{ch}</span>
-                    </label>
-                  ))}
+
+                  {/* Upload Questions for Chapter Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenBulkUpload(genSubjectId, genClass, genSelectedChapters[0] || (availableChapters[0] || ''))}
+                    style={{
+                      background: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      color: '#1d4ed8',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                    }}
+                    title="এই বিষয়ের অধ্যায়ে নতুন প্রশ্ন আপলোড করুন"
+                  >
+                    <span>📥</span>
+                    <span>অধ্যায়ে প্রশ্ন আপলোড</span>
+                  </button>
+
+                  {/* Select All Toggle */}
+                  {availableChapters.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setGenSelectedChapters(genSelectedChapters.length === availableChapters.length ? [] : [...availableChapters])}
+                      style={{ background: 'none', border: 'none', color: '#047857', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      {genSelectedChapters.length === availableChapters.length ? 'সব আনচেক করুন' : 'সব অধ্যায় নির্বাচন করুন'}
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
+
+              {availableChapters.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '8px' }}>
+                  {availableChapters.map((ch, idx) => {
+                    const isSelected = genSelectedChapters.includes(ch);
+                    return (
+                      <label
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '12px',
+                          color: '#334155',
+                          cursor: 'pointer',
+                          background: isSelected ? '#ecfdf5' : '#fff',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: isSelected ? '1px solid #10b981' : '1px solid #cbd5e1',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) setGenSelectedChapters([...genSelectedChapters, ch]);
+                            else setGenSelectedChapters(genSelectedChapters.filter(c => c !== ch));
+                          }}
+                        />
+                        <span style={{ fontWeight: isSelected ? 700 : 500 }}>{ch}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '16px', color: '#64748b', fontSize: '12.5px', background: '#fff', borderRadius: '6px', border: '1px dashed #cbd5e1' }}>
+                  এই বিষয়ের জন্য এখনো কোনো অধ্যায় সেট করা নেই। 
+                  <button
+                    type="button"
+                    onClick={handleOpenChapterEditor}
+                    style={{ background: 'none', border: 'none', color: '#047857', fontWeight: 800, cursor: 'pointer', textDecoration: 'underline', marginLeft: '6px' }}
+                  >
+                    এখানে ক্লিক করে অধ্যায় যোগ ও এডিট করুন
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Generate Action Button */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
@@ -2939,25 +3335,47 @@ export function QuestionBankPanel({ sub, setSub }) {
               </p>
             </div>
 
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              style={{
-                background: '#047857',
-                color: '#fff',
-                border: 'none',
-                padding: '9px 18px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>➕</span>
-              <span>নতুন প্রশ্ন যোগ করুন</span>
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => handleOpenBulkUpload(bankSubject !== 'all' ? bankSubject : 'bangla1', bankClass !== 'all' ? bankClass : '8')}
+                style={{
+                  background: '#eff6ff',
+                  color: '#1d4ed8',
+                  border: '1px solid #bfdbfe',
+                  padding: '9px 16px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>📥</span>
+                <span>অধ্যায়ভিত্তিক প্রশ্ন আপলোড ও নির্দেশিকা</span>
+              </button>
+
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                style={{
+                  background: '#047857',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>➕</span>
+                <span>নতুন প্রশ্ন যোগ করুন</span>
+              </button>
+            </div>
           </div>
 
           {/* Filter Bar */}
@@ -3622,6 +4040,662 @@ export function QuestionBankPanel({ sub, setSub }) {
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 1: CHAPTER NUMBER & NAME EDITOR                     */}
+      {/* ========================================================= */}
+      {isChapterEditorOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.55)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            width: '100%',
+            maxWidth: '680px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
+                  ✏️ অধ্যায় নং ও নাম কাস্টমাইজেশন ও এডিট
+                </h3>
+                <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b' }}>
+                  শ্রেণি: <b>{toBn(genClass)}ম শ্রেণি</b> • বিষয়: <b>{currentSubject?.name}</b> (কোড: {toBn(currentSubject?.code)})
+                </p>
+              </div>
+              <button
+                onClick={() => setIsChapterEditorOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '16px', fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+              💡 <b>পরামর্শ:</b> আপনার বিদ্যালয় বা পরীক্ষার সিলেবাস অনুযায়ী যেকোনো অধ্যায়ের নম্বর বা নাম পরিবর্তন করুন। নতুন অধ্যায় যোগ করতে নিচের <b>“+ নতুন অধ্যায় যোগ করুন”</b> বাটনে ক্লিক করুন। সংরক্ষিত অধ্যায়গুলো প্রশ্ন নির্বাচনের ফিল্টারে সরাসরি প্রদর্শিত হবে।
+            </div>
+
+            {/* Chapters Input List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              {editingChapters.map((ch, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 800, minWidth: '28px', color: '#475569', textAlign: 'center' }}>
+                    {toBn(idx + 1)}.
+                  </span>
+                  <input
+                    type="text"
+                    value={ch}
+                    onChange={(e) => {
+                      const updated = [...editingChapters];
+                      updated[idx] = e.target.value;
+                      setEditingChapters(updated);
+                    }}
+                    placeholder={`যেমন: ${toBn(idx + 1)}ম অধ্যায়: অধ্যায়ের নাম`}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13px',
+                      background: '#fff'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={idx === 0}
+                    onClick={() => {
+                      if (idx === 0) return;
+                      const updated = [...editingChapters];
+                      const temp = updated[idx];
+                      updated[idx] = updated[idx - 1];
+                      updated[idx - 1] = temp;
+                      setEditingChapters(updated);
+                    }}
+                    title="উপরে নিন"
+                    style={{
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: idx === 0 ? '#f1f5f9' : '#fff',
+                      cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                      color: idx === 0 ? '#94a3b8' : '#334155'
+                    }}
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    disabled={idx === editingChapters.length - 1}
+                    onClick={() => {
+                      if (idx === editingChapters.length - 1) return;
+                      const updated = [...editingChapters];
+                      const temp = updated[idx];
+                      updated[idx] = updated[idx + 1];
+                      updated[idx + 1] = temp;
+                      setEditingChapters(updated);
+                    }}
+                    title="নিচে নিন"
+                    style={{
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      background: idx === editingChapters.length - 1 ? '#f1f5f9' : '#fff',
+                      cursor: idx === editingChapters.length - 1 ? 'not-allowed' : 'pointer',
+                      color: idx === editingChapters.length - 1 ? '#94a3b8' : '#334155'
+                    }}
+                  >
+                    ▼
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = editingChapters.filter((_, i) => i !== idx);
+                      setEditingChapters(updated);
+                    }}
+                    title="মুছে ফেলুন"
+                    style={{
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid #fecaca',
+                      background: '#fee2e2',
+                      color: '#b91c1c',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add New Chapter Button */}
+            <div style={{ marginBottom: '20px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextNum = editingChapters.length + 1;
+                  setEditingChapters([...editingChapters, `${toBn(nextNum)}ম অধ্যায়: নতুন পাঠ/বিষয়`]);
+                }}
+                style={{
+                  background: '#f1f5f9',
+                  border: '1px dashed #047857',
+                  color: '#047857',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  justifyContent: 'center'
+                }}
+              >
+                <span>➕</span>
+                <span>নতুন অধ্যায় যোগ করুন</span>
+              </button>
+            </div>
+
+            {/* Footer Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '14px', flexWrap: 'wrap', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('আপনি কি এই বিষয়ের অধ্যায়গুলো NCTB প্রমিত ডিফল্ট সিলেবাসে রিসেট করতে চান?')) {
+                    const res = resetCustomChapters(genSubjectId, genClass);
+                    setEditingChapters([...res]);
+                    setChaptersVersion(v => v + 1);
+                    showToast('NCTB প্রমিত অধ্যায় তালিকা পুনরুদ্ধার হয়েছে!');
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: '1px solid #cbd5e1',
+                  color: '#64748b',
+                  padding: '8px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                ↺ NCTB ডিফল্ট পুনরুদ্ধার
+              </button>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsChapterEditorOpen(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    color: '#475569',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const valid = editingChapters.filter(ch => ch && ch.trim());
+                    saveCustomChapters(genSubjectId, genClass, valid);
+                    setChaptersVersion(v => v + 1);
+                    setGenSelectedChapters(prev => prev.filter(c => valid.includes(c)));
+                    setIsChapterEditorOpen(false);
+                    showToast('অধ্যায় তালিকা সফলভাবে সংরক্ষণ করা হয়েছে!');
+                  }}
+                  style={{
+                    background: '#047857',
+                    border: 'none',
+                    color: '#fff',
+                    padding: '8px 20px',
+                    borderRadius: '6px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  💾 পরিবর্তন সংরক্ষণ করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL 2: CHAPTER-WISE BULK QUESTION UPLOADER & GUIDE      */}
+      {/* ========================================================= */}
+      {isBulkUploadOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.55)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            width: '100%',
+            maxWidth: '840px',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📥</span> অধ্যায়ভিত্তিক প্রশ্ন আপলোড ও নির্দেশিকা
+                </h3>
+                <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b' }}>
+                  প্রতিটি শ্রেণির প্রতিটি বিষয়ের অধ্যায়ভিত্তিক বহুনির্বাচনি ও সৃজনশীল প্রশ্ন সহজে আপলোড করুন।
+                </p>
+              </div>
+              <button
+                onClick={() => setIsBulkUploadOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Tabs: Upload vs Instructions */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '18px', borderBottom: '2px solid #e2e8f0', paddingBottom: '2px' }}>
+              <button
+                type="button"
+                onClick={() => setBulkUploadTab('upload')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: bulkUploadTab === 'upload' ? '3px solid #047857' : '3px solid transparent',
+                  padding: '8px 16px',
+                  fontWeight: 800,
+                  fontSize: '13.5px',
+                  color: bulkUploadTab === 'upload' ? '#047857' : '#64748b',
+                  cursor: 'pointer'
+                }}
+              >
+                📤 প্রশ্ন আপলোড করুন
+              </button>
+              <button
+                type="button"
+                onClick={() => setBulkUploadTab('guide')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: bulkUploadTab === 'guide' ? '3px solid #047857' : '3px solid transparent',
+                  padding: '8px 16px',
+                  fontWeight: 800,
+                  fontSize: '13.5px',
+                  color: bulkUploadTab === 'guide' ? '#047857' : '#64748b',
+                  cursor: 'pointer'
+                }}
+              >
+                📖 কীভাবে আপলোড করবেন? (পূর্ণাঙ্গ নির্দেশিকা)
+              </button>
+            </div>
+
+            {/* TAB CONTENT: UPLOAD */}
+            {bulkUploadTab === 'upload' ? (
+              <div>
+                {/* Selectors Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                  {/* Class */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      ১. শ্রেণি নির্বাচন:
+                    </label>
+                    <select
+                      value={bulkClass}
+                      onChange={e => {
+                        setBulkClass(e.target.value);
+                        const chs = getStoredChapters(bulkSubject, e.target.value);
+                        setBulkChapter(chs[0] || '');
+                      }}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
+                    >
+                      <option value="6">৬ষ্ঠ শ্রেণি</option>
+                      <option value="7">৭ম শ্রেণি</option>
+                      <option value="8">৮ম শ্রেণি</option>
+                      <option value="9">৯ম শ্রেণি</option>
+                      <option value="10">১০ম শ্রেণি</option>
+                    </select>
+                  </div>
+
+                  {/* Subject */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      ২. বিষয় নির্বাচন:
+                    </label>
+                    <select
+                      value={bulkSubject}
+                      onChange={e => {
+                        setBulkSubject(e.target.value);
+                        const chs = getStoredChapters(e.target.value, bulkClass);
+                        setBulkChapter(chs[0] || '');
+                      }}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
+                    >
+                      {SUBJECT_METADATA.map(s => (
+                        <option key={s.id} value={s.id}>{s.name} ({toBn(s.code)})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Question Type */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      ৩. প্রশ্নের ধরন:
+                    </label>
+                    <select
+                      value={bulkType}
+                      onChange={e => {
+                        setBulkType(e.target.value);
+                        handleLoadSampleText(e.target.value);
+                      }}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
+                    >
+                      <option value="mcq">বহুনির্বাচনি (MCQ)</option>
+                      <option value="cq">সৃজনশীল (CQ)</option>
+                      <option value="short">সংক্ষিপ্ত-উত্তর প্রশ্ন (Short)</option>
+                    </select>
+                  </div>
+
+                  {/* Chapter */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      ৪. অধ্যায় নির্বাচন:
+                    </label>
+                    <select
+                      value={bulkChapter}
+                      onChange={e => setBulkChapter(e.target.value)}
+                      style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
+                    >
+                      {getStoredChapters(bulkSubject, bulkClass).map((ch, idx) => (
+                        <option key={idx} value={ch}>{ch}</option>
+                      ))}
+                      <option value="__custom__">➕ নতুন অধ্যায়ের নাম লিখুন...</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Custom Chapter Name Input if selected */}
+                {bulkChapter === '__custom__' && (
+                  <div style={{ marginBottom: '14px', background: '#ecfdf5', padding: '10px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#065f46', marginBottom: '4px' }}>
+                      নতুন অধ্যায় নং ও নাম টাইপ করুন:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: ১ম অধ্যায়: নতুন পাঠের শিরোনাম"
+                      value={bulkCustomChapter}
+                      onChange={e => setBulkCustomChapter(e.target.value)}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
+                )}
+
+                {/* Input Text Area Controls */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#334155' }}>
+                    প্রশ্ন ইনপুট বা পেস্ট করুন (বাংলা টেক্সট অথবা JSON):
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleLoadSampleText(bulkType)}
+                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', fontSize: '11.5px', padding: '4px 8px', borderRadius: '5px', cursor: 'pointer' }}
+                    >
+                      📋 নমুনা লোড করুন
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadSampleJson}
+                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', fontSize: '11.5px', padding: '4px 8px', borderRadius: '5px', cursor: 'pointer' }}
+                    >
+                      📥 নমুনা JSON ডাউনলোড
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  rows={8}
+                  value={bulkRawText}
+                  onChange={e => setBulkRawText(e.target.value)}
+                  placeholder="এখানে আপনার প্রশ্ন পেস্ট করুন..."
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '12.5px',
+                    fontFamily: 'monospace, sans-serif',
+                    lineHeight: 1.5,
+                    marginBottom: '12px',
+                    background: '#fff'
+                  }}
+                />
+
+                {/* File Upload Option */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', padding: '8px 12px', borderRadius: '6px', marginBottom: '14px', fontSize: '12px' }}>
+                  <span>অথবা ফাইল থেকে সরাসরি লোড করতে চান?</span>
+                  <label style={{ background: '#fff', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '5px', cursor: 'pointer', fontWeight: 600 }}>
+                    📁 ফাইল সিলেক্ট করুন (.json / .txt)
+                    <input
+                      type="file"
+                      accept=".json,.txt"
+                      style={{ display: 'none' }}
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = ev => {
+                            setBulkRawText(ev.target?.result || '');
+                            showToast(`ফাইল "${file.name}" সফলভাবে লোড হয়েছে! এবার “পার্স ও প্রিভিউ দেখুন” এ ক্লিক করুন।`);
+                          };
+                          reader.readAsText(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {/* Parse Action Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginBottom: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={handleParseQuestions}
+                    style={{
+                      background: '#0284c7',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: '6px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>🔍</span>
+                    <span>পার্স ও প্রিভিউ দেখুন (Parse & Preview)</span>
+                  </button>
+                </div>
+
+                {/* Parsed Preview Cards */}
+                {parsedBulkQuestions.length > 0 && (
+                  <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <b style={{ fontSize: '13.5px', color: '#065f46' }}>
+                        ✅ {toBn(parsedBulkQuestions.length)}টি প্রশ্ন সফলভাবে সনাক্ত হয়েছে:
+                      </b>
+                      <span style={{ fontSize: '11.5px', color: '#047857' }}>
+                        অধ্যায়: {parsedBulkQuestions[0]?.chapter}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '240px', overflowY: 'auto' }}>
+                      {parsedBulkQuestions.map((pq, pIdx) => (
+                        <div key={pIdx} style={{ background: '#fff', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
+                          <div style={{ fontWeight: 700, marginBottom: '4px' }}>
+                            {toBn(pIdx + 1)}. {pq.question_bn || pq.stimulus}
+                          </div>
+                          {pq.options && (
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', fontSize: '11.5px', color: '#475569', marginTop: '4px' }}>
+                              {pq.options.map((opt, oIdx) => (
+                                <span key={oIdx} style={{ fontWeight: pq.correct_index === oIdx ? 800 : 400, color: pq.correct_index === oIdx ? '#047857' : '#475569' }}>
+                                  ({['ক', 'খ', 'গ', 'ঘ'][oIdx]}) {opt} {pq.correct_index === oIdx && '✓'}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {pq.sub_questions && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '11px', marginTop: '4px' }}>
+                              {pq.sub_questions.map((sub, sIdx) => (
+                                <span key={sIdx}><b>({sub.label})</b> {sub.text} [{toBn(sub.marks)}]</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal Footer */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsBulkUploadOpen(false)}
+                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer' }}
+                  >
+                    বন্ধ করুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveBulkUploadedQuestions}
+                    disabled={parsedBulkQuestions.length === 0}
+                    style={{
+                      background: parsedBulkQuestions.length > 0 ? '#047857' : '#94a3b8',
+                      border: 'none',
+                      color: '#fff',
+                      padding: '8px 22px',
+                      borderRadius: '6px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      cursor: parsedBulkQuestions.length > 0 ? 'pointer' : 'not-allowed'
+                    }}
+                  >
+                    💾 সকল প্রশ্ন প্রশ্নভাণ্ডারে সংরক্ষণ করুন ({toBn(parsedBulkQuestions.length)})
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* TAB CONTENT: STEP-BY-STEP GUIDE */
+              <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.7 }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '14px', marginBottom: '16px' }}>
+                  <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 800, color: '#166534' }}>
+                    📌 অধ্যায়ভিত্তিক প্রশ্ন আপলোড করার সহজ ৫টি ধাপ:
+                  </h4>
+                  <ol style={{ margin: 0, paddingLeft: '20px' }}>
+                    <li><b>ধাপ ১ (শ্রেণি ও বিষয়):</b> ওপরের ড্রপডাউন থেকে আপনার কাঙ্ক্ষিত শ্রেণি (৬ষ্ঠ থেকে ১০ম) ও বিষয় নির্বাচন করুন।</li>
+                    <li><b>ধাপ ২ (অধ্যায় নির্বাচন):</b> যে অধ্যায়ের জন্য প্রশ্ন আপলোড করছেন তা নির্বাচন করুন। প্রয়োজনে “+ নতুন অধ্যায় লিখুন” বেছে নিয়ে নতুন অধ্যায় তৈরি করতে পারেন।</li>
+                    <li><b>ধাপ ৩ (প্রশ্নের ধরন):</b> MCQ, সৃজনশীল (CQ) বা সংক্ষিপ্ত প্রশ্ন নির্বাচন করুন।</li>
+                    <li><b>ধাপ ৪ (টেক্সট পেস্ট বা ফাইল):</b> নিচের নিয়ম অনুযায়ী টেক্সট পেস্ট করে “পার্স ও প্রিভিউ দেখুন” বাটনে ক্লিক করুন।</li>
+                    <li><b>ধাপ ৫ (সংরক্ষণ):</b> প্রিভিউ সঠিক থাকলে “সকল প্রশ্ন সংরক্ষণ করুন” এ ক্লিক করলেই প্রশ্নভাণ্ডারে যুক্ত হয়ে যাবে।</li>
+                  </ol>
+                </div>
+
+                <h4 style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
+                  📝 বিভিন্ন ধরনের প্রশ্নের লেখার নিয়ম (Format Specifications):
+                </h4>
+
+                {/* MCQ Format Guide */}
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                  <b style={{ color: '#047857', fontSize: '13.5px' }}>১. বহুনির্বাচনি প্রশ্ন (MCQ) লেখার নিয়ম:</b>
+                  <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#64748b' }}>
+                    প্রশ্ন লিখে পরবর্তী লাইনে ৪টি বিকল্প (ক, খ, গ, ঘ) এবং নিচে উত্তর লিখুন। একাধিক প্রশ্নের মাঝে ১টি ফাঁকা লাইন বা ‘---’ দিন।
+                  </p>
+                  <pre style={{ background: '#1e293b', color: '#f8fafc', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', overflowX: 'auto', margin: 0 }}>
+{`১. তথ্য ও যোগাযোগ প্রযুক্তির প্রধান উপকরণ কোনটি?
+(ক) রেডিও
+(খ) টেলিভিশন
+(গ) কম্পিউটার
+(ঘ) ক্যামেরা
+উত্তর: গ
+ব্যাখ্যা: কম্পিউটার আধুনিক তথ্যপ্রযুক্তির মূল কেন্দ্র।`}
+                  </pre>
+                </div>
+
+                {/* CQ Format Guide */}
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                  <b style={{ color: '#047857', fontSize: '13.5px' }}>২. সৃজনশীল প্রশ্ন (CQ) লেখার নিয়ম:</b>
+                  <p style={{ margin: '4px 0 8px', fontSize: '12px', color: '#64748b' }}>
+                    ‘উদ্দীপক:’ দিয়ে ঘটনা লিখুন এবং পরবর্তী লাইনে ক, খ, গ, ঘ উপ-প্রশ্ন ও বন্ধনীতে [১, ২, ৩, ৪] নম্বর লিখুন।
+                  </p>
+                  <pre style={{ background: '#1e293b', color: '#f8fafc', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', overflowX: 'auto', margin: 0 }}>
+{`উদ্দীপক: কৃষক জয়নাল মিয়া মাটির স্বাস্থ্য সুরক্ষায় উপজেলা কৃষি কর্মকর্তার পরামর্শে দোআঁশ মাটিতে ইউরিয়া ও সবুজ সার প্রয়োগ করলেন।
+ক) মাটির pH কী? [১]
+খ) জৈব সারকে মাটির প্রাণ বলা হয় কেন? [২]
+গ) জয়নাল মিয়ার সবুজ সার তৈরির বৈজ্ঞানিক উপায় ব্যাখ্যা কর। [৩]
+ঘ) টেকসই ফসল উৎপাদনে জয়নাল মিয়ার গৃহীত পদক্ষেপের কার্যকারিতা মূল্যায়ন কর। [৪]`}
+                  </pre>
+                </div>
+
+                {/* Short Question Guide */}
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                  <b style={{ color: '#047857', fontSize: '13.5px' }}>৩. সংক্ষিপ্ত-উত্তর প্রশ্ন লেখার নিয়ম:</b>
+                  <pre style={{ background: '#1e293b', color: '#f8fafc', padding: '10px 14px', borderRadius: '6px', fontSize: '12px', overflowX: 'auto', margin: '6px 0 0' }}>
+{`প্রশ্ন: ইনপুট ও আউটপুট ডিভাইসের প্রধান পার্থক্য কী?
+উত্তর: ইনপুট ডিভাইস তথ্য গ্রহণ করে এবং আউটপুট ডিভাইস ফলাফল প্রদর্শন করে।`}
+                  </pre>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setBulkUploadTab('upload')}
+                    style={{ background: '#047857', color: '#fff', border: 'none', padding: '8px 20px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    এবার প্রশ্ন আপলোড করতে যান &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

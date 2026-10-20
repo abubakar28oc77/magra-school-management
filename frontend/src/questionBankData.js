@@ -1937,6 +1937,74 @@ export function deleteQuestionItem(id) {
   return updated;
 }
 
+// Bulk Question Saver for Chapter-Wise Upload
+export function saveBulkQuestions(newQuestionsList) {
+  const existing = getStoredQuestions();
+  const processed = newQuestionsList.map((item, idx) => ({
+    ...item,
+    id: item.id || `q-bulk-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 4)}`,
+    created_at: new Date().toISOString()
+  }));
+  const updated = [...processed, ...existing];
+  try {
+    localStorage.setItem(QUESTIONS_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.error('Failed saving bulk questions:', err);
+  }
+  return updated;
+}
+
+// Custom Chapter Storage Key & Helper Functions
+const CUSTOM_CHAPTERS_KEY = 'magra_custom_chapters';
+
+export function getStoredChapters(subjectId, className) {
+  try {
+    const raw = localStorage.getItem(CUSTOM_CHAPTERS_KEY);
+    if (raw) {
+      const all = JSON.parse(raw);
+      if (all && all[subjectId] && all[subjectId][className] && Array.isArray(all[subjectId][className])) {
+        return all[subjectId][className];
+      }
+    }
+  } catch (e) {
+    console.error('Error reading custom chapters', e);
+  }
+  if (CHAPTERS_DATA[subjectId] && CHAPTERS_DATA[subjectId][className]) {
+    return CHAPTERS_DATA[subjectId][className];
+  }
+  return [];
+}
+
+export function saveCustomChapters(subjectId, className, chaptersList) {
+  try {
+    const raw = localStorage.getItem(CUSTOM_CHAPTERS_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    if (!all[subjectId]) all[subjectId] = {};
+    all[subjectId][className] = chaptersList.filter(ch => ch && typeof ch === 'string' && ch.trim().length > 0);
+    localStorage.setItem(CUSTOM_CHAPTERS_KEY, JSON.stringify(all));
+    return all[subjectId][className];
+  } catch (e) {
+    console.error('Error saving custom chapters', e);
+    return chaptersList;
+  }
+}
+
+export function resetCustomChapters(subjectId, className) {
+  try {
+    const raw = localStorage.getItem(CUSTOM_CHAPTERS_KEY);
+    if (raw) {
+      const all = JSON.parse(raw);
+      if (all[subjectId] && all[subjectId][className]) {
+        delete all[subjectId][className];
+        localStorage.setItem(CUSTOM_CHAPTERS_KEY, JSON.stringify(all));
+      }
+    }
+  } catch (e) {
+    console.error('Error resetting custom chapters', e);
+  }
+  return CHAPTERS_DATA[subjectId]?.[className] || [];
+}
+
 export function getSavedExamPapers() {
   try {
     const raw = localStorage.getItem(SAVED_PAPERS_KEY);
