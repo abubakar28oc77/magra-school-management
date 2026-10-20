@@ -23,7 +23,11 @@ import {
   NCTB_JUNIOR_EVALUATION_SPECS,
   getStoredChapters,
   saveCustomChapters,
-  resetCustomChapters
+  resetCustomChapters,
+  getChapterQuestionCounts,
+  generateRichChapterStock,
+  seedChapterStock,
+  createCustomExamPaper
 } from './questionBankData';
 import schoolLogo from '../public/school-logo.png';
 
@@ -207,7 +211,7 @@ export function parseBengaliQuestions(rawText, questionType, className, subjectI
   return results;
 }
 
-const VALID_TABS = ['generator', 'bank', 'omr', 'saved', 'model'];
+const VALID_TABS = ['generator', 'custom_builder', 'bank', 'omr', 'saved', 'model'];
 
 export function QuestionBankPanel({ sub, setSub }) {
   // Sync tab with sub prop
@@ -322,6 +326,169 @@ export function QuestionBankPanel({ sub, setSub }) {
       }
     }
   }, [currentSubject, genClass]);
+
+  // -------------------------------------------------------------
+  // Custom Exam Builder (Checkbox-based Question Selection) State
+  // -------------------------------------------------------------
+  const [customExamType, setCustomExamType] = useState('annual');
+  const [customExamName, setCustomExamName] = useState('বার্ষিক পরীক্ষা ২০২৬');
+  const [customClass, setCustomClass] = useState('10');
+  const [customDepartment, setCustomDepartment] = useState('সকল বিভাগ');
+  const [customSubjectId, setCustomSubjectId] = useState('bangla1');
+  const [customSelectedChapters, setCustomSelectedChapters] = useState([]);
+  const [customTimeAllowed, setCustomTimeAllowed] = useState('৩ ঘণ্টা');
+  const [customTotalMarks, setCustomTotalMarks] = useState(100);
+  const [customInstructions, setCustomInstructions] = useState('সকল সৃজনশীল ও বহুনির্বাচনি প্রশ্নের উত্তর দেওয়া আবশ্যক।');
+  const [customSelectedQuestionIds, setCustomSelectedQuestionIds] = useState(new Set());
+  const [customFilterType, setCustomFilterType] = useState('all'); // all, cq, mcq, short
+  const [customSearch, setCustomSearch] = useState('');
+
+  const handleCustomExamTypeChange = (type) => {
+    setCustomExamType(type);
+    if (type === 'weekly') {
+      setCustomExamName('সাপ্তাহিক মূল্যায়ন পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('৪০ মিনিট');
+      setCustomTotalMarks(25);
+      setCustomInstructions('সময় ও পূর্ণমান অনুসারে সকল প্রশ্নের উত্তর দাও।');
+    } else if (type === 'monthly') {
+      setCustomExamName('মাসিক মূল্যায়ন পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('১ ঘণ্টা');
+      setCustomTotalMarks(40);
+      setCustomInstructions('সৃজনশীল ও বহুনির্বাচনি অংশ হতে নির্ধারিত প্রশ্নের উত্তর দাও।');
+    } else if (type === 'chapter') {
+      setCustomExamName('অধ্যায় ভিত্তিক ক্লাস টেস্ট ২০২৬');
+      setCustomTimeAllowed('৪৫ মিনিট');
+      setCustomTotalMarks(25);
+      setCustomInstructions('নির্ধারিত অধ্যায়ের ওপর প্রস্তুতকৃত প্রশ্নের সঠিক উত্তর দাও।');
+    } else if (type === 'half_yearly') {
+      setCustomExamName('অর্ধ-বার্ষিক পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('২ ঘণ্টা ৩০ মিনিট');
+      setCustomTotalMarks(100);
+      setCustomInstructions('বিভাগ অনুযায়ী প্রয়োজনীয় সংখ্যক প্রশ্নের উত্তর দাও।');
+    } else if (type === 'pre_test') {
+      setCustomExamName('প্রাক-নির্বাচনি পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('৩ ঘণ্টা');
+      setCustomTotalMarks(100);
+      setCustomInstructions('বোর্ড নীতিমালা অনুসারে প্রতিটি বিভাগের প্রশ্নের উত্তর দাও।');
+    } else if (type === 'test') {
+      setCustomExamName('নির্বাচনি পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('৩ ঘণ্টা');
+      setCustomTotalMarks(100);
+      setCustomInstructions('বোর্ড মডেল অনুযায়ী পূর্ণাঙ্গ উত্তর প্রদান কর।');
+    } else if (type === 'annual') {
+      setCustomExamName('বার্ষিক পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('৩ ঘণ্টা');
+      setCustomTotalMarks(100);
+      setCustomInstructions('সিলেবাস অনুযায়ী সকল বিভাগের প্রশ্নের যথাযথ উত্তর দাও।');
+    } else {
+      setCustomExamName('বিশেষ মূল্যায়ন পরীক্ষা ২০২৬');
+      setCustomTimeAllowed('১ ঘণ্টা ৩০ মিনিট');
+      setCustomTotalMarks(50);
+      setCustomInstructions('');
+    }
+  };
+
+  const customAvailableChapters = useMemo(() => {
+    return getStoredChapters(customSubjectId, customClass);
+  }, [customSubjectId, customClass, chaptersVersion]);
+
+  // Questions matching custom builder class, subject, chapter, type, and search
+  const customVisibleQuestions = useMemo(() => {
+    return questions.filter(q => {
+      if (String(q.class_name) !== String(customClass)) return false;
+      if (q.subject_id !== customSubjectId) return false;
+      if (customSelectedChapters.length > 0 && !customSelectedChapters.includes(q.chapter)) return false;
+      if (customFilterType !== 'all' && q.question_type !== customFilterType) return false;
+      if (customSearch.trim()) {
+        const txt = customSearch.toLowerCase();
+        const matchQ = (q.question_bn || '').toLowerCase().includes(txt);
+        const matchStimulus = (q.stimulus || '').toLowerCase().includes(txt);
+        const matchChapter = (q.chapter || '').toLowerCase().includes(txt);
+        if (!matchQ && !matchStimulus && !matchChapter) return false;
+      }
+      return true;
+    });
+  }, [questions, customClass, customSubjectId, customSelectedChapters, customFilterType, customSearch]);
+
+  const toggleCustomQuestion = (id) => {
+    setCustomSelectedQuestionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllVisibleCustom = (list) => {
+    setCustomSelectedQuestionIds(prev => {
+      const next = new Set(prev);
+      list.forEach(q => next.add(q.id));
+      return next;
+    });
+  };
+
+  const deselectAllCustom = () => {
+    setCustomSelectedQuestionIds(new Set());
+  };
+
+  // Selected questions objects
+  const selectedQuestionsList = useMemo(() => {
+    return questions.filter(q => customSelectedQuestionIds.has(q.id));
+  }, [questions, customSelectedQuestionIds]);
+
+  // Selection statistics
+  const customStats = useMemo(() => {
+    const cqs = selectedQuestionsList.filter(q => q.question_type === 'cq');
+    const mcqs = selectedQuestionsList.filter(q => q.question_type === 'mcq');
+    const shorts = selectedQuestionsList.filter(q => q.question_type === 'short');
+
+    const cqMarks = cqs.reduce((acc, q) => acc + (q.marks || 10), 0);
+    const mcqMarks = mcqs.reduce((acc, q) => acc + (q.marks || 1), 0);
+    const shortMarks = shorts.reduce((acc, q) => acc + (q.marks || 2), 0);
+    const totalSelectedMarks = cqMarks + mcqMarks + shortMarks;
+
+    return {
+      cqCount: cqs.length,
+      cqMarks,
+      mcqCount: mcqs.length,
+      mcqMarks,
+      shortCount: shorts.length,
+      shortMarks,
+      totalCount: selectedQuestionsList.length,
+      totalSelectedMarks,
+      difference: totalSelectedMarks - customTotalMarks
+    };
+  }, [selectedQuestionsList, customTotalMarks]);
+
+  const handleGenerateCustomPaper = () => {
+    if (selectedQuestionsList.length === 0) {
+      alert('দয়া করে পরীক্ষার জন্য অন্তত একটি প্রশ্ন নির্বাচন করুন।');
+      return;
+    }
+    const subMeta = SUBJECT_METADATA.find(s => s.id === customSubjectId);
+    const paper = createCustomExamPaper({
+      schoolName: genSchoolName,
+      examType: customExamType,
+      examName: customExamName,
+      className: customClass,
+      department: customDepartment,
+      subjectId: customSubjectId,
+      subjectName: subMeta ? subMeta.name : customSubjectId,
+      subjectCode: subMeta ? subMeta.code : 101,
+      timeAllowed: customTimeAllowed,
+      totalMarks: Number(customTotalMarks) || customStats.totalSelectedMarks,
+      instructions: customInstructions,
+      selectedQuestions: selectedQuestionsList
+    });
+
+    setActivePaper(paper);
+    switchTab('generator');
+    showToast(`অভিনন্দন! ${customExamName} প্রশ্নপত্র সফলভাবে প্রস্তুত হয়েছে।`);
+    setTimeout(() => {
+      const el = document.getElementById('generated-paper-preview');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  };
 
   // Available chapters for selected subject & class (customized from localStorage or NCTB defaults)
   const availableChapters = useMemo(() => {
@@ -576,6 +743,19 @@ export function QuestionBankPanel({ sub, setSub }) {
         correct_answer: opts[newQForm.correct_index] || opts[0],
         marks: Number(newQForm.marks) || 1,
         explanation: newQForm.explanation || 'সঠিক উত্তর নির্বাচন করা হয়েছে।'
+      };
+    } else if (newQForm.question_type === 'short') {
+      item = {
+        id: 'user-short-' + Date.now().toString(36),
+        class_name: newQForm.class_name,
+        subject_id: newQForm.subject_id,
+        subject_name: subName,
+        chapter: newQForm.chapter || 'সংশ্লিষ্ট অধ্যায়',
+        question_type: 'short',
+        question_bn: newQForm.question_bn,
+        correct_answer: newQForm.sub_q_a || newQForm.explanation || 'সংক্ষিপ্ত উত্তর।',
+        explanation: newQForm.explanation || newQForm.sub_q_a || '',
+        marks: Number(newQForm.marks) || 2
       };
     } else {
       item = {
@@ -937,6 +1117,39 @@ export function QuestionBankPanel({ sub, setSub }) {
         >
           <span>⚡</span>
           <span>১-ক্লিকে প্রশ্ন তৈরী</span>
+        </button>
+
+        <button
+          onClick={() => switchTab('custom_builder')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '13.5px',
+            fontWeight: 700,
+            background: activeTab === 'custom_builder' ? '#047857' : '#f1f5f9',
+            color: activeTab === 'custom_builder' ? '#fff' : '#475569',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <span>📝</span>
+          <span>টিক দিয়ে প্রশ্ন নির্বাচন (কাস্টম পরীক্ষা)</span>
+          {customStats.totalCount > 0 && (
+            <span style={{
+              background: activeTab === 'custom_builder' ? '#ecfdf5' : '#047857',
+              color: activeTab === 'custom_builder' ? '#047857' : '#fff',
+              fontSize: '11px',
+              padding: '1px 7px',
+              borderRadius: '10px',
+              fontWeight: 800
+            }}>
+              {toBn(customStats.totalCount)}
+            </span>
+          )}
         </button>
 
         <button
@@ -1475,7 +1688,7 @@ export function QuestionBankPanel({ sub, setSub }) {
 
           {/* Paper Preview Section */}
           {activePaper ? (
-            <div style={{
+            <div id="generated-paper-preview" style={{
               background: '#ffffff',
               borderRadius: '14px',
               border: '1px solid #cbd5e1',
@@ -2752,6 +2965,571 @@ export function QuestionBankPanel({ sub, setSub }) {
       )}
 
       {/* ========================================================= */}
+      {/* TAB: CUSTOM EXAM BUILDER VIA CHECKBOXES                  */}
+      {/* ========================================================= */}
+      {activeTab === 'custom_builder' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* 1. Exam Setup Card */}
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            border: '1px solid #e2e8f0',
+            padding: '22px 24px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📝</span>
+                  <span>টিক চিহ্নের মাধ্যমে কাস্টম প্রশ্নপত্র প্রস্তুতকরণ</span>
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+                  সাপ্তাহিক, মাসিক, অধ্যায় ভিত্তিক, অর্ধ-বার্ষিক, প্রাক-নির্বাচনি, নির্বাচনি ও বার্ষিক পরীক্ষার জন্য নির্দিষ্ট প্রশ্ন সিলেক্ট করুন।
+                </p>
+              </div>
+            </div>
+
+            {/* Exam Type Preset Pills */}
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                🎯 পরীক্ষার ধরন নির্বাচন করুন (স্বয়ংক্রিয় প্রিসেট):
+              </label>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'weekly', label: '📅 সাপ্তাহিক পরীক্ষা', defaultMarks: 25 },
+                  { id: 'monthly', label: '🗓️ মাসিক পরীক্ষা', defaultMarks: 40 },
+                  { id: 'chapter', label: '📖 অধ্যায় ভিত্তিক টেস্ট', defaultMarks: 25 },
+                  { id: 'half_yearly', label: '🎓 অর্ধ-বার্ষিক পরীক্ষা', defaultMarks: 100 },
+                  { id: 'pre_test', label: '📝 প্রাক-নির্বাচনি পরীক্ষা', defaultMarks: 100 },
+                  { id: 'test', label: '🎯 নির্বাচনি পরীক্ষা', defaultMarks: 100 },
+                  { id: 'annual', label: '🏆 বার্ষিক পরীক্ষা', defaultMarks: 100 },
+                  { id: 'custom', label: '✏️ অন্যান্য কাস্টম পরীক্ষা', defaultMarks: 50 }
+                ].map(preset => {
+                  const isSelected = customExamType === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleCustomExamTypeChange(preset.id)}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: '20px',
+                        border: isSelected ? '2px solid #047857' : '1px solid #cbd5e1',
+                        background: isSelected ? '#ecfdf5' : '#fff',
+                        color: isSelected ? '#047857' : '#475569',
+                        fontWeight: isSelected ? 800 : 600,
+                        fontSize: '12.5px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Grid of Inputs: Exam Name, Class, Subject, Time, Marks */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+              gap: '14px',
+              background: '#f8fafc',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>পরীক্ষার নাম / শিরোনাম:</label>
+                <input
+                  type="text"
+                  value={customExamName}
+                  onChange={e => setCustomExamName(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>শ্রেণি:</label>
+                <select
+                  value={customClass}
+                  onChange={e => {
+                    setCustomClass(e.target.value);
+                    setCustomSelectedChapters([]);
+                  }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                >
+                  <option value="6">৬ষ্ঠ শ্রেণি</option>
+                  <option value="7">৭ম শ্রেণি</option>
+                  <option value="8">৮ম শ্রেণি</option>
+                  <option value="9">৯ম শ্রেণি</option>
+                  <option value="10">১০ম শ্রেণি</option>
+                </select>
+              </div>
+
+              {['9', '10'].includes(customClass) && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>বিভাগ:</label>
+                  <select
+                    value={customDepartment}
+                    onChange={e => setCustomDepartment(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                  >
+                    <option value="সকল বিভাগ">সকল বিভাগ</option>
+                    <option value="বিজ্ঞান">বিজ্ঞান</option>
+                    <option value="মানবিক">মানবিক</option>
+                    <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>বিষয়:</label>
+                <select
+                  value={customSubjectId}
+                  onChange={e => {
+                    setCustomSubjectId(e.target.value);
+                    setCustomSelectedChapters([]);
+                  }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                >
+                  {SUBJECT_METADATA.filter(s => s.classes.includes(customClass)).map(s => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>সময় বরাদ্দ:</label>
+                <input
+                  type="text"
+                  value={customTimeAllowed}
+                  onChange={e => setCustomTimeAllowed(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>লক্ষ্যমাত্রা পূর্ণমান (Marks):</label>
+                <input
+                  type="number"
+                  min={5}
+                  max={100}
+                  value={customTotalMarks}
+                  onChange={e => setCustomTotalMarks(Number(e.target.value))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 700, color: '#047857' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>শিক্ষার্থীদের জন্য বিশেষ নির্দেশনা:</label>
+                <input
+                  type="text"
+                  placeholder="যেমন: সকল বহুনির্বাচনি প্রশ্নের উত্তর আবশ্যক। সৃজনশীল অংশ থেকে যেকোনো ৫টি প্রশ্নের উত্তর দাও।"
+                  value={customInstructions}
+                  onChange={e => setCustomInstructions(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+            </div>
+
+            {/* Chapter Selection Filter for Question Pool */}
+            <div style={{ marginTop: '16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📖</span>
+                  <span>সিলেবাস ও অধ্যায় ফিল্টার (যে যে অধ্যায় থেকে প্রশ্ন নির্বাচন করবেন):</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setCustomSelectedChapters(customAvailableChapters)}
+                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    সব অধ্যায় নির্বাচন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomSelectedChapters([])}
+                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    সব বাতিল (পূর্ণাঙ্গ সিলেবাস)
+                  </button>
+                </div>
+              </div>
+
+              {customAvailableChapters.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '8px' }}>
+                  {customAvailableChapters.map((ch, idx) => {
+                    const isChecked = customSelectedChapters.includes(ch);
+                    return (
+                      <label
+                        key={idx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: isChecked ? '1px solid #10b981' : '1px solid #e2e8f0',
+                          background: isChecked ? '#ecfdf5' : '#f8fafc',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            if (isChecked) {
+                              setCustomSelectedChapters(customSelectedChapters.filter(c => c !== ch));
+                            } else {
+                              setCustomSelectedChapters([...customSelectedChapters, ch]);
+                            }
+                          }}
+                          style={{ accentColor: '#047857', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontWeight: isChecked ? 700 : 500, color: isChecked ? '#065f46' : '#334155' }}>
+                          {ch}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: '#64748b' }}>এই বিষয়ের জন্য কোনো নির্দিষ্ট অধ্যায় তালিকা পাওয়া যায়নি।</div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Sticky Marks & Selection Progress Bar */}
+          <div style={{
+            position: 'sticky',
+            top: '10px',
+            zIndex: 100,
+            background: '#064e3b',
+            color: '#fff',
+            padding: '14px 20px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 20px rgba(6, 78, 59, 0.35)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '11px', color: '#a7f3d0', fontWeight: 600, textTransform: 'uppercase' }}>মোট নির্বাচিত প্রশ্ন</div>
+                <div style={{ fontSize: '20px', fontWeight: 800 }}>
+                  {toBn(customStats.totalCount)} টি
+                </div>
+              </div>
+
+              <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
+
+              <div style={{ display: 'flex', gap: '12px', fontSize: '12.5px', flexWrap: 'wrap' }}>
+                <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
+                  <span>সৃজনশীল (CQ): </span>
+                  <b>{toBn(customStats.cqCount)} টি</b> ({toBn(customStats.cqMarks)} নম্বর)
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
+                  <span>বহুনির্বাচনী (MCQ): </span>
+                  <b>{toBn(customStats.mcqCount)} টি</b> ({toBn(customStats.mcqMarks)} নম্বর)
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.12)', padding: '4px 10px', borderRadius: '8px' }}>
+                  <span>সংক্ষিপ্ত: </span>
+                  <b>{toBn(customStats.shortCount)} টি</b> ({toBn(customStats.shortMarks)} নম্বর)
+                </div>
+              </div>
+
+              <div style={{ height: '32px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
+
+              <div>
+                <div style={{ fontSize: '11px', color: '#fed7aa', fontWeight: 600 }}>বর্তমান মান / লক্ষ্যমাত্রা</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: customStats.totalSelectedMarks === customTotalMarks ? '#86efac' : (customStats.totalSelectedMarks > customTotalMarks ? '#fca5a5' : '#fde047') }}>
+                  {toBn(customStats.totalSelectedMarks)} / {toBn(customTotalMarks)} নম্বর
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={deselectAllCustom}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: 'none',
+                  color: '#fff',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                সব আনচেক
+              </button>
+
+              <button
+                type="button"
+                onClick={handleGenerateCustomPaper}
+                style={{
+                  background: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <span>🖨️</span>
+                <span>পূর্ণাঙ্গ প্রশ্নপত্র তৈরি করুন</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3. Question Filter Tabs & Search */}
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            border: '1px solid #e2e8f0',
+            padding: '18px 22px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {[
+                  { id: 'all', label: 'সকল প্রশ্ন' },
+                  { id: 'cq', label: 'সৃজনশীল প্রশ্ন (CQ)' },
+                  { id: 'mcq', label: 'বহুনির্বাচনী (MCQ)' },
+                  { id: 'short', label: 'সংক্ষিপ্ত উত্তর-প্রশ্ন' }
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setCustomFilterType(t.id)}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      background: customFilterType === t.id ? '#047857' : '#f1f5f9',
+                      color: customFilterType === t.id ? '#fff' : '#475569'
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="প্রশ্নের বিষয়বস্তু খুঁজুন..."
+                  value={customSearch}
+                  onChange={e => setCustomSearch(e.target.value)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', minWidth: '220px' }}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => selectAllVisibleCustom(customVisibleQuestions)}
+                  style={{
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✓ দৃশ্যমান সব নির্বাচন ({toBn(customVisibleQuestions.length)})
+                </button>
+              </div>
+            </div>
+
+            {/* Question List Cards with Checkboxes */}
+            {customVisibleQuestions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {customVisibleQuestions.map((q, idx) => {
+                  const isSelected = customSelectedQuestionIds.has(q.id);
+                  return (
+                    <div
+                      key={q.id || idx}
+                      onClick={() => toggleCustomQuestion(q.id)}
+                      style={{
+                        border: isSelected ? '2px solid #10b981' : '1px solid #e2e8f0',
+                        background: isSelected ? '#f0fdf4' : '#fff',
+                        borderRadius: '10px',
+                        padding: '14px 18px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        position: 'relative',
+                        boxShadow: isSelected ? '0 4px 12px rgba(16, 185, 129, 0.12)' : 'none'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flex: 1 }}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}} // Handled by card click
+                            style={{
+                              width: '18px',
+                              height: '18px',
+                              accentColor: '#047857',
+                              marginTop: '3px',
+                              cursor: 'pointer'
+                            }}
+                          />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                              <span style={{
+                                background: q.question_type === 'mcq' ? '#e0f2fe' : q.question_type === 'short' ? '#f3e8ff' : '#fef3c7',
+                                color: q.question_type === 'mcq' ? '#0369a1' : q.question_type === 'short' ? '#7e22ce' : '#b45309',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                fontSize: '11px',
+                                fontWeight: 800
+                              }}>
+                                {q.question_type === 'mcq' ? 'MCQ (১ নম্বর)' : q.question_type === 'short' ? `সংক্ষিপ্ত (${toBn(q.marks || 2)} নম্বর)` : 'CQ সৃজনশীল (১০ নম্বর)'}
+                              </span>
+                              <span style={{ fontSize: '11.5px', color: '#047857', fontWeight: 700 }}>
+                                🏷️ {q.chapter}
+                              </span>
+                            </div>
+
+                            {/* Question Content */}
+                            {q.question_type === 'mcq' ? (
+                              <div>
+                                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a', marginBottom: '8px', lineHeight: 1.45 }}>
+                                  {q.question_bn}
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '6px', fontSize: '12px', background: isSelected ? '#ffffff' : '#f8fafc', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                  {q.options && q.options.map((opt, oIdx) => (
+                                    <div
+                                      key={oIdx}
+                                      style={{
+                                        color: q.correct_index === oIdx ? '#166534' : '#475569',
+                                        fontWeight: q.correct_index === oIdx ? 800 : 400
+                                      }}
+                                    >
+                                      ({['ক', 'খ', 'গ', 'ঘ'][oIdx]}) {opt} {q.correct_index === oIdx && '✓'}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : q.question_type === 'short' ? (
+                              <div>
+                                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a', marginBottom: '6px', lineHeight: 1.45 }}>
+                                  {q.question_bn}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#166534', background: isSelected ? '#ffffff' : '#f8fafc', padding: '6px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                                  <b>উত্তর:</b> {q.correct_answer || q.explanation}
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <div style={{ background: isSelected ? '#ffffff' : '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 12px', borderRadius: '6px', fontSize: '12.5px', color: '#334155', marginBottom: '8px', lineHeight: 1.45 }}>
+                                  <b>উদ্দীপক:</b> {q.stimulus}
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
+                                  {q.sub_questions && q.sub_questions.map((sub, sIdx) => (
+                                    <div key={sIdx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                      <span><b>({sub.label})</b> {sub.text}</span>
+                                      <b>[{toBn(sub.marks)}]</b>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <span style={{
+                            fontSize: '12px',
+                            fontWeight: 800,
+                            color: isSelected ? '#047857' : '#94a3b8',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            {isSelected ? '✓ নির্বাচিত' : '+ যোগ করুন'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '36px', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📭</div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a' }}>
+                  নির্বাচিত অধ্যায়ে এই মুহূর্তে কোনো প্রশ্ন পাওয়া যায়নি
+                </h4>
+                <p style={{ margin: '0 0 16px', fontSize: '12.5px', color: '#64748b' }}>
+                  আপনি নিচের বাটনে ক্লিক করে এক ক্লিকে ১০০+ MCQ, ২০+ CQ ও ৫০+ সংক্ষিপ্ত প্রশ্ন মজুত করে নিতে পারেন অথবা নতুন প্রশ্ন আপলোড করতে পারেন।
+                </p>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ch = customSelectedChapters[0] || (customAvailableChapters[0] || '১ম অধ্যায়');
+                      const subMeta = SUBJECT_METADATA.find(s => s.id === customSubjectId);
+                      const res = seedChapterStock(customClass, customSubjectId, subMeta ? subMeta.name : customSubjectId, ch);
+                      setQuestions(res.updatedList);
+                      showToast(`'${ch}' অধ্যায়ে নতুন ${toBn(res.added)}টি প্রশ্ন মজুত করা হয়েছে!`);
+                    }}
+                    style={{
+                      background: '#047857',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ⚡ এই অধ্যায়ে ১০০+ MCQ, ২০+ CQ ও ৫০+ সংক্ষিপ্ত প্রশ্ন মজুত করুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenBulkUpload(customSubjectId, customClass)}
+                    style={{
+                      background: '#eff6ff',
+                      color: '#1d4ed8',
+                      border: '1px solid #bfdbfe',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📥 প্রশ্ন আপলোড করুন
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
       {/* TAB 2: OMR EVALUATOR & BUBBLE SHEET                       */}
       {/* ========================================================= */}
       {activeTab === 'omr' && (
@@ -3417,9 +4195,10 @@ export function QuestionBankPanel({ sub, setSub }) {
                 onChange={e => setBankType(e.target.value)}
                 style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
               >
-                <option value="all">সব ধরন (MCQ + CQ)</option>
+                <option value="all">সব ধরন (MCQ + CQ + সংক্ষিপ্ত)</option>
                 <option value="mcq">বহুনির্বাচনী (MCQ)</option>
                 <option value="cq">সৃজনশীল (CQ)</option>
+                <option value="short">সংক্ষিপ্ত উত্তর-প্রশ্ন</option>
               </select>
             </div>
 
@@ -3434,6 +4213,192 @@ export function QuestionBankPanel({ sub, setSub }) {
               />
             </div>
           </div>
+
+          {/* Chapter Stock & Inventory Tracker Card */}
+          {(() => {
+            const currentBankClass = bankClass !== 'all' ? bankClass : '10';
+            const currentBankSubId = bankSubject !== 'all' ? bankSubject : 'bangla1';
+            const subMeta = SUBJECT_METADATA.find(s => s.id === currentBankSubId);
+            const chList = getStoredChapters(currentBankSubId, currentBankClass);
+            const stockCounts = getChapterQuestionCounts(questions, currentBankClass, currentBankSubId);
+
+            return (
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '22px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>📊</span>
+                      <span>অধ্যায়ভিত্তিক প্রশ্ন মজুত মনিটর: {subMeta ? subMeta.name : currentBankSubId} ({toBn(currentBankClass)}ম শ্রেণি)</span>
+                    </h4>
+                    <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#64748b' }}>
+                      প্রতিটি অধ্যায়ে ১০০+ MCQ, ২০+ CQ ও ৫০+ সংক্ষিপ্ত প্রশ্ন মজুতের বর্তমান অবস্থা ও এক ক্লিকে মজুত পূরণ।
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      let totalAdded = 0;
+                      let currentList = getStoredQuestions();
+                      chList.forEach(ch => {
+                        const res = seedChapterStock(currentBankClass, currentBankSubId, subMeta ? subMeta.name : currentBankSubId, ch, { mcq: 100, cq: 20, short: 50 });
+                        totalAdded += res.added;
+                        currentList = res.updatedList;
+                      });
+                      setQuestions(currentList);
+                      showToast(`সকল অধ্যায়ে মোট ${toBn(totalAdded)}টি নতুন প্রশ্ন স্বয়ংক্রিয়ভাবে মজুত করা হয়েছে!`);
+                    }}
+                    style={{
+                      background: '#047857',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontSize: '12.5px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(4, 120, 87, 0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>⚡</span>
+                    <span>সকল অধ্যায়ে ১০০+ MCQ, ২০+ CQ ও ৫০+ সংক্ষিপ্ত মজুত দিয়ে পূরণ করুন</span>
+                  </button>
+                </div>
+
+                {chList.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                    {chList.map((ch, idx) => {
+                      const counts = stockCounts[ch] || { mcq: 0, cq: 0, short: 0, total: 0 };
+                      const mcqOk = counts.mcq >= 100;
+                      const cqOk = counts.cq >= 20;
+                      const shortOk = counts.short >= 50;
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            background: '#fff',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '10px',
+                            padding: '12px 14px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '8px'
+                          }}
+                        >
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
+                              📖 {ch}
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', fontSize: '11px' }}>
+                              <span style={{
+                                background: mcqOk ? '#dcfce7' : '#fee2e2',
+                                color: mcqOk ? '#15803d' : '#b91c1c',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 700
+                              }}>
+                                MCQ: {toBn(counts.mcq)} / ১০০+ {mcqOk ? '✓' : ''}
+                              </span>
+
+                              <span style={{
+                                background: cqOk ? '#dcfce7' : '#fee2e2',
+                                color: cqOk ? '#15803d' : '#b91c1c',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 700
+                              }}>
+                                CQ: {toBn(counts.cq)} / ২০+ {cqOk ? '✓' : ''}
+                              </span>
+
+                              <span style={{
+                                background: shortOk ? '#dcfce7' : '#fee2e2',
+                                color: shortOk ? '#15803d' : '#b91c1c',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: 700
+                              }}>
+                                সংক্ষিপ্ত: {toBn(counts.short)} / ৫০+ {shortOk ? '✓' : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px', borderTop: '1px dashed #e2e8f0', paddingTop: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              onClick={() => setBankSearch(ch.replace(/^\d+[মর্থষ্ঠতম\.\:\-\s]+/, '').trim())}
+                              style={{
+                                background: '#f1f5f9',
+                                border: '1px solid #cbd5e1',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              📋 প্রশ্ন দেখুন
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenBulkUpload(currentBankSubId, currentBankClass, ch)}
+                              style={{
+                                background: '#eff6ff',
+                                color: '#1d4ed8',
+                                border: '1px solid #bfdbfe',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              📥 আপলোড
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const res = seedChapterStock(currentBankClass, currentBankSubId, subMeta ? subMeta.name : currentBankSubId, ch);
+                                setQuestions(res.updatedList);
+                                showToast(`'${ch}' অধ্যায়ে নতুন ${toBn(res.added)}টি প্রশ্ন মজুত করা হয়েছে!`);
+                              }}
+                              style={{
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ⚡ মজুত পূরণ
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>এই বিষয়ের জন্য কোনো নির্দিষ্ট অধ্যায় পাওয়া যায়নি।</div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Questions Grid Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
@@ -3457,14 +4422,14 @@ export function QuestionBankPanel({ sub, setSub }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                       <span style={{
-                        background: q.question_type === 'mcq' ? '#e0f2fe' : '#fef3c7',
-                        color: q.question_type === 'mcq' ? '#0369a1' : '#b45309',
+                        background: q.question_type === 'mcq' ? '#e0f2fe' : q.question_type === 'short' ? '#f3e8ff' : '#fef3c7',
+                        color: q.question_type === 'mcq' ? '#0369a1' : q.question_type === 'short' ? '#7e22ce' : '#b45309',
                         padding: '2px 8px',
                         borderRadius: '6px',
                         fontSize: '11px',
                         fontWeight: 800
                       }}>
-                        {q.question_type === 'mcq' ? 'MCQ' : 'CQ (সৃজনশীল)'}
+                        {q.question_type === 'mcq' ? 'MCQ' : q.question_type === 'short' ? 'সংক্ষিপ্ত' : 'CQ (সৃজনশীল)'}
                       </span>
                       <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>
                         {toBn(q.class_name)}ম শ্রেণি • {q.subject_name || q.subject_id}
@@ -3501,6 +4466,15 @@ export function QuestionBankPanel({ sub, setSub }) {
                             ({['ক', 'খ', 'গ', 'ঘ'][oIdx]}) {opt} {q.correct_index === oIdx && '✓'}
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  ) : q.question_type === 'short' ? (
+                    <div>
+                      <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: '#0f172a', lineHeight: 1.45 }}>
+                        {q.question_bn}
+                      </p>
+                      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 10px', borderRadius: '6px', fontSize: '12px', color: '#166534', lineHeight: 1.45 }}>
+                        <b>উত্তর:</b> {q.correct_answer || q.explanation || 'সংক্ষিপ্ত উত্তর নির্দেশিত।'}
                       </div>
                     </div>
                   ) : (
@@ -3611,6 +4585,7 @@ export function QuestionBankPanel({ sub, setSub }) {
                       >
                         <option value="mcq">বহুনির্বাচনী (MCQ)</option>
                         <option value="cq">সৃজনশীল (CQ)</option>
+                        <option value="short">সংক্ষিপ্ত উত্তর-প্রশ্ন</option>
                       </select>
                     </div>
                   </div>
@@ -3672,6 +4647,42 @@ export function QuestionBankPanel({ sub, setSub }) {
                           <option value={2}>বিকল্প (গ) সঠিক</option>
                           <option value={3}>বিকল্প (ঘ) সঠিক</option>
                         </select>
+                      </div>
+                    </>
+                  ) : newQForm.question_type === 'short' ? (
+                    <>
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>সংক্ষিপ্ত প্রশ্ন (বাংলায়):</label>
+                        <textarea
+                          rows={2}
+                          placeholder="সংক্ষিপ্ত প্রশ্ন লিখুন..."
+                          value={newQForm.question_bn}
+                          onChange={e => setNewQForm({ ...newQForm, question_bn: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>আদর্শ উত্তর / তথ্য:</label>
+                        <textarea
+                          rows={2}
+                          placeholder="সংক্ষিপ্ত ও নির্ভুল উত্তর লিখুন..."
+                          value={newQForm.sub_q_a}
+                          onChange={e => setNewQForm({ ...newQForm, sub_q_a: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                        />
+                      </div>
+
+                      <div style={{ marginBottom: '12px' }}>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>নম্বর (Marks):</label>
+                        <input
+                          type="number"
+                          value={newQForm.marks || 2}
+                          onChange={e => setNewQForm({ ...newQForm, marks: Number(e.target.value) })}
+                          style={{ width: '100%', padding: '7px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
                       </div>
                     </>
                   ) : (
