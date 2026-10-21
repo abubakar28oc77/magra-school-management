@@ -1620,155 +1620,249 @@ function EventParticipantsPanel(){
  return <div className="module-grid"><div className="form-card"><span className="eyebrow">EVENT PARTICIPANTS</span><h2>ইভেন্ট নির্বাচন</h2><select value={eventId} onChange={e=>setEventId(e.target.value)}><option value="">ইভেন্ট নির্বাচন করুন</option>{events.map(x=><option key={x.id} value={x.id}>{x.title_bn} {x.event_date?`— ${x.event_date}`:''}</option>)}</select>{eventId&&<form onSubmit={add} className="form-grid"><select value={form.student_id} onChange={e=>setForm({...form,student_id:e.target.value})} required><option value="">শিক্ষার্থী *</option>{students.map(x=><option key={x.id} value={x.id}>{x.name_bn} — {x.student_id}</option>)}</select><input placeholder="ভূমিকা (যেমন: খেলোয়াড়)" value={form.role} onChange={e=>setForm({...form,role:e.target.value})}/><input placeholder="অবস্থান/পুরস্কার" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/><textarea className="full" placeholder="মন্তব্য" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/><button className="btn full">অংশগ্রহণকারী যোগ করুন</button></form>}{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>অংশগ্রহণকারীর তালিকা</h2><span>{participants.length} জন</span></div><div className="table-wrap"><table><thead><tr><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>ভূমিকা</th><th>অবস্থান/পুরস্কার</th><th></th></tr></thead><tbody>{participants.map(p=><tr key={p.id}><td>{p.name_bn}<small>{p.student_id}</small></td><td>{p.class_name}</td><td>{p.role||'—'}</td><td>{p.position||'—'}</td><td><button className="mini" onClick={()=>remove(p.id)}>বাদ দিন</button></td></tr>)}{!participants.length&&<tr><td colSpan="5">ইভেন্ট নির্বাচন করলে অংশগ্রহণকারীর তালিকা দেখা যাবে।</td></tr>}</tbody></table></div></div></div>
 }
 function ClubSubmissionsPanel() {
- const [submissions, setSubmissions] = useState([]);
- const [filter, setFilter] = useState('all');
- const [msg, setMsg] = useState('');
- const [reading, setReading] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [clubFilter, setClubFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [msg, setMsg] = useState('');
+  const [reading, setReading] = useState(null);
 
- const load = () => {
-   api('/club-submissions').then(res => {
-     if (Array.isArray(res)) setSubmissions(res);
-   }).catch(e => setMsg(e.message));
- };
- useEffect(load, []);
+  const load = () => {
+    api('/club-submissions').then(res => {
+      if (Array.isArray(res)) setSubmissions(res);
+    }).catch(e => setMsg(e.message));
+  };
+  useEffect(load, []);
 
- async function approve(id) {
-   try {
-     await api('/club-submissions/' + id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
-     setMsg('লেখাটি অনুমোদিত হয়েছে এবং দেয়াল পত্রিকায় প্রকাশের জন্য প্রস্তুত।');
-     load();
-   } catch(e) { setMsg(e.message); }
- }
+  async function approve(id) {
+    try {
+      await api('/club-submissions/' + id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
+      setMsg('✓ আবেদনটি সফলভাবে অনুমোদিত হয়েছে এবং ক্লাব শোকেসে যুক্ত হয়েছে।');
+      load();
+    } catch(e) { setMsg(e.message); }
+  }
 
- async function remove(id) {
-   if (!confirm('এই লেখা বা আবেদনটি মুছে ফেলবেন?')) return;
-   try {
-     await api('/club-submissions/' + id, { method: 'DELETE' });
-     setMsg('আবেদনটি মুছে ফেলা হয়েছে।');
-     load();
-   } catch(e) { setMsg(e.message); }
- }
+  async function remove(id) {
+    if (!confirm('এই লেখা বা প্রজেক্ট আবেদনটি মুছে ফেলবেন?')) return;
+    try {
+      await api('/club-submissions/' + id, { method: 'DELETE' });
+      setMsg('আবেদনটি মুছে ফেলা হয়েছে।');
+      load();
+    } catch(e) { setMsg(e.message); }
+  }
 
- async function publishToContent(item) {
-   try {
-     await api('/content', {
-       method: 'POST',
-       body: JSON.stringify({
-         content_type: 'event',
-         title_bn: `দেয়াল পত্রিকা 'কিশলয়': ${item.title} — ${item.student_name}`,
-         description: item.content,
-         location: `শ্রেণি ${item.class_name}, রোল ${item.roll_no || '—'}`,
-         event_date: new Date().toISOString().slice(0, 10),
-         status: 'published'
-       })
-     });
-     await api('/club-submissions/' + item.id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
-     setMsg('✓ লেখাটি বিদ্যালয়ের দেয়াল পত্রিকা ও সহশিক্ষা কনটেন্টে সফলভাবে প্রকাশিত হয়েছে!');
-     load();
-   } catch(e) { setMsg(e.message); }
- }
+  async function publishToContent(item) {
+    try {
+      const cId = item.club_id || (item.tracking_id?.startsWith('DEB') ? 'debate' : item.tracking_id?.startsWith('SCI') ? 'science' : item.tracking_id?.startsWith('ICT') ? 'ict' : 'literature');
+      const prefix = cId === 'debate' ? 'মগড়া ডিবেট যুক্তিমঞ্চ' :
+                     cId === 'science' ? 'খুদে বিজ্ঞানীর উদ্ভাবন' :
+                     cId === 'ict' ? 'ডিজিটাল আইসিটি শোকেস' :
+                     "দেয়াল পত্রিকা 'কিশলয়'";
+      await api('/content', {
+        method: 'POST',
+        body: JSON.stringify({
+          content_type: 'club',
+          title_bn: `${prefix}: ${item.title} — ${item.student_name}`,
+          description: item.content,
+          location: `শ্রেণি ${item.class_name}, রোল ${item.roll_no || '—'}`,
+          event_date: new Date().toISOString().slice(0, 10),
+          status: 'published'
+        })
+      });
+      await api('/club-submissions/' + item.id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
+      setMsg('✓ লেখাটি বিদ্যালয়ের সহশিক্ষা ও ক্লাব কনটেন্টে সফলভাবে প্রকাশিত হয়েছে!');
+      load();
+    } catch(e) { setMsg(e.message); }
+  }
 
- const visible = submissions.filter(s => {
-   if (filter === 'all') return true;
-   if (filter === 'pending') return s.status === 'pending';
-   if (filter === 'approved') return s.status === 'approved';
-   if (filter === 'membership') return s.type === 'membership';
-   return true;
- });
+  const visible = submissions.filter(s => {
+    const cId = s.club_id || (s.tracking_id?.startsWith('DEB') ? 'debate' : s.tracking_id?.startsWith('SCI') ? 'science' : s.tracking_id?.startsWith('ICT') ? 'ict' : 'literature');
+    if (clubFilter !== 'all' && cId !== clubFilter) return false;
+    if (statusFilter === 'pending' && s.status !== 'pending') return false;
+    if (statusFilter === 'approved' && s.status !== 'approved') return false;
+    if (statusFilter === 'membership' && s.type !== 'membership') return false;
+    return true;
+  });
 
- return (
-   <div className="module-grid">
-     <div className="form-card full" style={{ gridColumn: '1 / -1' }}>
-       <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px' }}>
-         <div>
-           <span className="eyebrow">LANGUAGE & LITERATURE CLUB DESK</span>
-           <h2>দেয়াল পত্রিকা ‘কিশলয়’-এর শিক্ষার্থী লেখা ও সদস্যপদ আবেদন তালিকা</h2>
-         </div>
-         <div className="filters" style={{ margin: 0 }}>
-           <select value={filter} onChange={e => setFilter(e.target.value)}>
-             <option value="all">সকল আবেদন ও লেখা ({submissions.length})</option>
-             <option value="pending">অপেক্ষমাণ (Pending)</option>
-             <option value="approved">অনুমোদিত (Approved)</option>
-             <option value="membership">সদস্যপদ আবেদন</option>
-           </select>
-         </div>
-       </div>
+  return (
+    <div className="module-grid">
+      <div className="form-card full" style={{ gridColumn: '1 / -1' }}>
+        {/* Moderation Guidance Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          color: '#ffffff',
+          padding: '16px 20px',
+          borderRadius: '10px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div>
+            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+              মডারেটর ও সহশিক্ষা শিক্ষক প্যানেল
+            </span>
+            <h2 style={{ margin: '4px 0 2px 0', fontSize: '18px', color: '#ffffff' }}>
+              সহশিক্ষা ও স্কুল ক্লাব ম্যানেজমেন্ট ডেস্ক
+            </h2>
+            <p style={{ margin: 0, fontSize: '12.5px', opacity: 0.9 }}>
+              দায়িত্বপ্রাপ্ত শিক্ষকমণ্ডলী এখান থেকে নিজ নিজ ক্লাবের জমা পড়া লেখা, বিতর্ক প্রস্তাবনা, সায়েন্স প্রজেক্ট ও সদস্যপদ স্ক্রুটিনি করে ১-ক্লিকে অনুমোদন ও সাইটে প্রকাশ করতে পারেন।
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: '11.5px' }}>
+            <span style={{ background: '#312e81', padding: '4px 8px', borderRadius: '4px' }}>🎤 ডিবেট: খালেক ও আশরাফুল</span>
+            <span style={{ background: '#047857', padding: '4px 8px', borderRadius: '4px' }}>🔬 বিজ্ঞান: হাবিবুর ও রফিকুল</span>
+            <span style={{ background: '#0284c7', padding: '4px 8px', borderRadius: '4px' }}>💻 আইসিটি: আবুবকর সিদ্দিক</span>
+            <span style={{ background: '#b45309', padding: '4px 8px', borderRadius: '4px' }}>📚 সাহিত্য: খালেক ও আশরাফুল</span>
+          </div>
+        </div>
 
-       {msg && <p className="msg" style={{ margin: '8px 0' }}>{msg}</p>}
+        {/* Filters Toolbar */}
+        <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className={`mini ${clubFilter === 'all' ? 'btn' : 'btn-ghost'}`}
+              onClick={() => setClubFilter('all')}
+            >
+              সকল ক্লাব ({submissions.length})
+            </button>
+            <button
+              type="button"
+              className={`mini ${clubFilter === 'literature' ? 'btn' : 'btn-ghost'}`}
+              onClick={() => setClubFilter('literature')}
+            >
+              📚 সাহিত্য ('কিশলয়')
+            </button>
+            <button
+              type="button"
+              className={`mini ${clubFilter === 'debate' ? 'btn' : 'btn-ghost'}`}
+              onClick={() => setClubFilter('debate')}
+            >
+              🎤 ডিবেটিং ক্লাব
+            </button>
+            <button
+              type="button"
+              className={`mini ${clubFilter === 'science' ? 'btn' : 'btn-ghost'}`}
+              onClick={() => setClubFilter('science')}
+            >
+              🔬 বিজ্ঞান ক্লাব
+            </button>
+            <button
+              type="button"
+              className={`mini ${clubFilter === 'ict' ? 'btn' : 'btn-ghost'}`}
+              onClick={() => setClubFilter('ict')}
+            >
+              💻 আইসিটি ক্লাব
+            </button>
+          </div>
 
-       <div className="table-wrap">
-         <table>
-           <thead>
-             <tr>
-               <th>ট্র্যাকিং আইডি</th>
-               <th>শিক্ষার্থীর নাম</th>
-               <th>শ্রেণি ও রোল</th>
-               <th>ধরন</th>
-               <th>শিরোনাম</th>
-               <th>তারিখ</th>
-               <th>অবস্থা</th>
-               <th>কাজ</th>
-             </tr>
-           </thead>
-           <tbody>
-             {visible.map(s => (
-               <tr key={s.id}>
-                 <td><code>{s.tracking_id || s.id}</code></td>
-                 <td><b>{s.student_name}</b><br/><small>{s.mobile || '—'}</small></td>
-                 <td>শ্রেণি {s.class_name} {s.roll_no ? `• রোল ${s.roll_no}` : ''}</td>
-                 <td><span className="badge">{s.type_label || s.type}</span></td>
-                 <td><b>{s.title}</b></td>
-                 <td>{s.submitted_at || '—'}</td>
-                 <td>
-                   {s.status === 'approved' ? (
-                     <span className="status-green">✓ অনুমোদিত</span>
-                   ) : (
-                     <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
-                       ⏳ অপেক্ষমাণ
-                     </span>
-                   )}
-                 </td>
-                 <td>
-                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                     <button className="mini" onClick={() => setReading(s)}>পড়ুন</button>
-                     {s.status !== 'approved' && (
-                       <button className="mini" style={{ background: '#047857', color: '#fff' }} onClick={() => approve(s.id)}>অনুমোদন</button>
-                     )}
-                     <button className="mini" style={{ background: '#1e3a8a', color: '#fff' }} onClick={() => publishToContent(s)}>প্রকাশ করুন</button>
-                     <button className="mini" onClick={() => remove(s.id)}>মুছুন</button>
-                   </div>
-                 </td>
-               </tr>
-             ))}
-             {!visible.length && (
-               <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>কোনো জমা দেওয়া লেখা বা আবেদন পাওয়া যায়নি।</td></tr>
-             )}
-           </tbody>
-         </table>
-       </div>
-     </div>
+          <div className="filters" style={{ margin: 0 }}>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+              <option value="all">সকল অবস্থা</option>
+              <option value="pending">⏳ অপেক্ষমাণ (Pending)</option>
+              <option value="approved">✓ অনুমোদিত (Approved)</option>
+              <option value="membership">👥 সদস্যপদ আবেদন</option>
+            </select>
+          </div>
+        </div>
 
-     {reading && (
-       <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setReading(null)}>
-         <div className="lightbox-card" style={{ maxWidth: '600px', width: '92%' }} onClick={e => e.stopPropagation()}>
-           <button className="lightbox-close" onClick={() => setReading(null)}>×</button>
-           <span className="badge" style={{ marginBottom: '8px', display: 'inline-block' }}>{reading.type_label} • শ্রেণি {reading.class_name}</span>
-           <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#0f172a' }}>{reading.title}</h3>
-           <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>
-             লেখক: {reading.student_name} (রোল {reading.roll_no || '—'}) • মোবাইল: {reading.mobile || '—'}
-           </p>
-           <div style={{ background: '#fdfbf7', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', lineHeight: '1.8', fontSize: '14px', maxHeight: '50vh', overflowY: 'auto' }}>
-             {reading.content}
-           </div>
-           <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-             <button className="btn" onClick={() => { publishToContent(reading); setReading(null); }}>📰 দেয়াল পত্রিকায় প্রকাশ করুন</button>
-             <button className="btn btn-ghost" onClick={() => setReading(null)}>বন্ধ করুন</button>
-           </div>
-         </div>
-       </div>
-     )}
-   </div>
- );
+        {msg && <p className="msg" style={{ margin: '8px 0' }}>{msg}</p>}
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ট্র্যাকিং আইডি</th>
+                <th>ক্লাব</th>
+                <th>শিক্ষার্থীর নাম</th>
+                <th>শ্রেণি ও রোল</th>
+                <th>ধরন</th>
+                <th>শিরোনাম / প্রজেক্ট</th>
+                <th>তারিখ</th>
+                <th>অবস্থা</th>
+                <th>কাজ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map(s => {
+                const cId = s.club_id || (s.tracking_id?.startsWith('DEB') ? 'debate' : s.tracking_id?.startsWith('SCI') ? 'science' : s.tracking_id?.startsWith('ICT') ? 'ict' : 'literature');
+                const badgeColor = cId === 'debate' ? '#312e81' : cId === 'science' ? '#047857' : cId === 'ict' ? '#0284c7' : '#b45309';
+                const cName = cId === 'debate' ? 'ডিবেট' : cId === 'science' ? 'বিজ্ঞান' : cId === 'ict' ? 'আইসিটি' : 'সাহিত্য';
+                return (
+                  <tr key={s.id}>
+                    <td><code>{s.tracking_id || s.id}</code></td>
+                    <td>
+                      <span style={{ background: badgeColor, color: '#fff', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 800 }}>
+                        {cName}
+                      </span>
+                    </td>
+                    <td><b>{s.student_name}</b><br/><small>{s.mobile || '—'}</small></td>
+                    <td>শ্রেণি {s.class_name} {s.roll_no ? `• রোল ${s.roll_no}` : ''}</td>
+                    <td><span className="badge">{s.type_label || s.type}</span></td>
+                    <td><b>{s.title}</b></td>
+                    <td>{s.submitted_at || '—'}</td>
+                    <td>
+                      {s.status === 'approved' ? (
+                        <span className="status-green">✓ অনুমোদিত</span>
+                      ) : (
+                        <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                          ⏳ অপেক্ষমাণ
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        <button type="button" className="mini" onClick={() => setReading(s)}>পড়ুন</button>
+                        {s.status !== 'approved' && (
+                          <button type="button" className="mini" style={{ background: '#047857', color: '#fff' }} onClick={() => approve(s.id)}>অনুমোদন</button>
+                        )}
+                        <button type="button" className="mini" style={{ background: '#1e3a8a', color: '#fff' }} onClick={() => publishToContent(s)}>প্রকাশ করুন</button>
+                        <button type="button" className="mini" onClick={() => remove(s.id)}>মুছুন</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {!visible.length && (
+                <tr><td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>কোনো জমা দেওয়া লেখা বা প্রজেক্ট পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {reading && (
+        <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setReading(null)}>
+          <div className="lightbox-card" style={{ maxWidth: '640px', width: '92%' }} onClick={e => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setReading(null)}>×</button>
+            <span className="badge" style={{ marginBottom: '8px', display: 'inline-block' }}>
+              {reading.club_name || 'স্কুল ক্লাব'} • {reading.type_label || reading.type} • শ্রেণি {reading.class_name}
+            </span>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#0f172a' }}>{reading.title}</h3>
+            <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>
+              শিক্ষার্থী: {reading.student_name} (রোল {reading.roll_no || '—'}) • যোগাযোগ: {reading.mobile || '—'}
+            </p>
+            <div style={{ background: '#fdfbf7', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', lineHeight: '1.8', fontSize: '14px', maxHeight: '50vh', overflowY: 'auto' }}>
+              {reading.content}
+            </div>
+            <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              {reading.status !== 'approved' && (
+                <button type="button" className="btn" style={{ background: '#047857' }} onClick={() => { approve(reading.id); setReading(null); }}>
+                  ✓ অনুমোদন করুন
+                </button>
+              )}
+              <button type="button" className="btn" onClick={() => { publishToContent(reading); setReading(null); }}>
+                🌐 পাবলিক সাইটে প্রকাশ করুন
+              </button>
+              <button type="button" className="btn btn-ghost" onClick={() => setReading(null)}>বন্ধ করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ContentPanel({ sub }){

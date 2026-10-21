@@ -1043,9 +1043,11 @@ function handleMockRequest(path, opts = {}) {
       {
         id: 'sub-1',
         tracking_id: 'LIT-2026-101',
+        club_id: 'literature',
+        club_name: 'ভাষা ও সাহিত্য ক্লাব',
         student_name: 'ফারজানা মেহজাবীন',
         class_name: '৯',
-        roll_no: '১',
+        roll_no: '৩',
         mobile: '01712-345678',
         type: 'poem',
         type_label: 'স্বরচিত কবিতা',
@@ -1057,6 +1059,8 @@ function handleMockRequest(path, opts = {}) {
       {
         id: 'sub-2',
         tracking_id: 'LIT-2026-102',
+        club_id: 'literature',
+        club_name: 'ভাষা ও সাহিত্য ক্লাব',
         student_name: 'তানভীর আহমেদ',
         class_name: '১০',
         roll_no: '১',
@@ -1070,33 +1074,93 @@ function handleMockRequest(path, opts = {}) {
       },
       {
         id: 'sub-3',
-        tracking_id: 'LIT-2026-103',
+        tracking_id: 'DEB-2026-201',
+        club_id: 'debate',
+        club_name: 'ডিবেটিং ক্লাব',
+        student_name: 'রাহাত হাসান',
+        class_name: '১০',
+        roll_no: '৫',
+        mobile: '01718-445566',
+        type: 'motion',
+        type_label: 'বিতর্ক মোশন ও যুক্তি কাঠামো',
+        title: 'কৃত্রিম বুদ্ধিমত্তা (AI) শিক্ষার জন্য হুমকি নয় বরং সহায়ক শক্তি',
+        content: 'সংসদীয় বিতর্ক প্রস্তাবনা:\n১. এআই শিক্ষকদের বিকল্প নয়, বরং শিক্ষার ব্যক্তিগতকরণে অনন্য সহায়ক।\n২. গ্রামীণ শিক্ষার্থীদের বিশ্বমানের কনটেন্ট প্রাপ্তিতে ভাষা বাধা দূর করছে।\n৩. শিক্ষকদের প্রশাসনিক কাজের সময় বাঁচিয়ে সরাসরি শিক্ষাদানে মনোযোগ বৃদ্ধিতে সাহায্য করে।',
+        status: 'approved',
+        submitted_at: '2026-02-22'
+      },
+      {
+        id: 'sub-4',
+        tracking_id: 'SCI-2026-301',
+        club_id: 'science',
+        club_name: 'বিজ্ঞান ক্লাব',
+        student_name: 'তানভীর আহমেদ ও রাহাত হাসান',
+        class_name: '১০',
+        roll_no: '১',
+        mobile: '01711-223344',
+        type: 'project',
+        type_label: 'উদ্ভাবনী বিজ্ঞান প্রজেক্ট',
+        title: 'স্বয়ংক্রিয় সৌরচালিত স্মার্ট সেচ ও মাটি আর্দ্রতা নির্ণায়ক যন্ত্র',
+        content: 'প্রকল্প সারসংক্ষেপ:\nসোলার প্যানেল, আর্দ্রতা সেন্সর ও মাইক্রোকন্ট্রোলার ব্যবহার করে তৈরি স্বয়ংক্রিয় সেচ ব্যবস্থা। মাটির আর্দ্রতা ৩০%-এর নিচে নামলে স্বয়ংক্রিয়ভাবে পাম্প চালু হবে এবং পর্যাপ্ত আর্দ্রতায় বন্ধ হয়ে যাবে। এতে কৃষকের ৪০% বিদ্যুৎ ও পানি সাশ্রয় হবে।',
+        status: 'approved',
+        submitted_at: '2026-02-24'
+      },
+      {
+        id: 'sub-5',
+        tracking_id: 'ICT-2026-401',
+        club_id: 'ict',
+        club_name: 'আইসিটি ও প্রোগ্রামিং ক্লাব',
+        student_name: 'ফারজানা মেহজাবীন',
+        class_name: '৯',
+        roll_no: '৩',
+        mobile: '01712-345678',
+        type: 'software',
+        type_label: 'কোডিং ও ওয়েব সফটওয়্যার',
+        title: 'মগড়া স্কুল ডিজিটাল রেজাল্ট ও গ্রেড ক্যালকুলেটর ওয়েব অ্যাপ',
+        content: 'প্রজেক্ট বিবরণ:\nজাভাস্ক্রিপ্ট ও এইচটিএমএল দিয়ে তৈরি ক্লাউড-বান্ধব রেজাল্ট ক্যালকুলেটর। শিক্ষার্থীরা যে কোনো বিষয়ের নম্বর দিলে স্বয়ংক্রিয়ভাবে লেটার গ্রেড, গ্রেড পয়েন্ট এবং সর্বমোট জিপিএ হিসাব করে প্রিন্টযোগ্য মার্কশিট প্রিভিউ তৈরি করে।',
+        status: 'approved',
+        submitted_at: '2026-02-25'
+      },
+      {
+        id: 'sub-6',
+        tracking_id: 'DEB-2026-202',
+        club_id: 'debate',
+        club_name: 'ডিবেটিং ক্লাব',
         student_name: 'মাহির ফয়সাল',
         class_name: '৭',
         roll_no: '১',
         mobile: '01715-998877',
-        type: 'rhyme',
-        type_label: 'ছড়া',
-        title: 'বইয়ের দেশে অভিযান',
-        content: 'বইয়ের পাতা খুললেই পাই অচিন দেশের ঘ্রাণ,\nচাঁদের বুড়ি চরকা কাটে, শোনায় মধুর গান।',
-        status: 'approved',
-        submitted_at: '2026-02-20'
+        type: 'membership',
+        type_label: 'বিতার্কিক সদস্যপদ আবেদন',
+        title: 'ডিবেটিং ক্লাবের জুনিয়র বিতার্কিক সদস্যপদ আবেদন',
+        content: 'আমি ৭ম শ্রেণির ছাত্র মাহির ফয়সাল। আমি উপস্থিত বক্তৃতা ও আন্তঃশ্রেণি বিতর্কে আগ্রহী। আমি নিয়মমাফিক বিতর্ক প্রশিক্ষণ কর্মশালায় অংশগ্রহণ করতে চাই।',
+        status: 'pending',
+        submitted_at: '2026-02-26'
       }
     ];
     let submissions = getLocalStore('club_submissions', defaultSubmissions);
     if (method === 'POST') {
       const yr = new Date().getFullYear();
       const seq = Math.floor(100 + Math.random() * 900);
+      const cType = body.club_id || body.club_type || 'literature';
+      const prefix = cType === 'debate' ? 'DEB' : cType === 'science' ? 'SCI' : cType === 'ict' ? 'ICT' : 'LIT';
+      const clubNames = {
+        literature: 'ভাষা ও সাহিত্য ক্লাব',
+        debate: 'ডিবেটিং ক্লাব',
+        science: 'বিজ্ঞান ক্লাব',
+        ict: 'আইসিটি ও প্রোগ্রামিং ক্লাব'
+      };
       const newSub = {
         id: 'sub-' + Date.now(),
-        tracking_id: `LIT-${yr}-${seq}`,
+        tracking_id: `${prefix}-${yr}-${seq}`,
+        club_id: cType,
+        club_name: clubNames[cType] || body.club_name || 'স্কুল ক্লাব',
         student_name: body.student_name || '',
         class_name: body.class_name || '৬',
         roll_no: body.roll_no || '',
         department: body.department || '',
         mobile: body.mobile || '',
         type: body.type || 'poem',
-        type_label: body.type_label || (body.type === 'membership' ? 'সদস্যপদ আবেদন' : 'দেয়াল পত্রিকার লেখা'),
+        type_label: body.type_label || (body.type === 'membership' ? 'সদস্যপদ আবেদন' : 'ক্লাব প্রজেক্ট/লেখা'),
         title: body.title || '',
         content: body.content || '',
         status: 'pending',

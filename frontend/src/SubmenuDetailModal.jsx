@@ -289,14 +289,20 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   };
 
   const renderContent = () => {
-    // Co-curricular & Language Literature Club Module
+    // Co-curricular & 4 Major Clubs (Literature, Debate, Science, ICT)
     if (
       menuKey === 'public.nav.sport.clubs' || 
+      menuKey === 'public.nav.sport.debate' ||
+      menuKey?.includes('clubs') ||
+      menuKey?.includes('debate') ||
       title?.includes('ভাষা ও সাহিত্য') || 
       title?.includes('সাহিত্য ক্লাব') || 
       title?.includes('ক্লাব ও সংগঠন') ||
       title?.includes('ক্লাব') ||
-      menuKey?.includes('clubs')
+      title?.includes('ডিবেট') ||
+      title?.includes('বিতর্ক') ||
+      title?.includes('বিজ্ঞান') ||
+      title?.includes('আইসিটি')
     ) {
       return <LanguageLiteratureClubSection initialTitle={title} onClose={onClose} />;
     }
