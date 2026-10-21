@@ -4073,21 +4073,6 @@ export const MOCK_TEACHERS = [
   {
     id: 't-12',
     employee_id: '12',
-    name_bn: 'মোঃ আব্দুল খালেক',
-    name_en: 'MD. ABDUL KHALEQUE',
-    designation: 'সহকারী শিক্ষক',
-    designation_en: 'Assistant Teacher',
-    subject: 'বাংলা',
-    phone: '01735175681',
-    email: 'khaleque.magra@gmail.com',
-    status: 'active',
-    gender: 'male',
-    joining_date: '2016-04-15',
-    public_contact_enabled: true
-  },
-  {
-    id: 't-13',
-    employee_id: '13',
     name_bn: 'আশরাফুল',
     name_en: 'ASHRAFUL',
     designation: 'সহকারী শিক্ষক',
@@ -4102,8 +4087,8 @@ export const MOCK_TEACHERS = [
     public_contact_enabled: true
   },
   {
-    id: 't-14',
-    employee_id: '14',
+    id: 't-13',
+    employee_id: '13',
     name_bn: 'কান্তা মনি',
     name_en: 'KANTA MONI',
     designation: 'সহকারী শিক্ষক',
@@ -4118,8 +4103,8 @@ export const MOCK_TEACHERS = [
     public_contact_enabled: true
   },
   {
-    id: 't-15',
-    employee_id: '15',
+    id: 't-14',
+    employee_id: '14',
     name_bn: 'রফিকুল ইসলাম',
     name_en: 'RAFIQUL ISLAM',
     designation: 'সহকারী শিক্ষক',
@@ -4131,6 +4116,21 @@ export const MOCK_TEACHERS = [
     status: 'active',
     gender: 'male',
     joining_date: '2020-02-01',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-15',
+    employee_id: '15',
+    name_bn: 'মোঃ আব্দুল খালেক',
+    name_en: 'MD. ABDUL KHALEQUE',
+    designation: 'সহকারী শিক্ষক',
+    designation_en: 'Assistant Teacher',
+    subject: 'বাংলা',
+    phone: '01735175681',
+    email: 'khaleque.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2016-04-15',
     public_contact_enabled: true
   }
 ];

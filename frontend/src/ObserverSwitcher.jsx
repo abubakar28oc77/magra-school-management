@@ -1,39 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MOCK_USERS, MOCK_TEACHERS, getTeacherPhoto } from './mockData';
+import { deduplicateTeachers } from './apiClient';
 
 export function getSchoolTeachers() {
   try {
     const raw = localStorage.getItem('magra_db_teachers');
     if (raw) {
-      let parsed = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const canonicalById = {};
-        MOCK_TEACHERS.forEach(t => { if (t && t.id) canonicalById[t.id] = t; });
-        let updated = false;
-        parsed = parsed.map(t => {
-          if (!t) return t;
-          const id = t.id || ('t-' + t.employee_id);
-          if (id === 't-13' || id === 't-14' || id === 't-15' || String(t.name_bn).includes('মিজানুর') || String(t.name_bn).includes('ফরিদা') || String(t.name_bn).includes('কামরুল')) {
-            const canonical = canonicalById[id];
-            if (canonical) {
-              updated = true;
-              return { ...t, ...canonical };
-            }
-          }
-          return t;
-        });
-        MOCK_TEACHERS.forEach(canon => {
-          const exists = parsed.some(p => p && (p.id === canon.id || String(p.employee_id) === String(canon.employee_id)));
-          if (!exists) {
-            parsed.push(canon);
-            updated = true;
-          }
-        });
-        if (updated) {
-          try { localStorage.setItem('magra_db_teachers', JSON.stringify(parsed)); } catch (e) {}
+        const cleaned = deduplicateTeachers(parsed);
+        if (cleaned.length !== parsed.length) {
+          try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch (e) {}
         }
-        return parsed;
+        return cleaned;
       }
     }
   } catch (e) {}

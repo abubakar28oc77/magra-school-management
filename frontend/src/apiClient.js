@@ -347,6 +347,65 @@ try {
   console.warn('LocalStorage student check error:', e);
 }
 
+export function deduplicateTeachers(list = []) {
+  if (!Array.isArray(list) || list.length <= 1) return list;
+
+  const normalizeName = (name) => {
+    return String(name || '')
+      .replace(/[.\s\-_]/g, '')
+      .replace(/মোঃ|মুহাম্মদ|মোহাম্মদ|মোসাঃ|মোছাঃ/g, '')
+      .toLowerCase()
+      .trim();
+  };
+
+  const isRealPhoto = (t) => {
+    const url = String(t?.photo_url || t?.photo || t?.image || '');
+    if (!url) return false;
+    if (url.startsWith('data:image/svg+xml') || url.includes('<svg') || url.includes('fakepath')) return false;
+    return url.startsWith('data:image/jpeg') || url.startsWith('data:image/png') || url.startsWith('http') || url.length > 100;
+  };
+
+  const groups = new Map();
+  for (const t of list) {
+    if (!t) continue;
+    const key = normalizeName(t.name_bn || t.name_en);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(t);
+  }
+
+  const result = [];
+  for (const [key, items] of groups.entries()) {
+    if (items.length === 1) {
+      result.push(items[0]);
+    } else {
+      // Pick authentic teacher with real photo or non-demo ID
+      const realOne = items.find(x => isRealPhoto(x) && !String(x.id).startsWith('t-'));
+      if (realOne) {
+        result.push(realOne);
+      } else {
+        const anyReal = items.find(isRealPhoto);
+        result.push(anyReal || items[0]);
+      }
+    }
+  }
+
+  return sortPeopleByEmployeeId(result);
+}
+
+// Startup purge of duplicate teachers in localStorage
+try {
+  const rawT = localStorage.getItem('magra_db_teachers');
+  if (rawT) {
+    const parsedT = JSON.parse(rawT);
+    if (Array.isArray(parsedT) && parsedT.length > 0) {
+      const cleanedT = deduplicateTeachers(parsedT);
+      if (cleanedT.length !== parsedT.length) {
+        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleanedT)); } catch {}
+      }
+    }
+  }
+} catch (e) {}
+
 // Local storage database helpers (preserves user data completely)
 function getLocalStore(key, defaultVal = []) {
   try {
@@ -418,50 +477,11 @@ function getLocalStore(key, defaultVal = []) {
       return deduplicated;
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
-      let changed = false;
-      const canonicalById = {};
-      MOCK_TEACHERS.forEach(t => { if (t && t.id) canonicalById[t.id] = t; });
-
-      let healed = parsed.map(t => {
-        if (!t) return t;
-        const id = t.id || ('t-' + t.employee_id);
-        if (id === 't-13' || id === 't-14' || id === 't-15' || String(t.name_bn).includes('মিজানুর') || String(t.name_bn).includes('ফরিদা') || String(t.name_bn).includes('কামরুল')) {
-          const canonical = canonicalById[id];
-          if (canonical) {
-            changed = true;
-            t = { ...t, ...canonical };
-          }
-        }
-        const curEdu = t.extended_profile?.education;
-        if (!Array.isArray(curEdu) || curEdu.length === 0) {
-          const empId = String(t.employee_id || t.id || '').replace(/^t-/, '');
-          const fallback = CANONICAL_TEACHER_EDUCATION[empId] || [];
-          if (fallback.length) {
-            changed = true;
-            return {
-              ...t,
-              extended_profile: {
-                ...(t.extended_profile || {}),
-                education: fallback
-              }
-            };
-          }
-        }
-        return t;
-      });
-
-      MOCK_TEACHERS.forEach(canon => {
-        const exists = healed.some(p => p && (p.id === canon.id || String(p.employee_id) === String(canon.employee_id)));
-        if (!exists) {
-          healed.push(canon);
-          changed = true;
-        }
-      });
-
-      if (changed) {
-        try { localStorage.setItem('magra_db_teachers', JSON.stringify(healed)); } catch {}
+      const cleaned = deduplicateTeachers(parsed);
+      if (cleaned.length !== parsed.length) {
+        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch {}
       }
-      return healed;
+      return cleaned;
     }
     if (key === 'features' && Array.isArray(parsed)) {
       const hasLibrary = parsed.some(f => f && f.feature_key === 'admin.library');
@@ -646,7 +666,43 @@ function handleMockRequest(path, opts = {}) {
       } else if (cleanId.startsWith('class') || cleanId.includes('co_admin')) {
         matched = users.find(u => u.login_id === cleanId || u.role_name === 'co_admin');
       } else if (cleanId === 'teacher' || cleanId.includes('teacher') || cleanId.includes('subject')) {
-        matched = users.find(u => u.role_name === 'teacher');
+        const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
+        const specificT = allTeachers.find(t => {
+          const tName = String(t.name_bn || t.name_en || '').toLowerCase();
+          const tId = String(t.employee_id || t.id || '').toLowerCase();
+          return (tId && cleanId.includes(tId)) ||
+                 (cleanId.includes('anower') && tName.includes('আনোয়ার')) ||
+                 (cleanId.includes('sanwar') && tName.includes('ছানোয়ার')) ||
+                 (cleanId.includes('khalidur') && tName.includes('খালিদুর')) ||
+                 (cleanId.includes('ashraful') && tName.includes('আশরাফুল')) ||
+                 (cleanId.includes('kanta') && tName.includes('কান্তা')) ||
+                 (cleanId.includes('rafiqul') && tName.includes('রফিকুল')) ||
+                 (cleanId.includes('aroti') && tName.includes('আরতী'));
+        });
+        if (specificT) {
+          matched = {
+            id: `u-teacher-${specificT.employee_id || specificT.id}`,
+            login_id: cleanId,
+            full_name: `${specificT.name_bn} (${specificT.subject || 'বিষয় শিক্ষক'})`,
+            role_name: 'teacher',
+            role_label: `বিষয় শিক্ষক (${specificT.subject || 'সহকারী শিক্ষক'})`,
+            teacher_name: specificT.name_bn,
+            subject: specificT.subject,
+            photo_url: specificT.photo_url,
+            is_active: true
+          };
+        } else {
+          matched = users.find(u => u.role_name === 'teacher') || {
+            id: 'u-teacher-default',
+            login_id: 'teacher',
+            full_name: 'আরতী রানী ভদ্র (হিন্দু ধর্ম)',
+            role_name: 'teacher',
+            role_label: 'সহকারী শিক্ষক (বিষয় শিক্ষক)',
+            teacher_name: 'আরতী রানী ভদ্র',
+            subject: 'হিন্দু ধর্ম',
+            is_active: true
+          };
+        }
       } else if (cleanId === 'librarian' || cleanId.includes('lib')) {
         matched = users.find(u => u.role_name === 'librarian');
       } else if (cleanId === 'staff' || cleanId === 'office' || cleanId.includes('office')) {

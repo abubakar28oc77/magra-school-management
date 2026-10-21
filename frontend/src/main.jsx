@@ -25,7 +25,7 @@ import {HashRouter,useNavigate,useLocation,Link} from 'react-router-dom';
 import './styles.css';
 import {publicNavConfig} from './publicNavConfig';
 import {LanguageProvider,useLanguage,bilingual,LanguageSwitcher} from './i18n';
-import {requestApi} from './apiClient';
+import {requestApi, deduplicateTeachers} from './apiClient';
 import {ObserverSwitcher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
@@ -634,8 +634,9 @@ function Home(){
 
  const ensureTeachersEducation = (list) => {
    if (!Array.isArray(list) || !list.length) return list;
-   let changed = false;
-   const enriched = list.map(t => {
+   const cleanList = deduplicateTeachers(list);
+   let changed = cleanList.length !== list.length;
+   const enriched = cleanList.map(t => {
      const curEdu = t.extended_profile?.education || [];
      if (!curEdu.length) {
        const fullEdu = getTeacherAllEducation(t);
@@ -1225,18 +1226,40 @@ function Login(){
   { key: 'co_admin8', icon: '👥', label: 'কো-অ্যাডমিন (৮ম শ্রেণি)', id: 'class8_teacher', pass: 'teacher123', role: 'Co-Admin (Class 8)', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • ৮ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class8_teacher')||MOCK_USERS[5] },
   { key: 'co_admin9', icon: '👥', label: 'কো-অ্যাডমিন (৯ম শ্রেণি)', id: 'class9_teacher', pass: 'teacher123', role: 'Co-Admin (Class 9)', desc: 'মোঃ হাবিবুর রহমান • ৯ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class9_teacher')||MOCK_USERS[6] },
   { key: 'co_admin10', icon: '👥', label: 'কো-অ্যাডমিন (১০ম শ্রেণি)', id: 'class10_teacher', pass: 'teacher123', role: 'Co-Admin (Class 10)', desc: 'মোঃ ওয়াহিদুর রহমান • ১০ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class10_teacher')||MOCK_USERS[7] },
-  { key: 'teacher', icon: '📝', label: 'বিষয় শিক্ষক (নম্বর এন্ট্রি)', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', desc: 'আরতী রানী ভদ্র • বিষয়ভিত্তিক লিখিত ও MCQ নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='teacher') },
-  { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও ইস্যু-জমা', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
-  { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') }
+  { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার ও বিষয় শিক্ষক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
+  { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
+  // ৭ জন বাকী বিষয় শিক্ষক (সরাসরি নম্বর এন্ট্রি রোল)
+  { key: 'teacher_anower', icon: '📖', label: 'বিষয় শিক্ষক: মোঃ আনোয়ার হোসেন', id: 'teacher_anower', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • ইসলাম ধর্ম ও নৈতিক শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'মোঃ আনোয়ার হোসেন', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা' } },
+  { key: 'teacher_sanwar', icon: '📖', label: 'বিষয় শিক্ষক: মোঃ ছানোয়ার হোসেন', id: 'teacher_sanwar', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ ছানোয়ার হোসেন • বাংলাদেশ ও বিশ্বপরিচয় নম্বর এন্ট্রি', teacher: { name_bn: 'মোঃ ছানোয়ার হোসেন', subject: 'বাংলাদেশ ও বিশ্বপরিচয়' } },
+  { key: 'teacher_khalidur', icon: '📖', label: 'বিষয় শিক্ষক: মোহাম্মদ খালিদুর রহমান তাং', id: 'teacher_khalidur', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোহাম্মদ খালিদুর রহমান তাং • কৃষি শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'মোহাম্মদ খালিদুর রহমান তাং', subject: 'কৃষি শিক্ষা' } },
+  { key: 'teacher_aroti', icon: '📖', label: 'বিষয় শিক্ষক: আরতী রানী ভদ্র', id: 'teacher_aroti', pass: 'teacher123', role: 'Subject Teacher', desc: 'আরতী রানী ভদ্র • হিন্দু ধর্ম নম্বর এন্ট্রি', teacher: { name_bn: 'আরতী রানী ভদ্র', subject: 'হিন্দু ধর্ম' } },
+  { key: 'teacher_ashraful', icon: '📖', label: 'বিষয় শিক্ষক: আশরাফুল', id: 'teacher_ashraful', pass: 'teacher123', role: 'Subject Teacher', desc: 'আশরাফুল • ইংরেজী নম্বর এন্ট্রি', teacher: { name_bn: 'আশরাফুল', subject: 'ইংরেজী' } },
+  { key: 'teacher_kantamoni', icon: '📖', label: 'বিষয় শিক্ষক: কান্তা মনি', id: 'teacher_kantamoni', pass: 'teacher123', role: 'Subject Teacher', desc: 'কান্তা মনি • ব্যবসায় শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'কান্তা মনি', subject: 'ব্যবসায় শিক্ষা' } },
+  { key: 'teacher_rafiqul', icon: '📖', label: 'বিষয় শিক্ষক: রফিকুল ইসলাম', id: 'teacher_rafiqul', pass: 'teacher123', role: 'Subject Teacher', desc: 'রফিকুল ইসলাম • ভৌত বিজ্ঞান নম্বর এন্ট্রি', teacher: { name_bn: 'রফিকুল ইসলাম', subject: 'ভৌত বিজ্ঞান' } }
  ];
 
  const fillAndLogin = (item) => {
   setLoginId(item.id);
   setPassword(item.pass);
+  let userObj = item.user;
+  if (!userObj && item.teacher) {
+    userObj = {
+      id: `u-${item.id}`,
+      login_id: item.id,
+      full_name: `${item.teacher.name_bn} (${item.teacher.subject})`,
+      role_name: 'teacher',
+      role_label: `বিষয় শিক্ষক (${item.teacher.subject})`,
+      teacher_name: item.teacher.name_bn,
+      subject: item.teacher.subject,
+      is_active: true
+    };
+  }
   localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-  localStorage.setItem('magra_user', JSON.stringify(item.user));
-  if (item.user.role_name === 'teacher') {
-   nav('/portal');
+  localStorage.setItem('magra_user', JSON.stringify(userObj));
+  if (userObj && (userObj.role_name === 'teacher' || item.role === 'Subject Teacher')) {
+   localStorage.setItem('magra_admin_active_tab', 'results');
+   localStorage.setItem('magra_admin_active_sub', 'marks');
+   nav('/admin');
   } else {
    nav('/admin');
   }
@@ -1252,7 +1275,9 @@ function Login(){
    localStorage.setItem('magra_token',d.token);
    localStorage.setItem('magra_user',JSON.stringify(d.user));
    if ((d.user.role_name || d.user.role) === 'teacher') {
-    nav('/portal');
+    localStorage.setItem('magra_admin_active_tab', 'results');
+    localStorage.setItem('magra_admin_active_sub', 'marks');
+    nav('/admin');
    } else {
     nav('/admin');
    }
@@ -3424,7 +3449,7 @@ function StaffPanel({sub}){
  
  const load=()=>{
   api(`/teachers?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
-    .then(data => setTeachers(sortPeopleByEmployeeId(Array.isArray(data) ? data : [])))
+    .then(data => setTeachers(deduplicateTeachers(Array.isArray(data) ? data : [])))
    .catch(e=>setMsg(e.message));
   api(`/staff?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
     .then(data => setStaff(sortPeopleByEmployeeId(Array.isArray(data) ? data : [])))
