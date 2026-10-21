@@ -98,51 +98,51 @@ export const DEFAULT_CLASS_TEACHERS = {
     class_id: '6',
     class_name: '৬ষ্ঠ শ্রেণি',
     class_name_en: 'Class 6',
-    teacher_id: 't-3',
-    teacher_name: 'মোঃ আনোয়ার হোসেন',
-    designation: 'সিনিয়র শিক্ষক',
-    subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা',
-    phone: '01770590374'
+    teacher_id: 't-12',
+    teacher_name: 'মোঃ আব্দুল খালেক',
+    designation: 'সহকারী শিক্ষক',
+    subject: 'বাংলা',
+    phone: '01735175681'
   },
   '7': {
     class_id: '7',
     class_name: '৭ম শ্রেণি',
     class_name_en: 'Class 7',
-    teacher_id: 't-4',
-    teacher_name: 'মোঃ ছানোয়ার হোসেন',
+    teacher_id: 't-7',
+    teacher_name: 'মুহাম্মদ আব্দুর রহিম লিটন',
     designation: 'সিনিয়র শিক্ষক',
-    subject: 'বাংলাদেশ ও বিশ্বপরিচয়',
-    phone: '01726472073'
+    subject: 'জীববিজ্ঞান',
+    phone: '01712004657'
   },
   '8': {
     class_id: '8',
     class_name: '৮ম শ্রেণি',
     class_name_en: 'Class 8',
-    teacher_id: 't-5',
-    teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং',
-    designation: 'সিনিয়র শিক্ষক',
-    subject: 'কৃষি শিক্ষা',
-    phone: '01712763604'
+    teacher_id: 't-6',
+    teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক',
+    designation: 'সিনিয়র শিক্ষক (আইসিটি)',
+    subject: 'আইসিটি',
+    phone: '01710688646'
   },
   '9': {
     class_id: '9',
     class_name: '৯ম শ্রেণি',
     class_name_en: 'Class 9',
-    teacher_id: 't-6',
-    teacher_name: 'মুহাম্মদ আবুবকর সিদ্দিক',
-    designation: 'সিনিয়র শিক্ষক (আইসিটি)',
-    subject: 'আইসিটি',
-    phone: '01710689846'
-  },
-  '10': {
-    class_id: '10',
-    class_name: '১০ম শ্রেণি',
-    class_name_en: 'Class 10',
     teacher_id: 't-8',
     teacher_name: 'মোঃ হাবিবুর রহমান',
     designation: 'সিনিয়র শিক্ষক',
     subject: 'গণিত ও বিজ্ঞান',
     phone: '01728046188'
+  },
+  '10': {
+    class_id: '10',
+    class_name: '১০ম শ্রেণি',
+    class_name_en: 'Class 10',
+    teacher_id: 't-10',
+    teacher_name: 'মোঃ ওয়াহিদুর রহমান',
+    designation: 'সহকারী শিক্ষক',
+    subject: 'শারীরিক শিক্ষা',
+    phone: '01703538300'
   }
 };
 
