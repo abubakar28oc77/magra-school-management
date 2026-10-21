@@ -5812,7 +5812,7 @@ function UsersPanel({sub}){
       <h2>ব্যবহারকারী ও অ্যাডমিন তালিকা</h2>
       <span style={{fontSize:'12px',color:'#666'}}>পাসওয়ার্ড রিসেট, রোল পরিবর্তন ও ডিলিট অপশন সক্রিয়</span>
      </div>
-     <span>{visibleUsers.length} / {users.length} জন</span>
+     <div style={{display:'flex',gap:'8px',alignItems:'center'}}><button type="button" className="mini" onClick={()=>{try{localStorage.removeItem('magra_db_users');refresh();setMsg('বিদ্যালয়ের সকল ১৫ জন শিক্ষক, অফিস সহকারী ও অ্যাডমিনদের তালিকা সফলভাবে সিঙ্ক হয়েছে।');}catch(e){alert(e.message)}}} style={{background:'#ecfdf5',color:'#065f46',borderColor:'#a7f3d0',fontWeight:700}} title="সকল ১৫ জন শিক্ষক ও অ্যাডমিনদের স্বয়ংক্রিয় সিঙ্ক">🔄 সকল শিক্ষক ও অ্যাডমিন সিঙ্ক করুন</button><span>{visibleUsers.length} / {users.length} জন</span></div>
     </div>
 
     {/* Filter Row */}

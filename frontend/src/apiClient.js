@@ -392,6 +392,22 @@ export function deduplicateTeachers(list = []) {
   return sortPeopleByEmployeeId(result);
 }
 
+
+// Startup sync of authentic school users (15 teachers, office assistant, super admin) in localStorage
+try {
+  const rawU = localStorage.getItem('magra_db_users');
+  if (rawU) {
+    const parsedU = JSON.parse(rawU);
+    if (Array.isArray(parsedU)) {
+      const hasDummy = parsedU.some(u => u && (u.login_id === 'pilot-teacher-01' || u.login_id === 'accountant' || u.login_id === 'Co-Admin' || u.login_id === 'student-01'));
+      const isMissingTeachers = parsedU.length < 15 || !parsedU.some(u => u && u.login_id === 'class7_teacher') || !parsedU.some(u => u && (u.login_id === 'teacher_12' || u.login_id === 'teacher_ashraful'));
+      if (hasDummy || isMissingTeachers) {
+        localStorage.removeItem('magra_db_users');
+      }
+    }
+  }
+} catch (e) {}
+
 // Startup purge of duplicate teachers in localStorage
 try {
   const rawT = localStorage.getItem('magra_db_teachers');
@@ -475,6 +491,15 @@ function getLocalStore(key, defaultVal = []) {
       }
 
       return deduplicated;
+    }
+        if (key === 'users' && Array.isArray(parsed)) {
+      const hasDummy = parsed.some(u => u && (u.login_id === 'pilot-teacher-01' || u.login_id === 'accountant' || u.login_id === 'Co-Admin'));
+      const isMissingTeachers = parsed.length < 15 || !parsed.some(u => u && u.login_id === 'class7_teacher') || !parsed.some(u => u && (u.login_id === 'teacher_12' || u.login_id === 'teacher_ashraful'));
+      if (hasDummy || isMissingTeachers) {
+        try { localStorage.setItem('magra_db_users', JSON.stringify(MOCK_USERS)); } catch (e) {}
+        return MOCK_USERS;
+      }
+      return parsed;
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       const cleaned = deduplicateTeachers(parsed);
