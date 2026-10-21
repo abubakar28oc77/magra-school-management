@@ -407,7 +407,7 @@ export const MOCK_USERS = [
   { id: 'u-class-9', login_id: 'class9_teacher', full_name: 'মোঃ হাবিবুর রহমান (৯ম শ্রেণি শিক্ষক)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (৯ম শ্রেণি শিক্ষক)', assigned_class: '9', is_active: true, must_change_password: false },
   { id: 'u-class-10', login_id: 'class10_teacher', full_name: 'মোঃ ওয়াহিদুর রহমান (১০ম শ্রেণি শিক্ষক)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (১০ম শ্রেণি শিক্ষক)', assigned_class: '10', is_active: true, must_change_password: false },
   { id: 'u-4', login_id: 'subject_teacher', full_name: 'আরতী রানী ভদ্র (সহকারী শিক্ষক)', role_name: 'teacher', role_label: 'সহকারী শিক্ষক (বিষয় শিক্ষক)', is_active: true, must_change_password: false },
-  { id: 'u-9', login_id: 'librarian', full_name: 'মোঃ শাহিন মিয়া (গ্রন্থাগার ও তথ্য বিজ্ঞান)', role_name: 'librarian', role_label: 'গ্রন্থাগারিক (গ্রন্থাগার)', is_active: true, must_change_password: false },
+  { id: 'u-9', login_id: 'librarian', full_name: 'মোঃ শাহিন মিয়া (সহকারী শিক্ষক - গ্রন্থাগার ও বিষয় শিক্ষক)', role_name: 'librarian', role_label: 'সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক)', is_active: true, must_change_password: false },
   { id: 'u-10', login_id: 'office', full_name: 'মোঃ আলমগীর হোসেন (অফিস সহকারী)', role_name: 'staff', role_label: 'অফিস সহকারী', is_active: true, must_change_password: false }
 ];
 

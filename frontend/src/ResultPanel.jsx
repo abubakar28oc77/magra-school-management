@@ -96,8 +96,17 @@ const STANDARD_YEAR_PRESETS = [
   { year: '2024', title_bn: '২০২৪ শিক্ষাবর্ষ', is_current: false, status: 'completed', remarks: 'আর্কাইভ শিক্ষাবর্ষ' }
 ];
 
-export function ResultPanel({ sub }) {
+export function ResultPanel({ sub, userRole }) {
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem('magra_user') || '{}');
+    } catch { return {}; }
+  }, []);
+  const effectiveRole = userRole || currentUser?.role_name || currentUser?.role || 'super_admin';
+  const isSubjectTeacherOrLibrarian = effectiveRole === 'teacher' || effectiveRole === 'librarian';
+
   const resolveInitialTab = (s) => {
+    if (isSubjectTeacherOrLibrarian) return 'marks';
     if (!s) return 'academic_year';
     if (s === 'academic_year' || s === 'academic_years') return 'academic_year';
     if (s === 'exam_names' || s === 'exam_setup' || s === 'setup') return 'exam_names';
@@ -1421,28 +1430,37 @@ export function ResultPanel({ sub }) {
 
       {/* ================= MODERN TAB NAVIGATION ================= */}
       <div className="exam-tab-bar">
-        {[
-          ['academic_year', '🗓️ ১. একাডেমিক ইয়ার'],
-          ['exam_names', '📝 ২. পরীক্ষার নাম'],
-          ['subjects', '📚 ৩. বিষয় ও নম্বর বণ্টন'],
-          ['marks', '✍️ ৪. মার্ক এন্ট্রি'],
-          ['grading', '🎯 ৫. গ্রেডিং পলিসি'],
-          ['processing', '⚙️ ৬. ফলাফল প্রসেসিং'],
-          ['merit', '🏆 ৭. মেধা তালিকা'],
-          ['tabulation', '📋 ৮. ট্যাবুলেশন শিট'],
-          ['marksheet', '📄 ৯. মার্কশিট ও প্রগ্রেস'],
-          ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ'],
-          ['promotion', '🎓 ১১. শিক্ষার্থী প্রমোশন']
-        ].map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
-            onClick={() => setTab(key)}
-          >
-            {label}
-          </button>
-        ))}
+        {(() => {
+          const allTabs = [
+            ['academic_year', '🗓️ ১. একাডেমিক ইয়ার'],
+            ['exam_names', '📝 ২. পরীক্ষার নাম'],
+            ['subjects', '📚 ৩. বিষয় ও নম্বর বণ্টন'],
+            ['marks', '✍️ ৪. বিষয়ভিত্তিক মার্ক এন্ট্রি'],
+            ['grading', '🎯 ৫. গ্রেডিং পলিসি'],
+            ['processing', '⚙️ ৬. ফলাফল প্রসেসিং'],
+            ['merit', '🏆 ৭. মেধা তালিকা'],
+            ['tabulation', '📋 ৮. ট্যাবুলেশন শিট'],
+            ['marksheet', '📄 ৯. মার্কশিট ও প্রগ্রেস'],
+            ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ'],
+            ['promotion', '🎓 ১১. শিক্ষার্থী প্রমোশন']
+          ];
+          const availableTabs = isSubjectTeacherOrLibrarian
+            ? allTabs.filter(([k]) => k === 'marks')
+            : (effectiveRole === 'co_admin')
+              ? allTabs.filter(([k]) => ['marks', 'merit', 'tabulation', 'marksheet'].includes(k))
+              : allTabs;
+
+          return availableTabs.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
+              onClick={() => setTab(key)}
+            >
+              {label}
+            </button>
+          ));
+        })()}
       </div>
 
       {/* ================= GLOBAL CONTEXT TOOLBAR ================= */}

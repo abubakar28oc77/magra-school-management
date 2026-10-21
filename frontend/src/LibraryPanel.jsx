@@ -31,7 +31,7 @@ export const normClass = (c) => {
     .trim();
 };
 
-export function LibraryPanel({ sub, setSub }) {
+export function LibraryPanel({ sub, setSub, onNavigate }) {
   // Navigation tab: 'catalog' | 'issue' | 'overdue' | 'reports' | 'damaged'
   // Guarantee activeTab always matches one of the valid tabs (defaults to 'catalog')
   const [activeTab, setActiveTab] = useState(() => {
@@ -877,7 +877,7 @@ export function LibraryPanel({ sub, setSub }) {
               গ্রন্থাগার ও তথ্য বিজ্ঞান ব্যবস্থাপনা
             </h1>
             <p style={{ margin: 0, fontSize: '13px', opacity: 0.92, display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-              <span>👤 <b>দায়িত্বপ্রাপ্ত শিক্ষক:</b> {LIBRARIAN_TEACHER.name_bn} ({LIBRARIAN_TEACHER.designation})</span>
+              <span>👤 <b>দায়িত্বপ্রাপ্ত শিক্ষক:</b> {LIBRARIAN_TEACHER.name_bn} ({LIBRARIAN_TEACHER.designation} ও বিষয় শিক্ষক)</span>
               <span>• 🏢 {LIBRARIAN_TEACHER.room}</span>
               <span>• 📞 {LIBRARIAN_TEACHER.phone}</span>
             </p>
@@ -885,6 +885,29 @@ export function LibraryPanel({ sub, setSub }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('results', 'marks')}
+              style={{
+                background: '#0284c7',
+                color: '#ffffff',
+                fontWeight: 700,
+                fontSize: '13px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
+              }}
+              title="সহকারী শিক্ষক হিসাবে নিজ বিষয়ের পরীক্ষার নম্বর এন্ট্রি ফর্মে যান"
+            >
+              <span>📈</span> বিষয় নম্বর এন্ট্রি
+            </button>
+          )}
           <button
             type="button"
             onClick={openAddBookModal}

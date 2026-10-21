@@ -63,6 +63,8 @@ export function ObserverSwitcher() {
       matchedUser = MOCK_USERS.find(u => u.login_id === 'assistant_head_teacher' || u.username === 'assistant_head_teacher') || MOCK_USERS[2];
     } else if (roleKey === 'librarian') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'librarian');
+      localStorage.setItem('magra_admin_active_tab', 'library');
+      localStorage.setItem('magra_admin_active_sub', 'catalog');
     } else if (roleKey === 'staff' || roleKey === 'office') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'staff');
     } else if (roleKey === 'teacher') {
@@ -167,9 +169,9 @@ export function ObserverSwitcher() {
                 type="button"
                 className={'observer-btn ' + (currentUser?.role_name === 'librarian' ? 'active' : '')}
                 onClick={() => handleRoleSwitch('librarian')}
-                title="মোঃ শাহিন মিয়া: লাইব্রেরি ক্যাটালগ, বই ইস্যু-জমা ও রেজিস্টার"
+                title="মোঃ শাহিন মিয়া: সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক) - লাইব্রেরি ব্যবস্থাপনা ও বিষয় নম্বর এন্ট্রি"
               >
-                📚 গ্রন্থাগার
+                📚 গ্রন্থাগার ও বিষয় শিক্ষক
               </button>
 
               <button
