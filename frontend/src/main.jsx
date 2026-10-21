@@ -10,6 +10,11 @@ export function parseEmployeeIdNum(empId, fallback = 999999) {
   return fallback;
 }
 
+export function toBnDigits(n) {
+  if (n === null || n === undefined || n === '') return '';
+  return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+}
+
 export function sortPeopleByEmployeeId(list = []) {
   return [...(list || [])].sort((a, b) => {
     const na = parseEmployeeIdNum(a?.employee_id || a?.id);
@@ -26,7 +31,7 @@ import './styles.css';
 import {publicNavConfig} from './publicNavConfig';
 import {LanguageProvider,useLanguage,bilingual,LanguageSwitcher} from './i18n';
 import {requestApi, deduplicateTeachers} from './apiClient';
-import {ObserverSwitcher} from './ObserverSwitcher';
+import {ObserverSwitcher, getSchoolTeachers, isAssignedRoleTeacher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
@@ -1215,7 +1220,27 @@ function Home(){
 function Login(){
  const {lang}=useLanguage();
  const[loginId,setLoginId]=useState('admin'),[password,setPassword]=useState('admin123'),[show,setShow]=useState(false),[msg,setMsg]=useState(''),[loading,setLoading]=useState(false);
+ const [showSubjectTeacherModal, setShowSubjectTeacherModal] = useState(false);
  const nav=useNavigate();
+
+ const allSchoolTeachers = useMemo(() => {
+  try {
+    const raw = localStorage.getItem('magra_db_teachers');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return deduplicateTeachers(parsed);
+    }
+  } catch {}
+  return Array.isArray(MOCK_TEACHERS) ? deduplicateTeachers(MOCK_TEACHERS) : [];
+ }, []);
+
+ const remainingSubjectTeachers = useMemo(() => {
+  const list = allSchoolTeachers.filter(t => !isAssignedRoleTeacher(t));
+  if (list && list.length >= 7) return list;
+  const canonIds = ['3', '4', '5', '9', '12', '13', '14'];
+  const matched = allSchoolTeachers.filter(t => canonIds.includes(String(t.employee_id)));
+  return matched.length ? matched : list;
+ }, [allSchoolTeachers]);
 
  const quickAccounts = [
   { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • আইসিটি শিক্ষক ও সুপার অ্যাডমিন', user: MOCK_USERS[0] },
@@ -1228,17 +1253,15 @@ function Login(){
   { key: 'co_admin10', icon: '👥', label: 'কো-অ্যাডমিন (১০ম শ্রেণি)', id: 'class10_teacher', pass: 'teacher123', role: 'Co-Admin (Class 10)', desc: 'মোঃ ওয়াহিদুর রহমান • ১০ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class10_teacher')||MOCK_USERS[7] },
   { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার ও বিষয় শিক্ষক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
   { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
-  // ৭ জন বাকী বিষয় শিক্ষক (সরাসরি নম্বর এন্ট্রি রোল)
-  { key: 'teacher_anower', icon: '📖', label: 'বিষয় শিক্ষক: মোঃ আনোয়ার হোসেন', id: 'teacher_anower', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • ইসলাম ধর্ম ও নৈতিক শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'মোঃ আনোয়ার হোসেন', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা' } },
-  { key: 'teacher_sanwar', icon: '📖', label: 'বিষয় শিক্ষক: মোঃ ছানোয়ার হোসেন', id: 'teacher_sanwar', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ ছানোয়ার হোসেন • বাংলাদেশ ও বিশ্বপরিচয় নম্বর এন্ট্রি', teacher: { name_bn: 'মোঃ ছানোয়ার হোসেন', subject: 'বাংলাদেশ ও বিশ্বপরিচয়' } },
-  { key: 'teacher_khalidur', icon: '📖', label: 'বিষয় শিক্ষক: মোহাম্মদ খালিদুর রহমান তাং', id: 'teacher_khalidur', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোহাম্মদ খালিদুর রহমান তাং • কৃষি শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'মোহাম্মদ খালিদুর রহমান তাং', subject: 'কৃষি শিক্ষা' } },
-  { key: 'teacher_aroti', icon: '📖', label: 'বিষয় শিক্ষক: আরতী রানী ভদ্র', id: 'teacher_aroti', pass: 'teacher123', role: 'Subject Teacher', desc: 'আরতী রানী ভদ্র • হিন্দু ধর্ম নম্বর এন্ট্রি', teacher: { name_bn: 'আরতী রানী ভদ্র', subject: 'হিন্দু ধর্ম' } },
-  { key: 'teacher_ashraful', icon: '📖', label: 'বিষয় শিক্ষক: আশরাফুল', id: 'teacher_ashraful', pass: 'teacher123', role: 'Subject Teacher', desc: 'আশরাফুল • ইংরেজী নম্বর এন্ট্রি', teacher: { name_bn: 'আশরাফুল', subject: 'ইংরেজী' } },
-  { key: 'teacher_kantamoni', icon: '📖', label: 'বিষয় শিক্ষক: কান্তা মনি', id: 'teacher_kantamoni', pass: 'teacher123', role: 'Subject Teacher', desc: 'কান্তা মনি • ব্যবসায় শিক্ষা নম্বর এন্ট্রি', teacher: { name_bn: 'কান্তা মনি', subject: 'ব্যবসায় শিক্ষা' } },
-  { key: 'teacher_rafiqul', icon: '📖', label: 'বিষয় শিক্ষক: রফিকুল ইসলাম', id: 'teacher_rafiqul', pass: 'teacher123', role: 'Subject Teacher', desc: 'রফিকুল ইসলাম • ভৌত বিজ্ঞান নম্বর এন্ট্রি', teacher: { name_bn: 'রফিকুল ইসলাম', subject: 'ভৌত বিজ্ঞান' } }
+  // একক বিষয় শিক্ষক রোল বাটন (ক্লিক করলে ৭ জন বিষয় শিক্ষকের সেবা বক্স ওপেন হবে)
+  { key: 'subject_teachers_modal', icon: '📖', label: 'বিষয় শিক্ষক (৭ জন) ▾', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', isModalTrigger: true, desc: '৭ জন বিষয় শিক্ষকের তালিকা ও বিষয় নম্বর এন্ট্রি সেবা বক্স' }
  ];
 
  const fillAndLogin = (item) => {
+  if (item.isModalTrigger) {
+    setShowSubjectTeacherModal(true);
+    return;
+  }
   setLoginId(item.id);
   setPassword(item.pass);
   let userObj = item.user;
@@ -1265,6 +1288,27 @@ function Login(){
   }
  };
 
+ const selectSubjectTeacherAndLogin = (teacher) => {
+  const userObj = {
+    id: `u-teacher-${teacher.employee_id || teacher.id}`,
+    login_id: `teacher_${teacher.employee_id || teacher.id}`,
+    full_name: `${teacher.name_bn} (${teacher.subject || 'বিষয় শিক্ষক'})`,
+    role_name: 'teacher',
+    role_label: `বিষয় শিক্ষক (${teacher.subject || 'সহকারী শিক্ষক'})`,
+    employee_id: teacher.employee_id || teacher.id,
+    teacher_name: teacher.name_bn,
+    subject: teacher.subject,
+    phone: teacher.phone,
+    is_active: true
+  };
+  localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+  localStorage.setItem('magra_user', JSON.stringify(userObj));
+  localStorage.setItem('magra_admin_active_tab', 'results');
+  localStorage.setItem('magra_admin_active_sub', 'marks');
+  setShowSubjectTeacherModal(false);
+  nav('/admin');
+ };
+
  async function submit(e){
   e.preventDefault();
   if(loading)return;
@@ -1288,31 +1332,231 @@ function Login(){
   }
  }
 
- return <section id="login" className="login-section"><div className="login-shell"><div className="login-intro"><span className="section-kicker">SECURE SCHOOL PORTAL</span><h2>{bilingual('আপনার ডিজিটাল বিদ্যালয়ে স্বাগতম','Welcome to your Digital School',lang)}</h2><p>{bilingual('আপনার ব্যক্তিগত Login ID ও Password দিয়ে প্রবেশ করুন। নিচে সকল রোলের ডেমো আইডি ও পাসওয়ার্ড দেওয়া আছে, এক ক্লিকেই প্রবেশ করতে পারবেন।','Sign in with your personal Login ID and Password. Below are the demo credentials for all roles for instant access.',lang)}</p><div className="login-points"><span>✓ {bilingual('নিরাপদ ও ব্যক্তিগত অ্যাকাউন্ট','Secure personal account',lang)}</span><span>✓ {bilingual('Attendance ও Result','Attendance & Results',lang)}</span><span>✓ {bilingual('Digital Learning ও AI Tutor','Digital Learning & AI Tutor',lang)}</span></div></div><div className="loginbox loginbox-modern"><div className="login-logo"><img src={logo} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের লোগো"/></div><span className="login-label">SCHOOL ERP</span><h2>{bilingual('সিস্টেম লগইন','System Login',lang)}</h2><p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন','Use the Login ID & Password below',lang)}</p><form onSubmit={submit}><label>Login ID<input autoFocus autoComplete="username" placeholder={lang==='en'?'Your Login ID':'আপনার Login ID (যেমন: admin, head_teacher)'} value={loginId} onChange={e=>setLoginId(e.target.value)} required/></label><label>Password<div className="password-field"><input autoComplete="current-password" type={show?'text':'password'} placeholder={lang==='en'?'Your Password':'আপনার Password'} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" onClick={()=>setShow(!show)} aria-label="পাসওয়ার্ড দেখুন">{show?'◉':'○'}</button></div></label><button className="btn btn-primary login-submit" disabled={loading} aria-busy={loading}>{loading?(lang==='en'?'Signing in...':'লগইন হচ্ছে...'):(lang==='en'?'Sign in →':'লগইন করুন →')}</button></form>{msg&&<p className="msg login-msg" role="status" aria-live="polite">{msg}</p>}<div className="login-actions"><a href="#/" className="login-back">← {lang==='en'?'Main Website':'মূল ওয়েবসাইট'}</a><small>{lang==='en'?'Default password for all demo accounts is set.':'সকল ডেমো একাউন্টের পাসওয়ার্ড সেট করা আছে।'}</small></div>
+ return (
+  <section id="login" className="login-section">
+   <div className="login-shell">
+    <div className="login-intro">
+      <span className="section-kicker">SECURE SCHOOL PORTAL</span>
+      <h2>{bilingual('আপনার ডিজিটাল বিদ্যালয়ে স্বাগতম','Welcome to your Digital School',lang)}</h2>
+      <p>{bilingual('আপনার ব্যক্তিগত Login ID ও Password দিয়ে প্রবেশ করুন। নিচে সকল রোলের ডেমো আইডি ও পাসওয়ার্ড দেওয়া আছে, এক ক্লিকেই প্রবেশ করতে পারবেন।','Sign in with your personal Login ID and Password. Below are the demo credentials for all roles for instant access.',lang)}</p>
+      <div className="login-points">
+        <span>✓ {bilingual('নিরাপদ ও ব্যক্তিগত অ্যাকাউন্ট','Secure personal account',lang)}</span>
+        <span>✓ {bilingual('Attendance ও Result','Attendance & Results',lang)}</span>
+        <span>✓ {bilingual('Digital Learning ও AI Tutor','Digital Learning & AI Tutor',lang)}</span>
+      </div>
+    </div>
+    <div className="loginbox loginbox-modern">
+      <div className="login-logo"><img src={logo} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের লোগো"/></div>
+      <span className="login-label">SCHOOL ERP</span>
+      <h2>{bilingual('সিস্টেম লগইন','System Login',lang)}</h2>
+      <p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন','Use the Login ID & Password below',lang)}</p>
+      <form onSubmit={submit}>
+        <label>Login ID<input autoFocus autoComplete="username" placeholder={lang==='en'?'Your Login ID':'আপনার Login ID (যেমন: admin, head_teacher)'} value={loginId} onChange={e=>setLoginId(e.target.value)} required/></label>
+        <label>Password<div className="password-field"><input autoComplete="current-password" type={show?'text':'password'} placeholder={lang==='en'?'Your Password':'আপনার Password'} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" onClick={()=>setShow(!show)} aria-label="পাসওয়ার্ড দেখুন">{show?'◉':'○'}</button></div></label>
+        <button className="btn btn-primary login-submit" disabled={loading} aria-busy={loading}>{loading?(lang==='en'?'Signing in...':'লগইন হচ্ছে...'):(lang==='en'?'Sign in →':'লগইন করুন →')}</button>
+      </form>
+      {msg&&<p className="msg login-msg" role="status" aria-live="polite">{msg}</p>}
+      <div className="login-actions">
+        <a href="#/" className="login-back">← {lang==='en'?'Main Website':'মূল ওয়েবসাইট'}</a>
+        <small>{lang==='en'?'Default password for all demo accounts is set.':'সকল ডেমো একাউন্টের পাসওয়ার্ড সেট করা আছে।'}</small>
+      </div>
 
- <div className="quick-login-section">
-  <div className="quick-login-header">
-   <h3>⚡ এক ক্লিকে লগইন ও পর্যবেক্ষণ (Click to Login)</h3>
-   <p style={{fontSize:'12px',color:'#555',margin:'4px 0 10px'}}>যেকোনো রোলে ক্লিক করলেই সাথে সাথে সংশ্লিষ্ট পোর্টালে লগইন হয়ে যাবে:</p>
-  </div>
-  <div className="quick-login-grid">
-   {quickAccounts.map(q => (
-    <button
-      key={q.key}
-      type="button"
-      className="quick-login-btn"
-      onClick={() => fillAndLogin(q)}
-      title={`${q.label} | ID: ${q.id} | Pass: ${q.pass}`}
+      <div className="quick-login-section">
+        <div className="quick-login-header">
+          <h3>⚡ এক ক্লিকে লগইন ও পর্যবেক্ষণ (Click to Login)</h3>
+          <p style={{fontSize:'12px',color:'#555',margin:'4px 0 10px'}}>যেকোনো রোলে ক্লিক করলেই সাথে সাথে সংশ্লিষ্ট পোর্টালে লগইন হয়ে যাবে:</p>
+        </div>
+        <div className="quick-login-grid">
+          {quickAccounts.map(q => (
+            <button
+              key={q.key}
+              type="button"
+              className="quick-login-btn"
+              onClick={() => fillAndLogin(q)}
+              title={`${q.label} | ID: ${q.id} | Pass: ${q.pass}`}
+              style={q.isModalTrigger ? { borderColor: '#0284c7', background: '#f0f9ff' } : undefined}
+            >
+              <span className="quick-login-icon">{q.icon}</span>
+              <span className="quick-login-title">{q.label}</span>
+              <span className="quick-login-role">{q.isModalTrigger ? '৭ জন শিক্ষক সেবা বক্স ▾' : <>ID: <code>{q.id}</code></>}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+    </div>
+   </div>
+
+   {/* বিষয় শিক্ষক সেবা বক্স (৭ জন শিক্ষকের রোল স্ক্রীন পপআপ মোডাল) */}
+   {showSubjectTeacherModal && (
+    <div
+      className="submenu-modal-overlay"
+      onClick={() => setShowSubjectTeacherModal(false)}
+      style={{ zIndex: 999999 }}
     >
-      <span className="quick-login-icon">{q.icon}</span>
-      <span className="quick-login-title">{q.label}</span>
-      <span className="quick-login-role">ID: <code>{q.id}</code></span>
-    </button>
-   ))}
-  </div>
- </div>
+      <div
+        className="submenu-modal-card"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '840px' }}
+      >
+        <div className="modal-header" style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>📖</span>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '18px', color: '#ffffff' }}>বিষয় শিক্ষক রোল স্ক্রীন (সেবা বক্স)</h2>
+              <p style={{ margin: '3px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.88)' }}>
+                বিদ্যালয়ের ৭ জন বিষয় শিক্ষকের তালিকা — ক্লিক করলেই সরাসরি বিষয় নম্বর এন্ট্রি ডেস্কে লগইন হয়ে যাবে
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="modal-close-btn"
+            onClick={() => setShowSubjectTeacherModal(false)}
+            aria-label="বন্ধ করুন"
+          >
+            ✕
+          </button>
+        </div>
 
- </div></div></section>
+        <div className="modal-body" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <span className="modal-hero-badge" style={{ background: '#e0f2fe', color: '#0369a1', margin: 0 }}>
+              ⭐ আপনার শিক্ষক নির্বাচন করুন ({remainingSubjectTeachers.length} জন বিষয় শিক্ষক)
+            </span>
+            <small style={{ color: '#64748b', fontSize: '12px' }}>
+              নির্ধারিত বিষয়ের লিখিত, MCQ ও ব্যবহারিক নম্বর এন্ট্রি
+            </small>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+            gap: '12px'
+          }}>
+            {remainingSubjectTeachers.map((t, idx) => {
+              const photo = t.photo_url || getTeacherPhoto(t);
+              return (
+                <div
+                  key={t.id || t.employee_id || idx}
+                  onClick={() => selectSubjectTeacherAndLogin(t)}
+                  style={{
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    background: '#f8fafc',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#0284c7';
+                    e.currentTarget.style.background = '#f0f9ff';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 14px rgba(2,132,199,0.18)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#cbd5e1';
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = '0 2px 5px rgba(0,0,0,0.03)';
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '52px', height: '52px', flexShrink: 0 }}>
+                    <img
+                      src={photo}
+                      alt={t.name_bn}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #0284c7',
+                        background: '#e2e8f0'
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '-3px',
+                      right: '-3px',
+                      background: '#0284c7',
+                      color: '#fff',
+                      fontSize: '9.5px',
+                      fontWeight: 800,
+                      padding: '0 5px',
+                      borderRadius: '8px',
+                      border: '1px solid #fff'
+                    }}>
+                      {toBnDigits(t.employee_id || idx + 1)}
+                    </span>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {t.name_bn}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {t.designation || 'সহকারী শিক্ষক'}
+                    </div>
+                    <div style={{
+                      marginTop: '4px',
+                      display: 'inline-block',
+                      background: '#e0f2fe',
+                      color: '#0369a1',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%'
+                    }}>
+                      📖 {t.subject || 'সাধারণ'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{
+            marginTop: '16px',
+            padding: '10px 14px',
+            background: '#f0fdf4',
+            borderRadius: '8px',
+            border: '1px solid #bbf7d0',
+            fontSize: '12px',
+            color: '#166534',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '16px' }}>💡</span>
+            <span>
+              <b>নির্দেশনা:</b> যে কোনো বিষয় শিক্ষকে ক্লিক করলেই তিনি সরাসরি তার পাঠদান বিষয়ের পরীক্ষা নম্বর এন্ট্রি ডেস্কে প্রবেশ করবেন।
+            </span>
+          </div>
+        </div>
+
+        <div className="modal-footer" style={{ padding: '10px 18px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => setShowSubjectTeacherModal(false)}
+            style={{ background: '#64748b', color: '#ffffff', fontWeight: 700 }}
+          >
+            বন্ধ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+   )}
+  </section>
+ );
 }
 
 function ReportsPanel(){
@@ -3160,11 +3404,6 @@ function StudentPanel({sub}){
 
 const emptyTeacher={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',designation_en:'',subject:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',first_mpo_date:'',current_post_joining_date:'',current_mpo_date:'',previous_institution_joining_date:'',previous_institution_mpo_date:'',appointment_date:'',appointment_authority:'',mpo_index_no:'',teacher_registration_no:'',registration_date:'',teacher_portal_id:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],ntrca:{},dob:'',professional_note:''}};
 const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',current_post_joining_date:'',appointment_date:'',appointment_authority:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],dob:'',professional_note:''}};
-
-const toBnDigits = (n) => {
-  if (n === null || n === undefined || n === '') return '';
-  return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-};
 
 function StaffPanel({sub}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
