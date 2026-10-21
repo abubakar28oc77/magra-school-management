@@ -94,6 +94,7 @@ import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
+import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
@@ -288,6 +289,18 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   };
 
   const renderContent = () => {
+    // Co-curricular & Language Literature Club Module
+    if (
+      menuKey === 'public.nav.sport.clubs' || 
+      title?.includes('ভাষা ও সাহিত্য') || 
+      title?.includes('সাহিত্য ক্লাব') || 
+      title?.includes('ক্লাব ও সংগঠন') ||
+      title?.includes('ক্লাব') ||
+      menuKey?.includes('clubs')
+    ) {
+      return <LanguageLiteratureClubSection initialTitle={title} onClose={onClose} />;
+    }
+
     // Routine & Schedule (Class & Exam Routine)
     if (menuKey?.includes('routine') || title?.includes('রুটিন')) {
       return (
@@ -1499,9 +1512,11 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     );
   };
 
+  const isClubModal = menuKey === 'public.nav.sport.clubs' || title?.includes('ভাষা ও সাহিত্য') || title?.includes('সাহিত্য') || title?.includes('ক্লাব');
+
   return (
     <div className="submenu-modal-overlay" onClick={onClose}>
-      <div className="submenu-modal-card" onClick={e => e.stopPropagation()}>
+      <div className="submenu-modal-card" style={isClubModal ? { maxWidth: '1080px', width: '96%' } : undefined} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>

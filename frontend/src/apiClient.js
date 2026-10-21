@@ -916,8 +916,213 @@ function handleMockRequest(path, opts = {}) {
     return { success: true };
   }
 
+  // Co-curricular & Public Content Management
   if (cleanPath === '/public/content' || cleanPath === '/content') {
-    return getLocalStore('content', MOCK_PUBLIC_CONTENT);
+    let contentList = getLocalStore('content', MOCK_PUBLIC_CONTENT);
+    if (method === 'POST') {
+      const newItem = {
+        id: 'c-' + Date.now(),
+        content_type: body.content_type || 'club',
+        title_bn: body.title_bn || '',
+        title_en: body.title_en || '',
+        description: body.description || '',
+        event_date: body.event_date || new Date().toISOString().slice(0, 10),
+        location: body.location || '',
+        image_url: body.image_url || '',
+        status: body.status || 'published',
+        sort_order: Number(body.sort_order) || 0
+      };
+      contentList = [newItem, ...contentList];
+      setLocalStore('content', contentList);
+      return newItem;
+    }
+    const typeParam = params.get('type');
+    if (typeParam) {
+      return contentList.filter(c => c.content_type === typeParam);
+    }
+    return contentList;
+  }
+
+  if (cleanPath.startsWith('/content/') && (method === 'PUT' || method === 'PATCH')) {
+    const id = cleanPath.replace('/content/', '');
+    let contentList = getLocalStore('content', MOCK_PUBLIC_CONTENT);
+    contentList = contentList.map(c => String(c.id) === String(id) ? { ...c, ...body } : c);
+    setLocalStore('content', contentList);
+    return { success: true };
+  }
+
+  if (cleanPath.startsWith('/content/') && method === 'DELETE') {
+    const id = cleanPath.replace('/content/', '');
+    let contentList = getLocalStore('content', MOCK_PUBLIC_CONTENT);
+    contentList = contentList.filter(c => String(c.id) !== String(id));
+    setLocalStore('content', contentList);
+    return { success: true };
+  }
+
+  // Scholarships Management
+  if (cleanPath === '/scholarships') {
+    let scholarships = getLocalStore('scholarships', MOCK_SCHOLARSHIPS);
+    if (method === 'POST') {
+      const students = getLocalStore('students', MOCK_STUDENTS);
+      const student = students.find(s => String(s.id) === String(body.student_id));
+      const newSch = {
+        id: 'sch-' + Date.now(),
+        student_id: body.student_id,
+        name_bn: student?.name_bn || body.name_bn || 'শিক্ষার্থী',
+        class_name: student?.class_name || body.class_name || '—',
+        scholarship_name: body.scholarship_name || '',
+        academic_year: body.academic_year || new Date().getFullYear(),
+        provider: body.provider || '',
+        amount: Number(body.amount) || 0,
+        award_date: body.award_date || new Date().toISOString().slice(0, 10),
+        status: body.status || 'awarded',
+        notes: body.notes || ''
+      };
+      scholarships = [newSch, ...scholarships];
+      setLocalStore('scholarships', scholarships);
+      return newSch;
+    }
+    return scholarships;
+  }
+
+  if (cleanPath.startsWith('/scholarships/') && (method === 'PUT' || method === 'PATCH')) {
+    const id = cleanPath.replace('/scholarships/', '');
+    let scholarships = getLocalStore('scholarships', MOCK_SCHOLARSHIPS);
+    scholarships = scholarships.map(s => String(s.id) === String(id) ? { ...s, ...body } : s);
+    setLocalStore('scholarships', scholarships);
+    return { success: true };
+  }
+
+  if (cleanPath.startsWith('/scholarships/') && method === 'DELETE') {
+    const id = cleanPath.replace('/scholarships/', '');
+    let scholarships = getLocalStore('scholarships', MOCK_SCHOLARSHIPS);
+    scholarships = scholarships.filter(s => String(s.id) !== String(id));
+    setLocalStore('scholarships', scholarships);
+    return { success: true };
+  }
+
+  // Event Participants
+  if (cleanPath.startsWith('/events/') && cleanPath.endsWith('/participants')) {
+    const eventId = cleanPath.split('/')[2];
+    let allParticipants = getLocalStore('event_participants', [
+      { id: 'ep-1', event_id: 'c-8', student_id: 'stu-09-sci-01', name_bn: 'ফারজানা মেহজাবীন', class_name: '৯ম', role: 'স্বরচিত কবিতা আবৃত্তি', position: '১ম স্থান (চ্যাম্পিয়ন)' },
+      { id: 'ep-2', event_id: 'c-8', student_id: 'stu-10-sci-01', name_bn: 'তানভীর আহমেদ', class_name: '১০ম', role: 'গল্প রচনা ও উপস্থাপনা', position: 'বিশেষ সাহিত্য পুরস্কার' },
+      { id: 'ep-3', event_id: 'c-5', student_id: 'stu-10-sci-02', name_bn: 'রাহাত হাসান', class_name: '১০ম', role: 'দলনেতা (বিতর্ক দল)', position: 'উপজেলা চ্যাম্পিয়ন' }
+    ]);
+    if (method === 'POST') {
+      const students = getLocalStore('students', MOCK_STUDENTS);
+      const matched = students.find(s => String(s.id) === String(body.student_id));
+      const newPart = {
+        id: 'ep-' + Date.now(),
+        event_id: eventId,
+        student_id: body.student_id,
+        name_bn: matched?.name_bn || body.name_bn || 'শিক্ষার্থী',
+        class_name: matched?.class_name ? `শ্রেণি ${matched.class_name}` : '—',
+        role: body.role || '',
+        position: body.position || '',
+        notes: body.notes || ''
+      };
+      allParticipants = [newPart, ...allParticipants];
+      setLocalStore('event_participants', allParticipants);
+      return newPart;
+    }
+    return allParticipants.filter(p => !p.event_id || String(p.event_id) === String(eventId));
+  }
+
+  if (cleanPath.includes('/events/') && cleanPath.includes('/participants/') && method === 'DELETE') {
+    const pId = cleanPath.split('/').pop();
+    let allParticipants = getLocalStore('event_participants', []);
+    allParticipants = allParticipants.filter(p => String(p.id) !== String(pId));
+    setLocalStore('event_participants', allParticipants);
+    return { success: true };
+  }
+
+  // Club Submissions & Membership Applications
+  if (cleanPath === '/club-submissions') {
+    const defaultSubmissions = [
+      {
+        id: 'sub-1',
+        tracking_id: 'LIT-2026-101',
+        student_name: 'ফারজানা মেহজাবীন',
+        class_name: '৯',
+        roll_no: '১',
+        mobile: '01712-345678',
+        type: 'poem',
+        type_label: 'স্বরচিত কবিতা',
+        title: 'রক্তে রাঙা একুশ',
+        content: 'পলাশ ডালে রক্ত লেগেছে ফাগুনের এই ভোরে,\nমায়ের ভাষায় কথা বলা প্রাণ শহীদ মিনারে ঝরে।\nসালাম, বরকত, রফিক, জব্বার—তোমাদের ভুলব না,\nবাংলা আমার মুখের বুলি, অন্য কিছু মানব না।',
+        status: 'approved',
+        submitted_at: '2026-02-15'
+      },
+      {
+        id: 'sub-2',
+        tracking_id: 'LIT-2026-102',
+        student_name: 'তানভীর আহমেদ',
+        class_name: '১০',
+        roll_no: '১',
+        mobile: '01711-223344',
+        type: 'story',
+        type_label: 'ছোটগল্প',
+        title: 'মগড়ার বটের ছায়ায়',
+        content: 'কালিহাতির বুক চিরে বয়ে যাওয়া নদীর ধারে মগড়া গ্রামের মেঠোপথ। স্কুল ছুটির পর বন্ধুদের সাথে হেঁটে চলা আর বটগাছের ছায়ায় বসে বই পড়ার স্মৃতি নিয়ে রচিত এক হৃদয়গ্রাহী গল্প...',
+        status: 'approved',
+        submitted_at: '2026-02-18'
+      },
+      {
+        id: 'sub-3',
+        tracking_id: 'LIT-2026-103',
+        student_name: 'মাহির ফয়সাল',
+        class_name: '৭',
+        roll_no: '১',
+        mobile: '01715-998877',
+        type: 'rhyme',
+        type_label: 'ছড়া',
+        title: 'বইয়ের দেশে অভিযান',
+        content: 'বইয়ের পাতা খুললেই পাই অচিন দেশের ঘ্রাণ,\nচাঁদের বুড়ি চরকা কাটে, শোনায় মধুর গান।',
+        status: 'approved',
+        submitted_at: '2026-02-20'
+      }
+    ];
+    let submissions = getLocalStore('club_submissions', defaultSubmissions);
+    if (method === 'POST') {
+      const yr = new Date().getFullYear();
+      const seq = Math.floor(100 + Math.random() * 900);
+      const newSub = {
+        id: 'sub-' + Date.now(),
+        tracking_id: `LIT-${yr}-${seq}`,
+        student_name: body.student_name || '',
+        class_name: body.class_name || '৬',
+        roll_no: body.roll_no || '',
+        department: body.department || '',
+        mobile: body.mobile || '',
+        type: body.type || 'poem',
+        type_label: body.type_label || (body.type === 'membership' ? 'সদস্যপদ আবেদন' : 'দেয়াল পত্রিকার লেখা'),
+        title: body.title || '',
+        content: body.content || '',
+        status: 'pending',
+        submitted_at: new Date().toISOString().slice(0, 10)
+      };
+      submissions = [newSub, ...submissions];
+      setLocalStore('club_submissions', submissions);
+      return newSub;
+    }
+    return submissions;
+  }
+
+  if (cleanPath.startsWith('/club-submissions/') && (method === 'PUT' || method === 'PATCH')) {
+    const id = cleanPath.replace('/club-submissions/', '');
+    let submissions = getLocalStore('club_submissions', []);
+    submissions = submissions.map(s => String(s.id) === String(id) ? { ...s, ...body } : s);
+    setLocalStore('club_submissions', submissions);
+    return { success: true };
+  }
+
+  if (cleanPath.startsWith('/club-submissions/') && method === 'DELETE') {
+    const id = cleanPath.replace('/club-submissions/', '');
+    let submissions = getLocalStore('club_submissions', []);
+    submissions = submissions.filter(s => String(s.id) !== String(id));
+    setLocalStore('club_submissions', submissions);
+    return { success: true };
   }
 
   if (cleanPath === '/public/student-stats') {

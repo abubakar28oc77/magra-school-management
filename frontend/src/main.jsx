@@ -1619,8 +1619,160 @@ function EventParticipantsPanel(){
  async function remove(id){try{await api(`/events/${eventId}/participants/${id}`,{method:'DELETE'});setParticipants(x=>x.filter(p=>p.id!==id));setMsg('অংশগ্রহণকারী বাদ দেওয়া হয়েছে')}catch(e){setMsg(e.message)}}
  return <div className="module-grid"><div className="form-card"><span className="eyebrow">EVENT PARTICIPANTS</span><h2>ইভেন্ট নির্বাচন</h2><select value={eventId} onChange={e=>setEventId(e.target.value)}><option value="">ইভেন্ট নির্বাচন করুন</option>{events.map(x=><option key={x.id} value={x.id}>{x.title_bn} {x.event_date?`— ${x.event_date}`:''}</option>)}</select>{eventId&&<form onSubmit={add} className="form-grid"><select value={form.student_id} onChange={e=>setForm({...form,student_id:e.target.value})} required><option value="">শিক্ষার্থী *</option>{students.map(x=><option key={x.id} value={x.id}>{x.name_bn} — {x.student_id}</option>)}</select><input placeholder="ভূমিকা (যেমন: খেলোয়াড়)" value={form.role} onChange={e=>setForm({...form,role:e.target.value})}/><input placeholder="অবস্থান/পুরস্কার" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/><textarea className="full" placeholder="মন্তব্য" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/><button className="btn full">অংশগ্রহণকারী যোগ করুন</button></form>}{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>অংশগ্রহণকারীর তালিকা</h2><span>{participants.length} জন</span></div><div className="table-wrap"><table><thead><tr><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>ভূমিকা</th><th>অবস্থান/পুরস্কার</th><th></th></tr></thead><tbody>{participants.map(p=><tr key={p.id}><td>{p.name_bn}<small>{p.student_id}</small></td><td>{p.class_name}</td><td>{p.role||'—'}</td><td>{p.position||'—'}</td><td><button className="mini" onClick={()=>remove(p.id)}>বাদ দিন</button></td></tr>)}{!participants.length&&<tr><td colSpan="5">ইভেন্ট নির্বাচন করলে অংশগ্রহণকারীর তালিকা দেখা যাবে।</td></tr>}</tbody></table></div></div></div>
 }
+function ClubSubmissionsPanel() {
+ const [submissions, setSubmissions] = useState([]);
+ const [filter, setFilter] = useState('all');
+ const [msg, setMsg] = useState('');
+ const [reading, setReading] = useState(null);
+
+ const load = () => {
+   api('/club-submissions').then(res => {
+     if (Array.isArray(res)) setSubmissions(res);
+   }).catch(e => setMsg(e.message));
+ };
+ useEffect(load, []);
+
+ async function approve(id) {
+   try {
+     await api('/club-submissions/' + id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
+     setMsg('লেখাটি অনুমোদিত হয়েছে এবং দেয়াল পত্রিকায় প্রকাশের জন্য প্রস্তুত।');
+     load();
+   } catch(e) { setMsg(e.message); }
+ }
+
+ async function remove(id) {
+   if (!confirm('এই লেখা বা আবেদনটি মুছে ফেলবেন?')) return;
+   try {
+     await api('/club-submissions/' + id, { method: 'DELETE' });
+     setMsg('আবেদনটি মুছে ফেলা হয়েছে।');
+     load();
+   } catch(e) { setMsg(e.message); }
+ }
+
+ async function publishToContent(item) {
+   try {
+     await api('/content', {
+       method: 'POST',
+       body: JSON.stringify({
+         content_type: 'event',
+         title_bn: `দেয়াল পত্রিকা 'কিশলয়': ${item.title} — ${item.student_name}`,
+         description: item.content,
+         location: `শ্রেণি ${item.class_name}, রোল ${item.roll_no || '—'}`,
+         event_date: new Date().toISOString().slice(0, 10),
+         status: 'published'
+       })
+     });
+     await api('/club-submissions/' + item.id, { method: 'PUT', body: JSON.stringify({ status: 'approved' }) });
+     setMsg('✓ লেখাটি বিদ্যালয়ের দেয়াল পত্রিকা ও সহশিক্ষা কনটেন্টে সফলভাবে প্রকাশিত হয়েছে!');
+     load();
+   } catch(e) { setMsg(e.message); }
+ }
+
+ const visible = submissions.filter(s => {
+   if (filter === 'all') return true;
+   if (filter === 'pending') return s.status === 'pending';
+   if (filter === 'approved') return s.status === 'approved';
+   if (filter === 'membership') return s.type === 'membership';
+   return true;
+ });
+
+ return (
+   <div className="module-grid">
+     <div className="form-card full" style={{ gridColumn: '1 / -1' }}>
+       <div className="toolbar" style={{ flexWrap: 'wrap', gap: '10px' }}>
+         <div>
+           <span className="eyebrow">LANGUAGE & LITERATURE CLUB DESK</span>
+           <h2>দেয়াল পত্রিকা ‘কিশলয়’-এর শিক্ষার্থী লেখা ও সদস্যপদ আবেদন তালিকা</h2>
+         </div>
+         <div className="filters" style={{ margin: 0 }}>
+           <select value={filter} onChange={e => setFilter(e.target.value)}>
+             <option value="all">সকল আবেদন ও লেখা ({submissions.length})</option>
+             <option value="pending">অপেক্ষমাণ (Pending)</option>
+             <option value="approved">অনুমোদিত (Approved)</option>
+             <option value="membership">সদস্যপদ আবেদন</option>
+           </select>
+         </div>
+       </div>
+
+       {msg && <p className="msg" style={{ margin: '8px 0' }}>{msg}</p>}
+
+       <div className="table-wrap">
+         <table>
+           <thead>
+             <tr>
+               <th>ট্র্যাকিং আইডি</th>
+               <th>শিক্ষার্থীর নাম</th>
+               <th>শ্রেণি ও রোল</th>
+               <th>ধরন</th>
+               <th>শিরোনাম</th>
+               <th>তারিখ</th>
+               <th>অবস্থা</th>
+               <th>কাজ</th>
+             </tr>
+           </thead>
+           <tbody>
+             {visible.map(s => (
+               <tr key={s.id}>
+                 <td><code>{s.tracking_id || s.id}</code></td>
+                 <td><b>{s.student_name}</b><br/><small>{s.mobile || '—'}</small></td>
+                 <td>শ্রেণি {s.class_name} {s.roll_no ? `• রোল ${s.roll_no}` : ''}</td>
+                 <td><span className="badge">{s.type_label || s.type}</span></td>
+                 <td><b>{s.title}</b></td>
+                 <td>{s.submitted_at || '—'}</td>
+                 <td>
+                   {s.status === 'approved' ? (
+                     <span className="status-green">✓ অনুমোদিত</span>
+                   ) : (
+                     <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                       ⏳ অপেক্ষমাণ
+                     </span>
+                   )}
+                 </td>
+                 <td>
+                   <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                     <button className="mini" onClick={() => setReading(s)}>পড়ুন</button>
+                     {s.status !== 'approved' && (
+                       <button className="mini" style={{ background: '#047857', color: '#fff' }} onClick={() => approve(s.id)}>অনুমোদন</button>
+                     )}
+                     <button className="mini" style={{ background: '#1e3a8a', color: '#fff' }} onClick={() => publishToContent(s)}>প্রকাশ করুন</button>
+                     <button className="mini" onClick={() => remove(s.id)}>মুছুন</button>
+                   </div>
+                 </td>
+               </tr>
+             ))}
+             {!visible.length && (
+               <tr><td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>কোনো জমা দেওয়া লেখা বা আবেদন পাওয়া যায়নি।</td></tr>
+             )}
+           </tbody>
+         </table>
+       </div>
+     </div>
+
+     {reading && (
+       <div className="lightbox" role="dialog" aria-modal="true" onClick={() => setReading(null)}>
+         <div className="lightbox-card" style={{ maxWidth: '600px', width: '92%' }} onClick={e => e.stopPropagation()}>
+           <button className="lightbox-close" onClick={() => setReading(null)}>×</button>
+           <span className="badge" style={{ marginBottom: '8px', display: 'inline-block' }}>{reading.type_label} • শ্রেণি {reading.class_name}</span>
+           <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#0f172a' }}>{reading.title}</h3>
+           <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>
+             লেখক: {reading.student_name} (রোল {reading.roll_no || '—'}) • মোবাইল: {reading.mobile || '—'}
+           </p>
+           <div style={{ background: '#fdfbf7', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', whiteSpace: 'pre-wrap', lineHeight: '1.8', fontSize: '14px', maxHeight: '50vh', overflowY: 'auto' }}>
+             {reading.content}
+           </div>
+           <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+             <button className="btn" onClick={() => { publishToContent(reading); setReading(null); }}>📰 দেয়াল পত্রিকায় প্রকাশ করুন</button>
+             <button className="btn btn-ghost" onClick={() => setReading(null)}>বন্ধ করুন</button>
+           </div>
+         </div>
+       </div>
+     )}
+   </div>
+ );
+}
+
 function ContentPanel({ sub }){
- const[tab,setTab]=useState(sub==='achievements'||sub==='scholarships'?'scholarship':sub==='events'?'event_participants':'content');
+ const[tab,setTab]=useState(sub==='achievements'||sub==='scholarships'?'scholarship':sub==='events'?'event_participants':sub==='submissions'?'club_submissions':'content');
  const types=[['institution','বিদ্যালয় পরিচিতি'],['event','অনুষ্ঠান/ইভেন্ট'],['sport','ক্রীড়া/সংস্কৃতি'],['achievement','অর্জন/পুরস্কার'],['facility','সুবিধা/অবকাঠামো'],['transport','পরিবহন'],['hostel','হোস্টেল'],['club','ক্লাব/সংগঠন'],['library_info','লাইব্রেরি তথ্য'],['gallery','গ্যালারি']];
  const empty={content_type:'event',title_bn:'',title_en:'',description:'',event_date:'',location:'',image_url:'',status:'published',sort_order:0};
  const[rows,setRows]=useState([]),[form,setForm]=useState(empty),[editing,setEditing]=useState(null),[msg,setMsg]=useState(''),[filter,setFilter]=useState(''),[typeFilter,setTypeFilter]=useState('');
@@ -1630,6 +1782,7 @@ function ContentPanel({ sub }){
   else if(sub==='events') setTab('event_participants');
   else if(sub==='clubs') { setTab('content'); setTypeFilter('club'); }
   else if(sub==='school') { setTab('content'); setTypeFilter('institution'); }
+  else if(sub==='submissions') { setTab('club_submissions'); }
   else if(sub==='content') { setTab('content'); }
  },[sub]);
 
@@ -1638,10 +1791,11 @@ function ContentPanel({ sub }){
  function edit(r){setEditing(r.id);setForm({content_type:r.content_type||'event',title_bn:r.title_bn||'',title_en:r.title_en||'',description:r.description||'',event_date:r.event_date?.slice(0,10)||'',location:r.location||'',image_url:r.image_url||'',status:r.status||'published',sort_order:r.sort_order||0});window.scrollTo({top:0,behavior:'smooth'})}
  async function remove(id){if(!confirm('এই কনটেন্ট মুছে ফেলবেন?'))return;try{await api('/content/'+id,{method:'DELETE'});setMsg('কনটেন্ট মুছে ফেলা হয়েছে');load()}catch(e){setMsg(e.message)}}
 
- if(tab==='scholarship') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div><ScholarshipPanel/></div>;
- if(tab==='event_participants') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div><EventParticipantsPanel/></div>;
+ if(tab==='scholarship') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button><button className={tab==='club_submissions'?'active':''} onClick={()=>setTab('club_submissions')}>📝 দেয়াল পত্রিকা ও ক্লাব লেখা</button></div><ScholarshipPanel/></div>;
+ if(tab==='event_participants') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button><button className={tab==='club_submissions'?'active':''} onClick={()=>setTab('club_submissions')}>📝 দেয়াল পত্রিকা ও ক্লাব লেখা</button></div><EventParticipantsPanel/></div>;
+ if(tab==='club_submissions') return <div><div className="tabs" style={{marginBottom:'16px'}}><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button><button className={tab==='club_submissions'?'active':''} onClick={()=>setTab('club_submissions')}>📝 দেয়াল পত্রিকা ও ক্লাব লেখা</button></div><ClubSubmissionsPanel/></div>;
 
- return <div className="module-grid"><div className="form-card full" style={{gridColumn:'1 / -1'}}><div className="tabs"><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div></div><div className="form-card"><div className="toolbar"><h2>{editing?'কনটেন্ট সম্পাদনা':'নতুন কনটেন্ট যোগ'}</h2>{editing&&<button className="mini" onClick={()=>{setEditing(null);setForm(empty)}}>বাতিল</button>}</div><form onSubmit={save} className="form-grid"><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="শিরোনাম (বাংলা) *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="শিরোনাম (English)" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><input type="date" value={form.event_date} onChange={e=>setForm({...form,event_date:e.target.value})}/><input placeholder="স্থান/বিভাগ" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input placeholder="ছবির URL" value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})}/><textarea className="full" placeholder="বিস্তারিত বিবরণ" rows="4" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn full">{editing?'আপডেট করুন':'প্রকাশ করুন'}</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{visible.length} টি</span></div><div className="filters"><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="">সব ক্যাটাগরি</option>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="খুঁজুন..." value={filter} onChange={e=>setFilter(e.target.value)}/></div><div className="table-wrap"><table><thead><tr><th>টাইপ</th><th>শিরোনাম</th><th>তারিখ</th><th>স্থান</th><th></th></tr></thead><tbody>{visible.map(r=><tr key={r.id}><td>{types.find(t=>t[0]===r.content_type)?.[1]||r.content_type}</td><td><b>{r.title_bn}</b><br/><small>{r.title_en}</small></td><td>{r.event_date?.slice(0,10)||'—'}</td><td>{r.location||'—'}</td><td><button className="mini" onClick={()=>edit(r)}>সম্পাদনা</button> <button className="mini" onClick={()=>remove(r.id)}>মুছুন</button></td></tr>)}{!visible.length&&<tr><td colSpan="5">কোনো কনটেন্ট পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
+ return <div className="module-grid"><div className="form-card full" style={{gridColumn:'1 / -1'}}><div className="tabs"><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button><button className={tab==='club_submissions'?'active':''} onClick={()=>setTab('club_submissions')}>📝 দেয়াল পত্রিকা ও ক্লাব লেখা</button></div></div><div className="form-card"><div className="toolbar"><h2>{editing?'কনটেন্ট সম্পাদনা':'নতুন কনটেন্ট যোগ'}</h2>{editing&&<button className="mini" onClick={()=>{setEditing(null);setForm(empty)}}>বাতিল</button>}</div><form onSubmit={save} className="form-grid"><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="শিরোনাম (বাংলা) *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="শিরোনাম (English)" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><input type="date" value={form.event_date} onChange={e=>setForm({...form,event_date:e.target.value})}/><input placeholder="স্থান/বিভাগ" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input placeholder="ছবির URL" value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})}/><textarea className="full" placeholder="বিস্তারিত বিবরণ" rows="4" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn full">{editing?'আপডেট করুন':'প্রকাশ করুন'}</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{visible.length} টি</span></div><div className="filters"><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="">সব ক্যাটাগরি</option>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="খুঁজুন..." value={filter} onChange={e=>setFilter(e.target.value)}/></div><div className="table-wrap"><table><thead><tr><th>টাইপ</th><th>শিরোনাম</th><th>তারিখ</th><th>স্থান</th><th></th></tr></thead><tbody>{visible.map(r=><tr key={r.id}><td>{types.find(t=>t[0]===r.content_type)?.[1]||r.content_type}</td><td><b>{r.title_bn}</b><br/><small>{r.title_en}</small></td><td>{r.event_date?.slice(0,10)||'—'}</td><td>{r.location||'—'}</td><td><button className="mini" onClick={()=>edit(r)}>সম্পাদনা</button> <button className="mini" onClick={()=>remove(r.id)}>মুছুন</button></td></tr>)}{!visible.length&&<tr><td colSpan="5">কোনো কনটেন্ট পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
 }
 
 function OfficeAssistantPanel({ sub, setSub }){
@@ -1785,7 +1939,7 @@ function Admin(){
     {k:'ai',n:'AI শিক্ষা',i:'✨',subs:[['tutor','AI Tutor'],['analytics','AI বিশ্লেষণ']]}
    ]},
    {group:'রিপোর্ট ও ডকুমেন্ট',items:[{k:'reports',n:'রিপোর্ট',i:'📑'},{k:'documents',n:'ডকুমেন্ট ও প্রিন্ট',i:'🖨️',subs:[['id','ID Card'],['commendation_certificate','প্রশংসাপত্র'],['transfer_certificate','ছাড়পত্র (TC)'],['bonafide_certificate','প্রত্যয়ন পত্র'],['marksheet','Marksheet'],['certificate','Certificate'],['admit','Admit Card'],['tabulation','Tabulation'],['merit','Merit List']]}]},
-   {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
+   {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['submissions','দেয়াল পত্রিকা ও ক্লাব লেখা'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
    {group:'যোগাযোগ',items:[{k:'notice',n:'নোটিশ',i:'📢'},{k:'notifications',n:'নোটিফিকেশন',i:'🔔'}]},
    {group:'নিরাপত্তা',items:[{k:'users',n:'ইউজার ও রোল',i:'👥',subs:[['accounts','ব্যবহারকারী'],['roles','রোল ও অনুমতি'],['provision','Profile → Login'],['sessions','সেশন ও নিরাপত্তা']]},{k:'settings',n:'সেটিংস',i:'⚙️',subs:[['leadership','বাণী ও ফটো সেটিংস'],['password','পাসওয়ার্ড পরিবর্তন']]},{k:'feature_control',n:'ফিচার কন্ট্রোল',i:'🧩',subs:[['system','সিস্টেম Feature ON/OFF'],['public','View Site Menu ON/OFF'],['custom','নতুন Feature যোগ']]}]}
   ];
