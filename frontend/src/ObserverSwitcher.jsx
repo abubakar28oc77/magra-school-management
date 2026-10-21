@@ -21,17 +21,29 @@ export function ObserverSwitcher() {
       return;
     }
 
-    const matchedUser = MOCK_USERS.find(u =>
-      u.role_name === roleKey ||
-      (roleKey === 'student' && u.role_name === 'student') ||
-      (roleKey === 'teacher' && u.role_name === 'teacher') ||
-      (roleKey === 'admin' && u.role_name === 'super_admin')
-    ) || MOCK_USERS[0];
+    let matchedUser = null;
+    if (roleKey === 'super_admin' || roleKey === 'admin') {
+      matchedUser = MOCK_USERS.find(u => u.role_name === 'super_admin') || MOCK_USERS[0];
+    } else if (roleKey === 'head_teacher') {
+      matchedUser = MOCK_USERS.find(u => u.username === 'head_teacher') || MOCK_USERS[1];
+    } else if (roleKey === 'asst_head_teacher') {
+      matchedUser = MOCK_USERS.find(u => u.username === 'assistant_head_teacher') || MOCK_USERS[2];
+    } else if (roleKey === 'co_admin') {
+      matchedUser = MOCK_USERS.find(u => u.role_name === 'co_admin' && u.assigned_class === '৮ম') || MOCK_USERS.find(u => u.role_name === 'co_admin');
+    } else if (roleKey === 'teacher') {
+      matchedUser = MOCK_USERS.find(u => u.role_name === 'teacher');
+    } else if (roleKey === 'librarian') {
+      matchedUser = MOCK_USERS.find(u => u.role_name === 'librarian');
+    } else if (roleKey === 'staff' || roleKey === 'office') {
+      matchedUser = MOCK_USERS.find(u => u.role_name === 'staff');
+    } else {
+      matchedUser = MOCK_USERS.find(u => u.role_name === roleKey) || MOCK_USERS[0];
+    }
 
     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
     localStorage.setItem('magra_user', JSON.stringify(matchedUser));
 
-    if (['student', 'guardian', 'teacher', 'head_teacher', 'assistant_head_teacher'].includes(matchedUser.role_name)) {
+    if (matchedUser.role_name === 'teacher') {
       navigate('/portal');
     } else {
       navigate('/admin');
@@ -62,72 +74,63 @@ export function ObserverSwitcher() {
 
             <button
               type="button"
-              className={'observer-btn ' + (currentPath === '/admin' && (currentUser?.role_name === 'super_admin' || currentUser?.role_name === 'admin') ? 'active' : '')}
+              className={'observer-btn ' + (currentPath === '/admin' && currentUser?.role_name === 'super_admin' ? 'active' : '')}
               onClick={() => handleRoleSwitch('admin')}
-              title="সকল মডিউল, সেটিংস ও ফিচার কন্ট্রোল"
+              title="আইসিটি শিক্ষক ও সুপার অ্যাডমিন: পূর্ণ সিস্টেম নিয়ন্ত্রণ ও ফিচার কন্ট্রোল"
             >
               👑 সুপার অ্যাডমিন ERP
             </button>
 
             <button
               type="button"
-              className={'observer-btn ' + (currentPath === '/portal' && currentUser?.role_name === 'head_teacher' ? 'active' : '')}
+              className={'observer-btn ' + (currentPath === '/admin' && currentUser?.role_name === 'admin' ? 'active' : '')}
               onClick={() => handleRoleSwitch('head_teacher')}
-              title="একাডেমিক তদারকি ও রিপোর্ট"
+              title="প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক: একাডেমিক তদারকি, ভর্তি অনুমোদন ও পূর্ণ রিপোর্ট"
             >
-              🎓 প্রধান শিক্ষক
+              🎓 প্রধান শিক্ষক (অ্যাডমিন)
             </button>
 
             <button
               type="button"
-              className={'observer-btn ' + (currentPath === '/portal' && currentUser?.role_name === 'teacher' ? 'active' : '')}
+              className={'observer-btn ' + (currentUser?.role_name === 'co_admin' ? 'active' : '')}
+              onClick={() => handleRoleSwitch('co_admin')}
+              title="শ্রেণি শিক্ষক (কো-অ্যাডমিন): উপস্থিতি, ক্লাসে ভর্তি, ফি আদায় ও ফলাফল স্ক্রুটিনি"
+            >
+              👥 কো-অ্যাডমিন (শ্রেণি শিক্ষক)
+            </button>
+
+            <button
+              type="button"
+              className={'observer-btn ' + (currentUser?.role_name === 'teacher' ? 'active' : '')}
               onClick={() => handleRoleSwitch('teacher')}
-              title="মার্ক এন্ট্রি, উপস্থিতি ও ক্লাস রুটিন"
+              title="বিষয় শিক্ষক: পরীক্ষার বিষয়ভিত্তিক নম্বর এন্ট্রি ও রুটিন"
             >
-              👨‍🏫 সহকারী শিক্ষক
+              📝 বিষয় শিক্ষক (নম্বর এন্ট্রি)
             </button>
 
             <button
               type="button"
-              className={'observer-btn ' + (currentPath === '/portal' && currentUser?.role_name === 'student' ? 'active' : '')}
-              onClick={() => handleRoleSwitch('student')}
-              title="ফলাফল, উপস্থিতি, AI Tutor ও রুটিন"
-            >
-              🧑‍🎓 শিক্ষার্থী পোর্টাল
-            </button>
-
-            <button
-              type="button"
-              className={'observer-btn ' + (currentPath === '/portal' && currentUser?.role_name === 'guardian' ? 'active' : '')}
-              onClick={() => handleRoleSwitch('guardian')}
-              title="সন্তানের উপস্থিতি, ফি ও প্রগ্রেস"
-            >
-              👨‍👩‍👧 অভিভাবক পোর্টাল
-            </button>
-
-            <button
-              type="button"
-              className={'observer-btn ' + (currentPath === '/admin' && currentUser?.role_name === 'accountant' ? 'active' : '')}
-              onClick={() => handleRoleSwitch('accountant')}
-              title="ফি আদায় ও আয়-ব্যয়"
-            >
-              💰 হিসাবরক্ষক
-            </button>
-
-            <button
-              type="button"
-              className={'observer-btn ' + (currentPath === '/admin' && currentUser?.role_name === 'librarian' ? 'active' : '')}
+              className={'observer-btn ' + (currentUser?.role_name === 'librarian' ? 'active' : '')}
               onClick={() => handleRoleSwitch('librarian')}
-              title="বই ইস্যু ও লাইব্রেরি"
+              title="গ্রন্থাগার: ক্যাটালগ, বই ইস্যু-জমা, নষ্ট বই ও মাসিক রিপোর্ট"
             >
-              📚 গ্রন্থাগারিক
+              📚 গ্রন্থাগার
+            </button>
+
+            <button
+              type="button"
+              className={'observer-btn ' + (currentUser?.role_name === 'staff' ? 'active' : '')}
+              onClick={() => handleRoleSwitch('staff')}
+              title="অফিস সহকারী: ভর্তি, ক্যাশ কাউন্টার ফি আদায়, সনদ/টিসি/আইডি প্রিন্ট ও রেজিস্টার"
+            >
+              🏢 অফিস সহকারী
             </button>
 
             <button
               type="button"
               className={'observer-btn ' + (currentPath === '/login' ? 'active' : '')}
               onClick={() => handleRoleSwitch('login')}
-              title="লগইন স্ক্রিন ও অপশনসমূহ"
+              title="লগইন স্ক্রিন ও ডেমো আইডি অপশন"
             >
               🔐 লগইন স্ক্রিন
             </button>

@@ -617,26 +617,20 @@ function handleMockRequest(path, opts = {}) {
     let matched = users.find(u => u.login_id.toLowerCase() === cleanId);
     
     if (!matched) {
-      if (cleanId === 'head' || cleanId.includes('head_teacher')) {
-        matched = users.find(u => u.role_name === 'head_teacher');
-      } else if (cleanId === 'asst' || cleanId.includes('assistant')) {
-        matched = users.find(u => u.role_name === 'assistant_head_teacher');
-      } else if (cleanId === 'teacher' || cleanId.includes('teacher')) {
-        matched = users.find(u => u.role_name === 'teacher');
-      } else if (cleanId === 'student10' || cleanId.includes('10')) {
-        matched = users.find(u => u.role_name === 'student' && u.class_name === '10');
-      } else if (cleanId === 'student' || cleanId === 'student6' || cleanId.includes('student')) {
-        matched = users.find(u => u.role_name === 'student' && u.class_name === '6');
-      } else if (cleanId === 'guardian' || cleanId.includes('guardian')) {
-        matched = users.find(u => u.role_name === 'guardian');
-      } else if (cleanId === 'accountant') {
-        matched = users.find(u => u.role_name === 'accountant');
-      } else if (cleanId === 'librarian') {
-        matched = users.find(u => u.role_name === 'librarian');
-      } else if (cleanId === 'staff') {
-        matched = users.find(u => u.role_name === 'staff');
-      } else if (cleanId === 'admin' || cleanId.includes('admin')) {
+            if (cleanId === 'admin' || cleanId.includes('admin') || cleanId === 'ict' || cleanId === 'super') {
         matched = users.find(u => u.role_name === 'super_admin');
+      } else if (cleanId === 'head' || cleanId.includes('head_teacher')) {
+        matched = users.find(u => u.login_id === 'head_teacher' || u.role_name === 'admin');
+      } else if (cleanId === 'asst' || cleanId.includes('assistant')) {
+        matched = users.find(u => u.login_id === 'assistant_head_teacher');
+      } else if (cleanId.startsWith('class') || cleanId.includes('co_admin')) {
+        matched = users.find(u => u.login_id === cleanId || u.role_name === 'co_admin');
+      } else if (cleanId === 'teacher' || cleanId.includes('teacher') || cleanId.includes('subject')) {
+        matched = users.find(u => u.role_name === 'teacher');
+      } else if (cleanId === 'librarian' || cleanId.includes('lib')) {
+        matched = users.find(u => u.role_name === 'librarian');
+      } else if (cleanId === 'staff' || cleanId === 'office' || cleanId.includes('office')) {
+        matched = users.find(u => u.role_name === 'staff');
       }
     }
 
@@ -671,7 +665,7 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/portal/me') {
     const rawUser = localStorage.getItem('magra_user');
-    const user = rawUser ? JSON.parse(rawUser) : MOCK_USERS[4];
+    const user = rawUser ? JSON.parse(rawUser) : MOCK_USERS[0];
     const students = getLocalStore('students', MOCK_STUDENTS);
     const routines = getLocalStore('routines', MOCK_ROUTINES);
     const exams = getLocalStore('exams', MOCK_EXAMS);
@@ -2392,17 +2386,13 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/users') {
     let users = getLocalStore('users', MOCK_USERS);
     if (method === 'POST') {
-      const roleLabels = {
+            const roleLabels = {
         super_admin: 'সুপার অ্যাডমিন',
         admin: 'অ্যাডমিন',
-        head_teacher: 'প্রধান শিক্ষক',
-        assistant_head_teacher: 'সহকারী প্রধান শিক্ষক',
-        teacher: 'সহকারী শিক্ষক',
-        accountant: 'হিসাবরক্ষক',
-        librarian: 'গ্রন্থাগারিক',
-        staff: 'অফিস সহকারী',
-        student: 'শিক্ষার্থী',
-        guardian: 'অভিভাবক'
+        co_admin: 'কো-অ্যাডমিন (শ্রেণি শিক্ষক)',
+        teacher: 'সহকারী শিক্ষক (বিষয় শিক্ষক)',
+        librarian: 'গ্রন্থাগারিক (গ্রন্থাগার)',
+        staff: 'অফিস সহকারী'
       };
       const roleName = body.role || body.role_name || 'admin';
       const newUser = {
@@ -2428,17 +2418,13 @@ function handleMockRequest(path, opts = {}) {
     const id = cleanPath.replace('/users/', '');
     let users = getLocalStore('users', MOCK_USERS);
     if (method === 'PATCH' || method === 'PUT') {
-      const roleLabels = {
+            const roleLabels = {
         super_admin: 'সুপার অ্যাডমিন',
         admin: 'অ্যাডমিন',
-        head_teacher: 'প্রধান শিক্ষক',
-        assistant_head_teacher: 'সহকারী প্রধান শিক্ষক',
-        teacher: 'সহকারী শিক্ষক',
-        accountant: 'হিসাবরক্ষক',
-        librarian: 'গ্রন্থাগারিক',
-        staff: 'অফিস সহকারী',
-        student: 'শিক্ষার্থী',
-        guardian: 'অভিভাবক'
+        co_admin: 'কো-অ্যাডমিন (শ্রেণি শিক্ষক)',
+        teacher: 'সহকারী শিক্ষক (বিষয় শিক্ষক)',
+        librarian: 'গ্রন্থাগারিক (গ্রন্থাগার)',
+        staff: 'অফিস সহকারী'
       };
       users = users.map(u => {
         if (String(u.id) === String(id)) {

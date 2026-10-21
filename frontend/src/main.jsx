@@ -1206,7 +1206,7 @@ function Home(){
 
    <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice">নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}><span>© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</span><button type="button" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',padding:'5px 12px',borderRadius:'6px',fontSize:'11px',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',fontWeight:600}}>☁️ ক্লাউড ডেটাবেস সিঙ্ক (Supabase)</button></div></div></section>
   </main>
-  {activeModal && <SubmenuDetailModal menuKey={activeModal.key} title={activeModal.title} onClose={()=>setActiveModal(null)} onNavigateRole={(role)=>{ setActiveModal(null); const matched=MOCK_USERS.find(u=>u.role_name===role)||MOCK_USERS[0]; localStorage.setItem('magra_token','demo-'+Date.now()); localStorage.setItem('magra_user',JSON.stringify(matched)); nav(['student','guardian','teacher','head_teacher','assistant_head_teacher'].includes(matched.role_name)?'/portal':'/admin'); }} />}
+  {activeModal && <SubmenuDetailModal menuKey={activeModal.key} title={activeModal.title} onClose={()=>setActiveModal(null)} onNavigateRole={(role)=>{ setActiveModal(null); const matched=MOCK_USERS.find(u=>u.role_name===role)||MOCK_USERS[0]; localStorage.setItem('magra_token','demo-'+Date.now()); localStorage.setItem('magra_user',JSON.stringify(matched)); nav(matched.role_name==='teacher'?'/portal':'/admin'); }} />}
   {supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}
  </div>
 }
@@ -1217,16 +1217,14 @@ function Login(){
  const nav=useNavigate();
 
  const quickAccounts = [
-  { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'সকল মডিউল ও কনফিগারেশন', user: MOCK_USERS[0] },
-  { key: 'head', icon: '🎓', label: 'প্রধান শিক্ষক', id: 'head_teacher', pass: 'head123', role: 'Head Teacher', desc: 'একাডেমিক অনুমোদন ও রিপোর্ট', user: MOCK_USERS[1] },
-  { key: 'asst', icon: '👩‍🏫', label: 'সহকারী প্রধান শিক্ষক', id: 'assistant_head_teacher', pass: 'asst123', role: 'Asst. Head Teacher', desc: 'রুটিন, উপস্থিতি ও পরীক্ষা', user: MOCK_USERS[2] },
-  { key: 'teacher', icon: '👨‍🏫', label: 'সহকারী শিক্ষক (আইসিটি)', id: 'pilot-teacher-01', pass: 'teacher123', role: 'Teacher', desc: 'মার্ক এন্ট্রি ও লার্নিং', user: MOCK_USERS[3] },
-  { key: 'student6', icon: '🧑‍🎓', label: 'শিক্ষার্থী (৬ষ্ঠ শ্রেণি)', id: 'pilot-student-06-01', pass: 'student123', role: 'Student 6', desc: 'ব্যক্তিগত রেজাল্ট ও AI Tutor', user: MOCK_USERS[4] },
-  { key: 'student10', icon: '🧑‍🎓', label: 'শিক্ষার্থী (১০ম শ্রেণি)', id: 'pilot-student-10-01', pass: 'student123', role: 'Student 10', desc: 'এসএসসি প্রস্তুতি ও টেস্ট', user: MOCK_USERS[5] },
-  { key: 'guardian', icon: '👨‍👩‍👧', label: 'অভিভাবক পোর্টাল', id: 'pilot-guardian-01', pass: 'guardian123', role: 'Guardian', desc: 'সন্তানের উপস্থিতি ও বেতন', user: MOCK_USERS[6] },
-  { key: 'accountant', icon: '💰', label: 'হিসাবরক্ষক', id: 'accountant', pass: 'accountant123', role: 'Accountant', desc: 'ফি আদায় ও খরচের হিসাব', user: MOCK_USERS[7] },
-  { key: 'librarian', icon: '📚', label: 'গ্রন্থাগারিক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'বই ইস্যু ও রিটার্ন', user: MOCK_USERS[8] },
-  { key: 'staff', icon: '🧑‍💼', label: 'অফিস সহকারী', id: 'staff', pass: 'staff123', role: 'Staff', desc: 'ডকুমেন্ট ও ভোটার তালিকা', user: MOCK_USERS[9] }
+  { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • আইসিটি শিক্ষক ও সুপার অ্যাডমিন', user: MOCK_USERS[0] },
+  { key: 'head', icon: '🎓', label: 'প্রধান শিক্ষক', id: 'head_teacher', pass: 'head123', role: 'Head Teacher', desc: 'মুহাম্মদ শফিকুল ইসলাম • প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[1] },
+  { key: 'asst', icon: '👩‍🏫', label: 'সহকারী প্রধান শিক্ষক', id: 'assistant_head_teacher', pass: 'asst123', role: 'Asst. Head Teacher', desc: 'তাপসী সরকার • সহকারী প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[2] },
+  { key: 'co_admin6', icon: '👥', label: 'কো-অ্যাডমিন (৬ষ্ঠ শ্রেণি)', id: 'class6_teacher', pass: 'teacher123', role: 'Co-Admin 6', desc: 'মোঃ আনোয়ার হোসেন • ৬ষ্ঠ শ্রেণির উপস্থিতি, ভর্তি ও ফি', user: MOCK_USERS.find(u=>u.username==='class6_teacher')||MOCK_USERS[3] },
+  { key: 'co_admin8', icon: '👥', label: 'কো-অ্যাডমিন (৮ম শ্রেণি)', id: 'class8_teacher', pass: 'teacher123', role: 'Co-Admin 8', desc: 'মোহাম্মদ খালিদুর রহমান তাং • ৮ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.username==='class8_teacher')||MOCK_USERS[5] },
+  { key: 'teacher', icon: '📝', label: 'বিষয় শিক্ষক (নম্বর এন্ট্রি)', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', desc: 'আরতী রানী ভদ্র • বিষয়ভিত্তিক লিখিত ও MCQ নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='teacher') },
+  { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও ইস্যু-জমা', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
+  { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') }
  ];
 
  const fillAndLogin = (item) => {
@@ -1234,7 +1232,7 @@ function Login(){
   setPassword(item.pass);
   localStorage.setItem('magra_token', 'demo-token-' + Date.now());
   localStorage.setItem('magra_user', JSON.stringify(item.user));
-  if (['student', 'guardian', 'teacher', 'head_teacher', 'assistant_head_teacher'].includes(item.user.role_name)) {
+  if (item.user.role_name === 'teacher') {
    nav('/portal');
   } else {
    nav('/admin');
@@ -1250,7 +1248,7 @@ function Login(){
    const d=await api('/auth/login',{method:'POST',body:JSON.stringify({loginId:loginId.trim(),password})});
    localStorage.setItem('magra_token',d.token);
    localStorage.setItem('magra_user',JSON.stringify(d.user));
-   if(['student','guardian','teacher','head_teacher','assistant_head_teacher'].includes(d.user.role_name||d.user.role)){
+   if ((d.user.role_name || d.user.role) === 'teacher') {
     nav('/portal');
    } else {
     nav('/admin');
@@ -1374,6 +1372,35 @@ function ContentPanel({ sub }){
  return <div className="module-grid"><div className="form-card full" style={{gridColumn:'1 / -1'}}><div className="tabs"><button className={tab==='content'?'active':''} onClick={()=>setTab('content')}>কনটেন্ট ও সুবিধা</button><button className={tab==='scholarship'?'active':''} onClick={()=>setTab('scholarship')}>বৃত্তি ও কৃতি শিক্ষার্থী</button><button className={tab==='event_participants'?'active':''} onClick={()=>setTab('event_participants')}>ইভেন্ট ও অংশগ্রহণকারী</button></div></div><div className="form-card"><div className="toolbar"><h2>{editing?'কনটেন্ট সম্পাদনা':'নতুন কনটেন্ট যোগ'}</h2>{editing&&<button className="mini" onClick={()=>{setEditing(null);setForm(empty)}}>বাতিল</button>}</div><form onSubmit={save} className="form-grid"><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="শিরোনাম (বাংলা) *" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="শিরোনাম (English)" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><input type="date" value={form.event_date} onChange={e=>setForm({...form,event_date:e.target.value})}/><input placeholder="স্থান/বিভাগ" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/><input placeholder="ছবির URL" value={form.image_url} onChange={e=>setForm({...form,image_url:e.target.value})}/><textarea className="full" placeholder="বিস্তারিত বিবরণ" rows="4" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><button className="btn full">{editing?'আপডেট করুন':'প্রকাশ করুন'}</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{visible.length} টি</span></div><div className="filters"><select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)}><option value="">সব ক্যাটাগরি</option>{types.map(t=><option key={t[0]} value={t[0]}>{t[1]}</option>)}</select><input placeholder="খুঁজুন..." value={filter} onChange={e=>setFilter(e.target.value)}/></div><div className="table-wrap"><table><thead><tr><th>টাইপ</th><th>শিরোনাম</th><th>তারিখ</th><th>স্থান</th><th></th></tr></thead><tbody>{visible.map(r=><tr key={r.id}><td>{types.find(t=>t[0]===r.content_type)?.[1]||r.content_type}</td><td><b>{r.title_bn}</b><br/><small>{r.title_en}</small></td><td>{r.event_date?.slice(0,10)||'—'}</td><td>{r.location||'—'}</td><td><button className="mini" onClick={()=>edit(r)}>সম্পাদনা</button> <button className="mini" onClick={()=>remove(r.id)}>মুছুন</button></td></tr>)}{!visible.length&&<tr><td colSpan="5">কোনো কনটেন্ট পাওয়া যায়নি।</td></tr>}</tbody></table></div></div></div>
 }
 
+function OfficeAssistantPanel({ sub, setSub }){
+ const [tab,setTab]=useState(sub==='admission'?'admission':sub==='docs'?'docs':sub==='idcards'?'idcards':sub==='voters'?'voters':'fees');
+ useEffect(()=>{if(sub)setTab(sub==='admission'?'admission':sub==='docs'?'docs':sub==='idcards'?'idcards':sub==='voters'?'voters':'fees')},[sub]);
+ const chooseTab=(t)=>{setTab(t);if(setSub)setSub(t);};
+ return <div className="office-assistant-panel">
+  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'12px',background:'linear-gradient(135deg, #1e293b 0%, #334155 100%)',color:'#ffffff',padding:'16px 20px',borderRadius:'12px',marginBottom:'18px',boxShadow:'0 4px 12px rgba(30,41,59,0.15)'}}>
+   <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+    <span style={{fontSize:'32px'}}>🏢</span>
+    <div>
+     <h2 style={{margin:0,fontSize:'18px',fontWeight:800}}>অফিস সহকারী ফ্রন্ট ডেস্ক ও রেজিস্টার</h2>
+     <p style={{margin:'3px 0 0',fontSize:'12.5px',opacity:0.85}}>মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি আদায় ও মানি রসিদ, ভর্তি ফরম স্ক্রুটিনি, প্রত্যয়ন ও প্রশংসাপত্র প্রিন্ট</p>
+    </div>
+   </div>
+   <div className="tabs" style={{margin:0}}>
+    <button className={tab==='fees'?'active':''} onClick={()=>chooseTab('fees')}>💳 ফি আদায় ও মানি রসিদ</button>
+    <button className={tab==='admission'?'active':''} onClick={()=>chooseTab('admission')}>📝 ভর্তি ও আবেদন</button>
+    <button className={tab==='docs'?'active':''} onClick={()=>chooseTab('docs')}>🖨️ প্রত্যয়ন, প্রশংসাপত্র ও TC</button>
+    <button className={tab==='idcards'?'active':''} onClick={()=>chooseTab('idcards')}>🪪 আইডি কার্ড প্রিন্ট</button>
+    <button className={tab==='voters'?'active':''} onClick={()=>chooseTab('voters')}>📋 ভোটার ও শিক্ষার্থী তালিকা</button>
+   </div>
+  </div>
+  {tab==='fees'&&<FinancePanel sub="collect"/>}
+  {tab==='admission'&&<AdmissionPanel sub="applications"/>}
+  {tab==='docs'&&<DocumentPanel sub="bonafide_certificate"/>}
+  {tab==='idcards'&&<DocumentPanel sub="id"/>}
+  {tab==='voters'&&<StaffPanel sub="teacher_voters"/>}
+ </div>;
+}
+
 function Admin(){
  const {lang}=useLanguage();
  const adminLabel=(bn)=>adminEn[bn]||bn;
@@ -1411,38 +1438,86 @@ function Admin(){
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
  const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');nav('/login')};
  const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
- const groups=ADMIN_NAV_GROUPS.map(g=>({...g,items:g.items.filter(x=>isOn(x.k)||x.k==='feature_control').map(x=>({...x,subs:(x.subs||[]).filter(([sk])=>enabled===null||enabled['admin.'+x.k+'.'+sk]!==false)}))})).filter(g=>g.items.length);
+ const userRole=me?.role_name||me?.role||'super_admin';
+ const roleAllowedKeys={
+  super_admin: null,
+  admin: ['dashboard','students','staff','admission','attendance','results','routine','finance','library','office','learning','question','assignment','online_exam','ai','reports','documents','content','transport','hostel','notice','notifications','settings'],
+  co_admin: ['dashboard','attendance','admission','results','routine','students','finance','notice','notifications'],
+  librarian: ['library','notice','notifications','settings'],
+  staff: ['office','admission','finance','documents','students','notice','notifications','settings'],
+  teacher: ['results','routine','notice','notifications','settings']
+ };
+ const allowedModules=roleAllowedKeys[userRole]!==undefined?roleAllowedKeys[userRole]:null;
+ const coAdminSubFilters={
+  attendance:['daily','reports'],
+  admission:['teacher_enrollment','admitted_list'],
+  finance:['collect','receipts'],
+  results:['marks','marksheet','tabulation','merit'],
+  routine:['class_routine','exam_routine'],
+  students:['list','new']
+ };
+ const staffSubFilters={
+  admission:['applications','teacher_enrollment','admitted_list','fees'],
+  finance:['collect','receipts'],
+  documents:['id','commendation_certificate','transfer_certificate','bonafide_certificate','marksheet','admit'],
+  students:['list','new','csv']
+ };
+ const rawGroups = allowedModules === null
+  ? ADMIN_NAV_GROUPS
+  : ADMIN_NAV_GROUPS.map(g => ({
+      ...g,
+      items: g.items.filter(x => allowedModules.includes(x.k))
+    })).filter(g => g.items.length > 0);
+
+ const groups = rawGroups.map(g => {
+  const filteredItems = g.items
+   .filter(x => isOn(x.k) || x.k === 'feature_control')
+   .map(x => {
+    let allowedSubs = x.subs || [];
+    if (userRole === 'co_admin' && coAdminSubFilters[x.k]) {
+     allowedSubs = allowedSubs.filter(([sk]) => coAdminSubFilters[x.k].includes(sk));
+    } else if (userRole === 'staff' && staffSubFilters[x.k]) {
+     allowedSubs = allowedSubs.filter(([sk]) => staffSubFilters[x.k].includes(sk));
+    } else if (userRole === 'teacher' && x.k === 'results') {
+     allowedSubs = allowedSubs.filter(([sk]) => sk === 'marks');
+    }
+    return {
+     ...x,
+     subs: allowedSubs.filter(([sk]) => enabled === null || enabled['admin.' + x.k + '.' + sk] !== false)
+    };
+   });
+  return { ...g, items: filteredItems };
+ }).filter(g => g.items.length > 0);
   if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
-  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions"><button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button><LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div><ErrorBoundary>{active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel sub={sub}/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel sub={sub}/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel sub={sub}/>} {active==='library'&&<LibraryPanel sub={sub} setSub={setSub}/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionBankPanel sub={sub} setSub={setSub}/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions">{(userRole==='super_admin'||userRole==='admin'||userRole==='co_admin'||userRole==='teacher')&&<button type="button" className="btn mini" onClick={()=>choose('results','marks')} style={{background:'#0284c7',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px'}} title="সরাসরি বিষয়ভিত্তিক নম্বর এন্ট্রি ফর্মে যান">📈 বিষয় নম্বর এন্ট্রি</button>}{userRole==='super_admin'&&<button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button>}<LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{userRole==='co_admin'&&<div style={{background:'linear-gradient(135deg, #065f46 0%, #047857 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(6,95,70,0.15)'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>👨‍🏫 {me?.full_name} • কো-অ্যাডমিন ও শ্রেণি শিক্ষক ({me?.assigned_class||'৮ম'} শ্রেণি)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: প্রতিদিনের শিক্ষার্থী উপস্থিতি, ক্লাসে ভর্তি অন্তর্ভুক্তি, শ্রেণি ফি আদায় ও পরীক্ষার ফলাফল নিরীক্ষণ (Scrutiny)।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('attendance','daily')} style={{background:'#ffffff',color:'#065f46',fontWeight:700}}>🕘 উপস্থিতি নিন</button><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#ecfdf5',color:'#065f46',fontWeight:700}}>📈 নম্বর দিন</button></div></div>}<ErrorBoundary>{active==='office'&&<OfficeAssistantPanel sub={sub} setSub={setSub}/>} {active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel sub={sub}/>} {active==='results'&&<ResultPanel sub={sub}/>} {active==='routine'&&<RoutinePanel sub={sub}/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel sub={sub}/>} {active==='library'&&<LibraryPanel sub={sub} setSub={setSub}/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionBankPanel sub={sub} setSub={setSub}/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
  }
 
  const adminEn={
- 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','শিক্ষক ভোটার তালিকা':'Teacher Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','প্রমোশন':'Promotion','প্রমোশন ও SSC ফরমপূরণ':'Promotion & SSC Form Fill-up','শিক্ষার্থী প্রমোশন':'Student Promotion','রুটিন':'Routine','রুটিন ও সময়সূচি':'Routine & Schedule','ক্লাস রুটিন':'Class Routine','পরীক্ষার রুটিন':'Exam Routine','শিক্ষক সময়সূচি':'Teacher Schedule','প্রিন্ট ও PDF রুটিন':'Print & PDF Routine','ফি ও হিসাব':'Fees & Accounts','শিক্ষার্থী ফি আদায়':'Student Fee Collection','রশিদ ও ইতিহাস':'Receipts & History', 'বিদ্যালয়ের আয়':'School Income','বিদ্যালয়ের ব্যয়':'School Expense','বার্ষিক বাজেট':'Annual Budget','ক্যাশ বুক ও বিবরণী':'Cash Book & Statement','ফি রেট সেটিংস':'Fee Rate Settings','শ্রেণি শিক্ষক নির্ধারণ':'Class Teacher Assignment','লাইব্রেরি':'Library','বই ক্যাটালগ ও রেজিস্টার':'Book Catalog & Inventory','বই ইস্যু ও জমার হিসাব':'Book Issue & Return','বকেয়া/অনাদায়ী তালিকা':'Overdue List','সাপ্তাহিক ও মাসিক রিপোর্ট':'Weekly & Monthly Reports','নষ্ট ও বাতিল বই রেজিস্টার':'Damaged & Discarded Register','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','১-ক্লিকে প্রশ্ন তৈরী':'1-Click Question Generator','OMR Evaluator ও শিট':'OMR Evaluator & Sheet','অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার':'Chapter Question Bank','সংরক্ষিত প্রশ্নপত্র':'Saved Exam Papers','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','ছাড়পত্র (TC)':'Transfer Certificate (TC)','প্রত্যয়ন পত্র':'Bonafide Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
+ 'সারাংশ':'Summary','একাডেমিক':'Academic','প্রশাসন':'Administration','শিক্ষা':'Learning','রিপোর্ট ও ডকুমেন্ট':'Reports & Documents','অফিস সহকারী':'Office Assistant','অফিস সহকারী ডেস্ক':'Office Assistant Desk','গ্রন্থাগার':'Library','কনটেন্ট ও সুবিধা':'Content & Facilities','যোগাযোগ':'Communication','নিরাপত্তা':'Security','ড্যাশবোর্ড':'Dashboard','শিক্ষার্থী':'Students','শিক্ষার্থী তালিকা':'Student Directory','নতুন শিক্ষার্থী এন্ট্রি':'New Student Entry','শিক্ষার্থী অনুসন্ধান':'Student Search','ভোটার তালিকা':'Voter List','শিক্ষক ভোটার তালিকা':'Teacher Voter List','গ্রামভিত্তিক তালিকা':'Village-wise List','শিক্ষক ও কর্মচারী':'Teachers & Staff','শিক্ষকবৃন্দের তালিকা':'Teachers List','নতুন শিক্ষক এন্ট্রি':'New Teacher Entry','কর্মচারীর তালিকা':'Staff List','নতুন কর্মচারী এন্ট্রি':'New Staff Entry','ভর্তি':'Admission','ভর্তি আবেদন':'Admission Applications','ভর্তি পরীক্ষা':'Admission Test','নির্বাচন ও ভর্তি':'Selection & Enrollment','উপস্থিতি':'Attendance','দৈনিক উপস্থিতি':'Daily Attendance','উপস্থিতি রিপোর্ট':'Attendance Reports','অভিভাবক সতর্কতা':'Guardian Alerts','পরীক্ষা ও ফলাফল':'Exams & Results','পরীক্ষা ও বিষয় সেটআপ':'Exam & Subject Setup','মার্ক এন্ট্রি':'Marks Entry','ফলাফল প্রসেসিং':'Result Processing','মার্কশিট ও প্রগ্রেস রিপোর্ট':'Marksheet & Progress Report','ট্যাবুলেশন শিট':'Tabulation Sheet','মেধা তালিকা':'Merit List','প্রমোশন':'Promotion','প্রমোশন ও SSC ফরমপূরণ':'Promotion & SSC Form Fill-up','শিক্ষার্থী প্রমোশন':'Student Promotion','রুটিন':'Routine','রুটিন ও সময়সূচি':'Routine & Schedule','ক্লাস রুটিন':'Class Routine','পরীক্ষার রুটিন':'Exam Routine','শিক্ষক সময়সূচি':'Teacher Schedule','প্রিন্ট ও PDF রুটিন':'Print & PDF Routine','ফি ও হিসাব':'Fees & Accounts','শিক্ষার্থী ফি আদায়':'Student Fee Collection','রশিদ ও ইতিহাস':'Receipts & History', 'বিদ্যালয়ের আয়':'School Income','বিদ্যালয়ের ব্যয়':'School Expense','বার্ষিক বাজেট':'Annual Budget','ক্যাশ বুক ও বিবরণী':'Cash Book & Statement','ফি রেট সেটিংস':'Fee Rate Settings','শ্রেণি শিক্ষক নির্ধারণ':'Class Teacher Assignment','লাইব্রেরি':'Library','বই ক্যাটালগ ও রেজিস্টার':'Book Catalog & Inventory','বই ইস্যু ও জমার হিসাব':'Book Issue & Return','বকেয়া/অনাদায়ী তালিকা':'Overdue List','সাপ্তাহিক ও মাসিক রিপোর্ট':'Weekly & Monthly Reports','নষ্ট ও বাতিল বই রেজিস্টার':'Damaged & Discarded Register','ডিজিটাল লার্নিং':'Digital Learning','ডিজিটাল কনটেন্ট':'Digital Content','সিলেবাস':'Syllabus','শিক্ষার্থী অগ্রগতি':'Student Progress','প্রশ্নব্যাংক':'Question Bank','১-ক্লিকে প্রশ্ন তৈরী':'1-Click Question Generator','OMR Evaluator ও শিট':'OMR Evaluator & Sheet','অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার':'Chapter Question Bank','সংরক্ষিত প্রশ্নপত্র':'Saved Exam Papers','মডেল প্রশ্ন':'Model Questions','অ্যাসাইনমেন্ট':'Assignments','মূল্যায়ন':'Evaluation','অনলাইন পরীক্ষা':'Online Exams','পরীক্ষা সেটআপ':'Exam Setup','পরীক্ষার ফলাফল':'Exam Results','AI শিক্ষা':'AI Education','AI বিশ্লেষণ':'AI Analytics','রিপোর্ট':'Reports','ডকুমেন্ট ও প্রিন্ট':'Documents & Print','প্রশংসাপত্র':'Commendation Certificate','ছাড়পত্র (TC)':'Transfer Certificate (TC)','প্রত্যয়ন পত্র':'Bonafide Certificate','সহশিক্ষা ও অর্জন':'School Life & Achievements','বিদ্যালয় তথ্য':'School Information','ক্লাব ও সংগঠন':'Clubs & Organizations','ইভেন্ট ও অংশগ্রহণকারী':'Events & Participants','অর্জন ও পুরস্কার':'Achievements & Awards','পরিবহন':'Transport','হোস্টেল':'Hostel','নোটিশ':'Notices','নোটিফিকেশন':'Notifications','ইউজার ও রোল':'Users & Roles','ব্যবহারকারী':'Users','রোল ও অনুমতি':'Roles & Permissions','সেশন ও নিরাপত্তা':'Sessions & Security','সেটিংস':'Settings','বাণী ও ফটো সেটিংস':'Leadership Speeches & Photos','পাসওয়ার্ড পরিবর্তন':'Change Password','ফিচার কন্ট্রোল':'Feature Control','সিস্টেম Feature ON/OFF':'System Feature ON/OFF','View Site Menu ON/OFF':'View Site Menu ON/OFF','নতুন Feature যোগ':'Add New Feature'};
  const ADMIN_NAV_GROUPS=[
-  {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
-  {group:'একাডেমিক',items:[
-   {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['csv','CSV শিক্ষার্থী আপলোড'],['promotion','শিক্ষার্থী প্রমোশন']]},
-   {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['teacher_voters','শিক্ষক ভোটার তালিকা'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
-   {k:'admission',n:'ভর্তি ব্যবস্থাপনা',i:'📝',subs:[['applications','সকল আবেদন ও স্ক্রুটিনি'],['head_approval','প্রধান শিক্ষকের অনুমোদন ডেক্স'],['teacher_enrollment','শ্রেণি শিক্ষকের ক্লাসে অন্তর্ভুক্তকরণ'],['admitted_list','চূড়ান্ত ভর্তিকৃত রেজিস্টার'],['fees','ভর্তি ফি ও পেমেন্ট মনিটরিং']]},
-   {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
-   {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['academic_year','একাডেমিক ইয়ার সেটআপ'],['exam_names','পরীক্ষার নাম সেটআপ'],['marks','মার্ক এন্ট্রি'],['subjects','বিষয় ও নম্বর বণ্টন'],['grading','গ্রেডিং পলিসি'],['processing','ফলাফল প্রসেসিং'],['analysis','ফলাফল বিশ্লেষণ'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা'],['promotion','শিক্ষার্থী প্রমোশন']]},
-   {k:'routine',n:'রুটিন ও সময়সূচি',i:'🗓️',subs:[['class_routine','ক্লাস রুটিন'],['exam_routine','পরীক্ষার রুটিন'],['teacher_schedule','শিক্ষক সময়সূচি'],['print_routine','প্রিন্ট ও PDF রুটিন']]},
-  ]},
-  {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳',subs:[['collect','শিক্ষার্থী ফি আদায়'],['receipts','রশিদ ও ইতিহাস'],['income','বিদ্যালয়ের আয়'],['expense','বিদ্যালয়ের ব্যয়'],['budget','বার্ষিক বাজেট'],['cashbook','ক্যাশ বুক ও বিবরণী'],['rates','ফি রেট সেটিংস'],['teachers','শ্রেণি শিক্ষক নির্ধারণ']]},{k:'library',n:'লাইব্রেরি',i:'📚',subs:[['catalog','বই ক্যাটালগ ও রেজিস্টার'],['issue','বই ইস্যু ও জমার হিসাব'],['overdue','বকেয়া/অনাদায়ী তালিকা'],['reports','সাপ্তাহিক ও মাসিক রিপোর্ট'],['damaged','নষ্ট ও বাতিল বই রেজিস্টার']]}]},
-  {group:'শিক্ষা',items:[
-   {k:'learning',n:'ডিজিটাল লার্নিং',i:'💻',subs:[['content','ডিজিটাল কনটেন্ট'],['syllabus','সিলেবাস'],['progress','শিক্ষার্থী অগ্রগতি']]},
-   {k:'question',n:'প্রশ্নব্যাংক',i:'❓',subs:[['generator','১-ক্লিকে প্রশ্ন তৈরী'],['omr','OMR Evaluator ও শিট'],['bank','অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার'],['saved','সংরক্ষিত প্রশ্নপত্র'],['model','মডেল প্রশ্ন']]},
-   {k:'assignment',n:'অ্যাসাইনমেন্ট',i:'📘',subs:[['manage','অ্যাসাইনমেন্ট'],['review','মূল্যায়ন']]},
-   {k:'online_exam',n:'অনলাইন পরীক্ষা',i:'🧪',subs:[['setup','পরীক্ষা সেটআপ'],['results','পরীক্ষার ফলাফল']]},
-   {k:'ai',n:'AI শিক্ষা',i:'✨',subs:[['tutor','AI Tutor'],['analytics','AI বিশ্লেষণ']]}
-  ]},
-  {group:'রিপোর্ট ও ডকুমেন্ট',items:[{k:'reports',n:'রিপোর্ট',i:'📑'},{k:'documents',n:'ডকুমেন্ট ও প্রিন্ট',i:'🖨️',subs:[['id','ID Card'],['commendation_certificate','প্রশংসাপত্র'],['transfer_certificate','ছাড়পত্র (TC)'],['bonafide_certificate','প্রত্যয়ন পত্র'],['marksheet','Marksheet'],['certificate','Certificate'],['admit','Admit Card'],['tabulation','Tabulation'],['merit','Merit List']]}]},
-  {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
-  {group:'যোগাযোগ',items:[{k:'notice',n:'নোটিশ',i:'📢'},{k:'notifications',n:'নোটিফিকেশন',i:'🔔'}]},
-  {group:'নিরাপত্তা',items:[{k:'users',n:'ইউজার ও রোল',i:'👥',subs:[['accounts','ব্যবহারকারী'],['roles','রোল ও অনুমতি'],['links','Student/Guardian Link'],['provision','Profile → Login'],['sessions','সেশন ও নিরাপত্তা']]},{k:'settings',n:'সেটিংস',i:'⚙️',subs:[['leadership','বাণী ও ফটো সেটিংস'],['password','পাসওয়ার্ড পরিবর্তন']]},{k:'feature_control',n:'ফিচার কন্ট্রোল',i:'🧩',subs:[['system','সিস্টেম Feature ON/OFF'],['public','View Site Menu ON/OFF'],['custom','নতুন Feature যোগ']]}]}
- ];
-
-
+   {group:'সারাংশ',items:[{k:'dashboard',n:'ড্যাশবোর্ড',e:'Dashboard',i:'📊'}]},
+   {group:'একাডেমিক',items:[
+    {k:'students',n:'শিক্ষার্থী',i:'🎓',subs:[['list','শিক্ষার্থী তালিকা'],['new','নতুন শিক্ষার্থী এন্ট্রি'],['csv','CSV শিক্ষার্থী আপলোড'],['promotion','শিক্ষার্থী প্রমোশন']]},
+    {k:'staff',n:'শিক্ষক ও কর্মচারী',i:'👨‍🏫',subs:[['teachers_list','শিক্ষকবৃন্দের তালিকা'],['teacher_new','নতুন শিক্ষক এন্ট্রি'],['teacher_voters','শিক্ষক ভোটার তালিকা'],['staff_list','কর্মচারীর তালিকা'],['staff_new','নতুন কর্মচারী এন্ট্রি']]},
+    {k:'admission',n:'ভর্তি ব্যবস্থাপনা',i:'📝',subs:[['applications','সকল আবেদন ও স্ক্রুটিনি'],['head_approval','প্রধান শিক্ষকের অনুমোদন ডেক্স'],['teacher_enrollment','শ্রেণি শিক্ষকের ক্লাসে অন্তর্ভুক্তকরণ'],['admitted_list','চূড়ান্ত ভর্তিকৃত রেজিস্টার'],['fees','ভর্তি ফি ও পেমেন্ট মনিটরিং']]},
+    {k:'attendance',n:'উপস্থিতি',i:'🕘',subs:[['daily','দৈনিক উপস্থিতি'],['reports','উপস্থিতি রিপোর্ট'],['alerts','অভিভাবক সতর্কতা']]},
+    {k:'results',n:'পরীক্ষা ও ফলাফল',i:'📈',subs:[['academic_year','একাডেমিক ইয়ার সেটআপ'],['exam_names','পরীক্ষার নাম সেটআপ'],['marks','মার্ক এন্ট্রি'],['subjects','বিষয় ও নম্বর বণ্টন'],['grading','গ্রেডিং পলিসি'],['processing','ফলাফল প্রসেসিং'],['analysis','ফলাফল বিশ্লেষণ'],['marksheet','মার্কশিট ও প্রগ্রেস রিপোর্ট'],['tabulation','ট্যাবুলেশন শিট'],['merit','মেধা তালিকা'],['promotion','শিক্ষার্থী প্রমোশন']]},
+    {k:'routine',n:'রুটিন ও সময়সূচি',i:'🗓️',subs:[['class_routine','ক্লাস রুটিন'],['exam_routine','পরীক্ষার রুটিন'],['teacher_schedule','শিক্ষক সময়সূচি'],['print_routine','প্রিন্ট ও PDF রুটিন']]},
+   ]},
+   {group:'প্রশাসন',items:[{k:'finance',n:'ফি ও হিসাব',i:'💳',subs:[['collect','শিক্ষার্থী ফি আদায়'],['receipts','রশিদ ও ইতিহাস'],['income','বিদ্যালয়ের আয়'],['expense','বিদ্যালয়ের ব্যয়'],['budget','বার্ষিক বাজেট'],['cashbook','ক্যাশ বুক ও বিবরণী'],['rates','ফি রেট সেটিংস'],['teachers','শ্রেণি শিক্ষক নির্ধারণ']]},{k:'library',n:'গ্রন্থাগার',i:'📚',subs:[['catalog','বই ক্যাটালগ ও রেজিস্টার'],['issue','বই ইস্যু ও জমার হিসাব'],['overdue','বকেয়া/অনাদায়ী তালিকা'],['reports','সাপ্তাহিক ও মাসিক রিপোর্ট'],['damaged','নষ্ট ও বাতিল বই রেজিস্টার']]}]},
+   {group:'অফিস সহকারী',items:[{k:'office',n:'অফিস সহকারী ডেস্ক',i:'🏢',subs:[['fees','ফি আদায় ও মানি রসিদ'],['admission','ভর্তি ও আবেদন'],['docs','প্রত্যয়ন, প্রশংসাপত্র ও TC'],['idcards','আইডি কার্ড প্রিন্ট'],['voters','ভোটার ও শিক্ষার্থী তালিকা']]}]},
+   {group:'শিক্ষা',items:[
+    {k:'learning',n:'ডিজিটাল লার্নিং',i:'💻',subs:[['content','ডিজিটাল কনটেন্ট'],['syllabus','সিলেবাস'],['progress','শিক্ষার্থী অগ্রগতি']]},
+    {k:'question',n:'প্রশ্নব্যাংক',i:'❓',subs:[['generator','১-ক্লিকে প্রশ্ন তৈরী'],['omr','OMR Evaluator ও শিট'],['bank','অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার'],['saved','সংরক্ষিত প্রশ্নপত্র'],['model','মডেল প্রশ্ন']]},
+    {k:'assignment',n:'অ্যাসাইনমেন্ট',i:'📘',subs:[['manage','অ্যাসাইনমেন্ট'],['review','মূল্যায়ন']]},
+    {k:'online_exam',n:'অনলাইন পরীক্ষা',i:'🧪',subs:[['setup','পরীক্ষা সেটআপ'],['results','পরীক্ষার ফলাফল']]},
+    {k:'ai',n:'AI শিক্ষা',i:'✨',subs:[['tutor','AI Tutor'],['analytics','AI বিশ্লেষণ']]}
+   ]},
+   {group:'রিপোর্ট ও ডকুমেন্ট',items:[{k:'reports',n:'রিপোর্ট',i:'📑'},{k:'documents',n:'ডকুমেন্ট ও প্রিন্ট',i:'🖨️',subs:[['id','ID Card'],['commendation_certificate','প্রশংসাপত্র'],['transfer_certificate','ছাড়পত্র (TC)'],['bonafide_certificate','প্রত্যয়ন পত্র'],['marksheet','Marksheet'],['certificate','Certificate'],['admit','Admit Card'],['tabulation','Tabulation'],['merit','Merit List']]}]},
+   {group:'কনটেন্ট ও সুবিধা',items:[{k:'content',n:'সহশিক্ষা ও অর্জন',i:'🏆',subs:[['school','বিদ্যালয় তথ্য'],['clubs','ক্লাব ও সংগঠন'],['events','ইভেন্ট ও অংশগ্রহণকারী'],['achievements','অর্জন ও পুরস্কার']]},{k:'transport',n:'পরিবহন',i:'🚌'},{k:'hostel',n:'হোস্টেল',i:'🛏️'}]},
+   {group:'যোগাযোগ',items:[{k:'notice',n:'নোটিশ',i:'📢'},{k:'notifications',n:'নোটিফিকেশন',i:'🔔'}]},
+   {group:'নিরাপত্তা',items:[{k:'users',n:'ইউজার ও রোল',i:'👥',subs:[['accounts','ব্যবহারকারী'],['roles','রোল ও অনুমতি'],['provision','Profile → Login'],['sessions','সেশন ও নিরাপত্তা']]},{k:'settings',n:'সেটিংস',i:'⚙️',subs:[['leadership','বাণী ও ফটো সেটিংস'],['password','পাসওয়ার্ড পরিবর্তন']]},{k:'feature_control',n:'ফিচার কন্ট্রোল',i:'🧩',subs:[['system','সিস্টেম Feature ON/OFF'],['public','View Site Menu ON/OFF'],['custom','নতুন Feature যোগ']]}]}
+  ];
 
 function Dashboard({data}){const d=data||{};return <><div className="stats adminstats"><div><b>{d.students??'—'}</b><span>সক্রিয় শিক্ষার্থী</span></div><div><b>{d.teachers??'—'}</b><span>সক্রিয় শিক্ষক</span></div><div><b>{d.notices??'—'}</b><span>প্রকাশিত নোটিশ</span></div><div><b>{d.users??'—'}</b><span>সক্রিয় ব্যবহারকারী</span></div></div><div className="dash-grid"><article><h2>V118 সিস্টেম স্ট্যাটাস</h2><p>শিক্ষার্থী, শিক্ষক, attendance, result, learning, portal ও official document workflows সক্রিয় আছে।</p></article><article><h2>Pilot Ready</h2><p>লাইভ পর্যবেক্ষণ ইঞ্জিন, ডেটাবেস ফলব্যাক এবং RBAC পোর্টাল সক্রিয়।</p></article><article><h2>নিরাপত্তা</h2><p>RBAC, JWT session, password hashing, audit log ও rate limiting চালু আছে।</p></article></div></>}
 const FATHER_PROFESSIONS = [
@@ -5227,16 +5302,12 @@ function ProfileProvisionPanel(){
 }
 function UsersPanel({sub}){
  const roleOptions=[
-  ['super_admin','সুপার অ্যাডমিন (Full ERP)'],
-  ['admin','অ্যাডমিন'],
-  ['head_teacher','প্রধান শিক্ষক'],
-  ['assistant_head_teacher','সহকারী প্রধান শিক্ষক'],
-  ['teacher','সহকারী শিক্ষক'],
-  ['accountant','হিসাবরক্ষক'],
-  ['librarian','গ্রন্থাগারিক'],
-  ['staff','অফিস সহকারী'],
-  ['student','শিক্ষার্থী'],
-  ['guardian','অভিভাবক']
+  ['super_admin','সুপার অ্যাডমিন (আইসিটি শিক্ষক - Full ERP)'],
+  ['admin','অ্যাডমিন (প্রধান ও সহকারী প্রধান শিক্ষক)'],
+  ['co_admin','কো-অ্যাডমিন (শ্রেণি শিক্ষক)'],
+  ['teacher','বিষয় শিক্ষক / সহকারী শিক্ষক'],
+  ['librarian','গ্রন্থাগার'],
+  ['staff','অফিস সহকারী']
  ];
 
  const emptyUser = { login_id:'', full_name:'', password:'', role:'admin', email:'', phone:'' };
@@ -5488,16 +5559,12 @@ function UsersPanel({sub}){
      />
      <select value={roleFilter} onChange={e=>setRoleFilter(e.target.value)} style={{minWidth:'160px'}}>
       <option value="">সকল রোল (All Roles)</option>
-      <option value="admin">👑 সকল অ্যাডমিন (Super Admin + Admin)</option>
-      <option value="super_admin">সুপার অ্যাডমিন</option>
-      <option value="head_teacher">প্রধান শিক্ষক</option>
-      <option value="assistant_head_teacher">সহকারী প্রধান শিক্ষক</option>
-      <option value="teacher">সহকারী শিক্ষক</option>
-      <option value="accountant">হিসাবরক্ষক</option>
-      <option value="librarian">গ্রন্থাগারিক</option>
-      <option value="staff">অফিস সহকারী</option>
-      <option value="student">শিক্ষার্থী</option>
-      <option value="guardian">অভিভাবক</option>
+      <option value="super_admin">👑 সুপার অ্যাডমিন (আইসিটি শিক্ষক)</option>
+      <option value="admin">🎓 অ্যাডমিন (প্রধান ও সহকারী প্রধান শিক্ষক)</option>
+      <option value="co_admin">👥 কো-অ্যাডমিন (শ্রেণি শিক্ষক)</option>
+      <option value="teacher">📝 বিষয় শিক্ষক</option>
+      <option value="librarian">📚 গ্রন্থাগার</option>
+      <option value="staff">🏢 অফিস সহকারী</option>
      </select>
     </div>
 
@@ -5932,7 +5999,7 @@ function LearningPanel(){
  async function load(){try{setItems(await api('/learning?published='));}catch(e){setMsg(e.message)}}useEffect(()=>{load()},[]);
  async function add(e){e.preventDefault();try{await api('/learning',{method:'POST',body:JSON.stringify(form)});setMsg('ডিজিটাল কনটেন্ট প্রকাশ/সংরক্ষণ হয়েছে');setForm({class_name:'6',title_bn:'',title_en:'',content_type:'note',content_url:'',body:'',published:true});load()}catch(e){setMsg(e.message)}}
  return <div className="module-grid"><div className="form-card"><h2>ডিজিটাল লার্নিং কনটেন্ট</h2><form onSubmit={add} className="form-grid"><select value={form.class_name} onChange={e=>setForm({...form,class_name:e.target.value})}>{classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}</select><input placeholder="বাংলা শিরোনাম" value={form.title_bn} onChange={e=>setForm({...form,title_bn:e.target.value})} required/><input placeholder="English title" value={form.title_en} onChange={e=>setForm({...form,title_en:e.target.value})}/><select value={form.content_type} onChange={e=>setForm({...form,content_type:e.target.value})}><option value="note">নোট</option><option value="pdf">PDF</option><option value="video">ভিডিও</option><option value="lecture">লেকচার</option><option value="link">লিংক</option></select><input placeholder="Content URL (যদি থাকে)" value={form.content_url} onChange={e=>setForm({...form,content_url:e.target.value})}/><textarea placeholder="বিষয়বস্তু/নোট" rows="7" value={form.body} onChange={e=>setForm({...form,body:e.target.value})}/><label className="check"><input type="checkbox" checked={form.published} onChange={e=>setForm({...form,published:e.target.checked})}/> প্রকাশিত</label><button className="btn">সংরক্ষণ করুন</button></form>{msg&&<p className="msg">{msg}</p>}</div><div className="table-card"><div className="toolbar"><h2>কনটেন্ট তালিকা</h2><span>{items.length} টি</span></div><div className="table-wrap"><table><thead><tr><th>শ্রেণি</th><th>শিরোনাম</th><th>ধরন</th><th>অবস্থা</th></tr></thead><tbody>{items.map(x=><tr key={x.id}><td>{x.class_name}</td><td>{x.title_bn}</td><td>{x.content_type}</td><td>{x.published?'প্রকাশিত':'খসড়া'}</td></tr>)}</tbody></table></div></div></div>}
-function Portal(){const[data,setData]=useState(null),[msg,setMsg]=useState('');const nav=useNavigate();useEffect(()=>{api('/portal/me').then(setData).catch(e=>{setMsg(e.message);localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/')})},[nav]);if(!data)return <div className="portal-loading">{msg||'Portal লোড হচ্ছে...'}</div>;const role=data.user?.role_name;return <div className="portal"><header><div className="brand"><img src={logo}/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>{data.user.full_name} • {data.user.role_label}</p></div></div><button className="btn" onClick={async()=>{try{await api('/auth/logout',{method:'POST'})}catch{} localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/')}}>লগআউট</button></header><main className="portal-main"><section className="portal-hero"><span className="tag">DIGITAL SCHOOL PORTAL</span><h2>স্বাগতম, {data.user.full_name}</h2><p>আপনার জন্য প্রয়োজনীয় তথ্য এক জায়গায়।</p></section>{role==='student'&&<StudentPortal data={data}/>} {role==='guardian'&&<GuardianPortal data={data}/>} {(role==='teacher'||role==='head_teacher'||role==='assistant_head_teacher')&&<TeacherPortal data={data}/>}</main></div>}
+function Portal(){const[data,setData]=useState(null),[msg,setMsg]=useState('');const nav=useNavigate();useEffect(()=>{api('/portal/me').then(setData).catch(e=>{setMsg(e.message);localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/')})},[nav]);if(!data)return <div className="portal-loading">{msg||'Portal লোড হচ্ছে...'}</div>;return <div className="portal"><header><div className="brand"><img src={logo}/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>{data.user.full_name} • {data.user.role_label}</p></div></div><button className="btn" onClick={async()=>{try{await api('/auth/logout',{method:'POST'})}catch{} localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/')}}>লগআউট</button></header><main className="portal-main"><section className="portal-hero"><span className="tag">SUBJECT TEACHER PANEL</span><h2>স্বাগতম, {data.user.full_name}</h2><p>আপনার নির্ধারিত বিষয়ের নম্বর এন্ট্রি, ক্লাস রুটিন ও অ্যাকাডেমিক তথ্য।</p></section><TeacherPortal data={data}/></main></div>}
 function Notifications({items=[]}){const[rows,setRows]=useState(items);useEffect(()=>setRows(items),[items]);const unread=rows.filter(x=>!x.is_read).length;const markRead=async(id)=>{try{await api(`/notifications/${id}/read`,{method:'POST'});setRows(rs=>rs.map(x=>x.id===id?{...x,is_read:true}:x))}catch{}};const markAll=async()=>{try{await api('/notifications/read-all',{method:'POST'});setRows(rs=>rs.map(x=>({...x,is_read:true})))}catch{}};return <section className="portal-section"><div className="toolbar"><h2>নোটিফিকেশন</h2><div className="toolbar-actions"><span className="badge">{unread} unread</span>{unread>0&&<button className="mini" onClick={markAll}>সব পড়া হয়েছে</button>}</div></div><div className="notification-list">{rows.length?rows.map(n=><div className={'notification-item '+(!n.is_read?'unread':'')} key={n.id}><div><b>{n.title_bn}</b><p>{n.body||''}</p><small>{n.created_at?new Date(n.created_at).toLocaleString('bn-BD'):''}</small></div>{!n.is_read&&<button className="mini" onClick={()=>markRead(n.id)}>পড়ে ফেলেছি</button>}</div>):<p className="portal-muted">নতুন কোনো নোটিফিকেশন নেই।</p>}</div></section>}
 function StudentPortal({data}){
  const s=data.student; const att=Object.fromEntries((data.attendance||[]).map(x=>[x.status,x.count])); const total=(att.present||0)+(att.absent||0)+(att.late||0); const rate=total?Math.round(((att.present||0)/total)*100):null;
@@ -5970,7 +6037,7 @@ function GuardianPortal({data}){
 }
 function TeacherPortal({data}){
  const nav = useNavigate();
- const [portalTab, setPortalTab] = useState('overview'); // 'overview' | 'finance' | 'results'
+ const [portalTab, setPortalTab] = useState('results'); // 'overview' | 'finance' | 'results'
  const classesForTeacher=[...new Map((data.today_routine||[]).map(r=>[`${r.class_name}|${r.section||''}`,{class_name:r.class_name,section:r.section||''}])) .values()];
  const[date,setDate]=useState(new Date().toISOString().slice(0,10)),[selected,setSelected]=useState(''),[roster,setRoster]=useState([]),[msg,setMsg]=useState('');
  const[exams,setExams]=useState([]),[subjects,setSubjects]=useState([]),[examId,setExamId]=useState(''),[subjectId,setSubjectId]=useState(''),[marks,setMarks]=useState([]),[marksMeta,setMarksMeta]=useState(null),[marksMsg,setMarksMsg]=useState('');
