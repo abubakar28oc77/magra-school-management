@@ -735,8 +735,56 @@ export function FinancePanel({ sub }) {
   // ==========================================
   // FEE COLLECTION STATE & LOGIC
   // ==========================================
-  // Default to Class 8 as requested
-  const [selectedClass, setSelectedClass] = useState('8');
+  // Detect Logged in User & Role for Class-Locked Fee Desk
+  const currentUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('magra_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const isCoAdmin = useMemo(() => {
+    const r = (currentUser?.role_name || currentUser?.role || '').toLowerCase();
+    return r === 'co_admin' || r.includes('co_admin') || r.includes('class');
+  }, [currentUser]);
+
+  const assignedClass = useMemo(() => {
+    if (!isCoAdmin) return null;
+    const rawClass = String(currentUser?.assigned_class || currentUser?.class_name || '').trim();
+    const norm = normalizeClass(rawClass);
+    return ['6', '7', '8', '9', '10'].includes(norm) ? norm : null;
+  }, [isCoAdmin, currentUser]);
+
+  // Default to assignedClass if co_admin, else Class 8 as requested
+  const [selectedClass, setSelectedClass] = useState(() => {
+    try {
+      const raw = localStorage.getItem('magra_user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        const r = (u?.role_name || u?.role || '').toLowerCase();
+        if (r === 'co_admin' || r.includes('co_admin') || r.includes('class')) {
+          const norm = normalizeClass(u?.assigned_class);
+          if (['6', '7', '8', '9', '10'].includes(norm)) return norm;
+        }
+      }
+    } catch {}
+    return '8';
+  });
+
+  useEffect(() => {
+    if (assignedClass) {
+      setSelectedClass(assignedClass);
+    }
+  }, [assignedClass]);
+
+  const displayedFeeRecords = useMemo(() => {
+    if (assignedClass) {
+      return feeRecords.filter(r => normalizeClass(r.class_name) === assignedClass);
+    }
+    return feeRecords;
+  }, [feeRecords, assignedClass]);
   // Group selection for Class 9 and 10 ('science' | 'humanities' | 'business')
   const [selectedGroup, setSelectedGroup] = useState('science');
   // Roll number input for search
@@ -3107,7 +3155,9 @@ export function FinancePanel({ sub }) {
           ['cashbook', '📊 ক্যাশ বুক ও আর্থিক বিবরণী'],
           ['rates', '⚙️ ফি রেট সেটিংস'],
           ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
-        ].map(([tKey, label]) => (
+        ]
+        .filter(([tKey]) => !isCoAdmin || tKey === 'collect' || tKey === 'receipts')
+        .map(([tKey, label]) => (
           <button
             key={tKey}
             type="button"
@@ -3157,36 +3207,44 @@ export function FinancePanel({ sub }) {
                   শ্রেণি নির্বাচন করুন:
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
-                  {['6', '7', '8', '9', '10'].map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => {
-                        setSelectedClass(c);
-                        if (c === '9' || c === '10') {
-                          if (!['science', 'humanities', 'business'].includes(selectedGroup)) {
-                            setSelectedGroup('science');
+                  {['6', '7', '8', '9', '10'].map(c => {
+                    const isLocked = Boolean(assignedClass && assignedClass !== c);
+                    const isMyClass = Boolean(assignedClass && assignedClass === c);
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        disabled={isLocked}
+                        onClick={() => {
+                          if (isLocked) return;
+                          setSelectedClass(c);
+                          if (c === '9' || c === '10') {
+                            if (!['science', 'humanities', 'business'].includes(selectedGroup)) {
+                              setSelectedGroup('science');
+                            }
                           }
-                        }
-                        setSearchRoll('');
-                        setSearchFeedback(null);
-                      }}
-                      style={{
-                        padding: '7px 2px',
-                        borderRadius: '6px',
-                        border: selectedClass === c ? '2px solid #047857' : '1px solid #cbd5e1',
-                        background: selectedClass === c ? '#047857' : '#f8fafc',
-                        color: selectedClass === c ? '#ffffff' : '#334155',
-                        fontWeight: 800,
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      {toBnDigits(c)}ম শ্রেণি
-                    </button>
-                  ))}
+                          setSearchRoll('');
+                          setSearchFeedback(null);
+                        }}
+                        style={{
+                          padding: '7px 2px',
+                          borderRadius: '6px',
+                          border: selectedClass === c ? '2px solid #047857' : '1px solid #cbd5e1',
+                          background: selectedClass === c ? '#047857' : isLocked ? '#f1f5f9' : '#f8fafc',
+                          color: selectedClass === c ? '#ffffff' : isLocked ? '#94a3b8' : '#334155',
+                          fontWeight: 800,
+                          fontSize: '12px',
+                          cursor: isLocked ? 'not-allowed' : 'pointer',
+                          opacity: isLocked ? 0.45 : 1,
+                          textAlign: 'center',
+                          transition: 'all 0.15s'
+                        }}
+                        title={isLocked ? `আপনার নির্ধারিত শ্রেণি ${toBnDigits(assignedClass)}ম শ্রেণি (অন্যান্য শ্রেণি ইন-অ্যাক্টিভ)` : isMyClass ? `আপনার দায়িত্বপ্রাপ্ত ${toBnDigits(c)}ম শ্রেণি (লকড)` : `${toBnDigits(c)}ম শ্রেণি`}
+                      >
+                        {toBnDigits(c)}ম শ্রেণি {isMyClass ? '🔒' : ''}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -3945,7 +4003,7 @@ export function FinancePanel({ sub }) {
               <small style={{ color: '#64748b' }}>A4 Landscape এ যে কোন ২ জন শিক্ষার্থীর মানি রিসিট একসাথে অথবা একক শিক্ষার্থীর ডুপ্লিকেট রসিদ প্রিন্ট করুন</small>
             </div>
             <span style={{ background: '#ecfdf5', color: '#047857', padding: '6px 14px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700 }}>
-              মোট আদায়কৃত রসিদ: {toBnDigits(feeRecords.length)} টি
+              মোট আদায়কৃত রসিদ: {toBnDigits(displayedFeeRecords.length)} টি
             </span>
           </div>
 
@@ -3972,7 +4030,7 @@ export function FinancePanel({ sub }) {
                   style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12px', fontWeight: 700, background: '#fff' }}
                 >
                   <option value="">-- ১ম শিক্ষার্থী নির্বাচন করুন --</option>
-                  {feeRecords.map(r => (
+                  {displayedFeeRecords.map(r => (
                     <option key={'p1-' + r.id} value={r.id}>
                       রোল {toBnDigits(r.roll_no)} - {r.student_name} ({toBnDigits(r.class_name)}ম, {r.receipt_no})
                     </option>
@@ -3990,7 +4048,7 @@ export function FinancePanel({ sub }) {
                   style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12px', fontWeight: 700, background: '#fff' }}
                 >
                   <option value="">-- ২য় শিক্ষার্থী নির্বাচন করুন --</option>
-                  {feeRecords.map(r => (
+                  {displayedFeeRecords.map(r => (
                     <option key={'p2-' + r.id} value={r.id}>
                       রোল {toBnDigits(r.roll_no)} - {r.student_name} ({toBnDigits(r.class_name)}ম, {r.receipt_no})
                     </option>
