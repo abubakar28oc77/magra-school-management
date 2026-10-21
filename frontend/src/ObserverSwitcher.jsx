@@ -1,6 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MOCK_USERS } from './mockData';
+import { MOCK_USERS, MOCK_TEACHERS } from './mockData';
+
+export function getSchoolTeachers() {
+  try {
+    const raw = localStorage.getItem('magra_db_teachers');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return MOCK_TEACHERS;
+}
+
+export function isAssignedRoleTeacher(t) {
+  if (!t) return false;
+  const name = String(t.name_bn || t.name_en || '').toLowerCase();
+  const desig = String(t.designation || '').toLowerCase();
+  const subj = String(t.subject || '').toLowerCase();
+
+  // 1. প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক
+  if (desig.includes('প্রধান শিক্ষক') || name.includes('শফিকুল') || name.includes('তাপসী')) return true;
+
+  // 2. ৫ জন শ্রেণি শিক্ষক (৬ষ্ঠ: খালেক, ৭ম: রহিম/লিটন, ৮ম: আবুবকর, ৯ম: হাবিবুর, ১০ম: ওয়াহিদুর)
+  if (name.includes('খালেক') || name.includes('লিটন') || (name.includes('আব্দুর রহিম') && !name.includes('খালিদুর')) || name.includes('আবুবকর') || name.includes('হাবিবুর') || name.includes('ওয়াহিদুর') || name.includes('ওয়াহিদুর')) return true;
+
+  // 3. গ্রন্থাগারিক (মোঃ শাহিন মিয়া)
+  if (desig.includes('গ্রন্থাগার') || subj.includes('গ্রন্থাগার') || name.includes('শাহিন')) return true;
+
+  return false;
+}
 
 export function getCoAdminClasses() {
   const defaults = {
@@ -35,6 +64,8 @@ export function getCoAdminClasses() {
 export function ObserverSwitcher() {
   const [collapsed, setCollapsed] = useState(false);
   const [showCoAdminModal, setShowCoAdminModal] = useState(false);
+  const [showSubjectTeacherModal, setShowSubjectTeacherModal] = useState(false);
+  const [subjectTeacherTab, setSubjectTeacherTab] = useState('remaining'); // 'remaining' | 'all'
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,6 +74,8 @@ export function ObserverSwitcher() {
   const currentUser = rawUser ? JSON.parse(rawUser) : null;
 
   const coAdminClasses = getCoAdminClasses();
+  const teachersList = getSchoolTeachers();
+  const remainingSubjectTeachers = useMemo(() => teachersList.filter(t => !isAssignedRoleTeacher(t)), [teachersList]);
 
   const handleRoleSwitch = (roleKey) => {
     if (roleKey === 'public') {
@@ -105,6 +138,29 @@ export function ObserverSwitcher() {
     navigate('/admin');
   };
 
+  const handleSelectSubjectTeacher = (t) => {
+    const matchedUser = {
+      id: `u-teacher-${t.employee_id || t.id}`,
+      login_id: `teacher_${t.employee_id || t.id}`,
+      full_name: `${t.name_bn} (${t.subject || 'বিষয় শিক্ষক'})`,
+      role_name: 'teacher',
+      role_label: `বিষয় শিক্ষক (${t.subject || 'সহকারী শিক্ষক'})`,
+      employee_id: t.employee_id || t.id,
+      teacher_name: t.name_bn,
+      subject: t.subject,
+      phone: t.phone,
+      is_active: true
+    };
+
+    localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+    localStorage.setItem('magra_user', JSON.stringify(matchedUser));
+    localStorage.setItem('magra_admin_active_tab', 'results');
+    localStorage.setItem('magra_admin_active_sub', 'marks');
+
+    setShowSubjectTeacherModal(false);
+    navigate('/admin');
+  };
+
   return (
     <>
       <aside className={'demo-observer-bar ' + (collapsed ? 'collapsed' : '')} aria-label="সফটওয়্যার পর্যবেক্ষণ ও ভূমিকা পরিবর্তন">
@@ -163,6 +219,16 @@ export function ObserverSwitcher() {
                 title="৬ষ্ঠ, ৭ম, ৮ম, ৯ম ও ১০ম শ্রেণির ৫ জন শ্রেণি শিক্ষকের কো-অ্যাডমিন রোল স্ক্রিন খুলুন"
               >
                 👥 কো-অ্যাডমিন (শ্রেণি শিক্ষক) ▾
+              </button>
+
+              <button
+                type="button"
+                className={'observer-btn ' + (currentUser?.role_name === 'teacher' ? 'active' : '')}
+                onClick={() => setShowSubjectTeacherModal(true)}
+                style={{ background: currentUser?.role_name === 'teacher' ? '#0284c7' : undefined, fontWeight: 700 }}
+                title="বিদ্যালয়ের শিক্ষক তালিকায় থাকা বাকি বিষয় শিক্ষকদের মধ্য থেকে শিক্ষক নির্বাচন করে সরাসরি বিষয় নম্বর এন্ট্রি করুন"
+              >
+                📖 বিষয় শিক্ষক ▾
               </button>
 
               <button
@@ -411,6 +477,256 @@ export function ObserverSwitcher() {
                   <b>তথ্যসূত্র:</b> সুপার অ্যাডমিন প্যানেলের <b>'শ্রেণি শিক্ষক নির্ধারণ ও দায়িত্ব বণ্টন'</b> স্ক্রীনে সংরক্ষিত তথ্য অনুযায়ী শ্রেণি শিক্ষকগণ তাদের নিজ নিজ শ্রেণির উপস্থিতি, ক্লাসে অন্তর্ভুক্তি, শ্রেণি ফি আদায় ও ফলাফল স্ক্রুটিনি পরিচালনা করবেন।
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subject Teacher Modal */}
+      {showSubjectTeacherModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(5px)',
+            zIndex: 999999,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setShowSubjectTeacherModal(false)}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              maxWidth: '880px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid #cbd5e1',
+              padding: '24px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '16px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  color: '#fff',
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: '24px',
+                  boxShadow: '0 4px 10px rgba(2,132,199,0.3)'
+                }}>
+                  📖
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                    বিদ্যালয়ের বিষয় শিক্ষক নির্বাচন (বিষয় নম্বর এন্ট্রি)
+                  </h3>
+                  <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                    বিদ্যালয়ের ১৫ জন শিক্ষকের মধ্য হতে বাকি বিষয় শিক্ষক অথবা যেকোনো শিক্ষক নির্বাচন করে সরাসরি বিষয় নম্বর এন্ট্রি করুন
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSubjectTeacherModal(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '8px',
+                  width: '32px',
+                  height: '32px',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                  display: 'grid',
+                  placeItems: 'center',
+                  color: '#475569',
+                  fontWeight: 700
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Filter Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setSubjectTeacherTab('remaining')}
+                style={{
+                  background: subjectTeacherTab === 'remaining' ? '#0284c7' : '#f1f5f9',
+                  color: subjectTeacherTab === 'remaining' ? '#ffffff' : '#334155',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>⭐</span> বাকী বিষয় শিক্ষকবৃন্দ ({remainingSubjectTeachers.length} জন)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubjectTeacherTab('all')}
+                style={{
+                  background: subjectTeacherTab === 'all' ? '#0284c7' : '#f1f5f9',
+                  color: subjectTeacherTab === 'all' ? '#ffffff' : '#334155',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>👥</span> বিদ্যালয়ের সকল শিক্ষক ({teachersList.length} জন)
+              </button>
+            </div>
+
+            {/* Teacher Cards Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+              gap: '14px'
+            }}>
+              {(subjectTeacherTab === 'remaining' ? remainingSubjectTeachers : teachersList).map((t, idx) => {
+                const isCurrent = currentUser?.role_name === 'teacher' && (currentUser?.teacher_name === t.name_bn || currentUser?.full_name?.includes(t.name_bn));
+                return (
+                  <div
+                    key={t.id || t.employee_id || idx}
+                    onClick={() => handleSelectSubjectTeacher(t)}
+                    style={{
+                      border: isCurrent ? '2px solid #0284c7' : '1.5px solid #cbd5e1',
+                      borderRadius: '12px',
+                      padding: '14px',
+                      background: isCurrent ? '#f0f9ff' : '#f8fafc',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      boxShadow: isCurrent ? '0 4px 12px rgba(2,132,199,0.15)' : '0 2px 4px rgba(0,0,0,0.03)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = '#0284c7';
+                      e.currentTarget.style.background = '#f0f9ff';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 14px rgba(2,132,199,0.18)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = isCurrent ? '#0284c7' : '#cbd5e1';
+                      e.currentTarget.style.background = isCurrent ? '#f0f9ff' : '#f8fafc';
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = isCurrent ? '0 4px 12px rgba(2,132,199,0.15)' : '0 2px 4px rgba(0,0,0,0.03)';
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{
+                          background: '#e0f2fe',
+                          color: '#0369a1',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800
+                        }}>
+                          আইডি #{t.employee_id || idx + 1}
+                        </span>
+                        <span style={{
+                          background: isCurrent ? '#0284c7' : '#e2e8f0',
+                          color: isCurrent ? '#ffffff' : '#475569',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700
+                        }}>
+                          {isCurrent ? '✓ সক্রিয়' : 'বিষয় শিক্ষক'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', marginBottom: '4px' }}>
+                        👨‍🏫 {t.name_bn}
+                      </div>
+
+                      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+                        {t.designation || 'সহকারী শিক্ষক'}
+                      </div>
+
+                      <div style={{ background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '8px 10px', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                          <span style={{ color: '#64748b' }}>পাঠদান বিষয়:</span>
+                          <b style={{ color: '#0369a1' }}>{t.subject || 'সাধারণ'}</b>
+                        </div>
+                        {t.phone && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#64748b' }}>মোবাইল:</span>
+                            <span style={{ color: '#334155', fontWeight: 600 }}>{t.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      style={{
+                        background: isCurrent ? '#0284c7' : '#0369a1',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        fontSize: '12.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      📈 বিষয় নম্বর এন্ট্রি করুন ➔
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer Note */}
+            <div style={{
+              marginTop: '18px',
+              padding: '12px 16px',
+              background: '#f0fdf4',
+              borderRadius: '10px',
+              border: '1px solid #86efac',
+              fontSize: '12px',
+              color: '#166534',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              <span style={{ fontSize: '18px' }}>ℹ️</span>
+              <span>
+                <b>নির্দেশনা:</b> যে কোনো বিষয় শিক্ষকে ক্লিক করলে তিনি সরাসরি তার পাঠদান বিষয়ের পরীক্ষা নম্বর এন্ট্রি ডেস্কে প্রবেশ করবেন এবং ৬ষ্ঠ থেকে ১০ম শ্রেণির যে কোনো পরীক্ষা ও সেকশনে নম্বর ইনপুট দিতে পারবেন।
+              </span>
             </div>
           </div>
         </div>

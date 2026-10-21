@@ -311,11 +311,22 @@ export function ResultPanel({ sub, userRole }) {
   useEffect(() => {
     if (subjectsForClass.length > 0) {
       const match = subjectsForClass.find(s => String(s.id) === String(selectedSubjectId));
-      if (!match) setSelectedSubjectId(subjectsForClass[0].id);
+      if (!match) {
+        const teacherSubj = String(currentUser?.subject || '').trim().toLowerCase();
+        let teacherMatch = null;
+        if (teacherSubj && isSubjectTeacherOrLibrarian) {
+          teacherMatch = subjectsForClass.find(s => {
+            const bn = String(s.name_bn || '').toLowerCase();
+            const en = String(s.name_en || '').toLowerCase();
+            return bn.includes(teacherSubj) || teacherSubj.includes(bn) || (en && teacherSubj.includes(en));
+          });
+        }
+        setSelectedSubjectId(teacherMatch ? teacherMatch.id : subjectsForClass[0].id);
+      }
     } else {
       setSelectedSubjectId('');
     }
-  }, [subjectsForClass]);
+  }, [subjectsForClass, currentUser, isSubjectTeacherOrLibrarian]);
 
   const currentSubjectObj = useMemo(() => {
     return subjects.find(s => String(s.id) === String(selectedSubjectId)) || subjectsForClass[0] || null;

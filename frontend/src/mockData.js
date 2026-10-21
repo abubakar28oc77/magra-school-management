@@ -4071,6 +4071,51 @@ export const MOCK_TEACHERS = [
     gender: 'male',
     joining_date: '2016-04-15',
     public_contact_enabled: true
+  },
+  {
+    id: 't-13',
+    employee_id: '13',
+    name_bn: 'মোঃ মিজানুর রহমান',
+    name_en: 'MD. MIZANUR RAHMAN',
+    designation: 'সহকারী শিক্ষক',
+    designation_en: 'Assistant Teacher',
+    subject: 'ইংরেজি',
+    phone: '01715892341',
+    email: 'mizanur.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2019-01-10',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-14',
+    employee_id: '14',
+    name_bn: 'মোছাঃ ফরিদা ইয়াসমিন',
+    name_en: 'MST. FARIDA YASMIN',
+    designation: 'সহকারী শিক্ষক',
+    designation_en: 'Assistant Teacher',
+    subject: 'ব্যবসায় শিক্ষা ও হিসাববিজ্ঞান',
+    phone: '01716945123',
+    email: 'farida.magra@gmail.com',
+    status: 'active',
+    gender: 'female',
+    joining_date: '2019-06-15',
+    public_contact_enabled: true
+  },
+  {
+    id: 't-15',
+    employee_id: '15',
+    name_bn: 'মোঃ কামরুল হাসান',
+    name_en: 'MD. KAMRUL HASAN',
+    designation: 'সহকারী শিক্ষক',
+    designation_en: 'Assistant Teacher',
+    subject: 'পদার্থবিজ্ঞান ও রসায়ন',
+    phone: '01718324567',
+    email: 'kamrul.magra@gmail.com',
+    status: 'active',
+    gender: 'male',
+    joining_date: '2020-02-01',
+    public_contact_enabled: true
   }
 ];
 
