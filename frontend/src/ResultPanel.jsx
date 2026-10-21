@@ -315,10 +315,21 @@ export function ResultPanel({ sub, userRole }) {
         const teacherSubj = String(currentUser?.subject || '').trim().toLowerCase();
         let teacherMatch = null;
         if (teacherSubj && isSubjectTeacherOrLibrarian) {
+          const norm = (str) => String(str || '').toLowerCase().replace(/ী/g, 'ি').replace(/ূ/g, 'ু').replace(/ণ/g, 'ন').trim();
+          const tNorm = norm(teacherSubj);
           teacherMatch = subjectsForClass.find(s => {
             const bn = String(s.name_bn || '').toLowerCase();
+            const bnNorm = norm(bn);
             const en = String(s.name_en || '').toLowerCase();
-            return bn.includes(teacherSubj) || teacherSubj.includes(bn) || (en && teacherSubj.includes(en));
+            if (bnNorm.includes(tNorm) || tNorm.includes(bnNorm) || (en && tNorm.includes(en))) return true;
+            if ((tNorm.includes('ইংরে') || tNorm.includes('english')) && (bnNorm.includes('ইংরে') || en.includes('english'))) return true;
+            if (tNorm.includes('ভৌত') || tNorm.includes('বিজ্ঞান') || tNorm.includes('পদার্থ') || tNorm.includes('রসায়ন')) {
+              if (bnNorm.includes('বিজ্ঞান') || bnNorm.includes('পদার্থ') || bnNorm.includes('রসায়ন')) return true;
+            }
+            if (tNorm.includes('ব্যবসায়') || tNorm.includes('হিসাব')) {
+              if (bnNorm.includes('ব্যবসায়') || bnNorm.includes('হিসাব') || bnNorm.includes('উদ্যোগ')) return true;
+            }
+            return false;
           });
         }
         setSelectedSubjectId(teacherMatch ? teacherMatch.id : subjectsForClass[0].id);

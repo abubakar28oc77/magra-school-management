@@ -1,13 +1,40 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MOCK_USERS, MOCK_TEACHERS } from './mockData';
+import { MOCK_USERS, MOCK_TEACHERS, getTeacherPhoto } from './mockData';
 
 export function getSchoolTeachers() {
   try {
     const raw = localStorage.getItem('magra_db_teachers');
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      let parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const canonicalById = {};
+        MOCK_TEACHERS.forEach(t => { if (t && t.id) canonicalById[t.id] = t; });
+        let updated = false;
+        parsed = parsed.map(t => {
+          if (!t) return t;
+          const id = t.id || ('t-' + t.employee_id);
+          if (id === 't-13' || id === 't-14' || id === 't-15' || String(t.name_bn).includes('মিজানুর') || String(t.name_bn).includes('ফরিদা') || String(t.name_bn).includes('কামরুল')) {
+            const canonical = canonicalById[id];
+            if (canonical) {
+              updated = true;
+              return { ...t, ...canonical };
+            }
+          }
+          return t;
+        });
+        MOCK_TEACHERS.forEach(canon => {
+          const exists = parsed.some(p => p && (p.id === canon.id || String(p.employee_id) === String(canon.employee_id)));
+          if (!exists) {
+            parsed.push(canon);
+            updated = true;
+          }
+        });
+        if (updated) {
+          try { localStorage.setItem('magra_db_teachers', JSON.stringify(parsed)); } catch (e) {}
+        }
+        return parsed;
+      }
     }
   } catch (e) {}
   return MOCK_TEACHERS;
@@ -664,12 +691,33 @@ export function ObserverSwitcher() {
                         </span>
                       </div>
 
-                      <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', marginBottom: '4px' }}>
-                        👨‍🏫 {t.name_bn}
-                      </div>
-
-                      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
-                        {t.designation || 'সহকারী শিক্ষক'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <img 
+                          src={t.photo_url || getTeacherPhoto(t)} 
+                          alt={t.name_bn}
+                          style={{
+                            width: '44px',
+                            height: '48px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            border: '1.5px solid #cbd5e1',
+                            background: '#ffffff',
+                            flexShrink: 0
+                          }}
+                        />
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {t.name_bn}
+                          </div>
+                          {t.name_en && (
+                            <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 700, letterSpacing: '0.4px', marginTop: '2px' }}>
+                              {t.name_en}
+                            </div>
+                          )}
+                          <div style={{ fontSize: '11.5px', color: '#0284c7', fontWeight: 600, marginTop: '2px' }}>
+                            {t.designation || 'সহকারী শিক্ষক'}
+                          </div>
+                        </div>
                       </div>
 
                       <div style={{ background: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '8px 10px', fontSize: '12px' }}>

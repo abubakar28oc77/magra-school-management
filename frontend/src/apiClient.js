@@ -419,8 +419,19 @@ function getLocalStore(key, defaultVal = []) {
     }
     if (key === 'teachers' && Array.isArray(parsed)) {
       let changed = false;
-      const healed = parsed.map(t => {
+      const canonicalById = {};
+      MOCK_TEACHERS.forEach(t => { if (t && t.id) canonicalById[t.id] = t; });
+
+      let healed = parsed.map(t => {
         if (!t) return t;
+        const id = t.id || ('t-' + t.employee_id);
+        if (id === 't-13' || id === 't-14' || id === 't-15' || String(t.name_bn).includes('মিজানুর') || String(t.name_bn).includes('ফরিদা') || String(t.name_bn).includes('কামরুল')) {
+          const canonical = canonicalById[id];
+          if (canonical) {
+            changed = true;
+            t = { ...t, ...canonical };
+          }
+        }
         const curEdu = t.extended_profile?.education;
         if (!Array.isArray(curEdu) || curEdu.length === 0) {
           const empId = String(t.employee_id || t.id || '').replace(/^t-/, '');
@@ -438,6 +449,15 @@ function getLocalStore(key, defaultVal = []) {
         }
         return t;
       });
+
+      MOCK_TEACHERS.forEach(canon => {
+        const exists = healed.some(p => p && (p.id === canon.id || String(p.employee_id) === String(canon.employee_id)));
+        if (!exists) {
+          healed.push(canon);
+          changed = true;
+        }
+      });
+
       if (changed) {
         try { localStorage.setItem('magra_db_teachers', JSON.stringify(healed)); } catch {}
       }
