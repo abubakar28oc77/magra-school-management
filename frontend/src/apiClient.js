@@ -1,3 +1,30 @@
+
+// Auto-seed guarantee for authentic data
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const curStudents = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
+    if (!Array.isArray(curStudents) || curStudents.length < 100) {
+      localStorage.setItem('magra_db_students', JSON.stringify(MOCK_STUDENTS));
+    }
+    const curTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+    if (!Array.isArray(curTeachers) || curTeachers.length < 15) {
+      localStorage.setItem('magra_db_teachers', JSON.stringify(MOCK_TEACHERS));
+    }
+    const curMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+    if (!Array.isArray(curMarks) || curMarks.length < 10) {
+      localStorage.setItem('magra_db_marks', JSON.stringify(MOCK_MARKS));
+    }
+    const curExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
+    if (!Array.isArray(curExams) || !curExams.some(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')))) {
+      const mergedExams = [
+        { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: 'ফলাফল প্রকাশিত ও অনুমোদিত' },
+        ...(Array.isArray(curExams) && curExams.length ? curExams : MOCK_EXAMS)
+      ];
+      localStorage.setItem('magra_db_exams', JSON.stringify(mergedExams));
+    }
+  }
+} catch (_) {}
+
 export function parseEmployeeIdNum(empId, fallback = 999999) {
   if (empId === null || empId === undefined || empId === '') return fallback;
   const bnMap = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
@@ -68,6 +95,7 @@ export function sortStudentsList(list) {
 }
 
 import {
+  MOCK_MARKS,
   MOCK_SCHOOL,
   MOCK_USERS,
   MOCK_STUDENTS,
@@ -125,7 +153,7 @@ try {
       const en = e.name_en || '';
       const rem = e.remarks || '';
       const isTarget = e.id === 'ex-annual-2026' || e.id === 'ex-test-2026' ||
-                       bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') ||
+                       (!bn.includes('প্রাক') && (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬'))) ||
                        bn.includes('বার্ষিক পরীক্ষা ২০২৬') ||
                        en.includes('SSC Test Examination 2026') || en.includes('Annual Examination 2026') ||
                        rem.includes('১০ম শ্রেণির এসএসসি টেস্ট') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা');
@@ -437,7 +465,7 @@ function getLocalStore(key, defaultVal = []) {
       const filtered = parsed.filter(e => {
         if (!e) return false;
         if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
-        if (e.name_bn && (e.name_bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || e.name_bn.includes('বার্ষিক পরীক্ষা ২০২৬'))) return false;
+        if (e.name_bn && !e.name_bn.includes('প্রাক') && (e.name_bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || e.name_bn.includes('বার্ষিক পরীক্ষা ২০২৬'))) return false;
         if (e.name_en && (e.name_en.includes('SSC Test Examination 2026') || e.name_en.includes('Annual Examination 2026'))) return false;
         return true;
       });
@@ -2369,10 +2397,11 @@ function handleMockRequest(path, opts = {}) {
     }
   }
 
-  if (cleanPath === '/marks') {
+    if (cleanPath === '/marks') {
     const examId = params.get('exam_id');
     const cls = params.get('class_name');
-    const marks = getLocalStore('marks', []);
+    let marks = getLocalStore('marks', MOCK_MARKS);
+    if (!marks || !marks.length) marks = MOCK_MARKS;
     let filtered = marks;
     if (examId) {
       filtered = filtered.filter(m => String(m.exam_id) === String(examId));
@@ -2386,7 +2415,7 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/marks/bulk' && method === 'POST') {
     const examId = body.exam_id;
     const records = Array.isArray(body.records) ? body.records : [];
-    let marks = getLocalStore('marks', []);
+    let marks = getLocalStore('marks', MOCK_MARKS);
     const map = new Map();
     marks.forEach(m => map.set(`${m.exam_id}_${m.student_id}_${m.subject_id}`, m));
     records.forEach(r => {
@@ -2431,7 +2460,7 @@ function handleMockRequest(path, opts = {}) {
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-    const marks = getLocalStore('marks', []);
+    const marks = getLocalStore('marks', MOCK_MARKS);
 
     // Compute real results via Dhaka Board Exam Engine
     const processed = processClassResults(students, subs, marks, cls, examId);
@@ -2451,7 +2480,7 @@ function handleMockRequest(path, opts = {}) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const marks = getLocalStore('marks', []);
+      const marks = getLocalStore('marks', MOCK_MARKS);
       processed = processClassResults(students, subs, marks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);
     }
@@ -2471,7 +2500,7 @@ function handleMockRequest(path, opts = {}) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const marks = getLocalStore('marks', []);
+      const marks = getLocalStore('marks', MOCK_MARKS);
       processed = processClassResults(students, subs, marks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);
     }
@@ -2996,7 +3025,7 @@ function handleMockRequest(path, opts = {}) {
     const subId = params.get('subject_id');
     const students = getLocalStore('students', MOCK_STUDENTS);
     const subjects = getLocalStore('subjects', MOCK_SUBJECTS);
-    const marks = getLocalStore('marks', []);
+    const marks = getLocalStore('marks', MOCK_MARKS);
 
     const sub = subjects.find(s => String(s.id) === String(subId) || String(s.code) === String(subId)) || subjects[0] || {
       name_bn: 'বাংলা',
@@ -3032,7 +3061,7 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/portal/teacher/marks-save' && method === 'POST') {
     const { exam_id, records } = body || {};
-    let marks = getLocalStore('marks', []);
+    let marks = getLocalStore('marks', MOCK_MARKS);
     const map = new Map();
     marks.forEach(m => map.set(`${m.exam_id}_${m.student_id}_${m.subject_id}`, m));
     (records || []).forEach(r => {

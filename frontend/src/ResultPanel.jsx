@@ -220,12 +220,14 @@ export function ResultPanel({ sub, userRole }) {
           const bn = e.name_bn || '';
           const en = e.name_en || '';
           const rem = e.remarks || '';
-          if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
+          if ((!bn.includes('প্রাক') && (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬'))) || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
           if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
           return true;
         });
         setExams(cleanList);
         if (cleanList.length && !selectedExam) {
+          const preTest = cleanList.find(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')));
+          if (preTest) setSelectedExam(preTest.id); else
           setSelectedExam(cleanList[0].id);
         }
       }
