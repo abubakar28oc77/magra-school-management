@@ -562,6 +562,24 @@ export async function requestApi(path, opts = {}) {
   const params = new URLSearchParams(queryStr || '');
   const body = opts.body ? JSON.parse(opts.body) : {};
 
+  // Fast-path: /me and /auth/logout resolve instantly from local storage
+  if (cleanPath === '/me' && method === 'GET') {
+    try {
+      const rawUser = localStorage.getItem('magra_user');
+      if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+        const parsed = JSON.parse(rawUser);
+        if (parsed && (parsed.login_id || parsed.id)) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return MOCK_USERS[0];
+  }
+
+  if (cleanPath === '/auth/logout') {
+    return { success: true };
+  }
+
   // 1. Check if Supabase Cloud is configured
   const { isConfigured } = getSupabaseConfig();
   if (isConfigured) {
@@ -602,8 +620,9 @@ export async function requestApi(path, opts = {}) {
     }
   }
 
-  // 2. Local Backend Express check (if running locally on PC)
-  if (backendState !== 'offline') {
+  // 2. Local Backend Express check (if running locally on PC, not on HTTPS or file origin)
+  const isWebOrFile = typeof window !== 'undefined' && (window.location.protocol === 'https:' || window.location.protocol === 'file:');
+  if (backendState !== 'offline' && !isWebOrFile) {
     try {
       const controller = new AbortController();
       const timeoutMs = backendState === 'online' ? 4000 : 350;
