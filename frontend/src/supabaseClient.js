@@ -5,8 +5,9 @@ const STORAGE_KEY_KEY = 'magra_supabase_anon_key';
 const STORAGE_KEY_AUTO_SYNC = 'magra_supabase_auto_sync';
 
 export function getSupabaseConfig() {
-  const url = (localStorage.getItem(STORAGE_KEY_URL) || import.meta.env.VITE_SUPABASE_URL || '').trim();
-  const anonKey = (localStorage.getItem(STORAGE_KEY_KEY) || import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : {};
+  const url = (localStorage.getItem(STORAGE_KEY_URL) || env.VITE_SUPABASE_URL || '').trim();
+  const anonKey = (localStorage.getItem(STORAGE_KEY_KEY) || env.VITE_SUPABASE_ANON_KEY || '').trim();
   const autoSync = localStorage.getItem(STORAGE_KEY_AUTO_SYNC) !== 'false';
   return { url, anonKey, autoSync, isConfigured: Boolean(url && anonKey) };
 }

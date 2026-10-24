@@ -68,6 +68,16 @@ export function getCoAdminClasses() {
   return Object.values(defaults);
 }
 
+export const CANONICAL_SUBJECT_TEACHERS = [
+  { id: 't-3', employee_id: '3', name_bn: 'মোঃ আনোয়ার হোসেন', name_en: 'MD. ANOWER HOSSEN', subject: 'ইংরেজি / ইসলাম ধর্ম', phone: '01770590374', designation: 'সিনিয়র শিক্ষক' },
+  { id: 't-4', employee_id: '4', name_bn: 'মোঃ ছানোয়ার হোসেন', name_en: 'MD SANWAR HOSSAIN', subject: 'গণিত / বাংলাদেশ ও বিশ্বপরিচয়', phone: '01726472073', designation: 'সিনিয়র শিক্ষক' },
+  { id: 't-5', employee_id: '5', name_bn: 'মোহাম্মদ খালিদুর রহমান তাং', name_en: 'MOHAMMAD KHALIDUR RAHMAN', subject: 'বিজ্ঞান / কৃষি শিক্ষা', phone: '01712763604', designation: 'সিনিয়র শিক্ষক' },
+  { id: 't-9', employee_id: '9', name_bn: 'আরতী রানী সরকার (ভদ্র)', name_en: 'AROTI RANI SARKER (BHADRA)', subject: 'বাংলা / হিন্দু ধর্ম', phone: '01752496170', designation: 'সিনিয়র শিক্ষক' },
+  { id: 't-12', employee_id: '12', name_bn: 'মোঃ আশরাফুল ইসলাম', name_en: 'MD. ASHRAFUL ISLAM', subject: 'কৃষি / আইসিটি / ইংরেজি', phone: '01715892341', designation: 'সহকারী শিক্ষক' },
+  { id: 't-13', employee_id: '13', name_bn: 'কান্তা মনি', name_en: 'KANTA MONI', subject: 'সমাজ / ইতিহাস / ব্যবসায় শিক্ষা', phone: '01716945123', designation: 'সহকারী শিক্ষক' },
+  { id: 't-14', employee_id: '14', name_bn: 'মোঃ রফিকুল ইসলাম', name_en: 'MD. RAFIQUL ISLAM', subject: 'ধর্ম / ভৌত বিজ্ঞান', phone: '01718324567', designation: 'সহকারী শিক্ষক' }
+];
+
 export function ObserverSwitcher() {
   const [collapsed, setCollapsed] = useState(false);
   const [showCoAdminModal, setShowCoAdminModal] = useState(false);
@@ -101,7 +111,19 @@ export function ObserverSwitcher() {
 
   const coAdminClasses = getCoAdminClasses();
   const teachersList = getSchoolTeachers();
-  const remainingSubjectTeachers = useMemo(() => teachersList.filter(t => !isAssignedRoleTeacher(t)), [teachersList]);
+  const remainingSubjectTeachers = useMemo(() => {
+    return CANONICAL_SUBJECT_TEACHERS.map(c => {
+      const match = teachersList.find(t => String(t.employee_id || t.id).replace(/\D/g, '') === String(c.employee_id));
+      return {
+        ...c,
+        ...(match || {}),
+        subject: c.subject,
+        name_bn: c.name_bn,
+        employee_id: c.employee_id,
+        photo_url: match?.photo_url || getTeacherPhoto(match || c)
+      };
+    });
+  }, [teachersList]);
 
   const handleRoleSwitch = (roleKey) => {
     if (roleKey === 'public') {
@@ -141,10 +163,8 @@ export function ObserverSwitcher() {
       defSub = 'fees';
       targetRoute = '/admin';
     } else if (roleKey === 'teacher') {
-      matchedUser = MOCK_USERS.find(u => u.role_name === 'teacher');
-      defTab = 'results';
-      defSub = 'marks';
-      targetRoute = '/portal';
+      setShowSubjectTeacherModal(true);
+      return;
     } else {
       matchedUser = MOCK_USERS.find(u => u.role_name === roleKey) || MOCK_USERS[0];
       defTab = 'dashboard';
@@ -187,17 +207,21 @@ export function ObserverSwitcher() {
   };
 
   const handleSelectSubjectTeacher = (t) => {
+    const empId = String(t.employee_id || t.id || '').replace(/\D/g, '') || '3';
+    const teacherName = t.name_bn || t.teacher_name || 'বিষয় শিক্ষক';
+    const subject = t.subject || 'নির্ধারিত বিষয়';
+
     const matchedUser = {
-      id: `u-teacher-${t.employee_id || t.id}`,
-      login_id: `teacher_${t.employee_id || t.id}`,
-      full_name: `${t.name_bn} (${t.subject || 'বিষয় শিক্ষক'})`,
+      id: `u-teacher-${empId}`,
+      login_id: `teacher_${empId}`,
+      full_name: `${teacherName} (${subject})`,
       role_name: 'teacher',
-      role_label: `বিষয় শিক্ষক (${t.subject || 'সহকারী শিক্ষক'})`,
-      employee_id: t.employee_id || t.id,
-      teacher_name: t.name_bn,
-      subject: t.subject,
-      phone: t.phone,
-      photo_url: t.photo_url,
+      role_label: `বিষয় শিক্ষক (${subject})`,
+      employee_id: empId,
+      teacher_name: teacherName,
+      subject: subject,
+      phone: t.phone || '',
+      photo_url: t.photo_url || getTeacherPhoto(t),
       is_active: true
     };
 
@@ -209,7 +233,7 @@ export function ObserverSwitcher() {
     setShowSubjectTeacherModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    navigate('/portal');
+    navigate('/admin');
   };
 
   return (
@@ -661,7 +685,11 @@ export function ObserverSwitcher() {
               gap: '14px'
             }}>
               {(subjectTeacherTab === 'remaining' ? remainingSubjectTeachers : teachersList).map((t, idx) => {
-                const isCurrent = currentUser?.role_name === 'teacher' && (currentUser?.teacher_name === t.name_bn || currentUser?.full_name?.includes(t.name_bn));
+                const isCurrent = currentUser?.role_name === 'teacher' && (
+                  (currentUser?.employee_id && String(currentUser?.employee_id) === String(t.employee_id)) ||
+                  currentUser?.teacher_name === t.name_bn ||
+                  currentUser?.full_name?.includes(t.name_bn)
+                );
                 return (
                   <div
                     key={t.id || t.employee_id || idx}

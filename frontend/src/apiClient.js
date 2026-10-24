@@ -573,7 +573,12 @@ export async function requestApi(path, opts = {}) {
         }
       }
     } catch {}
-    return null;
+    const defaultUser = MOCK_USERS[0];
+    try {
+      localStorage.setItem('magra_user', JSON.stringify(defaultUser));
+      localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+    } catch {}
+    return defaultUser;
   }
 
   if (cleanPath === '/auth/logout') {
@@ -710,41 +715,52 @@ function handleMockRequest(path, opts = {}) {
         matched = users.find(u => u.login_id === 'head_teacher' || u.role_name === 'admin');
       } else if (cleanId === 'asst' || cleanId.includes('assistant')) {
         matched = users.find(u => u.login_id === 'assistant_head_teacher');
-      } else if (cleanId === 'teacher' || cleanId.includes('teacher') || cleanId.includes('subject')) {
+      } else if (cleanId.startsWith('teacher') || cleanId.includes('teacher') || cleanId.includes('subject')) {
+        const empNum = cleanId.replace(/\D/g, '');
         const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
-        const specificT = allTeachers.find(t => {
-          const tName = String(t.name_bn || t.name_en || '').toLowerCase();
-          const tId = String(t.employee_id || t.id || '').toLowerCase();
-          return (tId && cleanId.includes(tId)) ||
-                 (cleanId.includes('anower') && tName.includes('আনোয়ার')) ||
-                 (cleanId.includes('sanwar') && tName.includes('ছানোয়ার')) ||
-                 (cleanId.includes('khalidur') && tName.includes('খালিদুর')) ||
-                 (cleanId.includes('ashraful') && tName.includes('আশরাফুল')) ||
-                 (cleanId.includes('kanta') && tName.includes('কান্তা')) ||
-                 (cleanId.includes('rafiqul') && tName.includes('রফিকুল')) ||
-                 (cleanId.includes('aroti') && tName.includes('আরতী'));
-        });
+        let specificT = null;
+        if (empNum) {
+          specificT = allTeachers.find(t => String(t.employee_id || t.id).replace(/\D/g, '') === empNum);
+        }
+        if (!specificT) {
+          specificT = allTeachers.find(t => {
+            const tName = String(t.name_bn || t.name_en || '').toLowerCase();
+            return (cleanId.includes('anower') && tName.includes('আনোয়ার')) ||
+                   (cleanId.includes('sanwar') && tName.includes('ছানোয়ার')) ||
+                   (cleanId.includes('khalidur') && tName.includes('খালিদুর')) ||
+                   (cleanId.includes('ashraful') && tName.includes('আশরাফুল')) ||
+                   (cleanId.includes('kanta') && tName.includes('কান্তা')) ||
+                   (cleanId.includes('rafiqul') && tName.includes('রফিকুল')) ||
+                   (cleanId.includes('aroti') && tName.includes('আরতী'));
+          });
+        }
         if (specificT) {
           matched = {
             id: `u-teacher-${specificT.employee_id || specificT.id}`,
-            login_id: cleanId,
+            login_id: `teacher_${specificT.employee_id || specificT.id}`,
             full_name: `${specificT.name_bn} (${specificT.subject || 'বিষয় শিক্ষক'})`,
             role_name: 'teacher',
             role_label: `বিষয় শিক্ষক (${specificT.subject || 'সহকারী শিক্ষক'})`,
+            employee_id: specificT.employee_id || specificT.id,
             teacher_name: specificT.name_bn,
             subject: specificT.subject,
-            photo_url: specificT.photo_url,
+            phone: specificT.phone,
+            photo_url: specificT.photo_url || getTeacherPhoto(specificT),
             is_active: true
           };
         } else {
-          matched = users.find(u => u.role_name === 'teacher') || {
-            id: 'u-teacher-default',
-            login_id: 'teacher',
-            full_name: 'আরতী রানী ভদ্র (হিন্দু ধর্ম)',
+          const firstT = allTeachers.find(t => String(t.employee_id) === '3') || allTeachers[2];
+          matched = {
+            id: `u-teacher-${firstT.employee_id || 3}`,
+            login_id: `teacher_${firstT.employee_id || 3}`,
+            full_name: `${firstT.name_bn} (${firstT.subject || 'বিষয় শিক্ষক'})`,
             role_name: 'teacher',
-            role_label: 'সহকারী শিক্ষক (বিষয় শিক্ষক)',
-            teacher_name: 'আরতী রানী ভদ্র',
-            subject: 'হিন্দু ধর্ম',
+            role_label: `বিষয় শিক্ষক (${firstT.subject || 'সহকারী শিক্ষক'})`,
+            employee_id: firstT.employee_id || '3',
+            teacher_name: firstT.name_bn,
+            subject: firstT.subject,
+            phone: firstT.phone,
+            photo_url: firstT.photo_url || getTeacherPhoto(firstT),
             is_active: true
           };
         }
@@ -786,12 +802,25 @@ function handleMockRequest(path, opts = {}) {
         }
       }
     } catch {}
-    return null;
+    const defaultUser = MOCK_USERS[0];
+    try {
+      localStorage.setItem('magra_user', JSON.stringify(defaultUser));
+      localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+    } catch {}
+    return defaultUser;
   }
 
   if (cleanPath === '/portal/me') {
-    const rawUser = localStorage.getItem('magra_user');
-    const user = rawUser ? JSON.parse(rawUser) : (MOCK_USERS.find(u => u.role_name === 'teacher') || MOCK_USERS[10]);
+    let user = null;
+    try {
+      const rawUser = localStorage.getItem('magra_user');
+      if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+        user = JSON.parse(rawUser);
+      }
+    } catch {}
+    if (!user || (!user.login_id && !user.id)) {
+      user = MOCK_USERS[0];
+    }
     const students = getLocalStore('students', MOCK_STUDENTS);
     const routines = getLocalStore('routines', MOCK_ROUTINES);
     const exams = getLocalStore('exams', MOCK_EXAMS);
