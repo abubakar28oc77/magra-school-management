@@ -77,8 +77,27 @@ export function ObserverSwitcher() {
   const location = useLocation();
 
   const currentPath = location.pathname;
-  const rawUser = localStorage.getItem('magra_user');
-  const currentUser = rawUser ? JSON.parse(rawUser) : null;
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('magra_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        const raw = localStorage.getItem('magra_user');
+        setCurrentUser(raw ? JSON.parse(raw) : null);
+      } catch {}
+    };
+    window.addEventListener('magra_auth_change', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('magra_auth_change', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
 
   const coAdminClasses = getCoAdminClasses();
   const teachersList = getSchoolTeachers();
@@ -95,32 +114,43 @@ export function ObserverSwitcher() {
     }
 
     let matchedUser = null;
+    let defTab = 'dashboard';
+    let defSub = null;
+
     if (roleKey === 'super_admin' || roleKey === 'admin') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'super_admin') || MOCK_USERS[0];
+      defTab = 'dashboard';
     } else if (roleKey === 'head_teacher') {
       matchedUser = MOCK_USERS.find(u => u.login_id === 'head_teacher' || u.username === 'head_teacher') || MOCK_USERS[1];
+      defTab = 'dashboard';
     } else if (roleKey === 'asst_head_teacher') {
       matchedUser = MOCK_USERS.find(u => u.login_id === 'assistant_head_teacher' || u.username === 'assistant_head_teacher') || MOCK_USERS[2];
+      defTab = 'dashboard';
     } else if (roleKey === 'librarian') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'librarian');
-      localStorage.setItem('magra_admin_active_tab', 'library');
-      localStorage.setItem('magra_admin_active_sub', 'catalog');
+      defTab = 'library';
+      defSub = 'catalog';
     } else if (roleKey === 'staff' || roleKey === 'office') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'staff');
+      defTab = 'office';
+      defSub = 'fees';
     } else if (roleKey === 'teacher') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'teacher');
+      defTab = 'results';
+      defSub = 'marks';
     } else {
       matchedUser = MOCK_USERS.find(u => u.role_name === roleKey) || MOCK_USERS[0];
+      defTab = 'dashboard';
     }
 
     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
     localStorage.setItem('magra_user', JSON.stringify(matchedUser));
+    localStorage.setItem('magra_admin_active_tab', defTab);
+    if (defSub) localStorage.setItem('magra_admin_active_sub', defSub);
+    else localStorage.removeItem('magra_admin_active_sub');
 
-    if (matchedUser.role_name === 'teacher') {
-      navigate('/portal');
-    } else {
-      navigate('/admin');
-    }
+    window.dispatchEvent(new Event('magra_auth_change'));
+    navigate('/admin');
   };
 
   const handleSelectClassTeacher = (cls) => {
@@ -142,6 +172,7 @@ export function ObserverSwitcher() {
     localStorage.setItem('magra_admin_active_sub', 'daily');
 
     setShowCoAdminModal(false);
+    window.dispatchEvent(new Event('magra_auth_change'));
     navigate('/admin');
   };
 
@@ -165,6 +196,7 @@ export function ObserverSwitcher() {
     localStorage.setItem('magra_admin_active_sub', 'marks');
 
     setShowSubjectTeacherModal(false);
+    window.dispatchEvent(new Event('magra_auth_change'));
     navigate('/admin');
   };
 

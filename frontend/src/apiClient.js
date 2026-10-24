@@ -766,7 +766,7 @@ function handleMockRequest(path, opts = {}) {
         }
       }
     } catch {}
-    return MOCK_USERS[0];
+    return null;
   }
 
   if (cleanPath === '/portal/me') {

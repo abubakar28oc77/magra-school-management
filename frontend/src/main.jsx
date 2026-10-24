@@ -473,14 +473,36 @@ function Header({ onOpenSubmenu }){
  const {lang}=useLanguage();
  const [open,setOpen]=useState(false),[dropdown,setDropdown]=useState(null),[enabled,setEnabled]=useState(null),[custom,setCustom]=useState([]);
  const closeNav=()=>{setOpen(false);setDropdown(null)};
- const sessionUser = useMemo(() => {
+ const [sessionUser, setSessionUser] = useState(() => {
   try {
    const raw = localStorage.getItem('magra_user');
    if (raw && raw !== 'undefined' && raw !== 'null') {
-    return JSON.parse(raw);
+    const u = JSON.parse(raw);
+    if (u && (u.login_id || u.id)) return u;
    }
   } catch {}
   return null;
+ });
+ useEffect(() => {
+  const syncSession = () => {
+   try {
+    const raw = localStorage.getItem('magra_user');
+    if (raw && raw !== 'undefined' && raw !== 'null') {
+     const u = JSON.parse(raw);
+     if (u && (u.login_id || u.id)) {
+      setSessionUser(u);
+      return;
+     }
+    }
+   } catch {}
+   setSessionUser(null);
+  };
+  window.addEventListener('magra_auth_change', syncSession);
+  window.addEventListener('storage', syncSession);
+  return () => {
+   window.removeEventListener('magra_auth_change', syncSession);
+   window.removeEventListener('storage', syncSession);
+  };
  }, []);
  useEffect(()=>{api('/public/features').then(d=>{const map={};(d.features||[]).forEach(f=>{map[f.feature_key]=f.enabled!==false});setEnabled(map);setCustom(d.custom||[])}).catch(()=>setEnabled(null));const onKey=e=>{if(e.key==='Escape')closeNav()};const onPointer=e=>{if(!e.target.closest('.reference-shell'))closeNav()};window.addEventListener('keydown',onKey);document.addEventListener('pointerdown',onPointer);return()=>{window.removeEventListener('keydown',onKey);document.removeEventListener('pointerdown',onPointer)}},[]);
  const isOn=(key)=>enabled===null||enabled[key]!==false;
@@ -499,7 +521,24 @@ function Header({ onOpenSubmenu }){
 
  return <header className="site-header reference-shell">
   <div className="topbar"><div className="topbar-inner"><div className="topbar-info"><span>EIIN: <b>114290</b></span><span>MPO: <b>4206071302</b></span><span>Email: <b>magrapuhs.46@gmail.com</b></span></div><div className="topbar-social" aria-label="সামাজিক যোগাযোগ"><span aria-label="Facebook">f</span><span aria-label="YouTube">▶</span></div></div></div>
-  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন শিক্ষার্থী ভর্তি আবেদন','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/>{sessionUser ? <a className="header-login" href="#/admin" onClick={closeNav} style={{background:'linear-gradient(135deg, #047857 0%, #065f46 100%)',color:'#fff',border:'1px solid #10b981',display:'inline-flex',alignItems:'center',gap:'5px',fontWeight:800}} title={`${sessionUser.full_name || 'ইউজার'} (${sessionUser.role_label || sessionUser.role_name}) - ড্যাশবোর্ডে প্রবেশ করুন`}>👑 {sessionUser.role_name==='super_admin'?'সুপার অ্যাডমিন ERP':'ড্যাশবোর্ড'}</a> : <a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a>}<button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
+  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন শিক্ষার্থী ভর্তি আবেদন','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/>{sessionUser ? (
+ <a
+  className="header-login"
+  href="#/admin"
+  onClick={closeNav}
+  style={{background:'linear-gradient(135deg, #047857 0%, #065f46 100%)',color:'#fff',border:'1px solid #10b981',display:'inline-flex',alignItems:'center',gap:'5px',fontWeight:800}}
+  title={`${sessionUser.full_name || 'ইউজার'} (${sessionUser.role_label || sessionUser.role_name}) - পোর্টালে প্রবেশ করুন`}
+ >
+  {sessionUser.role_name === 'super_admin' ? '👑 সুপার অ্যাডমিন ERP' :
+   sessionUser.role_name === 'admin' ? '🎓 প্রধান শিক্ষক / অ্যাডমিন' :
+   sessionUser.role_name === 'co_admin' ? `👨‍🏫 শ্রেণি শিক্ষক (${sessionUser.assigned_class ? (sessionUser.assigned_class==='6'?'৬ষ্ঠ':sessionUser.assigned_class==='7'?'৭ম':sessionUser.assigned_class==='8'?'৮ম':sessionUser.assigned_class==='9'?'৯ম':'১০ম')+' শ্রেণি':''})` :
+   sessionUser.role_name === 'teacher' ? '📖 বিষয় শিক্ষক ডেস্ক' :
+   sessionUser.role_name === 'staff' ? '🏢 অফিস সহকারী ডেস্ক' :
+   sessionUser.role_name === 'librarian' ? '📚 লাইব্রেরি ডেস্ক' : 'ড্যাশবোর্ড'}
+ </a>
+) : (
+ <a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a>
+)}<button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
   <div className="nav-band"><nav id="public-navigation" className={open?'open':''} aria-label="প্রধান নেভিগেশন">
    {nav.map((item,i)=>item.children ? <div className={'nav-dropdown '+(dropdown===i?'active':'')} key={item.key}>
     <button className="nav-drop-trigger" type="button" aria-expanded={dropdown===i} aria-haspopup="menu" onClick={()=>setDropdown(dropdown===i?null:i)}>{lang==='bi'?<>{item.label}<small className="lang-secondary">{NAV_EN[item.label]||''}</small></>:label(item.label,lang)}<span className="chevron">⌄</span></button>
@@ -1289,17 +1328,36 @@ function Login(){
   if (!userObj) {
     userObj = MOCK_USERS.find(u => u.login_id === item.id) || MOCK_USERS[0];
   }
+  const role = userObj?.role_name || userObj?.role || '';
+  let defTab = 'dashboard';
+  let defSub = null;
+  if (role === 'teacher' || item.role === 'Subject Teacher') {
+    defTab = 'results';
+    defSub = 'marks';
+  } else if (role === 'co_admin') {
+    defTab = 'attendance';
+    defSub = 'daily';
+  } else if (role === 'staff' || item.key === 'staff') {
+    defTab = 'office';
+    defSub = 'fees';
+  } else if (role === 'librarian' || item.key === 'librarian') {
+    defTab = 'library';
+    defSub = 'catalog';
+  } else {
+    defTab = 'dashboard';
+    defSub = null;
+  }
+
   try {
     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
     localStorage.setItem('magra_user', JSON.stringify(userObj));
+    localStorage.setItem('magra_admin_active_tab', defTab);
+    if (defSub) localStorage.setItem('magra_admin_active_sub', defSub);
+    else localStorage.removeItem('magra_admin_active_sub');
   } catch {}
-  if (userObj && (userObj.role_name === 'teacher' || item.role === 'Subject Teacher')) {
-   localStorage.setItem('magra_admin_active_tab', 'results');
-   localStorage.setItem('magra_admin_active_sub', 'marks');
-   nav('/admin');
-  } else {
-   nav('/admin');
-  }
+
+  window.dispatchEvent(new Event('magra_auth_change'));
+  nav('/admin');
  };
 
  const selectSubjectTeacherAndLogin = (teacher) => {
@@ -1322,6 +1380,7 @@ function Login(){
     localStorage.setItem('magra_admin_active_sub', 'marks');
   } catch {}
   setShowSubjectTeacherModal(false);
+  window.dispatchEvent(new Event('magra_auth_change'));
   nav('/admin');
  };
 
@@ -1333,31 +1392,65 @@ function Login(){
   try{
    const d=await api('/auth/login',{method:'POST',body:JSON.stringify({loginId:loginId.trim(),password})});
    const userToSave = d.user || MOCK_USERS.find(u => u.login_id.toLowerCase() === loginId.trim().toLowerCase()) || MOCK_USERS[0];
+   const role = userToSave?.role_name || userToSave?.role || '';
+   let defTab = 'dashboard';
+   let defSub = null;
+   if (role === 'teacher') {
+     defTab = 'results';
+     defSub = 'marks';
+   } else if (role === 'co_admin') {
+     defTab = 'attendance';
+     defSub = 'daily';
+   } else if (role === 'staff') {
+     defTab = 'office';
+     defSub = 'fees';
+   } else if (role === 'librarian') {
+     defTab = 'library';
+     defSub = 'catalog';
+   } else {
+     defTab = 'dashboard';
+     defSub = null;
+   }
    try {
      localStorage.setItem('magra_token', d.token || ('demo-token-' + Date.now()));
      localStorage.setItem('magra_user', JSON.stringify(userToSave));
+     localStorage.setItem('magra_admin_active_tab', defTab);
+     if (defSub) localStorage.setItem('magra_admin_active_sub', defSub);
+     else localStorage.removeItem('magra_admin_active_sub');
    } catch {}
-   if ((userToSave.role_name || userToSave.role) === 'teacher') {
-    localStorage.setItem('magra_admin_active_tab', 'results');
-    localStorage.setItem('magra_admin_active_sub', 'marks');
-    nav('/admin');
-   } else {
-    nav('/admin');
-   }
+   window.dispatchEvent(new Event('magra_auth_change'));
+   nav('/admin');
   }catch(err){
    const cleanId = loginId.trim().toLowerCase();
    const matched = MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0];
+   const role = matched?.role_name || matched?.role || '';
+   let defTab = 'dashboard';
+   let defSub = null;
+   if (role === 'teacher') {
+     defTab = 'results';
+     defSub = 'marks';
+   } else if (role === 'co_admin') {
+     defTab = 'attendance';
+     defSub = 'daily';
+   } else if (role === 'staff') {
+     defTab = 'office';
+     defSub = 'fees';
+   } else if (role === 'librarian') {
+     defTab = 'library';
+     defSub = 'catalog';
+   } else {
+     defTab = 'dashboard';
+     defSub = null;
+   }
    try {
      localStorage.setItem('magra_token', 'demo-token-' + Date.now());
      localStorage.setItem('magra_user', JSON.stringify(matched));
+     localStorage.setItem('magra_admin_active_tab', defTab);
+     if (defSub) localStorage.setItem('magra_admin_active_sub', defSub);
+     else localStorage.removeItem('magra_admin_active_sub');
    } catch {}
-   if ((matched.role_name || matched.role) === 'teacher') {
-    localStorage.setItem('magra_admin_active_tab', 'results');
-    localStorage.setItem('magra_admin_active_sub', 'marks');
-    nav('/admin');
-   } else {
-    nav('/admin');
-   }
+   window.dispatchEvent(new Event('magra_auth_change'));
+   nav('/admin');
   }finally{
    setLoading(false);
   }
@@ -1380,22 +1473,9 @@ function Login(){
       <div className="login-logo"><img src={logo} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের লোগো"/></div>
       <span className="login-label">SCHOOL ERP</span>
       <h2>{bilingual('সিস্টেম লগইন','System Login',lang)}</h2>
-      <p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন অথবা ১-ক্লিকে প্রবেশ করুন','Use the Login ID & Password below or click to enter instantly',lang)}</p>
+      <p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন অথবা এক ক্লিকে রোল নির্বাচন করুন','Use the Login ID & Password below or select any role button',lang)}</p>
 
-      {/* সুপার অ্যাডমিন ১-ক্লিক ভিআইপি এক্সেস ব্যানার */}
-      <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: '#ffffff', padding: '14px 16px', borderRadius: '10px', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', border: '1px solid #10b981', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.15)' }}>
-        <div>
-          <div style={{ fontWeight: 800, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>👑 মুহাম্মদ আবুবকর সিদ্দিক (সুপার অ্যাডমিন)</div>
-          <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>আইসিটি শিক্ষক • ERP ID: <code>admin</code> • পাসওয়ার্ড: <code>admin123</code></div>
-        </div>
-        <button
-          type="button"
-          onClick={() => fillAndLogin(quickAccounts[0])}
-          style={{ background: '#f59e0b', color: '#111827', fontWeight: 800, border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}
-        >
-          ⚡ সরাসরি প্রবেশ করুন →
-        </button>
-      </div>
+      
       <form onSubmit={submit}>
         <label>Login ID<input autoFocus autoComplete="username" placeholder={lang==='en'?'Your Login ID':'আপনার Login ID (যেমন: admin, head_teacher)'} value={loginId} onChange={e=>setLoginId(e.target.value)} required/></label>
         <label>Password<div className="password-field"><input autoComplete="current-password" type={show?'text':'password'} placeholder={lang==='en'?'Your Password':'আপনার Password'} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" onClick={()=>setShow(!show)} aria-label="পাসওয়ার্ড দেখুন">{show?'◉':'○'}</button></div></label>
@@ -1978,10 +2058,8 @@ function Admin(){
     const u = JSON.parse(raw);
     if (u && (u.login_id || u.id)) return u;
    }
-   const token = localStorage.getItem('magra_token');
-   if (token) return MOCK_USERS[0];
   } catch {}
-  return MOCK_USERS[0];
+  return null;
  });
  const [active,setActive]=useState(()=>{
   try {
@@ -2013,6 +2091,31 @@ function Admin(){
  },[active, sub]);
 
  useEffect(()=>{
+  const syncMe = () => {
+   try {
+    const raw = localStorage.getItem('magra_user');
+    if (raw && raw !== 'undefined' && raw !== 'null') {
+     const u = JSON.parse(raw);
+     if (u && (u.login_id || u.id)) {
+      setMe(u);
+      const tab = localStorage.getItem('magra_admin_active_tab');
+      const subTab = localStorage.getItem('magra_admin_active_sub');
+      if (tab) setActive(tab);
+      setSub(subTab || null);
+      return;
+     }
+    }
+   } catch {}
+   const token = localStorage.getItem('magra_token');
+   if (!token) {
+    nav('/login');
+   }
+  };
+
+  syncMe();
+  window.addEventListener('magra_auth_change', syncMe);
+  window.addEventListener('storage', syncMe);
+
   api('/me').then(u => {
    if (u && (u.login_id || u.id)) {
     setMe(u);
@@ -2021,29 +2124,54 @@ function Admin(){
   }).catch(()=>{
    const raw = localStorage.getItem('magra_user');
    if (!raw || raw === 'undefined') {
-    try {
-     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-     localStorage.setItem('magra_user', JSON.stringify(MOCK_USERS[0]));
-    } catch {}
-    setMe(MOCK_USERS[0]);
+    nav('/login');
    }
   });
   api('/dashboard').then(setData).catch(()=>{});
   api('/admin/features').then(d=>{const m={};(d.features||[]).forEach(f=>m[f.feature_key]=f.enabled!==false);setEnabled(m)}).catch(()=>setEnabled(null));
+
+  return () => {
+   window.removeEventListener('magra_auth_change', syncMe);
+   window.removeEventListener('storage', syncMe);
+  };
  },[nav]);
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
- const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');nav('/login')};
- const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
- const userRole=me?.role_name||me?.role||'super_admin';
+ const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');window.dispatchEvent(new Event('magra_auth_change'));nav('/login')};
+ const userRole=me?.role_name||me?.role||(me?'teacher':'super_admin');
  const roleAllowedKeys={
   super_admin: null,
   admin: ['dashboard','students','staff','admission','attendance','results','routine','finance','library','office','learning','question','assignment','online_exam','ai','reports','documents','content','transport','hostel','notice','notifications','settings'],
-  co_admin: ['dashboard','attendance','admission','results','routine','finance','question','notice','notifications'],
+  co_admin: ['attendance','admission','results','routine','finance','question','notice','notifications'],
   librarian: ['library','results','routine','question','notice','notifications','settings'],
   staff: ['office','admission','finance','documents','students','notice','notifications','settings'],
   teacher: ['results','routine','question','notice','notifications','settings']
  };
  const allowedModules=roleAllowedKeys[userRole]!==undefined?roleAllowedKeys[userRole]:null;
+ const isModuleAllowed=(k)=>allowedModules===null||allowedModules.includes(k);
+ const choose=(k,s)=>{
+  if(!isModuleAllowed(k))return;
+  setActive(k);
+  if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}
+  else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}
+ };
+
+ useEffect(() => {
+  if (allowedModules && !allowedModules.includes(active)) {
+   const defaultTab = allowedModules[0] || 'results';
+   setActive(defaultTab);
+   if (defaultTab === 'results' && (userRole === 'teacher' || userRole === 'librarian')) {
+    setSub('marks');
+   } else if (defaultTab === 'attendance' && userRole === 'co_admin') {
+    setSub('daily');
+   } else if (defaultTab === 'office' && userRole === 'staff') {
+    setSub('fees');
+   } else if (defaultTab === 'library' && userRole === 'librarian') {
+    setSub('catalog');
+   } else {
+    setSub(null);
+   }
+  }
+ }, [userRole, active, allowedModules]);
  const coAdminSubFilters={
   attendance:['daily','reports'],
   admission:['teacher_enrollment','admitted_list'],
@@ -2084,7 +2212,7 @@ function Admin(){
   return { ...g, items: filteredItems };
  }).filter(g => g.items.length > 0);
   if(!me)return <div className="portal-loading">Admin Panel লোড হচ্ছে...</div>;
-  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions">{(userRole==='super_admin'||userRole==='admin'||userRole==='co_admin'||userRole==='teacher'||userRole==='librarian')&&<button type="button" className="btn mini" onClick={()=>choose('results','marks')} style={{background:'#0284c7',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px'}} title="সরাসরি বিষয়ভিত্তিক নম্বর এন্ট্রি ফর্মে যান">📈 বিষয় নম্বর এন্ট্রি</button>}{(userRole==='super_admin'||userRole==='admin'||userRole==='co_admin'||userRole==='teacher'||userRole==='librarian')&&<button type="button" className="btn mini" onClick={()=>choose('question','generator')} style={{background:'#7c3aed',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px'}} title="১-ক্লিকে প্রশ্ন তৈরী, অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার ও OMR মূল্যায়ন">❓ প্রশ্নব্যাংক</button>}{userRole==='super_admin'&&<button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button>}<LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{userRole==='co_admin'&&<div style={{background:'linear-gradient(135deg, #065f46 0%, #047857 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(6,95,70,0.15)'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>👨‍🏫 {me?.full_name} • কো-অ্যাডমিন ও শ্রেণি শিক্ষক ({String(me?.assigned_class)==='6'?'৬ষ্ঠ':String(me?.assigned_class)==='7'?'৭ম':String(me?.assigned_class)==='8'?'৮ম':String(me?.assigned_class)==='9'?'৯ম':String(me?.assigned_class)==='10'?'১০ম':me?.assigned_class||'৮ম'} শ্রেণি)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: প্রতিদিনের শিক্ষার্থী উপস্থিতি, ক্লাসে ভর্তি অন্তর্ভুক্তি, শ্রেণি ফি আদায় ও পরীক্ষার ফলাফল নিরীক্ষণ (Scrutiny)।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('attendance','daily')} style={{background:'#ffffff',color:'#065f46',fontWeight:700}}>🕘 উপস্থিতি নিন</button><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#ecfdf5',color:'#065f46',fontWeight:700}}>📈 নম্বর দিন</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button></div></div>}{userRole==='librarian'&&<div style={{background:'linear-gradient(135deg, #064e3b 0%, #0f766e 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(6,78,59,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>📚 {me?.full_name||'মোঃ শাহিন মিয়া'} • সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: কেন্দ্রীয় গ্রন্থাগার ও রিডিং রুম পরিচালনা, বই ইস্যু-জমা এবং নির্ধারিত বিষয়ের পরীক্ষার নম্বর এন্ট্রি।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('library','catalog')} style={{background:'#ffffff',color:'#064e3b',fontWeight:700}}>📚 লাইব্রেরি</button><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#0284c7',color:'#ffffff',fontWeight:700}}>📈 বিষয় নম্বর এন্ট্রি</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button></div></div>}{userRole==='teacher'&&<div style={{background:'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(2,132,199,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>📖 {me?.full_name||'বিষয় শিক্ষক'} • বিষয় শিক্ষক ({me?.subject||'নির্ধারিত বিষয়'})</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: নিজ বিষয়ের পরীক্ষার নম্বর এন্ট্রি, মূল্যায়ন ও শ্রেণি রুটিন পর্যবেক্ষণ।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#ffffff',color:'#0284c7',fontWeight:700}}>📈 বিষয় নম্বর দিন</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button><button type="button" className="mini" onClick={()=>choose('routine','teacher_schedule')} style={{background:'#e0f2fe',color:'#0369a1',fontWeight:700}}>🗓️ ক্লাস রুটিন</button></div></div>}<ErrorBoundary>{active==='office'&&<OfficeAssistantPanel sub={sub} setSub={setSub}/>} {active==='dashboard'&&<Dashboard data={data}/>} {active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:active==='students'&&sub==='village'?<VillageStudentPanel/>:active==='students'&&userRole!=='co_admin'&&<StudentPanel sub={sub}/>} {active==='staff'&&<StaffPanel sub={sub}/>} {active==='admission'&&<AdmissionPanel sub={sub}/>} {active==='attendance'&&<AttendancePanel sub={sub}/>} {active==='results'&&<ResultPanel sub={sub} userRole={userRole}/>} {active==='routine'&&<RoutinePanel sub={sub}/>} {active==='users'&&<UsersPanel sub={sub}/>} {active==='finance'&&<FinancePanel sub={sub}/>} {active==='library'&&<LibraryPanel sub={sub} setSub={setSub} onNavigate={(k,s)=>choose(k,s)}/>} {active==='learning'&&<LearningPanel/>} {active==='question'&&<QuestionBankPanel sub={sub} setSub={setSub}/>} {active==='assignment'&&<AssignmentPanel/>} {active==='online_exam'&&<OnlineExamPanel/>} {active==='ai'&&<AIPanel/>} {active==='reports'&&<ReportsPanel/>} {active==='documents'&&<DocumentPanel sub={sub}/>} {active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {active==='notice'&&<NoticePanel/>} {active==='notifications'&&<NotificationPanel/>} {active==='content'&&<ContentPanel sub={sub}/>} {active==='transport'&&<TransportPanel/>} {active==='hostel'&&<HostelPanel/>} {active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
+  return <div className="admin"><aside><img src={logo}/><h2>School ERP</h2><p>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</p><div className="side-nav">{groups.map(g=><React.Fragment key={g.group}><div className="side-group-title">{lang==='en'?adminEn[g.group]||g.group:g.group}</div>{g.items.map(x=><div className="side-item-wrap" key={x.k}><button className={'side-main '+(active===x.k?'active':'')} onClick={()=>choose(x.k)}><span>{x.i}</span><b>{lang==='bi'?<>{x.n}<small className="lang-secondary">{x.e||''}</small></>:lang==='en'?adminLabel(x.n):x.n}</b>{Boolean(x.subs && x.subs.length > 0) ? <span className="side-caret">{expanded[x.k]?'▾':'▸'}</span> : null}</button>{Boolean(x.subs && x.subs.length > 0 && expanded[x.k]) ? <div className="side-subnav">{x.subs.map(([sk,label])=><button key={sk} className={active===x.k&&sub===sk?'active':''} onClick={()=>{setActive(x.k);setSub(sk)}}>↳ {lang==='en'?adminEn[label]||label:label}</button>)}</div> : null}</div>)}</React.Fragment>)}{enabled===null&&<div className="side-note">Feature control চালুর জন্য database migration প্রয়োজন।</div>}</div><button className="logout" onClick={logout}>লগআউট</button></aside><section className="panel"><div className="top"><div><span className="eyebrow">ADMINISTRATION</span><h1>{(()=>{const x=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);return lang==='en'?adminLabel(x?.n||'ড্যাশবোর্ড'):x?.n||'ড্যাশবোর্ড'})()}</h1><p>{me?.full_name||'ব্যবহারকারী'} • {me?.role_label||me?.role_name||''}{sub?' • '+sub:''}</p></div><div className="admin-top-actions">{(userRole==='super_admin'||userRole==='admin'||userRole==='co_admin'||userRole==='teacher'||userRole==='librarian')&&<button type="button" className="btn mini" onClick={()=>choose('results','marks')} style={{background:'#0284c7',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px'}} title="সরাসরি বিষয়ভিত্তিক নম্বর এন্ট্রি ফর্মে যান">📈 বিষয় নম্বর এন্ট্রি</button>}{(userRole==='super_admin'||userRole==='admin'||userRole==='co_admin'||userRole==='teacher'||userRole==='librarian')&&<button type="button" className="btn mini" onClick={()=>choose('question','generator')} style={{background:'#7c3aed',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px'}} title="১-ক্লিকে প্রশ্ন তৈরী, অধ্যায়ভিত্তিক প্রশ্নভাণ্ডার ও OMR মূল্যায়ন">❓ প্রশ্নব্যাংক</button>}{userRole==='super_admin'&&<button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'4px'}}>☁️ ক্লাউড সিঙ্ক</button>}<LanguageSwitcher/><div className="pill">EIIN 114290</div></div></div>{userRole==='super_admin'&&<div style={{background:'linear-gradient(135deg, #14532d 0%, #15803d 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(20,83,45,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'14.5px'}}>👑 {me?.full_name||'মুহাম্মদ আবুবকর সিদ্দিক'} • সুপার অ্যাডমিন (আইসিটি শিক্ষক)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>পূর্ণ সিস্টেম ক্ষমতা: ইউজার ম্যানেজমেন্ট, ফিচার কন্ট্রোল, রোল ও পারমিশন, ক্লাউড সিঙ্ক ও কোর সিকিউরিটি।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('users')} style={{background:'#ffffff',color:'#14532d',fontWeight:700}}>👥 ইউজার ও রোল</button><button type="button" className="mini" onClick={()=>choose('feature_control')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>🧩 ফিচার কন্ট্রোল</button><button type="button" className="mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#dcfce7',color:'#14532d',fontWeight:700}}>☁️ ক্লাউড সিঙ্ক</button></div></div>}{userRole==='admin'&&<div style={{background:'linear-gradient(135deg, #1e293b 0%, #334155 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(30,41,59,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>🎓 {me?.full_name} • {me?.role_label||'একাডেমিক অ্যাডমিন'}</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: একাডেমিক কার্যক্রম, শিক্ষক ও কর্মচারী সুপারভিশন, শিক্ষার্থী ভর্তি ও পরীক্ষার সামগ্রিক প্রশাসন।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('dashboard')} style={{background:'#ffffff',color:'#1e293b',fontWeight:700}}>📊 ড্যাশবোর্ড</button><button type="button" className="mini" onClick={()=>choose('students')} style={{background:'#ecfdf5',color:'#065f46',fontWeight:700}}>🎓 শিক্ষার্থী</button><button type="button" className="mini" onClick={()=>choose('staff')} style={{background:'#eff6ff',color:'#1e3a8a',fontWeight:700}}>👨‍🏫 শিক্ষক-কর্মচারী</button></div></div>}{userRole==='co_admin'&&<div style={{background:'linear-gradient(135deg, #065f46 0%, #047857 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(6,95,70,0.15)'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>👨‍🏫 {me?.full_name} • কো-অ্যাডমিন ও শ্রেণি শিক্ষক ({String(me?.assigned_class)==='6'?'৬ষ্ঠ':String(me?.assigned_class)==='7'?'৭ম':String(me?.assigned_class)==='8'?'৮ম':String(me?.assigned_class)==='9'?'৯ম':String(me?.assigned_class)==='10'?'১০ম':me?.assigned_class||'৮ম'} শ্রেণি)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: প্রতিদিনের শিক্ষার্থী উপস্থিতি, ক্লাসে ভর্তি অন্তর্ভুক্তি, শ্রেণি ফি আদায় ও পরীক্ষার ফলাফল নিরীক্ষণ (Scrutiny)।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('attendance','daily')} style={{background:'#ffffff',color:'#065f46',fontWeight:700}}>🕘 উপস্থিতি নিন</button><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#ecfdf5',color:'#065f46',fontWeight:700}}>📈 নম্বর দিন</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button></div></div>}{userRole==='librarian'&&<div style={{background:'linear-gradient(135deg, #064e3b 0%, #0f766e 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(6,78,59,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>📚 {me?.full_name||'মোঃ শাহিন মিয়া'} • সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক)</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: কেন্দ্রীয় গ্রন্থাগার ও রিডিং রুম পরিচালনা, বই ইস্যু-জমা এবং নির্ধারিত বিষয়ের পরীক্ষার নম্বর এন্ট্রি।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('library','catalog')} style={{background:'#ffffff',color:'#064e3b',fontWeight:700}}>📚 লাইব্রেরি</button><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#0284c7',color:'#ffffff',fontWeight:700}}>📈 বিষয় নম্বর এন্ট্রি</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button></div></div>}{userRole==='staff'&&<div style={{background:'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(30,58,138,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>🏢 {me?.full_name||'মোঃ আলমগীর হোসেন'} • অফিস সহকারী</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: শিক্ষার্থী ফি আদায়, রশিদ প্রদান, প্রশংসাপত্র/প্রত্যয়ন/TC প্রস্তুত এবং ভোটার ও শিক্ষার্থী তালিকা তৈরি।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('office','fees')} style={{background:'#ffffff',color:'#1e3a8a',fontWeight:700}}>💳 ফি আদায়</button><button type="button" className="mini" onClick={()=>choose('office','docs')} style={{background:'#eff6ff',color:'#1e3a8a',fontWeight:700}}>📜 সনদ ও প্রত্যয়ন</button><button type="button" className="mini" onClick={()=>choose('office','idcards')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>🪪 আইডি কার্ড</button></div></div>}{userRole==='teacher'&&<div style={{background:'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)',color:'#ffffff',padding:'12px 18px',borderRadius:'10px',marginBottom:'16px',display:'flex',justifyContent:'space-between',alignItems:'center',boxShadow:'0 2px 8px rgba(2,132,199,0.15)',flexWrap:'wrap',gap:'10px'}}><div><div style={{fontWeight:800,fontSize:'15px'}}>📖 {me?.full_name||'বিষয় শিক্ষক'} • বিষয় শিক্ষক ({me?.subject||'নির্ধারিত বিষয়'})</div><div style={{fontSize:'12px',opacity:0.9,marginTop:'2px'}}>আপনার দায়িত্ব: নিজ বিষয়ের পরীক্ষার নম্বর এন্ট্রি, মূল্যায়ন ও শ্রেণি রুটিন পর্যবেক্ষণ।</div></div><div style={{display:'flex',gap:'8px'}}><button type="button" className="mini" onClick={()=>choose('results','marks')} style={{background:'#ffffff',color:'#0284c7',fontWeight:700}}>📈 বিষয় নম্বর দিন</button><button type="button" className="mini" onClick={()=>choose('question','generator')} style={{background:'#fef3c7',color:'#92400e',fontWeight:700}}>❓ প্রশ্নব্যাংক</button><button type="button" className="mini" onClick={()=>choose('routine','teacher_schedule')} style={{background:'#e0f2fe',color:'#0369a1',fontWeight:700}}>🗓️ ক্লাস রুটিন</button></div></div>}<ErrorBoundary>{isModuleAllowed('office')&&active==='office'&&<OfficeAssistantPanel sub={sub} setSub={setSub}/>} {isModuleAllowed('dashboard')&&active==='dashboard'&&<Dashboard data={data}/>} {isModuleAllowed('students')&&active==='students'&&sub==='promotion'?<ResultPanel sub="promotion"/>:isModuleAllowed('students')&&active==='students'&&sub==='village'?<VillageStudentPanel/>:isModuleAllowed('students')&&active==='students'&&userRole!=='co_admin'&&<StudentPanel sub={sub}/>} {isModuleAllowed('staff')&&active==='staff'&&<StaffPanel sub={sub}/>} {isModuleAllowed('admission')&&active==='admission'&&<AdmissionPanel sub={sub}/>} {isModuleAllowed('attendance')&&active==='attendance'&&<AttendancePanel sub={sub}/>} {isModuleAllowed('results')&&active==='results'&&<ResultPanel sub={sub} userRole={userRole}/>} {isModuleAllowed('routine')&&active==='routine'&&<RoutinePanel sub={sub}/>} {isModuleAllowed('users')&&active==='users'&&<UsersPanel sub={sub}/>} {isModuleAllowed('finance')&&active==='finance'&&<FinancePanel sub={sub}/>} {isModuleAllowed('library')&&active==='library'&&<LibraryPanel sub={sub} setSub={setSub} onNavigate={(k,s)=>choose(k,s)}/>} {isModuleAllowed('learning')&&active==='learning'&&<LearningPanel/>} {isModuleAllowed('question')&&active==='question'&&<QuestionBankPanel sub={sub} setSub={setSub}/>} {isModuleAllowed('assignment')&&active==='assignment'&&<AssignmentPanel/>} {isModuleAllowed('online_exam')&&active==='online_exam'&&<OnlineExamPanel/>} {isModuleAllowed('ai')&&active==='ai'&&<AIPanel/>} {isModuleAllowed('reports')&&active==='reports'&&<ReportsPanel/>} {isModuleAllowed('documents')&&active==='documents'&&<DocumentPanel sub={sub}/>} {isModuleAllowed('settings')&&active==='settings'&&<SettingsPanelWrapper sub={sub} setSub={setSub}/>} {isModuleAllowed('notice')&&active==='notice'&&<NoticePanel/>} {isModuleAllowed('notifications')&&active==='notifications'&&<NotificationPanel/>} {isModuleAllowed('content')&&active==='content'&&<ContentPanel sub={sub}/>} {isModuleAllowed('transport')&&active==='transport'&&<TransportPanel/>} {isModuleAllowed('hostel')&&active==='hostel'&&<HostelPanel/>} {isModuleAllowed('feature_control')&&active==='feature_control'&&<FeatureControlPanel sub={sub}/>}</ErrorBoundary></section>{supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}</div>
  }
 
  const adminEn={
