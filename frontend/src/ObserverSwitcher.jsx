@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MOCK_USERS, MOCK_TEACHERS, getTeacherPhoto } from './mockData';
 import { deduplicateTeachers } from './apiClient';
