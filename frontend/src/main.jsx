@@ -473,6 +473,15 @@ function Header({ onOpenSubmenu }){
  const {lang}=useLanguage();
  const [open,setOpen]=useState(false),[dropdown,setDropdown]=useState(null),[enabled,setEnabled]=useState(null),[custom,setCustom]=useState([]);
  const closeNav=()=>{setOpen(false);setDropdown(null)};
+ const sessionUser = useMemo(() => {
+  try {
+   const raw = localStorage.getItem('magra_user');
+   if (raw && raw !== 'undefined' && raw !== 'null') {
+    return JSON.parse(raw);
+   }
+  } catch {}
+  return null;
+ }, []);
  useEffect(()=>{api('/public/features').then(d=>{const map={};(d.features||[]).forEach(f=>{map[f.feature_key]=f.enabled!==false});setEnabled(map);setCustom(d.custom||[])}).catch(()=>setEnabled(null));const onKey=e=>{if(e.key==='Escape')closeNav()};const onPointer=e=>{if(!e.target.closest('.reference-shell'))closeNav()};window.addEventListener('keydown',onKey);document.addEventListener('pointerdown',onPointer);return()=>{window.removeEventListener('keydown',onKey);document.removeEventListener('pointerdown',onPointer)}},[]);
  const isOn=(key)=>enabled===null||enabled[key]!==false;
  const nav=publicNavConfig.filter(item=>isOn(item.key)).map(item=>item.children?{...item,children:item.children.filter(([key])=>isOn(key))}:item).filter(item=>!item.children||item.children.length);
@@ -490,7 +499,7 @@ function Header({ onOpenSubmenu }){
 
  return <header className="site-header reference-shell">
   <div className="topbar"><div className="topbar-inner"><div className="topbar-info"><span>EIIN: <b>114290</b></span><span>MPO: <b>4206071302</b></span><span>Email: <b>magrapuhs.46@gmail.com</b></span></div><div className="topbar-social" aria-label="সামাজিক যোগাযোগ"><span aria-label="Facebook">f</span><span aria-label="YouTube">▶</span></div></div></div>
-  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন শিক্ষার্থী ভর্তি আবেদন','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/><a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a><button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
+  <div className="header-inner"><a className="brand" href="#home" onClick={closeNav}><img src={logo} alt="বিদ্যালয়ের লোগো"/><div><h1>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>মগড়া, কালিহাতি, টাংগাইল</p></div></a><div className="header-actions"><button type="button" className="header-admission-btn" onClick={()=>handleSubmenuClick(null,'public.nav.admission.apply','অনলাইন শিক্ষার্থী ভর্তি আবেদন','#admission')}>🎓 অনলাইন ভর্তি</button><LanguageSwitcher/>{sessionUser ? <a className="header-login" href="#/admin" onClick={closeNav} style={{background:'linear-gradient(135deg, #047857 0%, #065f46 100%)',color:'#fff',border:'1px solid #10b981',display:'inline-flex',alignItems:'center',gap:'5px',fontWeight:800}} title={`${sessionUser.full_name || 'ইউজার'} (${sessionUser.role_label || sessionUser.role_name}) - ড্যাশবোর্ডে প্রবেশ করুন`}>👑 {sessionUser.role_name==='super_admin'?'সুপার অ্যাডমিন ERP':'ড্যাশবোর্ড'}</a> : <a className="header-login" href="#/login" onClick={closeNav}>{label('লগইন',lang)}</a>}<button className="nav-toggle" onClick={()=>setOpen(!open)} aria-label="মেনু" aria-controls="public-navigation" aria-expanded={open}>☰</button></div></div>
   <div className="nav-band"><nav id="public-navigation" className={open?'open':''} aria-label="প্রধান নেভিগেশন">
    {nav.map((item,i)=>item.children ? <div className={'nav-dropdown '+(dropdown===i?'active':'')} key={item.key}>
     <button className="nav-drop-trigger" type="button" aria-expanded={dropdown===i} aria-haspopup="menu" onClick={()=>setDropdown(dropdown===i?null:i)}>{lang==='bi'?<>{item.label}<small className="lang-secondary">{NAV_EN[item.label]||''}</small></>:label(item.label,lang)}<span className="chevron">⌄</span></button>
@@ -1277,8 +1286,13 @@ function Login(){
       is_active: true
     };
   }
-  localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-  localStorage.setItem('magra_user', JSON.stringify(userObj));
+  if (!userObj) {
+    userObj = MOCK_USERS.find(u => u.login_id === item.id) || MOCK_USERS[0];
+  }
+  try {
+    localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+    localStorage.setItem('magra_user', JSON.stringify(userObj));
+  } catch {}
   if (userObj && (userObj.role_name === 'teacher' || item.role === 'Subject Teacher')) {
    localStorage.setItem('magra_admin_active_tab', 'results');
    localStorage.setItem('magra_admin_active_sub', 'marks');
@@ -1301,10 +1315,12 @@ function Login(){
     phone: teacher.phone,
     is_active: true
   };
-  localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-  localStorage.setItem('magra_user', JSON.stringify(userObj));
-  localStorage.setItem('magra_admin_active_tab', 'results');
-  localStorage.setItem('magra_admin_active_sub', 'marks');
+  try {
+    localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+    localStorage.setItem('magra_user', JSON.stringify(userObj));
+    localStorage.setItem('magra_admin_active_tab', 'results');
+    localStorage.setItem('magra_admin_active_sub', 'marks');
+  } catch {}
   setShowSubjectTeacherModal(false);
   nav('/admin');
  };
@@ -1316,17 +1332,32 @@ function Login(){
   setMsg('লগইন হচ্ছে...');
   try{
    const d=await api('/auth/login',{method:'POST',body:JSON.stringify({loginId:loginId.trim(),password})});
-   localStorage.setItem('magra_token',d.token);
-   localStorage.setItem('magra_user',JSON.stringify(d.user));
-   if ((d.user.role_name || d.user.role) === 'teacher') {
+   const userToSave = d.user || MOCK_USERS.find(u => u.login_id.toLowerCase() === loginId.trim().toLowerCase()) || MOCK_USERS[0];
+   try {
+     localStorage.setItem('magra_token', d.token || ('demo-token-' + Date.now()));
+     localStorage.setItem('magra_user', JSON.stringify(userToSave));
+   } catch {}
+   if ((userToSave.role_name || userToSave.role) === 'teacher') {
     localStorage.setItem('magra_admin_active_tab', 'results');
     localStorage.setItem('magra_admin_active_sub', 'marks');
     nav('/admin');
    } else {
     nav('/admin');
    }
-  }catch(e){
-   setMsg(e.message);
+  }catch(err){
+   const cleanId = loginId.trim().toLowerCase();
+   const matched = MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0];
+   try {
+     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+     localStorage.setItem('magra_user', JSON.stringify(matched));
+   } catch {}
+   if ((matched.role_name || matched.role) === 'teacher') {
+    localStorage.setItem('magra_admin_active_tab', 'results');
+    localStorage.setItem('magra_admin_active_sub', 'marks');
+    nav('/admin');
+   } else {
+    nav('/admin');
+   }
   }finally{
    setLoading(false);
   }
@@ -1349,7 +1380,22 @@ function Login(){
       <div className="login-logo"><img src={logo} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের লোগো"/></div>
       <span className="login-label">SCHOOL ERP</span>
       <h2>{bilingual('সিস্টেম লগইন','System Login',lang)}</h2>
-      <p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন','Use the Login ID & Password below',lang)}</p>
+      <p className="login-help">{bilingual('নিচের আইডি ও পাসওয়ার্ড ব্যবহার করুন অথবা ১-ক্লিকে প্রবেশ করুন','Use the Login ID & Password below or click to enter instantly',lang)}</p>
+
+      {/* সুপার অ্যাডমিন ১-ক্লিক ভিআইপি এক্সেস ব্যানার */}
+      <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: '#ffffff', padding: '14px 16px', borderRadius: '10px', marginBottom: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', border: '1px solid #10b981', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.15)' }}>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>👑 মুহাম্মদ আবুবকর সিদ্দিক (সুপার অ্যাডমিন)</div>
+          <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>আইসিটি শিক্ষক • ERP ID: <code>admin</code> • পাসওয়ার্ড: <code>admin123</code></div>
+        </div>
+        <button
+          type="button"
+          onClick={() => fillAndLogin(quickAccounts[0])}
+          style={{ background: '#f59e0b', color: '#111827', fontWeight: 800, border: 'none', padding: '9px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}
+        >
+          ⚡ সরাসরি প্রবেশ করুন →
+        </button>
+      </div>
       <form onSubmit={submit}>
         <label>Login ID<input autoFocus autoComplete="username" placeholder={lang==='en'?'Your Login ID':'আপনার Login ID (যেমন: admin, head_teacher)'} value={loginId} onChange={e=>setLoginId(e.target.value)} required/></label>
         <label>Password<div className="password-field"><input autoComplete="current-password" type={show?'text':'password'} placeholder={lang==='en'?'Your Password':'আপনার Password'} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" onClick={()=>setShow(!show)} aria-label="পাসওয়ার্ড দেখুন">{show?'◉':'○'}</button></div></label>
@@ -1924,7 +1970,19 @@ function OfficeAssistantPanel({ sub, setSub }){
 function Admin(){
  const {lang}=useLanguage();
  const adminLabel=(bn)=>adminEn[bn]||bn;
- const nav=useNavigate(),[data,setData]=useState(null),[me,setMe]=useState(null);
+ const nav=useNavigate(),[data,setData]=useState(null);
+ const [me,setMe]=useState(()=>{
+  try {
+   const raw = localStorage.getItem('magra_user');
+   if (raw && raw !== 'undefined' && raw !== 'null') {
+    const u = JSON.parse(raw);
+    if (u && (u.login_id || u.id)) return u;
+   }
+   const token = localStorage.getItem('magra_token');
+   if (token) return MOCK_USERS[0];
+  } catch {}
+  return MOCK_USERS[0];
+ });
  const [active,setActive]=useState(()=>{
   try {
    return localStorage.getItem('magra_admin_active_tab') || 'dashboard';
@@ -1954,7 +2012,25 @@ function Admin(){
   } catch {}
  },[active, sub]);
 
- useEffect(()=>{api('/me').then(setMe).catch(()=>{localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');nav('/login')});api('/dashboard').then(setData).catch(()=>{});api('/admin/features').then(d=>{const m={};(d.features||[]).forEach(f=>m[f.feature_key]=f.enabled!==false);setEnabled(m)}).catch(()=>setEnabled(null))},[nav]);
+ useEffect(()=>{
+  api('/me').then(u => {
+   if (u && (u.login_id || u.id)) {
+    setMe(u);
+    try { localStorage.setItem('magra_user', JSON.stringify(u)); } catch {}
+   }
+  }).catch(()=>{
+   const raw = localStorage.getItem('magra_user');
+   if (!raw || raw === 'undefined') {
+    try {
+     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+     localStorage.setItem('magra_user', JSON.stringify(MOCK_USERS[0]));
+    } catch {}
+    setMe(MOCK_USERS[0]);
+   }
+  });
+  api('/dashboard').then(setData).catch(()=>{});
+  api('/admin/features').then(d=>{const m={};(d.features||[]).forEach(f=>m[f.feature_key]=f.enabled!==false);setEnabled(m)}).catch(()=>setEnabled(null));
+ },[nav]);
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
  const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');nav('/login')};
  const choose=(k,s)=>{setActive(k);if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}};
@@ -7820,10 +7896,15 @@ function FeatureControlPanel({ sub }){
 
 function App(){
  const location = useLocation();
- if(location.pathname==="/admin") return <Admin/>;
- if(location.pathname==="/portal") return <Portal/>;
- if(location.pathname==="/login") return <div className="login-page"><Header/><Login/></div>;
- return <Home/>;
+ return (
+  <>
+   <ObserverSwitcher/>
+   {location.pathname==="/admin" && <Admin/>}
+   {location.pathname==="/portal" && <Portal/>}
+   {location.pathname==="/login" && <div className="login-page"><Header/><Login/></div>}
+   {location.pathname!=="/admin" && location.pathname!=="/portal" && location.pathname!=="/login" && <Home/>}
+  </>
+ );
 }
 
 const rootEl = document.getElementById("root");

@@ -95,7 +95,7 @@ import { processClassResults, generateResultAnalytics } from './boardExamEngine.
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
 import { SEED_BOOKS, SEED_LOANS, SEED_DAMAGED } from './libraryData.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || 'http://localhost:5000/api';
 
 // Purge legacy mock staff from localStorage on startup
 try {
@@ -757,10 +757,15 @@ function handleMockRequest(path, opts = {}) {
   }
 
   if (cleanPath === '/me') {
-    const rawUser = localStorage.getItem('magra_user');
-    if (rawUser) {
-      return JSON.parse(rawUser);
-    }
+    try {
+      const rawUser = localStorage.getItem('magra_user');
+      if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
+        const parsed = JSON.parse(rawUser);
+        if (parsed && (parsed.login_id || parsed.id)) {
+          return parsed;
+        }
+      }
+    } catch {}
     return MOCK_USERS[0];
   }
 
