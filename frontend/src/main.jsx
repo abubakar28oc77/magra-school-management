@@ -31,7 +31,7 @@ import './styles.css';
 import {publicNavConfig} from './publicNavConfig';
 import {LanguageProvider,useLanguage,bilingual,LanguageSwitcher} from './i18n';
 import {requestApi, deduplicateTeachers} from './apiClient';
-import {ObserverSwitcher, getSchoolTeachers, isAssignedRoleTeacher} from './ObserverSwitcher';
+import {getSchoolTeachers, isAssignedRoleTeacher} from './ObserverSwitcher';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
@@ -1302,7 +1302,10 @@ function Login(){
   { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার ও বিষয় শিক্ষক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
   { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
   // একক বিষয় শিক্ষক রোল বাটন (ক্লিক করলে ৭ জন বিষয় শিক্ষকের সেবা বক্স ওপেন হবে)
-  { key: 'subject_teachers_modal', icon: '📖', label: 'বিষয় শিক্ষক (৭ জন) ▾', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', isModalTrigger: true, desc: '৭ জন বিষয় শিক্ষকের তালিকা ও বিষয় নম্বর এন্ট্রি সেবা বক্স' }
+    // সরাসরি বিষয় শিক্ষক (১-ক্লিক লগইন)
+  { key: 'teacher_primary', icon: '📖', label: 'বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা)', id: 'teacher_3', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা) - সরাসরি বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u => u.login_id === 'teacher_3') || MOCK_USERS[10] },
+  // অন্যান্য বিষয় শিক্ষক নির্বাচন
+  { key: 'subject_teachers_modal', icon: '👥', label: 'অন্যান্য বিষয় শিক্ষকবৃন্দ (৭ জন) ▾', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', isModalTrigger: true, desc: '৭ জন বিষয় শিক্ষকের তালিকা থেকে যেকোনো শিক্ষক নির্বাচন করে নম্বর এন্ট্রি' }
  ];
 
  const fillAndLogin = (item) => {
@@ -2090,12 +2093,7 @@ function Admin(){
     if (u && (u.login_id || u.id)) return u;
    }
   } catch {}
-  const defaultUser = MOCK_USERS[0];
-  try {
-   localStorage.setItem('magra_user', JSON.stringify(defaultUser));
-   localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-  } catch {}
-  return defaultUser;
+  return null;
  });
   const [active,setActive]=useState(()=>{
   try {
@@ -2165,8 +2163,7 @@ function Admin(){
      }
     }
    } catch {}
-   const defaultUser = MOCK_USERS[0];
-   setMe(defaultUser);
+   nav('/login');
   };
 
   syncMe();
@@ -2178,6 +2175,9 @@ function Admin(){
    if (u && (u.login_id || u.id)) {
     setMe(u);
     try { localStorage.setItem('magra_user', JSON.stringify(u)); } catch {}
+   } else {
+    // If not authenticated, navigate to login
+    nav('/login');
    }
   }).catch(()=>{});
   api('/dashboard').then(setData).catch(()=>{});
@@ -2191,7 +2191,7 @@ function Admin(){
  },[nav]);
  const isOn=k=>enabled===null||enabled['admin.'+k]!==false;
  const logout=async()=>{try{await api('/auth/logout',{method:'POST'})}catch{}localStorage.removeItem('magra_token');localStorage.removeItem('magra_user');localStorage.removeItem('magra_admin_active_tab');localStorage.removeItem('magra_admin_active_sub');window.dispatchEvent(new Event('magra_auth_change'));nav('/login')};
- const userRole=(me?.role_name||me?.role||'super_admin');
+ const userRole=(me?.role_name||me?.role||'');
  const roleAllowedKeys={
   super_admin: null,
   admin: ['dashboard','students','staff','admission','attendance','results','routine','finance','library','office','learning','question','assignment','online_exam','ai','reports','documents','content','transport','hostel','notice','notifications','settings'],
@@ -2279,7 +2279,8 @@ function Admin(){
    });
   return { ...g, items: filteredItems };
  }).filter(g => g.items.length > 0);
-  const effectiveMe = me || MOCK_USERS[0];
+  if (!me) return null;
+  const effectiveMe = me;
   const deskTitle = userRole === 'co_admin' ? `শ্রেণি শিক্ষক ডেস্ক (${String(effectiveMe?.assigned_class) === '6' ? '৬ষ্ঠ' : String(effectiveMe?.assigned_class) === '7' ? '৭ম' : String(effectiveMe?.assigned_class) === '8' ? '৮ম' : String(effectiveMe?.assigned_class) === '9' ? '৯ম' : String(effectiveMe?.assigned_class) === '10' ? '১০ম' : (effectiveMe?.assigned_class || '')} শ্রেণি)` :
     userRole === 'staff' ? 'অফিস সহকারী ডেস্ক' :
     userRole === 'librarian' ? 'লাইব্রেরি ও বিষয় শিক্ষক ডেস্ক' :
@@ -8129,8 +8130,7 @@ function App(){
 
  return (
   <>
-   {location.pathname==="/admin" && <ObserverSwitcher/>}
-   {location.pathname==="/admin" && <Admin key={'admin-' + roleStamp}/>}
+      {location.pathname==="/admin" && <Admin key={'admin-' + roleStamp}/>}
    {location.pathname==="/portal" && <Portal key={'portal-' + roleStamp}/>}
    {location.pathname==="/login" && <div className="login-page"><Header/><Login/></div>}
    {location.pathname!=="/admin" && location.pathname!=="/portal" && location.pathname!=="/login" && <Home/>}

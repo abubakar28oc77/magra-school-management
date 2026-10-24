@@ -573,12 +573,7 @@ export async function requestApi(path, opts = {}) {
         }
       }
     } catch {}
-    const defaultUser = MOCK_USERS[0];
-    try {
-      localStorage.setItem('magra_user', JSON.stringify(defaultUser));
-      localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-    } catch {}
-    return defaultUser;
+    return null;
   }
 
   if (cleanPath === '/auth/logout') {
