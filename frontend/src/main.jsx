@@ -1304,28 +1304,28 @@ function Login(){
  }, [allSchoolTeachers]);
 
  const quickAccounts = [
-  { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • আইসিটি শিক্ষক ও সুপার অ্যাডমিন', user: MOCK_USERS[0] },
-  { key: 'head', icon: '🎓', label: 'প্রধান শিক্ষক', id: 'head_teacher', pass: 'head123', role: 'Head Teacher', desc: 'মুহাম্মদ শফিকুল ইসলাম • প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[1] },
-  { key: 'asst', icon: '👩‍🏫', label: 'সহকারী প্রধান শিক্ষক', id: 'assistant_head_teacher', pass: 'asst123', role: 'Asst. Head Teacher', desc: 'তাপসী সরকার • সহকারী প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[2] },
-  { key: 'co_admin6', icon: '👥', label: 'কো-অ্যাডমিন (৬ষ্ঠ শ্রেণি)', id: 'class6_teacher', pass: 'teacher123', role: 'Co-Admin (Class 6)', desc: 'মোঃ আব্দুল খালেক • ৬ষ্ঠ শ্রেণির উপস্থিতি, ভর্তি ও ফি', user: MOCK_USERS.find(u=>u.login_id==='class6_teacher')||MOCK_USERS[3] },
-  { key: 'co_admin7', icon: '👥', label: 'কো-অ্যাডমিন (৭ম শ্রেণি)', id: 'class7_teacher', pass: 'teacher123', role: 'Co-Admin (Class 7)', desc: 'মুহাম্মদ আব্দুর রহিম লিটন • ৭ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class7_teacher')||MOCK_USERS[4] },
-  { key: 'co_admin8', icon: '👥', label: 'কো-অ্যাডমিন (৮ম শ্রেণি)', id: 'class8_teacher', pass: 'teacher123', role: 'Co-Admin (Class 8)', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • ৮ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class8_teacher')||MOCK_USERS[5] },
-  { key: 'co_admin9', icon: '👥', label: 'কো-অ্যাডমিন (৯ম শ্রেণি)', id: 'class9_teacher', pass: 'teacher123', role: 'Co-Admin (Class 9)', desc: 'মোঃ হাবিবুর রহমান • ৯ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class9_teacher')||MOCK_USERS[6] },
-  { key: 'co_admin10', icon: '👥', label: 'কো-অ্যাডমিন (১০ম শ্রেণি)', id: 'class10_teacher', pass: 'teacher123', role: 'Co-Admin (Class 10)', desc: 'মোঃ ওয়াহিদুর রহমান • ১০ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class10_teacher')||MOCK_USERS[7] },
-  { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার ও বিষয় শিক্ষক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
-  { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
-  // একক বিষয় শিক্ষক রোল বাটন (ক্লিক করলে ৭ জন বিষয় শিক্ষকের সেবা বক্স ওপেন হবে)
-    // সরাসরি বিষয় শিক্ষক (১-ক্লিক লগইন)
-  { key: 'teacher_primary', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ আনোয়ার হোসেন - ইসলাম ধর্ম)', id: 'teacher_3', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • বিষয় শিক্ষক (ইসলাম ধর্ম) - সরাসরি বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u => u.login_id === 'teacher_3') || MOCK_USERS[10] },
-  // অন্যান্য বিষয় শিক্ষক নির্বাচন
-  { key: 'subject_teachers_modal', icon: '👥', label: 'অন্যান্য বিষয় শিক্ষকবৃন্দ (৭ জন) ▾', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', isModalTrigger: true, desc: '৭ জন বিষয় শিক্ষকের তালিকা থেকে যেকোনো শিক্ষক নির্বাচন করে নম্বর এন্ট্রি' }
- ];
+   { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • আইসিটি শিক্ষক ও সুপার অ্যাডমিন', user: MOCK_USERS[0] },
+   { key: 'head', icon: '🎓', label: 'প্রধান শিক্ষক', id: 'head_teacher', pass: 'head123', role: 'Head Teacher', desc: 'মুহাম্মদ শফিকুল ইসলাম • প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[1] },
+   { key: 'asst', icon: '👩‍🏫', label: 'সহকারী প্রধান শিক্ষক', id: 'assistant_head_teacher', pass: 'asst123', role: 'Asst. Head Teacher', desc: 'তাপসী সরকার • সহকারী প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[2] },
+   { key: 'co_admin6', icon: '👥', label: 'কো-অ্যাডমিন (৬ষ্ঠ শ্রেণি)', id: 'class6_teacher', pass: 'teacher123', role: 'Co-Admin (Class 6)', desc: 'মোঃ আব্দুল খালেক • ৬ষ্ঠ শ্রেণির উপস্থিতি, ভর্তি ও ফি', user: MOCK_USERS.find(u=>u.login_id==='class6_teacher')||MOCK_USERS[3] },
+   { key: 'co_admin7', icon: '👥', label: 'কো-অ্যাডমিন (৭ম শ্রেণি)', id: 'class7_teacher', pass: 'teacher123', role: 'Co-Admin (Class 7)', desc: 'মুহাম্মদ আব্দুর রহিম লিটন • ৭ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class7_teacher')||MOCK_USERS[4] },
+   { key: 'co_admin8', icon: '👥', label: 'কো-অ্যাডমিন (৮ম শ্রেণি)', id: 'class8_teacher', pass: 'teacher123', role: 'Co-Admin (Class 8)', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • ৮ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class8_teacher')||MOCK_USERS[5] },
+   { key: 'co_admin9', icon: '👥', label: 'কো-অ্যাডমিন (৯ম শ্রেণি)', id: 'class9_teacher', pass: 'teacher123', role: 'Co-Admin (Class 9)', desc: 'মোঃ হাবিবুর রহমান • ৯ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class9_teacher')||MOCK_USERS[6] },
+   { key: 'co_admin10', icon: '👥', label: 'কো-অ্যাডমিন (১০ম শ্রেণি)', id: 'class10_teacher', pass: 'teacher123', role: 'Co-Admin (Class 10)', desc: 'মোঃ ওয়াহিদুর রহমান • ১০ম শ্রেণির উপস্থিতি, ভর্তি ও স্ক্রুটিনি', user: MOCK_USERS.find(u=>u.login_id==='class10_teacher')||MOCK_USERS[7] },
+   { key: 'office', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
+   { key: 'librarian', icon: '📚', label: 'গ্রন্থাগার ও বিষয় শিক্ষক', id: 'librarian', pass: 'librarian123', role: 'Librarian', desc: 'মোঃ শাহিন মিয়া • বই ক্যাটালগ ও বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u=>u.role_name==='librarian') },
+   
+   // ৭ জন বিষয় শিক্ষক (সরাসরি ১-ক্লিকে নম্বর এন্ট্রি ডেস্কে লগইন)
+   { key: 'teacher_3', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ আনোয়ার হোসেন)', id: 'teacher_3', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • বিষয় শিক্ষক (ইসলাম ধর্ম) - সরাসরি নম্বর এন্ট্রি', user: MOCK_USERS.find(u => u.login_id === 'teacher_3') },
+   { key: 'teacher_4', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ ছানোয়ার হোসেন)', id: 'teacher_4', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ ছানোয়ার হোসেন • বিষয় শিক্ষক (বাংলাদেশ ও বিশ্বপরিচয়)', user: MOCK_USERS.find(u => u.login_id === 'teacher_4') },
+   { key: 'teacher_5', icon: '📖', label: 'বিষয় শিক্ষক (মোহাম্মদ খালিদুর রহমান)', id: 'teacher_5', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোহাম্মদ খালিদুর রহমান তাং • বিষয় শিক্ষক (কৃষি শিক্ষা)', user: MOCK_USERS.find(u => u.login_id === 'teacher_5') },
+   { key: 'teacher_9', icon: '📖', label: 'বিষয় শিক্ষক (আরতী রানী সরকার)', id: 'teacher_9', pass: 'teacher123', role: 'Subject Teacher', desc: 'আরতী রানী সরকার • বিষয় শিক্ষক (হিন্দু ধর্ম)', user: MOCK_USERS.find(u => u.login_id === 'teacher_9') },
+   { key: 'teacher_12', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ আশরাফুল ইসলাম)', id: 'teacher_12', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আশরাফুল ইসলাম • বিষয় শিক্ষক (ইংরেজি)', user: MOCK_USERS.find(u => u.login_id === 'teacher_12') },
+   { key: 'teacher_13', icon: '📖', label: 'বিষয় শিক্ষক (কান্তা মনি)', id: 'teacher_13', pass: 'teacher123', role: 'Subject Teacher', desc: 'কান্তা মনি • বিষয় শিক্ষক (ব্যবসায় শিক্ষা)', user: MOCK_USERS.find(u => u.login_id === 'teacher_13') },
+   { key: 'teacher_14', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ রফিকুল ইসলাম)', id: 'teacher_14', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ রফিকুল ইসলাম • বিষয় শিক্ষক (ভৌত বিজ্ঞান)', user: MOCK_USERS.find(u => u.login_id === 'teacher_14') }
+  ];
 
  const fillAndLogin = (item) => {
-  if (item.isModalTrigger) {
-    setShowSubjectTeacherModal(true);
-    return;
-  }
   setLoginId(item.id);
   setPassword(item.pass);
   let userObj = item.user;
@@ -1348,27 +1348,21 @@ function Login(){
   const role = userObj?.role_name || userObj?.role || '';
   let defTab = 'dashboard';
   let defSub = null;
-  let targetRoute = '/admin';
   if (role === 'teacher' || item.role === 'Subject Teacher') {
     defTab = 'results';
     defSub = 'marks';
-    targetRoute = '/admin';
   } else if (role === 'co_admin') {
     defTab = 'attendance';
     defSub = 'daily';
-    targetRoute = '/admin';
   } else if (role === 'staff' || item.key === 'staff') {
     defTab = 'office';
     defSub = 'fees';
-    targetRoute = '/admin';
   } else if (role === 'librarian' || item.key === 'librarian') {
     defTab = 'library';
     defSub = 'catalog';
-    targetRoute = '/admin';
   } else {
     defTab = 'dashboard';
     defSub = null;
-    targetRoute = '/admin';
   }
 
   try {
@@ -1382,6 +1376,7 @@ function Login(){
   window.dispatchEvent(new Event('magra_auth_change'));
   window.dispatchEvent(new Event('magra_role_changed'));
   nav('/admin');
+  window.location.hash = '#/admin';
  };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -1546,11 +1541,10 @@ function Login(){
               className="quick-login-btn"
               onClick={() => fillAndLogin(q)}
               title={`${q.label} | ID: ${q.id} | Pass: ${q.pass}`}
-              style={q.isModalTrigger ? { borderColor: '#0284c7', background: '#f0f9ff' } : undefined}
             >
               <span className="quick-login-icon">{q.icon}</span>
               <span className="quick-login-title">{q.label}</span>
-              <span className="quick-login-role">{q.isModalTrigger ? '৭ জন শিক্ষক সেবা বক্স ▾' : <>ID: <code>{q.id}</code></>}</span>
+              <span className="quick-login-role">ID: <code>{q.id}</code></span>
             </button>
           ))}
         </div>
@@ -2175,7 +2169,13 @@ function Admin(){
      }
     }
    } catch {}
-   nav('/login');
+   // If no user in storage, fallback to Super Admin MOCK_USERS[0]
+   const def = MOCK_USERS[0];
+   setMe(def);
+   try {
+     localStorage.setItem('magra_user', JSON.stringify(def));
+     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+   } catch {}
   };
 
   syncMe();
@@ -2187,9 +2187,6 @@ function Admin(){
    if (u && (u.login_id || u.id)) {
     setMe(u);
     try { localStorage.setItem('magra_user', JSON.stringify(u)); } catch {}
-   } else {
-    // If not authenticated, navigate to login
-    nav('/login');
    }
   }).catch(()=>{});
   api('/dashboard').then(setData).catch(()=>{});
