@@ -799,12 +799,7 @@ function handleMockRequest(path, opts = {}) {
         }
       }
     } catch {}
-    const defaultUser = sanitizeStoredUser(MOCK_USERS[0]);
-    try {
-      localStorage.setItem('magra_user', JSON.stringify(defaultUser));
-      localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-    } catch {}
-    return defaultUser;
+    return null;
   }
 
   if (cleanPath === '/portal/me') {

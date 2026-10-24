@@ -5913,3 +5913,37 @@ export const MOCK_SSC_RESULTS = [
   { year: '২০২৩', candidates: 130, passed: 126, gpa5: 29, pass_rate: '96.92%' },
   { year: '২০২২', candidates: 125, passed: 122, gpa5: 27, pass_rate: '97.60%' }
 ];
+
+export function getSchoolTeachers() {
+  try {
+    const raw = localStorage.getItem('magra_db_teachers');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return MOCK_TEACHERS;
+}
+
+export function isAssignedRoleTeacher(t) {
+  if (!t) return false;
+  const name = String(t.name_bn || t.name_en || '').toLowerCase();
+  const desig = String(t.designation || '').toLowerCase();
+  const subj = String(t.subject || '').toLowerCase();
+  if (desig.includes('প্রধান শিক্ষক') || name.includes('শফিকুল') || name.includes('তাপসী')) return true;
+  if (name.includes('খালেক') || name.includes('লিটন') || (name.includes('আব্দুর রহিম') && !name.includes('খালিদুর')) || name.includes('আবুবকর') || name.includes('হাবিবুর') || name.includes('ওয়াহিদুর') || name.includes('ওয়াহিদুর')) return true;
+  if (desig.includes('গ্রন্থাগার') || subj.includes('গ্রন্থাগার') || name.includes('শাহিন')) return true;
+  return false;
+}
+
+export function getRoleDefaultDesk(role) {
+  if (role === 'teacher') return { tab: 'results', sub: 'marks' };
+  if (role === 'co_admin') return { tab: 'attendance', sub: 'daily' };
+  if (role === 'staff') return { tab: 'office', sub: 'fees' };
+  if (role === 'librarian') return { tab: 'library', sub: 'catalog' };
+  if (role === 'admin') return { tab: 'dashboard', sub: null };
+  if (role === 'super_admin') return { tab: 'dashboard', sub: null };
+  return { tab: 'login', sub: null };
+}

@@ -31,7 +31,7 @@ import './styles.css';
 import {publicNavConfig} from './publicNavConfig';
 import {LanguageProvider,useLanguage,bilingual,LanguageSwitcher} from './i18n';
 import {requestApi, deduplicateTeachers} from './apiClient';
-import {getSchoolTeachers, isAssignedRoleTeacher} from './ObserverSwitcher';
+import {getSchoolTeachers, isAssignedRoleTeacher, getRoleDefaultDesk} from './mockData';
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
@@ -1302,8 +1302,7 @@ function Login(){
   if (matched && matched.length >= 7) return matched;
   return MOCK_TEACHERS.filter(t => canonIds.includes(String(t.employee_id)));
  }, [allSchoolTeachers]);
-
- const quickAccounts = [
+const quickAccounts = [
    { key: 'admin', icon: '👑', label: 'সুপার অ্যাডমিন ERP', id: 'admin', pass: 'admin123', role: 'Super Admin', desc: 'মুহাম্মদ আবুবকর সিদ্দিক • আইসিটি শিক্ষক ও সুপার অ্যাডমিন', user: MOCK_USERS[0] },
    { key: 'head', icon: '🎓', label: 'প্রধান শিক্ষক', id: 'head_teacher', pass: 'head123', role: 'Head Teacher', desc: 'মুহাম্মদ শফিকুল ইসলাম • প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[1] },
    { key: 'asst', icon: '👩‍🏫', label: 'সহকারী প্রধান শিক্ষক', id: 'assistant_head_teacher', pass: 'asst123', role: 'Asst. Head Teacher', desc: 'তাপসী সরকার • সহকারী প্রধান শিক্ষক ও অ্যাডমিন', user: MOCK_USERS[2] },
@@ -1326,57 +1325,43 @@ function Login(){
   ];
 
  const fillAndLogin = (item) => {
-  setLoginId(item.id);
-  setPassword(item.pass);
-  let userObj = item.user;
-  if (!userObj && item.teacher) {
-    userObj = {
-      id: `u-${item.id}`,
-      login_id: item.id,
-      full_name: `${item.teacher.name_bn} (${item.teacher.subject})`,
-      role_name: 'teacher',
-      role_label: `বিষয় শিক্ষক (${item.teacher.subject})`,
-      teacher_name: item.teacher.name_bn,
-      subject: item.teacher.subject,
-      is_active: true
-    };
-  }
-  if (!userObj) {
-    userObj = MOCK_USERS.find(u => u.login_id === item.id) || MOCK_USERS[0];
-  }
-  userObj = sanitizeStoredUser(userObj);
-  const role = userObj?.role_name || userObj?.role || '';
-  let defTab = 'dashboard';
-  let defSub = null;
-  if (role === 'teacher' || item.role === 'Subject Teacher') {
-    defTab = 'results';
-    defSub = 'marks';
-  } else if (role === 'co_admin') {
-    defTab = 'attendance';
-    defSub = 'daily';
-  } else if (role === 'staff' || item.key === 'staff') {
-    defTab = 'office';
-    defSub = 'fees';
-  } else if (role === 'librarian' || item.key === 'librarian') {
-    defTab = 'library';
-    defSub = 'catalog';
-  } else {
-    defTab = 'dashboard';
-    defSub = null;
-  }
+   setLoginId(item.id);
+   setPassword(item.pass);
+   let userObj = item.user;
+   if (!userObj && item.teacher) {
+     const empId = String(item.teacher.employee_id || item.teacher.id || '').replace(/\D/g, '') || '3';
+     userObj = {
+       id: `u-t-${empId}`,
+       login_id: `teacher_${empId}`,
+       full_name: `${item.teacher.name_bn} (${item.teacher.subject})`,
+       role_name: 'teacher',
+       role_label: `বিষয় শিক্ষক (${item.teacher.subject})`,
+       teacher_name: item.teacher.name_bn,
+       subject: item.teacher.subject,
+       employee_id: empId,
+       is_active: true
+     };
+   }
+   if (!userObj) {
+     userObj = MOCK_USERS.find(u => u.login_id === item.id);
+   }
+   if (!userObj) return;
+   userObj = sanitizeStoredUser(userObj);
+   const role = userObj?.role_name || userObj?.role || '';
+   const desk = getRoleDefaultDesk(role);
 
-  try {
-    localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-    localStorage.setItem('magra_user', JSON.stringify(userObj));
-    localStorage.setItem('magra_admin_active_tab', defTab);
-    if (defSub) localStorage.setItem('magra_admin_active_sub', defSub);
-    else localStorage.removeItem('magra_admin_active_sub');
-  } catch {}
+   try {
+     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
+     localStorage.setItem('magra_user', JSON.stringify(userObj));
+     localStorage.setItem('magra_admin_active_tab', desk.tab);
+     if (desk.sub) localStorage.setItem('magra_admin_active_sub', desk.sub);
+     else localStorage.removeItem('magra_admin_active_sub');
+   } catch {}
 
-  window.dispatchEvent(new Event('magra_auth_change'));
-  window.dispatchEvent(new Event('magra_role_changed'));
-  nav('/admin');
-  window.location.hash = '#/admin';
+   window.dispatchEvent(new Event('magra_auth_change'));
+   window.dispatchEvent(new Event('magra_role_changed'));
+   window.location.hash = '#/admin';
+   window.location.reload();
  };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -2101,33 +2086,34 @@ function Admin(){
   } catch {}
   return null;
  });
-  const [active,setActive]=useState(()=>{
-  try {
-   const raw = localStorage.getItem('magra_user');
-   const u = raw ? JSON.parse(raw) : null;
-   const r = u?.role_name || u?.role;
-   const saved = localStorage.getItem('magra_admin_active_tab');
-   if (r === 'co_admin') return (saved && ['attendance','admission','results','routine','finance','question','notice'].includes(saved)) ? saved : 'attendance';
-   if (r === 'staff') return (saved && ['office','admission','finance','documents','students','notice'].includes(saved)) ? saved : 'office';
-   if (r === 'librarian') return (saved && ['library','results','routine','question','notice'].includes(saved)) ? saved : 'library';
-   if (r === 'teacher') return (saved && ['results','routine','question','notice'].includes(saved)) ? saved : 'results';
-   if (r === 'admin') return (saved && saved !== 'users' && saved !== 'feature_control') ? saved : 'dashboard';
-   return saved || 'dashboard';
-  } catch { return 'dashboard'; }
- });
-  const [sub,setSub]=useState(()=>{
-  try {
-   const raw = localStorage.getItem('magra_user');
-   const u = raw ? JSON.parse(raw) : null;
-   const r = u?.role_name || u?.role;
-   const savedSub = localStorage.getItem('magra_admin_active_sub');
-   if (r === 'co_admin') return (savedSub && ['daily','reports','teacher_enrollment','admitted_list','marks','marksheet','tabulation','merit','class_routine','exam_routine','collect','receipts'].includes(savedSub)) ? savedSub : 'daily';
-   if (r === 'staff') return (savedSub && ['fees','admission','docs','idcards','voters','applications','teacher_enrollment','admitted_list','collect','receipts','id','commendation_certificate','transfer_certificate','bonafide_certificate','marksheet','admit','list','new','csv'].includes(savedSub)) ? savedSub : 'fees';
-   if (r === 'librarian') return (savedSub && ['catalog','issue','overdue','reports','damaged','marks'].includes(savedSub)) ? savedSub : 'catalog';
-   if (r === 'teacher') return (savedSub && ['marks','class_routine','teacher_schedule','generator','omr','bank','saved','model'].includes(savedSub)) ? savedSub : 'marks';
-   return savedSub || null;
-  } catch { return null; }
- });
+  const [active, setActive] = useState(() => {
+   try {
+    const raw = localStorage.getItem('magra_user');
+    const u = raw ? JSON.parse(raw) : null;
+    const r = u?.role_name || u?.role;
+    const saved = localStorage.getItem('magra_admin_active_tab');
+    if (r === 'teacher') return (saved && ['results','routine','question','notice','notifications'].includes(saved) && saved !== 'dashboard') ? saved : 'results';
+    if (r === 'co_admin') return (saved && ['attendance','admission','results','routine','finance','question','notice','notifications'].includes(saved) && saved !== 'dashboard') ? saved : 'attendance';
+    if (r === 'staff') return (saved && ['office','admission','finance','documents','students','notice','notifications'].includes(saved) && saved !== 'dashboard') ? saved : 'office';
+    if (r === 'librarian') return (saved && ['library','results','routine','question','notice','notifications'].includes(saved) && saved !== 'dashboard') ? saved : 'library';
+    if (r === 'admin') return (saved && saved !== 'users' && saved !== 'feature_control' && saved !== 'supabase_sync') ? saved : 'dashboard';
+    if (r === 'super_admin') return saved || 'dashboard';
+    return 'results';
+   } catch { return 'results'; }
+  });
+  const [sub, setSub] = useState(() => {
+   try {
+    const raw = localStorage.getItem('magra_user');
+    const u = raw ? JSON.parse(raw) : null;
+    const r = u?.role_name || u?.role;
+    const savedSub = localStorage.getItem('magra_admin_active_sub');
+    if (r === 'teacher') return 'marks';
+    if (r === 'co_admin') return (savedSub && ['daily','reports','teacher_enrollment','admitted_list','marks','marksheet','tabulation','merit','class_routine','exam_routine','collect','receipts'].includes(savedSub)) ? savedSub : 'daily';
+    if (r === 'staff') return (savedSub && ['fees','admission','docs','idcards','voters','applications','teacher_enrollment','admitted_list','collect','receipts','id','commendation_certificate','transfer_certificate','bonafide_certificate','marksheet','admit','list','new','csv'].includes(savedSub)) ? savedSub : 'fees';
+    if (r === 'librarian') return (savedSub && ['catalog','issue','overdue','reports','damaged','marks'].includes(savedSub)) ? savedSub : 'catalog';
+    return savedSub || null;
+   } catch { return null; }
+  });
  const [enabled,setEnabled]=useState(null);
  const [expanded,setExpanded]=useState(()=>{
   try {
@@ -2169,13 +2155,7 @@ function Admin(){
      }
     }
    } catch {}
-   // If no user in storage, fallback to Super Admin MOCK_USERS[0]
-   const def = MOCK_USERS[0];
-   setMe(def);
-   try {
-     localStorage.setItem('magra_user', JSON.stringify(def));
-     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
-   } catch {}
+   nav('/login');
   };
 
   syncMe();
@@ -2209,7 +2189,7 @@ function Admin(){
   staff: ['office','admission','finance','documents','students','notice','notifications'],
   teacher: ['results','routine','question','notice','notifications']
  };
- const allowedModules=roleAllowedKeys[userRole]!==undefined?roleAllowedKeys[userRole]:null;
+ const allowedModules = userRole === 'super_admin' ? null : (roleAllowedKeys[userRole] || []);
  const isModuleAllowed=(k)=>allowedModules===null||allowedModules.includes(k);
  const choose=(k,s)=>{
   if(!isModuleAllowed(k))return;
@@ -2219,22 +2199,22 @@ function Admin(){
  };
 
  useEffect(() => {
-  if (allowedModules && !allowedModules.includes(active)) {
-   const defaultTab = allowedModules[0] || 'results';
-   setActive(defaultTab);
-   if (defaultTab === 'results' && (userRole === 'teacher' || userRole === 'librarian')) {
-    setSub('marks');
-   } else if (defaultTab === 'attendance' && userRole === 'co_admin') {
-    setSub('daily');
-   } else if (defaultTab === 'office' && userRole === 'staff') {
-    setSub('fees');
-   } else if (defaultTab === 'library' && userRole === 'librarian') {
-    setSub('catalog');
-   } else {
-    setSub(null);
+   if (allowedModules && (!allowedModules.includes(active) || (active === 'dashboard' && userRole !== 'admin' && userRole !== 'super_admin'))) {
+    const defaultTab = userRole === 'teacher' ? 'results' : userRole === 'co_admin' ? 'attendance' : userRole === 'staff' ? 'office' : userRole === 'librarian' ? 'library' : (allowedModules[0] || 'results');
+    setActive(defaultTab);
+    if (defaultTab === 'results' && (userRole === 'teacher' || userRole === 'librarian')) {
+     setSub('marks');
+    } else if (defaultTab === 'attendance' && userRole === 'co_admin') {
+     setSub('daily');
+    } else if (defaultTab === 'office' && userRole === 'staff') {
+     setSub('fees');
+    } else if (defaultTab === 'library' && userRole === 'librarian') {
+     setSub('catalog');
+    } else {
+     setSub(null);
+    }
    }
-  }
- }, [userRole, active, allowedModules]);
+  }, [userRole, active, allowedModules]);
  const coAdminSubFilters={
   attendance:['daily','reports'],
   admission:['teacher_enrollment','admitted_list'],
