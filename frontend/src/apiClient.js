@@ -573,7 +573,7 @@ export async function requestApi(path, opts = {}) {
         }
       }
     } catch {}
-    return MOCK_USERS[0];
+    return null;
   }
 
   if (cleanPath === '/auth/logout') {
@@ -701,14 +701,15 @@ function handleMockRequest(path, opts = {}) {
     let matched = users.find(u => u.login_id.toLowerCase() === cleanId);
     
     if (!matched) {
-            if (cleanId === 'admin' || cleanId.includes('admin') || cleanId === 'ict' || cleanId === 'super') {
+      if (cleanId.startsWith('class') || cleanId.includes('co_admin')) {
+        const clsNum = cleanId.match(/\d+/)?.[0];
+        matched = users.find(u => u.login_id === cleanId || (clsNum && u.role_name === 'co_admin' && String(u.assigned_class) === String(clsNum)) || u.role_name === 'co_admin');
+      } else if (cleanId === 'admin' || cleanId === 'super_admin' || cleanId === 'ict' || cleanId === 'super') {
         matched = users.find(u => u.role_name === 'super_admin');
       } else if (cleanId === 'head' || cleanId.includes('head_teacher')) {
         matched = users.find(u => u.login_id === 'head_teacher' || u.role_name === 'admin');
       } else if (cleanId === 'asst' || cleanId.includes('assistant')) {
         matched = users.find(u => u.login_id === 'assistant_head_teacher');
-      } else if (cleanId.startsWith('class') || cleanId.includes('co_admin')) {
-        matched = users.find(u => u.login_id === cleanId || u.role_name === 'co_admin');
       } else if (cleanId === 'teacher' || cleanId.includes('teacher') || cleanId.includes('subject')) {
         const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
         const specificT = allTeachers.find(t => {
@@ -790,7 +791,7 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/portal/me') {
     const rawUser = localStorage.getItem('magra_user');
-    const user = rawUser ? JSON.parse(rawUser) : MOCK_USERS[0];
+    const user = rawUser ? JSON.parse(rawUser) : (MOCK_USERS.find(u => u.role_name === 'teacher') || MOCK_USERS[10]);
     const students = getLocalStore('students', MOCK_STUDENTS);
     const routines = getLocalStore('routines', MOCK_ROUTINES);
     const exams = getLocalStore('exams', MOCK_EXAMS);

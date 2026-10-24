@@ -116,31 +116,39 @@ export function ObserverSwitcher() {
     let matchedUser = null;
     let defTab = 'dashboard';
     let defSub = null;
+    let targetRoute = '/admin';
 
     if (roleKey === 'super_admin' || roleKey === 'admin') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'super_admin') || MOCK_USERS[0];
       defTab = 'dashboard';
+      targetRoute = '/admin';
     } else if (roleKey === 'head_teacher') {
       matchedUser = MOCK_USERS.find(u => u.login_id === 'head_teacher' || u.username === 'head_teacher') || MOCK_USERS[1];
       defTab = 'dashboard';
+      targetRoute = '/admin';
     } else if (roleKey === 'asst_head_teacher') {
       matchedUser = MOCK_USERS.find(u => u.login_id === 'assistant_head_teacher' || u.username === 'assistant_head_teacher') || MOCK_USERS[2];
       defTab = 'dashboard';
+      targetRoute = '/admin';
     } else if (roleKey === 'librarian') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'librarian');
       defTab = 'library';
       defSub = 'catalog';
+      targetRoute = '/admin';
     } else if (roleKey === 'staff' || roleKey === 'office') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'staff');
       defTab = 'office';
       defSub = 'fees';
+      targetRoute = '/admin';
     } else if (roleKey === 'teacher') {
       matchedUser = MOCK_USERS.find(u => u.role_name === 'teacher');
       defTab = 'results';
       defSub = 'marks';
+      targetRoute = '/portal';
     } else {
       matchedUser = MOCK_USERS.find(u => u.role_name === roleKey) || MOCK_USERS[0];
       defTab = 'dashboard';
+      targetRoute = '/admin';
     }
 
     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
@@ -150,7 +158,8 @@ export function ObserverSwitcher() {
     else localStorage.removeItem('magra_admin_active_sub');
 
     window.dispatchEvent(new Event('magra_auth_change'));
-    navigate('/admin');
+    window.dispatchEvent(new Event('magra_role_changed'));
+    navigate(targetRoute);
   };
 
   const handleSelectClassTeacher = (cls) => {
@@ -173,6 +182,7 @@ export function ObserverSwitcher() {
 
     setShowCoAdminModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
+    window.dispatchEvent(new Event('magra_role_changed'));
     navigate('/admin');
   };
 
@@ -187,6 +197,7 @@ export function ObserverSwitcher() {
       teacher_name: t.name_bn,
       subject: t.subject,
       phone: t.phone,
+      photo_url: t.photo_url,
       is_active: true
     };
 
@@ -197,7 +208,8 @@ export function ObserverSwitcher() {
 
     setShowSubjectTeacherModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
-    navigate('/admin');
+    window.dispatchEvent(new Event('magra_role_changed'));
+    navigate('/portal');
   };
 
   return (
@@ -474,6 +486,7 @@ export function ObserverSwitcher() {
 
                       <button
                         type="button"
+                        onClick={(e) => { e.stopPropagation(); handleSelectClassTeacher(cls); }}
                         style={{
                           background: isCurrent ? '#047857' : '#0f766e',
                           color: '#ffffff',
@@ -748,6 +761,7 @@ export function ObserverSwitcher() {
 
                     <button
                       type="button"
+                      onClick={(e) => { e.stopPropagation(); handleSelectSubjectTeacher(t); }}
                       style={{
                         background: isCurrent ? '#0284c7' : '#0369a1',
                         color: '#ffffff',
