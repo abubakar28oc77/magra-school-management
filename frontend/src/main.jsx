@@ -52,6 +52,7 @@ import { PublicAttendancePortal } from './PublicAttendancePortal.jsx';
 import { LibraryPanel } from './LibraryPanel.jsx';
 import { QuestionBankPanel } from './QuestionBankPanel.jsx';
 import {
+  sanitizeStoredUser,
   MOCK_USERS,
   MOCK_TEACHERS,
   MOCK_STAFF,
@@ -73,6 +74,19 @@ import {
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
+
+// Immediate Startup Session Sanitizer
+try {
+  const rawBootUser = localStorage.getItem('magra_user');
+  if (rawBootUser && rawBootUser !== 'undefined' && rawBootUser !== 'null') {
+    const parsedBoot = JSON.parse(rawBootUser);
+    if (parsedBoot && (parsedBoot.login_id || parsedBoot.id)) {
+      const sanitizedBoot = sanitizeStoredUser(parsedBoot);
+      localStorage.setItem('magra_user', JSON.stringify(sanitizedBoot));
+    }
+  }
+} catch {}
+
 
 export function resolveDistinguishedStudents(allStudents = []) {
   const normClass = (c) => {
@@ -478,7 +492,7 @@ function Header({ onOpenSubmenu }){
    const raw = localStorage.getItem('magra_user');
    if (raw && raw !== 'undefined' && raw !== 'null') {
     const u = JSON.parse(raw);
-    if (u && (u.login_id || u.id)) return u;
+    if (u && (u.login_id || u.id)) return sanitizeStoredUser(u);
    }
   } catch {}
   return null;
@@ -490,7 +504,7 @@ function Header({ onOpenSubmenu }){
     if (raw && raw !== 'undefined' && raw !== 'null') {
      const u = JSON.parse(raw);
      if (u && (u.login_id || u.id)) {
-      setSessionUser(u);
+      setSessionUser(sanitizeStoredUser(u));
       return;
      }
     }
@@ -1283,11 +1297,10 @@ function Login(){
  }, []);
 
  const remainingSubjectTeachers = useMemo(() => {
-  const list = allSchoolTeachers.filter(t => !isAssignedRoleTeacher(t));
-  if (list && list.length >= 7) return list;
   const canonIds = ['3', '4', '5', '9', '12', '13', '14'];
   const matched = allSchoolTeachers.filter(t => canonIds.includes(String(t.employee_id)));
-  return matched.length ? matched : list;
+  if (matched && matched.length >= 7) return matched;
+  return MOCK_TEACHERS.filter(t => canonIds.includes(String(t.employee_id)));
  }, [allSchoolTeachers]);
 
  const quickAccounts = [
@@ -1303,7 +1316,7 @@ function Login(){
   { key: 'staff', icon: '🏢', label: 'অফিস সহকারী', id: 'office', pass: 'staff123', role: 'Staff', desc: 'মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি, সনদ ও ভোটার তালিকা', user: MOCK_USERS.find(u=>u.role_name==='staff') },
   // একক বিষয় শিক্ষক রোল বাটন (ক্লিক করলে ৭ জন বিষয় শিক্ষকের সেবা বক্স ওপেন হবে)
     // সরাসরি বিষয় শিক্ষক (১-ক্লিক লগইন)
-  { key: 'teacher_primary', icon: '📖', label: 'বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা)', id: 'teacher_3', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা) - সরাসরি বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u => u.login_id === 'teacher_3') || MOCK_USERS[10] },
+  { key: 'teacher_primary', icon: '📖', label: 'বিষয় শিক্ষক (মোঃ আনোয়ার হোসেন - ইসলাম ধর্ম)', id: 'teacher_3', pass: 'teacher123', role: 'Subject Teacher', desc: 'মোঃ আনোয়ার হোসেন • বিষয় শিক্ষক (ইসলাম ধর্ম) - সরাসরি বিষয় নম্বর এন্ট্রি', user: MOCK_USERS.find(u => u.login_id === 'teacher_3') || MOCK_USERS[10] },
   // অন্যান্য বিষয় শিক্ষক নির্বাচন
   { key: 'subject_teachers_modal', icon: '👥', label: 'অন্যান্য বিষয় শিক্ষকবৃন্দ (৭ জন) ▾', id: 'teacher', pass: 'teacher123', role: 'Subject Teacher', isModalTrigger: true, desc: '৭ জন বিষয় শিক্ষকের তালিকা থেকে যেকোনো শিক্ষক নির্বাচন করে নম্বর এন্ট্রি' }
  ];
@@ -1331,6 +1344,7 @@ function Login(){
   if (!userObj) {
     userObj = MOCK_USERS.find(u => u.login_id === item.id) || MOCK_USERS[0];
   }
+  userObj = sanitizeStoredUser(userObj);
   const role = userObj?.role_name || userObj?.role || '';
   let defTab = 'dashboard';
   let defSub = null;
@@ -1367,8 +1381,7 @@ function Login(){
 
   window.dispatchEvent(new Event('magra_auth_change'));
   window.dispatchEvent(new Event('magra_role_changed'));
-  window.location.hash = '#/admin';
-  window.location.reload();
+  nav('/admin');
  };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -1376,7 +1389,7 @@ function Login(){
   const teacherName = teacher.name_bn || teacher.teacher_name || 'বিষয় শিক্ষক';
   const subject = teacher.subject || 'নির্ধারিত বিষয়';
 
-  const userObj = {
+  const userObj = sanitizeStoredUser({
     id: `u-teacher-${empId}`,
     login_id: `teacher_${empId}`,
     full_name: `${teacherName} (${subject})`,
@@ -1388,7 +1401,7 @@ function Login(){
     phone: teacher.phone,
     photo_url: teacher.photo_url || getTeacherPhoto(teacher),
     is_active: true
-  };
+  });
   try {
     localStorage.setItem('magra_token', 'demo-token-' + Date.now());
     localStorage.setItem('magra_user', JSON.stringify(userObj));
@@ -1398,8 +1411,7 @@ function Login(){
   setShowSubjectTeacherModal(false);
   window.dispatchEvent(new Event('magra_auth_change'));
   window.dispatchEvent(new Event('magra_role_changed'));
-  window.location.hash = '#/admin';
-  window.location.reload();
+  nav('/admin');
  };
 
  async function submit(e){
@@ -1409,7 +1421,7 @@ function Login(){
   setMsg('লগইন হচ্ছে...');
   try{
    const d=await api('/auth/login',{method:'POST',body:JSON.stringify({loginId:loginId.trim(),password})});
-   const userToSave = d.user || MOCK_USERS.find(u => u.login_id.toLowerCase() === loginId.trim().toLowerCase()) || MOCK_USERS[0];
+   const userToSave = sanitizeStoredUser(d.user || MOCK_USERS.find(u => u.login_id.toLowerCase() === loginId.trim().toLowerCase()) || MOCK_USERS[0]);
    const role = userToSave?.role_name || userToSave?.role || '';
    let defTab = 'dashboard';
    let defSub = null;
@@ -1448,7 +1460,7 @@ function Login(){
     window.location.reload();
    }catch(err){
    const cleanId = loginId.trim().toLowerCase();
-   const matched = MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0];
+   const matched = sanitizeStoredUser(MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0]);
    const role = matched?.role_name || matched?.role || '';
    let defTab = 'dashboard';
    let defSub = null;
@@ -2090,7 +2102,7 @@ function Admin(){
    const raw = localStorage.getItem('magra_user');
    if (raw && raw !== 'undefined' && raw !== 'null') {
     const u = JSON.parse(raw);
-    if (u && (u.login_id || u.id)) return u;
+    if (u && (u.login_id || u.id)) return sanitizeStoredUser(u);
    }
   } catch {}
   return null;
@@ -2146,7 +2158,7 @@ function Admin(){
    try {
     const raw = localStorage.getItem('magra_user');
     if (raw && raw !== 'undefined' && raw !== 'null') {
-     const u = JSON.parse(raw);
+     const u = sanitizeStoredUser(JSON.parse(raw));
      if (u && (u.login_id || u.id)) {
       setMe(u);
       const r = u.role_name || u.role;
@@ -2198,7 +2210,7 @@ function Admin(){
   co_admin: ['attendance','admission','results','routine','finance','question','notice','notifications'],
   librarian: ['library','results','routine','question','notice','notifications'],
   staff: ['office','admission','finance','documents','students','notice','notifications'],
-  teacher: ['results','routine','question','notice']
+  teacher: ['results','routine','question','notice','notifications']
  };
  const allowedModules=roleAllowedKeys[userRole]!==undefined?roleAllowedKeys[userRole]:null;
  const isModuleAllowed=(k)=>allowedModules===null||allowedModules.includes(k);

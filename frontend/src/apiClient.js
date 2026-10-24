@@ -779,7 +779,7 @@ function handleMockRequest(path, opts = {}) {
 
     return {
       token: 'demo-jwt-token-' + Date.now(),
-      user: matched
+      user: sanitizeStoredUser(matched)
     };
   }
 
@@ -793,11 +793,13 @@ function handleMockRequest(path, opts = {}) {
       if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
         const parsed = JSON.parse(rawUser);
         if (parsed && (parsed.login_id || parsed.id)) {
-          return parsed;
+          const sanitized = sanitizeStoredUser(parsed);
+          localStorage.setItem('magra_user', JSON.stringify(sanitized));
+          return sanitized;
         }
       }
     } catch {}
-    const defaultUser = MOCK_USERS[0];
+    const defaultUser = sanitizeStoredUser(MOCK_USERS[0]);
     try {
       localStorage.setItem('magra_user', JSON.stringify(defaultUser));
       localStorage.setItem('magra_token', 'demo-token-' + Date.now());

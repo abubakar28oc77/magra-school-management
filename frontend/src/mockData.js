@@ -410,10 +410,131 @@ export const MOCK_SCHOOL = {
   logo: '/school-logo.png'
 };
 
+
+export function sanitizeStoredUser(u) {
+  if (!u || typeof u !== 'object') return null;
+  const nameStr = (u.full_name || u.name_bn || u.name || '') + ' ' + (u.login_id || '') + ' ' + (u.teacher_name || '');
+  
+  // 1. Head Teacher Shafiqul Islam is strictly 'admin' (Academic Admin), NEVER super_admin
+  if (nameStr.includes('শফিকুল') || u.login_id === 'head_teacher') {
+    return {
+      ...u,
+      id: u.id || 'u-2',
+      login_id: 'head_teacher',
+      full_name: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)',
+      role_name: 'admin',
+      role_label: 'প্রধান শিক্ষক (একাডেমিক অ্যাডমিন)',
+      phone: u.phone || '01753539680',
+      is_active: true,
+      must_change_password: false
+    };
+  }
+
+  // 2. Assistant Head Teacher Tapasi Sarkar
+  if (nameStr.includes('তাপসী') || u.login_id === 'assistant_head_teacher') {
+    return {
+      ...u,
+      id: u.id || 'u-3',
+      login_id: 'assistant_head_teacher',
+      full_name: 'তাপসী সরকার (সহকারী প্রধান শিক্ষক)',
+      role_name: 'admin',
+      role_label: 'সহকারী প্রধান শিক্ষক (একাডেমিক অ্যাডমিন)',
+      phone: u.phone || '01721750647',
+      is_active: true,
+      must_change_password: false
+    };
+  }
+
+  // 3. Super Admin is ONLY Abubakar Siddique (Senior Teacher - ICT)
+  if (u.login_id === 'admin' || u.role_name === 'super_admin' || (nameStr.includes('আবুবকর') && !u.login_id?.includes('class8'))) {
+    return {
+      ...u,
+      id: 'u-1',
+      login_id: 'admin',
+      full_name: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক - আইসিটি ও সুপার অ্যাডমিন)',
+      role_name: 'super_admin',
+      role_label: 'সুপার অ্যাডমিন (আইসিটি শিক্ষক - Full ERP)',
+      phone: '01710688646',
+      is_active: true,
+      must_change_password: false
+    };
+  }
+
+  // 4. Co-Admin (Class Teachers)
+  if (u.role_name === 'co_admin' || u.login_id?.startsWith('class')) {
+    let cls = String(u.assigned_class || '').replace(/\D/g, '');
+    if (!cls && u.login_id) {
+      const match = u.login_id.match(/\d+/);
+      if (match) cls = match[0];
+    }
+    if (!['6', '7', '8', '9', '10'].includes(cls)) cls = '6';
+
+    const coAdminMap = {
+      '6': { id: 'u-class-6', login_id: 'class6_teacher', full_name: 'মোঃ আব্দুল খালেক (কো-অ্যাডমিন ও ৬ষ্ঠ শ্রেণি শিক্ষক - বাংলা)', phone: '01735175681' },
+      '7': { id: 'u-class-7', login_id: 'class7_teacher', full_name: 'মুহাম্মদ আব্দুর রহিম লিটন (কো-অ্যাডমিন ও ৭ম শ্রেণি শিক্ষক - জীববিজ্ঞান)', phone: '01712004657' },
+      '8': { id: 'u-class-8', login_id: 'class8_teacher', full_name: 'মুহাম্মদ আবুবকর সিদ্দিক (কো-অ্যাডমিন ও ৮ম শ্রেণি শিক্ষক - আইসিটি)', phone: '01710688646' },
+      '9': { id: 'u-class-9', login_id: 'class9_teacher', full_name: 'মোঃ হাবিবুর রহমান (কো-অ্যাডমিন ও ৯ম শ্রেণি শিক্ষক - গণিত ও বিজ্ঞান)', phone: '01728046188' },
+      '10': { id: 'u-class-10', login_id: 'class10_teacher', full_name: 'মোঃ ওয়াহিদুর রহমান (কো-অ্যাডমিন ও ১০ম শ্রেণি শিক্ষক - শারীরিক শিক্ষা)', phone: '01703538300' },
+    };
+    const cInfo = coAdminMap[cls] || coAdminMap['6'];
+    return {
+      ...u,
+      id: cInfo.id,
+      login_id: cInfo.login_id,
+      full_name: cInfo.full_name,
+      role_name: 'co_admin',
+      role_label: `কো-অ্যাডমিন (${cls==='6'?'৬ষ্ঠ':cls==='7'?'৭ম':cls==='8'?'৮ম':cls==='9'?'৯ম':'১০ম'} শ্রেণি শিক্ষক)`,
+      assigned_class: cls,
+      phone: cInfo.phone,
+      is_active: true
+    };
+  }
+
+  // 5. Office Assistant
+  if (u.role_name === 'staff' || u.login_id === 'office' || nameStr.includes('আলমগীর')) {
+    return {
+      ...u,
+      id: 'u-10',
+      login_id: 'office',
+      full_name: 'মোঃ আলমগীর হোসেন (অফিস সহকারী)',
+      role_name: 'staff',
+      role_label: 'অফিস সহকারী',
+      phone: '01712000010',
+      is_active: true
+    };
+  }
+
+  // 6. Librarian
+  if (u.role_name === 'librarian' || u.login_id === 'librarian' || nameStr.includes('শাহিন')) {
+    return {
+      ...u,
+      id: 'u-9',
+      login_id: 'librarian',
+      full_name: 'মোঃ শাহিন মিয়া (সহকারী শিক্ষক - গ্রন্থাগার ও কৃষি শিক্ষা)',
+      role_name: 'librarian',
+      role_label: 'সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক)',
+      phone: '01707518488',
+      is_active: true
+    };
+  }
+
+  // 7. Subject Teachers
+  if (u.role_name === 'teacher' || u.login_id?.startsWith('teacher')) {
+    return {
+      ...u,
+      role_name: 'teacher',
+      role_label: `বিষয় শিক্ষক (${u.subject || 'নির্ধারিত বিষয়'})`,
+      is_active: true
+    };
+  }
+
+  return u;
+}
+
 export const MOCK_USERS = [
-  { id: 'u-1', login_id: 'admin', full_name: 'মুহাম্মদ আবুবকর সিদ্দিক (আইসিটি শিক্ষক ও সুপার অ্যাডমিন)', role_name: 'super_admin', role_label: 'সুপার অ্যাডমিন (আইসিটি শিক্ষক - Full ERP)', phone: '01710688646', is_active: true, must_change_password: false },
-  { id: 'u-2', login_id: 'head_teacher', full_name: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)', role_name: 'admin', role_label: 'প্রধান শিক্ষক (অ্যাডমিন)', phone: '01753539680', is_active: true, must_change_password: false },
-  { id: 'u-3', login_id: 'assistant_head_teacher', full_name: 'তাপসী সরকার (সহকারী প্রধান শিক্ষক)', role_name: 'admin', role_label: 'সহকারী প্রধান শিক্ষক (অ্যাডমিন)', phone: '01721750647', is_active: true, must_change_password: false },
+  { id: 'u-1', login_id: 'admin', full_name: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক - আইসিটি ও সুপার অ্যাডমিন)', role_name: 'super_admin', role_label: 'সুপার অ্যাডমিন (আইসিটি শিক্ষক - Full ERP)', phone: '01710688646', is_active: true, must_change_password: false },
+  { id: 'u-2', login_id: 'head_teacher', full_name: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)', role_name: 'admin', role_label: 'প্রধান শিক্ষক (একাডেমিক অ্যাডমিন)', phone: '01753539680', is_active: true, must_change_password: false },
+  { id: 'u-3', login_id: 'assistant_head_teacher', full_name: 'তাপসী সরকার (সহকারী প্রধান শিক্ষক)', role_name: 'admin', role_label: 'সহকারী প্রধান শিক্ষক (একাডেমিক অ্যাডমিন)', phone: '01721750647', is_active: true, must_change_password: false },
   { id: 'u-class-6', login_id: 'class6_teacher', full_name: 'মোঃ আব্দুল খালেক (কো-অ্যাডমিন ও ৬ষ্ঠ শ্রেণি শিক্ষক - বাংলা)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (৬ষ্ঠ শ্রেণি শিক্ষক)', assigned_class: '6', phone: '01735175681', is_active: true, must_change_password: false },
   { id: 'u-class-7', login_id: 'class7_teacher', full_name: 'মুহাম্মদ আব্দুর রহিম লিটন (কো-অ্যাডমিন ও ৭ম শ্রেণি শিক্ষক - জীববিজ্ঞান)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (৭ম শ্রেণি শিক্ষক)', assigned_class: '7', phone: '01712004657', is_active: true, must_change_password: false },
   { id: 'u-class-8', login_id: 'class8_teacher', full_name: 'মুহাম্মদ আবুবকর সিদ্দিক (কো-অ্যাডমিন ও ৮ম শ্রেণি শিক্ষক - আইসিটি)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (৮ম শ্রেণি শিক্ষক)', assigned_class: '8', phone: '01710688646', is_active: true, must_change_password: false },
@@ -421,14 +542,14 @@ export const MOCK_USERS = [
   { id: 'u-class-10', login_id: 'class10_teacher', full_name: 'মোঃ ওয়াহিদুর রহমান (কো-অ্যাডমিন ও ১০ম শ্রেণি শিক্ষক - শারীরিক শিক্ষা)', role_name: 'co_admin', role_label: 'কো-অ্যাডমিন (১০ম শ্রেণি শিক্ষক)', assigned_class: '10', phone: '01703538300', is_active: true, must_change_password: false },
   { id: 'u-9', login_id: 'librarian', full_name: 'মোঃ শাহিন মিয়া (সহকারী শিক্ষক - গ্রন্থাগার ও কৃষি শিক্ষা)', role_name: 'librarian', role_label: 'সহকারী শিক্ষক (গ্রন্থাগার ও বিষয় শিক্ষক)', phone: '01707518488', is_active: true, must_change_password: false },
   { id: 'u-10', login_id: 'office', full_name: 'মোঃ আলমগীর হোসেন (অফিস সহকারী)', role_name: 'staff', role_label: 'অফিস সহকারী', phone: '01712000010', is_active: true, must_change_password: false },
-  { id: 'u-t-3', login_id: 'teacher_3', full_name: 'মোঃ আনোয়ার হোসেন (ইংরেজি / ইসলাম শিক্ষা)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা)', employee_id: '3', teacher_name: 'মোঃ আনোয়ার হোসেন', subject: 'ইংরেজি / ইসলাম শিক্ষা', phone: '01770590374', is_active: true, must_change_password: false },
-  { id: 'u-t-4', login_id: 'teacher_4', full_name: 'মোঃ ছানোয়ার হোসেন (গণিত / বিজিএস)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (গণিত / বিজিএস)', employee_id: '4', teacher_name: 'মোঃ ছানোয়ার হোসেন', subject: 'গণিত / বিজিএস', phone: '01726472073', is_active: true, must_change_password: false },
-  { id: 'u-t-5', login_id: 'teacher_5', full_name: 'মোহাম্মদ খালিদুর রহমান তাং (বিজ্ঞান / কৃষি)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (বিজ্ঞান / কৃষি)', employee_id: '5', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', subject: 'বিজ্ঞান / কৃষি', phone: '01712763604', is_active: true, must_change_password: false },
-  { id: 'u-t-9', login_id: 'teacher_9', full_name: 'আরতী রানী সরকার (বাংলা / হিন্দু ধর্ম)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (বাংলা / হিন্দু ধর্ম)', employee_id: '9', teacher_name: 'আরতী রানী সরকার (ভদ্র)', subject: 'বাংলা / হিন্দু ধর্ম', phone: '01752496170', is_active: true, must_change_password: false },
-  { id: 'u-t-12', login_id: 'teacher_12', full_name: 'মোঃ আশরাফুল ইসলাম (কৃষি/আইসিটি / ইংরেজি)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (কৃষি/আইসিটি / ইংরেজি)', employee_id: '12', teacher_name: 'মোঃ আশরাফুল ইসলাম', subject: 'কৃষি / আইসিটি / ইংরেজি', phone: '01715892341', is_active: true, must_change_password: false },
-  { id: 'u-t-13', login_id: 'teacher_13', full_name: 'কান্তা মনি (সমাজ/ইতিহাস / ব্যবসায় শিক্ষা)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (সমাজ/ইতিহাস / ব্যবসায় শিক্ষা)', employee_id: '13', teacher_name: 'কান্তা মনি', subject: 'সমাজ / ইতিহাস / ব্যবসায় শিক্ষা', phone: '01716945123', is_active: true, must_change_password: false },
-  { id: 'u-t-14', login_id: 'teacher_14', full_name: 'মোঃ রফিকুল ইসলাম (ধর্ম / ভৌত বিজ্ঞান)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ধর্ম / ভৌত বিজ্ঞান)', employee_id: '14', teacher_name: 'মোঃ রফিকুল ইসলাম', subject: 'ধর্ম / ভৌত বিজ্ঞান', phone: '01718324567', is_active: true, must_change_password: false },
-  { id: 'u-teacher-common', login_id: 'teacher', full_name: 'মোঃ আনোয়ার হোসেন (ইংরেজি / ইসলাম শিক্ষা)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ইংরেজি / ইসলাম শিক্ষা)', employee_id: '3', teacher_name: 'মোঃ আনোয়ার হোসেন', subject: 'ইংরেজি / ইসলাম শিক্ষা', is_active: true, must_change_password: false }
+  { id: 'u-t-3', login_id: 'teacher_3', full_name: 'মোঃ আনোয়ার হোসেন (বিষয় শিক্ষক - ইসলাম ধর্ম)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ইসলাম ধর্ম)', employee_id: '3', teacher_name: 'মোঃ আনোয়ার হোসেন', subject: 'ইসলাম ধর্ম', phone: '01770590374', is_active: true, must_change_password: false },
+  { id: 'u-t-4', login_id: 'teacher_4', full_name: 'মোঃ ছানোয়ার হোসেন (বিষয় শিক্ষক - বাংলাদেশ ও বিশ্বপরিচয়)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (বাংলাদেশ ও বিশ্বপরিচয়)', employee_id: '4', teacher_name: 'মোঃ ছানোয়ার হোসেন', subject: 'বাংলাদেশ ও বিশ্বপরিচয়', phone: '01726472073', is_active: true, must_change_password: false },
+  { id: 'u-t-5', login_id: 'teacher_5', full_name: 'মোহাম্মদ খালিদুর রহমান তাং (বিষয় শিক্ষক - কৃষি শিক্ষা)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (কৃষি শিক্ষা)', employee_id: '5', teacher_name: 'মোহাম্মদ খালিদুর রহমান তাং', subject: 'কৃষি শিক্ষা', phone: '01712763604', is_active: true, must_change_password: false },
+  { id: 'u-t-9', login_id: 'teacher_9', full_name: 'আরতী রানী সরকার (বিষয় শিক্ষক - হিন্দু ধর্ম)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক ( হিন্দু ধর্ম)', employee_id: '9', teacher_name: 'আরতী রানী সরকার', subject: 'হিন্দু ধর্ম', phone: '01752496170', is_active: true, must_change_password: false },
+  { id: 'u-t-12', login_id: 'teacher_12', full_name: 'মোঃ আশরাফুল ইসলাম (বিষয় শিক্ষক - ইংরেজি)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ইংরেজি)', employee_id: '12', teacher_name: 'মোঃ আশরাফুল ইসলাম', subject: 'ইংরেজি', phone: '01715892341', is_active: true, must_change_password: false },
+  { id: 'u-t-13', login_id: 'teacher_13', full_name: 'কান্তা মনি (বিষয় শিক্ষক - ব্যবসায় শিক্ষা)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ব্যবসায় শিক্ষা)', employee_id: '13', teacher_name: 'কান্তা মনি', subject: 'ব্যবসায় শিক্ষা', phone: '01716945123', is_active: true, must_change_password: false },
+  { id: 'u-t-14', login_id: 'teacher_14', full_name: 'মোঃ রফিকুল ইসলাম (বিষয় শিক্ষক - ভৌত বিজ্ঞান)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ভৌত বিজ্ঞান)', employee_id: '14', teacher_name: 'মোঃ রফিকুল ইসলাম', subject: 'ভৌত বিজ্ঞান', phone: '01718324567', is_active: true, must_change_password: false },
+  { id: 'u-teacher-common', login_id: 'teacher', full_name: 'মোঃ আনোয়ার হোসেন (বিষয় শিক্ষক - ইসলাম ধর্ম)', role_name: 'teacher', role_label: 'বিষয় শিক্ষক (ইসলাম ধর্ম)', employee_id: '3', teacher_name: 'মোঃ আনোয়ার হোসেন', subject: 'ইসলাম ধর্ম', is_active: true, must_change_password: false }
 ];
 
 export const MOCK_STUDENTS = [
