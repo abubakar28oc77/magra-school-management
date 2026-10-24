@@ -127,11 +127,13 @@ export function ObserverSwitcher() {
 
   const handleRoleSwitch = (roleKey) => {
     if (roleKey === 'public') {
-      navigate('/');
+      window.location.hash = '#/';
+      window.location.reload();
       return;
     }
     if (roleKey === 'login') {
-      navigate('/login');
+      window.location.hash = '#/login';
+      window.location.reload();
       return;
     }
 
@@ -179,11 +181,8 @@ export function ObserverSwitcher() {
 
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
-      window.location.reload();
-    } else {
-      navigate(targetRoute);
-    }
+    window.location.hash = targetRoute === '/' ? '#/' : '#/admin';
+    window.location.reload();
   };
 
   const handleSelectClassTeacher = (cls) => {
@@ -207,11 +206,8 @@ export function ObserverSwitcher() {
     setShowCoAdminModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
-      window.location.reload();
-    } else {
-      navigate('/admin');
-    }
+    window.location.hash = '#/admin';
+    window.location.reload();
   };
 
   const handleSelectSubjectTeacher = (t) => {
@@ -241,11 +237,8 @@ export function ObserverSwitcher() {
     setShowSubjectTeacherModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
-      window.location.reload();
-    } else {
-      navigate('/admin');
-    }
+    window.location.hash = '#/admin';
+    window.location.reload();
   };
 
   return (

@@ -1364,7 +1364,8 @@ function Login(){
 
   window.dispatchEvent(new Event('magra_auth_change'));
   window.dispatchEvent(new Event('magra_role_changed'));
-  nav(targetRoute);
+  window.location.hash = '#/admin';
+  window.location.reload();
  };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -1394,7 +1395,8 @@ function Login(){
   setShowSubjectTeacherModal(false);
   window.dispatchEvent(new Event('magra_auth_change'));
   window.dispatchEvent(new Event('magra_role_changed'));
-  nav('/admin');
+  window.location.hash = '#/admin';
+  window.location.reload();
  };
 
  async function submit(e){
@@ -1439,8 +1441,9 @@ function Login(){
    } catch {}
    window.dispatchEvent(new Event('magra_auth_change'));
    window.dispatchEvent(new Event('magra_role_changed'));
-   nav(targetRoute);
-  }catch(err){
+    window.location.hash = '#/admin';
+    window.location.reload();
+   }catch(err){
    const cleanId = loginId.trim().toLowerCase();
    const matched = MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0];
    const role = matched?.role_name || matched?.role || '';
@@ -1450,7 +1453,7 @@ function Login(){
    if (role === 'teacher') {
      defTab = 'results';
      defSub = 'marks';
-     targetRoute = '/portal';
+     targetRoute = '/admin';
    } else if (role === 'co_admin') {
      defTab = 'attendance';
      defSub = 'daily';
@@ -1477,8 +1480,9 @@ function Login(){
    } catch {}
    window.dispatchEvent(new Event('magra_auth_change'));
    window.dispatchEvent(new Event('magra_role_changed'));
-   nav(targetRoute);
-  }finally{
+    window.location.hash = '#/admin';
+    window.location.reload();
+   }finally{
    setLoading(false);
   }
  }
@@ -2093,31 +2097,31 @@ function Admin(){
   } catch {}
   return defaultUser;
  });
- const [active,setActive]=useState(()=>{
+  const [active,setActive]=useState(()=>{
   try {
    const raw = localStorage.getItem('magra_user');
    const u = raw ? JSON.parse(raw) : null;
    const r = u?.role_name || u?.role;
    const saved = localStorage.getItem('magra_admin_active_tab');
-   if (r === 'co_admin') return (saved && saved !== 'dashboard') ? saved : 'attendance';
-   if (r === 'staff') return (saved && saved !== 'dashboard') ? saved : 'office';
-   if (r === 'librarian') return (saved && saved !== 'dashboard') ? saved : 'library';
-   if (r === 'teacher') return (saved && saved !== 'dashboard') ? saved : 'results';
+   if (r === 'co_admin') return (saved && ['attendance','admission','results','routine','finance','question','notice'].includes(saved)) ? saved : 'attendance';
+   if (r === 'staff') return (saved && ['office','admission','finance','documents','students','notice'].includes(saved)) ? saved : 'office';
+   if (r === 'librarian') return (saved && ['library','results','routine','question','notice'].includes(saved)) ? saved : 'library';
+   if (r === 'teacher') return (saved && ['results','routine','question','notice'].includes(saved)) ? saved : 'results';
+   if (r === 'admin') return (saved && saved !== 'users' && saved !== 'feature_control') ? saved : 'dashboard';
    return saved || 'dashboard';
   } catch { return 'dashboard'; }
  });
- const [sub,setSub]=useState(()=>{
+  const [sub,setSub]=useState(()=>{
   try {
    const raw = localStorage.getItem('magra_user');
    const u = raw ? JSON.parse(raw) : null;
    const r = u?.role_name || u?.role;
    const savedSub = localStorage.getItem('magra_admin_active_sub');
-   if (savedSub) return savedSub;
-   if (r === 'co_admin') return 'daily';
-   if (r === 'staff') return 'fees';
-   if (r === 'librarian') return 'catalog';
-   if (r === 'teacher') return 'marks';
-   return null;
+   if (r === 'co_admin') return (savedSub && ['daily','reports','teacher_enrollment','admitted_list','marks','marksheet','tabulation','merit','class_routine','exam_routine','collect','receipts'].includes(savedSub)) ? savedSub : 'daily';
+   if (r === 'staff') return (savedSub && ['fees','admission','docs','idcards','voters','applications','teacher_enrollment','admitted_list','collect','receipts','id','commendation_certificate','transfer_certificate','bonafide_certificate','marksheet','admit','list','new','csv'].includes(savedSub)) ? savedSub : 'fees';
+   if (r === 'librarian') return (savedSub && ['catalog','issue','overdue','reports','damaged','marks'].includes(savedSub)) ? savedSub : 'catalog';
+   if (r === 'teacher') return (savedSub && ['marks','class_routine','teacher_schedule','generator','omr','bank','saved','model'].includes(savedSub)) ? savedSub : 'marks';
+   return savedSub || null;
   } catch { return null; }
  });
  const [enabled,setEnabled]=useState(null);
@@ -8125,7 +8129,7 @@ function App(){
 
  return (
   <>
-   <ObserverSwitcher/>
+   {location.pathname==="/admin" && <ObserverSwitcher/>}
    {location.pathname==="/admin" && <Admin key={'admin-' + roleStamp}/>}
    {location.pathname==="/portal" && <Portal key={'portal-' + roleStamp}/>}
    {location.pathname==="/login" && <div className="login-page"><Header/><Login/></div>}
