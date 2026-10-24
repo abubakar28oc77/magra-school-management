@@ -1360,8 +1360,7 @@ const quickAccounts = [
 
    window.dispatchEvent(new Event('magra_auth_change'));
    window.dispatchEvent(new Event('magra_role_changed'));
-   window.location.hash = '#/admin';
-   window.location.reload();
+   nav('/admin');
  };
 
   const selectSubjectTeacherAndLogin = (teacher) => {
@@ -1436,8 +1435,7 @@ const quickAccounts = [
    } catch {}
    window.dispatchEvent(new Event('magra_auth_change'));
    window.dispatchEvent(new Event('magra_role_changed'));
-    window.location.hash = '#/admin';
-    window.location.reload();
+    nav(targetRoute);
    }catch(err){
    const cleanId = loginId.trim().toLowerCase();
    const matched = sanitizeStoredUser(MOCK_USERS.find(u => u.login_id.toLowerCase() === cleanId) || MOCK_USERS[0]);
@@ -1475,8 +1473,7 @@ const quickAccounts = [
    } catch {}
    window.dispatchEvent(new Event('magra_auth_change'));
    window.dispatchEvent(new Event('magra_role_changed'));
-    window.location.hash = '#/admin';
-    window.location.reload();
+    nav(targetRoute);
    }finally{
    setLoading(false);
   }
