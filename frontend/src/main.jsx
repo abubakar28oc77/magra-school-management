@@ -1505,7 +1505,23 @@ const quickAccounts = [
         <button className="btn btn-primary login-submit" disabled={loading} aria-busy={loading}>{loading?(lang==='en'?'Signing in...':'লগইন হচ্ছে...'):(lang==='en'?'Sign in →':'লগইন করুন →')}</button>
       </form>
       {msg&&<p className="msg login-msg" role="status" aria-live="polite">{msg}</p>}
-      <div className="login-actions">
+      <div className="login-actions" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+        <button
+          type="button"
+          onClick={() => {
+            try {
+              localStorage.clear();
+              sessionStorage.clear();
+            } catch {}
+            const base = window.location.href.split('?')[0].split('#')[0];
+            window.location.replace(base + '?v=' + Date.now() + '#/login');
+            window.location.reload();
+          }}
+          style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c', fontSize: '12px', padding: '4px 9px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+          title="ব্রাউজারে জমে থাকা পুরাতন ক্যাশ ও ডেটা মুছে ফ্রেশ রিলোড দিন"
+        >
+          🧹 ক্যাশ ক্লিয়ার ও রিফ্রেশ
+        </button>
         <a href="#/" className="login-back">← {lang==='en'?'Main Website':'মূল ওয়েবসাইট'}</a>
         <small>{lang==='en'?'Default password for all demo accounts is set.':'সকল ডেমো একাউন্টের পাসওয়ার্ড সেট করা আছে।'}</small>
       </div>
