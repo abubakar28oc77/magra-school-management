@@ -179,7 +179,11 @@ export function ObserverSwitcher() {
 
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    navigate(targetRoute);
+    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
+      window.location.reload();
+    } else {
+      navigate(targetRoute);
+    }
   };
 
   const handleSelectClassTeacher = (cls) => {
@@ -203,7 +207,11 @@ export function ObserverSwitcher() {
     setShowCoAdminModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    navigate('/admin');
+    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
+      window.location.reload();
+    } else {
+      navigate('/admin');
+    }
   };
 
   const handleSelectSubjectTeacher = (t) => {
@@ -233,7 +241,11 @@ export function ObserverSwitcher() {
     setShowSubjectTeacherModal(false);
     window.dispatchEvent(new Event('magra_auth_change'));
     window.dispatchEvent(new Event('magra_role_changed'));
-    navigate('/admin');
+    if (window.location.hash.includes('/admin') || currentPath === '/admin') {
+      window.location.reload();
+    } else {
+      navigate('/admin');
+    }
   };
 
   return (
@@ -322,15 +334,6 @@ export function ObserverSwitcher() {
                 title="মোঃ আলমগীর হোসেন: ক্যাশ কাউন্টার ফি আদায়, সনদ ও রেজিস্টার"
               >
                 🏢 অফিস সহকারী
-              </button>
-
-              <button
-                type="button"
-                className={'observer-btn ' + (currentPath === '/login' ? 'active' : '')}
-                onClick={() => handleRoleSwitch('login')}
-                title="লগইন স্ক্রিন ও ডেমো আইডি অপশন"
-              >
-                🔐 লগইন স্ক্রিন
               </button>
             </div>
           )}
