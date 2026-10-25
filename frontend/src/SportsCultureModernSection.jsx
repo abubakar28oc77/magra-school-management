@@ -190,6 +190,17 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
   const [sportsGroupFilter, setSportsGroupFilter] = useState('সকল গ্রুপ');
   const [achievementFilter, setAchievementFilter] = useState('সব');
   const [dynamicContent, setDynamicContent] = useState([]);
+  const [adminStorage, setAdminStorage] = useState(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('magra_sports_culture_admin_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed) setAdminStorage(parsed);
+      }
+    } catch (_) {}
+  }, []);
 
   // Fetch live published items from API or localStorage
   useEffect(() => {
@@ -490,7 +501,15 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                     </tr>
                   </thead>
                   <tbody>
-                    {MOCK_SPORTS_WINNERS
+                    {((adminStorage?.sports?.length) ? 
+                        adminStorage.sports.filter(e => e.result && e.result.first).map(e => ({
+                          event: e.title,
+                          group: e.group,
+                          first: `${e.result.first.name} (${e.result.first.class_name}, রোল ${e.result.first.roll_no} - ${e.result.first.house?.replace(' হাউজ','')})`,
+                          second: e.result.second?.name ? `${e.result.second.name} (${e.result.second.class_name}, রোল ${e.result.second.roll_no} - ${e.result.second.house?.replace(' হাউজ','')})` : '—',
+                          third: e.result.third?.name ? `${e.result.third.name} (${e.result.third.class_name}, রোল ${e.result.third.roll_no} - ${e.result.third.house?.replace(' হাউজ','')})` : '—',
+                          record: e.result.first.timing || 'চূড়ান্ত বিজয়ী'
+                        })) : MOCK_SPORTS_WINNERS)
                       .filter(item => sportsGroupFilter === 'সকল গ্রুপ' || item.group.includes(sportsGroupFilter.replace(' (সকল শ্রেণি)', '')))
                       .map((row, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
@@ -725,7 +744,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
           {/* Sub-tab: Programs */}
           {subTab === 'programs' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-              {MOCK_CULTURAL_PROGRAMS.map((prog, idx) => (
+              {((adminStorage?.culture?.length) ? adminStorage.culture : MOCK_CULTURAL_PROGRAMS).map((prog, idx) => (
                 <div key={idx} style={{
                   background: '#ffffff',
                   border: '1px solid #e2e8f0',
@@ -904,7 +923,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
 
           {/* Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
-            {MOCK_ACHIEVEMENTS
+            {((adminStorage?.achievements?.length) ? adminStorage.achievements : MOCK_ACHIEVEMENTS)
               .filter(item => achievementFilter === 'সব' || item.category === achievementFilter)
               .map((ach, idx) => (
                 <div key={idx} style={{
@@ -1044,7 +1063,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
           {/* Sub-tab: Destinations */}
           {subTab === 'destinations' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {MOCK_TOURS.map((tour, idx) => (
+              {((adminStorage?.tours?.length) ? adminStorage.tours : MOCK_TOURS).map((tour, idx) => (
                 <div key={idx} style={{
                   background: '#ffffff',
                   border: '1px solid #bae6fd',
