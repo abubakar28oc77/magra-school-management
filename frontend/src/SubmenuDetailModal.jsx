@@ -314,24 +314,41 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       return <LanguageLiteratureClubSection initialTitle={title} menuKey={menuKey} onClose={onClose} />;
     }
 
-    // Sports, Culture, Achievements, and Educational Tour Modernized Sections
+    // 1. Annual Sports (বার্ষিক ক্রীড়া) - Standalone
     if (
       menuKey === 'public.nav.sport.sports' || 
-      menuKey === 'public.nav.sport.culture' ||
-      menuKey === 'public.nav.sport.achievements' ||
-      menuKey === 'public.nav.sport.tour' ||
       menuKey === 'public.nav.sport.inter' ||
-      menuKey === 'public.nav.sport.scouts' ||
       title?.includes('বার্ষিক ক্রীড়া') ||
-      title?.includes('ক্রীড়া') ||
+      (title?.includes('ক্রীড়া') && !title?.includes('সংস্কৃতি'))
+    ) {
+      return <SportsCultureModernSection category="sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 2. Cultural Programs (সাংস্কৃতিক অনুষ্ঠান) - Standalone
+    if (
+      menuKey === 'public.nav.sport.culture' ||
       title?.includes('সাংস্কৃতিক') ||
-      title?.includes('সংস্কৃতি') ||
-      title?.includes('অর্জন ও পুরস্কার') ||
-      title?.includes('পুরস্কার') ||
+      (title?.includes('সংস্কৃতি') && !title?.includes('ক্রীড়া'))
+    ) {
+      return <SportsCultureModernSection category="culture" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 3. Achievements & Awards (অর্জন ও পুরস্কার) - Standalone
+    if (
+      menuKey === 'public.nav.sport.achievements' ||
+      title?.includes('অর্জন') ||
+      title?.includes('পুরস্কার')
+    ) {
+      return <SportsCultureModernSection category="achievements" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 4. Educational Tour (শিক্ষা সফর) - Standalone
+    if (
+      menuKey === 'public.nav.sport.tour' ||
       title?.includes('শিক্ষা সফর') ||
       title?.includes('ট্যুর')
     ) {
-      return <SportsCultureModernSection menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+      return <SportsCultureModernSection category="tour" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // Routine & Schedule (Class & Exam Routine)

@@ -165,43 +165,40 @@ const MOCK_TOUR_ITINERARY = [
   { time: 'রাত ০৮:৩০', event: 'নিরাপদে বিদ্যালয় ক্যাম্পাসে প্রত্যাবর্তন ও সম্মানিত অভিভাবকদের কাছে হস্তান্তর' }
 ];
 
-export function SportsCultureModernSection({ menuKey = '', initialTitle = '', onClose }) {
-  // Determine initial active category based on menuKey or title
+export function SportsCultureModernSection({ category = '', menuKey = '', initialTitle = '', onClose }) {
+  // Determine isolated category strictly based on category prop, menuKey or title
   const getInitialCategory = () => {
-    if (menuKey === 'public.nav.sport.sports' || initialTitle?.includes('বার্ষিক ক্রীড়া') || initialTitle?.includes('ক্রীড়া')) return 'sports';
-    if (menuKey === 'public.nav.sport.culture' || initialTitle?.includes('সাংস্কৃতিক') || initialTitle?.includes('সংস্কৃতি')) return 'culture';
+    if (category) return category;
+    if (menuKey === 'public.nav.sport.sports' || initialTitle?.includes('বার্ষিক ক্রীড়া') || (initialTitle?.includes('ক্রীড়া') && !initialTitle?.includes('সংস্কৃতি'))) return 'sports';
+    if (menuKey === 'public.nav.sport.culture' || initialTitle?.includes('সাংস্কৃতিক') || (initialTitle?.includes('সংস্কৃতি') && !initialTitle?.includes('ক্রীড়া'))) return 'culture';
     if (menuKey === 'public.nav.sport.achievements' || initialTitle?.includes('অর্জন') || initialTitle?.includes('পুরস্কার')) return 'achievements';
-    if (menuKey === 'public.nav.sport.tour' || initialTitle?.includes('শিক্ষা সফর') || initialTitle?.includes('সফর')) return 'tour';
+    if (menuKey === 'public.nav.sport.tour' || initialTitle?.includes('শিক্ষা সফর') || initialTitle?.includes('সফর') || initialTitle?.includes('ট্যুর')) return 'tour';
     return 'sports';
   };
 
-  const [activeCategory, setActiveCategory] = useState(getInitialCategory);
-  const [subTab, setSubTab] = useState('winners'); // for sports: winners, houses, schedule, print; for others: default
+  const activeCategory = getInitialCategory();
+
+  // Internal tab state for the active standalone category
+  const [subTab, setSubTab] = useState(() => {
+    if (activeCategory === 'sports') return 'winners';
+    if (activeCategory === 'culture') return 'programs';
+    if (activeCategory === 'achievements') return 'cards';
+    if (activeCategory === 'tour') return 'destinations';
+    return 'winners';
+  });
+
   const [sportsGroupFilter, setSportsGroupFilter] = useState('সকল গ্রুপ');
   const [achievementFilter, setAchievementFilter] = useState('সব');
   const [dynamicContent, setDynamicContent] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // Sync category if props change
-  useEffect(() => {
-    const cat = getInitialCategory();
-    setActiveCategory(cat);
-    if (cat === 'sports') setSubTab('winners');
-    else if (cat === 'culture') setSubTab('programs');
-    else if (cat === 'achievements') setSubTab('cards');
-    else if (cat === 'tour') setSubTab('destinations');
-  }, [menuKey, initialTitle]);
 
   // Fetch live published items from API or localStorage
   useEffect(() => {
     const loadContent = async () => {
       try {
-        setLoading(true);
         const res = await requestApi('/public/content');
         if (Array.isArray(res) && res.length > 0) {
           setDynamicContent(res);
         } else {
-          // Fallback to localStorage
           const local = JSON.parse(localStorage.getItem('magra_school_content') || '[]');
           if (Array.isArray(local) && local.length > 0) {
             setDynamicContent(local);
@@ -212,14 +209,12 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
         if (Array.isArray(local) && local.length > 0) {
           setDynamicContent(local);
         }
-      } finally {
-        setLoading(false);
       }
     };
     loadContent();
   }, []);
 
-  // Filter dynamic content for current active category
+  // Filter dynamic content strictly for the current active category
   const currentDynamicItems = dynamicContent.filter(item => {
     if (activeCategory === 'sports') return item.content_type === 'sport' || item.title_bn?.includes('ক্রীড়া');
     if (activeCategory === 'culture') return item.content_type === 'event' || item.content_type === 'sport' || item.title_bn?.includes('সাংস্কৃতিক') || item.title_bn?.includes('দিবস');
@@ -234,7 +229,7 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
 
   return (
     <div className="sports-culture-modern-root" style={{ width: '100%', color: '#1e293b' }}>
-      {/* Print-only Header */}
+      {/* Print-only Formal Institutional Header */}
       <div className="print-only-official-header" style={{ display: 'none' }}>
         <div style={{ textAlign: 'center', borderBottom: '2px double #075c3a', paddingBottom: '12px', marginBottom: '16px' }}>
           <h2 style={{ margin: '0 0 4px', fontSize: '20px', color: '#075c3a' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
@@ -248,128 +243,69 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
         </div>
       </div>
 
-      {/* Top 4-in-1 Navigation Pills */}
+      {/* Top Standalone Header Bar with Print Button (NO other category tabs) */}
       <div style={{
         display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px',
-        padding: '10px 14px',
-        background: '#f8fafc',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        marginBottom: '20px',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => { setActiveCategory('sports'); setSubTab('winners'); }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: activeCategory === 'sports' ? 'none' : '1px solid #cbd5e1',
-              background: activeCategory === 'sports' ? 'linear-gradient(135deg, #059669, #10b981)' : '#ffffff',
-              color: activeCategory === 'sports' ? '#ffffff' : '#334155',
-              fontWeight: 700,
-              fontSize: '13.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: activeCategory === 'sports' ? '0 4px 10px rgba(16,185,129,0.3)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span>🏃‍♂️</span> বার্ষিক ক্রীড়া
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setActiveCategory('culture'); setSubTab('programs'); }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: activeCategory === 'culture' ? 'none' : '1px solid #cbd5e1',
-              background: activeCategory === 'culture' ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : '#ffffff',
-              color: activeCategory === 'culture' ? '#ffffff' : '#334155',
-              fontWeight: 700,
-              fontSize: '13.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: activeCategory === 'culture' ? '0 4px 10px rgba(99,102,241,0.3)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span>🎭</span> সাংস্কৃতিক অনুষ্ঠান
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setActiveCategory('achievements'); setSubTab('cards'); }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: activeCategory === 'achievements' ? 'none' : '1px solid #cbd5e1',
-              background: activeCategory === 'achievements' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : '#ffffff',
-              color: activeCategory === 'achievements' ? '#ffffff' : '#334155',
-              fontWeight: 700,
-              fontSize: '13.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: activeCategory === 'achievements' ? '0 4px 10px rgba(245,158,11,0.3)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span>🏆</span> অর্জন ও পুরস্কার
-          </button>
-
-          <button
-            type="button"
-            onClick={() => { setActiveCategory('tour'); setSubTab('destinations'); }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: activeCategory === 'tour' ? 'none' : '1px solid #cbd5e1',
-              background: activeCategory === 'tour' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : '#ffffff',
-              color: activeCategory === 'tour' ? '#ffffff' : '#334155',
-              fontWeight: 700,
-              fontSize: '13.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: activeCategory === 'tour' ? '0 4px 10px rgba(14,165,233,0.3)' : 'none',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span>🚌</span> শিক্ষা সফর
-          </button>
+        padding: '10px 16px',
+        background: activeCategory === 'sports' ? '#ecfdf5' :
+                    activeCategory === 'culture' ? '#f5f3ff' :
+                    activeCategory === 'achievements' ? '#fffbeb' : '#f0f9ff',
+        borderRadius: '12px',
+        border: `1px solid ${activeCategory === 'sports' ? '#a7f3d0' :
+                             activeCategory === 'culture' ? '#ddd6fe' :
+                             activeCategory === 'achievements' ? '#fde68a' : '#bae6fd'}`,
+        marginBottom: '18px',
+        flexWrap: 'wrap',
+        gap: '8px'
+      }} className="no-print">
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          color: activeCategory === 'sports' ? '#065f46' :
+                 activeCategory === 'culture' ? '#4338ca' :
+                 activeCategory === 'achievements' ? '#92400e' : '#0369a1',
+          fontWeight: 700,
+          fontSize: '14.5px'
+        }}>
+          <span>
+            {activeCategory === 'sports' ? '🏃‍♂️' :
+             activeCategory === 'culture' ? '🎭' :
+             activeCategory === 'achievements' ? '🏆' : '🚌'}
+          </span>
+          <span>
+            {activeCategory === 'sports' ? 'বার্ষিক ক্রীড়া ও অ্যাথলেটিক্স প্রতিযোগিতা ২০২৬' :
+             activeCategory === 'culture' ? 'বার্ষিক সাংস্কৃতিক উৎসব ও জাতীয় দিবস পালন ২০২৬' :
+             activeCategory === 'achievements' ? 'বিদ্যালয়ের গৌরবময় অর্জন, ট্রফি ও সম্মাননা স্মারক গ্যালারি' :
+             'ঐতিহাসিক শিক্ষা সফর ও শিক্ষামূলক পরিভ্রমণ ২০২৬'}
+          </span>
         </div>
 
         <button
           type="button"
           onClick={handlePrint}
-          className="no-print"
           style={{
-            padding: '7px 14px',
+            padding: '6px 14px',
             borderRadius: '6px',
-            border: '1px solid #075c3a',
-            background: '#f0fdf4',
-            color: '#075c3a',
-            fontWeight: 600,
+            border: `1px solid ${activeCategory === 'sports' ? '#059669' :
+                                 activeCategory === 'culture' ? '#6366f1' :
+                                 activeCategory === 'achievements' ? '#d97706' : '#0284c7'}`,
+            background: '#ffffff',
+            color: activeCategory === 'sports' ? '#065f46' :
+                   activeCategory === 'culture' ? '#4338ca' :
+                   activeCategory === 'achievements' ? '#92400e' : '#0369a1',
+            fontWeight: 700,
             fontSize: '12.5px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '6px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
           }}
         >
-          <span>🖨️</span> অফিশিয়াল শিট প্রিন্ট
+          <span>🖨️</span> অফিশিয়াল বিবরণী প্রিন্ট করুন
         </button>
       </div>
 
@@ -410,7 +346,7 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION 1: বার্ষিক ক্রীড়া (ANNUAL SPORTS) */}
+      {/* SECTION 1: বার্ষিক ক্রীড়া (ANNUAL SPORTS) - ONLY WHEN SPORTS IS SELECTED */}
       {/* ========================================================================= */}
       {activeCategory === 'sports' && (
         <div>
@@ -694,7 +630,7 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION 2: সাংস্কৃতিক অনুষ্ঠান (CULTURAL PROGRAMS) */}
+      {/* SECTION 2: সাংস্কৃতিক অনুষ্ঠান (CULTURAL PROGRAMS) - ONLY WHEN CULTURE IS SELECTED */}
       {/* ========================================================================= */}
       {activeCategory === 'culture' && (
         <div>
@@ -903,7 +839,7 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION 3: অর্জন ও পুরস্কার (ACHIEVEMENTS & AWARDS) */}
+      {/* SECTION 3: অর্জন ও পুরস্কার (ACHIEVEMENTS & AWARDS) - ONLY WHEN ACHIEVEMENTS IS SELECTED */}
       {/* ========================================================================= */}
       {activeCategory === 'achievements' && (
         <div>
@@ -1013,7 +949,7 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
       )}
 
       {/* ========================================================================= */}
-      {/* SECTION 4: শিক্ষা সফর (EDUCATIONAL TOUR) */}
+      {/* SECTION 4: শিক্ষা সফর (EDUCATIONAL TOUR) - ONLY WHEN TOUR IS SELECTED */}
       {/* ========================================================================= */}
       {activeCategory === 'tour' && (
         <div>
@@ -1233,11 +1169,11 @@ export function SportsCultureModernSection({ menuKey = '', initialTitle = '', on
         </div>
       )}
 
-      {/* Official Signatures Section (Visible in Print or at footer) */}
+      {/* Official Formal Signatures Section */}
       <div className="print-only-signatures" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: '150px', borderBottom: '1px solid #64748b', marginBottom: '4px' }}></div>
-          <span>আহ্বায়ক / ক্রীড়া ও সাংস্কৃতিক শিক্ষক</span>
+          <span>আহ্বায়ক / দায়িত্বপ্রাপ্ত শিক্ষক</span>
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: '150px', borderBottom: '1px solid #64748b', marginBottom: '4px' }}></div>
