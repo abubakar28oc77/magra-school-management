@@ -76,7 +76,7 @@ import {
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
-import { saveLeadershipPhoto, compressImageToDataUrl } from './photoStorage.js';
+import { saveLeadershipPhoto, compressImageToDataUrl, saveTeacherCustomPhoto, getTeacherCustomPhoto } from './photoStorage.js';
 
 // Immediate Startup Session Sanitizer
 try {
@@ -801,6 +801,21 @@ function Home(){
  const boardLinks=[['ঢাকা শিক্ষা বোর্ড','https://www.dhakaeducationboard.gov.bd/'],['রাজশাহী শিক্ষা বোর্ড','https://rajshahieducationboard.gov.bd/'],['চট্টগ্রাম শিক্ষা বোর্ড','https://bise-ctg.portal.gov.bd/'],['কুমিল্লা শিক্ষা বোর্ড','https://comillaboard.portal.gov.bd/'],['যশোর শিক্ষা বোর্ড','https://www.jessoreboard.gov.bd/'],['ময়মনসিংহ শিক্ষা বোর্ড','https://mymensingheducationboard.gov.bd/']];
  
  const [leadershipVer, setLeadershipVer] = useState(0);
+  const [teachersVer, setTeachersVer] = useState(0);
+  useEffect(() => {
+    const handleTeacherUpdate = () => {
+      setTeachersVer(v => v + 1);
+      api('/teachers?status=active').then(d => {
+        if (Array.isArray(d) && d.length) setTeachersList(d);
+      }).catch(() => {});
+    };
+    window.addEventListener('magra_teachers_updated', handleTeacherUpdate);
+    window.addEventListener('magra_photos_synced', handleTeacherUpdate);
+    return () => {
+      window.removeEventListener('magra_teachers_updated', handleTeacherUpdate);
+      window.removeEventListener('magra_photos_synced', handleTeacherUpdate);
+    };
+  }, []);
  useEffect(() => {
   const handleLeadershipUpdate = () => {
    setLeadershipVer(v => v + 1);
@@ -5003,7 +5018,10 @@ function StaffPanel({sub}){
     }
     setMsg('🔄 ছবি প্রসেস ও অপটিমাইজ করা হচ্ছে...');
     try {
-      const compressed = await compressImageToDataUrl(f, 320, 0.82);
+      const compressed = await compressImageToDataUrl(f, 360, 0.85);
+      if (isTeacher) {
+        saveTeacherCustomPhoto(x, compressed);
+      }
       const base = isTeacher ? 'teachers' : 'staff';
       await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: compressed }) });
       try {
@@ -5022,7 +5040,9 @@ function StaffPanel({sub}){
         }
         localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
       } catch {}
-      setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
+      setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটে যুক্ত হয়েছে`);
+      window.dispatchEvent(new CustomEvent('magra_teachers_updated'));
+      window.dispatchEvent(new CustomEvent('magra_photos_synced'));
       window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
       window.dispatchEvent(new Event('storage'));
       load();
@@ -5545,7 +5565,7 @@ function StaffPanel({sub}){
      </div>
      {(form.extended_profile?.in_service_training||[]).length>0&&<div className="full" style={{display:'flex',justifyContent:'flex-end',marginBottom:'14px'}}><button type="button" className="mini" style={{background:'#0d9488',color:'#fff',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}} onClick={()=>addRow('in_service_training')}>+ আরও কর্মকালীন ট্রেনিং যোগ করুন</button></div>}
      <div className="form-section-title full"><b>শিক্ষক বাতায়ন/অন্যান্য পেশাগত পরিচিতি</b></div>{isTeacher&&<div className="field"><label>শিক্ষক বাতায়ন ID</label><input value={form.teacher_portal_id||''} onChange={e=>change('teacher_portal_id',e.target.value)}/></div>}<div className="field"><label>অতিরিক্ত পেশাগত তথ্য</label><input value={form.extended_profile?.professional_note||''} onChange={e=>ext('professional_note',e.target.value)}/></div></>}
-     {step===5&&<><div className="form-section-title full"><b>NTRCA / নিবন্ধন তথ্য</b></div>{isTeacher&&<><div className="field"><label>শিক্ষক নিবন্ধন নম্বর</label><input value={form.teacher_registration_no||''} onChange={e=>change('teacher_registration_no',e.target.value)}/></div><div className="field"><label>নিবন্ধনের তারিখ</label><input type="date" value={form.registration_date||''} onChange={e=>change('registration_date',e.target.value)}/></div>{[['registered','NTRCA নিবন্ধিত?'],['recommended','NTRCA সুপারিশপ্রাপ্ত?'],['year','NTRCA নিবন্ধন/সুপারিশের সন'],['subject','NTRCA বিষয়'],['remarks','NTRCA মন্তব্য']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form.extended_profile?.ntrca?.[k]||''} onChange={e=>updateNtrca(k,e.target.value)}/></div>)}</>}<div className="form-section-title full"><b>যোগাযোগ ও ঠিকানা</b></div><div className="field"><label>মোবাইল</label><input value={form.phone||''} onChange={e=>change('phone',e.target.value)}/></div><div className="field"><label>WhatsApp</label><input value={form.whatsapp_no||''} onChange={e=>change('whatsapp_no',e.target.value)}/></div><div className="field"><label>ই-মেইল</label><input type="email" value={form.email||''} onChange={e=>change('email',e.target.value)}/></div><div className="field"><label>বর্তমান ঠিকানা</label><input value={form.address||''} onChange={e=>change('address',e.target.value)}/></div><div className="field"><label>স্থায়ী ঠিকানা</label><input value={form.permanent_address||''} onChange={e=>change('permanent_address',e.target.value)}/></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div>{form.photo_url&&<img className="form-photo-preview full" src={form.photo_url} alt="প্রোফাইল ছবি"/>}</>}
+     {step===5&&<><div className="form-section-title full"><b>NTRCA / নিবন্ধন তথ্য</b></div>{isTeacher&&<><div className="field"><label>শিক্ষক নিবন্ধন নম্বর</label><input value={form.teacher_registration_no||''} onChange={e=>change('teacher_registration_no',e.target.value)}/></div><div className="field"><label>নিবন্ধনের তারিখ</label><input type="date" value={form.registration_date||''} onChange={e=>change('registration_date',e.target.value)}/></div>{[['registered','NTRCA নিবন্ধিত?'],['recommended','NTRCA সুপারিশপ্রাপ্ত?'],['year','NTRCA নিবন্ধন/সুপারিশের সন'],['subject','NTRCA বিষয়'],['remarks','NTRCA মন্তব্য']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form.extended_profile?.ntrca?.[k]||''} onChange={e=>updateNtrca(k,e.target.value)}/></div>)}</>}<div className="form-section-title full"><b>যোগাযোগ ও ঠিকানা</b></div><div className="field"><label>মোবাইল</label><input value={form.phone||''} onChange={e=>change('phone',e.target.value)}/></div><div className="field"><label>WhatsApp</label><input value={form.whatsapp_no||''} onChange={e=>change('whatsapp_no',e.target.value)}/></div><div className="field"><label>ই-মেইল</label><input type="email" value={form.email||''} onChange={e=>change('email',e.target.value)}/></div><div className="field"><label>বর্তমান ঠিকানা</label><input value={form.address||''} onChange={e=>change('address',e.target.value)}/></div><div className="field"><label>স্থায়ী ঠিকানা</label><input value={form.permanent_address||''} onChange={e=>change('permanent_address',e.target.value)}/></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div>{(form.photo_url || getTeacherCustomPhoto(form) || getTeacherPhoto(form)) && <img className="form-photo-preview full" src={form.photo_url || getTeacherCustomPhoto(form) || getTeacherPhoto(form)} alt="প্রোফাইল ছবি"/>}</>}
      {step===6&&<><div className="form-section-title full"><b>🌐 ওয়েবসাইটে যোগাযোগ</b><span>এই profile থেকে Home Page-এর Contact অংশ স্বয়ংক্রিয়ভাবে তথ্য নেবে।</span></div><div className="field"><label>Public Contact Role</label><select value={form.public_contact_role||''} onChange={e=>change('public_contact_role',e.target.value)}><option value="">স্বয়ংক্রিয়ভাবে পদবি/বিষয় দেখে নির্ধারণ</option>{isTeacher&&<><option value="head_teacher">প্রধান শিক্ষক</option><option value="assistant_head_teacher">সহকারী প্রধান শিক্ষক</option><option value="ict_teacher">আইসিটি শিক্ষক</option></>}{!isTeacher&&<option value="office_assistant">অফিস সহকারী</option>}</select></div><div className="field"><label className="check"><input type="checkbox" checked={form.public_contact_enabled!==false} onChange={e=>change('public_contact_enabled',e.target.checked)}/> ওয়েবসাইটের যোগাযোগ অংশে প্রদর্শনযোগ্য</label></div><CustomFields formKey={isTeacher?"teacher":"staff"} form={form} setForm={setForm}/></>}<div className="form-actions full"><button type="button" className="mini" onClick={()=>setForm(isTeacher?{...emptyTeacher}:{...emptyStaff})}>↻ ফর্ম রিসেট</button>{step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}{step<6?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'সংরক্ষণ করুন'}</button>}</div>
     </form>
     {msg&&<p className="msg" role="status">{msg}</p>}

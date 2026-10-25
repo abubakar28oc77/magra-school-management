@@ -112,6 +112,25 @@ export async function initPhotoStorage() {
     console.warn('magra_db_students photo scan error:', e);
   }
 
+  // 2b. Also scan magra_db_teachers in localStorage for embedded custom photos
+  try {
+    const rawTch = localStorage.getItem('magra_db_teachers');
+    if (rawTch) {
+      const list = JSON.parse(rawTch);
+      if (Array.isArray(list)) {
+        list.forEach(t => {
+          if (!t) return;
+          const photo = t.photo_url || t.photo;
+          if (photo && typeof photo === 'string' && photo.startsWith('data:image') && photo.length > 50 && !photo.includes('data:image/svg')) {
+            saveTeacherCustomPhoto(t, photo);
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('magra_db_teachers photo scan error:', e);
+  }
+
   // 3. Load all photos from IndexedDB into PHOTO_CACHE
   try {
     const db = await openDB();
@@ -174,6 +193,69 @@ export function savePhotoToCacheAndIdb(student, dataUrl) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('magra_photos_synced'));
   }
+}
+
+export function getTeacherPhotoKeys(teacher) {
+  if (!teacher) return [];
+  const keys = [];
+  const id = String(teacher.id || '').toLowerCase().trim();
+  const empId = String(teacher.employee_id || '').toLowerCase().trim();
+  const nameBn = String(teacher.name_bn || teacher.name || '').trim();
+
+  if (id) {
+    keys.push(`teacher_${id}`);
+    keys.push(`tch_${id}`);
+    keys.push(id);
+  }
+  if (empId) {
+    keys.push(`teacher_${empId}`);
+    keys.push(`teacher_emp_${empId}`);
+    keys.push(`tch_emp_${empId}`);
+    keys.push(`emp_${empId}`);
+  }
+  if (nameBn) {
+    keys.push(`teacher_name_${nameBn}`);
+  }
+  return keys;
+}
+
+export function saveTeacherCustomPhoto(teacher, dataUrl) {
+  if (!teacher || !dataUrl) return;
+  const keys = getTeacherPhotoKeys(teacher);
+  keys.forEach(k => {
+    PHOTO_CACHE.set(k, dataUrl);
+    idbSetPhoto(k, dataUrl);
+  });
+  const empId = String(teacher.employee_id || teacher.id || '').trim();
+  if (empId) {
+    try {
+      localStorage.setItem(`magra_photo_teacher_${empId}`, dataUrl);
+    } catch {}
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('magra_photos_synced'));
+    window.dispatchEvent(new CustomEvent('magra_teachers_updated'));
+  }
+}
+
+export function getTeacherCustomPhoto(teacher) {
+  if (!teacher) return null;
+  const keys = getTeacherPhotoKeys(teacher);
+  for (const k of keys) {
+    const val = PHOTO_CACHE.get(k);
+    if (val && val.length > 50) return val;
+  }
+  const empId = String(teacher.employee_id || teacher.id || '').trim();
+  if (empId) {
+    try {
+      const lsVal = localStorage.getItem(`magra_photo_teacher_${empId}`);
+      if (lsVal && lsVal.length > 50) {
+        PHOTO_CACHE.set(`teacher_${empId}`, lsVal);
+        return lsVal;
+      }
+    } catch {}
+  }
+  return null;
 }
 
 export async function saveLeadershipPhoto(roleKey, dataUrl) {

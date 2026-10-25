@@ -94,30 +94,8 @@ export function sortStudentsList(list) {
   });
 }
 
-import {
-  MOCK_MARKS,
-  MOCK_SCHOOL,
-  MOCK_USERS,
-  MOCK_STUDENTS,
-  MOCK_TEACHERS,
-  MOCK_STAFF,
-  MOCK_COMMITTEE,
-  DEFAULT_ACADEMIC_YEARS,
-  MOCK_NOTICES,
-  MOCK_EXAMS,
-  MOCK_SUBJECTS,
-  MOCK_ROUTINES,
-  MOCK_FEES,
-  MOCK_EXPENSES,
-  MOCK_BOOKS,
-  MOCK_ADMISSIONS,
-  getStudentPhoto,
-  saveStudentCustomPhoto,
-  MOCK_SCHOLARSHIPS,
-  MOCK_PUBLIC_CONTENT,
-  MOCK_SSC_RESULTS,
-  CANONICAL_TEACHER_EDUCATION
-} from './mockData.js';
+import { saveStudentCustomPhoto } from './mockData.js';
+import { saveTeacherCustomPhoto } from './photoStorage.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
@@ -560,6 +538,13 @@ function setLocalStore(key, val) {
         }
       });
     }
+    if (key === 'teachers' && Array.isArray(val)) {
+      val.forEach(t => {
+        if (t && (t.photo_url || t.photo)) {
+          saveTeacherCustomPhoto(t, t.photo_url || t.photo);
+        }
+      });
+    }
     localStorage.setItem('magra_db_' + key, JSON.stringify(val));
   } catch (err) {
     console.warn('localStorage quota error for ' + key + ':', err);
@@ -576,6 +561,21 @@ function setLocalStore(key, val) {
         console.log('Saved students directory successfully in lightweight format (photos preserved in Photo Vault)');
       } catch (e2) {
         console.error('Failed to save to localStorage:', e2);
+      }
+    }
+    if (key === 'teachers' && Array.isArray(val)) {
+      try {
+        const light = val.map(t => {
+          const copy = { ...t };
+          delete copy.photo_url;
+          delete copy.photo;
+          delete copy.image;
+          return copy;
+        });
+        localStorage.setItem('magra_db_' + key, JSON.stringify(light));
+        console.log('Saved teachers directory successfully in lightweight format (photos preserved in Photo Vault)');
+      } catch (e2) {
+        console.error('Failed to save teachers to localStorage:', e2);
       }
     }
   }
