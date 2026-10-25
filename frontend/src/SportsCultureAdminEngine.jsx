@@ -4,6 +4,53 @@ import { requestApi } from './apiClient';
 
 const STORAGE_KEY = 'magra_sports_culture_admin_v2';
 
+// 16-Person Canonical Official Institutional Roster for Multimedia Classroom
+// 15 Registered Teachers (in employee_id order) + 1 Computer Lab Operator
+export const CANONICAL_MULTIMEDIA_ROSTER = [
+  { serial: 1, id: 't-1', name: 'মুহাম্মদ শফিকুল ইসলাম', designation: 'প্রধান শিক্ষক', subject: 'প্রশাসনিক ও আইসিটি লিডারশিপ', phone: '01753539680', email: 'shafiht.mhs@gmail.com' },
+  { serial: 2, id: 't-2', name: 'তাপসী সরকার', designation: 'সহকারী প্রধান শিক্ষক', subject: 'সামাজিক বিজ্ঞান ও একাডেমিক তত্ত্বাবধান', phone: '01721750647', email: 'tapasi.aht@gmail.com' },
+  { serial: 3, id: 't-3', name: 'মো: আনোয়ার হোসেন', designation: 'সিনিয়র শিক্ষক', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা', phone: '01718-XXXXXX' },
+  { serial: 4, id: 't-4', name: 'মোঃ ছানোয়ার হোসেন', designation: 'সিনিয়র শিক্ষক', subject: 'বাংলাদেশ ও বিশ্বপরিচয়', phone: '01719-XXXXXX' },
+  { serial: 5, id: 't-5', name: 'মোহাম্মদ খালিদুর রহমান তাং', designation: 'সিনিয়র শিক্ষক', subject: 'কৃষি শিক্ষা', phone: '01720-XXXXXX' },
+  { serial: 6, id: 't-6', name: 'মুহাম্মদ আবুবকর সিদ্দিক', designation: 'সহকারী শিক্ষক (আইসিটি ও ল্যাব ইনচার্জ)', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', phone: '01721-XXXXXX' },
+  { serial: 7, id: 't-7', name: 'মুহাম্মদ আব্দুর রহিম লিটন', designation: 'সিনিয়র শিক্ষক', subject: 'জীববিজ্ঞান', phone: '01722-XXXXXX' },
+  { serial: 8, id: 't-8', name: 'মোঃ হাবিবুর রহমান', designation: 'সিনিয়র শিক্ষক', subject: 'পদার্থবিজ্ঞান ও গণিত', phone: '01723-XXXXXX' },
+  { serial: 9, id: 't-9', name: 'আরতী রানী ভদ্র', designation: 'সিনিয়র শিক্ষক', subject: 'হিন্দু ধর্ম ও নৈতিক শিক্ষা', phone: '01724-XXXXXX' },
+  { serial: 10, id: 't-10', name: 'মোঃ ওয়াহিদুর রহমান', designation: 'সহকারী শিক্ষক', subject: 'শারীরিক শিক্ষা ও স্বাস্থ্য', phone: '01725-XXXXXX' },
+  { serial: 11, id: 't-11', name: 'মোঃ শাহিন মিয়া', designation: 'সহকারী শিক্ষক', subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান', phone: '01726-XXXXXX' },
+  { serial: 12, id: 't-12', name: 'মোঃ আশরাফুল আলম', designation: 'সহকারী শিক্ষক', subject: 'উচ্চতর গণিত ও বিজ্ঞান', phone: '01727-XXXXXX' },
+  { serial: 13, id: 't-13', name: 'কান্তা মনি', designation: 'সহকারী শিক্ষিকা', subject: 'ব্যবসায় শিক্ষা ও হিসাববিজ্ঞান', phone: '01728-XXXXXX' },
+  { serial: 14, id: 't-14', name: 'মোঃ রফিকুল ইসলাম', designation: 'সহকারী শিক্ষক', subject: 'ভৌত বিজ্ঞান ও রসায়ন', phone: '01729-XXXXXX' },
+  { serial: 15, id: 't-15', name: 'মোঃ আব্দুল খালেক', designation: 'সহকারী শিক্ষক', subject: 'বাংলা ভাষা ও সাহিত্য', phone: '01730-XXXXXX' },
+  { serial: 16, id: 'stf-1', name: 'মোঃ আলমগীর হোসেন', designation: 'কম্পিউটার ল্যাব অপারেটর', subject: 'কম্পিউটার ল্যাব ও মাল্টিমিডিয়া টেকনিক্যাল সাপোর্ট', phone: '01726-223355', email: 'alamgir.staff.magra@gmail.com' }
+];
+
+export const isTeacherMatch = (name1, name2) => {
+  if (!name1 || !name2) return false;
+  if (name1 === name2) return true;
+  const clean = s => String(s).replace(/[:.()]/g, '').replace(/\s+/g, ' ').trim();
+  const c1 = clean(name1);
+  const c2 = clean(name2);
+  if (c1 === c2) return true;
+  if (c1.includes('শফিকুল') && c2.includes('শফিকুল')) return true;
+  if (c1.includes('তাপসী') && c2.includes('তাপসী')) return true;
+  if (c1.includes('ছানোয়ার') && c2.includes('ছানোয়ার')) return true;
+  if (c1.includes('খালিদুর') && c2.includes('খালিদুর')) return true;
+  if (c1.includes('আবুবকর') && c2.includes('আবুবকর')) return true;
+  if (c1.includes('আনোয়ার') && c2.includes('আনোয়ার')) return true;
+  if (c1.includes('রহিম') && c2.includes('রহিম')) return true;
+  if (c1.includes('হাবিবুর') && c2.includes('হাবিবুর')) return true;
+  if (c1.includes('আরতী') && c2.includes('আরতী')) return true;
+  if (c1.includes('ওয়াহিদুর') && c2.includes('ওয়াহিদুর')) return true;
+  if (c1.includes('শাহিন') && c2.includes('শাহিন')) return true;
+  if (c1.includes('আশরাফুল') && c2.includes('আশরাফুল')) return true;
+  if (c1.includes('কান্তা') && c2.includes('কান্তা')) return true;
+  if (c1.includes('রফিকুল') && c2.includes('রফিকুল')) return true;
+  if (c1.includes('খালেক') && c2.includes('খালেক')) return true;
+  if (c1.includes('আলমগীর') && c2.includes('আলমগীর')) return true;
+  return false;
+};
+
 // Initial preloaded authentic data for all 4 domains
 const INITIAL_DATA = {
   sports: [
@@ -237,33 +284,64 @@ const INITIAL_DATA = {
       { id: 'mmr-03', name: 'সেন্ট্রাল অডিটোরিয়াম ও সেমিনার হল (কক্ষ নং ১০৫)', projector: 'Optoma Laser Cinema Projector 6000 Lumens', sound: 'Ahuja Digital Audio Console + 4 Speaker Units', backup: 'হেভি-ডিউটি সেন্ট্রাল জেনারেটর ব্যাকআপ', capacity: '১৫০ জন শিক্ষার্থী', status: 'সক্রিয়', incharge: 'মুহাম্মদ আবুবকর সিদ্দিক (ল্যাব ইনচার্জ)' }
     ],
     schedule: [
-      { id: 'ms-01', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', resource: 'শিক্ষক বাতায়ন ও ৩ডি পরমাণু মডেল ও সিমুলেশন' },
-      { id: 'ms-02', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'HTML কোডিং ভিজ্যুয়াল ব্রাউজার ডেমো' },
-      { id: 'ms-03', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'সোমবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', resource: 'মুক্তপাঠ মানবদেহের রক্ত সংবহন অ্যানিমেশন' },
-      { id: 'ms-04', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'মঙ্গলবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'সাধারণ বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', resource: 'সৌরজগৎ ও মহাবিশ্ব সিমুলেশন' },
-      { id: 'ms-05', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বুধবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', resource: 'GeoGebra ত্রিমাত্রিক জ্যামিতিক গ্রাফ' },
-      { id: 'ms-06', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', resource: 'গুগল আর্থ ও ভার্চুয়াল জিওগ্রাফিক ট্যুর' },
-      { id: 'ms-07', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বৃহস্পতিবার', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'স্ক্র্যাচ অ্যানিমেশন ও কোডিং বেসিকস' }
+      { id: 'ms-01', roomId: 'mmr-03', roomName: 'সেন্ট্রাল অডিটোরিয়াম ও সেমিনার হল (কক্ষ নং ১০৫)', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'সম্মিলিত', subject: 'ক্যারিয়ার কাউন্সিলিং ও আইসিটি ভিশন', teacher: 'মুহাম্মদ শফিকুল ইসলাম', resource: 'স্মার্ট ক্লাসরুম মনিটরিং ও ডিজিটাল একাডেমিক সুপারভিশন ড্যাশবোর্ড' },
+      { id: 'ms-02', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'সামাজিক বিজ্ঞান ও ভূগোল', teacher: 'তাপসী সরকার', resource: 'গুগল আর্থ ও ভার্চুয়াল জিওগ্রাফিক ট্যুর' },
+      { id: 'ms-03', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'সোমবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '৮ম শ্রেণি', section: 'পদ্মা', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা', teacher: 'মো: আনোয়ার হোসেন', resource: 'পবিত্র কুরআনের তাজবীদ ও মাখরাজ উচ্চারণ ৩ডি অডিও-ভিজ্যুয়াল সিমুলেশন' },
+      { id: 'ms-04', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বুধবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৯ম শ্রেণি', section: 'যমুনা', subject: 'বাংলাদেশ ও বিশ্বপরিচয়', teacher: 'মোঃ ছানোয়ার হোসেন', resource: '১৯৭১ এর মুক্তিযুদ্ধ ও ৭ই মার্চের ঐতিহাসিক ভাষণের মাল্টিমিডিয়া আর্কাইভ' },
+      { id: 'ms-05', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'মঙ্গলবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'কৃষি শিক্ষা', teacher: 'মোহাম্মদ খালিদুর রহমান তাং', resource: 'আধুনিক হাইড্রোপনিক্স ও জৈব কৃষি প্রযুক্তির ভিডিও ডকু-টিউটোরিয়াল' },
+      { id: 'ms-06', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'HTML কোডিং ভিজ্যুয়াল ব্রাউজার ডেমো' },
+      { id: 'ms-07', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বৃহস্পতিবার', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'স্ক্র্যাচ অ্যানিমেশন ও কোডিং বেসিকস' },
+      { id: 'ms-08', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'সোমবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মুহাম্মদ আব্দুর রহিম লিটন', resource: 'উদ্ভিদ ও প্রাণিকোষের আল্ট্রাস্ট্রাকচার এবং মানব হৃদপিণ্ডের ৩ডি অ্যানিমেশন' },
+      { id: 'ms-09', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', resource: 'আলোর প্রতিসরণ ও লেন্সের বাস্তব ৩ডি রে ডায়াগ্রাম সিমুলেশন' },
+      { id: 'ms-10', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'রবিবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '৭ম শ্রেণি', section: 'খ-শাখা', subject: 'হিন্দু ধর্ম ও নৈতিক শিক্ষা', teacher: 'আরতী রানী ভদ্র', resource: 'শ্রীমদ্ভগবদ্গীতার অহিংসা ও চরিত্র গঠন বিষয়ক মাল্টিমিডিয়া পাঠ' },
+      { id: 'ms-11', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'বুধবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৮ম শ্রেণি', section: 'মেঘনা', subject: 'শারীরিক শিক্ষা ও স্বাস্থ্য', teacher: 'মোঃ ওয়াহিদুর রহমান', resource: 'জরুরি প্রাথমিক চিকিৎসা (CPR & First Aid) ও ক্রীড়া স্বাস্থ্যবিধি ৩ডি নির্দেশিকা' },
+      { id: 'ms-12', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'মঙ্গলবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৯ম শ্রেণি', section: 'কর্ণফুলী', subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান', teacher: 'মোঃ শাহিন মিয়া', resource: 'অনলাইন ই-লাইব্রেরি রেফারেন্স ব্রাউজিং ও তথ্য প্রযুক্তি সহায়িকা' },
+      { id: 'ms-13', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বুধবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', resource: 'GeoGebra সফটওয়্যারে ত্রিমাত্রিক ঘনবস্তুর পৃষ্ঠতল ও আয়তন বিশ্লেষণ' },
+      { id: 'ms-14', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'সোমবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'ব্যবসায় শিক্ষা ও হিসাববিজ্ঞান', teacher: 'কান্তা মনি', resource: 'MS Excel-এ আধুনিক হিসাববিজ্ঞান ও স্বয়ংক্রিয় আর্থিক বিবরণী প্রস্তুতকরণ' },
+      { id: 'ms-15', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'মঙ্গলবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '১০ম শ্রেণি', section: 'মেঘনা', subject: 'ভৌত বিজ্ঞান ও রসায়ন', teacher: 'মোঃ রফিকুল ইসলাম', resource: 'পর্যায় সারণির মৌলসমূহ ও রাসায়নিক বন্ধন ৩ডি অ্যানিমেশন সিমুলেশন' },
+      { id: 'ms-16', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'মঙ্গলবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'বাংলা ভাষা ও সাহিত্য', teacher: 'মোঃ আব্দুল খালেক', resource: 'প্রমিত বাংলা ব্যাকরণ, ধ্বনিতত্ত্ব ও শুদ্ধ উচ্চারণের ইন্টারেক্টিভ অডিও লেকচার' },
+      { id: 'ms-17', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: 'দৈনিক প্রস্তুতি (০৯:০০-০৯:৩০)', class_name: 'স্মার্ট ক্লাসরুম ১-৩', section: 'টেকনিক্যাল সাপোর্ট', subject: 'হার্ডওয়্যার ও প্রজেক্টর অপারেশন', teacher: 'মোঃ আলমগীর হোসেন', resource: 'মাল্টিমিডিয়া প্রজেক্টর, সাউন্ড কনসোল ও পাওয়ার ব্যাকআপ চেকলিস্ট' }
     ],
     logs: [
-      { id: 'ml-01', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', status: 'taken', topicCovered: 'আলোর প্রতিফলন ও গোলীয় দর্পণ সিমুলেশন', studentsPresent: '৫৮ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'শিক্ষার্থীরা সফলভাবে ৩ডি অ্যানিমেশন পর্যবেক্ষণ করেছে' },
-      { id: 'ml-02', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'HTML লিস্ট ও টেবিল ট্যাগ ডিজাইন', studentsPresent: '৫২ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'প্রজেক্টরে লাইভ কোড রান ও পরীক্ষা সম্পন্ন' },
-      { id: 'ml-03', date: '২০২৬-১০-২৫', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'সাধারণ বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', status: 'missed', reasonNotTaken: 'শিক্ষক দাপ্তরিক কাজে উপজেলা মাধ্যমিক শিক্ষা অফিসে অবস্থান করছিলেন', remarks: 'পরবর্তী কর্মদিবসে মেক-আপ ক্লাস নির্ধারণ করা হয়েছে' },
-      { id: 'ml-04', date: '২০২৬-১০-২৪', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', status: 'taken', topicCovered: 'মানব হৃৎপিণ্ড ও রক্ত সংবহন ৩ডি মডেল', studentsPresent: '৫৫ জন', projectorUsed: 'Epson EB-2250U', remarks: 'শিক্ষক বাতায়নের সেরা কন্টেন্ট প্রদর্শিত' },
-      { id: 'ml-05', date: '২০২৬-১০-২৪', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', status: 'taken', topicCovered: 'স্থানাঙ্ক জ্যামিতি ও ত্রিভুজের ক্ষেত্রফল', studentsPresent: '৪৭ জন', projectorUsed: 'BenQ Interactive 4K Smart Board', remarks: 'স্মার্ট বোর্ডে শিক্ষার্থীদের দিয়ে অনুশীলন করানো হয়' },
-      { id: 'ml-06', date: '২০২৬-১০-২৩', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', status: 'missed', reasonNotTaken: 'হঠাৎ বিদ্যুৎ বিভ্রাট ও ব্যাকআপ আইপিএস রক্ষণাবেক্ষণ চলাকালীন সময়ে', remarks: 'সাধারণ শ্রেণিকক্ষে পাঠদান পরিচালিত হয়েছে' },
-      { id: 'ml-07', date: '২০২৬-১০-২৩', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'কম্পিউটার নেটওয়ার্ক ও ক্লাউড ড্রাইভ পরিচিতি', studentsPresent: '৬০ জন', projectorUsed: 'BenQ Interactive Smart Board', remarks: 'শতভাগ উপস্থিতি ও ব্যবহারিক ডেমো সফল' }
+      { id: 'ml-01', date: '২০২৬-১০-২৫', roomId: 'mmr-03', roomName: 'সেন্ট্রাল অডিটোরিয়াম ও সেমিনার হল (কক্ষ নং ১০৫)', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'সম্মিলিত', subject: 'ক্যারিয়ার কাউন্সিলিং ও আইসিটি ভিশন', teacher: 'মুহাম্মদ শফিকুল ইসলাম', status: 'taken', topicCovered: 'স্মার্ট একাডেমিয়া ও তথ্যপ্রযুক্তি নেতৃত্ব', studentsPresent: '১৪০ জন', projectorUsed: 'Optoma Laser Cinema Projector', remarks: 'প্রধান শিক্ষকের দিকনির্দেশনামূলক ক্লাস সফল' },
+      { id: 'ml-02', date: '২০২৬-১০-২৩', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'সামাজিক বিজ্ঞান ও ভূগোল', teacher: 'তাপসী সরকার', status: 'missed', reasonNotTaken: 'হঠাৎ বিদ্যুৎ বিভ্রাট ও ব্যাকআপ আইপিএস রক্ষণাবেক্ষণ চলাকালীন সময়ে', remarks: 'সাধারণ শ্রেণিকক্ষে পাঠদান পরিচালিত হয়েছে' },
+      { id: 'ml-03', date: '২০২৬-১০-২৪', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '৮ম শ্রেণি', section: 'পদ্মা', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা', teacher: 'মো: আনোয়ার হোসেন', status: 'taken', topicCovered: 'আরবি হরফের মাখরাজ ও সহীহ তিলাওয়াত ডেমো', studentsPresent: '৫৬ জন', projectorUsed: 'Epson EB-2250U', remarks: 'অডিও স্পিকারে শিক্ষার্থীরা সঠিকভাবে উচ্চারণ অনুশীলন করে' },
+      { id: 'ml-04', date: '২০২৬-১০-২৩', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৯ম শ্রেণি', section: 'যমুনা', subject: 'বাংলাদেশ ও বিশ্বপরিচয়', teacher: 'মোঃ ছানোয়ার হোসেন', status: 'taken', topicCovered: '১৯৭১ এর মুক্তিযুদ্ধ ও ৭ই মার্চের ভাষণ', studentsPresent: '৫৮ জন', projectorUsed: 'BenQ Interactive 4K Board', remarks: 'ঐতিহাসিক প্রামাণ্যচিত্র প্রদর্শন সফল' },
+      { id: 'ml-05', date: '২০২৬-১০-২২', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'কৃষি শিক্ষা', teacher: 'মোহাম্মদ খালিদুর রহমান তাং', status: 'taken', topicCovered: 'হাইড্রোপনিক্স পদ্ধতিতে পুষ্টি উপাদান সরবরাহ', studentsPresent: '৫০ জন', projectorUsed: 'Epson EB-2250U', remarks: 'ভিডিও ডকু প্রদর্শন ও শিক্ষার্থীদের নোট গ্রহণ' },
+      { id: 'ml-06', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'HTML লিস্ট ও টেবিল ট্যাগ ডিজাইন', studentsPresent: '৫২ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'প্রজেক্টরে লাইভ কোড রান ও পরীক্ষা সম্পন্ন' },
+      { id: 'ml-07', date: '২০২৬-১০-২৩', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'কম্পিউটার নেটওয়ার্ক ও ক্লাউড ড্রাইভ পরিচিতি', studentsPresent: '৬০ জন', projectorUsed: 'BenQ Interactive Smart Board', remarks: 'শতভাগ উপস্থিতি ও ব্যবহারিক ডেমো সফল' },
+      { id: 'ml-08', date: '২০২৬-১০-২৪', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মুহাম্মদ আব্দুর রহিম লিটন', status: 'taken', topicCovered: 'মানব হৃৎপিণ্ড ও রক্ত সংবহন ৩ডি মডেল', studentsPresent: '৫৫ জন', projectorUsed: 'BenQ Interactive Smart Board', remarks: 'শিক্ষক বাতায়নের সেরা কন্টেন্ট প্রদর্শিত' },
+      { id: 'ml-09', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', status: 'taken', topicCovered: 'আলোর প্রতিফলন ও গোলীয় দর্পণ সিমুলেশন', studentsPresent: '৫৮ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'শিক্ষার্থীরা সফলভাবে ৩ডি অ্যানিমেশন পর্যবেক্ষণ করেছে' },
+      { id: 'ml-10', date: '২০২৬-১০-২৫', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '৭ম শ্রেণি', section: 'খ-শাখা', subject: 'হিন্দু ধর্ম ও নৈতিক শিক্ষা', teacher: 'আরতী রানী ভদ্র', status: 'taken', topicCovered: 'নৈতিক জীবনাচরণ ও মানবিক মূল্যবোধ', studentsPresent: '৪৫ জন', projectorUsed: 'BenQ Smart Board', remarks: 'স্লাইড প্রদর্শনী ও আলোচনা সম্পন্ন' },
+      { id: 'ml-11', date: '২০২৬-১০-২১', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৮ম শ্রেণি', section: 'মেঘনা', subject: 'শারীরিক শিক্ষা ও স্বাস্থ্য', teacher: 'মোঃ ওয়াহিদুর রহমান', status: 'taken', topicCovered: 'খেলার মাঠে ইনজুরি রোধ ও প্রাথমিক চিকিৎসা', studentsPresent: '৫৩ জন', projectorUsed: 'Epson EB-2250U', remarks: 'ফার্স্ট এইড ভিডিও ডেমো সফল' },
+      { id: 'ml-12', date: '২০২৬-১০-২২', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৯ম শ্রেণি', section: 'কর্ণফুলী', subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান', teacher: 'মোঃ শাহিন মিয়া', status: 'taken', topicCovered: 'অনলাইন ই-লাইব্রেরি ব্রাউজিং ও রেফারেন্স কালেকশন', studentsPresent: '৪৭ জন', projectorUsed: 'BenQ Smart Board', remarks: 'ই-বুক খোঁজার কৌশল শেখানো হয়েছে' },
+      { id: 'ml-13', date: '২০২৬-১০-২৪', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', status: 'taken', topicCovered: 'স্থানাঙ্ক জ্যামিতি ও ত্রিভুজের ক্ষেত্রফল', studentsPresent: '৪৭ জন', projectorUsed: 'BenQ Interactive 4K Smart Board', remarks: 'স্মার্ট বোর্ডে শিক্ষার্থীদের দিয়ে অনুশীলন করানো হয়' },
+      { id: 'ml-14', date: '২০২৬-১০-২০', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'ব্যবসায় শিক্ষা ও হিসাববিজ্ঞান', teacher: 'কান্তা মনি', status: 'taken', topicCovered: 'এক্সেল স্প্রেডশিটে জাবেদা ও খতিয়ান প্রস্তুত', studentsPresent: '৪৯ জন', projectorUsed: 'Epson EB-2250U', remarks: 'কম্পিউটার স্প্রেডশিট ডেমনস্ট্রেশন সম্পন্ন' },
+      { id: 'ml-15', date: '২০২৬-১০-২১', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '১০ম শ্রেণি', section: 'মেঘনা', subject: 'ভৌত বিজ্ঞান ও রসায়ন', teacher: 'মোঃ রফিকুল ইসলাম', status: 'taken', topicCovered: 'পর্যায় সারণির ইলেকট্রন বিন্যাস ও বন্ধন', studentsPresent: '৫৬ জন', projectorUsed: 'BenQ Smart Board', remarks: 'ইন্টারেক্টিভ সিমুলেশন পরীক্ষা সফল' },
+      { id: 'ml-16', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'বাংলা ভাষা ও সাহিত্য', teacher: 'মোঃ আব্দুল খালেক', status: 'missed', reasonNotTaken: 'শিক্ষক দাপ্তরিক কাজে উপজেলা মাধ্যমিক শিক্ষা অফিসে অবস্থান করছিলেন', remarks: 'পরবর্তী কর্মদিবসে মেক-আপ ক্লাস নির্ধারণ করা হয়েছে' },
+      { id: 'ml-17', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: 'দৈনিক প্রস্তুতি (০৯:০০-০৯:৩০)', class_name: 'স্মার্ট ক্লাসরুম ১-৩', section: 'টেকনিক্যাল সাপোর্ট', subject: 'হার্ডওয়্যার ও প্রজেক্টর অপারেশন', teacher: 'মোঃ আলমগীর হোসেন', status: 'taken', topicCovered: 'প্রজেক্টর লেন্স ক্লিনিং, ইউপিএস ভোল্টেজ ও সাউন্ড সিস্টেম চেক', studentsPresent: '—', projectorUsed: 'সকল প্রজেক্টর', remarks: 'সকল স্মার্ট ক্লাসরুমের প্রযুক্তিগত সংযোগ শতভাগ সক্রিয়' }
     ],
     projects: [
-      { id: 'mp-01', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'স্মার্ট স্কুল নেটওয়ার্কিং ও সাইবার সচেতনতা ৩ডি ইন্টারেক্টিভ সিমুলেশন', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও বিদ্যালয় ক্লাউড রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/magra-ict-01', toolsUsed: 'PowerPoint, Canva Pro, Cisco Packet Tracer, Camtasia', dateCreated: '২০২৬-০৮-১৫', learningOutcomes: 'শিক্ষার্থীরা বিদ্যালয়ের লোকাল এরিয়া নেটওয়ার্ক আর্কিটেকচার এবং সাইবার নিরাপত্তা ঝুঁকি চিহ্নিত করতে সক্ষম হবে।', ratingOrBadge: '🏆 বাতায়ন পাক্ষিক সেরা কন্টেন্ট নির্মাতা' },
-      { id: 'mp-02', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'HTML5 ওয়েবপেজ ডেভেলপমেন্ট ও লাইভ কোডিং স্টুডিও', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/magra-html5-02', toolsUsed: 'VS Code Live Server, OBS Studio, Prezi', dateCreated: '২০২৬-০৯-১০', learningOutcomes: 'শিক্ষার্থীরা নিজস্ব বায়োডাটা ও প্রাতিষ্ঠানিক ওয়েবপেজের গঠন ও টেবিল কোডিং করতে পারবে।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
-      { id: 'mp-03', teacher: 'মোঃ হাবিবুর রহমান', teacherDesignation: 'সিনিয়র সহকারী শিক্ষক, পদার্থবিজ্ঞান', projectTitle: 'আলোর প্রতিসরণ ও লেন্সের বাস্তব ৩ডি রে ডায়াগ্রাম সিমুলেশন', subject: 'পদার্থবিজ্ঞান', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও মুক্তপাঠ', contentUrl: 'https://teachers.gov.bd/content/details/phy-lens-01', toolsUsed: 'PhET Interactive Simulation, MS PowerPoint 365', dateCreated: '২০২৬-০৭-২২', learningOutcomes: 'উত্তল ও অবতল লেন্সের প্রতিবিম্ব গঠনের প্রকৃতি ও রৈখিক বিবর্ধন সরাসরি অনুধাবন।', ratingOrBadge: '🌟 জেলা সেরা ডিজিটাল কন্টেন্ট স্বীকৃতি' },
-      { id: 'mp-04', teacher: 'মোসাঃ নাসরিন আক্তার', teacherDesignation: 'সহকারী শিক্ষিকা, জীববিজ্ঞান', projectTitle: 'সালোকসংশ্লেষণ প্রক্রিয়ার ফটোসিন্থেটিক ৩ডি অ্যানিমেশন ও কুইজ', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/bio-photo-01', toolsUsed: 'Canva Education, Animaker, Google Forms Quiz', dateCreated: '২০২৬-০৬-৩০', learningOutcomes: 'আলোক পর্যায় ও অন্ধকার পর্যায়ের এটিপি এবং এনএডিপিএইচ সংশ্লেষণ প্রক্রিয়া বিশ্লেষণ।', ratingOrBadge: '🏆 উপজেলা পর্যায়ে শ্রেষ্ঠ শিক্ষিকা সম্মাননা' },
-      { id: 'mp-05', teacher: 'মোঃ আশরাফুল আলম', teacherDesignation: 'সহকারী শিক্ষক, উচ্চতর গণিত', projectTitle: 'GeoGebra সফটওয়্যারে ত্রিমাত্রিক ঘনবস্তুর পৃষ্ঠতল ও আয়তন বিশ্লেষণ', subject: 'উচ্চতর গণিত', class_name: '১০ম শ্রেণি', platform: 'মুক্তপাঠ ও শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/math-geogebra-01', toolsUsed: 'GeoGebra 3D Calculator, PowerPoint', dateCreated: '২০২৬-০৮-০৫', learningOutcomes: 'গোলক, কোণক ও বেলনের ত্রিমাত্রিক রূপ ও সূত্রাবলির জ্যামিতিক প্রমাণ।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
-      { id: 'mp-06', teacher: 'তাপসী সরকার', teacherDesignation: 'সহকারী শিক্ষিকা, সামাজিক বিজ্ঞান', projectTitle: 'গুগল আর্থ ও ভার্চুয়াল মানচিত্রে বাংলাদেশের নদীপ্রণালী ও ভূতাত্ত্বিক গঠন', subject: 'ভূগোল ও পরিবেশ', class_name: '৭ম-৮ম শ্রেণি', platform: 'বিদ্যালয় ডিজিটাল রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/geo-river-01', toolsUsed: 'Google Earth Studio, PowerPoint, Canva', dateCreated: '২০২৬-০৯-১৮', learningOutcomes: 'পদ্মা, মেঘনা ও যমুনার গতিপথ ও বদ্বীপ অঞ্চলের বৈশিষ্ট্য সরাসরি স্যাটেলাইট চিত্রে পর্যবেক্ষণ।', ratingOrBadge: 'বিশেষ প্রশংসিত উদ্ভাবনী উপকরণ' }
+      { id: 'mp-01', teacher: 'মুহাম্মদ শফিকুল ইসলাম', teacherDesignation: 'প্রধান শিক্ষক', projectTitle: 'স্মার্ট ক্লাসরুম মনিটরিং ও ডিজিটাল একাডেমিক সুপারভিশন ড্যাশবোর্ড', subject: 'প্রশাসনিক ও আইসিটি লিডারশিপ', class_name: 'সমগ্র বিদ্যালয়', platform: 'শিক্ষক বাতায়ন ও এটুআই (a2i)', contentUrl: 'https://teachers.gov.bd/content/details/magra-head-01', toolsUsed: 'Google Workspace, MS Excel Dashboard, Zoom', dateCreated: '২০২৬-০১-১৫', learningOutcomes: 'ডিজিটাল ক্লাসরুমের শিখন-শেখানো কার্যক্রমের সার্বক্ষণিক মনিটরিং ও গুণগত মানোন্নয়ন নিশ্চিতকরণ।', ratingOrBadge: '🏆 জাতীয় শিক্ষা সপ্তাহ সেরা প্রতিষ্ঠান প্রধান স্বীকৃতি' },
+      { id: 'mp-02', teacher: 'তাপসী সরকার', teacherDesignation: 'সহকারী প্রধান শিক্ষক', projectTitle: 'গুগল আর্থ ও ভার্চুয়াল মানচিত্রে বাংলাদেশের নদীপ্রণালী ও ভূতাত্ত্বিক গঠন', subject: 'সামাজিক বিজ্ঞান ও ভূগোল', class_name: '৭ম-৮ম শ্রেণি', platform: 'বিদ্যালয় ডিজিটাল রিপোজিটরি ও শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/geo-river-01', toolsUsed: 'Google Earth Studio, PowerPoint, Canva', dateCreated: '২০২৬-০৯-১৮', learningOutcomes: 'পদ্মা, মেঘনা ও যমুনার গতিপথ ও বদ্বীপ অঞ্চলের বৈশিষ্ট্য সরাসরি স্যাটেলাইট চিত্রে পর্যবেক্ষণ ও বিশ্লেষণ।', ratingOrBadge: 'বিশেষ প্রশংসিত উদ্ভাবনী উপকরণ' },
+      { id: 'mp-03', teacher: 'মো: আনোয়ার হোসেন', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: 'পবিত্র কুরআনের তাজবীদ ও মাখরাজ উচ্চারণ ৩ডি অডিও-ভিজ্যুয়াল সিমুলেশন', subject: 'ইসলাম ধর্ম ও নৈতিক শিক্ষা', class_name: '৮ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/islam-makhraj-01', toolsUsed: 'Audacity, MS PowerPoint, Canva Education', dateCreated: '২০২৬-০৮-২০', learningOutcomes: 'শিক্ষার্থীরা আরবি হরফের সঠিক মাখরাজ ও সিফাত নির্ভুলভাবে উচ্চারণ করতে সক্ষম হবে।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-04', teacher: 'মোঃ ছানোয়ার হোসেন', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: '১৯৭১ এর মুক্তিযুদ্ধ ও ৭ই মার্চের ঐতিহাসিক ভাষণের মাল্টিমিডিয়া আর্কাইভ', subject: 'বাংলাদেশ ও বিশ্বপরিচয়', class_name: '৯ম-১০ম শ্রেণি', platform: 'মুক্তপাঠ ও শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/liberation-1971-01', toolsUsed: 'Camtasia, Premiere Pro, Prezi', dateCreated: '২০২৬-০৭-১০', learningOutcomes: 'মুক্তিযুদ্ধের সেক্টরভিত্তিক ইতিহাস এবং বঙ্গবন্ধুর ঐতিহাসিক ভাষণের প্রেক্ষাপট গভীরভাবে অনুধাবন।', ratingOrBadge: '🌟 জেলা সেরা ডিজিটাল কন্টেন্ট নির্মাতা' },
+      { id: 'mp-05', teacher: 'মোহাম্মদ খালিদুর রহমান তাং', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: 'আধুনিক হাইড্রোপনিক্স ও জৈব কৃষি প্রযুক্তির ভিডিও ডকু-টিউটোরিয়াল', subject: 'কৃষি শিক্ষা', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/agri-hydro-01', toolsUsed: 'PowerPoint, Filmora, Canva', dateCreated: '২০২৬-০৮-১২', learningOutcomes: 'মাটিহীন চাষাবাদ প্রযুক্তি (Hydroponics) ও পরিবেশবান্ধব বালাইনাশক ব্যবহারের বাস্তব কলাকৌশল অর্জন।', ratingOrBadge: '🏆 উপজেলা কৃষি উদ্ভাবনী শিক্ষক সম্মাননা' },
+      { id: 'mp-06', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'স্মার্ট স্কুল নেটওয়ার্কিং ও সাইবার সচেতনতা ৩ডি ইন্টারেক্টিভ সিমুলেশন', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও বিদ্যালয় ক্লাউড রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/magra-ict-01', toolsUsed: 'PowerPoint, Canva Pro, Cisco Packet Tracer, Camtasia', dateCreated: '২০২৬-০৮-১৫', learningOutcomes: 'শিক্ষার্থীরা বিদ্যালয়ের লোকাল এরিয়া নেটওয়ার্ক আর্কিটেকচার এবং সাইবার নিরাপত্তা ঝুঁকি চিহ্নিত করতে সক্ষম হবে।', ratingOrBadge: '🏆 বাতায়ন পাক্ষিক সেরা কন্টেন্ট নির্মাতা' },
+      { id: 'mp-07', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'HTML5 ওয়েবপেজ ডেভেলপমেন্ট ও লাইভ কোডিং স্টুডিও', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/magra-html5-02', toolsUsed: 'VS Code Live Server, OBS Studio, Prezi', dateCreated: '২০২৬-০৯-১০', learningOutcomes: 'শিক্ষার্থীরা নিজস্ব বায়োডাটা ও প্রাতিষ্ঠানিক ওয়েবপেজের গঠন ও টেবিল কোডিং করতে পারবে।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-08', teacher: 'মুহাম্মদ আব্দুর রহিম লিটন', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: 'উদ্ভিদ ও প্রাণিকোষের আল্ট্রাস্ট্রাকচার এবং মানব হৃদপিণ্ডের ৩ডি অ্যানিমেশন', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/bio-cell-01', toolsUsed: 'BioDigital Human, Animaker, Google Forms Quiz', dateCreated: '২০২৬-০৬-৩০', learningOutcomes: 'কোষের অঙ্গাণুসমূহের গঠন ও হৃদযন্ত্রের সংবহন তন্ত্রের বাস্তব রক্তপ্রবাহ সরাসরি পর্যবেক্ষণ।', ratingOrBadge: '🏆 উপজেলা পর্যায়ে শ্রেষ্ঠ শিক্ষক সম্মাননা' },
+      { id: 'mp-09', teacher: 'মোঃ হাবিবুর রহমান', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: 'আলোর প্রতিসরণ ও লেন্সের বাস্তব ৩ডি রে ডায়াগ্রাম সিমুলেশন', subject: 'পদার্থবিজ্ঞান ও গণিত', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও মুক্তপাঠ', contentUrl: 'https://teachers.gov.bd/content/details/phy-lens-01', toolsUsed: 'PhET Interactive Simulation, MS PowerPoint 365', dateCreated: '২০২৬-০৭-২২', learningOutcomes: 'উত্তল ও অবতল লেন্সের প্রতিবিম্ব গঠনের প্রকৃতি ও রৈখিক বিবর্ধন সরাসরি অনুধাবন।', ratingOrBadge: '🌟 জেলা সেরা ডিজিটাল কন্টেন্ট স্বীকৃতি' },
+      { id: 'mp-10', teacher: 'আরতী রানী ভদ্র', teacherDesignation: 'সিনিয়র শিক্ষক', projectTitle: 'শ্রীমদ্ভগবদ্গীতার অহিংসা ও চরিত্র গঠন বিষয়ক মাল্টিমিডিয়া পাঠ উপস্থাপনা', subject: 'হিন্দু ধর্ম ও নৈতিক শিক্ষা', class_name: '৭ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/hindu-moral-01', toolsUsed: 'MS PowerPoint, Canva, Prezi', dateCreated: '২০২৬-০৯-০৫', learningOutcomes: 'শিক্ষার্থীরা নৈতিক মূল্যবোধ, পরমতসহিষ্ণুতা ও মানবকল্যাণের শিক্ষা অনুধাবন করবে।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-11', teacher: 'মোঃ ওয়াহিদুর রহমান', teacherDesignation: 'সহকারী শিক্ষক', projectTitle: 'জরুরি প্রাথমিক চিকিৎসা (CPR & First Aid) ও ক্রীড়া স্বাস্থ্যবিধি ৩ডি নির্দেশিকা', subject: 'শারীরিক শিক্ষা ও স্বাস্থ্য', class_name: '৮ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও স্কাউট উইং', contentUrl: 'https://teachers.gov.bd/content/details/phys-firstaid-01', toolsUsed: 'CapCut Video Editor, PowerPoint, Canva', dateCreated: '২০২৬-০৮-২৮', learningOutcomes: 'মাঠে খেলাধুলার সময় ইনজুরি রোধ ও তাৎক্ষণিক কৃত্রিম শ্বাস-প্রশ্বাস (CPR) প্রদানের ব্যবহারিক দক্ষতা।', ratingOrBadge: '🎖️ রেড ক্রিসেন্ট ফার্স্ট এইড প্রশংসাপত্র' },
+      { id: 'mp-12', teacher: 'মোঃ শাহিন মিয়া', teacherDesignation: 'সহকারী শিক্ষক', projectTitle: 'অনলাইন ই-লাইব্রেরি রেফারেন্স ব্রাউজিং ও তথ্য প্রযুক্তি সহায়িকা', subject: 'গ্রন্থাগার ও তথ্য বিজ্ঞান', class_name: '৯ম শ্রেণি', platform: 'বিদ্যালয় ডিজিটাল রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/lib-info-01', toolsUsed: 'Koha LMS Demo, Google Scholar, PPT', dateCreated: '২০২৬-০৮-১৮', learningOutcomes: 'ইন্টারনেট থেকে নির্ভরযোগ্য রেফারেন্স বই, জার্নাল ও শিক্ষণীয় প্রবন্ধ অনুসন্ধানের কৌশল।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-13', teacher: 'মোঃ আশরাফুল আলম', teacherDesignation: 'সহকারী শিক্ষক', projectTitle: 'GeoGebra সফটওয়্যারে ত্রিমাত্রিক ঘনবস্তুর পৃষ্ঠতল ও আয়তন বিশ্লেষণ', subject: 'উচ্চতর গণিত ও বিজ্ঞান', class_name: '১০ম শ্রেণি', platform: 'মুক্তপাঠ ও শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/math-geogebra-01', toolsUsed: 'GeoGebra 3D Calculator, PowerPoint', dateCreated: '২০২৬-০৮-০৫', learningOutcomes: 'গোলক, কোণক ও বেলনের ত্রিমাত্রিক রূপ ও সূত্রাবলির জ্যামিতিক প্রমাণ সরাসরি পরীক্ষা।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-14', teacher: 'কান্তা মনি', teacherDesignation: 'সহকারী শিক্ষিকা', projectTitle: 'MS Excel-এ আধুনিক হিসাববিজ্ঞান ও স্বয়ংক্রিয় আর্থিক বিবরণী প্রস্তুতকরণ', subject: 'ব্যবসায় শিক্ষা ও হিসাববিজ্ঞান', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/acc-excel-01', toolsUsed: 'MS Excel 365, PowerPoint, Loom', dateCreated: '২০২৬-০৭-১৮', learningOutcomes: 'দুতরফা দাখিলার স্বয়ংক্রিয় জাবেদা, খতিয়ান ও রেওয়ামিল ফর্মুলা ভিত্তিক গণনার দক্ষতা।', ratingOrBadge: '🌟 উদ্ভাবনী ডিজিটাল ফাইন্যান্স কনটেন্ট' },
+      { id: 'mp-15', teacher: 'মোঃ রফিকুল ইসলাম', teacherDesignation: 'সহকারী শিক্ষক', projectTitle: 'পর্যায় সারণির মৌলসমূহ ও রাসায়নিক বন্ধন ৩ডি অ্যানিমেশন সিমুলেশন', subject: 'ভৌত বিজ্ঞান ও রসায়ন', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও PhET', contentUrl: 'https://teachers.gov.bd/content/details/chem-periodic-01', toolsUsed: 'PhET Interactive, Chemix, PowerPoint', dateCreated: '২০২৬-০৮-৩০', learningOutcomes: 'সমযোজী ও তড়িৎযোজী বন্ধনের ইলেকট্রন শেয়ারিং ও পারমাণবিক আকার বাস্তব অ্যানিমেশনে দেখা।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-16', teacher: 'মোঃ আব্দুল খালেক', teacherDesignation: 'সহকারী শিক্ষক', projectTitle: 'প্রমিত বাংলা ব্যাকরণ, ধ্বনিতত্ত্ব ও শুদ্ধ উচ্চারণের ইন্টারেক্টিভ অডিও লেকচার', subject: 'বাংলা ভাষা ও সাহিত্য', class_name: '৮ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/bangla-grammar-01', toolsUsed: 'Audacity, Canva, PowerPoint', dateCreated: '২০২৬-০৯-১২', learningOutcomes: 'সন্ধি, সমাস এবং ন-ত্ব ও ষ-ত্ব বিধানের নিয়মাবলি ডিজিটাল স্লাইডে স্পষ্ট অনুধাবন।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-17', teacher: 'মোঃ আলমগীর হোসেন', teacherDesignation: 'কম্পিউটার ল্যাব অপারেটর', projectTitle: 'মাল্টিমিডিয়া প্রজেক্টর, সাউন্ড কনসোল ও পাওয়ার ব্যাকআপ ট্রাবলশুটিং ম্যানুয়াল', subject: 'আইসিটি ল্যাব ও মাল্টিমিডিয়া টেকনিক্যাল সাপোর্ট', class_name: 'স্মার্ট ক্লাসরুম অপারেশন', platform: 'বিদ্যালয় ক্লাউড ও ল্যাব রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/lab-operator-guide', toolsUsed: 'Canva Pro, OBS Studio, Tech Manual', dateCreated: '২০২৬-০১-২০', learningOutcomes: 'মাল্টিমিডিয়া ডিভাইসের দ্রুত ত্রুটি নির্ণয়, তার সংযোগ ও ব্যাকআপ পাওয়ার নির্বিঘ্ন রাখা।', ratingOrBadge: '🛠️ সেরা প্রাতিষ্ঠানিক টেকনিক্যাল সাপোর্ট স্বীকৃতি' }
     ],
     contents: [
-      { id: 'mc-01', title: 'সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম', author: 'মোসাঃ নাসরিন আক্তার', portal: 'শিক্ষক বাতায়ন', views: '১২৫০+' },
+      { id: 'mc-01', title: 'উদ্ভিদ ও প্রাণিকোষের আল্ট্রাস্ট্রাকচার ৩ডি অ্যানিমেশন', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম', author: 'মুহাম্মদ আব্দুর রহিম লিটন', portal: 'শিক্ষক বাতায়ন', views: '১২৫০+' },
       { id: 'mc-02', title: 'নিউটনের গতিসূত্র ও বাস্তবিক প্রয়োগ', subject: 'পদার্থবিজ্ঞান', class_name: '১০ম শ্রেণি', author: 'মোঃ হাবিবুর রহমান', portal: 'মুক্তপাঠ', views: '৯৮০+' },
       { id: 'mc-03', title: 'ত্রিকোণমিতির বাস্তব পরিমাপ ও সমীক্ষা', subject: 'উচ্চতর গণিত', class_name: '১০ম শ্রেণি', author: 'মোঃ আশরাফুল আলম', portal: 'বিদ্যালয় ডিজিটাল রিপোজিটরি', views: '৭৪০+' }
     ]
@@ -556,21 +634,44 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
             if (!Array.isArray(merged.multimedia.rooms) || merged.multimedia.rooms.length === 0) {
               merged.multimedia.rooms = INITIAL_DATA.multimedia.rooms;
             }
+            // Clean legacy names
+            const cleanLegacy = name => (name === 'মোসাঃ নাসরিন আক্তার' ? 'মুহাম্মদ আব্দুর রহিম লিটন' : name);
+
             if (!Array.isArray(merged.multimedia.schedule) || merged.multimedia.schedule.length === 0) {
               merged.multimedia.schedule = INITIAL_DATA.multimedia.schedule;
             } else {
               merged.multimedia.schedule = merged.multimedia.schedule.map(s => ({
                 ...s,
+                teacher: cleanLegacy(s.teacher),
                 roomId: s.roomId || (merged.multimedia.rooms[0]?.id || 'mmr-01'),
                 roomName: s.roomName || (merged.multimedia.rooms[0]?.name || 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)'),
                 section: s.section || 'পদ্মা'
               }));
+              const existingSchIds = new Set(merged.multimedia.schedule.map(s => s.id));
+              const missingSchedules = INITIAL_DATA.multimedia.schedule.filter(s => !existingSchIds.has(s.id));
+              if (missingSchedules.length > 0) {
+                merged.multimedia.schedule = [...merged.multimedia.schedule, ...missingSchedules];
+              }
             }
             if (!Array.isArray(merged.multimedia.logs) || merged.multimedia.logs.length === 0) {
               merged.multimedia.logs = INITIAL_DATA.multimedia.logs;
+            } else {
+              merged.multimedia.logs = merged.multimedia.logs.map(l => ({ ...l, teacher: cleanLegacy(l.teacher) }));
+              const existingLogIds = new Set(merged.multimedia.logs.map(l => l.id));
+              const missingLogs = INITIAL_DATA.multimedia.logs.filter(l => !existingLogIds.has(l.id));
+              if (missingLogs.length > 0) {
+                merged.multimedia.logs = [...merged.multimedia.logs, ...missingLogs];
+              }
             }
             if (!Array.isArray(merged.multimedia.projects) || merged.multimedia.projects.length === 0) {
               merged.multimedia.projects = INITIAL_DATA.multimedia.projects;
+            } else {
+              merged.multimedia.projects = merged.multimedia.projects.map(p => ({ ...p, teacher: cleanLegacy(p.teacher) }));
+              const existingProjIds = new Set(merged.multimedia.projects.map(p => p.id));
+              const missingProjects = INITIAL_DATA.multimedia.projects.filter(p => !existingProjIds.has(p.id));
+              if (missingProjects.length > 0) {
+                merged.multimedia.projects = [...merged.multimedia.projects, ...missingProjects];
+              }
             }
           }
 
@@ -1538,18 +1639,34 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     showNotification('রুম প্রোফাইল মুছে ফেলা হয়েছে।');
   };
 
-  // Official Institutional Letterhead Print / PDF: Individual Teacher Multimedia Performance Report
+  // Helper to retrieve the official 16-person roster (15 teachers + 1 computer lab operator)
+  const getMultimediaRoster = () => {
+    return CANONICAL_MULTIMEDIA_ROSTER.map(canon => {
+      const tLive = teachers.find(t => (
+        (t.employee_id && String(t.employee_id) === String(canon.serial)) ||
+        isTeacherMatch(t.name_bn || t.name_en, canon.name)
+      ));
+      return {
+        ...canon,
+        name: tLive?.name_bn || canon.name,
+        designation: canon.designation,
+        subject: canon.subject || tLive?.subject || ''
+      };
+    });
+  };
+
+  // Official Institutional Letterhead Print / PDF: Individual Teacher/Staff Multimedia Performance Report
   const handlePrintIndividualTeacherReport = (teacherName) => {
     if (!teacherName) {
-      alert('অনুগ্রহ করে একজন শিক্ষক নির্বাচন করুন।');
+      alert('অনুগ্রহ করে একজন শিক্ষক/কর্মকর্তা নির্বাচন করুন।');
       return;
     }
 
     const allSchedules = data.multimedia?.schedule || [];
-    const teacherSchedules = allSchedules.filter(s => s.teacher === teacherName);
+    const teacherSchedules = allSchedules.filter(s => isTeacherMatch(s.teacher, teacherName));
 
     const allLogs = data.multimedia?.logs || [];
-    const teacherLogs = allLogs.filter(l => l.teacher === teacherName);
+    const teacherLogs = allLogs.filter(l => isTeacherMatch(l.teacher, teacherName));
     const takenLogs = teacherLogs.filter(l => l.status === 'taken');
     const missedLogs = teacherLogs.filter(l => l.status === 'missed');
 
@@ -1557,10 +1674,14 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     const takenPercent = totalLogsCount > 0 ? Math.round((takenLogs.length / totalLogsCount) * 100) : 100;
 
     const allProjects = data.multimedia?.projects || [];
-    const teacherProjects = allProjects.filter(p => p.teacher === teacherName);
+    const teacherProjects = allProjects.filter(p => isTeacherMatch(p.teacher, teacherName));
 
-    const teacherMeta = teachers.find(t => (t.name_bn === teacherName || t.name_en === teacherName)) || {};
-    const teacherDesignation = teacherProjects[0]?.teacherDesignation || teacherMeta.designation_bn || 'সহকারী শিক্ষক';
+    const matchedCanon = CANONICAL_MULTIMEDIA_ROSTER.find(c => isTeacherMatch(c.name, teacherName));
+    const teacherMeta = teachers.find(t => isTeacherMatch(t.name_bn || t.name_en, teacherName)) || {};
+    const teacherDesignation = teacherProjects[0]?.teacherDesignation || matchedCanon?.designation || teacherMeta.designation || 'সহকারী শিক্ষক';
+    const reportTitleBadge = matchedCanon?.serial === 16 ?
+      '🖥️ মাল্টিমিডিয়া ক্লাসরুম ও ল্যাব: অপারেটর টেকনিক্যাল সাপোর্ট ও হার্ডওয়্যার মেইনটেন্যান্স মূল্যায়ন প্রতিবেদন' :
+      '🖥️ মাল্টিমিডিয়া ক্লাসরুম: শিক্ষক ব্যক্তিগত পারফরম্যান্স ও ডিজিটাল কন্টেন্ট মূল্যায়ন প্রতিবেদন';
 
     const memoNum = `মপাউবি/মাল্টিমিডিয়া/শিক্ষক-মূল্যায়ন/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
     const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -1691,7 +1812,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
           <div class="school-gov">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত • শিক্ষা মন্ত্রণালয়</div>
           <div class="school-title">মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
           <div class="school-sub">পোঃ মাগড়া, উপজেলা ও জেলা: টাঙ্গাইল | EIIN: 114290 | বিদ্যালয় কোড: 4501 | স্থাপিত: ১৯১৯ খ্রি.</div>
-          <div class="report-badge">🖥️ মাল্টিমিডিয়া ক্লাসরুম: শিক্ষক ব্যক্তিগত পারফরম্যান্স ও ডিজিটাল কন্টেন্ট মূল্যায়ন প্রতিবেদন</div>
+          <div class="report-badge">${reportTitleBadge}</div>
         </div>
 
         <div class="meta-bar">
@@ -1701,7 +1822,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
 
         <div class="teacher-profile-card">
           <div>
-            <div style="font-size: 14px; font-weight: 800; color: #5b21b6;">👨‍🏫 ${teacherName}</div>
+            <div style="font-size: 14px; font-weight: 800; color: #5b21b6;">${matchedCanon?.serial === 16 ? '👨‍💻' : '👨‍🏫'} ${teacherName}</div>
             <div style="font-size: 11px; color: #6b21a8; margin-top: 2px;">পদবি: <b>${teacherDesignation}</b></div>
           </div>
           <div style="text-align: center; border-left: 1px solid #e9d5ff;">
@@ -3540,18 +3661,17 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
         const complianceRate = totalLogs > 0 ? Math.round((takenLogs / totalLogs) * 100) : 100;
         const totalProjects = projects.length;
 
-        // Unique teacher names across module
-        const allTeacherNames = Array.from(new Set([
-          ...schedules.map(s => s.teacher),
-          ...logs.map(l => l.teacher),
-          ...projects.map(p => p.teacher),
-          ...teachers.map(t => t.name_bn || t.name_en)
-        ])).filter(Boolean);
+        // Build the official 16-person roster in strict serial order:
+        // 15 registered teachers (in employee_id order) + 1 Computer Lab Operator
+        const multimediaRoster = getMultimediaRoster();
+
+        // Unique teacher names in strict serial order for dropdown filters
+        const allTeacherNames = multimediaRoster.map(r => r.name);
 
         // Filtered Schedules
         const filteredSchedules = schedules.filter(s => {
           if (mmRoomFilter !== 'all' && s.roomId !== mmRoomFilter) return false;
-          if (mmTeacherFilter !== 'all' && s.teacher !== mmTeacherFilter) return false;
+          if (mmTeacherFilter !== 'all' && !isTeacherMatch(s.teacher, mmTeacherFilter)) return false;
           if (mmSearchQuery.trim()) {
             const q = mmSearchQuery.toLowerCase();
             return (s.subject && s.subject.toLowerCase().includes(q)) ||
@@ -3567,7 +3687,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
         const filteredLogs = logs.filter(l => {
           if (mmLogStatusFilter !== 'all' && l.status !== mmLogStatusFilter) return false;
           if (mmRoomFilter !== 'all' && l.roomId !== mmRoomFilter) return false;
-          if (mmTeacherFilter !== 'all' && l.teacher !== mmTeacherFilter) return false;
+          if (mmTeacherFilter !== 'all' && !isTeacherMatch(l.teacher, mmTeacherFilter)) return false;
           if (mmSearchQuery.trim()) {
             const q = mmSearchQuery.toLowerCase();
             return (l.subject && l.subject.toLowerCase().includes(q)) ||
@@ -3580,22 +3700,35 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
           return true;
         });
 
-        // Grouped Teacher Profiles for Portfolio
-        const teacherProfiles = allTeacherNames.map(name => {
-          const tSchedules = schedules.filter(s => s.teacher === name);
-          const tLogs = logs.filter(l => l.teacher === name);
+        // Grouped Teacher Profiles for Portfolio in Strict 16-Person Sequence
+        const teacherProfiles = multimediaRoster.map(person => {
+          const tSchedules = schedules.filter(s => isTeacherMatch(s.teacher, person.name));
+          const tLogs = logs.filter(l => isTeacherMatch(l.teacher, person.name));
           const tTaken = tLogs.filter(l => l.status === 'taken').length;
           const tMissed = tLogs.filter(l => l.status === 'missed').length;
-          const tRate = tLogs.length > 0 ? Math.round((tTaken / tLogs.length) * 100) : (tSchedules.length > 0 ? 100 : 0);
-          const tProjects = projects.filter(p => p.teacher === name);
-          const tMeta = teachers.find(t => (t.name_bn === name || t.name_en === name)) || {};
-          const designation = tProjects[0]?.teacherDesignation || tMeta.designation_bn || 'সহকারী শিক্ষক';
-          return { name, designation, schedules: tSchedules, logs: tLogs, taken: tTaken, missed: tMissed, rate: tRate, projects: tProjects };
+          const tRate = tLogs.length > 0 ? Math.round((tTaken / tLogs.length) * 100) : (tSchedules.length > 0 ? 100 : 100);
+          const tProjects = projects.filter(p => isTeacherMatch(p.teacher, person.name));
+          return {
+            serial: person.serial,
+            name: person.name,
+            designation: person.designation,
+            subject: person.subject,
+            phone: person.phone,
+            email: person.email,
+            schedules: tSchedules,
+            logs: tLogs,
+            taken: tTaken,
+            missed: tMissed,
+            rate: tRate,
+            projects: tProjects
+          };
         }).filter(tp => {
-          if (mmTeacherFilter !== 'all' && tp.name !== mmTeacherFilter) return false;
+          if (mmTeacherFilter !== 'all' && !isTeacherMatch(tp.name, mmTeacherFilter)) return false;
           if (mmSearchQuery.trim()) {
             const q = mmSearchQuery.toLowerCase();
-            return tp.name.toLowerCase().includes(q) || tp.designation.toLowerCase().includes(q);
+            return tp.name.toLowerCase().includes(q) ||
+                   tp.designation.toLowerCase().includes(q) ||
+                   (tp.subject && tp.subject.toLowerCase().includes(q));
           }
           return true;
         });
@@ -4228,11 +4361,23 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                           {/* Teacher Header Card */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                             <div>
-                              <div style={{ fontSize: '15.5px', fontWeight: 900, color: '#1e1b4b' }}>
-                                👨‍🏫 {tp.name}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <span style={{
+                                  background: tp.serial === 1 ? '#4338ca' : tp.serial === 2 ? '#7c3aed' : tp.serial === 16 ? '#0891b2' : '#059669',
+                                  color: '#ffffff',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  padding: '2px 8px',
+                                  borderRadius: '6px'
+                                }}>
+                                  #{tp.serial < 10 ? `০${tp.serial}` : tp.serial}
+                                </span>
+                                <div style={{ fontSize: '15.5px', fontWeight: 900, color: '#1e1b4b' }}>
+                                  {tp.serial === 16 ? '👨‍💻' : '👨‍🏫'} {tp.name}
+                                </div>
                               </div>
-                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                                {tp.designation}
+                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                <b>{tp.designation}</b> {tp.subject ? `• ${tp.subject}` : ''}
                               </div>
                             </div>
                             <span style={{
@@ -4323,8 +4468,8 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                                 teacher: tp.name,
                                 teacherDesignation: tp.designation,
                                 projectTitle: '',
-                                subject: '',
-                                class_name: '১০ম শ্রেণি',
+                                subject: tp.subject || '',
+                                class_name: tp.serial === 16 ? 'ল্যাব ও ক্লাসরুম অপারেশন' : '১০ম শ্রেণি',
                                 platform: 'শিক্ষক বাতায়ন',
                                 contentUrl: '',
                                 toolsUsed: 'PowerPoint 365, Canva Pro',
@@ -5568,9 +5713,9 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক</label>
                   <select value={mmScheduleForm.teacher || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                    <option value="">শিক্ষক নির্বাচন করুন...</option>
-                    {teachers.map(t => (
-                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                    <option value="">কর্মকর্তা/শিক্ষক নির্বাচন করুন...</option>
+                    {getMultimediaRoster().map(p => (
+                      <option key={p.serial} value={p.name}>#{p.serial < 10 ? `০${p.serial}` : p.serial}. {p.name} ({p.designation})</option>
                     ))}
                   </select>
                 </div>
@@ -5650,9 +5795,9 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক *</label>
                   <select value={mmLogForm.teacher || ''} onChange={e => setMmLogForm({ ...mmLogForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                    <option value="">শিক্ষক নির্বাচন করুন...</option>
-                    {teachers.map(t => (
-                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                    <option value="">কর্মকর্তা/শিক্ষক নির্বাচন করুন...</option>
+                    {getMultimediaRoster().map(p => (
+                      <option key={p.serial} value={p.name}>#{p.serial < 10 ? `০${p.serial}` : p.serial}. {p.name} ({p.designation})</option>
                     ))}
                   </select>
                 </div>
@@ -5744,10 +5889,22 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিক্ষকের নাম *</label>
-                  <select value={mmProjectForm.teacher || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                    <option value="">শিক্ষক নির্বাচন করুন...</option>
-                    {teachers.map(t => (
-                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                  <select
+                    value={mmProjectForm.teacher || ''}
+                    onChange={e => {
+                      const selPerson = getMultimediaRoster().find(p => p.name === e.target.value);
+                      setMmProjectForm({
+                        ...mmProjectForm,
+                        teacher: e.target.value,
+                        teacherDesignation: selPerson ? selPerson.designation : mmProjectForm.teacherDesignation,
+                        subject: (selPerson && selPerson.subject) ? selPerson.subject : mmProjectForm.subject
+                      });
+                    }}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  >
+                    <option value="">কর্মকর্তা/শিক্ষক নির্বাচন করুন...</option>
+                    {getMultimediaRoster().map(p => (
+                      <option key={p.serial} value={p.name}>#{p.serial < 10 ? `০${p.serial}` : p.serial}. {p.name} ({p.designation})</option>
                     ))}
                   </select>
                 </div>
