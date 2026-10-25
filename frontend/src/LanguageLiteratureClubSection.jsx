@@ -8,6 +8,7 @@ import {
   getLeadershipData
 } from './mockData';
 import { requestApi } from './apiClient';
+import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 
 export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
   const [activeClub, setActiveClub] = useState(
@@ -17,7 +18,9 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
     'literature'
   );
 
-  const [clubTab, setClubTab] = useState('overview');
+  const [clubTab, setClubTab] = useState(
+    initialTitle?.includes('ডিবেট') || initialTitle?.includes('বিতর্ক') ? 'competitions' : 'overview'
+  );
   const [readingItem, setReadingItem] = useState(null);
   const [dynamicContent, setDynamicContent] = useState([]);
   const [submissionsList, setSubmissionsList] = useState([]);
@@ -801,6 +804,28 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
             <span className="lit-pill">🎤 সংসদীয় ও বারোয়ারি বিতর্কচর্চা</span>
             <span className="lit-pill">👥 ১২০+ সক্রিয় বিতার্কিক সদস্য</span>
           </div>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setClubTab('competitions')}
+              style={{
+                background: '#312e81',
+                color: '#ffffff',
+                border: '1px solid #818cf8',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 3px 8px rgba(49, 46, 129, 0.25)'
+              }}
+            >
+              🎙️ নতুন বিতর্ক আয়োজন ও ফলাফল প্রস্তুত করুন ➔
+            </button>
+          </div>
         </div>
       ) : activeClub === 'science' ? (
         <div className="science-hero">
@@ -817,6 +842,28 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
             <span className="lit-pill">🚀 বার্ষিক বিজ্ঞান মেলা ও সায়েন্স ফেস্ট</span>
             <span className="lit-pill">🏆 জেলা পর্যায়ে খুদে উদ্ভাবন পদক</span>
             <span className="lit-pill">👥 ১৪০+ খুদে বিজ্ঞানী সদস্য</span>
+          </div>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setClubTab('competitions')}
+              style={{
+                background: '#047857',
+                color: '#ffffff',
+                border: '1px solid #34d399',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 3px 8px rgba(4, 120, 87, 0.25)'
+              }}
+            >
+              🔬 নতুন বিজ্ঞান প্রতিযোগিতা আয়োজন ও ফলাফল প্রস্তুত ➔
+            </button>
           </div>
         </div>
       ) : activeClub === 'ict' ? (
@@ -835,6 +882,28 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
             <span className="lit-pill">🛡️ সাইবার সচেতনতা সার্টিফাইড ক্লাব</span>
             <span className="lit-pill">👥 ১১০+ খুদে কোডার সদস্য</span>
           </div>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setClubTab('competitions')}
+              style={{
+                background: '#0284c7',
+                color: '#ffffff',
+                border: '1px solid #38bdf8',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 3px 8px rgba(2, 132, 199, 0.25)'
+              }}
+            >
+              💻 নতুন কোডিং অলিম্পিয়াড আয়োজন ও ফলাফল প্রস্তুত ➔
+            </button>
+          </div>
         </div>
       ) : (
         <div className="lit-hero">
@@ -852,10 +921,32 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
             <span className="lit-pill">🏆 জেলা ও উপজেলা চ্যাম্পিয়নশিপ জয়ী</span>
             <span className="lit-pill">👥 ১৫০+ সক্রিয় শিক্ষার্থী সদস্য</span>
           </div>
+          <div style={{ marginTop: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setClubTab('competitions')}
+              style={{
+                background: '#065f46',
+                color: '#ffffff',
+                border: '1px solid #6ee7b7',
+                padding: '8px 18px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 3px 8px rgba(6, 95, 70, 0.25)'
+              }}
+            >
+              📜 নতুন সাহিত্য প্রতিযোগিতা আয়োজন ও ফলাফল প্রস্তুত ➔
+            </button>
+          </div>
         </div>
       )}
 
-      {/* INTERNAL 6 SUB-TABS NAVIGATION */}
+      {/* INTERNAL 7 SUB-TABS NAVIGATION */}
       <div className="lit-tabs">
         <button
           type="button"
@@ -863,6 +954,27 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
           onClick={() => setClubTab('overview')}
         >
           🌟 পরিচিতি ও ৪টি স্তম্ভ
+        </button>
+        <button
+          type="button"
+          className={`lit-tab-btn ${clubTab === 'competitions' ? 'active' : ''}`}
+          onClick={() => setClubTab('competitions')}
+          style={clubTab === 'competitions' ? {
+            background: activeClub === 'debate' ? '#312e81' : activeClub === 'science' ? '#047857' : activeClub === 'ict' ? '#0284c7' : '#065f46',
+            color: '#ffffff',
+            borderColor: 'transparent',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+          } : {
+            borderColor: activeClub === 'debate' ? '#818cf8' : activeClub === 'science' ? '#34d399' : activeClub === 'ict' ? '#38bdf8' : '#6ee7b7',
+            background: activeClub === 'debate' ? '#eef2ff' : activeClub === 'science' ? '#ecfdf5' : activeClub === 'ict' ? '#f0f9ff' : '#f0fdf4',
+            color: activeClub === 'debate' ? '#312e81' : activeClub === 'science' ? '#047857' : activeClub === 'ict' ? '#0284c7' : '#065f46',
+            fontWeight: 800
+          }}
+        >
+          {activeClub === 'debate' ? '🎙️ বিতর্ক আয়োজন ও ফলাফল প্রস্তুত' :
+           activeClub === 'science' ? '🔬 বিজ্ঞান মেলা ও উদ্ভাবন ফলাফল' :
+           activeClub === 'ict' ? '💻 কোডিং প্রতিযোগিতা ও ফলাফল' :
+           '📜 সাহিত্য প্রতিযোগিতা ও ফলাফল'}
         </button>
         <button
           type="button"
@@ -906,6 +1018,11 @@ export function LanguageLiteratureClubSection({ initialTitle, onClose }) {
            '📝 লেখা জমা ও সদস্যপদ'}
         </button>
       </div>
+
+      {/* ===================== TAB: COMPETITIONS, SESSIONS & RESULTS ===================== */}
+      {clubTab === 'competitions' && (
+        <ClubCompetitionEngine activeClub={activeClub} teachers={teachers} />
+      )}
 
       {/* ===================== TAB 1: OVERVIEW ===================== */}
       {clubTab === 'overview' && (
