@@ -8,13 +8,34 @@ const STORE_NAME = 'student_photos';
 // In-memory cache for 0ms synchronous access during React renders
 export const PHOTO_CACHE = new Map();
 
-// Helper to normalize class & roll
-export function getStudentPhotoKey(student) {
+// Helper to normalize department / group
+export function normalizeStudentDept(student) {
   if (!student) return '';
+  const sid = String(student.student_id || student.id || '').toUpperCase();
+  if (sid.includes('-HUM') || sid.includes('_HUM') || sid.includes('/HUM') || sid.includes('HUM-') || sid.includes('-ARTS-')) return 'hum';
+  if (sid.includes('-BS') || sid.includes('_BS') || sid.includes('/BS') || sid.includes('BS-') || sid.includes('-COM-') || sid.includes('-BUS-')) return 'bs';
+  if (sid.includes('-SCI') || sid.includes('_SCI') || sid.includes('/SCI') || sid.includes('SCI-')) return 'sci';
+
+  const raw = `${student.department || ''} ${student.group_name || ''} ${student.group || ''} ${student.section || ''}`.toLowerCase();
+  if (raw.includes('মানবিক') || raw.includes('humanities') || raw.includes('arts') || raw.includes('hum')) return 'hum';
+  if (raw.includes('ব্যবসা') || raw.includes('বাণিজ্য') || raw.includes('business') || raw.includes('commerce') || raw.includes('bs')) return 'bs';
+  if (raw.includes('বিজ্ঞান') || raw.includes('science') || raw.includes('sci')) return 'sci';
+  
+  const sec = String(student.section || '').trim().toLowerCase();
+  if (sec && !sec.includes('সাধারণ')) {
+    return sec.replace(/[^a-z0-9]/g, '');
+  }
+  return '';
+}
+
+// Helper to normalize class, roll & department
+export function getStudentPhotoKey(student) {
+  if (!student) return { sId: '', cName: '', rNo: '', dept: '' };
   const sId = String(student.id || student.student_id || '').toLowerCase().trim();
   const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
   const rNo = String(student.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-  return { sId, cName, rNo };
+  const dept = normalizeStudentDept(student);
+  return { sId, cName, rNo, dept };
 }
 
 // Open or get IndexedDB connection
@@ -75,7 +96,31 @@ export async function idbGetPhoto(key) {
 export async function initPhotoStorage() {
   if (typeof window === 'undefined') return;
 
-  // 1. Scan localStorage for any legacy photos and load into cache
+  // 1. Purge ambiguous non-department roll keys for Classes 9 & 10 from localStorage
+  try {
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      if (
+        k.startsWith('magra_photo_cls_10_roll_') ||
+        k.startsWith('magra_photo_cls_9_roll_') ||
+        k.startsWith('magra_photo_10_') ||
+        k.startsWith('magra_photo_9_') ||
+        k.startsWith('magra_photo_cls_10_') ||
+        k.startsWith('magra_photo_cls_9_') ||
+        k.startsWith('magra_photo_class_10_') ||
+        k.startsWith('magra_photo_class_9_')
+      ) {
+        if (!k.includes('_sci_') && !k.includes('_hum_') && !k.includes('_bs_')) {
+          toRemove.push(k);
+        }
+      }
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch {}
+
+  // 1b. Scan localStorage for any legacy photos and load into cache
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);
@@ -83,8 +128,11 @@ export async function initPhotoStorage() {
         const val = localStorage.getItem(k);
         if (val && val.startsWith('data:image')) {
           const subKey = k.replace('magra_photo_', '').toLowerCase();
+          // Skip ambiguous class 9 & 10 keys without department
+          if ((subKey.startsWith('cls_10_') || subKey.startsWith('cls_9_') || subKey.startsWith('10_') || subKey.startsWith('9_')) && !subKey.includes('_sci_') && !subKey.includes('_hum_') && !subKey.includes('_bs_')) {
+            continue;
+          }
           PHOTO_CACHE.set(subKey, val);
-          // Also persist to IndexedDB so it's safe forever
           idbSetPhoto(subKey, val);
         }
       }
@@ -93,16 +141,54 @@ export async function initPhotoStorage() {
     console.warn('LocalStorage scan error:', e);
   }
 
-  // 2. Also scan magra_db_students in localStorage for embedded custom photos
+  // 2. Scan magra_db_students and resolve any cross-department duplicate photo pollution
   try {
     const rawSt = localStorage.getItem('magra_db_students');
     if (rawSt) {
       const list = JSON.parse(rawSt);
       if (Array.isArray(list)) {
+        // Collect genuine Science Class 10 photos by roll
+        const sciPhotosByRoll = new Map();
+        list.forEach(s => {
+          if (!s) return;
+          const cName = String(s.class_name || '').trim();
+          const dept = normalizeStudentDept(s);
+          const rNo = String(s.roll_no || '').trim();
+          const p = s.photo_url || s.photo || s.image;
+          if (cName === '10' && dept === 'sci' && p && typeof p === 'string' && p.startsWith('data:image')) {
+            sciPhotosByRoll.set(rNo, p);
+          }
+        });
+
+        // Clean any Humanities / Business Studies students that mistakenly inherited Science photos
+        let listModified = false;
+        list.forEach(s => {
+          if (!s) return;
+          const cName = String(s.class_name || '').trim();
+          const dept = normalizeStudentDept(s);
+          const rNo = String(s.roll_no || '').trim();
+          if (cName === '10' && dept !== 'sci') {
+            const sciPhoto = sciPhotosByRoll.get(rNo);
+            const p = s.photo_url || s.photo || s.image;
+            if (sciPhoto && p === sciPhoto) {
+              s.photo_url = '';
+              s.photo = '';
+              s.image = '';
+              listModified = true;
+            }
+          }
+        });
+        if (listModified) {
+          try {
+            localStorage.setItem('magra_db_students', JSON.stringify(list));
+          } catch {}
+        }
+
+        // Index all legitimate student photos with strict department awareness
         list.forEach(s => {
           if (!s) return;
           const photo = s.photo_url || s.photo || s.image;
-          if (photo && typeof photo === 'string' && photo.startsWith('data:image') && photo.length > 100) {
+          if (photo && typeof photo === 'string' && photo.startsWith('data:image') && photo.length > 50) {
             savePhotoToCacheAndIdb(s, photo);
           }
         });
@@ -131,19 +217,32 @@ export async function initPhotoStorage() {
     console.warn('magra_db_teachers photo scan error:', e);
   }
 
-  // 3. Load all photos from IndexedDB into PHOTO_CACHE
+  // 3. Load all photos from IndexedDB into PHOTO_CACHE and delete ambiguous keys
   try {
     const db = await openDB();
     if (db) {
-      const tx = db.transaction(STORE_NAME, 'readonly');
+      const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
       const req = store.openCursor();
       req.onsuccess = (e) => {
         const cursor = e.target.result;
         if (cursor) {
-          PHOTO_CACHE.set(String(cursor.key).toLowerCase(), cursor.value);
+          const k = String(cursor.key).toLowerCase();
+          // Purge ambiguous keys without department in Class 9 & 10
+          if ((k.startsWith('cls_10_') || k.startsWith('cls_9_') || k.startsWith('10_') || k.startsWith('9_') || k.startsWith('class_10_') || k.startsWith('class_9_')) && !k.includes('_sci_') && !k.includes('_hum_') && !k.includes('_bs_')) {
+            cursor.delete();
+            cursor.continue();
+            return;
+          }
+          PHOTO_CACHE.set(k, cursor.value);
           cursor.continue();
         } else {
+          // Clean memory cache of any ambiguous non-dept keys
+          for (const k of Array.from(PHOTO_CACHE.keys())) {
+            if ((k.startsWith('cls_10_') || k.startsWith('cls_9_') || k.startsWith('10_') || k.startsWith('9_') || k.startsWith('class_10_') || k.startsWith('class_9_')) && !k.includes('_sci_') && !k.includes('_hum_') && !k.includes('_bs_')) {
+              PHOTO_CACHE.delete(k);
+            }
+          }
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('magra_photos_synced'));
           }
@@ -158,17 +257,25 @@ export async function initPhotoStorage() {
 // Helper to save photo to memory cache and IndexedDB across multiple lookup keys
 export function savePhotoToCacheAndIdb(student, dataUrl) {
   if (!student || !dataUrl) return;
-  const { sId, cName, rNo } = getStudentPhotoKey(student);
+  const { sId, cName, rNo, dept } = getStudentPhotoKey(student);
 
   // Set in synchronous memory cache
   if (student.id) PHOTO_CACHE.set(String(student.id).toLowerCase(), dataUrl);
   if (student.student_id) PHOTO_CACHE.set(String(student.student_id).toLowerCase(), dataUrl);
   if (sId) PHOTO_CACHE.set(sId, dataUrl);
+
+  // Department-aware keys: Class 9 and 10 MUST use department in roll keys
   if (cName && rNo) {
-    PHOTO_CACHE.set(`cls_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
-    PHOTO_CACHE.set(`${cName}_${rNo}`.toLowerCase(), dataUrl);
-    PHOTO_CACHE.set(`cls_${cName}_${rNo}`.toLowerCase(), dataUrl);
-    PHOTO_CACHE.set(`class_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+    if (dept) {
+      PHOTO_CACHE.set(`cls_${cName}_${dept}_roll_${rNo}`.toLowerCase(), dataUrl);
+      PHOTO_CACHE.set(`cls_${cName}_${dept}_${rNo}`.toLowerCase(), dataUrl);
+      PHOTO_CACHE.set(`${cName}_${dept}_${rNo}`.toLowerCase(), dataUrl);
+    } else if (cName !== '9' && cName !== '10') {
+      PHOTO_CACHE.set(`cls_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+      PHOTO_CACHE.set(`${cName}_${rNo}`.toLowerCase(), dataUrl);
+      PHOTO_CACHE.set(`cls_${cName}_${rNo}`.toLowerCase(), dataUrl);
+      PHOTO_CACHE.set(`class_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+    }
   }
 
   // Set in IndexedDB (asynchronous, high capacity)
@@ -176,16 +283,25 @@ export function savePhotoToCacheAndIdb(student, dataUrl) {
   if (student.student_id) idbSetPhoto(String(student.student_id).toLowerCase(), dataUrl);
   if (sId) idbSetPhoto(sId, dataUrl);
   if (cName && rNo) {
-    idbSetPhoto(`cls_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
-    idbSetPhoto(`${cName}_${rNo}`.toLowerCase(), dataUrl);
-    idbSetPhoto(`cls_${cName}_${rNo}`.toLowerCase(), dataUrl);
-    idbSetPhoto(`class_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+    if (dept) {
+      idbSetPhoto(`cls_${cName}_${dept}_roll_${rNo}`.toLowerCase(), dataUrl);
+      idbSetPhoto(`cls_${cName}_${dept}_${rNo}`.toLowerCase(), dataUrl);
+    } else if (cName !== '9' && cName !== '10') {
+      idbSetPhoto(`cls_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+      idbSetPhoto(`${cName}_${rNo}`.toLowerCase(), dataUrl);
+      idbSetPhoto(`cls_${cName}_${rNo}`.toLowerCase(), dataUrl);
+      idbSetPhoto(`class_${cName}_roll_${rNo}`.toLowerCase(), dataUrl);
+    }
   }
 
   // Safe fallback to localStorage (tiny key only, ignore quota errors)
   try {
     if (cName && rNo) {
-      localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, dataUrl);
+      if (dept) {
+        localStorage.setItem(`magra_photo_cls_${cName}_${dept}_roll_${rNo}`, dataUrl);
+      } else if (cName !== '9' && cName !== '10') {
+        localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, dataUrl);
+      }
     }
   } catch {}
 
