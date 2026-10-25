@@ -863,9 +863,9 @@ function Home(){
    'লাইব্রেরি':'public.nav.institution.library',
    'শিক্ষক ও কর্মচারী':'public.nav.staff.active',
    'ক্রীড়া ও সংস্কৃতি':'public.nav.sport.sports',
-   'বিজ্ঞান ক্লাব':'public.nav.sport.clubs',
-   'আইসিটি ক্লাব':'public.nav.sport.lab',
-   'ভাষা ও সাহিত্য ক্লাব':'public.nav.sport.clubs',
+   'বিজ্ঞান ক্লাব':'public.nav.sport.science',
+   'আইসিটি ক্লাব':'public.nav.sport.ict',
+   'ভাষা ও সাহিত্য ক্লাব':'public.nav.sport.literature',
    'ডিবেটিং ক্লাব':'public.nav.sport.debate'
   };
   if(map[title]){

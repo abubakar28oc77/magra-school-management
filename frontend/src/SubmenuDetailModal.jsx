@@ -293,8 +293,14 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     if (
       menuKey === 'public.nav.sport.clubs' || 
       menuKey === 'public.nav.sport.debate' ||
+      menuKey === 'public.nav.sport.science' ||
+      menuKey === 'public.nav.sport.ict' ||
+      menuKey === 'public.nav.sport.literature' ||
       menuKey?.includes('clubs') ||
       menuKey?.includes('debate') ||
+      menuKey?.includes('science') ||
+      menuKey?.includes('ict') ||
+      menuKey?.includes('literature') ||
       title?.includes('ভাষা ও সাহিত্য') || 
       title?.includes('সাহিত্য ক্লাব') || 
       title?.includes('ক্লাব ও সংগঠন') ||
@@ -304,7 +310,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       title?.includes('বিজ্ঞান') ||
       title?.includes('আইসিটি')
     ) {
-      return <LanguageLiteratureClubSection initialTitle={title} onClose={onClose} />;
+      return <LanguageLiteratureClubSection initialTitle={title} menuKey={menuKey} onClose={onClose} />;
     }
 
     // Routine & Schedule (Class & Exam Routine)
