@@ -182,8 +182,19 @@ const INITIAL_DATA = {
   ]
 };
 
-export function SportsCultureAdminEngine() {
-  const [activeTab, setActiveTab] = useState('sports'); // 'sports' | 'culture' | 'achievements' | 'tour'
+export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
+  const [activeTab, setActiveTab] = useState(
+    initialSection === 'culture' ? 'culture' :
+    initialSection === 'achievements' ? 'achievements' :
+    initialSection === 'tour' ? 'tour' : 'sports'
+  );
+
+  useEffect(() => {
+    if (initialSection && ['sports', 'culture', 'achievements', 'tour'].includes(initialSection)) {
+      setActiveTab(initialSection);
+    }
+  }, [initialSection]);
+
   const [data, setData] = useState(INITIAL_DATA);
   const [teachers, setTeachers] = useState([]);
   const [students, setStudents] = useState([]);
@@ -252,7 +263,7 @@ export function SportsCultureAdminEngine() {
     setTimeout(() => setMsg(''), 4000);
   };
 
-  // Helper for House points tally
+  // Helper for House points tally with robust normalization
   const calculateHousePoints = () => {
     const tally = {
       'পদ্মা হাউজ': { points: 0, gold: 0, silver: 0, bronze: 0, color: '#10b981', bg: '#ecfdf5' },
@@ -261,22 +272,35 @@ export function SportsCultureAdminEngine() {
       'কর্ণফুলী হাউজ': { points: 0, gold: 0, silver: 0, bronze: 0, color: '#ef4444', bg: '#fef2f2' }
     };
 
-    (data.sports || []).forEach(evt => {
-      if (evt.result) {
-        if (evt.result.first && evt.result.first.house && tally[evt.result.first.house]) {
-          tally[evt.result.first.house].points += 5;
-          tally[evt.result.first.house].gold += 1;
-        }
-        if (evt.result.second && evt.result.second.house && tally[evt.result.second.house]) {
-          tally[evt.result.second.house].points += 3;
-          tally[evt.result.second.house].silver += 1;
-        }
-        if (evt.result.third && evt.result.third.house && tally[evt.result.third.house]) {
-          tally[evt.result.third.house].points += 1;
-          tally[evt.result.third.house].bronze += 1;
-        }
+    const normalizeHouse = (h) => {
+      if (!h || typeof h !== 'string') return null;
+      if (h.includes('পদ্মা')) return 'পদ্মা হাউজ';
+      if (h.includes('মেঘনা')) return 'মেঘনা হাউজ';
+      if (h.includes('যমুনা')) return 'যমুনা হাউজ';
+      if (h.includes('কর্ণফুলী')) return 'কর্ণফুলী হাউজ';
+      return null;
+    };
+
+    const award = (res, pts, medal) => {
+      if (!res) return;
+      const hKey = typeof res === 'object' ? normalizeHouse(res.house) : null;
+      if (hKey && tally[hKey]) {
+        tally[hKey].points = (tally[hKey].points || 0) + pts;
+        tally[hKey][medal] = (tally[hKey][medal] || 0) + 1;
       }
-    });
+    };
+
+    try {
+      (data?.sports || []).forEach(evt => {
+        if (evt?.result && typeof evt.result === 'object') {
+          award(evt.result.first, 5, 'gold');
+          award(evt.result.second, 3, 'silver');
+          award(evt.result.third, 1, 'bronze');
+        }
+      });
+    } catch (e) {
+      console.warn('House points calculation error:', e);
+    }
 
     return tally;
   };

@@ -953,6 +953,12 @@ function handleMockRequest(path, opts = {}) {
     { feature_key: 'admin.users', label_bn: 'ইউজার ও রোল ব্যবস্থাপনা', scope: 'admin', group_name: 'নিরাপত্তা', enabled: true },
     { feature_key: 'admin.settings', label_bn: 'সেটিংস ও পাসওয়ার্ড', scope: 'admin', group_name: 'নিরাপত্তা', enabled: true },
     { feature_key: 'admin.content', label_bn: 'সহশিক্ষা ও অর্জন', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.sports_culture', label_bn: 'ক্রীড়া ও সংস্কৃতি ইঞ্জিন', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.clubs', label_bn: 'ক্লাব ও সংগঠন', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.school', label_bn: 'বিদ্যালয় তথ্য', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.submissions', label_bn: 'দেয়াল পত্রিকা ও ক্লাব লেখা', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.events', label_bn: 'ইভেন্ট ও অংশগ্রহণকারী', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
+    { feature_key: 'admin.content.achievements', label_bn: 'অর্জন ও পুরস্কার', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
     { feature_key: 'admin.transport', label_bn: 'পরিবহন', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true },
     { feature_key: 'admin.hostel', label_bn: 'হোস্টেল', scope: 'admin', group_name: 'কনটেন্ট ও সুবিধা', enabled: true }
   ];
