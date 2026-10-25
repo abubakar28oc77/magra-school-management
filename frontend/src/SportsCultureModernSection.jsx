@@ -1892,30 +1892,171 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
       {/* ======================= 6. MULTIMEDIA CLASSROOM (মাল্টিমিডিয়া ক্লাস) ======================= */}
       {activeCategory === 'multimedia' && (() => {
         const multimediaSchedule = adminStorage?.multimedia?.schedule?.length ? adminStorage.multimedia.schedule : MOCK_MULTIMEDIA_SCHEDULE;
+        const multimediaRooms = adminStorage?.multimedia?.rooms?.length ? adminStorage.multimedia.rooms : MOCK_MULTIMEDIA_ROOMS;
+        const multimediaLogs = adminStorage?.multimedia?.logs?.length ? adminStorage.multimedia.logs : [];
+        const multimediaProjects = adminStorage?.multimedia?.projects?.length ? adminStorage.multimedia.projects : [];
+
+        const takenCount = multimediaLogs.filter(l => l.status === 'taken').length;
+        const missedCount = multimediaLogs.filter(l => l.status === 'missed').length;
+        const complianceRate = multimediaLogs.length > 0 ? Math.round((takenCount / multimediaLogs.length) * 100) : 100;
+
+        const handlePrintPublicMmReport = () => {
+          const w = window.open('', '_blank', 'width=1100,height=850');
+          if (!w) {
+            alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। অনুগ্রহ করে অনুমোদন করুন।');
+            return;
+          }
+          const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+          const memoNum = `মপাউবি/মাল্টিমিডিয়া/পাবলিক-রিপোর্ট/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
+
+          w.document.open();
+          w.document.write(`
+            <!DOCTYPE html>
+            <html lang="bn">
+            <head>
+              <meta charset="utf-8">
+              <title>মাল্টিমিডিয়া ক্লাসরুম মনিটরিং ও এক্সিকিউশন রিপোর্ট</title>
+              <style>
+                @page { size: A4 portrait; margin: 12mm 10mm 15mm 10mm; }
+                body { font-family: 'Segoe UI', sans-serif; padding: 16px; color: #0f172a; margin: 0; }
+                .header { text-align: center; border-bottom: 2px solid #5b21b6; padding-bottom: 8px; margin-bottom: 12px; }
+                .title { font-size: 22px; color: #4c1d95; font-weight: 900; margin: 2px 0; }
+                .sub { font-size: 11.5px; color: #64748b; }
+                table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; }
+                th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+                th { background: #f3e8ff; color: #4c1d95; }
+                .btn { background: #5b21b6; color: #fff; padding: 6px 14px; border: none; border-radius: 6px; cursor: pointer; }
+                @media print { .no-print { display: none !important; } body { padding: 0 !important; } }
+              </style>
+            </head>
+            <body>
+              <div class="no-print" style="margin-bottom: 14px; display: flex; justify-content: space-between;">
+                <b>🖨️ প্রিন্ট ভিউ</b>
+                <button class="btn" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+              </div>
+              <div class="header">
+                <div style="font-size: 12px; color: #475569; font-weight: 700;">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত • শিক্ষা মন্ত্রণালয়</div>
+                <div class="title">মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+                <div class="sub">পোঃ মাগড়া, উপজেলা ও জেলা: টাঙ্গাইল | EIIN: 114290 | কোড: 4501 | স্থাপিত: ১৯১৯ খ্রি.</div>
+                <div style="display: inline-block; background: #f3e8ff; color: #581c87; font-weight: 800; font-size: 13px; padding: 3px 14px; border-radius: 14px; margin-top: 6px;">
+                  🖥️ মাল্টিমিডিয়া ক্লাসরুম মনিটরিং ও শিক্ষক পারফরম্যান্স প্রতিবেদন
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
+                <div><b>স্মারক নং:</b> ${memoNum}</div>
+                <div><b>তারিখ:</b> ${todayBn}</div>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; text-align: center;">
+                <div style="background: #faf5ff; padding: 8px; border: 1px solid #e9d5ff; border-radius: 6px;">
+                  <div style="font-size: 10px; color: #64748b;">স্মার্ট ক্লাসরুম</div>
+                  <div style="font-size: 16px; font-weight: 900; color: #5b21b6;">${multimediaRooms.length} টি</div>
+                </div>
+                <div style="background: #faf5ff; padding: 8px; border: 1px solid #e9d5ff; border-radius: 6px;">
+                  <div style="font-size: 10px; color: #64748b;">নির্ধারিত ক্লাস</div>
+                  <div style="font-size: 16px; font-weight: 900; color: #0284c7;">${multimediaSchedule.length} টি</div>
+                </div>
+                <div style="background: #faf5ff; padding: 8px; border: 1px solid #e9d5ff; border-radius: 6px;">
+                  <div style="font-size: 10px; color: #64748b;">গৃহীত ক্লাস / কমপ্লায়েন্স</div>
+                  <div style="font-size: 16px; font-weight: 900; color: #059669;">${takenCount} টি (${complianceRate}%)</div>
+                </div>
+                <div style="background: #faf5ff; padding: 8px; border: 1px solid #e9d5ff; border-radius: 6px;">
+                  <div style="font-size: 10px; color: #64748b;">ডিজিটাল প্রজেক্ট</div>
+                  <div style="font-size: 16px; font-weight: 900; color: #b45309;">${multimediaProjects.length} টি</div>
+                </div>
+              </div>
+              <div style="font-size: 12px; font-weight: 800; color: #4c1d95; margin-bottom: 4px;">সাপ্তাহিক রুটিন সূচি:</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>বার</th>
+                    <th>পিরিয়ড</th>
+                    <th>শ্রেণি ও বিষয়</th>
+                    <th>ডিজিটাল রিসোর্স / টপিক</th>
+                    <th>বিষয় শিক্ষক</th>
+                    <th>কক্ষ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${multimediaSchedule.map(s => `
+                    <tr>
+                      <td style="font-weight: 700;">${s.day}</td>
+                      <td>${s.period}</td>
+                      <td><b>${s.class_name}</b> (${s.subject})</td>
+                      <td>${s.resource || s.topic}</td>
+                      <td style="font-weight: 600;">${s.teacher}</td>
+                      <td>${s.roomName || s.room}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 11.5px; text-align: center;">
+                <div style="width: 200px;">
+                  <div style="border-top: 1px solid #0f172a; margin-bottom: 4px;"></div>
+                  <b>মুহাম্মদ আবুবকর সিদ্দিক</b><br>
+                  সহকারী শিক্ষক (আইসিটি) ও ল্যাব ইনচার্জ
+                </div>
+                <div style="width: 200px;">
+                  <div style="border-top: 1px solid #0f172a; margin-bottom: 4px;"></div>
+                  <b>প্রধান শিক্ষক</b><br>
+                  মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+                </div>
+              </div>
+            </body>
+            </html>
+          `);
+          w.document.close();
+        };
 
         return (
           <div className="section-standalone-multimedia">
+            {/* Action & Official Report Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }} className="no-print">
+              <div>
+                <span style={{ fontSize: '13px', color: '#64748b' }}>ডিজিটাল মাল্টিমিডিয়া ক্লাসরুম মনিটরিং পরিকাঠামো</span>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrintPublicMmReport}
+                style={{
+                  padding: '8px 16px',
+                  background: 'linear-gradient(135deg, #6d28d9 0%, #4338ca 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 800,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(109, 40, 217, 0.25)'
+                }}
+              >
+                <span>🖨️</span> প্রধান শিক্ষকের অফিশিয়াল রিপোর্ট প্রিন্ট (PDF)
+              </button>
+            </div>
+
             {/* KPI Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
               <div style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', borderRadius: '10px', padding: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#86198f', fontWeight: 600 }}>স্মার্ট মাল্টিমিডিয়া ক্লাসরুম</div>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: '#701a75', margin: '4px 0' }}>২ টি পূর্ণাঙ্গ রুম</div>
-                <div style={{ fontSize: '11.5px', color: '#a21caf' }}>কক্ষ নং ২০২ (বিজ্ঞান) ও কক্ষ নং ৩০১ (প্রধান ভবন)</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#701a75', margin: '4px 0' }}>{multimediaRooms.length} টি পূর্ণাঙ্গ রুম</div>
+                <div style={{ fontSize: '11.5px', color: '#a21caf' }}>বিজ্ঞান ভবন ও নতুন একাডেমিক ভবন</div>
               </div>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>ডিসপ্লে ও প্রজেকশন</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>৪কে লেজার + ৬৫" প্যানেল</div>
-                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>ইন্টারেক্টিভ টাচ ও ১০০" মোটরচালিত স্ক্রিন</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>৪কে লেজার + ৭৫" স্মার্টবোর্ড</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>ইন্টারেক্টিভ টাচ ও হাই-লুমেন প্রজেকশন</div>
               </div>
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>সোলার ও বিদ্যুৎ ব্যাকআপ</div>
-                <div style={{ fontSize: '20px', fontWeight: 800, color: '#14532d', margin: '4px 0' }}>১০০% গ্রিন সোলার</div>
-                <div style={{ fontSize: '11.5px', color: '#16a34a' }}>বিদ্যুৎ বিভ্রাটেও নিরবচ্ছিন্ন সাউন্ড ও ক্লাস</div>
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>ক্লাস ডেলিভারি হার</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#14532d', margin: '4px 0' }}>{complianceRate}% কমপ্লায়েন্স</div>
+                <div style={{ fontSize: '11.5px', color: '#16a34a' }}>গৃহীত: {takenLogs} টি • মিসড: {missedLogs} টি</div>
               </div>
               <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600 }}>তত্ত্বাবধান ও আইসিটি সেল</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, color: '#78350f', margin: '4px 0' }}>মোসাঃ নাসরিন আক্তার</div>
-                <div style={{ fontSize: '11.5px', color: '#92400e' }}>ও বিদ্যালয় মাল্টিমিডিয়া মনিটরিং কমিটি</div>
+                <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600 }}>তত্ত্বাবধান ও আইসিটি ইনচার্জ</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#78350f', margin: '4px 0' }}>মুহাম্মদ আবুবকর সিদ্দিক</div>
+                <div style={{ fontSize: '11px', color: '#92400e' }}>সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ</div>
               </div>
             </div>
 
@@ -1935,7 +2076,39 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                   cursor: 'pointer'
                 }}
               >
-                🗓️ সাপ্তাহিক মাল্টিমিডিয়া পাঠদান রুটিন
+                🗓️ সাপ্তাহিক পাঠদান রুটিন ({multimediaSchedule.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('logs')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'logs' ? '2px solid #059669' : '1px solid #cbd5e1',
+                  background: subTab === 'logs' ? '#ecfdf5' : '#ffffff',
+                  color: subTab === 'logs' ? '#065f46' : '#334155',
+                  fontWeight: subTab === 'logs' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                📋 দৈনিক ক্লাস ডেলিভারি লগ ({multimediaLogs.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('projects')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'projects' ? '2px solid #d97706' : '1px solid #cbd5e1',
+                  background: subTab === 'projects' ? '#fffbeb' : '#ffffff',
+                  color: subTab === 'projects' ? '#92400e' : '#334155',
+                  fontWeight: subTab === 'projects' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🧑‍🏫 শিক্ষকদের ডিজিটাল প্রজেক্ট ({multimediaProjects.length || MOCK_MULTIMEDIA_CONTENTS.length})
               </button>
               <button
                 type="button"
@@ -1951,27 +2124,11 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                   cursor: 'pointer'
                 }}
               >
-                🏫 ক্লাসরুম ও সুবিধাসমূহ
-              </button>
-              <button
-                type="button"
-                onClick={() => setSubTab('content_bank')}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  border: subTab === 'content_bank' ? '2px solid #a21caf' : '1px solid #cbd5e1',
-                  background: subTab === 'content_bank' ? '#fdf4ff' : '#ffffff',
-                  color: subTab === 'content_bank' ? '#86198f' : '#334155',
-                  fontWeight: subTab === 'content_bank' ? 700 : 500,
-                  fontSize: '13.5px',
-                  cursor: 'pointer'
-                }}
-              >
-                📚 ডিজিটাল কনটেন্ট ভাণ্ডার
+                🏫 ক্লাসরুম ও সুবিধাসমূহ ({multimediaRooms.length})
               </button>
             </div>
 
-            {/* Sub-tab: Schedule */}
+            {/* Sub-tab 1: Schedule */}
             {subTab === 'schedule' && (
               <div>
                 <div style={{ marginBottom: '12px' }}>
@@ -2000,9 +2157,9 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                           <td style={{ padding: '10px 12px', fontWeight: 700, color: '#86198f' }}>{m.day}</td>
                           <td style={{ padding: '10px 12px', color: '#475569' }}>{m.period}</td>
                           <td style={{ padding: '10px 12px', fontWeight: 600 }}>{m.class_name} • <span style={{ color: '#0284c7' }}>{m.subject}</span></td>
-                          <td style={{ padding: '10px 12px', color: '#1e293b' }}>{m.topic}</td>
-                          <td style={{ padding: '10px 12px', color: '#334155', fontSize: '12px' }}>{m.teacher}</td>
-                          <td style={{ padding: '10px 12px' }}><span style={{ background: '#f3e8ff', color: '#6b21a8', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>{m.room}</span></td>
+                          <td style={{ padding: '10px 12px', color: '#1e293b' }}>{m.resource || m.topic}</td>
+                          <td style={{ padding: '10px 12px', color: '#334155', fontSize: '12px', fontWeight: 600 }}>{m.teacher}</td>
+                          <td style={{ padding: '10px 12px' }}><span style={{ background: '#f3e8ff', color: '#6b21a8', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>{m.roomName || m.room}</span></td>
                         </tr>
                       ))}
                     </tbody>
@@ -2011,45 +2168,112 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
               </div>
             )}
 
-            {/* Sub-tab: Classrooms */}
-            {subTab === 'classrooms' && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-                {MOCK_MULTIMEDIA_ROOMS.map((room, idx) => (
-                  <div key={room.id || idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ background: '#fae8ff', color: '#86198f', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px' }}>{room.roomNo}</span>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>ধারণক্ষমতা: <b>{room.capacity}</b></span>
-                    </div>
-                    <h3 style={{ margin: '0 0 10px', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>{room.name}</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px', color: '#334155' }}>
-                      <div><b>প্রজেকশন ও ডিসপ্লে:</b> {room.projector}</div>
-                      <div><b>সাউন্ড সিস্টেম:</b> {room.audio}</div>
-                      <div><b>বিদ্যুৎ ব্যাকআপ:</b> {room.power}</div>
-                      <div><b>অবস্থান:</b> {room.floor}</div>
-                    </div>
+            {/* Sub-tab 2: Logs */}
+            {subTab === 'logs' && (
+              <div>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '15px', color: '#065f46', fontWeight: 700 }}>
+                    📋 শ্রেণি পাঠদান ও এক্সিকিউশন ইতিহাস (কে কে ক্লাস নিয়েছেন / নেননি)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                    দৈনিক ভিত্তিতে মাল্টিমিডিয়া ক্লাসরুমের ব্যবহার ও শিক্ষকদের ক্লাসের উপস্থিতি লগবুক।
+                  </p>
+                </div>
+                {multimediaLogs.length === 0 ? (
+                  <div style={{ padding: '30px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '10px' }}>
+                    কোনো ক্লাস ডেলিভারি লগ পাওয়া যায়নি।
                   </div>
-                ))}
+                ) : (
+                  <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                          <th style={{ padding: '10px 12px' }}>তারিখ</th>
+                          <th style={{ padding: '10px 12px' }}>পিরিয়ড ও কক্ষ</th>
+                          <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                          <th style={{ padding: '10px 12px' }}>শিক্ষক</th>
+                          <th style={{ padding: '10px 12px' }}>উপস্থাপিত পাঠ</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'center' }}>স্ট্যাটাস</th>
+                          <th style={{ padding: '10px 12px' }}>মন্তব্য / কারণ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {multimediaLogs.map((l, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: l.status === 'taken' ? '#ffffff' : '#fff5f5' }}>
+                            <td style={{ padding: '10px 12px', fontWeight: 700 }}>{l.date}</td>
+                            <td style={{ padding: '10px 12px', color: '#475569' }}>{l.period}<br /><span style={{ fontSize: '11px', color: '#64748b' }}>{l.roomName}</span></td>
+                            <td style={{ padding: '10px 12px' }}><b>{l.class_name}</b><br /><span style={{ color: '#4338ca' }}>{l.subject}</span></td>
+                            <td style={{ padding: '10px 12px', fontWeight: 700 }}>{l.teacher}</td>
+                            <td style={{ padding: '10px 12px' }}>{l.topicCovered || '—'}</td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              {l.status === 'taken' ?
+                                <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '12px', fontWeight: 800, fontSize: '11px' }}>✅ সম্পন্ন</span> :
+                                <span style={{ background: '#fee2e2', color: '#b91c1c', padding: '3px 8px', borderRadius: '12px', fontWeight: 800, fontSize: '11px' }}>❌ হয়নি</span>
+                              }
+                            </td>
+                            <td style={{ padding: '10px 12px', fontSize: '11.5px', color: l.status === 'missed' ? '#b91c1c' : '#047857' }}>
+                              {l.status === 'missed' ? `কারণ: ${l.reasonNotTaken || 'স্থগিত'}` : (l.remarks || 'সফল')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Sub-tab: Content Bank */}
-            {subTab === 'content_bank' && (
+            {/* Sub-tab 3: Teacher Projects */}
+            {subTab === 'projects' && (
               <div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                  {MOCK_MULTIMEDIA_CONTENTS.map((c, idx) => (
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '15px', color: '#92400e', fontWeight: 700 }}>
+                    💡 শিক্ষকদের তৈরি মাল্টিমিডিয়া প্রজেক্ট ও ডিজিটাল কন্টেন্ট রিপোজিটরি
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                    শিক্ষক বাতায়ন ও মুক্তপাঠে শিক্ষকবৃন্দের প্রকাশিত ৩ডি সিমুলেশন ও উদ্ভাবনী ডিজিটাল শিক্ষা উপকরণ।
+                  </p>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '14px' }}>
+                  {(multimediaProjects.length ? multimediaProjects : MOCK_MULTIMEDIA_CONTENTS).map((p, idx) => (
                     <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ background: '#f3e8ff', color: '#7e22ce', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{c.subject}</span>
-                        <span style={{ fontSize: '11.5px', color: '#d97706', fontWeight: 700 }}>{c.rating}</span>
+                        <span style={{ background: '#f3e8ff', color: '#7e22ce', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{p.subject}</span>
+                        <span style={{ fontSize: '11.5px', color: '#d97706', fontWeight: 700 }}>{p.ratingOrBadge || p.rating || '⭐⭐⭐⭐⭐'}</span>
                       </div>
-                      <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>{c.title}</h4>
-                      <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-                        <span>শ্রেণি: {c.class_name}</span>
-                        <span>উৎস: {c.source}</span>
+                      <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#0f172a', fontWeight: 800 }}>{p.projectTitle || p.title}</h4>
+                      <div style={{ fontSize: '12px', color: '#475569', marginBottom: '8px' }}>
+                        <div><b>শিক্ষক:</b> {p.teacher || p.author || 'বিষয় শিক্ষক'}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>প্ল্যাটফর্ম: {p.platform || p.source}</div>
                       </div>
+                      {p.learningOutcomes && (
+                        <div style={{ fontSize: '11.5px', color: '#334155', background: '#faf5ff', padding: '6px 8px', borderRadius: '6px', marginTop: '6px' }}>
+                          <b>শিখনফল:</b> {p.learningOutcomes}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Sub-tab 4: Classrooms */}
+            {subTab === 'classrooms' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                {multimediaRooms.map((room, idx) => (
+                  <div key={room.id || idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ background: '#fae8ff', color: '#86198f', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px' }}>{room.name}</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>ধারণক্ষমতা: <b>{room.capacity}</b></span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px', color: '#334155', marginTop: '10px' }}>
+                      <div><b>প্রজেকশন ও ডিসপ্লে:</b> {room.projector}</div>
+                      <div><b>সাউন্ড সিস্টেম:</b> {room.sound || room.audio}</div>
+                      <div><b>বিদ্যুৎ ব্যাকআপ:</b> {room.backup || room.power}</div>
+                      <div style={{ color: '#047857', fontWeight: 700 }}><b>রুম ইনচার্জ:</b> {room.incharge || 'মুহাম্মদ আবুবকর সিদ্দিক (ল্যাব ইনচার্জ)'}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -232,15 +232,35 @@ const INITIAL_DATA = {
   },
   multimedia: {
     rooms: [
-      { id: 'mmr-01', name: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২)', projector: 'Epson 4K Laser Ultra HD', sound: 'Yamaha Dolby Audio System', backup: 'সোলার ও অনলাইন IPS ব্যাকআপ', capacity: '৬৫ জন শিক্ষার্থী', status: 'সক্রিয়' },
-      { id: 'mmr-02', name: 'ইন্টারেক্টিভ অডিটোরিয়াম ল্যাব (কক্ষ নং ৩০১)', projector: 'BenQ Interactive Smart Touch Board', sound: 'JBL Wireless Mic & Surround System', backup: 'সেন্ট্রাল জেনারেটর ব্যাকআপ', capacity: '১২০ জন শিক্ষার্থী', status: 'সক্রিয়' }
+      { id: 'mmr-01', name: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', projector: 'Epson EB-2250U 5000 Lumens Full HD', sound: 'Yamaha Dolby Audio 100W', backup: 'সোলার ও সেন্ট্রাল IPS ৩ ঘণ্টা ব্যাকআপ', capacity: '৬৫ জন শিক্ষার্থী', status: 'সক্রিয়', incharge: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+      { id: 'mmr-02', name: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১ - নতুন একাডেমিক ভবন)', projector: 'BenQ Interactive 4K Smart Board 75"', sound: 'JBL Wireless Dual Mic & Surround System', backup: 'অনলাইন ইউপিএস ও জেনারেটর ব্যাকআপ', capacity: '৮৫ জন শিক্ষার্থী', status: 'সক্রিয়', incharge: 'মোঃ হাবিবুর রহমান (সিনিয়র সহকারী শিক্ষক)' },
+      { id: 'mmr-03', name: 'সেন্ট্রাল অডিটোরিয়াম ও সেমিনার হল (কক্ষ নং ১০৫)', projector: 'Optoma Laser Cinema Projector 6000 Lumens', sound: 'Ahuja Digital Audio Console + 4 Speaker Units', backup: 'হেভি-ডিউটি সেন্ট্রাল জেনারেটর ব্যাকআপ', capacity: '১৫০ জন শিক্ষার্থী', status: 'সক্রিয়', incharge: 'মুহাম্মদ আবুবকর সিদ্দিক (ল্যাব ইনচার্জ)' }
     ],
     schedule: [
-      { id: 'ms-01', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', resource: 'শিক্ষক বাতায়ন ও ৩ডি পরমাণু মডেল' },
-      { id: 'ms-02', day: 'সোমবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', resource: 'মুক্তপাঠ মানবদেহের রক্ত সংবহন অ্যানিমেশন' },
-      { id: 'ms-03', day: 'মঙ্গলবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', subject: 'বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', resource: 'সৌরজগৎ ও মহাবিশ্ব সিমুলেশন' },
-      { id: 'ms-04', day: 'বুধবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', resource: 'Geogebra জ্যামিতিক ত্রিমাত্রিক গ্রাফ' },
-      { id: 'ms-05', day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', resource: 'গুগল আর্থ ও ভার্চুয়াল ফিল্ড ট্রিপ' }
+      { id: 'ms-01', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', resource: 'শিক্ষক বাতায়ন ও ৩ডি পরমাণু মডেল ও সিমুলেশন' },
+      { id: 'ms-02', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'রবিবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'HTML কোডিং ভিজ্যুয়াল ব্রাউজার ডেমো' },
+      { id: 'ms-03', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'সোমবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', resource: 'মুক্তপাঠ মানবদেহের রক্ত সংবহন অ্যানিমেশন' },
+      { id: 'ms-04', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'মঙ্গলবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'সাধারণ বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', resource: 'সৌরজগৎ ও মহাবিশ্ব সিমুলেশন' },
+      { id: 'ms-05', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বুধবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', resource: 'GeoGebra ত্রিমাত্রিক জ্যামিতিক গ্রাফ' },
+      { id: 'ms-06', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', resource: 'গুগল আর্থ ও ভার্চুয়াল জিওগ্রাফিক ট্যুর' },
+      { id: 'ms-07', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', day: 'বৃহস্পতিবার', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', resource: 'স্ক্র্যাচ অ্যানিমেশন ও কোডিং বেসিকস' }
+    ],
+    logs: [
+      { id: 'ml-01', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', section: 'পদ্মা', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', status: 'taken', topicCovered: 'আলোর প্রতিফলন ও গোলীয় দর্পণ সিমুলেশন', studentsPresent: '৫৮ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'শিক্ষার্থীরা সফলভাবে ৩ডি অ্যানিমেশন পর্যবেক্ষণ করেছে' },
+      { id: 'ml-02', date: '২০২৬-১০-২৫', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'মেঘনা', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'HTML লিস্ট ও টেবিল ট্যাগ ডিজাইন', studentsPresent: '৫২ জন', projectorUsed: 'Epson EB-2250U 5000 Lumens', remarks: 'প্রজেক্টরে লাইভ কোড রান ও পরীক্ষা সম্পন্ন' },
+      { id: 'ml-03', date: '২০২৬-১০-২৫', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', section: 'যমুনা', subject: 'সাধারণ বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', status: 'missed', reasonNotTaken: 'শিক্ষক দাপ্তরিক কাজে উপজেলা মাধ্যমিক শিক্ষা অফিসে অবস্থান করছিলেন', remarks: 'পরবর্তী কর্মদিবসে মেক-আপ ক্লাস নির্ধারণ করা হয়েছে' },
+      { id: 'ml-04', date: '২০২৬-১০-২৪', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', section: 'পদ্মা', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', status: 'taken', topicCovered: 'মানব হৃৎপিণ্ড ও রক্ত সংবহন ৩ডি মডেল', studentsPresent: '৫৫ জন', projectorUsed: 'Epson EB-2250U', remarks: 'শিক্ষক বাতায়নের সেরা কন্টেন্ট প্রদর্শিত' },
+      { id: 'ml-05', date: '২০২৬-১০-২৪', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', section: 'কর্ণফুলী', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', status: 'taken', topicCovered: 'স্থানাঙ্ক জ্যামিতি ও ত্রিভুজের ক্ষেত্রফল', studentsPresent: '৪৭ জন', projectorUsed: 'BenQ Interactive 4K Smart Board', remarks: 'স্মার্ট বোর্ডে শিক্ষার্থীদের দিয়ে অনুশীলন করানো হয়' },
+      { id: 'ml-06', date: '২০২৬-১০-২৩', roomId: 'mmr-01', roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', section: 'ক-শাখা', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', status: 'missed', reasonNotTaken: 'হঠাৎ বিদ্যুৎ বিভ্রাট ও ব্যাকআপ আইপিএস রক্ষণাবেক্ষণ চলাকালীন সময়ে', remarks: 'সাধারণ শ্রেণিকক্ষে পাঠদান পরিচালিত হয়েছে' },
+      { id: 'ml-07', date: '২০২৬-১০-২৩', roomId: 'mmr-02', roomName: 'ডিজিটাল সায়েন্স ও আইসিটি ক্লাসরুম (কক্ষ নং ৩০১)', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', section: 'খ-শাখা', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', status: 'taken', topicCovered: 'কম্পিউটার নেটওয়ার্ক ও ক্লাউড ড্রাইভ পরিচিতি', studentsPresent: '৬০ জন', projectorUsed: 'BenQ Interactive Smart Board', remarks: 'শতভাগ উপস্থিতি ও ব্যবহারিক ডেমো সফল' }
+    ],
+    projects: [
+      { id: 'mp-01', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'স্মার্ট স্কুল নেটওয়ার্কিং ও সাইবার সচেতনতা ৩ডি ইন্টারেক্টিভ সিমুলেশন', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও বিদ্যালয় ক্লাউড রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/magra-ict-01', toolsUsed: 'PowerPoint, Canva Pro, Cisco Packet Tracer, Camtasia', dateCreated: '২০২৬-০৮-১৫', learningOutcomes: 'শিক্ষার্থীরা বিদ্যালয়ের লোকাল এরিয়া নেটওয়ার্ক আর্কিটেকচার এবং সাইবার নিরাপত্তা ঝুঁকি চিহ্নিত করতে সক্ষম হবে।', ratingOrBadge: '🏆 বাতায়ন পাক্ষিক সেরা কন্টেন্ট নির্মাতা' },
+      { id: 'mp-02', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', teacherDesignation: 'সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ', projectTitle: 'HTML5 ওয়েবপেজ ডেভেলপমেন্ট ও লাইভ কোডিং স্টুডিও', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/magra-html5-02', toolsUsed: 'VS Code Live Server, OBS Studio, Prezi', dateCreated: '২০২৬-০৯-১০', learningOutcomes: 'শিক্ষার্থীরা নিজস্ব বায়োডাটা ও প্রাতিষ্ঠানিক ওয়েবপেজের গঠন ও টেবিল কোডিং করতে পারবে।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-03', teacher: 'মোঃ হাবিবুর রহমান', teacherDesignation: 'সিনিয়র সহকারী শিক্ষক, পদার্থবিজ্ঞান', projectTitle: 'আলোর প্রতিসরণ ও লেন্সের বাস্তব ৩ডি রে ডায়াগ্রাম সিমুলেশন', subject: 'পদার্থবিজ্ঞান', class_name: '১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন ও মুক্তপাঠ', contentUrl: 'https://teachers.gov.bd/content/details/phy-lens-01', toolsUsed: 'PhET Interactive Simulation, MS PowerPoint 365', dateCreated: '২০২৬-০৭-২২', learningOutcomes: 'উত্তল ও অবতল লেন্সের প্রতিবিম্ব গঠনের প্রকৃতি ও রৈখিক বিবর্ধন সরাসরি অনুধাবন।', ratingOrBadge: '🌟 জেলা সেরা ডিজিটাল কন্টেন্ট স্বীকৃতি' },
+      { id: 'mp-04', teacher: 'মোসাঃ নাসরিন আক্তার', teacherDesignation: 'সহকারী শিক্ষিকা, জীববিজ্ঞান', projectTitle: 'সালোকসংশ্লেষণ প্রক্রিয়ার ফটোসিন্থেটিক ৩ডি অ্যানিমেশন ও কুইজ', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম শ্রেণি', platform: 'শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/bio-photo-01', toolsUsed: 'Canva Education, Animaker, Google Forms Quiz', dateCreated: '২০২৬-০৬-৩০', learningOutcomes: 'আলোক পর্যায় ও অন্ধকার পর্যায়ের এটিপি এবং এনএডিপিএইচ সংশ্লেষণ প্রক্রিয়া বিশ্লেষণ।', ratingOrBadge: '🏆 উপজেলা পর্যায়ে শ্রেষ্ঠ শিক্ষিকা সম্মাননা' },
+      { id: 'mp-05', teacher: 'মোঃ আশরাফুল আলম', teacherDesignation: 'সহকারী শিক্ষক, উচ্চতর গণিত', projectTitle: 'GeoGebra সফটওয়্যারে ত্রিমাত্রিক ঘনবস্তুর পৃষ্ঠতল ও আয়তন বিশ্লেষণ', subject: 'উচ্চতর গণিত', class_name: '১০ম শ্রেণি', platform: 'মুক্তপাঠ ও শিক্ষক বাতায়ন', contentUrl: 'https://teachers.gov.bd/content/details/math-geogebra-01', toolsUsed: 'GeoGebra 3D Calculator, PowerPoint', dateCreated: '২০২৬-০৮-০৫', learningOutcomes: 'গোলক, কোণক ও বেলনের ত্রিমাত্রিক রূপ ও সূত্রাবলির জ্যামিতিক প্রমাণ।', ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)' },
+      { id: 'mp-06', teacher: 'তাপসী সরকার', teacherDesignation: 'সহকারী শিক্ষিকা, সামাজিক বিজ্ঞান', projectTitle: 'গুগল আর্থ ও ভার্চুয়াল মানচিত্রে বাংলাদেশের নদীপ্রণালী ও ভূতাত্ত্বিক গঠন', subject: 'ভূগোল ও পরিবেশ', class_name: '৭ম-৮ম শ্রেণি', platform: 'বিদ্যালয় ডিজিটাল রিপোজিটরি', contentUrl: 'https://teachers.gov.bd/content/details/geo-river-01', toolsUsed: 'Google Earth Studio, PowerPoint, Canva', dateCreated: '২০২৬-০৯-১৮', learningOutcomes: 'পদ্মা, মেঘনা ও যমুনার গতিপথ ও বদ্বীপ অঞ্চলের বৈশিষ্ট্য সরাসরি স্যাটেলাইট চিত্রে পর্যবেক্ষণ।', ratingOrBadge: 'বিশেষ প্রশংসিত উদ্ভাবনী উপকরণ' }
     ],
     contents: [
       { id: 'mc-01', title: 'সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম', author: 'মোসাঃ নাসরিন আক্তার', portal: 'শিক্ষক বাতায়ন', views: '১২৫০+' },
@@ -338,8 +358,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
   // New Domain Modals
   const [showLabDeviceModal, setShowLabDeviceModal] = useState(false);
   const [showLabScheduleModal, setShowLabScheduleModal] = useState(false);
-  const [showMmScheduleModal, setShowMmScheduleModal] = useState(false);
-  const [showMmContentModal, setShowMmContentModal] = useState(false);
+
   const [showScoutMemberModal, setShowScoutMemberModal] = useState(false);
   const [showScoutEventModal, setShowScoutEventModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
@@ -387,7 +406,73 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
   });
 
   const [labScheduleForm, setLabScheduleForm] = useState({ id: '', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: '', topic: '' });
-  const [mmScheduleForm, setMmScheduleForm] = useState({ id: '', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: '', teacher: '', resource: '' });
+  // Multimedia Module States
+  const [mmSubTab, setMmSubTab] = useState('routine'); // 'routine' | 'logs' | 'projects' | 'rooms'
+  const [mmRoomFilter, setMmRoomFilter] = useState('all');
+  const [mmTeacherFilter, setMmTeacherFilter] = useState('all');
+  const [mmLogStatusFilter, setMmLogStatusFilter] = useState('all'); // 'all' | 'taken' | 'missed'
+  const [mmSearchQuery, setMmSearchQuery] = useState('');
+  const [showMmScheduleModal, setShowMmScheduleModal] = useState(false);
+  const [mmScheduleForm, setMmScheduleForm] = useState({
+    id: '',
+    roomId: 'mmr-01',
+    roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)',
+    day: 'রবিবার',
+    period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)',
+    class_name: '১০ম শ্রেণি',
+    section: 'পদ্মা',
+    subject: '',
+    teacher: '',
+    resource: ''
+  });
+
+  const [showMmLogModal, setShowMmLogModal] = useState(false);
+  const [mmLogForm, setMmLogForm] = useState({
+    id: '',
+    date: new Date().toISOString().split('T')[0],
+    roomId: 'mmr-01',
+    roomName: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)',
+    period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)',
+    class_name: '১০ম শ্রেণি',
+    section: 'পদ্মা',
+    subject: '',
+    teacher: '',
+    status: 'taken',
+    topicCovered: '',
+    studentsPresent: '৫৫ জন',
+    projectorUsed: 'Epson EB-2250U 5000 Lumens Full HD',
+    reasonNotTaken: '',
+    remarks: ''
+  });
+
+  const [showMmProjectModal, setShowMmProjectModal] = useState(false);
+  const [mmProjectForm, setMmProjectForm] = useState({
+    id: '',
+    teacher: '',
+    teacherDesignation: 'সহকারী শিক্ষক',
+    projectTitle: '',
+    subject: '',
+    class_name: '১০ম শ্রেণি',
+    platform: 'শিক্ষক বাতায়ন',
+    contentUrl: '',
+    toolsUsed: 'MS PowerPoint, Canva, Camtasia',
+    dateCreated: '',
+    learningOutcomes: '',
+    ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)'
+  });
+
+  const [showMmRoomModal, setShowMmRoomModal] = useState(false);
+  const [mmRoomForm, setMmRoomForm] = useState({
+    id: '',
+    name: '',
+    projector: 'Epson 4K Laser Ultra HD',
+    sound: 'Yamaha Dolby Audio System',
+    backup: 'সেন্ট্রাল IPS ও জেনারেটর ব্যাকআপ',
+    capacity: '৬৫ জন শিক্ষার্থী',
+    status: 'সক্রিয়',
+    incharge: 'মুহাম্মদ আবুবকর সিদ্দিক (ল্যাব ইনচার্জ)'
+  });
+
   const [mmContentForm, setMmContentForm] = useState({ id: '', title: '', subject: '', class_name: '৯ম-১০ম', author: '', portal: 'শিক্ষক বাতায়ন', views: '১০০+' });
   const [scoutMemberForm, setScoutMemberForm] = useState({ id: '', name: '', class_name: '১০ম', roll_no: '', unit: 'স্কাউট দল', patrol: 'টাইগার প্যাট্রোল', rank: 'সাধারণ সদস্য', badge: 'স্ট্যান্ডার্ড ব্যাজ', phone: '', bloodGroup: 'B+' });
   const [scoutEventForm, setScoutEventForm] = useState({ id: '', title: '', date: '', venue: '', leader: '', participants: '', award: '' });
@@ -464,6 +549,29 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
               devs = [...devs, ...seedExtras];
             }
             merged.lab.devices = devs;
+          }
+
+          // Seamlessly migrate multimedia module with room profiles, daily execution logs, and teacher projects
+          if (merged.multimedia) {
+            if (!Array.isArray(merged.multimedia.rooms) || merged.multimedia.rooms.length === 0) {
+              merged.multimedia.rooms = INITIAL_DATA.multimedia.rooms;
+            }
+            if (!Array.isArray(merged.multimedia.schedule) || merged.multimedia.schedule.length === 0) {
+              merged.multimedia.schedule = INITIAL_DATA.multimedia.schedule;
+            } else {
+              merged.multimedia.schedule = merged.multimedia.schedule.map(s => ({
+                ...s,
+                roomId: s.roomId || (merged.multimedia.rooms[0]?.id || 'mmr-01'),
+                roomName: s.roomName || (merged.multimedia.rooms[0]?.name || 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)'),
+                section: s.section || 'পদ্মা'
+              }));
+            }
+            if (!Array.isArray(merged.multimedia.logs) || merged.multimedia.logs.length === 0) {
+              merged.multimedia.logs = INITIAL_DATA.multimedia.logs;
+            }
+            if (!Array.isArray(merged.multimedia.projects) || merged.multimedia.projects.length === 0) {
+              merged.multimedia.projects = INITIAL_DATA.multimedia.projects;
+            }
           }
 
           setData(merged);
@@ -1285,47 +1393,755 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     showNotification('রুটিন এন্ট্রি মুছে ফেলা হয়েছে।');
   };
 
-  // ---------------- Multimedia Handlers ----------------
+  // ---------------- Multimedia Classroom Handlers ----------------
   const handleSaveMmSchedule = (e) => {
     e.preventDefault();
     const isEdit = !!mmScheduleForm.id;
+    const roomObj = (data.multimedia?.rooms || []).find(r => r.id === mmScheduleForm.roomId);
     const newSch = {
       ...mmScheduleForm,
-      id: mmScheduleForm.id || `ms-${Date.now().toString().slice(-4)}`
+      id: mmScheduleForm.id || `ms-${Date.now().toString().slice(-4)}`,
+      roomName: roomObj ? roomObj.name : (mmScheduleForm.roomName || 'স্মার্ট ক্লাসরুম ১')
     };
     const currentSch = data.multimedia?.schedule || [];
     const updated = isEdit ? currentSch.map(s => s.id === newSch.id ? newSch : s) : [...currentSch, newSch];
     persistData({ ...data, multimedia: { ...(data.multimedia || {}), schedule: updated } });
     setShowMmScheduleModal(false);
-    showNotification(isEdit ? '✓ মাল্টিমিডিয়া রুটিন আপডেট হয়েছে!' : '✓ নতুন ক্লাস সময়সূচি যুক্ত হয়েছে!');
+    showNotification(isEdit ? '✓ মাল্টিমিডিয়া ক্লাস রুটিন আপডেট হয়েছে!' : '✓ নতুন ক্লাস রুটিন যুক্ত হয়েছে!');
   };
 
   const handleDeleteMmSchedule = (id) => {
-    if (!window.confirm('এই ক্লাস রুটিনটি মুছে ফেলবেন?')) return;
+    if (!window.confirm('এই ক্লাস রুটিনটি মুছে ফেলতে চান?')) return;
     const updated = (data.multimedia?.schedule || []).filter(s => s.id !== id);
     persistData({ ...data, multimedia: { ...(data.multimedia || {}), schedule: updated } });
     showNotification('রুটিন এন্ট্রি মুছে ফেলা হয়েছে।');
   };
 
-  const handleSaveMmContent = (e) => {
+  // Daily Class Delivery Log Handlers
+  const handleSaveMmLog = (e) => {
     e.preventDefault();
-    const isEdit = !!mmContentForm.id;
-    const newC = {
-      ...mmContentForm,
-      id: mmContentForm.id || `mc-${Date.now().toString().slice(-4)}`
+    const isEdit = !!mmLogForm.id;
+    const roomObj = (data.multimedia?.rooms || []).find(r => r.id === mmLogForm.roomId);
+    const newLog = {
+      ...mmLogForm,
+      id: mmLogForm.id || `ml-${Date.now().toString().slice(-4)}`,
+      roomName: roomObj ? roomObj.name : (mmLogForm.roomName || 'স্মার্ট ক্লাসরুম ১')
     };
-    const currentC = data.multimedia?.contents || [];
-    const updated = isEdit ? currentC.map(c => c.id === newC.id ? newC : c) : [...currentC, newC];
-    persistData({ ...data, multimedia: { ...(data.multimedia || {}), contents: updated } });
-    setShowMmContentModal(false);
-    showNotification(isEdit ? '✓ ডিজিটাল কনটেন্ট আপডেট হয়েছে!' : '✓ নতুন কনটেন্ট যুক্ত হয়েছে!');
+    const currentLogs = data.multimedia?.logs || [];
+    const updated = isEdit ? currentLogs.map(l => l.id === newLog.id ? newLog : l) : [newLog, ...currentLogs];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), logs: updated } });
+    setShowMmLogModal(false);
+    showNotification(isEdit ? '✓ ক্লাস ডেলিভারি লগ আপডেট হয়েছে!' : '✓ নতুন ক্লাস ডেলিভারি লগ সংরক্ষিত হয়েছে!');
   };
 
-  const handleDeleteMmContent = (id) => {
-    if (!window.confirm('এই ডিজিটাল কনটেন্ট মুছে ফেলতে চান?')) return;
-    const updated = (data.multimedia?.contents || []).filter(c => c.id !== id);
-    persistData({ ...data, multimedia: { ...(data.multimedia || {}), contents: updated } });
-    showNotification('ডিজিটাল কনটেন্ট মুছে ফেলা হয়েছে।');
+  const handleDeleteMmLog = (id) => {
+    if (!window.confirm('এই ক্লাস ডেলিভারি রেকর্ডটি মুছে ফেলতে চান?')) return;
+    const updated = (data.multimedia?.logs || []).filter(l => l.id !== id);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), logs: updated } });
+    showNotification('লগ এন্ট্রি মুছে ফেলা হয়েছে।');
+  };
+
+  const handleToggleMmLogStatus = (logId) => {
+    const currentLogs = data.multimedia?.logs || [];
+    const target = currentLogs.find(l => l.id === logId);
+    if (!target) return;
+    const newStatus = target.status === 'taken' ? 'missed' : 'taken';
+    const reason = newStatus === 'missed' ? (prompt('ক্লাস না নেওয়ার কারণ উল্লেখ করুন:', 'শিক্ষক দাপ্তরিক কাজে ব্যস্ত ছিলেন') || 'অনিবার্য কারণে ক্লাস স্থগিত') : '';
+    const updated = currentLogs.map(l => l.id === logId ? {
+      ...l,
+      status: newStatus,
+      reasonNotTaken: newStatus === 'missed' ? reason : '',
+      remarks: newStatus === 'taken' ? 'ক্লাস সফলভাবে সম্পন্ন' : l.remarks
+    } : l);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), logs: updated } });
+    showNotification(newStatus === 'taken' ? '✓ ক্লাস সফল হিসেবে চিহ্নিত করা হয়েছে!' : '⚠️ ক্লাস না নেওয়া হিসেবে চিহ্নিত করা হয়েছে।');
+  };
+
+  const handleGenerateTodayLogsFromSchedule = () => {
+    const todayBnStr = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+    const todayEnDate = new Date().toISOString().split('T')[0];
+    const daysBn = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
+    const currentDayName = daysBn[new Date().getDay()] || 'রবিবার';
+
+    const routines = data.multimedia?.schedule || [];
+    const todaysRoutines = routines.filter(r => r.day === currentDayName);
+
+    if (todaysRoutines.length === 0) {
+      alert(`আজ (${currentDayName}) এর জন্য মাল্টিমিডিয়া রুটিনে কোনো নির্ধারিত ক্লাস পাওয়া যায়নি। অন্য দিনের রুটিন থেকে তৈরি করতে চাইলে ম্যানুয়াল এন্ট্রি ব্যবহার করুন।`);
+      return;
+    }
+
+    const existingLogs = data.multimedia?.logs || [];
+    const newEntries = todaysRoutines.map((r, idx) => ({
+      id: `ml-auto-${Date.now().toString().slice(-4)}-${idx}`,
+      date: todayBnStr,
+      roomId: r.roomId || 'mmr-01',
+      roomName: r.roomName || 'স্মার্ট ক্লাসরুম ১',
+      period: r.period,
+      class_name: r.class_name,
+      section: r.section || 'পদ্মা',
+      subject: r.subject,
+      teacher: r.teacher,
+      status: 'taken',
+      topicCovered: r.resource || 'ডিজিটাল পাঠ উপস্থাপন',
+      studentsPresent: '৫৫ জন',
+      projectorUsed: 'Epson EB-2250U 5000 Lumens Full HD',
+      remarks: 'রুটিন অনুযায়ী নির্ধারিত ক্লাস সফলভাবে সম্পন্ন'
+    }));
+
+    const combined = [...newEntries, ...existingLogs];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), logs: combined } });
+    showNotification(`✓ আজকের (${currentDayName}) ${newEntries.length} টি ক্লাসের লগবুক শিট প্রস্তুত হয়েছে!`);
+  };
+
+  // Teacher Multimedia Projects Handlers
+  const handleSaveMmProject = (e) => {
+    e.preventDefault();
+    const isEdit = !!mmProjectForm.id;
+    const newP = {
+      ...mmProjectForm,
+      id: mmProjectForm.id || `mp-${Date.now().toString().slice(-4)}`
+    };
+    const currentP = data.multimedia?.projects || [];
+    const updated = isEdit ? currentP.map(p => p.id === newP.id ? newP : p) : [newP, ...currentP];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), projects: updated } });
+    setShowMmProjectModal(false);
+    showNotification(isEdit ? '✓ শিক্ষকের প্রজেক্ট তথ্য আপডেট হয়েছে!' : '✓ নতুন মাল্টিমিডিয়া প্রজেক্ট যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteMmProject = (id) => {
+    if (!window.confirm('এই প্রজেক্ট রেকর্ডটি মুছে ফেলতে চান?')) return;
+    const updated = (data.multimedia?.projects || []).filter(p => p.id !== id);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), projects: updated } });
+    showNotification('প্রজেক্ট রেকর্ড মুছে ফেলা হয়েছে।');
+  };
+
+  // Smart Room Profile Handlers
+  const handleSaveMmRoom = (e) => {
+    e.preventDefault();
+    const isEdit = !!mmRoomForm.id;
+    const newR = {
+      ...mmRoomForm,
+      id: mmRoomForm.id || `mmr-${Date.now().toString().slice(-4)}`
+    };
+    const currentR = data.multimedia?.rooms || [];
+    const updated = isEdit ? currentR.map(r => r.id === newR.id ? newR : r) : [...currentR, newR];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), rooms: updated } });
+    setShowMmRoomModal(false);
+    showNotification(isEdit ? '✓ স্মার্ট ক্লাসরুম তথ্য আপডেট হয়েছে!' : '✓ নতুন স্মার্ট ক্লাসরুম প্রোফাইল যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteMmRoom = (id) => {
+    if (!window.confirm('এই ক্লাসরুম প্রোফাইলটি মুছে ফেলতে চান?')) return;
+    const updated = (data.multimedia?.rooms || []).filter(r => r.id !== id);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), rooms: updated } });
+    showNotification('রুম প্রোফাইল মুছে ফেলা হয়েছে।');
+  };
+
+  // Official Institutional Letterhead Print / PDF: Individual Teacher Multimedia Performance Report
+  const handlePrintIndividualTeacherReport = (teacherName) => {
+    if (!teacherName) {
+      alert('অনুগ্রহ করে একজন শিক্ষক নির্বাচন করুন।');
+      return;
+    }
+
+    const allSchedules = data.multimedia?.schedule || [];
+    const teacherSchedules = allSchedules.filter(s => s.teacher === teacherName);
+
+    const allLogs = data.multimedia?.logs || [];
+    const teacherLogs = allLogs.filter(l => l.teacher === teacherName);
+    const takenLogs = teacherLogs.filter(l => l.status === 'taken');
+    const missedLogs = teacherLogs.filter(l => l.status === 'missed');
+
+    const totalLogsCount = teacherLogs.length;
+    const takenPercent = totalLogsCount > 0 ? Math.round((takenLogs.length / totalLogsCount) * 100) : 100;
+
+    const allProjects = data.multimedia?.projects || [];
+    const teacherProjects = allProjects.filter(p => p.teacher === teacherName);
+
+    const teacherMeta = teachers.find(t => (t.name_bn === teacherName || t.name_en === teacherName)) || {};
+    const teacherDesignation = teacherProjects[0]?.teacherDesignation || teacherMeta.designation_bn || 'সহকারী শিক্ষক';
+
+    const memoNum = `মপাউবি/মাল্টিমিডিয়া/শিক্ষক-মূল্যায়ন/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
+    const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const w = window.open('', '_blank', 'width=1100,height=850');
+    if (!w) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপ-আপ অনুমোদন করে পুনরায় চেষ্টা করুন।');
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>শিক্ষক মাল্টিমিডিয়া মূল্যায়ন প্রতিবেদন — ${teacherName}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 10mm 15mm 10mm; }
+          body {
+            font-family: 'Segoe UI', 'SutonnyMJ', 'Nikosh', 'SolaimanLipi', sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 16px;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            background: #f5f3ff;
+            border: 1px solid #ddd6fe;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .btn-print {
+            background: #6d28d9;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .header-box {
+            text-align: center;
+            border-bottom: 2px solid #6d28d9;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          }
+          .school-gov { font-size: 12px; color: #475569; font-weight: 700; letter-spacing: 0.5px; }
+          .school-title { margin: 3px 0 2px; font-size: 22px; color: #5b21b6; font-weight: 900; letter-spacing: 0.3px; }
+          .school-sub { font-size: 11.5px; color: #64748b; font-weight: 600; }
+          .report-badge {
+            display: inline-block;
+            background: #ede9fe;
+            color: #5b21b6;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-top: 6px;
+            border: 1px solid #c4b5fd;
+          }
+          .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #475569;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 5px;
+          }
+          .teacher-profile-card {
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+          }
+          .kpi-num { font-size: 16px; font-weight: 900; }
+          .section-heading {
+            font-size: 13px;
+            font-weight: 800;
+            color: #4c1d95;
+            margin: 14px 0 6px;
+            border-left: 4px solid #7c3aed;
+            padding-left: 8px;
+          }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 12px; }
+          th { background: #f1f5f9; color: #334155; padding: 6px 8px; font-weight: 700; border: 1px solid #cbd5e1; text-align: left; }
+          td { padding: 6px 8px; border: 1px solid #e2e8f0; }
+          .sig-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 36px;
+            padding-top: 10px;
+            page-break-inside: avoid;
+          }
+          .sig-box { text-align: center; width: 230px; font-size: 11.5px; }
+          .sig-line { border-top: 1.5px solid #0f172a; margin-bottom: 5px; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0 !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <div>
+            <b>🖨️ শিক্ষক মাল্টিমিডিয়া মূল্যায়ন প্রিন্ট ভিউ</b>
+            <span style="color: #64748b; font-size: 12px; margin-left: 10px;">(A4 Portrait ফরম্যাটে সরাসরি প্রিন্ট বা Save as PDF করুন)</span>
+          </div>
+          <div>
+            <button class="btn-print" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+            <button onclick="window.close()" style="margin-left: 8px; padding: 8px 14px; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">বন্ধ করুন</button>
+          </div>
+        </div>
+
+        <div class="header-box">
+          <div class="school-gov">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত • শিক্ষা মন্ত্রণালয়</div>
+          <div class="school-title">মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          <div class="school-sub">পোঃ মাগড়া, উপজেলা ও জেলা: টাঙ্গাইল | EIIN: 114290 | বিদ্যালয় কোড: 4501 | স্থাপিত: ১৯১৯ খ্রি.</div>
+          <div class="report-badge">🖥️ মাল্টিমিডিয়া ক্লাসরুম: শিক্ষক ব্যক্তিগত পারফরম্যান্স ও ডিজিটাল কন্টেন্ট মূল্যায়ন প্রতিবেদন</div>
+        </div>
+
+        <div class="meta-bar">
+          <div><b>স্মারক নং:</b> ${memoNum}</div>
+          <div><b>প্রতিবেদন তৈরির তারিখ:</b> ${todayBn}</div>
+        </div>
+
+        <div class="teacher-profile-card">
+          <div>
+            <div style="font-size: 14px; font-weight: 800; color: #5b21b6;">👨‍🏫 ${teacherName}</div>
+            <div style="font-size: 11px; color: #6b21a8; margin-top: 2px;">পদবি: <b>${teacherDesignation}</b></div>
+          </div>
+          <div style="text-align: center; border-left: 1px solid #e9d5ff;">
+            <div style="font-size: 10.5px; color: #64748b;">নির্ধারিত ক্লাস</div>
+            <div class="kpi-num" style="color: #4338ca;">${totalLogsCount || teacherSchedules.length} টি</div>
+          </div>
+          <div style="text-align: center; border-left: 1px solid #e9d5ff;">
+            <div style="font-size: 10.5px; color: #64748b;">গৃহীত ক্লাস / হার</div>
+            <div class="kpi-num" style="color: #059669;">${takenLogs.length} টি (${takenPercent}%)</div>
+          </div>
+          <div style="text-align: center; border-left: 1px solid #e9d5ff;">
+            <div style="font-size: 10.5px; color: #64748b;">ডিজিটাল প্রজেক্ট</div>
+            <div class="kpi-num" style="color: #b45309;">${teacherProjects.length} টি</div>
+          </div>
+        </div>
+
+        <!-- Routine Section -->
+        <div class="section-heading">১. সাপ্তাহিক মাল্টিমিডিয়া ক্লাস রুটিন অনুযায়ী সূচি</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>বার (Day)</th>
+              <th>পিরিয়ড ও সময়</th>
+              <th>কক্ষ ও স্মার্ট ডিসপ্লে</th>
+              <th>শ্রেণি ও শাখা</th>
+              <th>বিষয়</th>
+              <th>ডিজিটাল রিসোর্স / টপিক</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teacherSchedules.length === 0 ? `
+              <tr><td colspan="7" style="text-align: center; color: #64748b; padding: 10px;">এই শিক্ষকের জন্য কোনো সাপ্তাহিক রুটিন এন্ট্রি পাওয়া যায়নি।</td></tr>
+            ` : teacherSchedules.map((s, i) => `
+              <tr style="background: ${i % 2 === 0 ? '#ffffff' : '#faf5ff'};">
+                <td style="text-align: center; font-weight: 700;">${i + 1}</td>
+                <td style="font-weight: 700; color: #6d28d9;">${s.day}</td>
+                <td>${s.period}</td>
+                <td>${s.roomName || 'স্মার্ট ক্লাসরুম ১'}</td>
+                <td><b>${s.class_name}</b> ${s.section ? `(${s.section})` : ''}</td>
+                <td style="font-weight: 700;">${s.subject}</td>
+                <td style="color: #475569;">${s.resource}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- Class Delivery History -->
+        <div class="section-heading">২. ক্লাস ডেলিভারি ও এক্সিকিউশন ইতিহাস (কে কে ক্লাস নিয়েছে / নেয়নি)</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>তারিখ</th>
+              <th>পিরিয়ড ও কক্ষ</th>
+              <th>শ্রেণি ও বিষয়</th>
+              <th>উপস্থাপিত বিষয়বস্তু / স্লাইড</th>
+              <th>উপস্থিতি</th>
+              <th style="text-align: center;">স্ট্যাটাস</th>
+              <th>মন্তব্য / ক্লাস না নেওয়ার কারণ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teacherLogs.length === 0 ? `
+              <tr><td colspan="8" style="text-align: center; color: #64748b; padding: 10px;">লগবুকে এখনো এই শিক্ষকের কোনো ক্লাস ডেলিভারি রেকর্ড লিপিবদ্ধ হয়নি।</td></tr>
+            ` : teacherLogs.map((l, i) => `
+              <tr style="background: ${i % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                <td style="text-align: center; font-weight: 700;">${i + 1}</td>
+                <td style="font-weight: 700; white-space: nowrap;">${l.date}</td>
+                <td style="font-size: 10.5px;">${l.period}<br><span style="color: #64748b;">${l.roomName}</span></td>
+                <td><b>${l.class_name}</b><br><span style="color: #4338ca;">${l.subject}</span></td>
+                <td>${l.topicCovered || '—'}</td>
+                <td style="text-align: center;">${l.studentsPresent || '—'}</td>
+                <td style="text-align: center;">
+                  ${l.status === 'taken' ?
+                    '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 10px;">✅ সম্পন্ন</span>' :
+                    '<span style="background: #fee2e2; color: #b91c1c; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 10px;">❌ হয়নি</span>'
+                  }
+                </td>
+                <td style="font-size: 10px; color: ${l.status === 'missed' ? '#b91c1c' : '#334155'};">
+                  ${l.status === 'missed' ? `<b>কারণ:</b> ${l.reasonNotTaken || 'অনিবার্য কারণ'}` : (l.remarks || 'সফল')}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- Teacher Multimedia Projects -->
+        <div class="section-heading">৩. শিক্ষক কর্তৃক উদ্ভাবিত ও তৈরিকৃত ডিজিটাল প্রজেক্ট ভাণ্ডার</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>প্রজেক্টের নাম ও শ্রেণি</th>
+              <th>বিষয় ও শিখনফল</th>
+              <th>প্ল্যাটফর্ম ও সফটওয়্যার</th>
+              <th>সম্মাননা / রেটিং</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teacherProjects.length === 0 ? `
+              <tr><td colspan="5" style="text-align: center; color: #64748b; padding: 10px;">এই শিক্ষকের কোনো ডিজিটাল প্রজেক্ট এখনো নথিভুক্ত হয়নি।</td></tr>
+            ` : teacherProjects.map((p, i) => `
+              <tr style="background: ${i % 2 === 0 ? '#ffffff' : '#faf5ff'};">
+                <td style="text-align: center; font-weight: 700;">${i + 1}</td>
+                <td>
+                  <div style="font-weight: 800; color: #4c1d95;">${p.projectTitle}</div>
+                  <div style="font-size: 10px; color: #64748b;">শ্রেণি: ${p.class_name} • তারিখ: ${p.dateCreated || '—'}</div>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: #0284c7;">${p.subject}</div>
+                  <div style="font-size: 10px; color: #334155;">${p.learningOutcomes || 'শিক্ষার্থীরা সক্রিয়ভাবে ধারণা অনুধাবন করবে'}</div>
+                </td>
+                <td>
+                  <div><b>${p.platform}</b></div>
+                  <div style="font-size: 10px; color: #64748b;">টুলস: ${p.toolsUsed}</div>
+                </td>
+                <td style="font-weight: 700; color: #b45309;">${p.ratingOrBadge || '⭐⭐⭐⭐⭐'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- Dual Signature Section -->
+        <div class="sig-row">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ আবুবকর সিদ্দিক</b><br>
+            সহকারী শিক্ষক (আইসিটি)<br>
+            ল্যাব ও মাল্টিমিডিয়া ক্লাসরুম ইনচার্জ<br>
+            মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+          </div>
+          <div class="sig-box">
+            <div style="height: 38px;"></div>
+            <div class="sig-line"></div>
+            <b>প্রধান শিক্ষক</b><br>
+            মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
+            টাঙ্গাইল সদর, টাঙ্গাইল
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    w.document.open();
+    w.document.write(htmlContent);
+    w.document.close();
+  };
+
+  // Master Institutional Report for Headmaster & USEO Inspection
+  const handlePrintMasterMultimediaReport = () => {
+    const allSchedules = data.multimedia?.schedule || [];
+    const allLogs = data.multimedia?.logs || [];
+    const allProjects = data.multimedia?.projects || [];
+    const allRooms = data.multimedia?.rooms || [];
+
+    const takenCount = allLogs.filter(l => l.status === 'taken').length;
+    const missedCount = allLogs.filter(l => l.status === 'missed').length;
+    const totalCount = allLogs.length;
+    const completionPercent = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 100;
+
+    // Unique teachers in schedules & logs
+    const teacherNames = Array.from(new Set([
+      ...allSchedules.map(s => s.teacher),
+      ...allLogs.map(l => l.teacher),
+      ...allProjects.map(p => p.teacher)
+    ])).filter(Boolean);
+
+    const teacherMatrix = teacherNames.map(name => {
+      const schCount = allSchedules.filter(s => s.teacher === name).length;
+      const tLogs = allLogs.filter(l => l.teacher === name);
+      const tTaken = tLogs.filter(l => l.status === 'taken').length;
+      const tMissed = tLogs.filter(l => l.status === 'missed').length;
+      const tProjects = allProjects.filter(p => p.teacher === name).length;
+      const rate = tLogs.length > 0 ? Math.round((tTaken / tLogs.length) * 100) : 100;
+      return { name, schCount, tTaken, tMissed, tTotal: tLogs.length, rate, tProjects };
+    });
+
+    const memoNum = `মপাউবি/মাল্টিমিডিয়া/প্রাতিষ্ঠানিক-পরিদর্শন/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
+    const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const w = window.open('', '_blank', 'width=1100,height=850');
+    if (!w) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপ-আপ অনুমোদন করে পুনরায় চেষ্টা করুন।');
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>মাল্টিমিডিয়া ক্লাসরুম মনিটরিং ও সামগ্রিক প্রাতিষ্ঠানিক প্রতিবেদন</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 10mm 15mm 10mm; }
+          body {
+            font-family: 'Segoe UI', 'SutonnyMJ', 'Nikosh', 'SolaimanLipi', sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 16px;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            background: #ede9fe;
+            border: 1px solid #c4b5fd;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .btn-print {
+            background: #5b21b6;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+          }
+          .header-box {
+            text-align: center;
+            border-bottom: 2px solid #5b21b6;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          }
+          .school-gov { font-size: 12px; color: #475569; font-weight: 700; }
+          .school-title { margin: 3px 0 2px; font-size: 22px; color: #4c1d95; font-weight: 900; }
+          .school-sub { font-size: 11.5px; color: #64748b; }
+          .report-badge {
+            display: inline-block;
+            background: #f3e8ff;
+            color: #581c87;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-top: 6px;
+            border: 1px solid #d8b4fe;
+          }
+          .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #475569;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 5px;
+          }
+          .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+          }
+          .sum-card {
+            background: #faf5ff;
+            border: 1px solid #e9d5ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+          }
+          .sum-num { font-size: 17px; font-weight: 900; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 14px; }
+          th { background: #f1f5f9; color: #334155; padding: 6px 8px; font-weight: 700; border: 1px solid #cbd5e1; text-align: left; }
+          td { padding: 6px 8px; border: 1px solid #e2e8f0; }
+          .section-heading {
+            font-size: 13px;
+            font-weight: 800;
+            color: #4c1d95;
+            margin: 14px 0 6px;
+            border-left: 4px solid #7c3aed;
+            padding-left: 8px;
+          }
+          .sig-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            page-break-inside: avoid;
+          }
+          .sig-box { text-align: center; width: 230px; font-size: 11.5px; }
+          .sig-line { border-top: 1.5px solid #0f172a; margin-bottom: 5px; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0 !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <div>
+            <b>🖨️ সামগ্রিক প্রাতিষ্ঠানিক মাল্টিমিডিয়া রিপোর্ট</b>
+            <span style="color: #64748b; font-size: 12px; margin-left: 10px;">(প্রধান শিক্ষক ও উপজেলা মাধ্যমিক শিক্ষা অফিসার পরিদর্শনের জন্য সংরক্ষিত)</span>
+          </div>
+          <div>
+            <button class="btn-print" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+            <button onclick="window.close()" style="margin-left: 8px; padding: 8px 14px; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">বন্ধ করুন</button>
+          </div>
+        </div>
+
+        <div class="header-box">
+          <div class="school-gov">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত • শিক্ষা মন্ত্রণালয়</div>
+          <div class="school-title">মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          <div class="school-sub">পোঃ মাগড়া, উপজেলা ও জেলা: টাঙ্গাইল | EIIN: 114290 | বিদ্যালয় কোড: 4501 | স্থাপিত: ১৯১৯ খ্রি.</div>
+          <div class="report-badge">📊 মাল্টিমিডিয়া ক্লাসরুম মনিটরিং, এক্সিকিউশন ও শিক্ষক পারফরম্যান্স সামগ্রিক প্রতিবেদন</div>
+        </div>
+
+        <div class="meta-bar">
+          <div><b>স্মারক নং:</b> ${memoNum}</div>
+          <div><b>প্রতিবেদন তারিখ:</b> ${todayBn}</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="sum-card">
+            <div style="font-size: 10.5px; color: #64748b;">সক্রিয় স্মার্ট ক্লাসরুম</div>
+            <div class="sum-num" style="color: #7c3aed;">${allRooms.length} টি</div>
+          </div>
+          <div class="sum-card">
+            <div style="font-size: 10.5px; color: #64748b;">সাপ্তাহিক নির্ধারিত ক্লাস</div>
+            <div class="sum-num" style="color: #0284c7;">${allSchedules.length} টি</div>
+          </div>
+          <div class="sum-card">
+            <div style="font-size: 10.5px; color: #64748b;">গৃহীত ক্লাস / কমপ্লায়েন্স</div>
+            <div class="sum-num" style="color: #059669;">${takenCount} টি (${completionPercent}%)</div>
+          </div>
+          <div class="sum-card">
+            <div style="font-size: 10.5px; color: #64748b;">মোট ডিজিটাল প্রজেক্ট</div>
+            <div class="sum-num" style="color: #b45309;">${allProjects.length} টি</div>
+          </div>
+        </div>
+
+        <!-- Teacher Comparative Table -->
+        <div class="section-heading">১. শিক্ষকভিত্তিক মাল্টিমিডিয়া ক্লাস ডেলিভারি ও পারফরম্যান্স বিশ্লেষণ</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>শিক্ষকের নাম</th>
+              <th style="text-align: center;">রুটিন ক্লাস</th>
+              <th style="text-align: center;">মোট ডেলিভারি লগ</th>
+              <th style="text-align: center; color: #059669;">গৃহীত ক্লাস (Taken)</th>
+              <th style="text-align: center; color: #dc2626;">মিসড ক্লাস (Missed)</th>
+              <th style="text-align: center;">কমপ্লায়েন্স হার</th>
+              <th style="text-align: center;">ডিজিটাল প্রজেক্ট</th>
+              <th style="text-align: center;">রেটিং স্ট্যাটাস</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teacherMatrix.map((tm, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#faf5ff'};">
+                <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
+                <td style="font-weight: 800; color: #3b0764;">${tm.name}</td>
+                <td style="text-align: center; font-weight: 700;">${tm.schCount} টি</td>
+                <td style="text-align: center;">${tm.tTotal} টি</td>
+                <td style="text-align: center; font-weight: 800; color: #059669;">${tm.tTaken}</td>
+                <td style="text-align: center; font-weight: 800; color: #dc2626;">${tm.tMissed}</td>
+                <td style="text-align: center; font-weight: 800; color: ${tm.rate >= 80 ? '#059669' : tm.rate >= 60 ? '#d97706' : '#dc2626'};">
+                  ${tm.rate}%
+                </td>
+                <td style="text-align: center; font-weight: 700; color: #7c3aed;">${tm.tProjects} টি</td>
+                <td style="text-align: center; font-size: 10px;">
+                  ${tm.rate >= 85 ? '<span style="background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-weight: 700;">🏆卓越 চমৎকার</span>' :
+                    tm.rate >= 70 ? '<span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 700;">👍 সন্তোষজনক</span>' :
+                    '<span style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚠️ উন্নতি প্রয়োজন</span>'
+                  }
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- Rooms Specification -->
+        <div class="section-heading">২. মাল্টিমিডিয়া রুম ও স্মার্ট সরঞ্জামের অবস্থা</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">ক্র.</th>
+              <th>কক্ষের নাম ও অবস্থান</th>
+              <th>প্রজেক্টর / স্মার্ট ডিসপ্লে</th>
+              <th>সাউন্ড সিস্টেম</th>
+              <th>বিদ্যুৎ ব্যাকআপ</th>
+              <th>ধারণক্ষমতা</th>
+              <th>রুম ইনচার্জ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allRooms.map((rm, idx) => `
+              <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+                <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
+                <td style="font-weight: 800; color: #4338ca;">${rm.name}</td>
+                <td>${rm.projector}</td>
+                <td>${rm.sound}</td>
+                <td>${rm.backup}</td>
+                <td>${rm.capacity}</td>
+                <td style="color: #047857; font-weight: 700;">${rm.incharge || 'ল্যাব ইনচার্জ'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <!-- Dual Signature Section -->
+        <div class="sig-row">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ আবুবকর সিদ্দিক</b><br>
+            সহকারী শিক্ষক (আইসিটি)<br>
+            ল্যাব ও মাল্টিমিডিয়া ক্লাসরুম ইনচার্জ<br>
+            মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+          </div>
+          <div class="sig-box">
+            <div style="height: 38px;"></div>
+            <div class="sig-line"></div>
+            <b>প্রধান শিক্ষক</b><br>
+            মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
+            টাঙ্গাইল সদর, টাঙ্গাইল
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    w.document.open();
+    w.document.write(htmlContent);
+    w.document.close();
   };
 
   // ---------------- Scouts Handlers ----------------
@@ -2709,113 +3525,910 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
       {/* ========================================================================= */}
       {/* 6. MULTIMEDIA CLASS TAB (মাল্টিমিডিয়া ক্লাস) */}
       {/* ========================================================================= */}
-      {activeTab === 'multimedia' && (
-        <div>
-          {/* Smart Classrooms Overview */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px', marginBottom: '18px' }}>
-            {(data.multimedia?.rooms || []).map(rm => (
-              <div key={rm.id} style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '12px', padding: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h4 style={{ margin: 0, fontSize: '15px', color: '#6b21a8', fontWeight: 800 }}>{rm.name}</h4>
-                  <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>● {rm.status}</span>
+      {activeTab === 'multimedia' && (() => {
+        const rooms = data.multimedia?.rooms || [];
+        const schedules = data.multimedia?.schedule || [];
+        const logs = data.multimedia?.logs || [];
+        const projects = data.multimedia?.projects || [];
+
+        // KPI Calculations
+        const totalRooms = rooms.length;
+        const totalRoutines = schedules.length;
+        const totalLogs = logs.length;
+        const takenLogs = logs.filter(l => l.status === 'taken').length;
+        const missedLogs = logs.filter(l => l.status === 'missed').length;
+        const complianceRate = totalLogs > 0 ? Math.round((takenLogs / totalLogs) * 100) : 100;
+        const totalProjects = projects.length;
+
+        // Unique teacher names across module
+        const allTeacherNames = Array.from(new Set([
+          ...schedules.map(s => s.teacher),
+          ...logs.map(l => l.teacher),
+          ...projects.map(p => p.teacher),
+          ...teachers.map(t => t.name_bn || t.name_en)
+        ])).filter(Boolean);
+
+        // Filtered Schedules
+        const filteredSchedules = schedules.filter(s => {
+          if (mmRoomFilter !== 'all' && s.roomId !== mmRoomFilter) return false;
+          if (mmTeacherFilter !== 'all' && s.teacher !== mmTeacherFilter) return false;
+          if (mmSearchQuery.trim()) {
+            const q = mmSearchQuery.toLowerCase();
+            return (s.subject && s.subject.toLowerCase().includes(q)) ||
+                   (s.teacher && s.teacher.toLowerCase().includes(q)) ||
+                   (s.class_name && s.class_name.toLowerCase().includes(q)) ||
+                   (s.roomName && s.roomName.toLowerCase().includes(q)) ||
+                   (s.resource && s.resource.toLowerCase().includes(q));
+          }
+          return true;
+        });
+
+        // Filtered Logs
+        const filteredLogs = logs.filter(l => {
+          if (mmLogStatusFilter !== 'all' && l.status !== mmLogStatusFilter) return false;
+          if (mmRoomFilter !== 'all' && l.roomId !== mmRoomFilter) return false;
+          if (mmTeacherFilter !== 'all' && l.teacher !== mmTeacherFilter) return false;
+          if (mmSearchQuery.trim()) {
+            const q = mmSearchQuery.toLowerCase();
+            return (l.subject && l.subject.toLowerCase().includes(q)) ||
+                   (l.teacher && l.teacher.toLowerCase().includes(q)) ||
+                   (l.class_name && l.class_name.toLowerCase().includes(q)) ||
+                   (l.date && l.date.includes(q)) ||
+                   (l.topicCovered && l.topicCovered.toLowerCase().includes(q)) ||
+                   (l.reasonNotTaken && l.reasonNotTaken.toLowerCase().includes(q));
+          }
+          return true;
+        });
+
+        // Grouped Teacher Profiles for Portfolio
+        const teacherProfiles = allTeacherNames.map(name => {
+          const tSchedules = schedules.filter(s => s.teacher === name);
+          const tLogs = logs.filter(l => l.teacher === name);
+          const tTaken = tLogs.filter(l => l.status === 'taken').length;
+          const tMissed = tLogs.filter(l => l.status === 'missed').length;
+          const tRate = tLogs.length > 0 ? Math.round((tTaken / tLogs.length) * 100) : (tSchedules.length > 0 ? 100 : 0);
+          const tProjects = projects.filter(p => p.teacher === name);
+          const tMeta = teachers.find(t => (t.name_bn === name || t.name_en === name)) || {};
+          const designation = tProjects[0]?.teacherDesignation || tMeta.designation_bn || 'সহকারী শিক্ষক';
+          return { name, designation, schedules: tSchedules, logs: tLogs, taken: tTaken, missed: tMissed, rate: tRate, projects: tProjects };
+        }).filter(tp => {
+          if (mmTeacherFilter !== 'all' && tp.name !== mmTeacherFilter) return false;
+          if (mmSearchQuery.trim()) {
+            const q = mmSearchQuery.toLowerCase();
+            return tp.name.toLowerCase().includes(q) || tp.designation.toLowerCase().includes(q);
+          }
+          return true;
+        });
+
+        return (
+          <div>
+            {/* Header Gradient Banner */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%)',
+              color: '#ffffff',
+              borderRadius: '14px',
+              padding: '22px 24px',
+              marginBottom: '20px',
+              boxShadow: '0 10px 25px -5px rgba(49, 46, 129, 0.3)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '26px' }}>🖥️</span>
+                    <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '0.3px', color: '#ffffff' }}>
+                      মাল্টিমিডিয়া ক্লাসরুম ও ডিজিটাল স্মার্ট লার্নিং হাব
+                    </h3>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#c7d2fe', lineHeight: '1.5' }}>
+                    মাগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • স্মার্ট রুটিন, দৈনিক ক্লাস ট্র্যাকার (কে নিয়েছে/নেয়নি) ও শিক্ষক প্রজেক্ট পোর্টফোলিও
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(6px)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', marginTop: '8px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                    <span>👨‍🏫</span>
+                    <b>ল্যাব ও মাল্টিমিডিয়া ইনচার্জ:</b> মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)
+                  </div>
                 </div>
-                <div style={{ fontSize: '12px', color: '#4c1d95', lineHeight: '1.6' }}>
-                  <div>📽️ <b>প্রজেক্টর/বোর্ড:</b> {rm.projector}</div>
-                  <div>🔊 <b>সাউন্ড:</b> {rm.sound}</div>
-                  <div>⚡ <b>বিদ্যুৎ ব্যাকআপ:</b> {rm.backup}</div>
-                  <div>👥 <b>ধারণক্ষমতা:</b> {rm.capacity}</div>
+
+                {/* Header Action Buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handlePrintMasterMultimediaReport}
+                    style={{
+                      padding: '9px 16px',
+                      background: '#ffffff',
+                      color: '#312e81',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    }}
+                  >
+                    <span>🖨️</span> প্রধান শিক্ষকের সামগ্রিক পরিদর্শন রিপোর্ট (PDF)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateTodayLogsFromSchedule}
+                    style={{
+                      padding: '9px 16px',
+                      background: 'rgba(255,255,255,0.18)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>⚡</span> আজকের লগ শিট প্রস্তুত করুন
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMmScheduleForm({
+                        id: '',
+                        roomId: rooms[0]?.id || 'mmr-01',
+                        roomName: rooms[0]?.name || 'স্মার্ট ক্লাসরুম ১',
+                        day: 'রবিবার',
+                        period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)',
+                        class_name: '১০ম শ্রেণি',
+                        section: 'পদ্মা',
+                        subject: '',
+                        teacher: teachers[0]?.name_bn || '',
+                        resource: ''
+                      });
+                      setShowMmScheduleModal(true);
+                    }}
+                    style={{
+                      padding: '9px 16px',
+                      background: '#10b981',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontWeight: 800,
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>➕</span> নতুন ক্লাস রুটিন
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Action Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-            <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 800 }}>
-              🖥️ সাপ্তাহিক মাল্টিমিডিয়া ক্লাস রুটিন ({data.multimedia?.schedule?.length || 0} টি ক্লাস)
-            </h4>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            {/* 4 KPI Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '5px solid #4338ca', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>🏛️ সক্রিয় স্মার্ট ক্লাসরুম</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#312e81', marginTop: '4px' }}>{totalRooms} টি রুম</div>
+                <div style={{ fontSize: '11px', color: '#4338ca', marginTop: '2px' }}>প্রজেক্টর ও সাউন্ড ইকুইপড</div>
+              </div>
+
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '5px solid #0284c7', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>📅 সাপ্তাহিক নির্ধারিত ক্লাস</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#0369a1', marginTop: '4px' }}>{totalRoutines} টি ক্লাস</div>
+                <div style={{ fontSize: '11px', color: '#0284c7', marginTop: '2px' }}>সপ্তাহের ৫ কর্মদিবসে রুটিনভুক্ত</div>
+              </div>
+
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '5px solid #059669', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>✅ ক্লাস ডেলিভারি কমপ্লায়েন্স</span>
+                  <span style={{ background: complianceRate >= 80 ? '#dcfce7' : '#fee2e2', color: complianceRate >= 80 ? '#15803d' : '#b91c1c', fontSize: '11px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                    {complianceRate}%
+                  </span>
+                </div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#065f46', marginTop: '4px' }}>{takenLogs} টি সম্পন্ন</div>
+                <div style={{ fontSize: '11px', color: '#dc2626', marginTop: '2px' }}>
+                  {missedLogs > 0 ? `⚠️ ${missedLogs} টি ক্লাস নেওয়া হয়নি / স্থগিত` : 'সব নির্ধারিত ক্লাস সম্পন্ন'}
+                </div>
+              </div>
+
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderLeft: '5px solid #d97706', borderRadius: '12px', padding: '14px 16px' }}>
+                <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>📁 শিক্ষকদের ডিজিটাল প্রজেক্ট</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, color: '#b45309', marginTop: '4px' }}>{totalProjects} টি প্রজেক্ট</div>
+                <div style={{ fontSize: '11px', color: '#d97706', marginTop: '2px' }}>শিক্ষক বাতায়ন ও উদ্ভাবনী কন্টেন্ট</div>
+              </div>
+            </div>
+
+            {/* 4 Pillars Navigation Tabs */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                onClick={() => {
-                  setMmScheduleForm({ id: '', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: 'পদার্থবিজ্ঞান', teacher: teachers[0]?.name_bn || '', resource: 'শিক্ষক বাতায়ন ৩ডি প্রেজেন্টেশন' });
-                  setShowMmScheduleModal(true);
+                onClick={() => setMmSubTab('routine')}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: mmSubTab === 'routine' ? '2px solid #4338ca' : '1px solid #cbd5e1',
+                  background: mmSubTab === 'routine' ? '#eef2ff' : '#ffffff',
+                  color: mmSubTab === 'routine' ? '#312e81' : '#475569',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
-                style={{ padding: '8px 14px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
               >
-                <span>➕</span> নতুন ক্লাস রুটিন যোগ
+                <span>🗓️</span> ১ম বিভাগ: রুমভিত্তিক ক্লাস রুটিন ({totalRoutines})
               </button>
+
               <button
                 type="button"
-                onClick={() => {
-                  setMmContentForm({ id: '', title: '', subject: '', class_name: '৯ম-১০ম', author: teachers[0]?.name_bn || '', portal: 'শিক্ষক বাতায়ন', views: '১০০+' });
-                  setShowMmContentModal(true);
+                onClick={() => setMmSubTab('logs')}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: mmSubTab === 'logs' ? '2px solid #059669' : '1px solid #cbd5e1',
+                  background: mmSubTab === 'logs' ? '#ecfdf5' : '#ffffff',
+                  color: mmSubTab === 'logs' ? '#065f46' : '#475569',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
-                style={{ padding: '8px 14px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
               >
-                <span>📁</span> ডিজিটাল কনটেন্ট যোগ
+                <span>📋</span> ২য় বিভাগ: দৈনিক ক্লাস লগ ও উপস্থিতি (কে নিয়েছে / নেয়নি) ({totalLogs})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMmSubTab('projects')}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: mmSubTab === 'projects' ? '2px solid #b45309' : '1px solid #cbd5e1',
+                  background: mmSubTab === 'projects' ? '#fffbeb' : '#ffffff',
+                  color: mmSubTab === 'projects' ? '#78350f' : '#475569',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>🧑‍🏫</span> ৩য় বিভাগ: শিক্ষকভিত্তিক প্রজেক্ট ও পারফরম্যান্স পোর্টফোলিও ({teacherProfiles.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMmSubTab('rooms')}
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: '8px',
+                  border: mmSubTab === 'rooms' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
+                  background: mmSubTab === 'rooms' ? '#faf5ff' : '#ffffff',
+                  color: mmSubTab === 'rooms' ? '#5b21b6' : '#475569',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>🏛️</span> ৪র্থ বিভাগ: স্মার্ট রুম প্রোফাইল ও সরঞ্জাম ({totalRooms})
               </button>
             </div>
-          </div>
 
-          {/* Schedule Table */}
-          <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '22px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
-                  <th style={{ padding: '10px 12px' }}>বার (Day)</th>
-                  <th style={{ padding: '10px 12px' }}>পিরিয়ড</th>
-                  <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
-                  <th style={{ padding: '10px 12px' }}>ডিজিটাল রিসোর্স ও ৩ডি বিষয়বস্তু</th>
-                  <th style={{ padding: '10px 12px' }}>বিষয় শিক্ষক</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data.multimedia?.schedule || []).map((sch, idx) => (
-                  <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 12px', fontWeight: 700, color: '#7c3aed' }}>{sch.day}</td>
-                    <td style={{ padding: '10px 12px', color: '#64748b' }}>{sch.period}</td>
-                    <td style={{ padding: '10px 12px' }}><b>{sch.class_name}</b> — {sch.subject}</td>
-                    <td style={{ padding: '10px 12px', color: '#334155' }}>✨ {sch.resource}</td>
-                    <td style={{ padding: '10px 12px', color: '#4338ca', fontWeight: 600 }}>{sch.teacher}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      <button type="button" onClick={() => { setMmScheduleForm(sch); setShowMmScheduleModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
-                      <button type="button" onClick={() => handleDeleteMmSchedule(sch.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            {/* Global Filter & Search Toolbar */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              marginBottom: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                {/* Room Filter */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>কক্ষ:</span>
+                  <select
+                    value={mmRoomFilter}
+                    onChange={e => setMmRoomFilter(e.target.value)}
+                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    <option value="all">সব স্মার্ট রুম</option>
+                    {rooms.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-          {/* Digital Content Bank Cards */}
-          <div>
-            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
-              📂 শিক্ষক বাতায়ন ও মুক্তপাঠ ডিজিটাল কনটেন্ট ভাণ্ডার
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-              {(data.multimedia?.contents || []).map(cnt => (
-                <div key={cnt.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', background: '#ede9fe', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{cnt.portal}</span>
-                      <span style={{ fontSize: '11px', color: '#64748b' }}>👁️ {cnt.views} ভিউ</span>
-                    </div>
-                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>{cnt.title}</div>
-                    <div style={{ fontSize: '12px', color: '#475569' }}>{cnt.subject} ({cnt.class_name})</div>
-                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>👨‍🏫 কনটেন্ট নির্মাতা: {cnt.author}</div>
+                {/* Teacher Filter */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>শিক্ষক:</span>
+                  <select
+                    value={mmTeacherFilter}
+                    onChange={e => setMmTeacherFilter(e.target.value)}
+                    style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    <option value="all">সব শিক্ষক</option>
+                    {allTeacherNames.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter for Logs Tab */}
+                {mmSubTab === 'logs' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>স্ট্যাটাস:</span>
+                    <select
+                      value={mmLogStatusFilter}
+                      onChange={e => setMmLogStatusFilter(e.target.value)}
+                      style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                    >
+                      <option value="all">সব রেকর্ড</option>
+                      <option value="taken">✅ সম্পন্ন ক্লাস ({takenLogs})</option>
+                      <option value="missed">❌ ক্লাস হয়নি / স্থগিত ({missedLogs})</option>
+                    </select>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                    <button type="button" onClick={() => { setMmContentForm(cnt); setShowMmContentModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>✏️</button>
-                    <button type="button" onClick={() => handleDeleteMmContent(cnt.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                )}
+              </div>
+
+              {/* Search Box */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <input
+                  type="text"
+                  value={mmSearchQuery}
+                  onChange={e => setMmSearchQuery(e.target.value)}
+                  placeholder="বিষয়, শিক্ষক, শ্রেণি বা টপিক দিয়ে খুঁজুন..."
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', width: '220px' }}
+                />
+                {mmSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setMmSearchQuery('')}
+                    style={{ padding: '5px 8px', background: '#e2e8f0', border: 'none', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* ================================================================= */}
+            {/* PILLAR 1: ROOM-BASED CLASS ROUTINE (রুমভিত্তিক ক্লাস রুটিন) */}
+            {/* ================================================================= */}
+            {mmSubTab === 'routine' && (
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15px', color: '#1e1b4b', fontWeight: 800 }}>
+                      🗓️ সাপ্তাহিক মাল্টিমিডিয়া ক্লাস রুটিন ({filteredSchedules.length} টি ক্লাস প্রদর্শিত)
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      রুম ও বিষয়ভিত্তিক প্রজেক্টর প্রেজেন্টেশন ও ডিজিটাল কনটেন্ট ক্লাস সূচি
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMmScheduleForm({
+                        id: '',
+                        roomId: mmRoomFilter !== 'all' ? mmRoomFilter : (rooms[0]?.id || 'mmr-01'),
+                        roomName: rooms.find(r => r.id === mmRoomFilter)?.name || (rooms[0]?.name || 'স্মার্ট ক্লাসরুম ১'),
+                        day: 'রবিবার',
+                        period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)',
+                        class_name: '১০ম শ্রেণি',
+                        section: 'পদ্মা',
+                        subject: '',
+                        teacher: teachers[0]?.name_bn || '',
+                        resource: ''
+                      });
+                      setShowMmScheduleModal(true);
+                    }}
+                    style={{ padding: '7px 14px', background: '#4338ca', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                  >
+                    ➕ এই রুমে নতুন ক্লাস যোগ করুন
+                  </button>
+                </div>
+
+                {filteredSchedules.length === 0 ? (
+                  <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '30px', marginBottom: '8px' }}>🔍</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px' }}>কোনো ক্লাস রুটিন খুঁজে পাওয়া যায়নি</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>ফিল্টার পরিবর্তন করুন অথবা নতুন ক্লাস রুটিন এন্ট্রি করুন।</div>
+                  </div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                          <th style={{ padding: '10px 12px' }}>বার (Day)</th>
+                          <th style={{ padding: '10px 12px' }}>পিরিয়ড ও সময়</th>
+                          <th style={{ padding: '10px 12px' }}>স্মার্ট ক্লাসরুম</th>
+                          <th style={{ padding: '10px 12px' }}>শ্রেণি ও শাখা</th>
+                          <th style={{ padding: '10px 12px' }}>বিষয়</th>
+                          <th style={{ padding: '10px 12px' }}>ডিজিটাল রিসোর্স / ৩ডি বিষয়বস্তু</th>
+                          <th style={{ padding: '10px 12px' }}>নির্ধারিত শিক্ষক</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredSchedules.map((sch, idx) => (
+                          <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#faf5ff' }}>
+                            <td style={{ padding: '10px 12px', fontWeight: 800, color: '#4338ca' }}>{sch.day}</td>
+                            <td style={{ padding: '10px 12px', color: '#64748b', fontSize: '12px' }}>{sch.period}</td>
+                            <td style={{ padding: '10px 12px', color: '#475569', fontWeight: 600 }}>
+                              <span style={{ background: '#ede9fe', color: '#5b21b6', padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                                🏛️ {sch.roomName}
+                              </span>
+                            </td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <b>{sch.class_name}</b> {sch.section && <span style={{ color: '#0369a1' }}>({sch.section})</span>}
+                            </td>
+                            <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>{sch.subject}</td>
+                            <td style={{ padding: '10px 12px', color: '#334155' }}>
+                              <span style={{ color: '#7c3aed' }}>✨</span> {sch.resource}
+                            </td>
+                            <td style={{ padding: '10px 12px', color: '#047857', fontWeight: 700 }}>
+                              👨‍🏫 {sch.teacher}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setMmScheduleForm(sch); setShowMmScheduleModal(true); }}
+                                style={{ padding: '4px 8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMmSchedule(sch.id)}
+                                style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                🗑️
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ================================================================= */}
+            {/* PILLAR 2: DAILY CLASS DELIVERY LOGBOOK (কে নিয়েছে / নেয়নি) */}
+            {/* ================================================================= */}
+            {mmSubTab === 'logs' && (
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15px', color: '#065f46', fontWeight: 800 }}>
+                      📋 দৈনিক ক্লাস ডেলিভারি ও এক্সিকিউশন লগ ({filteredLogs.length} টি রেকর্ড)
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      কে কে রুটিন অনুযায়ী ক্লাস নিয়েছে এবং কে কে ক্লাস নেয়নি তার লাইভ রেকর্ড ও ট্র্যাকিং
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={handleGenerateTodayLogsFromSchedule}
+                      style={{ padding: '7px 12px', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      ⚡ আজকের রুটিন সিঙ্ক
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMmLogForm({
+                          id: '',
+                          date: new Date().toISOString().split('T')[0],
+                          roomId: rooms[0]?.id || 'mmr-01',
+                          roomName: rooms[0]?.name || 'স্মার্ট ক্লাসরুম ১',
+                          period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)',
+                          class_name: '১০ম শ্রেণি',
+                          section: 'পদ্মা',
+                          subject: '',
+                          teacher: teachers[0]?.name_bn || '',
+                          status: 'taken',
+                          topicCovered: '',
+                          studentsPresent: '৫৫ জন',
+                          projectorUsed: 'Epson EB-2250U 5000 Lumens Full HD',
+                          reasonNotTaken: '',
+                          remarks: ''
+                        });
+                        setShowMmLogModal(true);
+                      }}
+                      style={{ padding: '7px 14px', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      ➕ নতুন ক্লাস ডেলিভারি এন্ট্রি
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {filteredLogs.length === 0 ? (
+                  <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ fontSize: '30px', marginBottom: '8px' }}>📋</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px' }}>কোনো ডেলিভারি রেকর্ড পাওয়া যায়নি</div>
+                    <div style={{ fontSize: '12px', marginTop: '4px' }}>উপরে "⚡ আজকের রুটিন সিঙ্ক" অথবা "➕ নতুন ক্লাস ডেলিভারি এন্ট্রি" বোতামে ক্লিক করুন।</div>
+                  </div>
+                ) : (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                          <th style={{ padding: '10px 12px' }}>তারিখ</th>
+                          <th style={{ padding: '10px 12px' }}>পিরিয়ড ও কক্ষ</th>
+                          <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                          <th style={{ padding: '10px 12px' }}>বিষয় শিক্ষক</th>
+                          <th style={{ padding: '10px 12px' }}>উপস্থাপিত ডিজিটাল কন্টেন্ট / বিষয়</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'center' }}>ক্লাস স্ট্যাটাস (টগল)</th>
+                          <th style={{ padding: '10px 12px' }}>মন্তব্য / না নেওয়ার কারণ</th>
+                          <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredLogs.map((log, idx) => (
+                          <tr key={log.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: log.status === 'taken' ? '#ffffff' : '#fff5f5' }}>
+                            <td style={{ padding: '10px 12px', fontWeight: 800, whiteSpace: 'nowrap' }}>{log.date}</td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <div style={{ fontWeight: 700, color: '#334155' }}>{log.period}</div>
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>{log.roomName}</div>
+                            </td>
+                            <td style={{ padding: '10px 12px' }}>
+                              <b>{log.class_name}</b> {log.section && <span style={{ color: '#0369a1' }}>({log.section})</span>}
+                              <div style={{ fontWeight: 700, color: '#4338ca', fontSize: '12px' }}>{log.subject}</div>
+                            </td>
+                            <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>
+                              👨‍🏫 {log.teacher}
+                            </td>
+                            <td style={{ padding: '10px 12px', color: '#334155', maxWidth: '220px' }}>
+                              {log.status === 'taken' ? (
+                                <div>
+                                  <div style={{ fontWeight: 600, color: '#0f172a' }}>{log.topicCovered || 'ডিজিটাল পাঠ উপস্থাপন'}</div>
+                                  <div style={{ fontSize: '11px', color: '#64748b' }}>উপস্থিতি: {log.studentsPresent || '—'}</div>
+                                </div>
+                              ) : (
+                                <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>ক্লাস পরিচালিত হয়নি</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleMmLogStatus(log.id)}
+                                title="ক্লিক করে স্ট্যাটাস পরিবর্তন করুন"
+                                style={{
+                                  padding: '5px 12px',
+                                  borderRadius: '20px',
+                                  border: log.status === 'taken' ? '1px solid #16a34a' : '1px solid #dc2626',
+                                  background: log.status === 'taken' ? '#dcfce7' : '#fee2e2',
+                                  color: log.status === 'taken' ? '#15803d' : '#b91c1c',
+                                  fontWeight: 800,
+                                  fontSize: '11.5px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                {log.status === 'taken' ? '✅ ক্লাস সম্পন্ন' : '❌ ক্লাস হয়নি'}
+                              </button>
+                            </td>
+                            <td style={{ padding: '10px 12px', fontSize: '11.5px' }}>
+                              {log.status === 'missed' ? (
+                                <div style={{ color: '#b91c1c', fontWeight: 700 }}>
+                                  ⚠️ {log.reasonNotTaken || 'অনিবার্য কারণে ক্লাস স্থগিত'}
+                                </div>
+                              ) : (
+                                <div style={{ color: '#047857' }}>{log.remarks || 'সফল পাঠদান'}</div>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px 12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setMmLogForm(log); setShowMmLogModal(true); }}
+                                style={{ padding: '4px 8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMmLog(log.id)}
+                                style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                🗑️
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ================================================================= */}
+            {/* PILLAR 3: TEACHER MULTIMEDIA PROJECTS & PERFORMANCE PORTFOLIO */}
+            {/* ================================================================= */}
+            {mmSubTab === 'projects' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15.5px', color: '#78350f', fontWeight: 800 }}>
+                      🧑‍🏫 শিক্ষকভিত্তিক মাল্টিমিডিয়া প্রজেক্ট ও পারফরম্যান্স পোর্টফোলিও
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      প্রতিজন শিক্ষকের স্বতন্ত্র ক্লাস হিসাব, কমপ্লায়েন্স রেট, তৈরিকৃত ডিজিটাল প্রজেক্ট ও একক মূল্যায়ন রিপোর্ট
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMmProjectForm({
+                        id: '',
+                        teacher: teachers[0]?.name_bn || '',
+                        teacherDesignation: 'সহকারী শিক্ষক',
+                        projectTitle: '',
+                        subject: '',
+                        class_name: '১০ম শ্রেণি',
+                        platform: 'শিক্ষক বাতায়ন',
+                        contentUrl: '',
+                        toolsUsed: 'MS PowerPoint, Canva, Camtasia',
+                        dateCreated: new Date().toISOString().split('T')[0],
+                        learningOutcomes: '',
+                        ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)'
+                      });
+                      setShowMmProjectModal(true);
+                    }}
+                    style={{ padding: '8px 16px', background: '#b45309', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 800, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span>➕</span> নতুন শিক্ষক প্রজেক্ট যোগ করুন
+                  </button>
+                </div>
+
+                {teacherProfiles.length === 0 ? (
+                  <div style={{ padding: '36px 20px', textAlign: 'center', color: '#64748b', background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '30px', marginBottom: '8px' }}>👨‍🏫</div>
+                    <div style={{ fontWeight: 700, fontSize: '14px' }}>কোনো শিক্ষকের প্রোফাইল পাওয়া যায়নি</div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '16px' }}>
+                    {teacherProfiles.map((tp, idx) => (
+                      <div
+                        key={tp.name || idx}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                          borderTop: tp.rate >= 80 ? '4px solid #059669' : tp.rate >= 60 ? '4px solid #d97706' : '4px solid #dc2626'
+                        }}
+                      >
+                        <div>
+                          {/* Teacher Header Card */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                            <div>
+                              <div style={{ fontSize: '15.5px', fontWeight: 900, color: '#1e1b4b' }}>
+                                👨‍🏫 {tp.name}
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                                {tp.designation}
+                              </div>
+                            </div>
+                            <span style={{
+                              background: tp.rate >= 80 ? '#dcfce7' : tp.rate >= 60 ? '#fef3c7' : '#fee2e2',
+                              color: tp.rate >= 80 ? '#15803d' : tp.rate >= 60 ? '#b45309' : '#b91c1c',
+                              fontSize: '11px',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '12px'
+                            }}>
+                              {tp.rate}% কমপ্লায়েন্স
+                            </span>
+                          </div>
+
+                          {/* Stats Row */}
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', background: '#f8fafc', padding: '10px', borderRadius: '8px', marginBottom: '12px', textAlign: 'center' }}>
+                            <div>
+                              <div style={{ fontSize: '10.5px', color: '#64748b' }}>রুটিন ক্লাস</div>
+                              <div style={{ fontSize: '15px', fontWeight: 800, color: '#4338ca' }}>{tp.schedules.length} টি</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '10.5px', color: '#64748b' }}>গৃহীত / মিসড</div>
+                              <div style={{ fontSize: '15px', fontWeight: 800 }}>
+                                <span style={{ color: '#059669' }}>{tp.taken}</span> / <span style={{ color: '#dc2626' }}>{tp.missed}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '10.5px', color: '#64748b' }}>ডিজিটাল প্রজেক্ট</div>
+                              <div style={{ fontSize: '15px', fontWeight: 800, color: '#b45309' }}>{tp.projects.length} টি</div>
+                            </div>
+                          </div>
+
+                          {/* Projects List */}
+                          <div>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '6px' }}>
+                              📁 তৈরিকৃত ডিজিটাল প্রজেক্ট ও কন্টেন্ট ({tp.projects.length} টি):
+                            </div>
+                            {tp.projects.length === 0 ? (
+                              <div style={{ fontSize: '11.5px', color: '#94a3b8', fontStyle: 'italic', padding: '6px 0' }}>
+                                এখনো কোনো প্রজেক্ট এন্ট্রি করা হয়নি।
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {tp.projects.map(proj => (
+                                  <div key={proj.id} style={{ background: '#faf5ff', border: '1px solid #f3e8ff', borderRadius: '6px', padding: '8px 10px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                      <span style={{ fontSize: '10.5px', background: '#ede9fe', color: '#6d28d9', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                        {proj.platform}
+                                      </span>
+                                      <span style={{ fontSize: '10.5px', color: '#b45309', fontWeight: 700 }}>{proj.ratingOrBadge}</span>
+                                    </div>
+                                    <div style={{ fontWeight: 800, fontSize: '12.5px', color: '#0f172a', margin: '4px 0 2px' }}>
+                                      {proj.projectTitle}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                      {proj.subject} ({proj.class_name}) • টুলস: {proj.toolsUsed}
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
+                                      <button
+                                        type="button"
+                                        onClick={() => { setMmProjectForm(proj); setShowMmProjectModal(true); }}
+                                        style={{ padding: '2px 6px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }}
+                                      >
+                                        ✏️
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteMmProject(proj.id)}
+                                        style={{ padding: '2px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }}
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Teacher Card Footer Action Buttons */}
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '14px', borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMmProjectForm({
+                                id: '',
+                                teacher: tp.name,
+                                teacherDesignation: tp.designation,
+                                projectTitle: '',
+                                subject: '',
+                                class_name: '১০ম শ্রেণি',
+                                platform: 'শিক্ষক বাতায়ন',
+                                contentUrl: '',
+                                toolsUsed: 'PowerPoint 365, Canva Pro',
+                                dateCreated: new Date().toISOString().split('T')[0],
+                                learningOutcomes: '',
+                                ratingOrBadge: '⭐⭐⭐⭐⭐ (৫★ রেটিং)'
+                              });
+                              setShowMmProjectModal(true);
+                            }}
+                            style={{ flex: 1, padding: '7px 10px', background: '#f8fafc', border: '1px solid #cbd5e1', color: '#334155', borderRadius: '6px', fontWeight: 700, fontSize: '11.5px', cursor: 'pointer' }}
+                          >
+                            ➕ প্রজেক্ট যোগ
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handlePrintIndividualTeacherReport(tp.name)}
+                            style={{ flex: 1, padding: '7px 10px', background: '#6d28d9', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 800, fontSize: '11.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                          >
+                            <span>🖨️</span> একক রিপোর্ট (PDF)
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ================================================================= */}
+            {/* PILLAR 4: SMART ROOM PROFILES & EQUIPMENT SPECIFICATIONS */}
+            {/* ================================================================= */}
+            {mmSubTab === 'rooms' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '15.5px', color: '#5b21b6', fontWeight: 800 }}>
+                      🏛️ মাল্টিমিডিয়া স্মার্ট ক্লাসরুম প্রোফাইল ও আধুনিক সরঞ্জামাদির বিবরণ
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                      কক্ষভিত্তিক ইন্টারেক্টিভ ডিসপ্লে, প্রজেক্টর, সাউন্ড সিস্টেম ও সেন্ট্রাল পাওয়ার ব্যাকআপ পরিকাঠামো
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMmRoomForm({
+                        id: '',
+                        name: '',
+                        projector: 'Epson 4K Laser Ultra HD',
+                        sound: 'Yamaha Dolby Audio System',
+                        backup: 'সেন্ট্রাল IPS ও জেনারেটর ব্যাকআপ',
+                        capacity: '৬৫ জন শিক্ষার্থী',
+                        status: 'সক্রিয়',
+                        incharge: 'মুহাম্মদ আবুবকর সিদ্দিক (ল্যাব ইনচার্জ)'
+                      });
+                      setShowMmRoomModal(true);
+                    }}
+                    style={{ padding: '8px 16px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 800, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <span>➕</span> নতুন স্মার্ট রুম প্রোফাইল যোগ
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                  {rooms.map(rm => (
+                    <div key={rm.id} style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <h4 style={{ margin: 0, fontSize: '16px', color: '#5b21b6', fontWeight: 800 }}>{rm.name}</h4>
+                          <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>● {rm.status}</span>
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: '#4c1d95', lineHeight: '1.8' }}>
+                          <div>📽️ <b>প্রজেক্টর / স্মার্ট ডিসপ্লে:</b> {rm.projector}</div>
+                          <div>🔊 <b>সাউন্ড সিস্টেম:</b> {rm.sound}</div>
+                          <div>⚡ <b>বিদ্যুৎ ব্যাকআপ:</b> {rm.backup}</div>
+                          <div>👥 <b>শিক্ষার্থী ধারণক্ষমতা:</b> {rm.capacity}</div>
+                          <div style={{ color: '#047857', fontWeight: 700, marginTop: '4px' }}>👨‍🏫 <b>রুম ইনচার্জ:</b> {rm.incharge || 'মুহাম্মদ আবুবকর সিদ্দিক'}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '12px', borderTop: '1px solid #ede9fe', paddingTop: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => { setMmRoomForm(rm); setShowMmRoomModal(true); }}
+                          style={{ padding: '4px 10px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                        >
+                          ✏️ এডিট
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMmRoom(rm.id)}
+                          style={{ padding: '4px 10px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                        >
+                          🗑️ মুছুন
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* 7. SCOUTS & GIRLS GUIDE TAB (স্কাউট ও গার্লস গাইড) */}
@@ -3885,18 +5498,34 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
       )}
 
       {/* ========================================================================= */}
-      {/* MULTIMEDIA SCHEDULE MODAL */}
+      {/* 1. MULTIMEDIA SCHEDULE MODAL */}
       {/* ========================================================================= */}
       {showMmScheduleModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmScheduleModal(false)}>
           <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '17px', color: '#7c3aed', fontWeight: 800 }}>
-                🖥️ মাল্টিমিডিয়া ক্লাস রুটিন এন্ট্রি
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#4338ca', fontWeight: 800 }}>
+                🗓️ মাল্টিমিডিয়া ক্লাস রুটিন এন্ট্রি
               </h3>
               <button type="button" onClick={() => setShowMmScheduleModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             <form onSubmit={handleSaveMmSchedule} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>স্মার্ট ক্লাসরুম নির্বাচন *</label>
+                <select
+                  value={mmScheduleForm.roomId || 'mmr-01'}
+                  onChange={e => {
+                    const selRoom = (data.multimedia?.rooms || []).find(r => r.id === e.target.value);
+                    setMmScheduleForm({ ...mmScheduleForm, roomId: e.target.value, roomName: selRoom ? selRoom.name : 'স্মার্ট ক্লাসরুম ১' });
+                  }}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 700 }}
+                >
+                  {(data.multimedia?.rooms || []).map(r => (
+                    <option key={r.id} value={r.id}>{r.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বার (Day) *</label>
@@ -3913,6 +5542,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                   <input type="text" value={mmScheduleForm.period || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, period: e.target.value })} placeholder="১ম পিরিয়ড (০৯:৩০-১০:১৫)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
                 </div>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
@@ -3925,26 +5555,35 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                   </select>
                 </div>
                 <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শাখা (Section)</label>
+                  <input type="text" value={mmScheduleForm.section || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, section: e.target.value })} placeholder="যেমন: পদ্মা / ক-শাখা" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় *</label>
                   <input type="text" required value={mmScheduleForm.subject || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, subject: e.target.value })} placeholder="যেমন: জীববিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক</label>
+                  <select value={mmScheduleForm.teacher || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="">শিক্ষক নির্বাচন করুন...</option>
+                    {teachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক</label>
-                <select value={mmScheduleForm.teacher || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                  <option value="">শিক্ষক নির্বাচন করুন...</option>
-                  {teachers.map(t => (
-                    <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
-                  ))}
-                </select>
-              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডিজিটাল রিসোর্স / ৩ডি কনটেন্ট বিবরণ</label>
-                <input type="text" value={mmScheduleForm.resource || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, resource: e.target.value })} placeholder="যেমন: শিক্ষক বাতায়ন ৩ডি পরমাণু মডেল" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                <input type="text" value={mmScheduleForm.resource || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, resource: e.target.value })} placeholder="যেমন: শিক্ষক বাতায়ন ৩ডি পরমাণু মডেল ও সিমুলেশন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
               </div>
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
                 <button type="button" onClick={() => setShowMmScheduleModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
-                <button type="submit" style={{ padding: '8px 22px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>রুটিন সংরক্ষণ</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#4338ca', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>রুটিন সংরক্ষণ</button>
               </div>
             </form>
           </div>
@@ -3952,49 +5591,284 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
       )}
 
       {/* ========================================================================= */}
-      {/* MULTIMEDIA CONTENT MODAL */}
+      {/* 2. MULTIMEDIA DAILY CLASS DELIVERY LOG MODAL */}
       {/* ========================================================================= */}
-      {showMmContentModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmContentModal(false)}>
-          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '500px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '17px', color: '#6366f1', fontWeight: 800 }}>
-                📁 ডিজিটাল কনটেন্ট সংরক্ষণ
-              </h3>
-              <button type="button" onClick={() => setShowMmContentModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
-            </div>
-            <form onSubmit={handleSaveMmContent} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {showMmLogModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmLogModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '540px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>কনটেন্টের নাম *</label>
-                <input type="text" required value={mmContentForm.title || ''} onChange={e => setMmContentForm({ ...mmContentForm, title: e.target.value })} placeholder="যেমন: সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয়</label>
-                  <input type="text" value={mmContentForm.subject || ''} onChange={e => setMmContentForm({ ...mmContentForm, subject: e.target.value })} placeholder="পদার্থবিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
-                  <input type="text" value={mmContentForm.class_name || ''} onChange={e => setMmContentForm({ ...mmContentForm, class_name: e.target.value })} placeholder="৯ম-১০ম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                <h3 style={{ margin: 0, fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
+                  📋 দৈনিক মাল্টিমিডিয়া ক্লাস ডেলিভারি লগ
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  কে কে ক্লাস নিয়েছে এবং কে কে ক্লাস নেয়নি তার সঠিক রেকর্ড
                 </div>
               </div>
+              <button type="button" onClick={() => setShowMmLogModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <form onSubmit={handleSaveMmLog} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>নির্মাতা শিক্ষক</label>
-                  <input type="text" value={mmContentForm.author || ''} onChange={e => setMmContentForm({ ...mmContentForm, author: e.target.value })} placeholder="শিক্ষকের নাম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>তারিখ *</label>
+                  <input type="text" required value={mmLogForm.date || ''} onChange={e => setMmLogForm({ ...mmLogForm, date: e.target.value })} placeholder="যেমন: ২৫ অক্টোবর ২০২৬" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পোর্টাল</label>
-                  <select value={mmContentForm.portal || 'শিক্ষক বাতায়ন'} onChange={e => setMmContentForm({ ...mmContentForm, portal: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                    <option value="শিক্ষক বাতায়ন">শিক্ষক বাতায়ন</option>
-                    <option value="মুক্তপাঠ">মুক্তপাঠ</option>
-                    <option value="বিদ্যালয় ডিজিটাল রিপোজিটরি">বিদ্যালয় রিপোজিটরি</option>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ক্লাসরুম</label>
+                  <select
+                    value={mmLogForm.roomId || 'mmr-01'}
+                    onChange={e => {
+                      const selRoom = (data.multimedia?.rooms || []).find(r => r.id === e.target.value);
+                      setMmLogForm({ ...mmLogForm, roomId: e.target.value, roomName: selRoom ? selRoom.name : 'স্মার্ট ক্লাসরুম ১' });
+                    }}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  >
+                    {(data.multimedia?.rooms || []).map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
-                <button type="button" onClick={() => setShowMmContentModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
-                <button type="submit" style={{ padding: '8px 22px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>সংরক্ষণ করুন</button>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পিরিয়ড ও সময়</label>
+                  <input type="text" value={mmLogForm.period || ''} onChange={e => setMmLogForm({ ...mmLogForm, period: e.target.value })} placeholder="১ম পিরিয়ড (০৯:৩০-১০:১৫)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি ও শাখা</label>
+                  <input type="text" value={mmLogForm.class_name || ''} onChange={e => setMmLogForm({ ...mmLogForm, class_name: e.target.value })} placeholder="১০ম শ্রেণি (পদ্মা শাখা)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় *</label>
+                  <input type="text" required value={mmLogForm.subject || ''} onChange={e => setMmLogForm({ ...mmLogForm, subject: e.target.value })} placeholder="যেমন: পদার্থবিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক *</label>
+                  <select value={mmLogForm.teacher || ''} onChange={e => setMmLogForm({ ...mmLogForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="">শিক্ষক নির্বাচন করুন...</option>
+                    {teachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Status Switcher Radio */}
+              <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '6px', color: '#1e293b' }}>ক্লাস এক্সিকিউশন স্ট্যাটাস *</label>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#15803d', cursor: 'pointer' }}>
+                    <input type="radio" name="mmLogStatus" checked={mmLogForm.status === 'taken'} onChange={() => setMmLogForm({ ...mmLogForm, status: 'taken' })} />
+                    ✅ ক্লাস সফলভাবে সম্পন্ন
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: '#b91c1c', cursor: 'pointer' }}>
+                    <input type="radio" name="mmLogStatus" checked={mmLogForm.status === 'missed'} onChange={() => setMmLogForm({ ...mmLogForm, status: 'missed' })} />
+                    ❌ ক্লাস নেওয়া হয়নি / স্থগিত
+                  </label>
+                </div>
+              </div>
+
+              {/* If Taken */}
+              {mmLogForm.status === 'taken' && (
+                <>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>উপস্থাপিত ডিজিটাল বিষয়বস্তু / কন্টেন্ট শিরোনাম</label>
+                    <input type="text" value={mmLogForm.topicCovered || ''} onChange={e => setMmLogForm({ ...mmLogForm, topicCovered: e.target.value })} placeholder="যেমন: আলোর প্রতিফলন ও গোলীয় দর্পণ ৩ডি অ্যানিমেশন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিক্ষার্থীর উপস্থিতি</label>
+                      <input type="text" value={mmLogForm.studentsPresent || ''} onChange={e => setMmLogForm({ ...mmLogForm, studentsPresent: e.target.value })} placeholder="যেমন: ৫৮ জন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ব্যবহৃত প্রজেক্টর / বোর্ড</label>
+                      <input type="text" value={mmLogForm.projectorUsed || ''} onChange={e => setMmLogForm({ ...mmLogForm, projectorUsed: e.target.value })} placeholder="Epson EB-2250U 5000 Lumens" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* If Missed */}
+              {mmLogForm.status === 'missed' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: '#b91c1c' }}>ক্লাস না নেওয়ার সুনির্দিষ্ট কারণ *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    value={mmLogForm.reasonNotTaken || ''}
+                    onChange={e => setMmLogForm({ ...mmLogForm, reasonNotTaken: e.target.value })}
+                    placeholder="যেমন: বিদ্যুৎ বিভ্রাট ও আইপিএস রক্ষণাবেক্ষণ অথবা শিক্ষক দাপ্তরিক প্রয়োজনে সরকারি প্রশিক্ষণে অবস্থান করছিলেন..."
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ইনচার্জের পর্যবেক্ষণ / মন্তব্য</label>
+                <input type="text" value={mmLogForm.remarks || ''} onChange={e => setMmLogForm({ ...mmLogForm, remarks: e.target.value })} placeholder="ক্লাসের সার্বিক শৃঙ্খলা ও পাঠদান সন্তোষজনক" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMmLogModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>লগ সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. TEACHER MULTIMEDIA PROJECT MODAL */}
+      {/* ========================================================================= */}
+      {showMmProjectModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmProjectModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '540px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', color: '#b45309', fontWeight: 800 }}>
+                  💡 শিক্ষকের মাল্টিমিডিয়া প্রজেক্ট / কন্টেন্ট এন্ট্রি
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  শিক্ষক বাতায়ন, মুক্তপাঠ ও নিজস্ব উদ্ভাবিত ডিজিটাল প্রজেক্টের তথ্য
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowMmProjectModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <form onSubmit={handleSaveMmProject} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিক্ষকের নাম *</label>
+                  <select value={mmProjectForm.teacher || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="">শিক্ষক নির্বাচন করুন...</option>
+                    {teachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিক্ষকের পদবি</label>
+                  <input type="text" value={mmProjectForm.teacherDesignation || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, teacherDesignation: e.target.value })} placeholder="যেমন: সহকারী শিক্ষক (আইসিটি)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রজেক্ট / কন্টেন্টের নাম *</label>
+                <input type="text" required value={mmProjectForm.projectTitle || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, projectTitle: e.target.value })} placeholder="যেমন: সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন ও কুইজ" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয়</label>
+                  <input type="text" value={mmProjectForm.subject || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, subject: e.target.value })} placeholder="জীববিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
+                  <input type="text" value={mmProjectForm.class_name || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, class_name: e.target.value })} placeholder="৯ম-১০ম শ্রেণি" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্ল্যাটফর্ম</label>
+                  <select value={mmProjectForm.platform || 'শিক্ষক বাতায়ন'} onChange={e => setMmProjectForm({ ...mmProjectForm, platform: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="শিক্ষক বাতায়ন">শিক্ষক বাতায়ন (teachers.gov.bd)</option>
+                    <option value="মুক্তপাঠ">মুক্তপাঠ (muktopaath.gov.bd)</option>
+                    <option value="বিদ্যালয় ক্লাউড রিপোজিটরি">বিদ্যালয় ক্লাউড রিপোজিটরি</option>
+                    <option value="ইউটিউব এডুকেশন">ইউটিউব এডুকেশন</option>
+                    <option value="গুগল ক্লাসরুম">গুগল ক্লাসরুম</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>সম্মাননা / রেটিং</label>
+                  <input type="text" value={mmProjectForm.ratingOrBadge || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, ratingOrBadge: e.target.value })} placeholder="🏆 বাতায়ন পাক্ষিক সেরা / ৫★" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ব্যবহৃত সফটওয়্যার ও উদ্ভাবনী টুলস</label>
+                <input type="text" value={mmProjectForm.toolsUsed || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, toolsUsed: e.target.value })} placeholder="PowerPoint 365, Canva Pro, PhET Simulation, Camtasia" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>কন্টেন্ট / বাতায়ন ড্রাইভ লিঙ্ক</label>
+                <input type="text" value={mmProjectForm.contentUrl || ''} onChange={e => setMmProjectForm({ ...mmProjectForm, contentUrl: e.target.value })} placeholder="https://teachers.gov.bd/content/details/..." style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিখনফল (Learning Outcomes)</label>
+                <textarea
+                  rows={2}
+                  value={mmProjectForm.learningOutcomes || ''}
+                  onChange={e => setMmProjectForm({ ...mmProjectForm, learningOutcomes: e.target.value })}
+                  placeholder="শিক্ষার্থীরা সক্রিয়ভাবে ধারণা অনুধাবন করবে এবং ৩ডি অ্যানিমেশনের মাধ্যমে প্রয়োগ বিশ্লেষণ করতে পারবে..."
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMmProjectModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#b45309', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>প্রজেক্ট সংরক্ষণ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. SMART ROOM PROFILE MODAL */}
+      {/* ========================================================================= */}
+      {showMmRoomModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmRoomModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#7c3aed', fontWeight: 800 }}>
+                🏛️ স্মার্ট ক্লাসরুম প্রোফাইল সংরক্ষণ
+              </h3>
+              <button type="button" onClick={() => setShowMmRoomModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <form onSubmit={handleSaveMmRoom} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>কক্ষের নাম ও অবস্থান *</label>
+                <input type="text" required value={mmRoomForm.name || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, name: e.target.value })} placeholder="যেমন: স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২ - মূল ভবন)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রজেক্টর / স্মার্ট ডিসপ্লে মডেল</label>
+                <input type="text" value={mmRoomForm.projector || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, projector: e.target.value })} placeholder="Epson EB-2250U 5000 Lumens Full HD" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>সাউন্ড সিস্টেম</label>
+                  <input type="text" value={mmRoomForm.sound || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, sound: e.target.value })} placeholder="Yamaha Dolby Audio 100W" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিদ্যুৎ ব্যাকআপ</label>
+                  <input type="text" value={mmRoomForm.backup || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, backup: e.target.value })} placeholder="সোলার ও সেন্ট্রাল IPS ৩ ঘণ্টা" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ধারণক্ষমতা</label>
+                  <input type="text" value={mmRoomForm.capacity || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, capacity: e.target.value })} placeholder="৬৫ জন শিক্ষার্থী" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>রুম ইনচার্জ</label>
+                  <input type="text" value={mmRoomForm.incharge || ''} onChange={e => setMmRoomForm({ ...mmRoomForm, incharge: e.target.value })} placeholder="মুহাম্মদ আবুবকর সিদ্দিক" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMmRoomModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>রুম সংরক্ষণ</button>
               </div>
             </form>
           </div>
