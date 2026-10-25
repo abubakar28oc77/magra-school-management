@@ -165,14 +165,121 @@ const MOCK_TOUR_ITINERARY = [
   { time: 'রাত ০৮:৩০', event: 'নিরাপদে বিদ্যালয় ক্যাম্পাসে প্রত্যাবর্তন ও সম্মানিত অভিভাবকদের কাছে হস্তান্তর' }
 ];
 
+// Computer Lab (শেখ রাসেল ডিজিটাল ল্যাব ও আইসিটি সেন্টার)
+const MOCK_LAB_DEVICES = [
+  { id: 'PC-01', name: 'মাস্টার কন্ট্রোল স্টেশন (প্রশিক্ষক)', type: 'ডেস্কটপ', specs: 'Core i7 12th Gen, 16GB RAM, 512GB NVMe SSD, 24" IPS Display', ip: '192.168.1.10', status: 'active', condition: 'উন্নত (সক্রিয়)', seat: 'ডেস্ক-১ (মঞ্চ)' },
+  { id: 'PC-02', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০১', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.11', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০১' },
+  { id: 'PC-03', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০২', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.12', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০২' },
+  { id: 'PC-04', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৩', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.13', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৩' },
+  { id: 'PC-05', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৪', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.14', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৪' },
+  { id: 'PC-06', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৫', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.15', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৫' },
+  { id: 'PC-07', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৬', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.16', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০১' },
+  { id: 'PC-08', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৭', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.17', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০২' },
+  { id: 'PC-09', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৮', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.18', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০৩' },
+  { id: 'PC-10', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৯', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.19', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০৪' },
+  { id: 'PC-11', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১০', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.20', status: 'maintenance', condition: 'কীবোর্ড সার্ভিসিং চলছে', seat: 'সারি-খ, আসন ০৫' },
+  { id: 'PC-12', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১১', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.21', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০১' },
+  { id: 'PC-13', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১২', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.22', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০২' },
+  { id: 'PC-14', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১৩', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.23', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০৩' },
+  { id: 'PC-15', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১৪', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.24', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০৪' },
+  { id: 'SBOARD-01', name: '৬৫" ইন্টারেক্টিভ স্মার্ট প্যানেল ও টাচ বোর্ড', type: 'স্মার্ট বোর্ড', specs: '4K UHD, 20-Point Multi-touch, Android 11 + Windows 11', ip: '192.168.1.50', status: 'active', condition: 'চমৎকার (সক্রিয়)', seat: 'ল্যাব ফ্রন্টওয়াল' },
+  { id: 'PRN-01', name: 'এইচপি কালার লেজারজেট প্রো এমএফপি', type: 'প্রিন্টার ও স্ক্যানার', specs: 'High Speed Duplex Network Color Printer & Scanner', ip: '192.168.1.60', status: 'active', condition: 'সচল (টোনা র ৮০%)', seat: 'শিক্ষক টেবিল' },
+  { id: 'UPS-01', name: 'সেন্ট্রাল ৫ কেভিএ অনলাইন ইউপিএস ইউনিট', type: 'পাওয়ার ব্যাকআপ', specs: '5KVA Online True Sine Wave UPS with 8 Batteries Bank', ip: 'ল্যাব পাওয়ার', status: 'active', condition: 'সচল (২ ঘণ্টা ব্যাকআপ)', seat: 'ল্যাব কন্ট্রোল রুম' }
+];
+
+const MOCK_LAB_SCHEDULE = [
+  { day: 'শনিবার', time: 'সকাল ১০:০০ - ১১:০০', class_name: '৬ষ্ঠ শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', topic: 'কম্পিউটারের প্রাথমিক পরিচিতি ও বাংলা টাইপিং অনুশীলন', instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+  { day: 'রবিবার', time: 'সকাল ১১:১৫ - ১২:১৫', class_name: '৭ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', topic: 'এমএস ওয়ার্ড ও প্রফেশনাল ডকুমেন্ট টাইপসেটিং', instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+  { day: 'সোমবার', time: 'দুপুর ১২:৩০ - ০১:৩০', class_name: '৮ম শ্রেণি', subject: 'আইসিটি ও ডিজিটাল প্রযুক্তি', topic: 'এমএস এক্সেল স্প্রেডশিট হিসাব ও প্রাথমিক পাইথন কোডিং', instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+  { day: 'মঙ্গলবার', time: 'দুপুর ০২:০০ - ০৩:০০', class_name: '৯ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি', topic: 'গ্রাফিক্স ডিজাইন (ফটোশপ) ও ইন্টারনেট রিসার্চ মেথডলজি', instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+  { day: 'বুধবার', time: 'সকাল ১০:০০ - ১১:৩০', class_name: '১০ম শ্রেণি', subject: 'এসএসসি আইসিটি ব্যবহারিক', topic: 'ডাটাবেস তৈরি (এমএস অ্যাক্সেস) ও এইচটিএমএল ওয়েবপেজ ডিজাইন', instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)' },
+  { day: 'বৃহস্পতিবার', time: 'দুপুর ০২:১৫ - ০৩:৪৫', class_name: 'আইসিটি ক্লাব (উন্মুক্ত)', subject: 'কোডিং ও রোবোটিক্স ওয়ার্কশপ', topic: 'আর্ডুইনো সেন্সর কন্ট্রোল, স্ক্র্যাচ প্রোগ্রামিং ও সাইবার সিকিউরিটি', instructor: 'মোঃ আব্দুল্লাহ আল মামুন ও মডারেটর টিম' }
+];
+
+const MOCK_LAB_RULES = [
+  'ল্যাবে প্রবেশের পূর্বে জুতা নির্ধারিত র‍্যাকে রেখে পরিচ্ছন্নভাবে প্রবেশ করতে হবে।',
+  'শিক্ষকের অনুমতি ব্যতিরেকে কোনো কম্পিউটার বা পেরিফেরাল ডিভাইসের ক্যাবল স্থানান্তর নিষেধ।',
+  'ক্লাস চলাকালীন কোনো খাবার বা পানীয় ল্যাব টেবিল অথবা কম্পিউটারের পাশে রাখা সম্পূর্ণ নিষিদ্ধ।',
+  'ইন্টারনেট ব্যবহারের সময় শুধুমাত্র শিক্ষামূলক ও অনুমোদিত ওয়েবসাইট ব্যতীত অন্য কোনো সাইটে ব্রাউজিং দণ্ডনীয় অপরাধ।',
+  'কাজ শেষ করার পর সঠিক নিয়মে কম্পিউটার শাটডাউন করে মনিটরের পাওয়ার বন্ধ করতে হবে।'
+];
+
+// Multimedia Classroom (মাল্টিমিডিয়া ক্লাসরুম) Data
+const MOCK_MULTIMEDIA_ROOMS = [
+  { id: 'MM-202', name: 'স্মার্ট ক্লাসরুম ০১ (বিজ্ঞান ভবন)', roomNo: 'কক্ষ নং ২০২', floor: '২য় তলা', capacity: '৮৫ জন', projector: 'হাই-লুমেন শর্ট-থ্রো লেজার প্রজেক্টর ও ইন্টারেক্টিভ স্মার্টবোর্ড', audio: 'হাই-ফাই স্টুডিও সাউন্ড ও ডুয়াল ওয়্যারলেস মাইক', power: 'সোলার ও অনলাইন আইপিএস ব্যাকআপ (নিরবচ্ছিন্ন)' },
+  { id: 'MM-301', name: 'মাল্টিমিডিয়া ক্লাসরুম ০২ (প্রধান ভবন)', roomNo: 'কক্ষ নং ৩০১', floor: '৩য় তলা', capacity: '৮০ জন', projector: '৪কে আল্ট্রা এইচডি ডিজিটাল প্রজেক্টর ও ১০০" মোটরচালিত স্ক্রিন', audio: 'অ্যামপ্লিফায়ারসহ সারাউণ্ড স্পিকার', power: 'অটোমেটিক ইউপিএস ব্যাকআপ' }
+];
+
+const MOCK_MULTIMEDIA_SCHEDULE = [
+  { day: 'রবিবার', period: '২য় পিরিয়ড (১০:৪৫)', class_name: '১০ম শ্রেণি (বিজ্ঞান)', subject: 'পদার্থবিজ্ঞান', topic: 'আলোর প্রতিফলন, প্রতিসরণ ও লেন্সের গঠন (৩ডি অ্যানিমেশন)', teacher: 'মোঃ রফিকুল ইসলাম (সিনিয়র শিক্ষক)', room: 'কক্ষ ২০২' },
+  { day: 'রবিবার', period: '৪র্থ পিরিয়ড (১২:১৫)', class_name: '৯ম শ্রেণি (বিজ্ঞান)', subject: 'জীববিজ্ঞান', topic: 'মানবদেহে রক্ত সংবহন ও হৃদপিণ্ডের রক্ত চলাচল ৩ডি মডেল', teacher: 'মোঃ হাবিবুর রহমান (সহকারী শিক্ষক)', room: 'কক্ষ ২০২' },
+  { day: 'সোমবার', period: '৩য় পিরিয়ড (১১:৩০)', class_name: '৮ম শ্রেণি', subject: 'গণিত', topic: 'জ্যামিতিক উপপাদ্য (পিথাগোরাসের উপপাদ্যের ভিজ্যুয়াল অ্যানিমেশন)', teacher: 'তাপসী সরকার (সহকারী প্রধান শিক্ষক)', room: 'কক্ষ ৩০১' },
+  { day: 'মঙ্গলবার', period: '২য় পিরিয়ড (১০:৪৫)', class_name: '৭ম শ্রেণি', subject: 'বিজ্ঞান', topic: 'সৌরজগৎ, গ্রহ-নক্ষত্র ও মহাকাশ বিজ্ঞান প্রামাণ্যচিত্র', teacher: 'মোঃ শাহ আলম (সহকারী শিক্ষক)', room: 'কক্ষ ২০২' },
+  { day: 'বুধবার', period: '৩য় পিরিয়ড (১১:৩০)', class_name: '৬ষ্ঠ শ্রেণি', subject: 'ইংরেজি', topic: 'Interactive Spoken English, Pronunciation & British Council Videos', teacher: 'মোঃ আশরাফুল ইসলাম (সহকারী শিক্ষক)', room: 'কক্ষ ৩০১' },
+  { day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:৪৫)', class_name: '৯ম-১০ম শ্রেণি', subject: 'ইতিহাস ও সামাজিক বিজ্ঞান', topic: '১৯৭১-এর মুক্তিযুদ্ধ, ৭ই মার্চের ঐতিহাসিক ভাষণ ও স্বাধীনতা সংগ্রাম', teacher: 'মোঃ আব্দুল খালেক (সহকারী শিক্ষক)', room: 'কক্ষ ৩০১' }
+];
+
+const MOCK_MULTIMEDIA_CONTENTS = [
+  { title: 'পদার্থবিজ্ঞান: আলোর প্রতিসরণ ৩ডি সিমুলেশন', subject: 'পদার্থবিজ্ঞান', class_name: '১০ম', source: 'শিক্ষক বাতায়ন ও মুক্তপাঠ', type: 'ভিডিও ও অ্যানিমেশন', rating: '৫.০ ⭐' },
+  { title: 'জীববিজ্ঞান: মানুষের সংবহন তন্ত্র ও হৃদযন্ত্র', subject: 'জীববিজ্ঞান', class_name: '৯ম', source: 'জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB)', type: 'ইন্টারেক্টিভ ৩ডি', rating: '৪.৯ ⭐' },
+  { title: 'ইংরেজি উচ্চারণ ও ব্রিটিশ কাউন্সিল স্টোরিটেলিং', subject: 'ইংরেজি', class_name: '৬ষ্ঠ-৮ম', source: 'British Council & ICT4E', type: 'অডিও-ভিজুয়াল', rating: '৪.৮ ⭐' },
+  { title: 'ভূগোল ও পরিবেশ: বায়ুমণ্ডল ও বৃষ্টিপাতের স্তরভেদ', subject: 'ভূগোল', class_name: '৯ম', source: 'ইন্টারনেট রিসার্চ ও মাল্টিমিডিয়া আর্কাইভ', type: 'প্রেজেন্টেশন', rating: '৪.৯ ⭐' }
+];
+
+// Scouts, Guides & Cub Scouts (স্কাউট, গার্লস গাইড ও কাব দল) Data
+const MOCK_SCOUT_MEMBERS = [
+  { id: 'SCT-01', name: 'তানভীর আহমেদ', unit: 'স্কাউট দল', patrol: 'বাঘ উপদল', rank: 'সিনিয়র প্যাট্রোল লিডার (SPL)', class_name: '১০ম', roll: '১', badges: 'স্ট্যান্ডার্ড ব্যাজ, রাষ্ট্রপতি স্কাউট পদক প্রার্থী', blood: 'B+', phone: '০১৭XXXXXXXX' },
+  { id: 'SCT-02', name: 'আরিফুল ইসলাম', unit: 'স্কাউট দল', patrol: 'সিংহ উপদল', rank: 'প্যাট্রোল লিডার (দলনেতা)', class_name: '১০ম', roll: '৫', badges: 'স্ট্যান্ডার্ড ব্যাজ, ক্যাম্পোরি ব্যাজ', blood: 'O+', phone: '০১৮XXXXXXXX' },
+  { id: 'SCT-03', name: 'রিফাত হাসান', unit: 'স্কাউট দল', patrol: 'চিল উপদল', rank: 'প্যাট্রোল লিডার (দলনেতা)', class_name: '৯ম', roll: '৪', badges: 'প্রোগ্রেস ব্যাজ', blood: 'A+', phone: '০১৯XXXXXXXX' },
+  { id: 'SCT-04', name: 'ফারহানা ইয়াসমিন', unit: 'গার্লস গাইড', patrol: 'দোয়েল উপদল', rank: 'কোম্পানি লিডার (গাইড প্রধান)', class_name: '১০ম', roll: '৩', badges: 'হলদে পাখি স্টার, গাইড স্বর্ণপদক', blood: 'O+', phone: '০১৬XXXXXXXX' },
+  { id: 'SCT-05', name: 'সাদিয়া সুলতানা', unit: 'গার্লস গাইড', patrol: 'কোয়েল উপদল', rank: 'প্যাট্রোল লিডার', class_name: '১০ম', roll: '২', badges: 'ফার্স্ট এইড ব্যাজ, সেবা ব্যাজ', blood: 'AB+', phone: '০১৭XXXXXXXX' },
+  { id: 'SCT-06', name: 'তাহমিদ ইসলাম', unit: 'কাব স্কাউট', patrol: 'শাপলা উপদল', rank: 'সিক্সার (কাব দলনেতা)', class_name: '৬ষ্ঠ', roll: '১', badges: 'চাঁদ-তারা ব্যাজ', blood: 'B+', phone: '০১৮XXXXXXXX' },
+  { id: 'SCT-07', name: 'রাকিবুল ইসলাম', unit: 'স্কাউট দল', patrol: 'বাঘ উপদল', rank: 'সহকারী দলনেতা', class_name: '৯ম', roll: '৩', badges: 'সদস্য ব্যাজ, হাইকিং ব্যাজ', blood: 'A+', phone: '০১৭XXXXXXXX' },
+  { id: 'SCT-08', name: 'আনিকা তাবাসসুম', unit: 'গার্লস গাইড', patrol: 'দোয়েল উপদল', rank: 'সহকারী দলনেতা', class_name: '৯ম', roll: '৭', badges: 'সেবা ব্যাজ, পরিবেশ ব্যাজ', blood: 'B+', phone: '০১৯XXXXXXXX' }
+];
+
+const MOCK_SCOUT_EVENTS = [
+  { title: 'বার্ষিক স্কাউট ও গার্লস গাইড তাঁবুবাস ও দীক্ষা অনুষ্ঠান ২০২৬', date: '১২-১৪ জানুয়ারি ২০২৬', venue: 'বিদ্যালয় ময়দান ও সুসজ্জিত ক্যাম্প', participants: '৬০ জন স্কাউট ও গাইড', highlights: 'দীক্ষা গ্রহণ, ক্যাম্পফায়ার, হাইকিং ও জরুরি প্রাথমিক চিকিৎসা প্রশিক্ষণ।' },
+  { title: 'মহান বিজয় দিবস ও জাতীয় শিশু কিশোর কুচকাওয়াজ', date: '১৬ ডিসেম্বর ২০২৫', venue: 'উপজেলা কেন্দ্রীয় খেলার মাঠ', participants: 'বিদ্যালয় স্কাউট ও গাইড কন্টিনজেন্ট', highlights: 'উপজেলা পর্যায়ে চমৎকার ড্রিল ও ডিসপ্লে প্রদর্শন করে ১ম স্থান (চ্যাম্পিয়ন ট্রফি) অর্জন।' },
+  { title: 'সামাজিক বৃক্ষরোপণ ও ক্যাম্পাস পরিচ্ছন্নতা অভিযান', date: '৫ জুন ২০২৫ (বিশ্ব পরিবেশ দিবস)', venue: 'বিদ্যালয় ক্যাম্পাস ও মগড়া বাজার সড়ক', participants: 'সকল স্কাউট, গাইড ও কাব সদস্য', highlights: '২০০টি ফলদ, বনজ ও ভেষজ চারা রোপণ এবং প্লাস্টিক মুক্ত ক্যাম্পাস ঘোষণা।' }
+];
+
+const MOCK_SCOUT_LAWS = [
+  '১. স্কাউটের আত্মমর্যাদা বিশ্বস্ত ও নির্ভরযোগ্য।',
+  '২. স্কাউট সকলের বন্ধু এবং প্রতিটি স্কাউটের ভাই/বোন।',
+  '৩. স্কাউট সদা বিনয়ী, শ্রদ্ধাশীল ও সুশৃঙ্খল।',
+  '৪. স্কাউট জীবের প্রতি সদয় ও বন্ধুভাবাপন্ন।',
+  '৫. স্কাউট সদা হাসিমুখ এবং যেকোনো প্রতিকূলতায় প্রফুল্ল থাকে।',
+  '৬. স্কাউট মিতব্যয়ী এবং অপচয় করে না।',
+  '৭. স্কাউট চিন্তা, কথা ও কাজে সম্পূর্ণ নির্মল ও পবিত্র।'
+];
+
+// Inter-school Sports (আন্তঃবিদ্যালয় ক্রীড়া) Data
+const MOCK_INTER_SPORTS_TEAMS = [
+  { id: 'FB-01', sport: 'ফুটবল একাদশ', captain: 'তানভীর আহমেদ (১০ম, রোল ১)', coach: 'মোঃ শাহ আলম (শারীরিক শিক্ষা শিক্ষক)', manager: 'মোঃ রফিকুল ইসলাম', squadSize: '১৮ জন', recentHonor: 'উপজেলা আন্তঃবিদ্যালয় ফুটবল চ্যাম্পিয়ন ২০২৫ 🏆' },
+  { id: 'CR-01', sport: 'ক্রিকেট একাদশ', captain: 'রিফাত হাসান (১০ম, রোল ৪)', coach: 'মোঃ হাবিবুর রহমান', manager: 'মুহাম্মদ আবুবকর সিদ্দিক', squadSize: '১৬ জন', recentHonor: 'গ্রীষ্মকালীন আন্তঃবিদ্যালয় ক্রিকেট রানার্স-আপ ২০২৫ 🥈' },
+  { id: 'HB-01', sport: 'হ্যান্ডবল দল (বালিকা)', captain: 'ফারহানা ইয়াসমিন (১০ম, রোল ৩)', coach: 'তাপসী সরকার (সহকারী প্রধান শিক্ষক)', manager: 'মোসাঃ নাসরিন আক্তার', squadSize: '১৪ জন', recentHonor: 'জেলা পর্যায়ের সেমিফাইনালিস্ট 🥉' },
+  { id: 'KB-01', sport: 'কাবাডি দল', captain: 'নাঈমুল ইসলাম (১০ম, রোল ৬)', coach: 'মোঃ শাহ আলম', manager: 'মোঃ আব্দুল খালেক', squadSize: '১২ জন', recentHonor: 'উপজেলা কাবাডি চ্যাম্পিয়ন ২০২৪ 🏆' }
+];
+
+const MOCK_INTER_SPORTS_MATCHES = [
+  { tournament: 'উপজেলা আন্তঃবিদ্যালয় গ্রীষ্মকালীন ফুটবল টুর্নামেন্ট ২০২৫', opponent: 'কালিহাতী আর.এস. পাইলট উচ্চ বিদ্যালয়', date: '১৫ অক্টোবর ২০২৫', venue: 'কালিহাতী উপজেলা স্টেডিয়াম', score: 'মগড়া পালস্ ৩ - ১ কালিহাতী পাইলট', result: 'বিজয় (চ্যাম্পিয়ন ট্রফি লাভ 🏆)', hero: 'তানভীর আহমেদ (জোড়া গোল)' },
+  { tournament: 'আন্তঃউপজেলা ক্রিকেট টুর্নামেন্ট ২০২৫-২৬', opponent: 'ঘাটাইল মডেল হাই স্কুল', date: '১২ ডিসেম্বর ২০২৫', venue: 'টাঙ্গাইল জেলা স্টেডিয়াম', score: 'মগড়া পালস্ ১২৮/৫ (১৫ ওভার) বনাম ১০২/৯ ঘাটাইল', result: 'বিজয় (২৬ রানে বিজয়ী)', hero: 'রিফাত হাসান (৫২ রান ও ৩ উইকেট)' },
+  { tournament: 'উপজেলা বালিকা হ্যান্ডবল চ্যাম্পিয়নশিপ', opponent: ' এলেঙ্গা উচ্চ বিদ্যালয়', date: '২৮ নভেম্বর ২০২৫', venue: 'উপজেলা পরিষদ চত্বর', score: 'মগড়া পালস্ ৮ - ৫ এলেঙ্গা বালিকা', result: 'বিজয় (রৌপ্য পদক নিশ্চিত)', hero: 'ফারহানা ইয়াসমিন (৪ গোল)' }
+];
+
 export function SportsCultureModernSection({ category = '', menuKey = '', initialTitle = '', onClose }) {
   // Determine isolated category strictly based on category prop, menuKey or title
   const getInitialCategory = () => {
     if (category) return category;
-    if (menuKey === 'public.nav.sport.sports' || initialTitle?.includes('বার্ষিক ক্রীড়া') || (initialTitle?.includes('ক্রীড়া') && !initialTitle?.includes('সংস্কৃতি'))) return 'sports';
+    if (menuKey === 'public.nav.sport.sports' || initialTitle?.includes('বার্ষিক ক্রীড়া') || (initialTitle?.includes('ক্রীড়া') && !initialTitle?.includes('সংস্কৃতি') && !initialTitle?.includes('আন্তঃ'))) return 'sports';
     if (menuKey === 'public.nav.sport.culture' || initialTitle?.includes('সাংস্কৃতিক') || (initialTitle?.includes('সংস্কৃতি') && !initialTitle?.includes('ক্রীড়া'))) return 'culture';
     if (menuKey === 'public.nav.sport.achievements' || initialTitle?.includes('অর্জন') || initialTitle?.includes('পুরস্কার')) return 'achievements';
     if (menuKey === 'public.nav.sport.tour' || initialTitle?.includes('শিক্ষা সফর') || initialTitle?.includes('সফর') || initialTitle?.includes('ট্যুর')) return 'tour';
+    if (menuKey === 'public.nav.sport.lab' || initialTitle?.includes('কম্পিউটার ল্যাব') || initialTitle?.includes('ল্যাব')) return 'lab';
+    if (menuKey === 'public.nav.sport.multimedia' || initialTitle?.includes('মাল্টিমিডিয়া') || initialTitle?.includes('স্মার্ট ক্লাস')) return 'multimedia';
+    if (menuKey === 'public.nav.sport.scouts' || initialTitle?.includes('স্কাউট') || initialTitle?.includes('গার্লস গাইড') || initialTitle?.includes('কাব')) return 'scouts';
+    if (menuKey === 'public.nav.sport.inter' || initialTitle?.includes('আন্তঃবিদ্যালয়')) return 'inter_sports';
     return 'sports';
   };
 
@@ -184,11 +291,17 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
     if (activeCategory === 'culture') return 'programs';
     if (activeCategory === 'achievements') return 'cards';
     if (activeCategory === 'tour') return 'destinations';
+    if (activeCategory === 'lab') return 'devices';
+    if (activeCategory === 'multimedia') return 'schedule';
+    if (activeCategory === 'scouts') return 'members';
+    if (activeCategory === 'inter_sports') return 'teams';
     return 'winners';
   });
 
   const [sportsGroupFilter, setSportsGroupFilter] = useState('সকল গ্রুপ');
   const [achievementFilter, setAchievementFilter] = useState('সব');
+  const [scoutUnitFilter, setScoutUnitFilter] = useState('সব');
+  const [labSearch, setLabSearch] = useState('');
   const [dynamicContent, setDynamicContent] = useState([]);
   const [adminStorage, setAdminStorage] = useState(null);
 
@@ -231,6 +344,10 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
     if (activeCategory === 'culture') return item.content_type === 'event' || item.content_type === 'sport' || item.title_bn?.includes('সাংস্কৃতিক') || item.title_bn?.includes('দিবস');
     if (activeCategory === 'achievements') return item.content_type === 'achievement' || item.title_bn?.includes('অর্জন') || item.title_bn?.includes('পুরস্কার');
     if (activeCategory === 'tour') return item.content_type === 'tour' || item.content_type === 'event' || item.title_bn?.includes('সফর') || item.title_bn?.includes('ট্যুর');
+    if (activeCategory === 'lab') return item.content_type === 'lab' || item.content_type === 'facility' || item.title_bn?.includes('ল্যাব') || item.title_bn?.includes('কম্পিউটার');
+    if (activeCategory === 'multimedia') return item.content_type === 'facility' || item.title_bn?.includes('মাল্টিমিডিয়া') || item.title_bn?.includes('স্মার্ট ক্লাস');
+    if (activeCategory === 'scouts') return item.title_bn?.includes('স্কাউট') || item.title_bn?.includes('গাইড') || item.title_bn?.includes('কাব');
+    if (activeCategory === 'inter_sports') return item.title_bn?.includes('আন্তঃবিদ্যালয়') || item.title_bn?.includes('টুর্নামেন্ট');
     return false;
   });
 
@@ -249,7 +366,11 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
             {activeCategory === 'sports' ? 'বার্ষিক ক্রীড়া ও অ্যাথলেটিক্স প্রতিযোগিতা ২০২৬ — অফিশিয়াল ফলাফল বিবরণী' :
              activeCategory === 'culture' ? 'বার্ষিক সাংস্কৃতিক উৎসব ও অনুষ্ঠান বিবরণী ২০২৬' :
              activeCategory === 'achievements' ? 'বিদ্যালয়ের গৌরবোজ্জ্বল অর্জন ও সম্মাননা সনদ তালিকা' :
-             'ঐতিহাসিক শিক্ষা সফর গাইডলাইন, রুটিন ও অনুমোদনপত্র'}
+             activeCategory === 'tour' ? 'ঐতিহাসিক শিক্ষা সফর গাইডলাইন, রুটিন ও অনুমোদনপত্র' :
+             activeCategory === 'lab' ? 'শেখ রাসেল ডিজিটাল ল্যাব — কম্পিউটার ডিভাইস ইনভেন্টরি ও প্র্যাকটিক্যাল রুটিন' :
+             activeCategory === 'multimedia' ? 'স্মার্ট ও মাল্টিমিডিয়া ক্লাসরুম — ডিজিটাল পাঠদান রুটিন ও কনটেন্ট রিপোজিটরি' :
+             activeCategory === 'scouts' ? 'বাংলাদেশ স্কাউটস ও গার্লস গাইড দল — অফিশিয়াল সদস্য রেজিস্টার ও কার্যক্রম' :
+             'উপজেলা ও জেলা আন্তঃবিদ্যালয় ক্রীড়া প্রতিযোগিতা — স্কোয়াড ও ফলাফল বিবরণী'}
           </p>
         </div>
       </div>
@@ -262,11 +383,19 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
         padding: '10px 16px',
         background: activeCategory === 'sports' ? '#ecfdf5' :
                     activeCategory === 'culture' ? '#f5f3ff' :
-                    activeCategory === 'achievements' ? '#fffbeb' : '#f0f9ff',
+                    activeCategory === 'achievements' ? '#fffbeb' :
+                    activeCategory === 'tour' ? '#f0f9ff' :
+                    activeCategory === 'lab' ? '#f0fdfa' :
+                    activeCategory === 'multimedia' ? '#fdf4ff' :
+                    activeCategory === 'scouts' ? '#f0fdf4' : '#fff7ed',
         borderRadius: '12px',
         border: `1px solid ${activeCategory === 'sports' ? '#a7f3d0' :
                              activeCategory === 'culture' ? '#ddd6fe' :
-                             activeCategory === 'achievements' ? '#fde68a' : '#bae6fd'}`,
+                             activeCategory === 'achievements' ? '#fde68a' :
+                             activeCategory === 'tour' ? '#bae6fd' :
+                             activeCategory === 'lab' ? '#99f6e4' :
+                             activeCategory === 'multimedia' ? '#f5d0fe' :
+                             activeCategory === 'scouts' ? '#bbf7d0' : '#fed7aa'}`,
         marginBottom: '18px',
         flexWrap: 'wrap',
         gap: '8px'
@@ -277,20 +406,32 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
           gap: '8px',
           color: activeCategory === 'sports' ? '#065f46' :
                  activeCategory === 'culture' ? '#4338ca' :
-                 activeCategory === 'achievements' ? '#92400e' : '#0369a1',
+                 activeCategory === 'achievements' ? '#92400e' :
+                 activeCategory === 'tour' ? '#0369a1' :
+                 activeCategory === 'lab' ? '#0f766e' :
+                 activeCategory === 'multimedia' ? '#86198f' :
+                 activeCategory === 'scouts' ? '#15803d' : '#c2410c',
           fontWeight: 700,
           fontSize: '14.5px'
         }}>
           <span>
             {activeCategory === 'sports' ? '🏃‍♂️' :
              activeCategory === 'culture' ? '🎭' :
-             activeCategory === 'achievements' ? '🏆' : '🚌'}
+             activeCategory === 'achievements' ? '🏆' :
+             activeCategory === 'tour' ? '🚌' :
+             activeCategory === 'lab' ? '💻' :
+             activeCategory === 'multimedia' ? '📽️' :
+             activeCategory === 'scouts' ? '⚜️' : '⚽'}
           </span>
           <span>
             {activeCategory === 'sports' ? 'বার্ষিক ক্রীড়া ও অ্যাথলেটিক্স প্রতিযোগিতা ২০২৬' :
              activeCategory === 'culture' ? 'বার্ষিক সাংস্কৃতিক উৎসব ও জাতীয় দিবস পালন ২০২৬' :
              activeCategory === 'achievements' ? 'বিদ্যালয়ের গৌরবময় অর্জন, ট্রফি ও সম্মাননা স্মারক গ্যালারি' :
-             'ঐতিহাসিক শিক্ষা সফর ও শিক্ষামূলক পরিভ্রমণ ২০২৬'}
+             activeCategory === 'tour' ? 'ঐতিহাসিক শিক্ষা সফর ও শিক্ষামূলক পরিভ্রমণ ২০২৬' :
+             activeCategory === 'lab' ? 'শেখ রাসেল ডিজিটাল ল্যাব ও আইসিটি উদ্ভাবন কেন্দ্র' :
+             activeCategory === 'multimedia' ? 'স্মার্ট ও মাল্টিমিডিয়া ক্লাসরুম প্রকল্প' :
+             activeCategory === 'scouts' ? 'বাংলাদেশ স্কাউটস, গার্লস গাইড ও কাব দল (গ্রুপ: টাঙ্গাইল-১০৮)' :
+             'উপজেলা ও জেলা আন্তঃবিদ্যালয় ক্রীড়া প্রতিযোগিতা ও স্কোয়াড'}
           </span>
         </div>
 
@@ -302,11 +443,19 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
             borderRadius: '6px',
             border: `1px solid ${activeCategory === 'sports' ? '#059669' :
                                  activeCategory === 'culture' ? '#6366f1' :
-                                 activeCategory === 'achievements' ? '#d97706' : '#0284c7'}`,
+                                 activeCategory === 'achievements' ? '#d97706' :
+                                 activeCategory === 'tour' ? '#0284c7' :
+                                 activeCategory === 'lab' ? '#0d9488' :
+                                 activeCategory === 'multimedia' ? '#a21caf' :
+                                 activeCategory === 'scouts' ? '#16a34a' : '#ea580c'}`,
             background: '#ffffff',
             color: activeCategory === 'sports' ? '#065f46' :
                    activeCategory === 'culture' ? '#4338ca' :
-                   activeCategory === 'achievements' ? '#92400e' : '#0369a1',
+                   activeCategory === 'achievements' ? '#92400e' :
+                   activeCategory === 'tour' ? '#0369a1' :
+                   activeCategory === 'lab' ? '#0f766e' :
+                   activeCategory === 'multimedia' ? '#86198f' :
+                   activeCategory === 'scouts' ? '#15803d' : '#c2410c',
             fontWeight: 700,
             fontSize: '12.5px',
             cursor: 'pointer',
@@ -1188,7 +1337,693 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
         </div>
       )}
 
-      {/* Official Formal Signatures Section */}
+      {/* ======================= 5. COMPUTER LAB (শেখ রাসেল ডিজিটাল ল্যাব) ======================= */}
+      {activeCategory === 'lab' && (() => {
+        const labDevices = adminStorage?.lab?.devices?.length ? adminStorage.lab.devices : MOCK_LAB_DEVICES;
+        const labSchedule = adminStorage?.lab?.schedule?.length ? adminStorage.lab.schedule : MOCK_LAB_SCHEDULE;
+        const filteredDevices = labDevices.filter(d => {
+          if (!labSearch) return true;
+          const q = labSearch.toLowerCase();
+          return (d.name && d.name.toLowerCase().includes(q)) ||
+                 (d.id && d.id.toLowerCase().includes(q)) ||
+                 (d.specs && d.specs.toLowerCase().includes(q)) ||
+                 (d.seat && d.seat.toLowerCase().includes(q));
+        });
+
+        return (
+          <div className="section-standalone-lab">
+            {/* KPI Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#0f766e', fontWeight: 600 }}>মোট কম্পিউটার ও ডিভাইস</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#134e4a', margin: '4px 0' }}>{labDevices.length} টি</div>
+                <div style={{ fontSize: '11.5px', color: '#115e59' }}>{labDevices.filter(x => x.status === 'active').length} টি সচল • {labDevices.filter(x => x.status === 'maintenance').length} টি রক্ষণাবেক্ষণ</div>
+              </div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>ইন্টারনেট ও ব্যান্ডউইথ</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>৫০ Mbps ফাইবার</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>হাই-স্পিড অপটিক্যাল ব্রডব্যান্ড ও Wi-Fi</div>
+              </div>
+              <div style={{ background: '#fefce8', border: '1px solid #fef08a', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#a16207', fontWeight: 600 }}>পাওয়ার ব্যাকআপ</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#713f12', margin: '4px 0' }}>৫ KVA অনলাইন UPS</div>
+                <div style={{ fontSize: '11.5px', color: '#854d0e' }}>স্বয়ংক্রিয় সোলার ও ব্যাটারি ব্যাকআপ</div>
+              </div>
+              <div style={{ background: '#fdf2f8', border: '1px solid #fbcfe8', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#be185d', fontWeight: 600 }}>ল্যাব ইনচার্জ ও প্রশিক্ষক</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#831843', margin: '4px 0' }}>মুহাম্মদ আবুবকর সিদ্দিক</div>
+                <div style={{ fontSize: '11.5px', color: '#9d174d' }}>সহকারী শিক্ষক (আইসিটি ও সুপার অ্যাডমিন)</div>
+              </div>
+            </div>
+
+            {/* Sub-tab Navigation */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px', flexWrap: 'wrap' }} className="no-print">
+              <button
+                type="button"
+                onClick={() => setSubTab('devices')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'devices' ? '2px solid #0d9488' : '1px solid #cbd5e1',
+                  background: subTab === 'devices' ? '#f0fdfa' : '#ffffff',
+                  color: subTab === 'devices' ? '#0f766e' : '#334155',
+                  fontWeight: subTab === 'devices' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                💻 ডিভাইস ও হার্ডওয়্যার ইনভেন্টরি ({labDevices.length} টি)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('schedule')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'schedule' ? '2px solid #0d9488' : '1px solid #cbd5e1',
+                  background: subTab === 'schedule' ? '#f0fdfa' : '#ffffff',
+                  color: subTab === 'schedule' ? '#0f766e' : '#334155',
+                  fontWeight: subTab === 'schedule' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🗓️ প্র্যাকটিক্যাল ল্যাব রুটিন
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('rules')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'rules' ? '2px solid #0d9488' : '1px solid #cbd5e1',
+                  background: subTab === 'rules' ? '#f0fdfa' : '#ffffff',
+                  color: subTab === 'rules' ? '#0f766e' : '#334155',
+                  fontWeight: subTab === 'rules' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🛡️ ল্যাব বিধি ও সাইবার সুরক্ষা
+              </button>
+            </div>
+
+            {/* Sub-tab: Devices */}
+            {subTab === 'devices' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }} className="no-print">
+                  <input
+                    type="text"
+                    placeholder="ডিভাইসের নাম, স্পেসিফিকেশন বা অবস্থান দিয়ে খুঁজুন..."
+                    value={labSearch}
+                    onChange={(e) => setLabSearch(e.target.value)}
+                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', minWidth: '260px' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>প্রদর্শিত: {filteredDevices.length} টি ডিভাইস</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                  {filteredDevices.map((d, idx) => (
+                    <div key={d.id || idx} style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '14px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      borderLeft: `4px solid ${d.status === 'active' ? '#10b981' : '#f59e0b'}`
+                    }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ background: '#f1f5f9', color: '#0f766e', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
+                            {d.id}
+                          </span>
+                          <span style={{
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            background: d.status === 'active' ? '#ecfdf5' : '#fffbeb',
+                            color: d.status === 'active' ? '#065f46' : '#b45309'
+                          }}>
+                            {d.condition || (d.status === 'active' ? 'সচল' : 'সার্ভিসিং')}
+                          </span>
+                        </div>
+                        <h4 style={{ margin: '0 0 6px', fontSize: '14.5px', color: '#0f172a', fontWeight: 700 }}>{d.name}</h4>
+                        <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#475569', lineHeight: '1.4' }}>{d.specs}</p>
+                      </div>
+                      <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '8px', fontSize: '11.5px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>📍 {d.seat || 'ল্যাব রুম'}</span>
+                        <span>IP: <code>{d.ip || '192.168.1.x'}</code></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sub-tab: Schedule */}
+            {subTab === 'schedule' && (
+              <div>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
+                    🗓️ ব্যবহারিক ক্লাসের অফিশিয়াল সময়সূচি (আইসিটি ও ডিজিটাল প্রযুক্তি)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                    প্রতিটি শ্রেণির শিক্ষার্থীরা সপ্তাহে নির্ধারিত সময়ে ল্যাবে সরাসরি হ্যান্ডস-অন প্র্যাকটিক্যাল সম্পন্ন করে।
+                  </p>
+                </div>
+                <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                        <th style={{ padding: '10px 12px' }}>বার / দিন</th>
+                        <th style={{ padding: '10px 12px' }}>সময়সূচি</th>
+                        <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                        <th style={{ padding: '10px 12px' }}>ব্যবহারিক পাঠের বিষয়বস্তু</th>
+                        <th style={{ padding: '10px 12px' }}>দায়িত্বপ্রাপ্ত প্রশিক্ষক</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {labSchedule.map((s, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                          <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f766e' }}>{s.day}</td>
+                          <td style={{ padding: '10px 12px', color: '#475569' }}>{s.time}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: 600 }}>{s.class_name} • <span style={{ color: '#0284c7' }}>{s.subject}</span></td>
+                          <td style={{ padding: '10px 12px', color: '#1e293b' }}>{s.topic}</td>
+                          <td style={{ padding: '10px 12px', color: '#334155', fontSize: '12px' }}>{s.instructor}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-tab: Rules */}
+            {subTab === 'rules' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 8px', fontSize: '14px', color: '#0f766e', fontWeight: 700 }}>📜 ল্যাব ব্যবহারের সাধারণ আচরণবিধি</h4>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12.5px', color: '#334155', lineHeight: '1.8' }}>
+                    {MOCK_LAB_RULES.map((rule, idx) => (
+                      <li key={idx}>{rule}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <h4 style={{ margin: '0 0 8px', fontSize: '14px', color: '#0f766e', fontWeight: 700 }}>🛡️ সাইবার সুরক্ষা ও নেটওয়ার্ক নিরাপত্তা</h4>
+                  <div style={{ fontSize: '12.5px', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px', lineHeight: '1.6' }}>
+                    <div><b>ফায়ারওয়াল ও ফিল্টারিং:</b> শিক্ষার্থীদের নিরাপদ ব্রাউজিং নিশ্চিত করতে কেন্দ্রীয় ফায়ারওয়াল সক্রিয় রাখা হয়েছে।</div>
+                    <div><b>ইউজার অ্যাক্সেস:</b> ব্যক্তিগত পেনড্রাইভ বা এক্সটার্নাল ড্রাইভ ল্যাব শিক্ষকের অনুমতি ব্যতিরেকে সংযোগ করা নিষিদ্ধ।</div>
+                    <div><b>সিসিটিভি নজরদারি:</b> সার্বক্ষণিক উচ্চ ক্ষমতাসম্পন্ন সিসিটিভি ক্যামেরা দ্বারা ল্যাব চত্বর ও শিক্ষার্থী কার্যক্রম পর্যবেক্ষণ করা হয়।</div>
+                    <div style={{ marginTop: '4px', background: '#ccfbf1', padding: '6px 10px', borderRadius: '6px', fontSize: '11.5px', color: '#0f766e', fontWeight: 600 }}>
+                      💡 যেকোনো প্রযুক্তিগত সমস্যা বা ডিভাইসের অসঙ্গতি দেখা দিলে অবিলম্বে ল্যাব সহকারী বা ইনচার্জকে অবহিত করুন।
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ======================= 6. MULTIMEDIA CLASSROOM (মাল্টিমিডিয়া ক্লাস) ======================= */}
+      {activeCategory === 'multimedia' && (() => {
+        const multimediaSchedule = adminStorage?.multimedia?.schedule?.length ? adminStorage.multimedia.schedule : MOCK_MULTIMEDIA_SCHEDULE;
+
+        return (
+          <div className="section-standalone-multimedia">
+            {/* KPI Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#86198f', fontWeight: 600 }}>স্মার্ট মাল্টিমিডিয়া ক্লাসরুম</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#701a75', margin: '4px 0' }}>২ টি পূর্ণাঙ্গ রুম</div>
+                <div style={{ fontSize: '11.5px', color: '#a21caf' }}>কক্ষ নং ২০২ (বিজ্ঞান) ও কক্ষ নং ৩০১ (প্রধান ভবন)</div>
+              </div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>ডিসপ্লে ও প্রজেকশন</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>৪কে লেজার + ৬৫" প্যানেল</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>ইন্টারেক্টিভ টাচ ও ১০০" মোটরচালিত স্ক্রিন</div>
+              </div>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>সোলার ও বিদ্যুৎ ব্যাকআপ</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#14532d', margin: '4px 0' }}>১০০% গ্রিন সোলার</div>
+                <div style={{ fontSize: '11.5px', color: '#16a34a' }}>বিদ্যুৎ বিভ্রাটেও নিরবচ্ছিন্ন সাউন্ড ও ক্লাস</div>
+              </div>
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#b45309', fontWeight: 600 }}>তত্ত্বাবধান ও আইসিটি সেল</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#78350f', margin: '4px 0' }}>মোসাঃ নাসরিন আক্তার</div>
+                <div style={{ fontSize: '11.5px', color: '#92400e' }}>ও বিদ্যালয় মাল্টিমিডিয়া মনিটরিং কমিটি</div>
+              </div>
+            </div>
+
+            {/* Sub-tab Navigation */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px', flexWrap: 'wrap' }} className="no-print">
+              <button
+                type="button"
+                onClick={() => setSubTab('schedule')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'schedule' ? '2px solid #a21caf' : '1px solid #cbd5e1',
+                  background: subTab === 'schedule' ? '#fdf4ff' : '#ffffff',
+                  color: subTab === 'schedule' ? '#86198f' : '#334155',
+                  fontWeight: subTab === 'schedule' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🗓️ সাপ্তাহিক মাল্টিমিডিয়া পাঠদান রুটিন
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('classrooms')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'classrooms' ? '2px solid #a21caf' : '1px solid #cbd5e1',
+                  background: subTab === 'classrooms' ? '#fdf4ff' : '#ffffff',
+                  color: subTab === 'classrooms' ? '#86198f' : '#334155',
+                  fontWeight: subTab === 'classrooms' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🏫 ক্লাসরুম ও সুবিধাসমূহ
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('content_bank')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'content_bank' ? '2px solid #a21caf' : '1px solid #cbd5e1',
+                  background: subTab === 'content_bank' ? '#fdf4ff' : '#ffffff',
+                  color: subTab === 'content_bank' ? '#86198f' : '#334155',
+                  fontWeight: subTab === 'content_bank' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                📚 ডিজিটাল কনটেন্ট ভাণ্ডার
+              </button>
+            </div>
+
+            {/* Sub-tab: Schedule */}
+            {subTab === 'schedule' && (
+              <div>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>
+                    📽️ সাপ্তাহিক মাল্টিমিডিয়া ক্লাস রুটিন (৩ডি অ্যানিমেশন ও অডিও-ভিজ্যুয়াল পাঠ)
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                    শিক্ষক বাতায়ন ও জাতীয় শিক্ষাক্রম অনুসরণে বিজ্ঞান, গণিত ও ভাষার জটিল বিষয়সমূহ মাল্টিমিডিয়ায় পাঠদান করা হয়।
+                  </p>
+                </div>
+                <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                        <th style={{ padding: '10px 12px' }}>বার / দিন</th>
+                        <th style={{ padding: '10px 12px' }}>পিরিয়ড</th>
+                        <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                        <th style={{ padding: '10px 12px' }}>ডিজিটাল পাঠ ও ৩ডি কনটেন্ট</th>
+                        <th style={{ padding: '10px 12px' }}>বিষয় শিক্ষক</th>
+                        <th style={{ padding: '10px 12px' }}>কক্ষ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {multimediaSchedule.map((m, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                          <td style={{ padding: '10px 12px', fontWeight: 700, color: '#86198f' }}>{m.day}</td>
+                          <td style={{ padding: '10px 12px', color: '#475569' }}>{m.period}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: 600 }}>{m.class_name} • <span style={{ color: '#0284c7' }}>{m.subject}</span></td>
+                          <td style={{ padding: '10px 12px', color: '#1e293b' }}>{m.topic}</td>
+                          <td style={{ padding: '10px 12px', color: '#334155', fontSize: '12px' }}>{m.teacher}</td>
+                          <td style={{ padding: '10px 12px' }}><span style={{ background: '#f3e8ff', color: '#6b21a8', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>{m.room}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-tab: Classrooms */}
+            {subTab === 'classrooms' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+                {MOCK_MULTIMEDIA_ROOMS.map((room, idx) => (
+                  <div key={room.id || idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ background: '#fae8ff', color: '#86198f', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px' }}>{room.roomNo}</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>ধারণক্ষমতা: <b>{room.capacity}</b></span>
+                    </div>
+                    <h3 style={{ margin: '0 0 10px', fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>{room.name}</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12.5px', color: '#334155' }}>
+                      <div><b>প্রজেকশন ও ডিসপ্লে:</b> {room.projector}</div>
+                      <div><b>সাউন্ড সিস্টেম:</b> {room.audio}</div>
+                      <div><b>বিদ্যুৎ ব্যাকআপ:</b> {room.power}</div>
+                      <div><b>অবস্থান:</b> {room.floor}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Sub-tab: Content Bank */}
+            {subTab === 'content_bank' && (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                  {MOCK_MULTIMEDIA_CONTENTS.map((c, idx) => (
+                    <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ background: '#f3e8ff', color: '#7e22ce', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>{c.subject}</span>
+                        <span style={{ fontSize: '11.5px', color: '#d97706', fontWeight: 700 }}>{c.rating}</span>
+                      </div>
+                      <h4 style={{ margin: '0 0 6px', fontSize: '14px', color: '#0f172a', fontWeight: 700 }}>{c.title}</h4>
+                      <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                        <span>শ্রেণি: {c.class_name}</span>
+                        <span>উৎস: {c.source}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ======================= 7. SCOUTS & GIRLS GUIDE (স্কাউট ও গার্লস গাইড) ======================= */}
+      {activeCategory === 'scouts' && (() => {
+        const scoutMembers = adminStorage?.scouts?.members?.length ? adminStorage.scouts.members : MOCK_SCOUT_MEMBERS;
+        const filteredMembers = scoutMembers.filter(m => {
+          if (scoutUnitFilter === 'সব') return true;
+          return m.unit === scoutUnitFilter;
+        });
+
+        return (
+          <div className="section-standalone-scouts">
+            {/* KPI Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>মোট স্কাউট ও গাইড সদস্য</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#14532d', margin: '4px 0' }}>{scoutMembers.length} জন</div>
+                <div style={{ fontSize: '11.5px', color: '#16a34a' }}>স্কাউট, গার্লস গাইড ও কাব দল সক্রিয়</div>
+              </div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>গ্রুপ ও রেজিস্ট্রেশন</div>
+                <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>গ্রুপ: টাঙ্গাইল-১০৮</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>বাংলাদেশ স্কাউটস ও গার্লস গাইড সমিতি</div>
+              </div>
+              <div style={{ background: '#fefce8', border: '1px solid #fef08a', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#a16207', fontWeight: 600 }}>সাম্প্রতিক শ্রেষ্ঠ সম্মাননা</div>
+                <div style={{ fontSize: '17px', fontWeight: 800, color: '#713f12', margin: '4px 0' }}>কুচকাওয়াজ ১ম স্থান 🏆</div>
+                <div style={{ fontSize: '11.5px', color: '#854d0e' }}>উপজেলা পর্যায়ে চ্যাম্পিয়ন ট্রফি প্রাপ্ত</div>
+              </div>
+              <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#7e22ce', fontWeight: 600 }}>স্কাউট মাস্টার ও গাইড ক্যাপ্টেন</div>
+                <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#581c87', margin: '4px 0' }}>মোঃ শাহ আলম ও তাপসী সরকার</div>
+                <div style={{ fontSize: '11.5px', color: '#6b21a8' }}>অ্যাডভান্সড উডব্যাজার ও দক্ষ প্রশিক্ষক</div>
+              </div>
+            </div>
+
+            {/* Sub-tab Navigation */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px', flexWrap: 'wrap' }} className="no-print">
+              <button
+                type="button"
+                onClick={() => setSubTab('members')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'members' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                  background: subTab === 'members' ? '#f0fdf4' : '#ffffff',
+                  color: subTab === 'members' ? '#15803d' : '#334155',
+                  fontWeight: subTab === 'members' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                👥 সদস্য ও পদবি রেজিস্টার ({scoutMembers.length} জন)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('events')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'events' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                  background: subTab === 'events' ? '#f0fdf4' : '#ffffff',
+                  color: subTab === 'events' ? '#15803d' : '#334155',
+                  fontWeight: subTab === 'events' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🏕️ তাঁবুবাস, কুচকাওয়াজ ও সেবা কার্যক্রম
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('laws')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'laws' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                  background: subTab === 'laws' ? '#f0fdf4' : '#ffffff',
+                  color: subTab === 'laws' ? '#15803d' : '#334155',
+                  fontWeight: subTab === 'laws' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚜️ স্কাউট প্রতিজ্ঞা ও ৭টি নিয়মাবলী
+              </button>
+            </div>
+
+            {/* Sub-tab: Members */}
+            {subTab === 'members' && (
+              <div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }} className="no-print">
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>ইউনিট ফিল্টার:</span>
+                  {['সব', 'স্কাউট দল', 'গার্লস গাইড', 'কাব স্কাউট'].map(u => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setScoutUnitFilter(u)}
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: '20px',
+                        border: scoutUnitFilter === u ? 'none' : '1px solid #cbd5e1',
+                        background: scoutUnitFilter === u ? '#16a34a' : '#f8fafc',
+                        color: scoutUnitFilter === u ? '#ffffff' : '#334155',
+                        fontWeight: scoutUnitFilter === u ? 700 : 500,
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                        <th style={{ padding: '10px 12px' }}>আইডি নং</th>
+                        <th style={{ padding: '10px 12px' }}>স্কাউট/গাইড সদস্যের নাম</th>
+                        <th style={{ padding: '10px 12px' }}>ইউনিট ও উপদল</th>
+                        <th style={{ padding: '10px 12px' }}>পদবি / পদমর্যাদা</th>
+                        <th style={{ padding: '10px 12px' }}>শ্রেণি ও রোল</th>
+                        <th style={{ padding: '10px 12px' }}>অর্জিত ব্যাজ ও সম্মাননা</th>
+                        <th style={{ padding: '10px 12px' }}>রক্তের গ্রুপ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredMembers.map((m, idx) => (
+                        <tr key={m.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                          <td style={{ padding: '10px 12px', fontWeight: 700, color: '#16a34a' }}>{m.id}</td>
+                          <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a' }}>{m.name}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span style={{ background: m.unit === 'গার্লস গাইড' ? '#fce7f3' : '#dcfce7', color: m.unit === 'গার্লস গাইড' ? '#9d174d' : '#166534', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                              {m.unit}
+                            </span>
+                            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>{m.patrol}</div>
+                          </td>
+                          <td style={{ padding: '10px 12px', fontWeight: 600, color: '#334155' }}>{m.rank}</td>
+                          <td style={{ padding: '10px 12px' }}>{m.class_name} (রোল {m.roll})</td>
+                          <td style={{ padding: '10px 12px', color: '#b45309', fontWeight: 600 }}>{m.badges}</td>
+                          <td style={{ padding: '10px 12px' }}><span style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>{m.blood}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Sub-tab: Events */}
+            {subTab === 'events' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px' }}>
+                {MOCK_SCOUT_EVENTS.map((ev, idx) => (
+                  <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ background: '#dcfce7', color: '#166534', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px' }}>{ev.date}</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>অংশগ্রহণ: {ev.participants}</span>
+                    </div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>{ev.title}</h3>
+                    <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '8px' }}>📍 ভেন্যু: {ev.venue}</div>
+                    <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.5' }}>{ev.highlights}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Sub-tab: Laws */}
+            {subTab === 'laws' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+                <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: '#ffffff', padding: '20px', borderRadius: '12px' }}>
+                  <h3 style={{ margin: '0 0 10px', fontSize: '17px', color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>⚜️</span> বাংলাদেশ স্কাউটস প্রতিজ্ঞা
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.8', fontStyle: 'italic', opacity: 0.95 }}>
+                    "আমি আমার আত্মমর্যাদার উপর নির্ভর করে প্রতিজ্ঞা করছি যে,<br/>
+                    ১. আল্লাহ্ ও আমার দেশের প্রতি কর্তব্য পালন করতে,<br/>
+                    ২. সর্বদা অপরকে সাহায্য করতে এবং<br/>
+                    ৩. স্কাউট আইন মেনে চলতে আমি যথাসাধ্য চেষ্টা করব।"
+                  </p>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ margin: '0 0 10px', fontSize: '15px', color: '#166534', fontWeight: 700 }}>
+                    📜 স্কাউটের ৭টি মূল নিয়মাবলী (Scout Law)
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: '#334155' }}>
+                    {MOCK_SCOUT_LAWS.map((law, idx) => (
+                      <div key={idx} style={{ padding: '6px 10px', background: '#ffffff', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                        {law}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ======================= 8. INTER-SCHOOL SPORTS (আন্তঃবিদ্যালয় ক্রীড়া) ======================= */}
+      {activeCategory === 'inter_sports' && (() => {
+        const interTeams = adminStorage?.inter_sports?.teams?.length ? adminStorage.inter_sports.teams : MOCK_INTER_SPORTS_TEAMS;
+        const interMatches = adminStorage?.inter_sports?.matches?.length ? adminStorage.inter_sports.matches : MOCK_INTER_SPORTS_MATCHES;
+
+        return (
+          <div className="section-standalone-intersports">
+            {/* KPI Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+              <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: 600 }}>আন্তঃবিদ্যালয় ক্রীড়া স্কোয়াড</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c2d12', margin: '4px 0' }}>{interTeams.length} টি দল</div>
+                <div style={{ fontSize: '11.5px', color: '#ea580c' }}>ফুটবল, ক্রিকেট, হ্যান্ডবল ও কাবাডি</div>
+              </div>
+              <div style={{ background: '#fefce8', border: '1px solid #fef08a', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#a16207', fontWeight: 600 }}>চলতি শিক্ষাবর্ষের খেতাব</div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#713f12', margin: '4px 0' }}>উপজেলা চ্যাম্পিয়ন 🏆</div>
+                <div style={{ fontSize: '11.5px', color: '#854d0e' }}>গ্রীষ্মকালীন আন্তঃবিদ্যালয় ফুটবল ২০২৫</div>
+              </div>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>প্রধান কোচ ও প্রশিক্ষক</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>মোঃ শাহ আলম</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>শারীরিক শিক্ষা শিক্ষক ও জাতীয় ক্রীড়া ব্যক্তিত্ব</div>
+              </div>
+              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>দলীয় অধিনায়ক (ফুটবল)</div>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#14532d', margin: '4px 0' }}>তানভীর আহমেদ (১০ম)</div>
+                <div style={{ fontSize: '11.5px', color: '#16a34a' }}>টুর্নামেন্টের সর্বোচ্চ গোলদাতা</div>
+              </div>
+            </div>
+
+            {/* Sub-tab Navigation */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', marginBottom: '16px', flexWrap: 'wrap' }} className="no-print">
+              <button
+                type="button"
+                onClick={() => setSubTab('teams')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'teams' ? '2px solid #ea580c' : '1px solid #cbd5e1',
+                  background: subTab === 'teams' ? '#fff7ed' : '#ffffff',
+                  color: subTab === 'teams' ? '#c2410c' : '#334155',
+                  fontWeight: subTab === 'teams' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                🏆 টুর্নামেন্ট স্কোয়াড ও টিম ({interTeams.length} টি)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSubTab('matches')}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: subTab === 'matches' ? '2px solid #ea580c' : '1px solid #cbd5e1',
+                  background: subTab === 'matches' ? '#fff7ed' : '#ffffff',
+                  color: subTab === 'matches' ? '#c2410c' : '#334155',
+                  fontWeight: subTab === 'matches' ? 700 : 500,
+                  fontSize: '13.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                ⚽ ম্যাচ ফলাফল ও সাম্প্রতিক স্কোরবোর্ড
+              </button>
+            </div>
+
+            {/* Sub-tab: Teams */}
+            {subTab === 'teams' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                {interTeams.map((t, idx) => (
+                  <div key={t.id || idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ background: '#ffedd5', color: '#c2410c', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px' }}>{t.sport}</span>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>স্কোয়াড: {t.squadSize}</span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#15803d', fontWeight: 700, marginBottom: '8px' }}>🏅 {t.recentHonor}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12.5px', color: '#334155' }}>
+                      <div><b>অধিনায়ক:</b> {t.captain}</div>
+                      <div><b>টিম কোচ:</b> {t.coach}</div>
+                      <div><b>ম্যানেজার:</b> {t.manager}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Sub-tab: Matches */}
+            {subTab === 'matches' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {interMatches.map((m, idx) => (
+                  <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b' }}>📅 {m.date} • 📍 {m.venue}</span>
+                      <span style={{ background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>{m.result}</span>
+                    </div>
+                    <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>{m.tournament}</h4>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#0369a1', marginBottom: '4px' }}>
+                      স্কোর: {m.score}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#475569' }}>
+                      ⭐ ম্যাচ সেরা নৈপুণ্য: <b>{m.hero}</b>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
       <div className="print-only-signatures" style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ width: '150px', borderBottom: '1px solid #64748b', marginBottom: '4px' }}></div>

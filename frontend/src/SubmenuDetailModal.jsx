@@ -351,6 +351,41 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       return <SportsCultureModernSection category="tour" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
+    // 5. Computer Lab (কম্পিউটার ল্যাব) - Standalone
+    if (
+      menuKey === 'public.nav.sport.lab' || 
+      title?.includes('কম্পিউটার ল্যাব') ||
+      title?.includes('ল্যাব')
+    ) {
+      return <SportsCultureModernSection category="lab" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 6. Multimedia Classroom (মাল্টিমিডিয়া ক্লাস) - Standalone
+    if (
+      menuKey === 'public.nav.sport.multimedia' || 
+      title?.includes('মাল্টিমিডিয়া')
+    ) {
+      return <SportsCultureModernSection category="multimedia" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 7. Scouts & Girls Guide (স্কাউট/গার্লস গাইড) - Standalone
+    if (
+      menuKey === 'public.nav.sport.scouts' || 
+      title?.includes('স্কাউট') ||
+      title?.includes('গার্লস গাইড') ||
+      title?.includes('গাইড')
+    ) {
+      return <SportsCultureModernSection category="scouts" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // 8. Inter-School Sports (আন্তঃবিদ্যালয় ক্রীড়া) - Standalone
+    if (
+      menuKey === 'public.nav.sport.inter' || 
+      title?.includes('আন্তঃবিদ্যালয়')
+    ) {
+      return <SportsCultureModernSection category="inter_sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
     // Routine & Schedule (Class & Exam Routine)
     if (menuKey?.includes('routine') || title?.includes('রুটিন')) {
       return (

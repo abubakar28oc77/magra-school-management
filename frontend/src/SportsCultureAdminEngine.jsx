@@ -179,18 +179,128 @@ const INITIAL_DATA = {
         { time: 'রাত ০৮:৩০', event: 'নিরাপদে বিদ্যালয়ে প্রত্যাবর্তন ও হস্তান্তর' }
       ]
     }
-  ]
+  ],
+  lab: {
+    inCharge: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি ও ল্যাব ইনচার্জ)',
+    assistant: 'মোঃ মামুন মিয়া (ল্যাব সহকারী ও টেকনিশিয়ান)',
+    room: 'দ্বিতীয় তলা, পূর্ব ভবন (কক্ষ নং ২০৪)',
+    devices: [
+      { id: 'pc-01', name: 'মাস্টার ওয়ার্কস্টেশন (শিক্ষক)', model: 'HP ProDesk 400 G7', cpu: 'Core i5 10th Gen', ram: '16 GB', storage: '512 GB NVMe SSD', condition: 'সক্রিয়', ip: '192.168.1.10', desk: 'ডেস্ক-০১' },
+      { id: 'pc-02', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০১', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.11', desk: 'ডেস্ক-০২' },
+      { id: 'pc-03', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০২', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.12', desk: 'ডেস্ক-০৩' },
+      { id: 'pc-04', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৩', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.13', desk: 'ডেস্ক-০৪' },
+      { id: 'pc-05', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৪', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সার্ভিসিং', ip: '192.168.1.14', desk: 'ডেস্ক-০৫' },
+      { id: 'prj-01', name: 'ইন্টারেক্টিভ লেজার প্রজেক্টর', model: 'Epson EB-685Wi Ultra Short Throw', cpu: 'Laser 3500 Lumens', ram: 'HDMI/Wireless', storage: 'Interactive Whiteboard', condition: 'সক্রিয়', ip: '192.168.1.20', desk: 'স্মার্ট বোর্ড' },
+      { id: 'prn-01', name: 'নেটওয়ার্ক লেজার প্রিন্টার', model: 'Canon imageCLASS LBP2900B', cpu: 'Laser Duplex', ram: '64 MB', storage: 'USB / Network', condition: 'সক্রিয়', ip: '192.168.1.25', desk: 'প্রিন্ট কর্নার' },
+      { id: 'ups-01', name: 'সেন্ট্রাল অনলাইন ইউপিএস (৫ কেভিএ)', model: 'Santak Online 5KVA UPS', cpu: 'Pure Sine Wave', ram: '8 Batteries', storage: '২ ঘণ্টা ব্যাকআপ', condition: 'সক্রিয়', ip: 'N/A', desk: 'পাওয়ার হাব' },
+      { id: 'net-01', name: 'অপটিক্যাল ফাইবার গিগাবিট রাউটার', model: 'MikroTik Cloud Router Switch 1Gbps', cpu: 'Dual-Band WiFi 6', ram: '1 GB', storage: '100 Mbps Dedicated', condition: 'সক্রিয়', ip: '192.168.1.1', desk: 'নেটওয়ার্ক রেক' }
+    ],
+    schedule: [
+      { id: 'ls-01', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', topic: 'HTML ওয়েব ডিজাইন ও বেসিক কোডিং' },
+      { id: 'ls-02', day: 'সোমবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '৯ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', topic: 'স্প্রেডশিট বিশ্লেষণ ও হিসাব নিকাশ (Excel)' },
+      { id: 'ls-03', day: 'মঙ্গলবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৮ম শ্রেণি', subject: 'আইসিটি প্র্যাকটিক্যাল', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', topic: 'ডাটাবেজ ও সাইবার নিরাপত্তা পরিচিতি' },
+      { id: 'ls-04', day: 'বুধবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', subject: 'ডিজিটাল প্রযুক্তি', teacher: 'সহকারী শিক্ষক', topic: 'গ্রাফিক্স ডিজাইন ও পাওয়ারপয়েন্ট প্রেজেন্টেশন' },
+      { id: 'ls-05', day: 'বৃহস্পতিবার', period: '৬ষ্ঠ পিরিয়ড (০২:০০-০২:৪৫)', class_name: '৬ষ্ঠ শ্রেণি', subject: 'ডিজিটাল প্রযুক্তি প্র্যাকটিস', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', topic: 'কম্পিউটার হার্ডওয়্যার ও টাইপিং মাস্টার' }
+    ],
+    rules: [
+      'ল্যাবে প্রবেশের পূর্বে জুতা নির্দিষ্ট র্যাকে রেখে সুশৃঙ্খলভাবে প্রবেশ করুন।',
+      'ল্যাবের ভেতরে কোনো প্রকার খাবার, পানীয় বা তরল পদার্থ বহন সম্পূর্ণ নিষিদ্ধ।',
+      'নির্দিষ্ট ডেস্কের বাইরে অন্য কোনো কম্পিউটারে অনুমতি ব্যতীত কাজ করা নিষেধ।',
+      'কোনো ডিভাইস বা তারে টান দেওয়া বা আনপ্লাগ করা যাবে না। কোনো ত্রুটি হলে তাৎক্ষণিক ল্যাব ইনচার্জকে অবহিত করুন।',
+      'ইন্টারনেট ব্যবহারের সময় কেবল প্রাতিষ্ঠানিক ও শিক্ষামূলক ওয়েবসাইট ব্রাউজ করতে হবে।',
+      'ক্লাস শেষে কম্পিউটার শাটডাউন করে নিজ চেয়ার গুছিয়ে রাখুন।'
+    ]
+  },
+  multimedia: {
+    rooms: [
+      { id: 'mmr-01', name: 'স্মার্ট ক্লাসরুম ১ (কক্ষ নং ২০২)', projector: 'Epson 4K Laser Ultra HD', sound: 'Yamaha Dolby Audio System', backup: 'সোলার ও অনলাইন IPS ব্যাকআপ', capacity: '৬৫ জন শিক্ষার্থী', status: 'সক্রিয়' },
+      { id: 'mmr-02', name: 'ইন্টারেক্টিভ অডিটোরিয়াম ল্যাব (কক্ষ নং ৩০১)', projector: 'BenQ Interactive Smart Touch Board', sound: 'JBL Wireless Mic & Surround System', backup: 'সেন্ট্রাল জেনারেটর ব্যাকআপ', capacity: '১২০ জন শিক্ষার্থী', status: 'সক্রিয়' }
+    ],
+    schedule: [
+      { id: 'ms-01', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: 'পদার্থবিজ্ঞান', teacher: 'মোঃ হাবিবুর রহমান', resource: 'শিক্ষক বাতায়ন ও ৩ডি পরমাণু মডেল' },
+      { id: 'ms-02', day: 'সোমবার', period: '২য় পিরিয়ড (১০:১৫-১১:০০)', class_name: '৯ম শ্রেণি', subject: 'জীববিজ্ঞান', teacher: 'মোসাঃ নাসরিন আক্তার', resource: 'মুক্তপাঠ মানবদেহের রক্ত সংবহন অ্যানিমেশন' },
+      { id: 'ms-03', day: 'মঙ্গলবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '৮ম শ্রেণি', subject: 'বিজ্ঞান', teacher: 'মোঃ আব্দুল খালেক', resource: 'সৌরজগৎ ও মহাবিশ্ব সিমুলেশন' },
+      { id: 'ms-04', day: 'বুধবার', period: '৪র্থ পিরিয়ড (১১:৪৫-১২:৩০)', class_name: '১০ম শ্রেণি', subject: 'উচ্চতর গণিত', teacher: 'মোঃ আশরাফুল আলম', resource: 'Geogebra জ্যামিতিক ত্রিমাত্রিক গ্রাফ' },
+      { id: 'ms-05', day: 'বৃহস্পতিবার', period: '৫ম পিরিয়ড (০১:১৫-০২:০০)', class_name: '৭ম শ্রেণি', subject: 'ভূগোল ও পরিবেশ', teacher: 'তাপসী সরকার', resource: 'গুগল আর্থ ও ভার্চুয়াল ফিল্ড ট্রিপ' }
+    ],
+    contents: [
+      { id: 'mc-01', title: 'সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন', subject: 'জীববিজ্ঞান', class_name: '৯ম-১০ম', author: 'মোসাঃ নাসরিন আক্তার', portal: 'শিক্ষক বাতায়ন', views: '১২৫০+' },
+      { id: 'mc-02', title: 'নিউটনের গতিসূত্র ও বাস্তবিক প্রয়োগ', subject: 'পদার্থবিজ্ঞান', class_name: '১০ম শ্রেণি', author: 'মোঃ হাবিবুর রহমান', portal: 'মুক্তপাঠ', views: '৯৮০+' },
+      { id: 'mc-03', title: 'ত্রিকোণমিতির বাস্তব পরিমাপ ও সমীক্ষা', subject: 'উচ্চতর গণিত', class_name: '১০ম শ্রেণি', author: 'মোঃ আশরাফুল আলম', portal: 'বিদ্যালয় ডিজিটাল রিপোজিটরি', views: '৭৪০+' }
+    ]
+  },
+  scouts: {
+    troopInfo: {
+      troopNo: 'মগড়া পালস্ ১০৮তম উন্মুক্ত স্কাউট ও গার্লস গাইড দল',
+      leader: 'মোঃ শাহ আলম (উডব্যাজার ও ইউনিট লিডার)',
+      girlsGuideLeader: 'মোসাঃ নাসরিন আক্তার (গাইড ক্যাপটেন)',
+      cubLeader: 'তাপসী সরকার (কাব লিডার)',
+      registeredCount: '৬৪ জন সক্রিয় শিক্ষার্থী',
+      charterNo: 'BS-TGL-2018-108'
+    },
+    members: [
+      { id: 'sc-01', name: 'মেহেদী হাসান', class_name: '১০ম', roll_no: '১', unit: 'স্কাউট দল', patrol: 'টাইগার প্যাট্রোল', rank: 'দলনেতা (Senior Patrol Leader)', badge: 'স্ট্যান্ডার্ড ও প্রসিডেন্ট রোভার স্কাউট পদপ্রার্থী', phone: '০১৭XXXXXXXX', bloodGroup: 'B+' },
+      { id: 'sc-02', name: 'নাঈমুল ইসলাম', class_name: '১০ম', roll_no: '৬', unit: 'স্কাউট দল', patrol: 'ঈগল প্যাট্রোল', rank: 'সহ-দলনেতা', badge: 'ফার্স্ট এইড ও রেসকিউ ব্যাজ', phone: '০১৮XXXXXXXX', bloodGroup: 'A+' },
+      { id: 'sc-03', name: 'ফাতেমা তুজ জোহরা', class_name: '৯ম', roll_no: '২', unit: 'গার্লস গাইড', patrol: 'শাপলা প্যাট্রোল', rank: 'কোম্পানি লিডার', badge: 'স্বর্ণচম্পা ব্যাজ ও স্বাস্থ্য সেবা', phone: '০১৯XXXXXXXX', bloodGroup: 'O+' },
+      { id: 'sc-04', name: 'তানজিলা আক্তার', class_name: '৮ম', roll_no: '৪', unit: 'গার্লস গাইড', patrol: 'দোয়েল প্যাট্রোল', rank: 'সহ-কোম্পানি লিডার', badge: 'ক্যাম্প ক্রাফট ও নট ব্যাজ', phone: '০১৬XXXXXXXX', bloodGroup: 'AB+' },
+      { id: 'sc-05', name: 'তাহমিদ ইসলাম', class_name: '৭ম', roll_no: '৩', unit: 'কাব স্কাউট', patrol: 'সিয়োনী প্যাক', rank: 'ষড়ক প্রধান (Sixer)', badge: 'চাঁদ তারা ব্যাজ', phone: '০১৭XXXXXXXX', bloodGroup: 'O+' }
+    ],
+    events: [
+      { id: 'se-01', title: 'জেলা স্কাউট সমাবেশ ও ক্যাম্পোরি ২০২৬', date: '২০২৬-০১-১০ থেকে ১২', venue: 'টাঙ্গাইল জেলা স্টেডিয়াম চত্বর', leader: 'মোঃ শাহ আলম (উডব্যাজার)', participants: '২৪ জন', award: 'শ্রেষ্ঠ সুশৃঙ্খল দল ট্রফি 🏆' },
+      { id: 'se-02', title: 'জাতীয় দুর্যোগ প্রস্তুতি দিবস ও ফার্স্ট এইড ড্রিল', date: '২০২৬-০৩-১০', venue: 'বিদ্যালয় প্রাঙ্গণ', leader: 'মোসাঃ নাসরিন আক্তার', participants: '৫০ জন', award: 'রেড ক্রিসেন্ট সনদপত্র 🎖️' },
+      { id: 'se-03', title: 'মহান স্বাধীনতা দিবস কুচকাওয়াজ ও গার্ড অব অনার', date: '২০২৬-০৩-২৬', venue: 'উপজেলা পরিষদ মাঠ', leader: 'মোঃ শাহ আলম', participants: '৩২ জন', award: '১ম স্থান (কুচকাওয়াজ স্বর্ণপদক) 🥇' }
+    ]
+  },
+  inter_sports: {
+    teams: [
+      {
+        id: 'team-fb',
+        name: 'মগড়া পালস্ ফুটবল একাদশ',
+        sport: 'ফুটবল',
+        coach: 'মোঃ শাহ আলম (শারীরিক শিক্ষা শিক্ষক)',
+        captain: 'তানভীর আহমেদ (১০ম শ্রেণি, স্ট্রাইকার)',
+        squad: [
+          { name: 'তানভীর আহমেদ', class_name: '১০ম', roll_no: '১', pos: 'স্ট্রাইকার (অধিনায়ক)' },
+          { name: 'নাঈমুল ইসলাম', class_name: '১০ম', roll_no: '৬', pos: 'গোলকিপার' },
+          { name: 'আরিফুল ইসলাম', class_name: '১০ম', roll_no: '৫', pos: 'সেন্টার ব্যাক' },
+          { name: 'সাকিব আল হাসান', class_name: '৯ম', roll_no: '১২', pos: 'মিডফিল্ডার' },
+          { name: 'শামীম রেজা', class_name: '৯ম', roll_no: '৭', pos: 'রাইট উইঙ্গার' }
+        ]
+      },
+      {
+        id: 'team-ck',
+        name: 'মগড়া পালস্ ক্রিকেট দল',
+        sport: 'ক্রিকেট',
+        coach: 'মোঃ রফিকুল ইসলাম (সিনিয়র শিক্ষক)',
+        captain: 'মেহেদী হাসান (১০ম শ্রেণি, অলরাউন্ডার)',
+        squad: [
+          { name: 'মেহেদী হাসান', class_name: '১০ম', roll_no: '২', pos: 'অলরাউন্ডার (অধিনায়ক)' },
+          { name: 'রাকিবুল হাসান', class_name: '১০ম', roll_no: '৪', pos: 'উইকেটকিপার ব্যাটার' },
+          { name: 'তাহসিন আহমেদ', class_name: '৯ম', roll_no: '৮', pos: 'ফাস্ট বোলার' },
+          { name: 'ফারহান আহমেদ', class_name: '১০ম', roll_no: '৩', pos: 'স্পিন বোলার' }
+        ]
+      }
+    ],
+    matches: [
+      { id: 'im-01', tournament: 'উপজেলা ৫০তম গ্রীষ্মকালীন ক্রীড়া প্রতিযোগিতা', sport: 'ফুটবল', opponent: 'কালিহাতী আর.এস. সরকারি উচ্চ বিদ্যালয়', date: '২০২৫-০৯-২০', venue: 'উপজেলা কেন্দ্রীয় খেলার মাঠ', result: 'জয় (২-১)', bestPlayer: 'তানভীর আহমেদ (২টি গোল)', trophy: 'উপজেলা চ্যাম্পিয়ন ট্রফি 🏆' },
+      { id: 'im-02', tournament: 'টাঙ্গাইল জেলা আন্তঃস্কুল ক্রিকেট চ্যাম্পিয়নশিপ', sport: 'ক্রিকেট', opponent: 'বিন্দু বাসিনী সরকারি বালক উচ্চ বিদ্যালয়', date: '২০২৬-০২-০৫', venue: 'টাঙ্গাইল জেলা স্টেডিয়াম', result: 'জয় (৩৬ রানে)', bestPlayer: 'মেহেদী হাসান (৫২ রান ও ৩ উইকেট)', trophy: 'ম্যান অব দ্য ম্যাচ ও রানার্স-আপ 🥈' }
+    ]
+  }
 };
 
 export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
   const [activeTab, setActiveTab] = useState(
     initialSection === 'culture' ? 'culture' :
     initialSection === 'achievements' ? 'achievements' :
-    initialSection === 'tour' ? 'tour' : 'sports'
+    initialSection === 'tour' ? 'tour' :
+    initialSection === 'lab' ? 'lab' :
+    initialSection === 'multimedia' ? 'multimedia' :
+    initialSection === 'scouts' ? 'scouts' :
+    initialSection === 'inter_sports' ? 'inter_sports' : 'sports'
   );
 
   useEffect(() => {
-    if (initialSection && ['sports', 'culture', 'achievements', 'tour'].includes(initialSection)) {
+    if (initialSection && ['sports', 'culture', 'achievements', 'tour', 'lab', 'multimedia', 'scouts', 'inter_sports'].includes(initialSection)) {
       setActiveTab(initialSection);
     }
   }, [initialSection]);
@@ -206,10 +316,30 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
   const [showResultModal, setShowResultModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // New Domain Modals
+  const [showLabDeviceModal, setShowLabDeviceModal] = useState(false);
+  const [showLabScheduleModal, setShowLabScheduleModal] = useState(false);
+  const [showMmScheduleModal, setShowMmScheduleModal] = useState(false);
+  const [showMmContentModal, setShowMmContentModal] = useState(false);
+  const [showScoutMemberModal, setShowScoutMemberModal] = useState(false);
+  const [showScoutEventModal, setShowScoutEventModal] = useState(false);
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [showMatchModal, setShowMatchModal] = useState(false);
+
   // Form states
   const [eventForm, setEventForm] = useState({});
   const [rosterForm, setRosterForm] = useState({ student_id: '', name: '', class_name: '১০ম', roll_no: '', house: 'পদ্মা হাউজ', chestNo: '', segment: 'দেশাত্মবোধক গান', itemTitle: '', busNo: 'বাস-১', seatNo: '০১', guardianPhone: '', feePaid: true });
   const [resultForm, setResultForm] = useState({});
+
+  // Sub-forms for new domains
+  const [labDeviceForm, setLabDeviceForm] = useState({ id: '', name: '', model: '', cpu: '', ram: '', storage: '', condition: 'সক্রিয়', ip: '', desk: '' });
+  const [labScheduleForm, setLabScheduleForm] = useState({ id: '', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: '', topic: '' });
+  const [mmScheduleForm, setMmScheduleForm] = useState({ id: '', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: '', teacher: '', resource: '' });
+  const [mmContentForm, setMmContentForm] = useState({ id: '', title: '', subject: '', class_name: '৯ম-১০ম', author: '', portal: 'শিক্ষক বাতায়ন', views: '১০০+' });
+  const [scoutMemberForm, setScoutMemberForm] = useState({ id: '', name: '', class_name: '১০ম', roll_no: '', unit: 'স্কাউট দল', patrol: 'টাইগার প্যাট্রোল', rank: 'সাধারণ সদস্য', badge: 'স্ট্যান্ডার্ড ব্যাজ', phone: '', bloodGroup: 'B+' });
+  const [scoutEventForm, setScoutEventForm] = useState({ id: '', title: '', date: '', venue: '', leader: '', participants: '', award: '' });
+  const [teamForm, setTeamForm] = useState({ id: '', name: '', sport: 'ফুটবল', coach: '', captain: '', squad: [] });
+  const [matchForm, setMatchForm] = useState({ id: '', tournament: '', sport: 'ফুটবল', opponent: '', date: '', venue: '', result: 'জয়', bestPlayer: '', trophy: '' });
 
   // Load teachers and students
   useEffect(() => {
@@ -228,14 +358,26 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     }
   }, []);
 
-  // Load stored data or seed
+  // Load stored data or seed, ensuring all 8 categories exist
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && parsed.sports) {
-          setData(parsed);
+        if (parsed) {
+          const merged = {
+            ...INITIAL_DATA,
+            ...parsed,
+            sports: parsed.sports || INITIAL_DATA.sports,
+            culture: parsed.culture || INITIAL_DATA.culture,
+            achievements: parsed.achievements || INITIAL_DATA.achievements,
+            tours: parsed.tours || INITIAL_DATA.tours,
+            lab: parsed.lab || INITIAL_DATA.lab,
+            multimedia: parsed.multimedia || INITIAL_DATA.multimedia,
+            scouts: parsed.scouts || INITIAL_DATA.scouts,
+            inter_sports: parsed.inter_sports || INITIAL_DATA.inter_sports
+          };
+          setData(merged);
           return;
         }
       }
@@ -583,6 +725,179 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     showNotification('✓ শিক্ষার্থী সফলভাবে নিবন্ধিত হয়েছে!');
   };
 
+  // ---------------- Computer Lab Handlers ----------------
+  const handleSaveLabDevice = (e) => {
+    e.preventDefault();
+    const isEdit = !!labDeviceForm.id;
+    const newDev = {
+      ...labDeviceForm,
+      id: labDeviceForm.id || `pc-${Date.now().toString().slice(-4)}`
+    };
+    const currentDevices = data.lab?.devices || [];
+    const updated = isEdit ? currentDevices.map(d => d.id === newDev.id ? newDev : d) : [...currentDevices, newDev];
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    setShowLabDeviceModal(false);
+    showNotification(isEdit ? '✓ ডিভাইস তথ্য আপডেট হয়েছে!' : '✓ নতুন ডিভাইস যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteLabDevice = (id) => {
+    if (!window.confirm('ডিভাইসটি মুছে ফেলতে চান?')) return;
+    const updated = (data.lab?.devices || []).filter(d => d.id !== id);
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    showNotification('ডিভাইস তালিকা থেকে মুছে ফেলা হয়েছে।');
+  };
+
+  const handleSaveLabSchedule = (e) => {
+    e.preventDefault();
+    const isEdit = !!labScheduleForm.id;
+    const newSch = {
+      ...labScheduleForm,
+      id: labScheduleForm.id || `ls-${Date.now().toString().slice(-4)}`
+    };
+    const currentSch = data.lab?.schedule || [];
+    const updated = isEdit ? currentSch.map(s => s.id === newSch.id ? newSch : s) : [...currentSch, newSch];
+    persistData({ ...data, lab: { ...(data.lab || {}), schedule: updated } });
+    setShowLabScheduleModal(false);
+    showNotification(isEdit ? '✓ ব্যবহারিক রুটিন আপডেট হয়েছে!' : '✓ নতুন ব্যবহারিক রুটিন যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteLabSchedule = (id) => {
+    if (!window.confirm('রুটিন এন্ট্রিটি মুছে ফেলবেন?')) return;
+    const updated = (data.lab?.schedule || []).filter(s => s.id !== id);
+    persistData({ ...data, lab: { ...(data.lab || {}), schedule: updated } });
+    showNotification('রুটিন এন্ট্রি মুছে ফেলা হয়েছে।');
+  };
+
+  // ---------------- Multimedia Handlers ----------------
+  const handleSaveMmSchedule = (e) => {
+    e.preventDefault();
+    const isEdit = !!mmScheduleForm.id;
+    const newSch = {
+      ...mmScheduleForm,
+      id: mmScheduleForm.id || `ms-${Date.now().toString().slice(-4)}`
+    };
+    const currentSch = data.multimedia?.schedule || [];
+    const updated = isEdit ? currentSch.map(s => s.id === newSch.id ? newSch : s) : [...currentSch, newSch];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), schedule: updated } });
+    setShowMmScheduleModal(false);
+    showNotification(isEdit ? '✓ মাল্টিমিডিয়া রুটিন আপডেট হয়েছে!' : '✓ নতুন ক্লাস সময়সূচি যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteMmSchedule = (id) => {
+    if (!window.confirm('এই ক্লাস রুটিনটি মুছে ফেলবেন?')) return;
+    const updated = (data.multimedia?.schedule || []).filter(s => s.id !== id);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), schedule: updated } });
+    showNotification('রুটিন এন্ট্রি মুছে ফেলা হয়েছে।');
+  };
+
+  const handleSaveMmContent = (e) => {
+    e.preventDefault();
+    const isEdit = !!mmContentForm.id;
+    const newC = {
+      ...mmContentForm,
+      id: mmContentForm.id || `mc-${Date.now().toString().slice(-4)}`
+    };
+    const currentC = data.multimedia?.contents || [];
+    const updated = isEdit ? currentC.map(c => c.id === newC.id ? newC : c) : [...currentC, newC];
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), contents: updated } });
+    setShowMmContentModal(false);
+    showNotification(isEdit ? '✓ ডিজিটাল কনটেন্ট আপডেট হয়েছে!' : '✓ নতুন কনটেন্ট যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteMmContent = (id) => {
+    if (!window.confirm('এই ডিজিটাল কনটেন্ট মুছে ফেলতে চান?')) return;
+    const updated = (data.multimedia?.contents || []).filter(c => c.id !== id);
+    persistData({ ...data, multimedia: { ...(data.multimedia || {}), contents: updated } });
+    showNotification('ডিজিটাল কনটেন্ট মুছে ফেলা হয়েছে।');
+  };
+
+  // ---------------- Scouts Handlers ----------------
+  const handleSaveScoutMember = (e) => {
+    e.preventDefault();
+    const isEdit = !!scoutMemberForm.id;
+    const newM = {
+      ...scoutMemberForm,
+      id: scoutMemberForm.id || `sc-${Date.now().toString().slice(-4)}`
+    };
+    const currentM = data.scouts?.members || [];
+    const updated = isEdit ? currentM.map(m => m.id === newM.id ? newM : m) : [...currentM, newM];
+    persistData({ ...data, scouts: { ...(data.scouts || {}), members: updated } });
+    setShowScoutMemberModal(false);
+    showNotification(isEdit ? '✓ সদস্য তথ্য আপডেট হয়েছে!' : '✓ নতুন সদস্য সফলভাবে তালিকাভুক্ত হয়েছে!');
+  };
+
+  const handleDeleteScoutMember = (id) => {
+    if (!window.confirm('এই সদস্যকে তালিকা থেকে বাদ দিতে চান?')) return;
+    const updated = (data.scouts?.members || []).filter(m => m.id !== id);
+    persistData({ ...data, scouts: { ...(data.scouts || {}), members: updated } });
+    showNotification('সদস্য মুছে ফেলা হয়েছে।');
+  };
+
+  const handleSaveScoutEvent = (e) => {
+    e.preventDefault();
+    const isEdit = !!scoutEventForm.id;
+    const newEv = {
+      ...scoutEventForm,
+      id: scoutEventForm.id || `se-${Date.now().toString().slice(-4)}`
+    };
+    const currentEv = data.scouts?.events || [];
+    const updated = isEdit ? currentEv.map(e => e.id === newEv.id ? newEv : e) : [...currentEv, newEv];
+    persistData({ ...data, scouts: { ...(data.scouts || {}), events: updated } });
+    setShowScoutEventModal(false);
+    showNotification(isEdit ? '✓ ক্যাম্পোরি/ইভেন্ট আপডেট হয়েছে!' : '✓ নতুন স্কাউট সমাবেশ রেকর্ড যুক্ত হয়েছে!');
+  };
+
+  const handleDeleteScoutEvent = (id) => {
+    if (!window.confirm('এই ইভেন্ট রেকর্ড মুছে ফেলতে চান?')) return;
+    const updated = (data.scouts?.events || []).filter(e => e.id !== id);
+    persistData({ ...data, scouts: { ...(data.scouts || {}), events: updated } });
+    showNotification('ইভেন্ট মুছে ফেলা হয়েছে।');
+  };
+
+  // ---------------- Inter-School Sports Handlers ----------------
+  const handleSaveTeam = (e) => {
+    e.preventDefault();
+    const isEdit = !!teamForm.id;
+    const newTeam = {
+      ...teamForm,
+      id: teamForm.id || `team-${Date.now().toString().slice(-4)}`,
+      squad: teamForm.squad || []
+    };
+    const currentTeams = data.inter_sports?.teams || [];
+    const updated = isEdit ? currentTeams.map(t => t.id === newTeam.id ? newTeam : t) : [...currentTeams, newTeam];
+    persistData({ ...data, inter_sports: { ...(data.inter_sports || {}), teams: updated } });
+    setShowTeamModal(false);
+    showNotification(isEdit ? '✓ স্কোয়াড তথ্য আপডেট হয়েছে!' : '✓ নতুন ক্রীড়া দল তৈরি হয়েছে!');
+  };
+
+  const handleDeleteTeam = (id) => {
+    if (!window.confirm('এই দলটি মুছে ফেলতে চান?')) return;
+    const updated = (data.inter_sports?.teams || []).filter(t => t.id !== id);
+    persistData({ ...data, inter_sports: { ...(data.inter_sports || {}), teams: updated } });
+    showNotification('দল মুছে ফেলা হয়েছে।');
+  };
+
+  const handleSaveMatch = (e) => {
+    e.preventDefault();
+    const isEdit = !!matchForm.id;
+    const newMatch = {
+      ...matchForm,
+      id: matchForm.id || `im-${Date.now().toString().slice(-4)}`
+    };
+    const currentMatches = data.inter_sports?.matches || [];
+    const updated = isEdit ? currentMatches.map(m => m.id === newMatch.id ? newMatch : m) : [...currentMatches, newMatch];
+    persistData({ ...data, inter_sports: { ...(data.inter_sports || {}), matches: updated } });
+    setShowMatchModal(false);
+    showNotification(isEdit ? '✓ ম্যাচের ফলাফল আপডেট হয়েছে!' : '✓ নতুন ম্যাচের ফলাফল সংরক্ষণ করা হয়েছে!');
+  };
+
+  const handleDeleteMatch = (id) => {
+    if (!window.confirm('এই ম্যাচের রেকর্ডটি মুছে ফেলতে চান?')) return;
+    const updated = (data.inter_sports?.matches || []).filter(m => m.id !== id);
+    persistData({ ...data, inter_sports: { ...(data.inter_sports || {}), matches: updated } });
+    showNotification('ম্যাচ রেকর্ড মুছে ফেলা হয়েছে।');
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -706,7 +1021,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
             boxShadow: activeTab === 'achievements' ? '0 4px 10px rgba(245,158,11,0.3)' : 'none'
           }}
         >
-          🏆 গৌরবময় অর্জন ও পুরস্কার ({data.achievements.length} টি)
+          🏆 গৌরবময় অর্জন ও পুরস্কার ({data.achievements?.length || 0} টি)
         </button>
 
         <button
@@ -724,7 +1039,79 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
             boxShadow: activeTab === 'tour' ? '0 4px 10px rgba(14,165,233,0.3)' : 'none'
           }}
         >
-          🚌 শিক্ষা সফর ও ভ্রমণ পোর্টাল ({data.tours.length} টি)
+          🚌 শিক্ষা সফর ও ভ্রমণ ({data.tours?.length || 0} টি)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('lab')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: activeTab === 'lab' ? 'none' : '1px solid #cbd5e1',
+            background: activeTab === 'lab' ? 'linear-gradient(135deg, #0f766e, #14b8a6)' : '#ffffff',
+            color: activeTab === 'lab' ? '#ffffff' : '#334155',
+            fontWeight: 700,
+            fontSize: '14px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'lab' ? '0 4px 10px rgba(20,184,166,0.3)' : 'none'
+          }}
+        >
+          💻 কম্পিউটার ল্যাব ({data.lab?.devices?.length || 0} টি ডিভাইস)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('multimedia')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: activeTab === 'multimedia' ? 'none' : '1px solid #cbd5e1',
+            background: activeTab === 'multimedia' ? 'linear-gradient(135deg, #7c3aed, #8b5cf6)' : '#ffffff',
+            color: activeTab === 'multimedia' ? '#ffffff' : '#334155',
+            fontWeight: 700,
+            fontSize: '14px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'multimedia' ? '0 4px 10px rgba(139,92,246,0.3)' : 'none'
+          }}
+        >
+          🖥️ মাল্টিমিডিয়া ক্লাস ({data.multimedia?.schedule?.length || 0} টি রুটিন)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('scouts')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: activeTab === 'scouts' ? 'none' : '1px solid #cbd5e1',
+            background: activeTab === 'scouts' ? 'linear-gradient(135deg, #854d0e, #ca8a04)' : '#ffffff',
+            color: activeTab === 'scouts' ? '#ffffff' : '#334155',
+            fontWeight: 700,
+            fontSize: '14px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'scouts' ? '0 4px 10px rgba(202,138,4,0.3)' : 'none'
+          }}
+        >
+          ⚜️ স্কাউট ও গার্লস গাইড ({data.scouts?.members?.length || 0} জন)
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('inter_sports')}
+          style={{
+            padding: '10px 18px',
+            borderRadius: '10px',
+            border: activeTab === 'inter_sports' ? 'none' : '1px solid #cbd5e1',
+            background: activeTab === 'inter_sports' ? 'linear-gradient(135deg, #be123c, #f43f5e)' : '#ffffff',
+            color: activeTab === 'inter_sports' ? '#ffffff' : '#334155',
+            fontWeight: 700,
+            fontSize: '14px',
+            cursor: 'pointer',
+            boxShadow: activeTab === 'inter_sports' ? '0 4px 10px rgba(244,63,94,0.3)' : 'none'
+          }}
+        >
+          ⚽ আন্তঃবিদ্যালয় ক্রীড়া ({data.inter_sports?.teams?.length || 0} টি দল)
         </button>
       </div>
 
@@ -1092,6 +1479,466 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5. COMPUTER LAB TAB (কম্পিউটার ল্যাব) */}
+      {/* ========================================================================= */}
+      {activeTab === 'lab' && (
+        <div>
+          {/* Lab Overview Banner */}
+          <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '12px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#0f766e', fontWeight: 800 }}>
+                💻 শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সেন্টার
+              </h3>
+              <div style={{ fontSize: '12.5px', color: '#134e4a', display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+                <span><b>ল্যাব ইনচার্জ:</b> {data.lab?.inCharge}</span>
+                <span><b>ল্যাব সহকারী:</b> {data.lab?.assistant}</span>
+                <span><b>অবস্থান:</b> {data.lab?.room}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setLabDeviceForm({ id: '', name: '', model: '', cpu: '', ram: '', storage: '', condition: 'সক্রিয়', ip: '', desk: '' });
+                  setShowLabDeviceModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>➕</span> নতুন ডিভাইস যোগ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLabScheduleForm({ id: '', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: teachers[0]?.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক', topic: '' });
+                  setShowLabScheduleModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#047857', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>🗓️</span> ব্যবহারিক রুটিন যোগ
+              </button>
+            </div>
+          </div>
+
+          {/* Device Inventory Grid */}
+          <div style={{ marginBottom: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h4 style={{ margin: 0, fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+                🖥️ কম্পিউটার ও নেটওয়ার্ক ইকুইপমেন্ট রেজিস্টার ({data.lab?.devices?.length || 0} টি)
+              </h4>
+              <span style={{ fontSize: '12px', color: '#0f766e', background: '#ccfbf1', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                সক্রিয়: {data.lab?.devices?.filter(d => d.condition === 'সক্রিয়').length || 0} টি
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+              {(data.lab?.devices || []).map(dev => (
+                <div key={dev.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{dev.desk || 'ডেস্ক'}</span>
+                      <span style={{ fontSize: '11px', background: dev.condition === 'সক্রিয়' ? '#dcfce7' : '#fee2e2', color: dev.condition === 'সক্রিয়' ? '#15803d' : '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        ● {dev.condition}
+                      </span>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#0f172a', marginBottom: '3px' }}>{dev.name}</div>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>{dev.model}</div>
+                    <div style={{ fontSize: '11.5px', color: '#334155', background: '#f8fafc', padding: '6px 8px', borderRadius: '6px', lineHeight: '1.5' }}>
+                      <div><b>CPU:</b> {dev.cpu}</div>
+                      <div><b>RAM & Storage:</b> {dev.ram} • {dev.storage}</div>
+                      {dev.ip && <div><b>IP:</b> <code style={{ color: '#0369a1' }}>{dev.ip}</code></div>}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                    <button type="button" onClick={() => { setLabDeviceForm(dev); setShowLabDeviceModal(true); }} style={{ padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}>✏️ সম্পাদনা</button>
+                    <button type="button" onClick={() => handleDeleteLabDevice(dev.id)} style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}>🗑️ মুছুন</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Practical Timetable */}
+          <div style={{ marginBottom: '20px' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+              🗓️ সাপ্তাহিক ল্যাব ব্যবহারিক ক্লাসের সময়সূচি
+            </h4>
+            <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                    <th style={{ padding: '10px 12px' }}>বার (Day)</th>
+                    <th style={{ padding: '10px 12px' }}>পিরিয়ড ও সময়</th>
+                    <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                    <th style={{ padding: '10px 12px' }}>ব্যবহারিক বিষয়বস্তু (Topic)</th>
+                    <th style={{ padding: '10px 12px' }}>শিক্ষক</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.lab?.schedule || []).map((sch, idx) => (
+                    <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f766e' }}>{sch.day}</td>
+                      <td style={{ padding: '10px 12px', color: '#64748b' }}>{sch.period}</td>
+                      <td style={{ padding: '10px 12px' }}><b>{sch.class_name}</b> — {sch.subject}</td>
+                      <td style={{ padding: '10px 12px', color: '#334155' }}>{sch.topic}</td>
+                      <td style={{ padding: '10px 12px', color: '#0284c7', fontWeight: 600 }}>{sch.teacher}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <button type="button" onClick={() => { setLabScheduleForm(sch); setShowLabScheduleModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
+                        <button type="button" onClick={() => handleDeleteLabSchedule(sch.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 6. MULTIMEDIA CLASS TAB (মাল্টিমিডিয়া ক্লাস) */}
+      {/* ========================================================================= */}
+      {activeTab === 'multimedia' && (
+        <div>
+          {/* Smart Classrooms Overview */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+            {(data.multimedia?.rooms || []).map(rm => (
+              <div key={rm.id} style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '12px', padding: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', color: '#6b21a8', fontWeight: 800 }}>{rm.name}</h4>
+                  <span style={{ fontSize: '11px', background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>● {rm.status}</span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#4c1d95', lineHeight: '1.6' }}>
+                  <div>📽️ <b>প্রজেক্টর/বোর্ড:</b> {rm.projector}</div>
+                  <div>🔊 <b>সাউন্ড:</b> {rm.sound}</div>
+                  <div>⚡ <b>বিদ্যুৎ ব্যাকআপ:</b> {rm.backup}</div>
+                  <div>👥 <b>ধারণক্ষমতা:</b> {rm.capacity}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+            <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 800 }}>
+              🖥️ সাপ্তাহিক মাল্টিমিডিয়া ক্লাস রুটিন ({data.multimedia?.schedule?.length || 0} টি ক্লাস)
+            </h4>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setMmScheduleForm({ id: '', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: 'পদার্থবিজ্ঞান', teacher: teachers[0]?.name_bn || '', resource: 'শিক্ষক বাতায়ন ৩ডি প্রেজেন্টেশন' });
+                  setShowMmScheduleModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>➕</span> নতুন ক্লাস রুটিন যোগ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMmContentForm({ id: '', title: '', subject: '', class_name: '৯ম-১০ম', author: teachers[0]?.name_bn || '', portal: 'শিক্ষক বাতায়ন', views: '১০০+' });
+                  setShowMmContentModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>📁</span> ডিজিটাল কনটেন্ট যোগ
+              </button>
+            </div>
+          </div>
+
+          {/* Schedule Table */}
+          <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '22px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                  <th style={{ padding: '10px 12px' }}>বার (Day)</th>
+                  <th style={{ padding: '10px 12px' }}>পিরিয়ড</th>
+                  <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                  <th style={{ padding: '10px 12px' }}>ডিজিটাল রিসোর্স ও ৩ডি বিষয়বস্তু</th>
+                  <th style={{ padding: '10px 12px' }}>বিষয় শিক্ষক</th>
+                  <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.multimedia?.schedule || []).map((sch, idx) => (
+                  <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 700, color: '#7c3aed' }}>{sch.day}</td>
+                    <td style={{ padding: '10px 12px', color: '#64748b' }}>{sch.period}</td>
+                    <td style={{ padding: '10px 12px' }}><b>{sch.class_name}</b> — {sch.subject}</td>
+                    <td style={{ padding: '10px 12px', color: '#334155' }}>✨ {sch.resource}</td>
+                    <td style={{ padding: '10px 12px', color: '#4338ca', fontWeight: 600 }}>{sch.teacher}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                      <button type="button" onClick={() => { setMmScheduleForm(sch); setShowMmScheduleModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
+                      <button type="button" onClick={() => handleDeleteMmSchedule(sch.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Digital Content Bank Cards */}
+          <div>
+            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+              📂 শিক্ষক বাতায়ন ও মুক্তপাঠ ডিজিটাল কনটেন্ট ভাণ্ডার
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+              {(data.multimedia?.contents || []).map(cnt => (
+                <div key={cnt.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', background: '#ede9fe', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{cnt.portal}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>👁️ {cnt.views} ভিউ</span>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', marginBottom: '4px' }}>{cnt.title}</div>
+                    <div style={{ fontSize: '12px', color: '#475569' }}>{cnt.subject} ({cnt.class_name})</div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>👨‍🏫 কনটেন্ট নির্মাতা: {cnt.author}</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                    <button type="button" onClick={() => { setMmContentForm(cnt); setShowMmContentModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>✏️</button>
+                    <button type="button" onClick={() => handleDeleteMmContent(cnt.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 7. SCOUTS & GIRLS GUIDE TAB (স্কাউট ও গার্লস গাইড) */}
+      {/* ========================================================================= */}
+      {activeTab === 'scouts' && (
+        <div>
+          {/* Troop Overview Card */}
+          <div style={{ background: '#fefce8', border: '1px solid #fef08a', borderRadius: '12px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#854d0e', fontWeight: 800 }}>
+                ⚜️ {data.scouts?.troopInfo?.troopNo}
+              </h3>
+              <div style={{ fontSize: '12px', color: '#713f12', display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+                <span><b>ইউনিট লিডার:</b> {data.scouts?.troopInfo?.leader}</span>
+                <span><b>গাইড ক্যাপটেন:</b> {data.scouts?.troopInfo?.girlsGuideLeader}</span>
+                <span><b>কাব লিডার:</b> {data.scouts?.troopInfo?.cubLeader}</span>
+                <span><b>নিবন্ধন নং:</b> {data.scouts?.troopInfo?.charterNo}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setScoutMemberForm({ id: '', name: '', class_name: '১০ম', roll_no: '', unit: 'স্কাউট দল', patrol: 'টাইগার প্যাট্রোল', rank: 'সাধারণ সদস্য', badge: 'স্ট্যান্ডার্ড ব্যাজ', phone: '', bloodGroup: 'B+' });
+                  setShowScoutMemberModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#854d0e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>➕</span> নতুন স্কাউট/গাইড সদস্য যোগ
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setScoutEventForm({ id: '', title: '', date: '', venue: '', leader: teachers[0]?.name_bn || '', participants: '২৪ জন', award: '' });
+                  setShowScoutEventModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#b45309', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>🏕️</span> ক্যাম্পোরি/সমাবেশ যোগ
+              </button>
+            </div>
+          </div>
+
+          {/* Members Roster Table */}
+          <div style={{ marginBottom: '22px' }}>
+            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+              📋 সক্রিয় স্কাউট, গার্লস গাইড ও কাব সদস্য রেজিস্টার ({data.scouts?.members?.length || 0} জন)
+            </h4>
+            <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                    <th style={{ padding: '10px 12px' }}>নাম ও রোল</th>
+                    <th style={{ padding: '10px 12px' }}>ইউনিট</th>
+                    <th style={{ padding: '10px 12px' }}>টহলদল (Patrol)</th>
+                    <th style={{ padding: '10px 12px' }}>পদবি (Rank)</th>
+                    <th style={{ padding: '10px 12px' }}>অর্জিত ব্যাজ</th>
+                    <th style={{ padding: '10px 12px' }}>রক্তের গ্রুপ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.scouts?.members || []).map((m, idx) => (
+                    <tr key={m.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 12px' }}>
+                        <b>{m.name}</b><br/>
+                        <small style={{ color: '#64748b' }}>{m.class_name} শ্রেণি, রোল {m.roll_no}</small>
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{ fontSize: '11px', background: m.unit === 'গার্লস গাইড' ? '#fdf2f8' : m.unit === 'কাব স্কাউট' ? '#fefce8' : '#eff6ff', color: m.unit === 'গার্লস গাইড' ? '#be185d' : m.unit === 'কাব স্কাউট' ? '#854d0e' : '#1d4ed8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                          {m.unit}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px', color: '#334155' }}>{m.patrol}</td>
+                      <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>{m.rank}</td>
+                      <td style={{ padding: '10px 12px', color: '#854d0e' }}>🎖️ {m.badge}</td>
+                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#dc2626' }}>{m.bloodGroup}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <button type="button" onClick={() => { setScoutMemberForm(m); setShowScoutMemberModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
+                        <button type="button" onClick={() => handleDeleteScoutMember(m.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Camporees & Parades */}
+          <div>
+            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+              🏕️ ক্যাম্পোরি, সমাবেশ ও কুচকাওয়াজ রেকর্ড
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '12px' }}>
+              {(data.scouts?.events || []).map(ev => (
+                <div key={ev.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '11px', background: '#fefce8', color: '#854d0e', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>📅 {ev.date}</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>📍 {ev.venue}</span>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '14px', color: '#0f172a', marginBottom: '4px' }}>{ev.title}</div>
+                    <div style={{ fontSize: '12px', color: '#475569' }}>দলনেতা: {ev.leader} • অংশগ্রহণ: {ev.participants}</div>
+                    {ev.award && (
+                      <div style={{ marginTop: '6px', fontSize: '12px', background: '#f0fdf4', color: '#166534', padding: '4px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                        {ev.award}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                    <button type="button" onClick={() => { setScoutEventForm(ev); setShowScoutEventModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>✏️</button>
+                    <button type="button" onClick={() => handleDeleteScoutEvent(ev.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 8. INTER-SCHOOL SPORTS TAB (আন্তঃবিদ্যালয় ক্রীড়া) */}
+      {/* ========================================================================= */}
+      {activeTab === 'inter_sports' && (
+        <div>
+          {/* Action Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#9f1239', fontWeight: 800 }}>
+              ⚽ আন্তঃবিদ্যালয় টুর্নামেন্ট স্কোয়াড ও ফলাফল রেজিস্টার
+            </h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setTeamForm({ id: '', name: '', sport: 'ফুটবল', coach: teachers[0]?.name_bn || '', captain: '', squad: [] });
+                  setShowTeamModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#be123c', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>➕</span> নতুন দল/স্কোয়াড তৈরি
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMatchForm({ id: '', tournament: '', sport: 'ফুটবল', opponent: '', date: '', venue: '', result: 'জয়', bestPlayer: '', trophy: '' });
+                  setShowMatchModal(true);
+                }}
+                style={{ padding: '8px 14px', background: '#e11d48', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                <span>🏆</span> নতুন ম্যাচের ফলাফল যোগ
+              </button>
+            </div>
+          </div>
+
+          {/* Teams Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px', marginBottom: '22px' }}>
+            {(data.inter_sports?.teams || []).map(team => (
+              <div key={team.id} style={{ background: '#ffffff', border: '1px solid #fecdd3', borderRadius: '12px', padding: '16px', boxShadow: '0 2px 6px rgba(190,18,60,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '11px', background: '#ffe4e6', color: '#9f1239', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>{team.sport}</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button type="button" onClick={() => { setTeamForm(team); setShowTeamModal(true); }} style={{ padding: '2px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>✏️</button>
+                    <button type="button" onClick={() => handleDeleteTeam(team.id)} style={{ padding: '2px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                  </div>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15px', color: '#881337', fontWeight: 800 }}>{team.name}</h4>
+                <div style={{ fontSize: '12px', color: '#4c0519', lineHeight: '1.5', marginBottom: '10px' }}>
+                  <div>👨‍🏫 <b>কোচ/গাইড:</b> {team.coach}</div>
+                  <div>⭐ <b>অধিনায়ক:</b> {team.captain}</div>
+                </div>
+
+                <div style={{ background: '#fff1f2', padding: '8px 10px', borderRadius: '6px', fontSize: '11.5px' }}>
+                  <b style={{ color: '#9f1239' }}>স্কোয়াড সদস্য ({team.squad?.length || 0} জন):</b>
+                  <div style={{ marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {(team.squad || []).map((p, i) => (
+                      <span key={i} style={{ background: '#ffffff', border: '1px solid #fda4af', padding: '1px 6px', borderRadius: '4px', color: '#881337' }}>
+                        {p.name} ({p.pos})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Match Results Table */}
+          <div>
+            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+              🏆 সাম্প্রতিক ম্যাচের ফলাফল ও ট্রফি রেজিস্টার
+            </h4>
+            <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                    <th style={{ padding: '10px 12px' }}>টুর্নামেন্ট ও খেলা</th>
+                    <th style={{ padding: '10px 12px' }}>প্রতিপক্ষ দল</th>
+                    <th style={{ padding: '10px 12px' }}>তারিখ ও স্থান</th>
+                    <th style={{ padding: '10px 12px' }}>ফলাফল</th>
+                    <th style={{ padding: '10px 12px' }}>সেরা খেলোয়াড় ও ট্রফি</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.inter_sports?.matches || []).map((m, idx) => (
+                    <tr key={m.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 12px' }}>
+                        <b>{m.tournament}</b><br/>
+                        <small style={{ color: '#be123c' }}>{m.sport}</small>
+                      </td>
+                      <td style={{ padding: '10px 12px', fontWeight: 600 }}>{m.opponent}</td>
+                      <td style={{ padding: '10px 12px', color: '#64748b' }}>{m.date} ({m.venue})</td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <span style={{ fontSize: '11px', background: m.result.includes('জয়') ? '#dcfce7' : '#fee2e2', color: m.result.includes('জয়') ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
+                          {m.result}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <div style={{ color: '#0f172a', fontWeight: 600 }}>⭐ {m.bestPlayer}</div>
+                        {m.trophy && <div style={{ color: '#d97706', fontSize: '11.5px', fontWeight: 700 }}>{m.trophy}</div>}
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                        <button type="button" onClick={() => { setMatchForm(m); setShowMatchModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
+                        <button type="button" onClick={() => handleDeleteMatch(m.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1596,6 +2443,482 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
                 <button type="button" onClick={() => setShowResultModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
                 <button type="submit" style={{ padding: '8px 22px', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>ফলাফল সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* LAB DEVICE MODAL */}
+      {/* ========================================================================= */}
+      {showLabDeviceModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowLabDeviceModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#0f766e', fontWeight: 800 }}>
+                💻 {labDeviceForm.id ? 'ডিভাইস তথ্য সম্পাদনা' : 'নতুন কম্পিউটার/ডিভাইস যোগ'}
+              </h3>
+              <button type="button" onClick={() => setShowLabDeviceModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveLabDevice} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডিভাইসের নাম *</label>
+                <input type="text" required value={labDeviceForm.name || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, name: e.target.value })} placeholder="যেমন: শিক্ষার্থী ওয়ার্কস্টেশন ০৫" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>মডেল ও ব্র্যান্ড</label>
+                  <input type="text" value={labDeviceForm.model || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, model: e.target.value })} placeholder="যেমন: Dell OptiPlex 3080" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডেস্ক / অবস্থান</label>
+                  <input type="text" value={labDeviceForm.desk || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, desk: e.target.value })} placeholder="যেমন: ডেস্ক-০৫" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রসেসর (CPU)</label>
+                  <input type="text" value={labDeviceForm.cpu || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, cpu: e.target.value })} placeholder="Core i3 10th Gen" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>RAM ও Storage</label>
+                  <input type="text" value={labDeviceForm.ram || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ram: e.target.value })} placeholder="8 GB • 256 GB SSD" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>IP অ্যাড্রেস</label>
+                  <input type="text" value={labDeviceForm.ip || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ip: e.target.value })} placeholder="192.168.1.15" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বর্তমান অবস্থা</label>
+                  <select value={labDeviceForm.condition || 'সক্রিয়'} onChange={e => setLabDeviceForm({ ...labDeviceForm, condition: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="সক্রিয়">সক্রিয় (Active)</option>
+                    <option value="সার্ভিসিং">সার্ভিসিং (Under Maintenance)</option>
+                    <option value="অকেজো">অকেজো (Out of Order)</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowLabDeviceModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* LAB SCHEDULE MODAL */}
+      {/* ========================================================================= */}
+      {showLabScheduleModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowLabScheduleModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#047857', fontWeight: 800 }}>
+                🗓️ ব্যবহারিক ক্লাসের রুটিন এন্ট্রি
+              </h3>
+              <button type="button" onClick={() => setShowLabScheduleModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveLabSchedule} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বার (Day) *</label>
+                  <select value={labScheduleForm.day || 'রবিবার'} onChange={e => setLabScheduleForm({ ...labScheduleForm, day: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="রবিবার">রবিবার</option>
+                    <option value="সোমবার">সোমবার</option>
+                    <option value="মঙ্গলবার">মঙ্গলবার</option>
+                    <option value="বুধবার">বুধবার</option>
+                    <option value="বৃহস্পতিবার">বৃহস্পতিবার</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পিরিয়ড ও সময়</label>
+                  <input type="text" value={labScheduleForm.period || ''} onChange={e => setLabScheduleForm({ ...labScheduleForm, period: e.target.value })} placeholder="৩য় পিরিয়ড (১১:০০-১১:৪৫)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
+                  <select value={labScheduleForm.class_name || '১০ম শ্রেণি'} onChange={e => setLabScheduleForm({ ...labScheduleForm, class_name: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="৬ষ্ঠ শ্রেণি">৬ষ্ঠ শ্রেণি</option>
+                    <option value="৭ম শ্রেণি">৭ম শ্রেণি</option>
+                    <option value="৮ম শ্রেণি">৮ম শ্রেণি</option>
+                    <option value="৯ম শ্রেণি">৯ম শ্রেণি</option>
+                    <option value="১০ম শ্রেণি">১০ম শ্রেণি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয়</label>
+                  <input type="text" value={labScheduleForm.subject || ''} onChange={e => setLabScheduleForm({ ...labScheduleForm, subject: e.target.value })} placeholder="তথ্য ও যোগাযোগ প্রযুক্তি" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>দায়িত্বপ্রাপ্ত শিক্ষক</label>
+                <select value={labScheduleForm.teacher || ''} onChange={e => setLabScheduleForm({ ...labScheduleForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                  <option value="">শিক্ষক নির্বাচন করুন...</option>
+                  {teachers.map(t => (
+                    <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en} ({t.designation_bn || t.designation || 'শিক্ষক'})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ব্যবহারিক বিষয়বস্তু (Topic) *</label>
+                <input type="text" required value={labScheduleForm.topic || ''} onChange={e => setLabScheduleForm({ ...labScheduleForm, topic: e.target.value })} placeholder="যেমন: HTML টেবিল তৈরি ও ইমেজ লিঙ্ক" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowLabScheduleModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#047857', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>রুটিন সংরক্ষণ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MULTIMEDIA SCHEDULE MODAL */}
+      {/* ========================================================================= */}
+      {showMmScheduleModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmScheduleModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#7c3aed', fontWeight: 800 }}>
+                🖥️ মাল্টিমিডিয়া ক্লাস রুটিন এন্ট্রি
+              </h3>
+              <button type="button" onClick={() => setShowMmScheduleModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveMmSchedule} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বার (Day) *</label>
+                  <select value={mmScheduleForm.day || 'রবিবার'} onChange={e => setMmScheduleForm({ ...mmScheduleForm, day: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="রবিবার">রবিবার</option>
+                    <option value="সোমবার">সোমবার</option>
+                    <option value="মঙ্গলবার">মঙ্গলবার</option>
+                    <option value="বুধবার">বুধবার</option>
+                    <option value="বৃহস্পতিবার">বৃহস্পতিবার</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পিরিয়ড ও সময়</label>
+                  <input type="text" value={mmScheduleForm.period || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, period: e.target.value })} placeholder="১ম পিরিয়ড (০৯:৩০-১০:১৫)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
+                  <select value={mmScheduleForm.class_name || '১০ম শ্রেণি'} onChange={e => setMmScheduleForm({ ...mmScheduleForm, class_name: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="৬ষ্ঠ শ্রেণি">৬ষ্ঠ শ্রেণি</option>
+                    <option value="৭ম শ্রেণি">৭ম শ্রেণি</option>
+                    <option value="৮ম শ্রেণি">৮ম শ্রেণি</option>
+                    <option value="৯ম শ্রেণি">৯ম শ্রেণি</option>
+                    <option value="১০ম শ্রেণি">১০ম শ্রেণি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় *</label>
+                  <input type="text" required value={mmScheduleForm.subject || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, subject: e.target.value })} placeholder="যেমন: জীববিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয় শিক্ষক</label>
+                <select value={mmScheduleForm.teacher || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, teacher: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                  <option value="">শিক্ষক নির্বাচন করুন...</option>
+                  {teachers.map(t => (
+                    <option key={t.id || t.teacher_id} value={t.name_bn || t.name_en}>{t.name_bn || t.name_en}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডিজিটাল রিসোর্স / ৩ডি কনটেন্ট বিবরণ</label>
+                <input type="text" value={mmScheduleForm.resource || ''} onChange={e => setMmScheduleForm({ ...mmScheduleForm, resource: e.target.value })} placeholder="যেমন: শিক্ষক বাতায়ন ৩ডি পরমাণু মডেল" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowMmScheduleModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>রুটিন সংরক্ষণ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MULTIMEDIA CONTENT MODAL */}
+      {/* ========================================================================= */}
+      {showMmContentModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMmContentModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '500px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#6366f1', fontWeight: 800 }}>
+                📁 ডিজিটাল কনটেন্ট সংরক্ষণ
+              </h3>
+              <button type="button" onClick={() => setShowMmContentModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveMmContent} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>কনটেন্টের নাম *</label>
+                <input type="text" required value={mmContentForm.title || ''} onChange={e => setMmContentForm({ ...mmContentForm, title: e.target.value })} placeholder="যেমন: সালোকসংশ্লেষণ প্রক্রিয়ার ৩ডি অ্যানিমেশন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বিষয়</label>
+                  <input type="text" value={mmContentForm.subject || ''} onChange={e => setMmContentForm({ ...mmContentForm, subject: e.target.value })} placeholder="পদার্থবিজ্ঞান" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
+                  <input type="text" value={mmContentForm.class_name || ''} onChange={e => setMmContentForm({ ...mmContentForm, class_name: e.target.value })} placeholder="৯ম-১০ম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>নির্মাতা শিক্ষক</label>
+                  <input type="text" value={mmContentForm.author || ''} onChange={e => setMmContentForm({ ...mmContentForm, author: e.target.value })} placeholder="শিক্ষকের নাম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পোর্টাল</label>
+                  <select value={mmContentForm.portal || 'শিক্ষক বাতায়ন'} onChange={e => setMmContentForm({ ...mmContentForm, portal: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="শিক্ষক বাতায়ন">শিক্ষক বাতায়ন</option>
+                    <option value="মুক্তপাঠ">মুক্তপাঠ</option>
+                    <option value="বিদ্যালয় ডিজিটাল রিপোজিটরি">বিদ্যালয় রিপোজিটরি</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowMmContentModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#6366f1', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SCOUT MEMBER MODAL */}
+      {/* ========================================================================= */}
+      {showScoutMemberModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowScoutMemberModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#854d0e', fontWeight: 800 }}>
+                ⚜️ স্কাউট / গার্লস গাইড সদস্য এন্ট্রি
+              </h3>
+              <button type="button" onClick={() => setShowScoutMemberModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveScoutMember} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শিক্ষার্থীর নাম *</label>
+                <input type="text" required value={scoutMemberForm.name || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, name: e.target.value })} placeholder="শিক্ষার্থীর নাম লিখুন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>শ্রেণি</label>
+                  <input type="text" value={scoutMemberForm.class_name || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, class_name: e.target.value })} placeholder="১০ম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>রোল নং</label>
+                  <input type="text" value={scoutMemberForm.roll_no || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, roll_no: e.target.value })} placeholder="০১" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ইউনিট</label>
+                  <select value={scoutMemberForm.unit || 'স্কাউট দল'} onChange={e => setScoutMemberForm({ ...scoutMemberForm, unit: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="স্কাউট দল">স্কাউট দল (Scout Troop)</option>
+                    <option value="গার্লস গাইড">গার্লস গাইড (Girls Guide)</option>
+                    <option value="কাব স্কাউট">কাব স্কাউট (Cub Scout)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>টহলদল (Patrol)</label>
+                  <input type="text" value={scoutMemberForm.patrol || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, patrol: e.target.value })} placeholder="যেমন: টাইগার প্যাট্রোল" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>পদবি (Rank)</label>
+                  <input type="text" value={scoutMemberForm.rank || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, rank: e.target.value })} placeholder="যেমন: দলনেতা / সহ-দলনেতা" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>রক্তের গ্রুপ</label>
+                  <select value={scoutMemberForm.bloodGroup || 'B+'} onChange={e => setScoutMemberForm({ ...scoutMemberForm, bloodGroup: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অর্জিত ব্যাজ ও পারদর্শিতা</label>
+                <input type="text" value={scoutMemberForm.badge || ''} onChange={e => setScoutMemberForm({ ...scoutMemberForm, badge: e.target.value })} placeholder="যেমন: স্ট্যান্ডার্ড ব্যাজ, ফার্স্ট এইড" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowScoutMemberModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#854d0e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>সদস্য সংরক্ষণ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SCOUT EVENT MODAL */}
+      {/* ========================================================================= */}
+      {showScoutEventModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowScoutEventModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#b45309', fontWeight: 800 }}>
+                🏕️ ক্যাম্পোরি / স্কাউট সমাবেশ রেকর্ড
+              </h3>
+              <button type="button" onClick={() => setShowScoutEventModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveScoutEvent} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>সমাবেশের নাম *</label>
+                <input type="text" required value={scoutEventForm.title || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, title: e.target.value })} placeholder="যেমন: জেলা স্কাউট সমাবেশ ও ক্যাম্পোরি ২০২৬" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>তারিখ</label>
+                  <input type="text" value={scoutEventForm.date || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, date: e.target.value })} placeholder="২০২৬-০১-১০ থেকে ১২" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>স্থান/ভেন্যু</label>
+                  <input type="text" value={scoutEventForm.venue || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, venue: e.target.value })} placeholder="টাঙ্গাইল জেলা স্টেডিয়াম চত্বর" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>দলনেতা শিক্ষক</label>
+                  <input type="text" value={scoutEventForm.leader || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, leader: e.target.value })} placeholder="মোঃ শাহ আলম" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অংশগ্রহণ সংখ্যা</label>
+                  <input type="text" value={scoutEventForm.participants || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, participants: e.target.value })} placeholder="২৪ জন" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অর্জিত স্বীকৃতি / পুরস্কার</label>
+                <input type="text" value={scoutEventForm.award || ''} onChange={e => setScoutEventForm({ ...scoutEventForm, award: e.target.value })} placeholder="যেমন: শ্রেষ্ঠ সুশৃঙ্খল দল ট্রফি 🏆" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowScoutEventModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#b45309', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>ইভেন্ট সংরক্ষণ</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TEAM SQUAD MODAL */}
+      {/* ========================================================================= */}
+      {showTeamModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowTeamModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#be123c', fontWeight: 800 }}>
+                ⚽ নতুন ক্রীড়া দল ও স্কোয়াড সেটআপ
+              </h3>
+              <button type="button" onClick={() => setShowTeamModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveTeam} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>দলের নাম *</label>
+                <input type="text" required value={teamForm.name || ''} onChange={e => setTeamForm({ ...teamForm, name: e.target.value })} placeholder="যেমন: মগড়া পালস্ ফুটবল একাদশ" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>খেলা/ইভেন্ট</label>
+                  <select value={teamForm.sport || 'ফুটবল'} onChange={e => setTeamForm({ ...teamForm, sport: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="ফুটবল">ফুটবল</option>
+                    <option value="ক্রিকেট">ক্রিকেট</option>
+                    <option value="হ্যান্ডবল">হ্যান্ডবল</option>
+                    <option value="ভলিবল">ভলিবল</option>
+                    <option value="ব্যাডমিন্টন">ব্যাডমিন্টন</option>
+                    <option value="কাবাডি">কাবাডি</option>
+                    <option value="দাবা">দাবা</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অধিনায়ক</label>
+                  <input type="text" value={teamForm.captain || ''} onChange={e => setTeamForm({ ...teamForm, captain: e.target.value })} placeholder="যেমন: তানভীর আহমেদ (১০ম শ্রেণি)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>কোচ / গাইড শিক্ষক</label>
+                <input type="text" value={teamForm.coach || ''} onChange={e => setTeamForm({ ...teamForm, coach: e.target.value })} placeholder="মোঃ শাহ আলম (শারীরিক শিক্ষা শিক্ষক)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowTeamModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#be123c', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>দল সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MATCH RESULT MODAL */}
+      {/* ========================================================================= */}
+      {showMatchModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMatchModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#e11d48', fontWeight: 800 }}>
+                🏆 আন্তঃবিদ্যালয় ম্যাচের ফলাফল রেকর্ড
+              </h3>
+              <button type="button" onClick={() => setShowMatchModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSaveMatch} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>টুর্নামেন্টের নাম *</label>
+                <input type="text" required value={matchForm.tournament || ''} onChange={e => setMatchForm({ ...matchForm, tournament: e.target.value })} placeholder="যেমন: উপজেলা আন্তঃস্কুল ফুটবল প্রতিযোগিতা" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>খেলা</label>
+                  <select value={matchForm.sport || 'ফুটবল'} onChange={e => setMatchForm({ ...matchForm, sport: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="ফুটবল">ফুটবল</option>
+                    <option value="ক্রিকেট">ক্রিকেট</option>
+                    <option value="হ্যান্ডবল">হ্যান্ডবল</option>
+                    <option value="কাবাডি">কাবাডি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রতিপক্ষ দল</label>
+                  <input type="text" value={matchForm.opponent || ''} onChange={e => setMatchForm({ ...matchForm, opponent: e.target.value })} placeholder="কালিহাতী সরকারি উচ্চ বিদ্যালয়" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>তারিখ ও স্থান</label>
+                  <input type="text" value={matchForm.date || ''} onChange={e => setMatchForm({ ...matchForm, date: e.target.value })} placeholder="২০২৬-০২-১৫ (উপজেলা মাঠ)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ম্যাচের ফলাফল</label>
+                  <input type="text" value={matchForm.result || ''} onChange={e => setMatchForm({ ...matchForm, result: e.target.value })} placeholder="যেমন: জয় (২-১)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>সেরা খেলোয়াড়</label>
+                  <input type="text" value={matchForm.bestPlayer || ''} onChange={e => setMatchForm({ ...matchForm, bestPlayer: e.target.value })} placeholder="তানভীর আহমেদ" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অর্জিত ট্রফি / মেডেল</label>
+                  <input type="text" value={matchForm.trophy || ''} onChange={e => setMatchForm({ ...matchForm, trophy: e.target.value })} placeholder="উপজেলা চ্যাম্পিয়ন ট্রফি 🏆" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+                <button type="button" onClick={() => setShowMatchModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#e11d48', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>ফলাফল সংরক্ষণ</button>
               </div>
             </form>
           </div>
