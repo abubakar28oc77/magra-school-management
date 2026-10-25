@@ -166,25 +166,36 @@ const MOCK_TOUR_ITINERARY = [
 ];
 
 // Computer Lab (শেখ রাসেল ডিজিটাল ল্যাব ও আইসিটি সেন্টার)
+// Computer Lab (শেখ রাসেল ডিজিটাল ল্যাব ও আইসিটি সেন্টার — ৩টি স্টক রেজিস্টার বুক)
 const MOCK_LAB_DEVICES = [
-  { id: 'PC-01', name: 'মাস্টার কন্ট্রোল স্টেশন (প্রশিক্ষক)', type: 'ডেস্কটপ', specs: 'Core i7 12th Gen, 16GB RAM, 512GB NVMe SSD, 24" IPS Display', ip: '192.168.1.10', status: 'active', condition: 'উন্নত (সক্রিয়)', seat: 'ডেস্ক-১ (মঞ্চ)' },
-  { id: 'PC-02', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০১', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.11', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০১' },
-  { id: 'PC-03', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০২', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.12', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০২' },
-  { id: 'PC-04', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৩', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.13', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৩' },
-  { id: 'PC-05', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৪', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.14', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৪' },
-  { id: 'PC-06', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৫', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.15', status: 'active', condition: 'সচল', seat: 'সারি-ক, আসন ০৫' },
-  { id: 'PC-07', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৬', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.16', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০১' },
-  { id: 'PC-08', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৭', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.17', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০২' },
-  { id: 'PC-09', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৮', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.18', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০৩' },
-  { id: 'PC-10', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ০৯', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.19', status: 'active', condition: 'সচল', seat: 'সারি-খ, আসন ০৪' },
-  { id: 'PC-11', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১০', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.20', status: 'maintenance', condition: 'কীবোর্ড সার্ভিসিং চলছে', seat: 'সারি-খ, আসন ০৫' },
-  { id: 'PC-12', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১১', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.21', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০১' },
-  { id: 'PC-13', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১২', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.22', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০২' },
-  { id: 'PC-14', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১৩', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.23', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০৩' },
-  { id: 'PC-15', name: 'স্টুডেন্ট ওয়ার্কস্টেশন ১৪', type: 'ডেস্কটপ', specs: 'Core i5 10th Gen, 8GB DDR4, 256GB SSD, 19.5" LED', ip: '192.168.1.24', status: 'active', condition: 'সচল', seat: 'সারি-গ, আসন ০৪' },
-  { id: 'SBOARD-01', name: '৬৫" ইন্টারেক্টিভ স্মার্ট প্যানেল ও টাচ বোর্ড', type: 'স্মার্ট বোর্ড', specs: '4K UHD, 20-Point Multi-touch, Android 11 + Windows 11', ip: '192.168.1.50', status: 'active', condition: 'চমৎকার (সক্রিয়)', seat: 'ল্যাব ফ্রন্টওয়াল' },
-  { id: 'PRN-01', name: 'এইচপি কালার লেজারজেট প্রো এমএফপি', type: 'প্রিন্টার ও স্ক্যানার', specs: 'High Speed Duplex Network Color Printer & Scanner', ip: '192.168.1.60', status: 'active', condition: 'সচল (টোনা র ৮০%)', seat: 'শিক্ষক টেবিল' },
-  { id: 'UPS-01', name: 'সেন্ট্রাল ৫ কেভিএ অনলাইন ইউপিএস ইউনিট', type: 'পাওয়ার ব্যাকআপ', specs: '5KVA Online True Sine Wave UPS with 8 Batteries Bank', ip: 'ল্যাব পাওয়ার', status: 'active', condition: 'সচল (২ ঘণ্টা ব্যাকআপ)', seat: 'ল্যাব কন্ট্রোল রুম' }
+  // 1. সচল স্টক রেজিস্টার বুক (Active Stock Register)
+  { id: 'pc-01', assetTag: 'MP-SRDL-PC-01', name: 'মাস্টার কন্ট্রোল ওয়ার্কস্টেশন (শিক্ষক ও ইনচার্জ)', category: 'ডেস্কটপ', model: 'HP ProDesk 400 G7 Microtower', cpu: 'Intel Core i5 10th Gen 3.10GHz', ram: '16 GB DDR4', storage: '512 GB NVMe SSD + 1TB HDD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয় ও চমৎকার', ip: '192.168.1.10', desk: 'মঞ্চ শিক্ষক ডেস্ক-০১', registerType: 'active' },
+  { id: 'pc-02', assetTag: 'MP-SRDL-PC-02', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০২', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.11', desk: 'সারি-১, ডেস্ক-০২', registerType: 'active' },
+  { id: 'pc-03', assetTag: 'MP-SRDL-PC-03', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৩', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.12', desk: 'সারি-১, ডেস্ক-০৩', registerType: 'active' },
+  { id: 'pc-04', assetTag: 'MP-SRDL-PC-04', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৪', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.13', desk: 'সারি-২, ডেস্ক-০৪', registerType: 'active' },
+  { id: 'pc-05', assetTag: 'MP-SRDL-PC-05', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৫', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.14', desk: 'সারি-২, ডেস্ক-০৫', registerType: 'active' },
+  { id: 'pc-06', assetTag: 'MP-SRDL-PC-06', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৬', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.15', desk: 'সারি-২, ডেস্ক-০৬', registerType: 'active' },
+  { id: 'lp-01', assetTag: 'MP-ICT-LP-01', name: 'আইসিটি ইনচার্জ প্রফেশনাল ল্যাপটপ', category: 'ল্যাপটপ', model: 'Acer TravelMate P214 Core i5', cpu: 'Intel Core i5 11th Gen', ram: '16 GB DDR4', storage: '512 GB PCIe NVMe SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২২', condition: 'সক্রিয় ও নিখুঁত', ip: '192.168.1.30', desk: 'ল্যাব ইনচার্জ ডেস্ক', registerType: 'active' },
+  { id: 'lp-02', assetTag: 'MP-ICT-LP-02', name: 'মাল্টিমিডিয়া প্রেজেন্টেশন ল্যাপটপ', category: 'ল্যাপটপ', model: 'HP ProBook 450 G8', cpu: 'Intel Core i5 11th Gen', ram: '8 GB DDR4', storage: '512 GB SSD', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.31', desk: 'প্রেজেন্টেশন কর্নার', registerType: 'active' },
+  { id: 'lp-03', assetTag: 'MP-ICT-LP-03', name: 'ল্যাব প্র্যাকটিক্যাল কোডিং ল্যাপটপ', category: 'ল্যাপটপ', model: 'Dell Vostro 3510', cpu: 'Intel Core i3 11th Gen', ram: '8 GB DDR4', storage: '256 GB SSD + 1TB HDD', source: 'মাউশি আইসিটি অনুদান', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.32', desk: 'কোডিং কর্নার', registerType: 'active' },
+  { id: 'mon-01', assetTag: 'MP-ICT-MON-01', name: 'ইনচার্জ ২১.৫" আইপিএস মনিটর', category: 'মনিটর', model: 'HP 22f 21.5" Full HD IPS Display', cpu: '1080p, 75Hz Ultra Slim', ram: 'HDMI & VGA', storage: 'Anti-Glare Panel', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: 'N/A', desk: 'শিক্ষক ডেস্ক', registerType: 'active' },
+  { id: 'tv-01', assetTag: 'MP-ICT-TV-01', name: '৬৫" ইন্টারেক্টিভ স্মার্ট অ্যান্ড্রয়েড টিভি', category: 'স্মার্ট টিভি', model: 'Walton 65" 4K UHD Smart Google TV', cpu: 'Quad Core Processor, 4K HDR', ram: '2 GB RAM', storage: '16 GB ROM + Wi-Fi Display', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৪', condition: 'সক্রিয় ও নিখুঁত', ip: '192.168.1.40', desk: 'ল্যাব ফ্রন্ট ডিসপ্লে ওয়াল', registerType: 'active' },
+  { id: 'prj-01', assetTag: 'MP-ICT-PRJ-01', name: 'ইন্টারেক্টিভ আল্ট্রা শর্ট-থ্রো লেজার প্রজেক্টর', category: 'প্রজেক্টর', model: 'Epson EB-685Wi Ultra Short Throw', cpu: 'Laser 3500 Lumens WXGA', ram: 'Dual Pen & Touch Interactive', storage: 'Wall Mount Kit + HDMI Hub', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.20', desk: 'স্মার্ট হোয়াইট বোর্ড ওয়াল', registerType: 'active' },
+  { id: 'prn-01', assetTag: 'MP-ICT-PRN-01', name: 'হাই-স্পিড নেটওয়ার্ক লেজার প্রিন্টার', category: 'প্রিন্টার', model: 'Canon imageCLASS LBP2900B', cpu: 'Laser Mono Printing 12ppm', ram: '64 MB USB', storage: 'Cartridge 303 Supported', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.25', desk: 'আইসিটি প্রিন্ট ও স্ক্যান কর্নার', registerType: 'active' },
+  { id: 'prn-02', assetTag: 'MP-ICT-PRN-02', name: 'অল-ইন-ওয়ান মাল্টিফাংশন নেটওয়ার্ক প্রিন্টার', category: 'প্রিন্টার', model: 'HP LaserJet Pro MFP M126nw (Print/Scan/Copy)', cpu: 'Fast Ethernet & Wi-Fi Direct', ram: '128 MB', storage: 'Flatbed Scanner + Duplex Copy', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.26', desk: 'প্রিন্টিং কর্নার ডেস্ক', registerType: 'active' },
+  { id: 'scn-01', assetTag: 'MP-ICT-SCN-01', name: 'হাই-রেজোলিউশন ফ্ল্যাটবেড স্ক্যানার', category: 'স্ক্যানার', model: 'Canon CanoScan LiDE 300 2400x2400 dpi', cpu: 'CIS Sensor, 4 EZ Buttons', ram: 'USB Bus-Powered', storage: 'Auto Scan & PDF Generation', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: 'USB Direct', desk: 'ইনচার্জ কর্নার', registerType: 'active' },
+  { id: 'ups-01', assetTag: 'MP-ICT-UPS-01', name: 'সেন্ট্রাল ট্রু অনলাইন ইউপিএস (৫ কেভিএ)', category: 'আইপিএস / ইউপিএস', model: 'Santak Castle Online 5KVA UPS', cpu: 'Pure Sine Wave 4000W Output', ram: '8x 12V 100Ah Battery Bank', storage: 'স্বয়ংক্রিয় ২.৫ ঘণ্টা ব্যাকআপ', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: 'N/A', desk: 'ল্যাব পাওয়ার ও ব্যাটারি হাব', registerType: 'active' },
+  { id: 'net-01', assetTag: 'MP-ICT-NET-01', name: 'ক্লাউড কোর গিগাবিট রাউটার ও সুইচ', category: 'নেটওয়ার্ক ইকুইপমেন্ট', model: 'MikroTik Cloud Router Switch 24-Port 1Gbps', cpu: 'Dual-Band Wi-Fi 6 Router Attached', ram: '1 GB RouterOS v7', storage: '৫০ Mbps অপটিক্যাল ফাইবার লাইন', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.1', desk: 'নেটওয়ার্ক সার্ভার রেক ক্যাবিনেট', registerType: 'active' },
+
+  // 2. মেরামতযোগ্য যন্ত্রপাতির স্টক রেজিস্টার বুক (Repairable Stock Register)
+  { id: 'rep-01', assetTag: 'MP-SRDL-PC-13', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ১৩ (মেরামত প্রক্রিয়াধীন)', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'মেরামত প্রক্রিয়াধীন', ip: '192.168.1.18', desk: 'সারি-৩, ডেস্ক-১৩', registerType: 'repairable', defectDetails: 'পাওয়ার সাপ্লাই ইউনিট (SMPS) ভোল্টেজ ড্রপ এবং হঠাৎ রিস্টার্ট সমস্যা', sentForRepairDate: '১২ অক্টোবর ২০২৬', serviceCenter: 'জেলা আইসিটি সেল ও টেকনিক্যাল সার্ভিস, টাঙ্গাইল', technicianPhone: '০১৭১২-XXXXXX (ইঞ্জিঃ সাকিল)', estimatedCost: '৳ ১,৮০০' },
+  { id: 'rep-02', assetTag: 'MP-ICT-LP-04', name: 'আইসিটি ল্যাপটপ ০৪ (ব্যাটারি ও কীবোর্ড মেরামত)', category: 'ল্যাপটপ', model: 'Lenovo ThinkPad E14 Gen 2', cpu: 'Intel Core i3 11th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'মাউশি আইসিটি উন্নয়ন বরাদ্দ', procurementYear: '২০২২', condition: 'মেরামত প্রক্রিয়াধীন', ip: '192.168.1.35', desk: 'ল্যাব সার্ভিস টেবিল', registerType: 'repairable', defectDetails: 'কীবোর্ডের স্পেসবার ও ব্যাকস্পেস কি কাজ করছে না এবং ব্যাটারি ব্যাকআপ কমে ২০ মিনিট হয়েছে', sentForRepairDate: '১৮ অক্টোবর ২০২৬', serviceCenter: 'তানভীর কম্পিউটার্স অ্যান্ড ল্যাপটপ রিপেয়ার, টাঙ্গাইল সদর', technicianPhone: '০১৭২৫-XXXXXX', estimatedCost: '৳ ৩,২০০' },
+  { id: 'rep-03', assetTag: 'MP-ICT-PRN-03', name: 'অফিস সহায়ক লেজার প্রিন্টার', category: 'প্রিন্টার', model: 'Canon imageCLASS LBP6030', cpu: 'Monochrome Laser 18ppm', ram: '32 MB', storage: 'USB 2.0', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০২২', condition: 'মেরামতযোগ্য', ip: 'N/A', desk: 'সার্ভিস শেলফ', registerType: 'repairable', defectDetails: 'পেপার ফিডার রোলার ক্ষয়প্রাপ্ত হয়ে একাধিক কাগজ একসঙ্গে টেনে জ্যাম তৈরি করছে', sentForRepairDate: '২০ অক্টোবর ২০২৬', serviceCenter: 'আইটি ভিশন প্রিন্টার কেয়ার, টাঙ্গাইল', technicianPhone: '০১৯১২-XXXXXX', estimatedCost: '৳ ১,২০০' },
+
+  // 3. অচল / অমেরামতযোগ্য যন্ত্রপাতির স্টক রেজিস্টার (Condemned / Scrap Register)
+  { id: 'scr-01', assetTag: 'MP-OLD-PC-01', name: 'এনালগ কোর ২ ডুও ডেস্কটপ (অচল)', category: 'ডেস্কটপ', model: 'HP Compaq dc5800 Small Form Factor', cpu: 'Intel Core 2 Duo E7400 2.80GHz', ram: '2 GB DDR2', storage: '160 GB SATA HDD', source: 'তৎকালীন সরকারি মাধ্যমিক আইসিটি অনুদান', procurementYear: '২০১০', condition: 'অচল ও বাতিলযোগ্য', ip: 'N/A', desk: 'ল্যাব স্টোররুম - স্ক্র্যাপ র‍্যাক', registerType: 'scrap', condemnReason: 'মাদারবোর্ড ও চিপসেট স্থায়ীভাবে নষ্ট (Burned) এবং প্রযুক্তিগতভাবে সম্পূর্ণ অপ্রচলিত ও মেরামত অযোগ্য।', condemnDate: '১৫ জানুয়ারি ২০২৫', disposalStatus: 'সরকারি অডিট ও নিলাম কমিটির অনুমোদনের অপেক্ষায় সংরক্ষিত' },
+  { id: 'scr-02', assetTag: 'MP-OLD-CRT-01', name: '১৫ ইঞ্চি সিআরটি মনিটর (অচল)', category: 'মনিটর', model: 'Samsung SyncMaster 591s 15" CRT Color Monitor', cpu: 'CRT Display Unit', ram: 'VGA Cable Attached', storage: 'Heavy Shell Enclosure', source: 'বিদ্যালয় পুরাতন তহবিল', procurementYear: '২০০৯', condition: 'অচল ও অমেরামতযোগ্য', ip: 'N/A', desk: 'ল্যাব স্টোররুম স্ক্র্যাপ বক্স', registerType: 'scrap', condemnReason: 'ক্যাথোড রে টিউব (Picture Tube) নিভে গেছে এবং উচ্চ বিদ্যুৎ অপচয়কারী অপ্রচলিত প্রযুক্তি।', condemnDate: '১০ মার্চ ২০২৪', disposalStatus: 'নিলামের জন্য তালিকাভুক্ত' },
+  { id: 'scr-03', assetTag: 'MP-OLD-UPS-01', name: 'পুরাতন ৬৫০ ভিএ অফলাইন ইউপিএস', category: 'আইপিএস / ইউপিএস', model: 'PowerGuard 650VA Offline UPS', cpu: 'Microprocessor Controlled', ram: '12V 7.2Ah Lead-acid', storage: 'Transformer Coil Dead', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০১৮', condition: 'অচল', ip: 'N/A', desk: 'ল্যাব স্টোররুম', registerType: 'scrap', condemnReason: 'অভ্যন্তরীণ ট্রান্সফরমার কয়েল শর্ট-সার্কিটে সম্পূর্ণ পুড়ে গেছে এবং ব্যাটারি ফুটো হয়ে অ্যাসিড লিক করেছে। মেরামত ব্যয় নতুন ক্রয়ের চেয়ে বেশি।', condemnDate: '১২ নভেম্বর ২০২৪', disposalStatus: 'স্ক্র্যাপ হিসেবে সংরক্ষিত' }
 ];
 
 const MOCK_LAB_SCHEDULE = [
@@ -302,6 +313,8 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
   const [achievementFilter, setAchievementFilter] = useState('সব');
   const [scoutUnitFilter, setScoutUnitFilter] = useState('সব');
   const [labSearch, setLabSearch] = useState('');
+  const [labRegisterView, setLabRegisterView] = useState('active'); // 'active' | 'repairable' | 'scrap'
+  const [labCatFilter, setLabCatFilter] = useState('all');
   const [dynamicContent, setDynamicContent] = useState([]);
   const [adminStorage, setAdminStorage] = useState(null);
 
@@ -1339,30 +1352,196 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
 
       {/* ======================= 5. COMPUTER LAB (শেখ রাসেল ডিজিটাল ল্যাব) ======================= */}
       {activeCategory === 'lab' && (() => {
-        const labDevices = adminStorage?.lab?.devices?.length ? adminStorage.lab.devices : MOCK_LAB_DEVICES;
+        const allDevs = adminStorage?.lab?.devices?.length ? adminStorage.lab.devices : MOCK_LAB_DEVICES;
         const labSchedule = adminStorage?.lab?.schedule?.length ? adminStorage.lab.schedule : MOCK_LAB_SCHEDULE;
-        const filteredDevices = labDevices.filter(d => {
-          if (!labSearch) return true;
-          const q = labSearch.toLowerCase();
-          return (d.name && d.name.toLowerCase().includes(q)) ||
-                 (d.id && d.id.toLowerCase().includes(q)) ||
-                 (d.specs && d.specs.toLowerCase().includes(q)) ||
-                 (d.seat && d.seat.toLowerCase().includes(q));
+
+        const activeDevs = allDevs.filter(d => (d.registerType || 'active') === 'active');
+        const repairDevs = allDevs.filter(d => d.registerType === 'repairable');
+        const scrapDevs = allDevs.filter(d => d.registerType === 'scrap');
+
+        // Current Register Book Selection
+        const currentBookDevs = labRegisterView === 'repairable' ? repairDevs :
+                                labRegisterView === 'scrap' ? scrapDevs : activeDevs;
+
+        // Apply filters
+        const filteredDevices = currentBookDevs.filter(d => {
+          if (labCatFilter !== 'all' && d.category !== labCatFilter) return false;
+          if (labSearch) {
+            const q = labSearch.toLowerCase();
+            return (d.name && d.name.toLowerCase().includes(q)) ||
+                   (d.assetTag && d.assetTag.toLowerCase().includes(q)) ||
+                   (d.model && d.model.toLowerCase().includes(q)) ||
+                   (d.desk && d.desk.toLowerCase().includes(q)) ||
+                   (d.category && d.category.toLowerCase().includes(q));
+          }
+          return true;
         });
+
+        // Category Matrix calculation across all equipment
+        const LAB_CATEGORY_LIST = ['ল্যাপটপ', 'ডেস্কটপ', 'প্রিন্টার', 'স্ক্যানার', 'স্মার্ট টিভি', 'প্রজেক্টর', 'আইপিএস / ইউপিএস', 'মনিটর', 'নেটওয়ার্ক ইকুইপমেন্ট'];
+        const catStats = LAB_CATEGORY_LIST.map(cat => {
+          const inCat = allDevs.filter(d => d.category === cat);
+          return {
+            category: cat,
+            total: inCat.length,
+            active: inCat.filter(d => (d.registerType || 'active') === 'active').length,
+            repair: inCat.filter(d => d.registerType === 'repairable').length,
+            scrap: inCat.filter(d => d.registerType === 'scrap').length
+          };
+        }).filter(c => c.total > 0);
+
+        // Public official print report generator
+        const handlePrintPublicLabReport = (targetRegister = labRegisterView) => {
+          const targetDevs = allDevs.filter(d => (d.registerType || 'active') === targetRegister);
+          const memoNum = `মপাউবি/আইসিটি-ল্যাব/${targetRegister.toUpperCase()}/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
+          const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+
+          const titles = {
+            active: { title: '১ম বুক: সচল ষ্টক রেজিষ্টার প্রতিবেদন', subject: 'কম্পিউটার ল্যাবের সকল সচল ও সক্রিয় যন্ত্রপাতির অফিশিয়াল স্টক বিবরণী প্রসঙ্গে।' },
+            repairable: { title: '২য় বুক: মেরামতযোগ্য যন্ত্রপাতির ষ্টক রেজিষ্টার বিবরণী', subject: 'কম্পিউটার ল্যাবের ত্রুটিযুক্ত ও তাৎক্ষণিক মেরামতযোগ্য যন্ত্রপাতির বিবরণ ও সুপারিশ প্রসঙ্গে।' },
+            scrap: { title: '৩য় বুক: অচল ও অমেরামতযোগ্য যন্ত্রপাতির স্থায়ী ষ্টক রেজিষ্টার', subject: 'কম্পিউটার ল্যাবের স্থায়ীভাবে অচল ও নিলামযোগ্য যন্ত্রপাতির কন্ডেমনেশন রেজিস্টার প্রসঙ্গে।' }
+          };
+          const curMeta = titles[targetRegister] || titles.active;
+
+          const w = window.open('', '_blank', 'width=1100,height=850');
+          if (!w) {
+            alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপ-আপ অনুমোদন করে পুনরায় চেষ্টা করুন।');
+            return;
+          }
+
+          const rows = targetDevs.map((d, idx) => `
+            <tr style="border-bottom: 1px solid #cbd5e1; page-break-inside: avoid; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+              <td style="padding: 7px 8px; text-align: center; font-weight: 700; font-size: 11px;">${idx + 1}</td>
+              <td style="padding: 7px 8px; font-weight: 800; color: #0f766e; font-size: 11px; white-space: nowrap;">${d.assetTag || 'MP-ICT-' + (idx + 1)}</td>
+              <td style="padding: 7px 8px;">
+                <div style="font-weight: 800; font-size: 12px; color: #0f172a;">${d.name || 'ডিভাইস'}</div>
+                <div style="font-size: 10.5px; color: #64748b;">${d.model || '—'}</div>
+              </td>
+              <td style="padding: 7px 8px; font-weight: 700; color: #0369a1; font-size: 11px;">${d.category || 'অন্যান্য'}</td>
+              <td style="padding: 7px 8px; font-size: 10.5px; color: #334155; line-height: 1.4;">
+                ${d.cpu ? `<div><b>CPU:</b> ${d.cpu}</div>` : ''}
+                ${d.ram || d.storage ? `<div><b>RAM/Drive:</b> ${d.ram || '—'} • ${d.storage || '—'}</div>` : ''}
+                ${d.ip && d.ip !== 'N/A' ? `<div><b>IP:</b> ${d.ip}</div>` : ''}
+              </td>
+              <td style="padding: 7px 8px; font-size: 10.5px; color: #475569;">
+                <div>${d.source || 'শেখ রাসেল ডিজিটাল ল্যাব'}</div>
+                <div style="font-size: 9.5px; color: #94a3b8;">সাল: ${d.procurementYear || '২০২১'}</div>
+              </td>
+              <td style="padding: 7px 8px; font-size: 11px; font-weight: 600; color: #334155;">${d.desk || 'ল্যাব রুম'}</td>
+              <td style="padding: 7px 8px; font-size: 10.5px;">
+                ${targetRegister === 'active' ? `
+                  <span style="display: inline-block; background: #ecfdf5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">● ${d.condition || 'সক্রিয়'}</span>
+                ` : targetRegister === 'repairable' ? `
+                  <div style="color: #b45309; font-weight: 700; font-size: 10.5px;">⚠️ ${d.defectDetails || 'ত্রুটি বিদ্যমান'}</div>
+                  <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">প্রেরণ: ${d.sentForRepairDate || '—'} • খরচ: ${d.estimatedCost || '—'}</div>
+                ` : `
+                  <div style="color: #b91c1c; font-weight: 700; font-size: 10.5px;">🚫 ${d.condemnReason || 'অচল'}</div>
+                  <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">তারিখ: ${d.condemnDate || '—'} • অবস্থা: ${d.disposalStatus || 'সংরক্ষিত'}</div>
+                `}
+              </td>
+            </tr>
+          `).join('');
+
+          const doc = `
+            <!DOCTYPE html>
+            <html lang="bn">
+            <head>
+              <meta charset="utf-8">
+              <title>${curMeta.title} — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+              <style>
+                @page { size: A4 portrait; margin: 12mm 10mm 15mm 10mm; }
+                body { font-family: 'Segoe UI', sans-serif; color: #0f172a; margin: 0; padding: 16px; }
+                .no-print { background: #f0fdfa; border: 1px solid #99f6e4; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+                .btn-p { background: #0f766e; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 800; font-size: 13px; cursor: pointer; }
+                .header-box { text-align: center; border-bottom: 2px solid #0f766e; padding-bottom: 8px; margin-bottom: 12px; }
+                .school-title { margin: 3px 0 2px; font-size: 22px; color: #0f766e; font-weight: 900; }
+                table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 14px; }
+                th { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px; font-weight: 800; text-align: left; }
+                td { border: 1px solid #cbd5e1; }
+                .sig-row { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 20px; page-break-inside: avoid; }
+                .sig-box { text-align: center; min-width: 200px; border-top: 1px dashed #64748b; padding-top: 6px; font-size: 12px; }
+                @media print { .no-print { display: none !important; } body { padding: 0; } }
+              </style>
+            </head>
+            <body>
+              <div class="no-print">
+                <span style="font-weight: 700; color: #0f766e; font-size: 13px;">🖨️ কম্পিউটার ল্যাব অফিশিয়াল প্রাতিষ্ঠানিক প্রতিবেদন প্রস্তুত।</span>
+                <button class="btn-p" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন / Save as PDF</button>
+              </div>
+              <div class="header-box">
+                <div style="font-size: 12px; color: #475569; font-weight: 700;">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত</div>
+                <h1 class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+                <div style="font-size: 12px; color: #334155;">পোস্ট: মগড়া, উপজেলা: কালিহাতী / টাঙ্গাইল সদর, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৫৮ • EIIN: 114290</div>
+                <div style="font-weight: 800; font-size: 13.5px; color: #0f766e; margin-top: 3px;">💻 শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সেন্টার</div>
+                <div style="display: inline-block; background: #ecfdf5; color: #059669; border: 1px solid #059669; padding: 3px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; margin-top: 4px;">${curMeta.title}</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                <div><b>স্মারক নম্বর:</b> ${memoNum}</div>
+                <div><b>প্রতিবেদনের তারিখ:</b> ${todayBn} খ্রি.</div>
+              </div>
+              <div style="background: #ffffff; border-left: 3px solid #0f766e; padding: 6px 10px; margin-bottom: 12px; font-size: 12px;">
+                <div><b>বরাবর:</b> প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, টাঙ্গাইল সদর, টাঙ্গাইল।</div>
+                <div style="margin-top: 3px;"><b>বিষয়:</b> <span style="font-weight: 800;">${curMeta.subject}</span></div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 30px; text-align: center;">ক্র.</th>
+                    <th style="width: 95px;">Asset Tag ID</th>
+                    <th>যন্ত্রপাতির নাম ও মডেল</th>
+                    <th style="width: 85px;">ক্যাটাগরি</th>
+                    <th>স্পেসিফিকেশন ও বিবরণ</th>
+                    <th style="width: 120px;">উৎস ও সাল</th>
+                    <th style="width: 85px;">অবস্থান</th>
+                    <th style="width: 140px;">বর্তমান অবস্থা / মন্তব্য</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows || '<tr><td colspan="8" style="text-align: center; padding: 12px;">কোনো তথ্য পাওয়া যায়নি।</td></tr>'}
+                </tbody>
+              </table>
+              <div style="display: flex; gap: 12px; margin-bottom: 24px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; font-size: 11.5px;">
+                <div><b>সারসংক্ষেপ:</b> মোট যন্ত্রপাতি: <b>${allDevs.length}</b> টি</div>
+                <div style="color: #059669;">🟢 সচল স্টক: <b>${activeDevs.length}</b> টি</div>
+                <div style="color: #d97706;">🟡 মেরামতযোগ্য স্টক: <b>${repairDevs.length}</b> টি</div>
+                <div style="color: #dc2626;">🔴 অচল ও স্ক্র্যাপ স্টক: <b>${scrapDevs.length}</b> টি</div>
+                <div style="margin-left: auto; color: #64748b;">প্রদর্শিত: <b>${targetDevs.length}</b> টি</div>
+              </div>
+              <div class="sig-row">
+                <div class="sig-box">
+                  <b>মুহাম্মদ আবুবকর সিদ্দিক</b><br>
+                  সহকারী শিক্ষক (তথ্য ও যোগাযোগ প্রযুক্তি)<br>
+                  ও ল্যাব ইনচার্জ<br>
+                  মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+                </div>
+                <div class="sig-box">
+                  <b>প্রধান শিক্ষক</b><br>
+                  মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
+                  টাঙ্গাইল সদর, টাঙ্গাইল।
+                </div>
+              </div>
+              <script>window.onload = function() { setTimeout(function() { window.print(); }, 400); };</script>
+            </body>
+            </html>
+          `;
+          w.document.open();
+          w.document.write(doc);
+          w.document.close();
+        };
 
         return (
           <div className="section-standalone-lab">
             {/* KPI Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '18px' }}>
               <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ fontSize: '12px', color: '#0f766e', fontWeight: 600 }}>মোট কম্পিউটার ও ডিভাইস</div>
-                <div style={{ fontSize: '22px', fontWeight: 800, color: '#134e4a', margin: '4px 0' }}>{labDevices.length} টি</div>
-                <div style={{ fontSize: '11.5px', color: '#115e59' }}>{labDevices.filter(x => x.status === 'active').length} টি সচল • {labDevices.filter(x => x.status === 'maintenance').length} টি রক্ষণাবেক্ষণ</div>
+                <div style={{ fontSize: '12px', color: '#0f766e', fontWeight: 600 }}>মোট কম্পিউটার ও যন্ত্রপাতি</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#134e4a', margin: '4px 0' }}>{allDevs.length} টি</div>
+                <div style={{ fontSize: '11.5px', color: '#115e59' }}>{activeDevs.length} টি সচল • {repairDevs.length} টি মেরামত • {scrapDevs.length} টি অচল</div>
               </div>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: 600 }}>ইন্টারনেট ও ব্যান্ডউইথ</div>
                 <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e3a8a', margin: '4px 0' }}>৫০ Mbps ফাইবার</div>
-                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>হাই-স্পিড অপটিক্যাল ব্রডব্যান্ড ও Wi-Fi</div>
+                <div style={{ fontSize: '11.5px', color: '#2563eb' }}>হাই-স্পিড অপটিক্যাল ব্রডব্যান্ড ও Wi-Fi 6</div>
               </div>
               <div style={{ background: '#fefce8', border: '1px solid #fef08a', borderRadius: '10px', padding: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#a16207', fontWeight: 600 }}>পাওয়ার ব্যাকআপ</div>
@@ -1372,7 +1551,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
               <div style={{ background: '#fdf2f8', border: '1px solid #fbcfe8', borderRadius: '10px', padding: '14px' }}>
                 <div style={{ fontSize: '12px', color: '#be185d', fontWeight: 600 }}>ল্যাব ইনচার্জ ও প্রশিক্ষক</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#831843', margin: '4px 0' }}>মুহাম্মদ আবুবকর সিদ্দিক</div>
-                <div style={{ fontSize: '11.5px', color: '#9d174d' }}>সহকারী শিক্ষক (আইসিটি ও সুপার অ্যাডমিন)</div>
+                <div style={{ fontSize: '11.5px', color: '#9d174d' }}>সহকারী শিক্ষক (আইসিটি ও ল্যাব ইনচার্জ)</div>
               </div>
             </div>
 
@@ -1392,7 +1571,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                   cursor: 'pointer'
                 }}
               >
-                💻 ডিভাইস ও হার্ডওয়্যার ইনভেন্টরি ({labDevices.length} টি)
+                💻 ৩টি স্টক রেজিস্টার বুক ({allDevs.length} টি)
               </button>
               <button
                 type="button"
@@ -1428,21 +1607,155 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
               </button>
             </div>
 
-            {/* Sub-tab: Devices */}
+            {/* Sub-tab: Devices (The 3 Stock Register Books) */}
             {subTab === 'devices' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }} className="no-print">
-                  <input
-                    type="text"
-                    placeholder="ডিভাইসের নাম, স্পেসিফিকেশন বা অবস্থান দিয়ে খুঁজুন..."
-                    value={labSearch}
-                    onChange={(e) => setLabSearch(e.target.value)}
-                    style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', minWidth: '260px' }}
-                  />
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>প্রদর্শিত: {filteredDevices.length} টি ডিভাইস</span>
+                {/* Category Summary Matrix Tally Cards */}
+                <div style={{ marginBottom: '16px' }} className="no-print">
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0f766e', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📊</span> ক্যাটাগরিভিত্তিক লাইভ সামারি ট্যালি (Category Live Matrix)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                    {catStats.map(c => {
+                      const isSel = labCatFilter === c.category;
+                      return (
+                        <div
+                          key={c.category}
+                          onClick={() => setLabCatFilter(isSel ? 'all' : c.category)}
+                          style={{
+                            background: isSel ? '#f0fdfa' : '#ffffff',
+                            border: isSel ? '2px solid #0d9488' : '1px solid #e2e8f0',
+                            borderRadius: '10px',
+                            padding: '10px 12px',
+                            cursor: 'pointer',
+                            boxShadow: isSel ? '0 4px 10px rgba(13,148,136,0.12)' : '0 1px 3px rgba(0,0,0,0.02)'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 800, color: isSel ? '#0f766e' : '#1e293b' }}>{c.category}</span>
+                            <span style={{ fontSize: '13.5px', fontWeight: 900, color: '#0f766e' }}>{c.total}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '5px', fontSize: '10px', fontWeight: 700 }}>
+                            <span style={{ color: '#059669', background: '#ecfdf5', padding: '1px 5px', borderRadius: '4px' }}>সচল: {c.active}</span>
+                            {c.repair > 0 && <span style={{ color: '#d97706', background: '#fffbeb', padding: '1px 5px', borderRadius: '4px' }}>মেরামত: {c.repair}</span>}
+                            {c.scrap > 0 && <span style={{ color: '#dc2626', background: '#fef2f2', padding: '1px 5px', borderRadius: '4px' }}>অচল: {c.scrap}</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+                {/* The 3 Register Book Switcher */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginBottom: '14px' }} className="no-print">
+                  <div
+                    onClick={() => setLabRegisterView('active')}
+                    style={{
+                      background: labRegisterView === 'active' ? '#ecfdf5' : '#ffffff',
+                      border: labRegisterView === 'active' ? '2.5px solid #059669' : '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '13.5px', color: '#065f46' }}>🟢 ১ম বুক: সচল ষ্টক রেজিষ্টার</span>
+                      <span style={{ background: '#059669', color: '#fff', padding: '1px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 800 }}>{activeDevs.length} টি</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#047857' }}>ল্যাপটপ, ডেস্কটপ, প্রিন্টার, টিভি, প্রজেক্টর, আইপিএস সহ সকল সচল যন্ত্রপাতি</div>
+                  </div>
+
+                  <div
+                    onClick={() => setLabRegisterView('repairable')}
+                    style={{
+                      background: labRegisterView === 'repairable' ? '#fffbeb' : '#ffffff',
+                      border: labRegisterView === 'repairable' ? '2.5px solid #d97706' : '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '13.5px', color: '#92400e' }}>🟡 ২য় বুক: মেরামতযোগ্য ষ্টক রেজিষ্টার</span>
+                      <span style={{ background: '#d97706', color: '#fff', padding: '1px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 800 }}>{repairDevs.length} টি</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#b45309' }}>চিহ্নিত ত্রুটি, মেরামতে প্রেরণের তারিখ, সার্ভিস সেন্টার ও বাজেট হিসাবযুক্ত যন্ত্রপাতি</div>
+                  </div>
+
+                  <div
+                    onClick={() => setLabRegisterView('scrap')}
+                    style={{
+                      background: labRegisterView === 'scrap' ? '#fef2f2' : '#ffffff',
+                      border: labRegisterView === 'scrap' ? '2.5px solid #dc2626' : '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '13.5px', color: '#991b1b' }}>🔴 ৩য় বুক: অচল/অমেরামতযোগ্য ষ্টক</span>
+                      <span style={{ background: '#dc2626', color: '#fff', padding: '1px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 800 }}>{scrapDevs.length} টি</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#b91c1c' }}>স্থায়ীভাবে বাতিল ও মেরামত-অযোগ্য স্ক্র্যাপ/নিলাম তালিকা</div>
+                  </div>
+                </div>
+
+                {/* Search, Filter & Headmaster Print Action Toolbar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }} className="no-print">
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                      value={labCatFilter}
+                      onChange={e => setLabCatFilter(e.target.value)}
+                      style={{ padding: '7px 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#fff' }}
+                    >
+                      <option value="all">সকল ক্যাটাগরি ({currentBookDevs.length} টি)</option>
+                      <option value="ল্যাপটপ">ল্যাপটপ</option>
+                      <option value="ডেস্কটপ">ডেস্কটপ</option>
+                      <option value="মনিটর">মনিটর</option>
+                      <option value="প্রিন্টার">প্রিন্টার</option>
+                      <option value="স্ক্যানার">স্ক্যানার</option>
+                      <option value="স্মার্ট টিভি">স্মার্ট টিভি</option>
+                      <option value="প্রজেক্টর">প্রজেক্টর</option>
+                      <option value="আইপিএস / ইউপিএস">আইপিএস / ইউপিএস</option>
+                      <option value="নেটওয়ার্ক ইকুইপমেন্ট">নেটওয়ার্ক ইকুইপমেন্ট</option>
+                      <option value="অন্যান্য">অন্যান্য</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder="Asset Tag, নাম, স্পেসিফিকেশন দিয়ে খুঁজুন..."
+                      value={labSearch}
+                      onChange={(e) => setLabSearch(e.target.value)}
+                      style={{ padding: '7px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px', minWidth: '220px' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>প্রদর্শিত: <b>{filteredDevices.length}</b> টি</span>
+                    <button
+                      type="button"
+                      onClick={() => handlePrintPublicLabReport(labRegisterView)}
+                      style={{
+                        padding: '7px 14px',
+                        background: '#0f766e',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      <span>🖨️</span> প্রধান শিক্ষকের অফিশিয়াল রিপোর্ট প্রিন্ট (PDF)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Device Cards Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '12px' }}>
                   {filteredDevices.map((d, idx) => (
                     <div key={d.id || idx} style={{
                       background: '#ffffff',
@@ -1453,29 +1766,55 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      borderLeft: `4px solid ${d.status === 'active' ? '#10b981' : '#f59e0b'}`
+                      borderLeft: `5px solid ${
+                        labRegisterView === 'repairable' ? '#d97706' :
+                        labRegisterView === 'scrap' ? '#dc2626' : '#059669'
+                      }`
                     }}>
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ background: '#f1f5f9', color: '#0f766e', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
-                            {d.id}
+                          <span style={{ background: '#0f172a', color: '#38bdf8', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', fontSize: '10.5px', fontFamily: 'monospace' }}>
+                            🏷️ {d.assetTag || d.id}
                           </span>
                           <span style={{
-                            fontSize: '11px',
+                            fontSize: '10.5px',
                             fontWeight: 700,
                             padding: '2px 8px',
                             borderRadius: '12px',
-                            background: d.status === 'active' ? '#ecfdf5' : '#fffbeb',
-                            color: d.status === 'active' ? '#065f46' : '#b45309'
+                            background: labRegisterView === 'repairable' ? '#fffbeb' : labRegisterView === 'scrap' ? '#fef2f2' : '#ecfdf5',
+                            color: labRegisterView === 'repairable' ? '#b45309' : labRegisterView === 'scrap' ? '#b91c1c' : '#047857'
                           }}>
-                            {d.condition || (d.status === 'active' ? 'সচল' : 'সার্ভিসিং')}
+                            ● {d.condition || (labRegisterView === 'repairable' ? 'মেরামত প্রক্রিয়াধীন' : labRegisterView === 'scrap' ? 'অচল' : 'সচল')}
                           </span>
                         </div>
-                        <h4 style={{ margin: '0 0 6px', fontSize: '14.5px', color: '#0f172a', fontWeight: 700 }}>{d.name}</h4>
-                        <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#475569', lineHeight: '1.4' }}>{d.specs}</p>
+                        <h4 style={{ margin: '0 0 3px', fontSize: '14px', color: '#0f172a', fontWeight: 800 }}>{d.name}</h4>
+                        <div style={{ fontSize: '11.5px', color: '#0369a1', fontWeight: 600, marginBottom: '6px' }}>{d.category} • {d.model}</div>
+
+                        <div style={{ background: '#f8fafc', padding: '6px 8px', borderRadius: '6px', fontSize: '11px', color: '#334155', lineHeight: '1.4', marginBottom: '8px' }}>
+                          {d.cpu && <div><b>প্রসেসর:</b> {d.cpu}</div>}
+                          {(d.ram || d.storage) && <div><b>মেমরি/স্টোরেজ:</b> {d.ram || '—'} • {d.storage || '—'}</div>}
+                          {d.source && <div><b>উৎস:</b> {d.source} {d.procurementYear ? `(${d.procurementYear})` : ''}</div>}
+                        </div>
+
+                        {/* Defect Highlight for Repairable */}
+                        {labRegisterView === 'repairable' && (
+                          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', color: '#92400e', marginBottom: '6px' }}>
+                            <div><b>⚠️ ত্রুটি:</b> {d.defectDetails || 'কারিগরি সমস্যা'}</div>
+                            <div><b>📅 প্রেরণের তারিখ:</b> {d.sentForRepairDate || '—'} • <b>খরচ:</b> {d.estimatedCost || '—'}</div>
+                          </div>
+                        )}
+
+                        {/* Condemn Highlight for Scrap */}
+                        {labRegisterView === 'scrap' && (
+                          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', color: '#991b1b', marginBottom: '6px' }}>
+                            <div><b>🚫 কারণ:</b> {d.condemnReason || 'স্থায়ীভাবে অচল'}</div>
+                            <div><b>🏷️ অবস্থা:</b> {d.disposalStatus || 'নিলামের জন্য সংরক্ষিত'}</div>
+                          </div>
+                        )}
                       </div>
-                      <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '8px', fontSize: '11.5px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>📍 {d.seat || 'ল্যাব রুম'}</span>
+
+                      <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '8px', fontSize: '11px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>📍 {d.desk || d.seat || 'ল্যাব রুম'}</span>
                         <span>IP: <code>{d.ip || '192.168.1.x'}</code></span>
                       </div>
                     </div>

@@ -185,15 +185,34 @@ const INITIAL_DATA = {
     assistant: 'মোঃ মামুন মিয়া (ল্যাব সহকারী ও টেকনিশিয়ান)',
     room: 'দ্বিতীয় তলা, পূর্ব ভবন (কক্ষ নং ২০৪)',
     devices: [
-      { id: 'pc-01', name: 'মাস্টার ওয়ার্কস্টেশন (শিক্ষক)', model: 'HP ProDesk 400 G7', cpu: 'Core i5 10th Gen', ram: '16 GB', storage: '512 GB NVMe SSD', condition: 'সক্রিয়', ip: '192.168.1.10', desk: 'ডেস্ক-০১' },
-      { id: 'pc-02', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০১', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.11', desk: 'ডেস্ক-০২' },
-      { id: 'pc-03', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০২', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.12', desk: 'ডেস্ক-০৩' },
-      { id: 'pc-04', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৩', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সক্রিয়', ip: '192.168.1.13', desk: 'ডেস্ক-০৪' },
-      { id: 'pc-05', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৪', model: 'Dell OptiPlex 3080', cpu: 'Core i3 10th Gen', ram: '8 GB', storage: '256 GB SSD', condition: 'সার্ভিসিং', ip: '192.168.1.14', desk: 'ডেস্ক-০৫' },
-      { id: 'prj-01', name: 'ইন্টারেক্টিভ লেজার প্রজেক্টর', model: 'Epson EB-685Wi Ultra Short Throw', cpu: 'Laser 3500 Lumens', ram: 'HDMI/Wireless', storage: 'Interactive Whiteboard', condition: 'সক্রিয়', ip: '192.168.1.20', desk: 'স্মার্ট বোর্ড' },
-      { id: 'prn-01', name: 'নেটওয়ার্ক লেজার প্রিন্টার', model: 'Canon imageCLASS LBP2900B', cpu: 'Laser Duplex', ram: '64 MB', storage: 'USB / Network', condition: 'সক্রিয়', ip: '192.168.1.25', desk: 'প্রিন্ট কর্নার' },
-      { id: 'ups-01', name: 'সেন্ট্রাল অনলাইন ইউপিএস (৫ কেভিএ)', model: 'Santak Online 5KVA UPS', cpu: 'Pure Sine Wave', ram: '8 Batteries', storage: '২ ঘণ্টা ব্যাকআপ', condition: 'সক্রিয়', ip: 'N/A', desk: 'পাওয়ার হাব' },
-      { id: 'net-01', name: 'অপটিক্যাল ফাইবার গিগাবিট রাউটার', model: 'MikroTik Cloud Router Switch 1Gbps', cpu: 'Dual-Band WiFi 6', ram: '1 GB', storage: '100 Mbps Dedicated', condition: 'সক্রিয়', ip: '192.168.1.1', desk: 'নেটওয়ার্ক রেক' }
+      // 1. সচল স্টক রেজিস্টার বুক (Active Stock Register)
+      { id: 'pc-01', assetTag: 'MP-SRDL-PC-01', name: 'মাস্টার কন্ট্রোল ওয়ার্কস্টেশন (শিক্ষক ও ইনচার্জ)', category: 'ডেস্কটপ', model: 'HP ProDesk 400 G7 Microtower', cpu: 'Intel Core i5 10th Gen 3.10GHz', ram: '16 GB DDR4', storage: '512 GB NVMe SSD + 1TB HDD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয় ও চমৎকার', ip: '192.168.1.10', desk: 'মঞ্চ শিক্ষক ডেস্ক-০১', registerType: 'active' },
+      { id: 'pc-02', assetTag: 'MP-SRDL-PC-02', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০২', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.11', desk: 'সারি-১, ডেস্ক-০২', registerType: 'active' },
+      { id: 'pc-03', assetTag: 'MP-SRDL-PC-03', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৩', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.12', desk: 'সারি-১, ডেস্ক-০৩', registerType: 'active' },
+      { id: 'pc-04', assetTag: 'MP-SRDL-PC-04', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৪', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.13', desk: 'সারি-২, ডেস্ক-০৪', registerType: 'active' },
+      { id: 'pc-05', assetTag: 'MP-SRDL-PC-05', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৫', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.14', desk: 'সারি-২, ডেস্ক-০৫', registerType: 'active' },
+      { id: 'pc-06', assetTag: 'MP-SRDL-PC-06', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ০৬', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.15', desk: 'সারি-২, ডেস্ক-০৬', registerType: 'active' },
+      { id: 'lp-01', assetTag: 'MP-ICT-LP-01', name: 'আইসিটি ইনচার্জ প্রফেশনাল ল্যাপটপ', category: 'ল্যাপটপ', model: 'Acer TravelMate P214 Core i5', cpu: 'Intel Core i5 11th Gen', ram: '16 GB DDR4', storage: '512 GB PCIe NVMe SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২২', condition: 'সক্রিয় ও নিখুঁত', ip: '192.168.1.30', desk: 'ল্যাব ইনচার্জ ডেস্ক', registerType: 'active' },
+      { id: 'lp-02', assetTag: 'MP-ICT-LP-02', name: 'মাল্টিমিডিয়া প্রেজেন্টেশন ল্যাপটপ', category: 'ল্যাপটপ', model: 'HP ProBook 450 G8', cpu: 'Intel Core i5 11th Gen', ram: '8 GB DDR4', storage: '512 GB SSD', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.31', desk: 'প্রেজেন্টেশন কর্নার', registerType: 'active' },
+      { id: 'lp-03', assetTag: 'MP-ICT-LP-03', name: 'ল্যাব প্র্যাকটিক্যাল কোডিং ল্যাপটপ', category: 'ল্যাপটপ', model: 'Dell Vostro 3510', cpu: 'Intel Core i3 11th Gen', ram: '8 GB DDR4', storage: '256 GB SSD + 1TB HDD', source: 'মাউশি আইসিটি অনুদান', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.32', desk: 'কোডিং কর্নার', registerType: 'active' },
+      { id: 'mon-01', assetTag: 'MP-ICT-MON-01', name: 'ইনচার্জ ২১.৫" আইপিএস মনিটর', category: 'মনিটর', model: 'HP 22f 21.5" Full HD IPS Display', cpu: '1080p, 75Hz Ultra Slim', ram: 'HDMI & VGA', storage: 'Anti-Glare Panel', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: 'N/A', desk: 'শিক্ষক ডেস্ক', registerType: 'active' },
+      { id: 'tv-01', assetTag: 'MP-ICT-TV-01', name: '৬৫" ইন্টারেক্টিভ স্মার্ট অ্যান্ড্রয়েড টিভি', category: 'স্মার্ট টিভি', model: 'Walton 65" 4K UHD Smart Google TV', cpu: 'Quad Core Processor, 4K HDR', ram: '2 GB RAM', storage: '16 GB ROM + Wi-Fi Display', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৪', condition: 'সক্রিয় ও নিখুঁত', ip: '192.168.1.40', desk: 'ল্যাব ফ্রন্ট ডিসপ্লে ওয়াল', registerType: 'active' },
+      { id: 'prj-01', assetTag: 'MP-ICT-PRJ-01', name: 'ইন্টারেক্টিভ আল্ট্রা শর্ট-থ্রো লেজার প্রজেক্টর', category: 'প্রজেক্টর', model: 'Epson EB-685Wi Ultra Short Throw', cpu: 'Laser 3500 Lumens WXGA', ram: 'Dual Pen & Touch Interactive', storage: 'Wall Mount Kit + HDMI Hub', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.20', desk: 'স্মার্ট হোয়াইট বোর্ড ওয়াল', registerType: 'active' },
+      { id: 'prn-01', assetTag: 'MP-ICT-PRN-01', name: 'হাই-স্পিড নেটওয়ার্ক লেজার প্রিন্টার', category: 'প্রিন্টার', model: 'Canon imageCLASS LBP2900B', cpu: 'Laser Mono Printing 12ppm', ram: '64 MB USB', storage: 'Cartridge 303 Supported', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.25', desk: 'আইসিটি প্রিন্ট ও স্ক্যান কর্নার', registerType: 'active' },
+      { id: 'prn-02', assetTag: 'MP-ICT-PRN-02', name: 'অল-ইন-ওয়ান মাল্টিফাংশন নেটওয়ার্ক প্রিন্টার', category: 'প্রিন্টার', model: 'HP LaserJet Pro MFP M126nw (Print/Scan/Copy)', cpu: 'Fast Ethernet & Wi-Fi Direct', ram: '128 MB', storage: 'Flatbed Scanner + Duplex Copy', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: '192.168.1.26', desk: 'প্রিন্টিং কর্নার ডেস্ক', registerType: 'active' },
+      { id: 'scn-01', assetTag: 'MP-ICT-SCN-01', name: 'হাই-রেজোলিউশন ফ্ল্যাটবেড স্ক্যানার', category: 'স্ক্যানার', model: 'Canon CanoScan LiDE 300 2400x2400 dpi', cpu: 'CIS Sensor, 4 EZ Buttons', ram: 'USB Bus-Powered', storage: 'Auto Scan & PDF Generation', source: 'বিদ্যালয় নিজস্ব উন্নয়ন তহবিল', procurementYear: '২০২৩', condition: 'সক্রিয়', ip: 'USB Direct', desk: 'ইনচার্জ কর্নার', registerType: 'active' },
+      { id: 'ups-01', assetTag: 'MP-ICT-UPS-01', name: 'সেন্ট্রাল ট্রু অনলাইন ইউপিএস (৫ কেভিএ)', category: 'আইপিএস / ইউপিএস', model: 'Santak Castle Online 5KVA UPS', cpu: 'Pure Sine Wave 4000W Output', ram: '8x 12V 100Ah Battery Bank', storage: 'স্বয়ংক্রিয় ২.৫ ঘণ্টা ব্যাকআপ', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: 'N/A', desk: 'ল্যাব পাওয়ার ও ব্যাটারি হাব', registerType: 'active' },
+      { id: 'net-01', assetTag: 'MP-ICT-NET-01', name: 'ক্লাউড কোর গিগাবিট রাউটার ও সুইচ', category: 'নেটওয়ার্ক ইকুইপমেন্ট', model: 'MikroTik Cloud Router Switch 24-Port 1Gbps', cpu: 'Dual-Band Wi-Fi 6 Router Attached', ram: '1 GB RouterOS v7', storage: '৫০ Mbps অপটিক্যাল ফাইবার লাইন', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'সক্রিয়', ip: '192.168.1.1', desk: 'নেটওয়ার্ক সার্ভার রেক ক্যাবিনেট', registerType: 'active' },
+
+      // 2. মেরামতযোগ্য যন্ত্রপাতির স্টক রেজিস্টার বুক (Repairable Stock Register)
+      { id: 'rep-01', assetTag: 'MP-SRDL-PC-13', name: 'শিক্ষার্থী ওয়ার্কস্টেশন ১৩ (মেরামত প্রক্রিয়াধীন)', category: 'ডেস্কটপ', model: 'Dell OptiPlex 3080 Micro', cpu: 'Intel Core i3 10th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)', procurementYear: '২০২১', condition: 'মেরামত প্রক্রিয়াধীন', ip: '192.168.1.18', desk: 'সারি-৩, ডেস্ক-১৩', registerType: 'repairable', defectDetails: 'পাওয়ার সাপ্লাই ইউনিট (SMPS) ভোল্টেজ ড্রপ এবং হঠাৎ রিস্টার্ট সমস্যা', sentForRepairDate: '১২ অক্টোবর ২০২৬', serviceCenter: 'জেলা আইসিটি সেল ও টেকনিক্যাল সার্ভিস, টাঙ্গাইল', technicianPhone: '০১৭১২-XXXXXX (ইঞ্জিঃ সাকিল)', estimatedCost: '৳ ১,৮০০' },
+      { id: 'rep-02', assetTag: 'MP-ICT-LP-04', name: 'আইসিটি ল্যাপটপ ০৪ (ব্যাটারি ও কীবোর্ড মেরামত)', category: 'ল্যাপটপ', model: 'Lenovo ThinkPad E14 Gen 2', cpu: 'Intel Core i3 11th Gen', ram: '8 GB DDR4', storage: '256 GB SSD', source: 'মাউশি আইসিটি উন্নয়ন বরাদ্দ', procurementYear: '২০২২', condition: 'মেরামত প্রক্রিয়াধীন', ip: '192.168.1.35', desk: 'ল্যাব সার্ভিস টেবিল', registerType: 'repairable', defectDetails: 'কীবোর্ডের স্পেসবার ও ব্যাকস্পেস কি কাজ করছে না এবং ব্যাটারি ব্যাকআপ কমে ২০ মিনিট হয়েছে', sentForRepairDate: '১৮ অক্টোবর ২০২৬', serviceCenter: 'তানভীর কম্পিউটার্স অ্যান্ড ল্যাপটপ রিপেয়ার, টাঙ্গাইল সদর', technicianPhone: '০১৭২৫-XXXXXX', estimatedCost: '৳ ৩,২০০' },
+      { id: 'rep-03', assetTag: 'MP-ICT-PRN-03', name: 'অফিস সহায়ক লেজার প্রিন্টার', category: 'প্রিন্টার', model: 'Canon imageCLASS LBP6030', cpu: 'Monochrome Laser 18ppm', ram: '32 MB', storage: 'USB 2.0', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০২২', condition: 'মেরামতযোগ্য', ip: 'N/A', desk: 'সার্ভিস শেলফ', registerType: 'repairable', defectDetails: 'পেপার ফিডার রোলার ক্ষয়প্রাপ্ত হয়ে একাধিক কাগজ একসঙ্গে টেনে জ্যাম তৈরি করছে', sentForRepairDate: '২০ অক্টোবর ২০২৬', serviceCenter: 'আইটি ভিশন প্রিন্টার কেয়ার, টাঙ্গাইল', technicianPhone: '০১৯১২-XXXXXX', estimatedCost: '৳ ১,২০০' },
+
+      // 3. অচল / অমেরামতযোগ্য যন্ত্রপাতির স্টক রেজিস্টার (Condemned / Scrap Register)
+      { id: 'scr-01', assetTag: 'MP-OLD-PC-01', name: 'এনালগ কোর ২ ডুও ডেস্কটপ (অচল)', category: 'ডেস্কটপ', model: 'HP Compaq dc5800 Small Form Factor', cpu: 'Intel Core 2 Duo E7400 2.80GHz', ram: '2 GB DDR2', storage: '160 GB SATA HDD', source: 'তৎকালীন সরকারি মাধ্যমিক আইসিটি অনুদান', procurementYear: '২০১০', condition: 'অচল ও বাতিলযোগ্য', ip: 'N/A', desk: 'ল্যাব স্টোররুম - স্ক্র্যাপ র‍্যাক', registerType: 'scrap', condemnReason: 'মাদারবোর্ড ও চিপসেট স্থায়ীভাবে নষ্ট (Burned) এবং প্রযুক্তিগতভাবে সম্পূর্ণ অপ্রচলিত ও মেরামত অযোগ্য।', condemnDate: '১৫ জানুয়ারি ২০২৫', disposalStatus: 'সরকারি অডিট ও নিলাম কমিটির অনুমোদনের অপেক্ষায় সংরক্ষিত' },
+      { id: 'scr-02', assetTag: 'MP-OLD-CRT-01', name: '১৫ ইঞ্চি সিআরটি মনিটর (অচল)', category: 'মনিটর', model: 'Samsung SyncMaster 591s 15" CRT Color Monitor', cpu: 'CRT Display Unit', ram: 'VGA Cable Attached', storage: 'Heavy Shell Enclosure', source: 'বিদ্যালয় পুরাতন তহবিল', procurementYear: '২০০৯', condition: 'অচল ও অমেরামতযোগ্য', ip: 'N/A', desk: 'ল্যাব স্টোররুম স্ক্র্যাপ বক্স', registerType: 'scrap', condemnReason: 'ক্যাথোড রে টিউব (Picture Tube) নিভে গেছে এবং উচ্চ বিদ্যুৎ অপচয়কারী অপ্রচলিত প্রযুক্তি।', condemnDate: '১০ মার্চ ২০২৪', disposalStatus: 'নিলামের জন্য তালিকাভুক্ত' },
+      { id: 'scr-03', assetTag: 'MP-OLD-UPS-01', name: 'পুরাতন ৬৫০ ভিএ অফলাইন ইউপিএস', category: 'আইপিএস / ইউপিএস', model: 'PowerGuard 650VA Offline UPS', cpu: 'Microprocessor Controlled', ram: '12V 7.2Ah Lead-acid', storage: 'Transformer Coil Dead', source: 'বিদ্যালয় নিজস্ব তহবিল', procurementYear: '২০১৮', condition: 'অচল', ip: 'N/A', desk: 'ল্যাব স্টোররুম', registerType: 'scrap', condemnReason: 'অভ্যন্তরীণ ট্রান্সফরমার কয়েল শর্ট-সার্কিটে সম্পূর্ণ পুড়ে গেছে এবং ব্যাটারি ফুটো হয়ে অ্যাসিড লিক করেছে। মেরামত ব্যয় নতুন ক্রয়ের চেয়ে বেশি।', condemnDate: '১২ নভেম্বর ২০২৪', disposalStatus: 'স্ক্র্যাপ হিসেবে সংরক্ষিত' }
     ],
     schedule: [
       { id: 'ls-01', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: 'মুহাম্মদ আবুবকর সিদ্দিক', topic: 'HTML ওয়েব ডিজাইন ও বেসিক কোডিং' },
@@ -332,7 +351,41 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
   const [resultForm, setResultForm] = useState({});
 
   // Sub-forms for new domains
-  const [labDeviceForm, setLabDeviceForm] = useState({ id: '', name: '', model: '', cpu: '', ram: '', storage: '', condition: 'সক্রিয়', ip: '', desk: '' });
+  const [labDeviceForm, setLabDeviceForm] = useState({
+    id: '',
+    assetTag: '',
+    name: '',
+    category: 'ডেস্কটপ',
+    model: '',
+    cpu: '',
+    ram: '',
+    storage: '',
+    source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)',
+    procurementYear: '২০২১',
+    condition: 'সক্রিয়',
+    ip: '',
+    desk: '',
+    registerType: 'active'
+  });
+  const [labRegisterBook, setLabRegisterBook] = useState('active'); // 'active' | 'repairable' | 'scrap'
+  const [labCategoryFilter, setLabCategoryFilter] = useState('all');
+  const [labSearchQuery, setLabSearchQuery] = useState('');
+  const [showMoveToRepairModal, setShowMoveToRepairModal] = useState(false);
+  const [showMoveToScrapModal, setShowMoveToScrapModal] = useState(false);
+  const [itemToMove, setItemToMove] = useState(null);
+  const [repairMoveForm, setRepairMoveForm] = useState({
+    defectDetails: '',
+    sentForRepairDate: '',
+    serviceCenter: '',
+    technicianPhone: '',
+    estimatedCost: ''
+  });
+  const [scrapMoveForm, setScrapMoveForm] = useState({
+    condemnReason: '',
+    condemnDate: '',
+    disposalStatus: 'নিলামের জন্য সংরক্ষিত'
+  });
+
   const [labScheduleForm, setLabScheduleForm] = useState({ id: '', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: '', topic: '' });
   const [mmScheduleForm, setMmScheduleForm] = useState({ id: '', day: 'রবিবার', period: '১ম পিরিয়ড (০৯:৩০-১০:১৫)', class_name: '১০ম শ্রেণি', subject: '', teacher: '', resource: '' });
   const [mmContentForm, setMmContentForm] = useState({ id: '', title: '', subject: '', class_name: '৯ম-১০ম', author: '', portal: 'শিক্ষক বাতায়ন', views: '১০০+' });
@@ -377,6 +430,42 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
             scouts: parsed.scouts || INITIAL_DATA.scouts,
             inter_sports: parsed.inter_sports || INITIAL_DATA.inter_sports
           };
+
+          // Seamlessly migrate lab devices into the 3 distinct register books
+          if (merged.lab && Array.isArray(merged.lab.devices)) {
+            let devs = merged.lab.devices.map(d => ({
+              ...d,
+              category: d.category || (
+                (d.model && d.model.toLowerCase().includes('laptop')) || (d.name && d.name.includes('ল্যাপটপ')) ? 'ল্যাপটপ' :
+                (d.name && d.name.includes('টিভি')) ? 'স্মার্ট টিভি' :
+                (d.name && d.name.includes('প্রজেক্টর')) ? 'প্রজেক্টর' :
+                (d.name && d.name.includes('প্রিন্টার')) ? 'প্রিন্টার' :
+                (d.name && d.name.includes('স্ক্যানার')) ? 'স্ক্যানার' :
+                (d.name && (d.name.includes('ইউপিএস') || d.name.includes('আইপিএস'))) ? 'আইপিএস / ইউপিএস' :
+                (d.name && d.name.includes('মনিটর')) ? 'মনিটর' :
+                (d.name && (d.name.includes('রাউটার') || d.name.includes('সুইচ'))) ? 'নেটওয়ার্ক ইকুইপমেন্ট' :
+                'ডেস্কটপ'
+              ),
+              registerType: d.registerType || (
+                d.condition === 'সার্ভিসিং' ? 'repairable' :
+                d.condition === 'অকেজো' ? 'scrap' :
+                'active'
+              )
+            }));
+
+            // If existing data lacks repairable or scrap devices, inject seed devices
+            const hasRepairable = devs.some(d => d.registerType === 'repairable');
+            const hasScrap = devs.some(d => d.registerType === 'scrap');
+            if (!hasRepairable || !hasScrap) {
+              const seedExtras = INITIAL_DATA.lab.devices.filter(d =>
+                (!hasRepairable && d.registerType === 'repairable') ||
+                (!hasScrap && d.registerType === 'scrap')
+              );
+              devs = [...devs, ...seedExtras];
+            }
+            merged.lab.devices = devs;
+          }
+
           setData(merged);
           return;
         }
@@ -725,26 +814,454 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
     showNotification('✓ শিক্ষার্থী সফলভাবে নিবন্ধিত হয়েছে!');
   };
 
-  // ---------------- Computer Lab Handlers ----------------
+  // ---------------- Computer Lab Handlers (3 Distinct Register Books) ----------------
   const handleSaveLabDevice = (e) => {
     e.preventDefault();
     const isEdit = !!labDeviceForm.id;
+    const cat = labDeviceForm.category || 'ডেস্কটপ';
+    const tagPrefix = cat === 'ল্যাপটপ' ? 'LP' :
+                      cat === 'প্রিন্টার' ? 'PRN' :
+                      cat === 'স্ক্যানার' ? 'SCN' :
+                      cat === 'স্মার্ট টিভি' ? 'TV' :
+                      cat === 'প্রজেক্টর' ? 'PRJ' :
+                      cat === 'আইপিএস / ইউপিএস' ? 'UPS' :
+                      cat === 'মনিটর' ? 'MON' :
+                      cat === 'নেটওয়ার্ক ইকুইপমেন্ট' ? 'NET' : 'PC';
+    const targetReg = labDeviceForm.registerType || labRegisterBook || 'active';
     const newDev = {
       ...labDeviceForm,
-      id: labDeviceForm.id || `pc-${Date.now().toString().slice(-4)}`
+      id: labDeviceForm.id || `dev-${Date.now().toString().slice(-4)}`,
+      assetTag: labDeviceForm.assetTag?.trim() || `MP-ICT-${tagPrefix}-${Date.now().toString().slice(-3)}`,
+      category: cat,
+      registerType: targetReg,
+      condition: labDeviceForm.condition || (targetReg === 'repairable' ? 'মেরামত প্রক্রিয়াধীন' : targetReg === 'scrap' ? 'অচল ও বাতিল' : 'সক্রিয়')
     };
     const currentDevices = data.lab?.devices || [];
     const updated = isEdit ? currentDevices.map(d => d.id === newDev.id ? newDev : d) : [...currentDevices, newDev];
     persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
     setShowLabDeviceModal(false);
-    showNotification(isEdit ? '✓ ডিভাইস তথ্য আপডেট হয়েছে!' : '✓ নতুন ডিভাইস যুক্ত হয়েছে!');
+    showNotification(isEdit ? '✓ যন্ত্রপাতির তথ্য সফলভাবে হালনাগাদ করা হয়েছে!' : '✓ নতুন যন্ত্রপাতি সংশ্লিষ্ট রেজিস্টার বুকে নথিভুক্ত হয়েছে!');
   };
 
   const handleDeleteLabDevice = (id) => {
-    if (!window.confirm('ডিভাইসটি মুছে ফেলতে চান?')) return;
+    if (!window.confirm('যন্ত্রপাতিটি রেজিস্টার বই থেকে স্থায়ীভাবে মুছে ফেলতে চান?')) return;
     const updated = (data.lab?.devices || []).filter(d => d.id !== id);
     persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
-    showNotification('ডিভাইস তালিকা থেকে মুছে ফেলা হয়েছে।');
+    showNotification('যন্ত্রপাতিটি রেজিস্টার থেকে অপসারণ করা হয়েছে।');
+  };
+
+  // 1-Click Move: Active -> Repairable Register
+  const handleInitiateMoveToRepair = (device) => {
+    setItemToMove(device);
+    setRepairMoveForm({
+      defectDetails: device.defectDetails || '',
+      sentForRepairDate: new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }),
+      serviceCenter: device.serviceCenter || 'জেলা আইসিটি সেল ও টেকনিক্যাল সার্ভিস, টাঙ্গাইল',
+      technicianPhone: device.technicianPhone || '',
+      estimatedCost: device.estimatedCost || ''
+    });
+    setShowMoveToRepairModal(true);
+  };
+
+  const confirmMoveToRepair = (e) => {
+    e.preventDefault();
+    if (!itemToMove) return;
+    const currentDevices = data.lab?.devices || [];
+    const updated = currentDevices.map(d => {
+      if (d.id === itemToMove.id) {
+        return {
+          ...d,
+          registerType: 'repairable',
+          condition: 'মেরামত প্রক্রিয়াধীন',
+          defectDetails: repairMoveForm.defectDetails || 'কারিগরি ত্রুটি চিহ্নিত',
+          sentForRepairDate: repairMoveForm.sentForRepairDate,
+          serviceCenter: repairMoveForm.serviceCenter,
+          technicianPhone: repairMoveForm.technicianPhone,
+          estimatedCost: repairMoveForm.estimatedCost
+        };
+      }
+      return d;
+    });
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    setShowMoveToRepairModal(false);
+    setItemToMove(null);
+    showNotification(`✓ '${itemToMove.name}' সফলভাবে ২য় (মেরামতযোগ্য স্টক) রেজিস্টার বুকে স্থানান্তর করা হয়েছে!`);
+  };
+
+  // 1-Click Restore: Repairable -> Active Register
+  const handleRestoreToActive = (device) => {
+    if (!window.confirm(`'${device.name}' এর মেরামত কি সম্পন্ন হয়েছে? এটি এখন ১ম (সচল স্টক) রেজিস্টার বুকে ফেরত যাবে।`)) return;
+    const currentDevices = data.lab?.devices || [];
+    const updated = currentDevices.map(d => {
+      if (d.id === device.id) {
+        return {
+          ...d,
+          registerType: 'active',
+          condition: 'সক্রিয় ও সচল',
+          defectDetails: '',
+          sentForRepairDate: ''
+        };
+      }
+      return d;
+    });
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    showNotification(`✓ চমৎকার! '${device.name}' ১ম (সচল স্টক) রেজিস্টার বুকে পুনর্বহাল করা হয়েছে।`);
+  };
+
+  // 1-Click Move: Active or Repairable -> Scrap Register
+  const handleInitiateMoveToScrap = (device) => {
+    setItemToMove(device);
+    setScrapMoveForm({
+      condemnReason: device.condemnReason || (device.defectDetails ? `${device.defectDetails} (স্থায়ীভাবে মেরামত-অযোগ্য)` : 'যন্ত্রপাতি স্থায়ীভাবে অচল ও মেরামত অযোগ্য'),
+      condemnDate: new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }),
+      disposalStatus: device.disposalStatus || 'নিলামের জন্য সংরক্ষিত'
+    });
+    setShowMoveToScrapModal(true);
+  };
+
+  const confirmMoveToScrap = (e) => {
+    e.preventDefault();
+    if (!itemToMove) return;
+    const currentDevices = data.lab?.devices || [];
+    const updated = currentDevices.map(d => {
+      if (d.id === itemToMove.id) {
+        return {
+          ...d,
+          registerType: 'scrap',
+          condition: 'অচল ও বাতিল',
+          condemnReason: scrapMoveForm.condemnReason || 'স্থায়ীভাবে অচল ও মেরামত অযোগ্য',
+          condemnDate: scrapMoveForm.condemnDate,
+          disposalStatus: scrapMoveForm.disposalStatus
+        };
+      }
+      return d;
+    });
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    setShowMoveToScrapModal(false);
+    setItemToMove(null);
+    showNotification(`✓ '${itemToMove.name}' সফলভাবে ৩য় (অচল ও অমেরামতযোগ্য স্টক) রেজিস্টার বুকে নথিভুক্ত হয়েছে।`);
+  };
+
+  // 1-Click Restore: Scrap -> Active Register
+  const handleRestoreFromScrapToActive = (device) => {
+    if (!window.confirm(`'${device.name}' কে পুনরায় ১ম (সচল স্টক) রেজিস্টার বুকে যুক্ত করতে চান?`)) return;
+    const currentDevices = data.lab?.devices || [];
+    const updated = currentDevices.map(d => {
+      if (d.id === device.id) {
+        return {
+          ...d,
+          registerType: 'active',
+          condition: 'সক্রিয় ও সচল',
+          condemnReason: '',
+          condemnDate: ''
+        };
+      }
+      return d;
+    });
+    persistData({ ...data, lab: { ...(data.lab || {}), devices: updated } });
+    showNotification(`✓ '${device.name}' সচল স্টক রেজিস্টার বুকে পুনর্বহাল করা হয়েছে।`);
+  };
+
+  // Official Institutional Letterhead Print / PDF Report Generator for Headmaster
+  const handlePrintLabOfficialReport = (targetRegister = labRegisterBook) => {
+    const allDevs = data.lab?.devices || [];
+    const targetDevs = allDevs.filter(d => (d.registerType || 'active') === targetRegister);
+    const activeCount = allDevs.filter(d => (d.registerType || 'active') === 'active').length;
+    const repairCount = allDevs.filter(d => d.registerType === 'repairable').length;
+    const scrapCount = allDevs.filter(d => d.registerType === 'scrap').length;
+    const totalCount = allDevs.length;
+
+    const bookTitles = {
+      active: {
+        title: '১ম বুক: সচল ষ্টক রেজিষ্টার প্রতিবেদন (Active Equipment Register)',
+        subject: 'কম্পিউটার ল্যাবের সকল সচল যন্ত্রপাতি ও ডিজিটাল সরঞ্জামাদির অফিশিয়াল স্টক রেজিস্টার বিবরণী পেশ প্রসঙ্গে।',
+        badgeColor: '#059669',
+        badgeBg: '#ecfdf5'
+      },
+      repairable: {
+        title: '২য় বুক: মেরামতযোগ্য যন্ত্রপাতির ষ্টক রেজিষ্টার বিবরণী (Repairable Equipment Register)',
+        subject: 'কম্পিউটার ল্যাবের ত্রুটিযুক্ত ও তাৎক্ষণিক মেরামতযোগ্য যন্ত্রপাতির বিবরণ, প্রাক্কলিত বাজেট ও সুপারিশ পেশ প্রসঙ্গে।',
+        badgeColor: '#d97706',
+        badgeBg: '#fffbeb'
+      },
+      scrap: {
+        title: '৩য় বুক: অচল ও অমেরামতযোগ্য যন্ত্রপাতির স্থায়ী ষ্টক রেজিষ্টার (Condemned & Scrap Register)',
+        subject: 'কম্পিউটার ল্যাবের স্থায়ীভাবে অচল, প্রযুক্তিগতভাবে বাতিল ও নিলামযোগ্য যন্ত্রপাতির চূড়ান্ত কন্ডেমনেশন রেজিস্টার প্রসঙ্গে।',
+        badgeColor: '#dc2626',
+        badgeBg: '#fef2f2'
+      }
+    };
+
+    const currentMeta = bookTitles[targetRegister] || bookTitles.active;
+    const memoNum = `মপাউবি/আইসিটি-ল্যাব/${targetRegister.toUpperCase()}/২০২৬/${Math.floor(100 + Math.random() * 900)}`;
+    const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const w = window.open('', '_blank', 'width=1100,height=850');
+    if (!w) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপ-আপ অনুমোদন করে পুনরায় চেষ্টা করুন।');
+      return;
+    }
+
+    const tableRows = targetDevs.map((d, idx) => `
+      <tr style="border-bottom: 1px solid #cbd5e1; page-break-inside: avoid; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+        <td style="padding: 7px 8px; text-align: center; font-weight: 700; font-size: 11px;">${idx + 1}</td>
+        <td style="padding: 7px 8px; font-weight: 800; color: #0f766e; font-size: 11px; white-space: nowrap;">${d.assetTag || 'MP-ICT-' + (idx + 1)}</td>
+        <td style="padding: 7px 8px;">
+          <div style="font-weight: 800; font-size: 12px; color: #0f172a;">${d.name || 'ডিভাইস'}</div>
+          <div style="font-size: 10.5px; color: #64748b;">${d.model || '—'}</div>
+        </td>
+        <td style="padding: 7px 8px; font-weight: 700; color: #0369a1; font-size: 11px;">${d.category || 'অন্যান্য'}</td>
+        <td style="padding: 7px 8px; font-size: 10.5px; color: #334155; line-height: 1.4;">
+          ${d.cpu ? `<div><b>CPU:</b> ${d.cpu}</div>` : ''}
+          ${d.ram || d.storage ? `<div><b>RAM/Drive:</b> ${d.ram || '—'} • ${d.storage || '—'}</div>` : ''}
+          ${d.ip && d.ip !== 'N/A' ? `<div><b>IP:</b> ${d.ip}</div>` : ''}
+        </td>
+        <td style="padding: 7px 8px; font-size: 10.5px; color: #475569;">
+          <div>${d.source || 'শেখ রাসেল ডিজিটাল ল্যাব'}</div>
+          <div style="font-size: 9.5px; color: #94a3b8;">সাল: ${d.procurementYear || '২০২১'}</div>
+        </td>
+        <td style="padding: 7px 8px; font-size: 11px; font-weight: 600; color: #334155;">${d.desk || 'ল্যাব রুম'}</td>
+        <td style="padding: 7px 8px; font-size: 10.5px;">
+          ${targetRegister === 'active' ? `
+            <span style="display: inline-block; background: #ecfdf5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">● ${d.condition || 'সক্রিয়'}</span>
+          ` : targetRegister === 'repairable' ? `
+            <div style="color: #b45309; font-weight: 700; font-size: 10.5px;">⚠️ ${d.defectDetails || 'ত্রুটি বিদ্যমান'}</div>
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">প্রেরণ: ${d.sentForRepairDate || '—'} • খরচ: ${d.estimatedCost || '—'}</div>
+            <div style="font-size: 9.5px; color: #0284c7;">সার্ভিস: ${d.serviceCenter || '—'}</div>
+          ` : `
+            <div style="color: #b91c1c; font-weight: 700; font-size: 10.5px;">🚫 ${d.condemnReason || 'অচল'}</div>
+            <div style="font-size: 9.5px; color: #64748b; margin-top: 2px;">তারিখ: ${d.condemnDate || '—'}</div>
+            <div style="font-size: 9.5px; color: #475569; font-weight: 600;">অবস্থা: ${d.disposalStatus || 'সংরক্ষিত'}</div>
+          `}
+        </td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${currentMeta.title} — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 12mm 10mm 15mm 10mm;
+          }
+          body {
+            font-family: 'Segoe UI', 'SutonnyMJ', 'Nikosh', 'SolaimanLipi', sans-serif;
+            color: #0f172a;
+            margin: 0;
+            padding: 16px;
+            background: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .no-print {
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .btn-print {
+            background: #0f766e;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .header-box {
+            text-align: center;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+          }
+          .school-gov {
+            font-size: 12px;
+            color: #475569;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+          }
+          .school-title {
+            margin: 3px 0 2px;
+            font-size: 22px;
+            color: #0f766e;
+            font-weight: 900;
+            letter-spacing: 0.3px;
+          }
+          .school-sub {
+            margin: 0 0 4px;
+            font-size: 12px;
+            color: #334155;
+          }
+          .lab-title-badge {
+            display: inline-block;
+            background: ${currentMeta.badgeBg};
+            color: ${currentMeta.badgeColor};
+            border: 1px solid ${currentMeta.badgeColor};
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+            margin-top: 4px;
+          }
+          .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #1e293b;
+            margin-bottom: 10px;
+            padding: 6px 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+          }
+          .subject-box {
+            background: #ffffff;
+            border-left: 3px solid #0f766e;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #1e293b;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 14px;
+          }
+          th {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            font-weight: 800;
+            color: #0f172a;
+            text-align: left;
+          }
+          td {
+            border: 1px solid #cbd5e1;
+          }
+          .matrix-summary {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11.5px;
+          }
+          .sig-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+            padding: 0 20px;
+            page-break-inside: avoid;
+          }
+          .sig-box {
+            text-align: center;
+            min-width: 200px;
+            border-top: 1px dashed #64748b;
+            padding-top: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print">
+          <span style="font-weight: 700; color: #0f766e; font-size: 13px;">
+            🖨️ কম্পিউটার ল্যাব অফিশিয়াল প্রাতিষ্ঠানিক প্রতিবেদন প্রস্তুত। প্রধান শিক্ষকের স্বাক্ষরের জন্য প্রিন্ট করুন।
+          </span>
+          <button class="btn-print" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন / Save as PDF</button>
+        </div>
+
+        <div class="header-box">
+          <div class="school-gov">গণপ্রজাতন্ত্রী বাংলাদেশ সরকার অনুমোদিত • শিক্ষা ও তথ্য মন্ত্রণালয়</div>
+          <h1 class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+          <div class="school-sub">পোস্ট: মগড়া, উপজেলা: কালিহাতী / টাঙ্গাইল সদর, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৫৮ • EIIN: 114290 • স্কুল কোড: 4501</div>
+          <div style="font-weight: 800; font-size: 13.5px; color: #0f766e; margin-top: 3px;">💻 শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সেন্টার</div>
+          <div class="lab-title-badge">${currentMeta.title}</div>
+        </div>
+
+        <div class="meta-bar">
+          <div><b>স্মারক নম্বর:</b> ${memoNum}</div>
+          <div><b>প্রতিবেদনের তারিখ:</b> ${todayBn} খ্রি.</div>
+        </div>
+
+        <div class="subject-box">
+          <div><b>বরাবর:</b> প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, টাঙ্গাইল সদর, টাঙ্গাইল।</div>
+          <div style="margin-top: 3px;"><b>বিষয়:</b> <span style="font-weight: 800;">${currentMeta.subject}</span></div>
+          <div style="margin-top: 3px; font-size: 11.5px; color: #475569;">
+            মহোদয়, আপনার সদয় অবগতি ও প্রয়োজনীয় প্রাতিষ্ঠানিক কার্যক্রমের নিমিত্তে আমাদের বিদ্যালয়ের কম্পিউটার ল্যাব ও আইসিটি সেন্টারের হালনাগাদ সংরক্ষিত তথ্যের ভিত্তিতে প্রস্তুতকৃত বিবরণী ছক নিম্নে পেশ করা হলো:
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px; text-align: center;">ক্র.</th>
+              <th style="width: 95px;">Asset Tag ID</th>
+              <th>যন্ত্রপাতির নাম ও মডেল</th>
+              <th style="width: 85px;">ক্যাটাগরি</th>
+              <th>স্পেসিফিকেশন ও বিবরণ</th>
+              <th style="width: 120px;">উৎস ও প্রাপ্তির সাল</th>
+              <th style="width: 85px;">অবস্থান</th>
+              <th style="width: 140px;">বর্তমান অবস্থা / মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows || '<tr><td colspan="8" style="text-align: center; padding: 12px; color: #64748b;">এই রেজিস্টার বুকে কোনো তথ্য সংরক্ষিত নেই।</td></tr>'}
+          </tbody>
+        </table>
+
+        <!-- Summary Matrix Tally -->
+        <div class="matrix-summary">
+          <div><b>সারসংক্ষেপ ট্যালি:</b> মোট রেজিস্টারভুক্ত যন্ত্রপাতি: <b>${totalCount}</b> টি</div>
+          <div style="color: #059669;">🟢 সচল স্টক: <b>${activeCount}</b> টি</div>
+          <div style="color: #d97706;">🟡 মেরামতযোগ্য স্টক: <b>${repairCount}</b> টি</div>
+          <div style="color: #dc2626;">🔴 অচল ও স্ক্র্যাপ স্টক: <b>${scrapCount}</b> টি</div>
+          <div style="margin-left: auto; color: #64748b;">এই পৃষ্ঠায় প্রদর্শিত: <b>${targetDevs.length}</b> টি</div>
+        </div>
+
+        <div class="sig-row">
+          <div class="sig-box">
+            <b>মুহাম্মদ আবুবকর সিদ্দিক</b><br>
+            সহকারী শিক্ষক (তথ্য ও যোগাযোগ প্রযুক্তি)<br>
+            ও ল্যাব ইনচার্জ<br>
+            মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+          </div>
+          <div class="sig-box">
+            <b>প্রধান শিক্ষক</b><br>
+            মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
+            টাঙ্গাইল সদর, টাঙ্গাইল।
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    w.document.open();
+    w.document.write(htmlContent);
+    w.document.close();
   };
 
   const handleSaveLabSchedule = (e) => {
@@ -1486,119 +2003,708 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
       {/* ========================================================================= */}
       {/* 5. COMPUTER LAB TAB (কম্পিউটার ল্যাব) */}
       {/* ========================================================================= */}
-      {activeTab === 'lab' && (
-        <div>
-          {/* Lab Overview Banner */}
-          <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '12px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#0f766e', fontWeight: 800 }}>
-                💻 শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সেন্টার
-              </h3>
-              <div style={{ fontSize: '12.5px', color: '#134e4a', display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-                <span><b>ল্যাব ইনচার্জ:</b> {data.lab?.inCharge}</span>
-                <span><b>ল্যাব সহকারী:</b> {data.lab?.assistant}</span>
-                <span><b>অবস্থান:</b> {data.lab?.room}</span>
+      {activeTab === 'lab' && (() => {
+        const allDevs = data.lab?.devices || [];
+        const activeDevs = allDevs.filter(d => (d.registerType || 'active') === 'active');
+        const repairDevs = allDevs.filter(d => d.registerType === 'repairable');
+        const scrapDevs = allDevs.filter(d => d.registerType === 'scrap');
+
+        // Target devices for currently selected register book
+        const currentBookDevs = labRegisterBook === 'repairable' ? repairDevs :
+                                labRegisterBook === 'scrap' ? scrapDevs : activeDevs;
+
+        // Apply Category and Search filters
+        const filteredDevs = currentBookDevs.filter(d => {
+          if (labCategoryFilter !== 'all' && d.category !== labCategoryFilter) return false;
+          if (labSearchQuery.trim()) {
+            const q = labSearchQuery.toLowerCase();
+            return (d.name && d.name.toLowerCase().includes(q)) ||
+                   (d.assetTag && d.assetTag.toLowerCase().includes(q)) ||
+                   (d.model && d.model.toLowerCase().includes(q)) ||
+                   (d.desk && d.desk.toLowerCase().includes(q)) ||
+                   (d.category && d.category.toLowerCase().includes(q));
+          }
+          return true;
+        });
+
+        // Category Matrix calculation across all devices
+        const LAB_CATEGORY_LIST = ['ল্যাপটপ', 'ডেস্কটপ', 'প্রিন্টার', 'স্ক্যানার', 'স্মার্ট টিভি', 'প্রজেক্টর', 'আইপিএস / ইউপিএস', 'মনিটর', 'নেটওয়ার্ক ইকুইপমেন্ট'];
+        const catStats = LAB_CATEGORY_LIST.map(cat => {
+          const inCat = allDevs.filter(d => d.category === cat);
+          return {
+            category: cat,
+            total: inCat.length,
+            active: inCat.filter(d => (d.registerType || 'active') === 'active').length,
+            repair: inCat.filter(d => d.registerType === 'repairable').length,
+            scrap: inCat.filter(d => d.registerType === 'scrap').length
+          };
+        }).filter(c => c.total > 0);
+
+        return (
+          <div>
+            {/* Lab Overview & Quick Action Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #042f2e 0%, #0f766e 70%, #115e59 100%)',
+              color: '#ffffff',
+              borderRadius: '14px',
+              padding: '20px 22px',
+              marginBottom: '18px',
+              boxShadow: '0 8px 24px rgba(15, 118, 110, 0.15)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.15)', padding: '3px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+                  <span>🏛️</span> শেখ রাসেল ডিজিটাল ল্যাব ও আইসিটি ইনোভেশন সেন্টার
+                </div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '19px', fontWeight: 900, letterSpacing: '0.2px' }}>
+                  💻 কম্পিউটার ল্যাব ইকুইপমেন্ট ও ডিজিটাল স্টক রেজিস্টার
+                </h3>
+                <div style={{ fontSize: '13px', opacity: 0.95, display: 'flex', flexWrap: 'wrap', gap: '16px', lineHeight: '1.4' }}>
+                  <span>👤 <b>আইসিটি শিক্ষক ও ইনচার্জ:</b> {data.lab?.inCharge || 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক)'}</span>
+                  <span>🛠️ <b>ল্যাব সহকারী:</b> {data.lab?.assistant || 'মোঃ মামুন মিয়া'}</span>
+                  <span>📍 <b>অবস্থান:</b> {data.lab?.room || 'পূর্ব ভবন (কক্ষ নং ২০৪)'}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLabDeviceForm({
+                      id: '',
+                      assetTag: '',
+                      name: '',
+                      category: 'ডেস্কটপ',
+                      model: '',
+                      cpu: '',
+                      ram: '',
+                      storage: '',
+                      source: 'শেখ রাসেল ডিজিটাল ল্যাব (সরকারি অনুদান)',
+                      procurementYear: '২০২১',
+                      condition: 'সক্রিয়',
+                      ip: '',
+                      desk: '',
+                      registerType: 'active'
+                    });
+                    setShowLabDeviceModal(true);
+                  }}
+                  style={{
+                    padding: '9px 16px',
+                    background: '#ffffff',
+                    color: '#0f766e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>➕</span> নতুন সচল যন্ত্রপাতি যোগ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrintLabOfficialReport(labRegisterBook)}
+                  style={{
+                    padding: '9px 16px',
+                    background: '#fef08a',
+                    color: '#854d0e',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span>🖨️</span> প্রধান শিক্ষকের অফিশিয়াল রিপোর্ট প্রিন্ট (PDF)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLabScheduleForm({
+                      id: '',
+                      day: 'রবিবার',
+                      period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)',
+                      class_name: '১০ম শ্রেণি',
+                      subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)',
+                      teacher: 'মুহাম্মদ আবুবকর সিদ্দিক (সহকারী শিক্ষক, আইসিটি)',
+                      topic: ''
+                    });
+                    setShowLabScheduleModal(true);
+                  }}
+                  style={{
+                    padding: '9px 14px',
+                    background: 'rgba(255,255,255,0.2)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255,255,255,0.4)',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <span>🗓️</span> ব্যবহারিক রুটিন যোগ
+                </button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setLabDeviceForm({ id: '', name: '', model: '', cpu: '', ram: '', storage: '', condition: 'সক্রিয়', ip: '', desk: '' });
-                  setShowLabDeviceModal(true);
-                }}
-                style={{ padding: '8px 14px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <span>➕</span> নতুন ডিভাইস যোগ
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLabScheduleForm({ id: '', day: 'রবিবার', period: '৩য় পিরিয়ড (১১:০০-১১:৪৫)', class_name: '১০ম শ্রেণি', subject: 'তথ্য ও যোগাযোগ প্রযুক্তি (ব্যবহারিক)', teacher: teachers[0]?.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক', topic: '' });
-                  setShowLabScheduleModal(true);
-                }}
-                style={{ padding: '8px 14px', background: '#047857', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-              >
-                <span>🗓️</span> ব্যবহারিক রুটিন যোগ
-              </button>
-            </div>
-          </div>
 
-          {/* Device Inventory Grid */}
-          <div style={{ marginBottom: '22px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h4 style={{ margin: 0, fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
-                🖥️ কম্পিউটার ও নেটওয়ার্ক ইকুইপমেন্ট রেজিস্টার ({data.lab?.devices?.length || 0} টি)
-              </h4>
-              <span style={{ fontSize: '12px', color: '#0f766e', background: '#ccfbf1', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
-                সক্রিয়: {data.lab?.devices?.filter(d => d.condition === 'সক্রিয়').length || 0} টি
-              </span>
+            {/* Category Summary Matrix Tally Cards */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f766e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>📊</span> ক্যাটাগরিভিত্তিক লাইভ স্টক সামারি ম্যাট্রিক্স (Category Equipment Tally)
+                </span>
+                <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                  যেকোনো ক্যাটাগরিতে ক্লিক করে দ্রুত ফিল্টার করুন
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }}>
+                {catStats.map(c => {
+                  const isSelected = labCategoryFilter === c.category;
+                  return (
+                    <div
+                      key={c.category}
+                      onClick={() => setLabCategoryFilter(isSelected ? 'all' : c.category)}
+                      style={{
+                        background: isSelected ? '#f0fdfa' : '#ffffff',
+                        border: isSelected ? '2px solid #0d9488' : '1px solid #e2e8f0',
+                        borderRadius: '10px',
+                        padding: '10px 12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: isSelected ? '0 4px 10px rgba(13,148,136,0.12)' : '0 1px 3px rgba(0,0,0,0.02)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: isSelected ? '#0f766e' : '#1e293b' }}>
+                          {c.category}
+                        </span>
+                        <span style={{ fontSize: '14px', fontWeight: 900, color: '#0f766e' }}>
+                          {c.total}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px', fontSize: '10px', fontWeight: 700 }}>
+                        <span style={{ color: '#059669', background: '#ecfdf5', padding: '1px 5px', borderRadius: '4px' }}>
+                          সচল: {c.active}
+                        </span>
+                        {c.repair > 0 && (
+                          <span style={{ color: '#d97706', background: '#fffbeb', padding: '1px 5px', borderRadius: '4px' }}>
+                            মেরামত: {c.repair}
+                          </span>
+                        )}
+                        {c.scrap > 0 && (
+                          <span style={{ color: '#dc2626', background: '#fef2f2', padding: '1px 5px', borderRadius: '4px' }}>
+                            অচল: {c.scrap}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-              {(data.lab?.devices || []).map(dev => (
-                <div key={dev.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '11px', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>{dev.desk || 'ডেস্ক'}</span>
-                      <span style={{ fontSize: '11px', background: dev.condition === 'সক্রিয়' ? '#dcfce7' : '#fee2e2', color: dev.condition === 'সক্রিয়' ? '#15803d' : '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                        ● {dev.condition}
-                      </span>
-                    </div>
-                    <div style={{ fontWeight: 800, fontSize: '13.5px', color: '#0f172a', marginBottom: '3px' }}>{dev.name}</div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '6px' }}>{dev.model}</div>
-                    <div style={{ fontSize: '11.5px', color: '#334155', background: '#f8fafc', padding: '6px 8px', borderRadius: '6px', lineHeight: '1.5' }}>
-                      <div><b>CPU:</b> {dev.cpu}</div>
-                      <div><b>RAM & Storage:</b> {dev.ram} • {dev.storage}</div>
-                      {dev.ip && <div><b>IP:</b> <code style={{ color: '#0369a1' }}>{dev.ip}</code></div>}
-                    </div>
+            {/* The 3 Main Register Book Switcher Tabs */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: '12px',
+              marginBottom: '16px'
+            }}>
+              {/* 1st Book: Active Stock Register */}
+              <div
+                onClick={() => { setLabRegisterBook('active'); }}
+                style={{
+                  background: labRegisterBook === 'active' ? '#ecfdf5' : '#ffffff',
+                  border: labRegisterBook === 'active' ? '2.5px solid #059669' : '1px solid #cbd5e1',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  boxShadow: labRegisterBook === 'active' ? '0 4px 14px rgba(5, 150, 105, 0.15)' : 'none',
+                  transition: 'all 0.2s',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: 900, color: '#065f46', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🟢</span> ১ম বুক: সচল ষ্টক রেজিষ্টার
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                    <button type="button" onClick={() => { setLabDeviceForm(dev); setShowLabDeviceModal(true); }} style={{ padding: '4px 8px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}>✏️ সম্পাদনা</button>
-                    <button type="button" onClick={() => handleDeleteLabDevice(dev.id)} style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}>🗑️ মুছুন</button>
+                  <span style={{ background: '#059669', color: '#ffffff', padding: '2px 9px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                    {activeDevs.length} টি
+                  </span>
+                </div>
+                <div style={{ fontSize: '11.5px', color: '#047857', lineHeight: '1.4' }}>
+                  ল্যাপটপ, ডেস্কটপ, প্রিন্টার, স্মার্ট টিভি, প্রজেক্টর, আইপিএস সহ সকল সক্রিয় যন্ত্রপাতি।
+                </div>
+              </div>
+
+              {/* 2nd Book: Repairable Stock Register */}
+              <div
+                onClick={() => { setLabRegisterBook('repairable'); }}
+                style={{
+                  background: labRegisterBook === 'repairable' ? '#fffbeb' : '#ffffff',
+                  border: labRegisterBook === 'repairable' ? '2.5px solid #d97706' : '1px solid #cbd5e1',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  boxShadow: labRegisterBook === 'repairable' ? '0 4px 14px rgba(217, 119, 6, 0.15)' : 'none',
+                  transition: 'all 0.2s',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: 900, color: '#92400e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🟡</span> ২য় বুক: মেরামতযোগ্য ষ্টক রেজিষ্টার
+                  </div>
+                  <span style={{ background: '#d97706', color: '#ffffff', padding: '2px 9px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                    {repairDevs.length} টি
+                  </span>
+                </div>
+                <div style={{ fontSize: '11.5px', color: '#b45309', lineHeight: '1.4' }}>
+                  চিহ্নিত ত্রুটি, মেরামতে প্রেরণের তারিখ, সার্ভিস সেন্টার ও বাজেট হিসাবযুক্ত যন্ত্রপাতি।
+                </div>
+              </div>
+
+              {/* 3rd Book: Condemned / Scrap Stock Register */}
+              <div
+                onClick={() => { setLabRegisterBook('scrap'); }}
+                style={{
+                  background: labRegisterBook === 'scrap' ? '#fef2f2' : '#ffffff',
+                  border: labRegisterBook === 'scrap' ? '2.5px solid #dc2626' : '1px solid #cbd5e1',
+                  borderRadius: '12px',
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  boxShadow: labRegisterBook === 'scrap' ? '0 4px 14px rgba(220, 38, 38, 0.15)' : 'none',
+                  transition: 'all 0.2s',
+                  position: 'relative'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '14.5px', fontWeight: 900, color: '#991b1b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🔴</span> ৩য় বুক: অচল/অমেরামতযোগ্য ষ্টক
+                  </div>
+                  <span style={{ background: '#dc2626', color: '#ffffff', padding: '2px 9px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>
+                    {scrapDevs.length} টি
+                  </span>
+                </div>
+                <div style={{ fontSize: '11.5px', color: '#b91c1c', lineHeight: '1.4' }}>
+                  স্থায়ীভাবে অচল ও বাতিলকৃত যন্ত্রপাতি। কারণ, তারিখ ও নিলাম/স্ক্র্যাপ স্ট্যাটাস সহ হিসাব।
+                </div>
+              </div>
+            </div>
+
+            {/* Filter and Search Bar */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '10px',
+              padding: '10px 14px',
+              marginBottom: '16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>ফিল্টার করুন:</span>
+                <select
+                  value={labCategoryFilter}
+                  onChange={e => setLabCategoryFilter(e.target.value)}
+                  style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', background: '#ffffff', fontWeight: 600 }}
+                >
+                  <option value="all">সকল ক্যাটাগরি ({currentBookDevs.length} টি)</option>
+                  <option value="ল্যাপটপ">ল্যাপটপ</option>
+                  <option value="ডেস্কটপ">ডেস্কটপ</option>
+                  <option value="মনিটর">মনিটর</option>
+                  <option value="প্রিন্টার">প্রিন্টার</option>
+                  <option value="স্ক্যানার">স্ক্যানার</option>
+                  <option value="স্মার্ট টিভি">স্মার্ট টিভি</option>
+                  <option value="প্রজেক্টর">প্রজেক্টর</option>
+                  <option value="আইপিএস / ইউপিএস">আইপিএস / ইউপিএস</option>
+                  <option value="নেটওয়ার্ক ইকুইপমেন্ট">নেটওয়ার্ক ইকুইপমেন্ট</option>
+                  <option value="অন্যান্য">অন্যান্য</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Asset Tag, নাম, মডেল বা অবস্থান খুঁজুন..."
+                  value={labSearchQuery}
+                  onChange={e => setLabSearchQuery(e.target.value)}
+                  style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', minWidth: '220px', background: '#ffffff' }}
+                />
+
+                {(labCategoryFilter !== 'all' || labSearchQuery) && (
+                  <button
+                    type="button"
+                    onClick={() => { setLabCategoryFilter('all'); setLabSearchQuery(''); }}
+                    style={{ padding: '5px 10px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '11.5px', cursor: 'pointer', color: '#475569' }}
+                  >
+                    ✕ ফিল্টার রিসেট
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                  মোট ফলাফল: <b>{filteredDevs.length}</b> টি যন্ত্রপাতি
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handlePrintLabOfficialReport(labRegisterBook)}
+                  style={{
+                    padding: '5px 12px',
+                    background: '#ffffff',
+                    border: '1px solid #0f766e',
+                    color: '#0f766e',
+                    borderRadius: '6px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <span>🖨️</span> এই তালিকার রিপোর্ট
+                </button>
+              </div>
+            </div>
+
+            {/* Devices Cards Grid according to active Register Book */}
+            <div style={{ marginBottom: '24px' }}>
+              {filteredDevs.length === 0 ? (
+                <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '36px', textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+                  <div style={{ fontWeight: 800, fontSize: '14.5px', color: '#334155', marginBottom: '4px' }}>
+                    এই রেজিস্টার বুকে কোনো যন্ত্রপাতি পাওয়া যায়নি
+                  </div>
+                  <div style={{ fontSize: '12px' }}>
+                    {labRegisterBook === 'active' ? 'উপরে "➕ নতুন সচল যন্ত্রপাতি যোগ" বোতামে ক্লিক করে নতুন যন্ত্রপাতি অন্তর্ভুক্ত করুন।' :
+                     labRegisterBook === 'repairable' ? '১ম (সচল স্টক) বুক থেকে যেকোনো ডিভাইসে "🛠️ মেরামত প্রয়োজন" বোতামে ক্লিক করলে সেটি এখানে স্থানান্তরিত হবে।' :
+                     '১ম বা ২য় বুক থেকে যেকোনো ডিভাইসে "❌ অচল ঘোষণা" বোতামে ক্লিক করলে সেটি এই স্থায়ী কন্ডেমনেশন রেজিস্টারে নথিভুক্ত হবে।'}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                  {filteredDevs.map(dev => (
+                    <div
+                      key={dev.id}
+                      style={{
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderLeft: labRegisterBook === 'repairable' ? '5px solid #d97706' :
+                                    labRegisterBook === 'scrap' ? '5px solid #dc2626' : '5px solid #059669',
+                        borderRadius: '12px',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        transition: 'transform 0.15s, box-shadow 0.15s'
+                      }}
+                    >
+                      <div>
+                        {/* Top Badges */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '4px' }}>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '11px', background: '#0f172a', color: '#38bdf8', padding: '2px 7px', borderRadius: '4px', fontWeight: 800, letterSpacing: '0.3px', fontFamily: 'monospace' }}>
+                              🏷️ {dev.assetTag || 'MP-ICT'}
+                            </span>
+                            <span style={{ fontSize: '11px', background: '#f1f5f9', color: '#334155', padding: '2px 7px', borderRadius: '4px', fontWeight: 700 }}>
+                              {dev.category || 'অন্যান্য'}
+                            </span>
+                          </div>
+                          <span style={{
+                            fontSize: '11px',
+                            background: labRegisterBook === 'repairable' ? '#fffbeb' : labRegisterBook === 'scrap' ? '#fef2f2' : '#ecfdf5',
+                            color: labRegisterBook === 'repairable' ? '#b45309' : labRegisterBook === 'scrap' ? '#b91c1c' : '#047857',
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontWeight: 800,
+                            border: `1px solid ${labRegisterBook === 'repairable' ? '#fde68a' : labRegisterBook === 'scrap' ? '#fecaca' : '#a7f3d0'}`
+                          }}>
+                            ● {dev.condition || (labRegisterBook === 'repairable' ? 'মেরামত প্রক্রিয়াধীন' : labRegisterBook === 'scrap' ? 'অচল' : 'সক্রিয়')}
+                          </span>
+                        </div>
 
-          {/* Practical Timetable */}
-          <div style={{ marginBottom: '20px' }}>
-            <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
-              🗓️ সাপ্তাহিক ল্যাব ব্যবহারিক ক্লাসের সময়সূচি
-            </h4>
-            <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
-                    <th style={{ padding: '10px 12px' }}>বার (Day)</th>
-                    <th style={{ padding: '10px 12px' }}>পিরিয়ড ও সময়</th>
-                    <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
-                    <th style={{ padding: '10px 12px' }}>ব্যবহারিক বিষয়বস্তু (Topic)</th>
-                    <th style={{ padding: '10px 12px' }}>শিক্ষক</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(data.lab?.schedule || []).map((sch, idx) => (
-                    <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f766e' }}>{sch.day}</td>
-                      <td style={{ padding: '10px 12px', color: '#64748b' }}>{sch.period}</td>
-                      <td style={{ padding: '10px 12px' }}><b>{sch.class_name}</b> — {sch.subject}</td>
-                      <td style={{ padding: '10px 12px', color: '#334155' }}>{sch.topic}</td>
-                      <td style={{ padding: '10px 12px', color: '#0284c7', fontWeight: 600 }}>{sch.teacher}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                        <button type="button" onClick={() => { setLabScheduleForm(sch); setShowLabScheduleModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
-                        <button type="button" onClick={() => handleDeleteLabSchedule(sch.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
-                      </td>
-                    </tr>
+                        {/* Title & Model */}
+                        <div style={{ fontWeight: 900, fontSize: '14.5px', color: '#0f172a', marginBottom: '3px' }}>
+                          {dev.name}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
+                          {dev.model || 'মডেল স্পেসিফিকেশন'}
+                        </div>
+
+                        {/* Hardware Specifications */}
+                        <div style={{ fontSize: '11.5px', color: '#334155', background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', lineHeight: '1.5', marginBottom: '10px' }}>
+                          {dev.cpu && <div><b>প্রসেসর/ক্যাপাসিটি:</b> {dev.cpu}</div>}
+                          {(dev.ram || dev.storage) && <div><b>মেমরি ও স্টোরেজ:</b> {dev.ram || '—'} • {dev.storage || '—'}</div>}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', color: '#475569' }}>
+                            <span><b>অবস্থান:</b> {dev.desk || 'ল্যাব'}</span>
+                            {dev.ip && dev.ip !== 'N/A' && <span>IP: <code style={{ color: '#0284c7' }}>{dev.ip}</code></span>}
+                          </div>
+                          {dev.source && (
+                            <div style={{ fontSize: '10.5px', color: '#64748b', marginTop: '4px', borderTop: '1px dashed #e2e8f0', paddingTop: '4px' }}>
+                              <b>উৎস:</b> {dev.source} {dev.procurementYear ? `(${dev.procurementYear})` : ''}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Highlight Box for Repairable Register */}
+                        {labRegisterBook === 'repairable' && (
+                          <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '8px 10px', marginBottom: '10px', fontSize: '11.5px' }}>
+                            <div style={{ color: '#92400e', fontWeight: 800, marginBottom: '3px' }}>
+                              ⚠️ চিহ্নিত ত্রুটি: {dev.defectDetails || 'কারিগরি সমস্যা'}
+                            </div>
+                            <div style={{ color: '#78350f', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <div>📅 <b>প্রেরণের তারিখ:</b> {dev.sentForRepairDate || '—'}</div>
+                              <div>🏢 <b>সার্ভিস সেন্টার:</b> {dev.serviceCenter || 'জেলা আইসিটি সেল'} {dev.technicianPhone ? `(${dev.technicianPhone})` : ''}</div>
+                              <div>💰 <b>আনুমানিক খরচ:</b> {dev.estimatedCost || 'বাজেট চূড়ান্ত হয়নি'}</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Highlight Box for Scrap Register */}
+                        {labRegisterBook === 'scrap' && (
+                          <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '8px 10px', marginBottom: '10px', fontSize: '11.5px' }}>
+                            <div style={{ color: '#991b1b', fontWeight: 800, marginBottom: '3px' }}>
+                              🚫 অচল ঘোষণার কারণ: {dev.condemnReason || 'স্থায়ীভাবে অচল ও মেরামত অযোগ্য'}
+                            </div>
+                            <div style={{ color: '#7f1d1d', fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              <div>📅 <b>অচল ঘোষণার তারিখ:</b> {dev.condemnDate || '—'}</div>
+                              <div>🏷️ <b>নিষ্পত্তি অবস্থা:</b> {dev.disposalStatus || 'নিলামের জন্য সংরক্ষিত'}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Buttons Toolbar with 1-Click Transitions */}
+                      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '6px' }}>
+                        {/* 1. If currently in Active Register */}
+                        {labRegisterBook === 'active' && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleInitiateMoveToRepair(dev)}
+                                title="১-ক্লিকে ২য় (মেরামতযোগ্য স্টক) রেজিস্টারে পাঠান"
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#fffbeb',
+                                  border: '1px solid #f59e0b',
+                                  color: '#b45309',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <span>🛠️</span> মেরামত প্রয়োজন
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleInitiateMoveToScrap(dev)}
+                                title="১-ক্লিকে ৩য় (অচল ও স্ক্র্যাপ) রেজিস্টারে পাঠান"
+                                style={{
+                                  padding: '5px 8px',
+                                  background: '#fef2f2',
+                                  border: '1px solid #fca5a5',
+                                  color: '#b91c1c',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <span>❌</span> অচল ঘোষণা
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setLabDeviceForm(dev); setShowLabDeviceModal(true); }}
+                                style={{ padding: '4px 8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                ✏️ এডিট
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteLabDevice(dev.id)}
+                                style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. If currently in Repairable Register */}
+                        {labRegisterBook === 'repairable' && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleRestoreToActive(dev)}
+                                title="মেরামত সম্পন্ন! ১-ক্লিকে ১ম (সচল স্টক) বুকে ফেরত নিন"
+                                style={{
+                                  padding: '5px 12px',
+                                  background: '#059669',
+                                  border: 'none',
+                                  color: '#ffffff',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  boxShadow: '0 2px 4px rgba(5,150,105,0.2)'
+                                }}
+                              >
+                                <span>✅</span> মেরামত সম্পন্ন (সচল বুকে ফেরত)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleInitiateMoveToScrap(dev)}
+                                title="মেরামত সম্ভব নয়, ৩য় (অচল ও স্ক্র্যাপ) বুকে স্থানান্তর"
+                                style={{
+                                  padding: '5px 8px',
+                                  background: '#fef2f2',
+                                  border: '1px solid #fca5a5',
+                                  color: '#b91c1c',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <span>❌</span> অচল ঘোষণা
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setLabDeviceForm(dev); setShowLabDeviceModal(true); }}
+                                style={{ padding: '4px 8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteLabDevice(dev.id)}
+                                style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. If currently in Scrap Register */}
+                        {labRegisterBook === 'scrap' && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleRestoreFromScrapToActive(dev)}
+                                title="পুনরায় পরীক্ষা করে সচল তালিকায় পুনর্বহাল"
+                                style={{
+                                  padding: '5px 10px',
+                                  background: '#f0fdf4',
+                                  border: '1px solid #16a34a',
+                                  color: '#15803d',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <span>♻️</span> সচল বিবেচনা
+                              </button>
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setLabDeviceForm(dev); setShowLabDeviceModal(true); }}
+                                style={{ padding: '4px 8px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                ✏️ এডিট
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteLabDevice(dev.id)}
+                                style={{ padding: '4px 8px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '5px', fontSize: '11px', cursor: 'pointer' }}
+                              >
+                                🗑️ অপসারণ
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
+            </div>
+
+            {/* Practical Timetable */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ margin: '0 0 10px', fontSize: '14.5px', color: '#1e293b', fontWeight: 800 }}>
+                🗓️ সাপ্তাহিক ল্যাব ব্যবহারিক ক্লাসের সময়সূচি
+              </h4>
+              <div style={{ overflowX: 'auto', background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155' }}>
+                      <th style={{ padding: '10px 12px' }}>বার (Day)</th>
+                      <th style={{ padding: '10px 12px' }}>পিরিয়ড ও সময়</th>
+                      <th style={{ padding: '10px 12px' }}>শ্রেণি ও বিষয়</th>
+                      <th style={{ padding: '10px 12px' }}>ব্যবহারিক বিষয়বস্তু (Topic)</th>
+                      <th style={{ padding: '10px 12px' }}>শিক্ষক</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'right' }}>অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(data.lab?.schedule || []).map((sch, idx) => (
+                      <tr key={sch.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f766e' }}>{sch.day}</td>
+                        <td style={{ padding: '10px 12px', color: '#64748b' }}>{sch.period}</td>
+                        <td style={{ padding: '10px 12px' }}><b>{sch.class_name}</b> — {sch.subject}</td>
+                        <td style={{ padding: '10px 12px', color: '#334155' }}>{sch.topic}</td>
+                        <td style={{ padding: '10px 12px', color: '#0284c7', fontWeight: 600 }}>{sch.teacher}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                          <button type="button" onClick={() => { setLabScheduleForm(sch); setShowLabScheduleModal(true); }} style={{ padding: '3px 6px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '11px', marginRight: '4px', cursor: 'pointer' }}>✏️</button>
+                          <button type="button" onClick={() => handleDeleteLabSchedule(sch.id)} style={{ padding: '3px 6px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}>🗑️</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* 6. MULTIMEDIA CLASS TAB (মাল্টিমিডিয়া ক্লাস) */}
@@ -2450,59 +3556,261 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
       )}
 
       {/* ========================================================================= */}
-      {/* LAB DEVICE MODAL */}
+      {/* LAB DEVICE MODAL (COMPREHENSIVE ASSET ENTRY) */}
       {/* ========================================================================= */}
       {showLabDeviceModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowLabDeviceModal(false)}>
-          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '560px', padding: '24px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
               <h3 style={{ margin: 0, fontSize: '17px', color: '#0f766e', fontWeight: 800 }}>
-                💻 {labDeviceForm.id ? 'ডিভাইস তথ্য সম্পাদনা' : 'নতুন কম্পিউটার/ডিভাইস যোগ'}
+                💻 {labDeviceForm.id ? 'যন্ত্রপাতির তথ্য সম্পাদনা' : 'নতুন যন্ত্রপাতি রেজিস্টারভুক্তি'}
               </h3>
               <button type="button" onClick={() => setShowLabDeviceModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
             </div>
             <form onSubmit={handleSaveLabDevice} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডিভাইসের নাম *</label>
-                <input type="text" required value={labDeviceForm.name || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, name: e.target.value })} placeholder="যেমন: শিক্ষার্থী ওয়ার্কস্টেশন ০৫" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>মডেল ও ব্র্যান্ড</label>
-                  <input type="text" value={labDeviceForm.model || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, model: e.target.value })} placeholder="যেমন: Dell OptiPlex 3080" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>যন্ত্রপাতির নাম *</label>
+                  <input type="text" required value={labDeviceForm.name || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, name: e.target.value })} placeholder="যেমন: শিক্ষার্থী ওয়ার্কস্টেশন ০৭" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ডেস্ক / অবস্থান</label>
-                  <input type="text" value={labDeviceForm.desk || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, desk: e.target.value })} placeholder="যেমন: ডেস্ক-০৫" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রসেসর (CPU)</label>
-                  <input type="text" value={labDeviceForm.cpu || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, cpu: e.target.value })} placeholder="Core i3 10th Gen" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>RAM ও Storage</label>
-                  <input type="text" value={labDeviceForm.ram || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ram: e.target.value })} placeholder="8 GB • 256 GB SSD" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>IP অ্যাড্রেস</label>
-                  <input type="text" value={labDeviceForm.ip || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ip: e.target.value })} placeholder="192.168.1.15" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বর্তমান অবস্থা</label>
-                  <select value={labDeviceForm.condition || 'সক্রিয়'} onChange={e => setLabDeviceForm({ ...labDeviceForm, condition: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
-                    <option value="সক্রিয়">সক্রিয় (Active)</option>
-                    <option value="সার্ভিসিং">সার্ভিসিং (Under Maintenance)</option>
-                    <option value="অকেজো">অকেজো (Out of Order)</option>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ক্যাটাগরি *</label>
+                  <select value={labDeviceForm.category || 'ডেস্কটপ'} onChange={e => setLabDeviceForm({ ...labDeviceForm, category: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}>
+                    <option value="ল্যাপটপ">ল্যাপটপ</option>
+                    <option value="ডেস্কটপ">ডেস্কটপ</option>
+                    <option value="মনিটর">মনিটর</option>
+                    <option value="প্রিন্টার">প্রিন্টার</option>
+                    <option value="স্ক্যানার">স্ক্যানার</option>
+                    <option value="স্মার্ট টিভি">স্মার্ট টিভি</option>
+                    <option value="প্রজেক্টর">প্রজেক্টর</option>
+                    <option value="আইপিএস / ইউপিএস">আইপিএস / ইউপিএস</option>
+                    <option value="নেটওয়ার্ক ইকুইপমেন্ট">নেটওয়ার্ক ইকুইপমেন্ট</option>
+                    <option value="অন্যান্য">অন্যান্য</option>
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>Asset Tag ID</label>
+                  <input type="text" value={labDeviceForm.assetTag || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, assetTag: e.target.value })} placeholder="যেমন: MP-ICT-PC-07 (খালি রাখলে স্বয়ংক্রিয় তৈরি হবে)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontFamily: 'monospace' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>রেজিস্টার বুক নির্বাচন</label>
+                  <select value={labDeviceForm.registerType || labRegisterBook || 'active'} onChange={e => setLabDeviceForm({ ...labDeviceForm, registerType: e.target.value })} style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', fontWeight: 700 }}>
+                    <option value="active">🟢 ১ম বুক: সচল ষ্টক রেজিষ্টার</option>
+                    <option value="repairable">🟡 ২য় বুক: মেরামতযোগ্য ষ্টক রেজিষ্টার</option>
+                    <option value="scrap">🔴 ৩য় বুক: অচল/অমেরামতযোগ্য ষ্টক রেজিষ্টার</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>মডেল ও ব্র্যান্ড</label>
+                  <input type="text" value={labDeviceForm.model || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, model: e.target.value })} placeholder="যেমন: Dell OptiPlex 3080 Micro" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>ল্যাবে ডেস্ক / অবস্থান</label>
+                  <input type="text" value={labDeviceForm.desk || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, desk: e.target.value })} placeholder="যেমন: সারি-১, ডেস্ক-০৭" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রসেসর / ক্যাপাসিটি</label>
+                  <input type="text" value={labDeviceForm.cpu || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, cpu: e.target.value })} placeholder="যেমন: Intel Core i5 10th Gen" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>RAM ও Storage</label>
+                  <input type="text" value={labDeviceForm.ram || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ram: e.target.value })} placeholder="যেমন: 8 GB DDR4 • 256 GB SSD" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অর্থায়ন / প্রাপ্তির উৎস</label>
+                  <input type="text" value={labDeviceForm.source || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, source: e.target.value })} placeholder="যেমন: শেখ রাসেল ডিজিটাল ল্যাব (সরকারি)" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>প্রাপ্তির সাল</label>
+                  <input type="text" value={labDeviceForm.procurementYear || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, procurementYear: e.target.value })} placeholder="যেমন: ২০২১" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>IP অ্যাড্রেস (প্রযোজ্য হলে)</label>
+                  <input type="text" value={labDeviceForm.ip || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, ip: e.target.value })} placeholder="যেমন: 192.168.1.18" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বর্তমান অবস্থা / স্ট্যাটাস</label>
+                  <input type="text" value={labDeviceForm.condition || ''} onChange={e => setLabDeviceForm({ ...labDeviceForm, condition: e.target.value })} placeholder="যেমন: সক্রিয় ও নিখুঁত" style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
                 <button type="button" onClick={() => setShowLabDeviceModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
                 <button type="submit" style={{ padding: '8px 22px', background: '#0f766e', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>সংরক্ষণ করুন</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1-CLICK MOVE TO REPAIRABLE REGISTER MODAL */}
+      {/* ========================================================================= */}
+      {showMoveToRepairModal && itemToMove && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMoveToRepairModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #fde68a', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16.5px', color: '#b45309', fontWeight: 900 }}>
+                  🛠️ মেরামতযোগ্য তালিকায় স্থানান্তর
+                </h3>
+                <div style={{ fontSize: '12px', color: '#78350f', marginTop: '2px' }}>
+                  ডিভাইস: <b>{itemToMove.name}</b> ({itemToMove.assetTag})
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowMoveToRepairModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <form onSubmit={confirmMoveToRepair} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: '#92400e' }}>
+                  চিহ্নিত ত্রুটি বা সমস্যার সুনির্দিষ্ট বিবরণ *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={repairMoveForm.defectDetails}
+                  onChange={e => setRepairMoveForm({ ...repairMoveForm, defectDetails: e.target.value })}
+                  placeholder="যেমন: পাওয়ার অন হচ্ছে না, ডিসপ্লেতে ব্ল্যাঙ্ক বা কীবোর্ড কি-স্ট্রোক ত্রুটি..."
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>মেরামতে প্রেরণের তারিখ</label>
+                  <input
+                    type="text"
+                    value={repairMoveForm.sentForRepairDate}
+                    onChange={e => setRepairMoveForm({ ...repairMoveForm, sentForRepairDate: e.target.value })}
+                    placeholder="যেমন: ২৫ অক্টোবর ২০২৬"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>আনুমানিক মেরামত ব্যয়</label>
+                  <input
+                    type="text"
+                    value={repairMoveForm.estimatedCost}
+                    onChange={e => setRepairMoveForm({ ...repairMoveForm, estimatedCost: e.target.value })}
+                    placeholder="যেমন: ৳ ১,৫০০"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>সার্ভিস সেন্টার / মেকানিকের নাম</label>
+                <input
+                  type="text"
+                  value={repairMoveForm.serviceCenter}
+                  onChange={e => setRepairMoveForm({ ...repairMoveForm, serviceCenter: e.target.value })}
+                  placeholder="যেমন: জেলা আইসিটি সেল ও টেকনিক্যাল সার্ভিস, টাঙ্গাইল"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>মেকানিক / টেকনিশিয়ান ফোন</label>
+                <input
+                  type="text"
+                  value={repairMoveForm.technicianPhone}
+                  onChange={e => setRepairMoveForm({ ...repairMoveForm, technicianPhone: e.target.value })}
+                  placeholder="যেমন: ০১৭১২-XXXXXX"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMoveToRepairModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#d97706', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>
+                  নিশ্চিত করুন ও ২য় রেজিস্টারে পাঠান
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 1-CLICK MOVE TO CONDEMNED / SCRAP REGISTER MODAL */}
+      {/* ========================================================================= */}
+      {showMoveToScrapModal && itemToMove && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }} onClick={() => setShowMoveToScrapModal(false)}>
+          <div style={{ background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '520px', padding: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #fecaca', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16.5px', color: '#b91c1c', fontWeight: 900 }}>
+                  ❌ যন্ত্রপাতি অচল ঘোষণা (৩য় রেজিস্টার ভুক্তি)
+                </h3>
+                <div style={{ fontSize: '12px', color: '#7f1d1d', marginTop: '2px' }}>
+                  ডিভাইস: <b>{itemToMove.name}</b> ({itemToMove.assetTag})
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowMoveToScrapModal(false)} style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer' }}>✕</button>
+            </div>
+
+            <form onSubmit={confirmMoveToScrap} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px', color: '#991b1b' }}>
+                  অচল ও বাতিল ঘোষণার কারণ *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={scrapMoveForm.condemnReason}
+                  onChange={e => setScrapMoveForm({ ...scrapMoveForm, condemnReason: e.target.value })}
+                  placeholder="যেমন: মাদারবোর্ড পুড়ে নষ্ট ও মেরামত অযোগ্য অথবা প্রযুক্তিগতভাবে সম্পূর্ণ অপ্রচলিত..."
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>অচল ঘোষণার তারিখ</label>
+                  <input
+                    type="text"
+                    value={scrapMoveForm.condemnDate}
+                    onChange={e => setScrapMoveForm({ ...scrapMoveForm, condemnDate: e.target.value })}
+                    placeholder="যেমন: ২৫ অক্টোবর ২০২৬"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>বর্তমান নিষ্পত্তি স্ট্যাটাস</label>
+                  <select
+                    value={scrapMoveForm.disposalStatus}
+                    onChange={e => setScrapMoveForm({ ...scrapMoveForm, disposalStatus: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  >
+                    <option value="নিলামের জন্য সংরক্ষিত">নিলামের জন্য সংরক্ষিত</option>
+                    <option value="স্ক্র্যাপ হিসেবে সংরক্ষিত">স্ক্র্যাপ হিসেবে সংরক্ষিত</option>
+                    <option value="সরকারি অডিট ও কন্ডেমনেশন তালিকায়">সরকারি অডিট ও কন্ডেমনেশন তালিকায়</option>
+                    <option value="নিলাম সম্পন্ন ও অপসারিত">নিলাম সম্পন্ন ও অপসারিত</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setShowMoveToScrapModal(false)} style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>বাতিল</button>
+                <button type="submit" style={{ padding: '8px 22px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 800, fontSize: '13px', cursor: 'pointer' }}>
+                  নিশ্চিত করুন ও ৩য় রেজিস্টারে নথিভুক্ত করুন
+                </button>
               </div>
             </form>
           </div>
