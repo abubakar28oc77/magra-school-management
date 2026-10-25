@@ -95,6 +95,7 @@ import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
+import { SportsCultureModernSection } from './SportsCultureModernSection';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
@@ -311,6 +312,26 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       title?.includes('আইসিটি')
     ) {
       return <LanguageLiteratureClubSection initialTitle={title} menuKey={menuKey} onClose={onClose} />;
+    }
+
+    // Sports, Culture, Achievements, and Educational Tour Modernized Sections
+    if (
+      menuKey === 'public.nav.sport.sports' || 
+      menuKey === 'public.nav.sport.culture' ||
+      menuKey === 'public.nav.sport.achievements' ||
+      menuKey === 'public.nav.sport.tour' ||
+      menuKey === 'public.nav.sport.inter' ||
+      menuKey === 'public.nav.sport.scouts' ||
+      title?.includes('বার্ষিক ক্রীড়া') ||
+      title?.includes('ক্রীড়া') ||
+      title?.includes('সাংস্কৃতিক') ||
+      title?.includes('সংস্কৃতি') ||
+      title?.includes('অর্জন ও পুরস্কার') ||
+      title?.includes('পুরস্কার') ||
+      title?.includes('শিক্ষা সফর') ||
+      title?.includes('ট্যুর')
+    ) {
+      return <SportsCultureModernSection menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // Routine & Schedule (Class & Exam Routine)
@@ -1524,11 +1545,19 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     );
   };
 
-  const isClubModal = menuKey === 'public.nav.sport.clubs' || title?.includes('ভাষা ও সাহিত্য') || title?.includes('সাহিত্য') || title?.includes('ক্লাব');
+    const isClubModal = menuKey === 'public.nav.sport.clubs' || title?.includes('ভাষা ও সাহিত্য') || title?.includes('সাহিত্য') || title?.includes('ক্লাব');
+  const isWideModal = isClubModal || 
+    menuKey?.startsWith('public.nav.sport') || 
+    title?.includes('ক্রীড়া') || 
+    title?.includes('সাংস্কৃতিক') || 
+    title?.includes('সংস্কৃতি') || 
+    title?.includes('অর্জন') || 
+    title?.includes('পুরস্কার') || 
+    title?.includes('শিক্ষা সফর');
 
   return (
     <div className="submenu-modal-overlay" onClick={onClose}>
-      <div className="submenu-modal-card" style={isClubModal ? { maxWidth: '1080px', width: '96%' } : undefined} onClick={e => e.stopPropagation()}>
+      <div className="submenu-modal-card" style={isWideModal ? { maxWidth: '1100px', width: '96%' } : undefined} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>{title}</h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>
