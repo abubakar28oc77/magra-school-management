@@ -176,6 +176,77 @@ export function savePhotoToCacheAndIdb(student, dataUrl) {
   }
 }
 
+export async function saveLeadershipPhoto(roleKey, dataUrl) {
+  if (!roleKey || !dataUrl) return;
+  const key = `leadership_${roleKey}`.toLowerCase();
+  PHOTO_CACHE.set(key, dataUrl);
+  await idbSetPhoto(key, dataUrl);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('magra_photos_synced'));
+    window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+  }
+}
+
+export function getLeadershipPhoto(roleKey) {
+  if (!roleKey) return null;
+  const key = `leadership_${roleKey}`.toLowerCase();
+  return PHOTO_CACHE.get(key) || null;
+}
+
+// Client-side lightweight canvas image compressor to prevent LocalStorage 5MB quota errors
+export function compressImageToDataUrl(source, maxDimension = 360, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!source) return resolve('');
+    // If it's a File or Blob
+    if (typeof window !== 'undefined' && (source instanceof Blob || source instanceof File)) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        compressImageToDataUrl(reader.result, maxDimension, quality).then(resolve);
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(source);
+      return;
+    }
+    // If it's a string URL
+    if (typeof source === 'string') {
+      if (!source.startsWith('data:image/')) {
+        // Plain HTTP or static image URL
+        return resolve(source);
+      }
+      // If already compact (< 35KB), keep as is
+      if (source.length < 35000) {
+        return resolve(source);
+      }
+      if (typeof document === 'undefined') return resolve(source);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDimension || h > maxDimension) {
+            const ratio = Math.min(maxDimension / w, maxDimension / h);
+            w = Math.round(w * ratio);
+            h = Math.round(h * ratio);
+          }
+          canvas.width = Math.max(1, w);
+          canvas.height = Math.max(1, h);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressed);
+        } catch {
+          resolve(source);
+        }
+      };
+      img.onerror = () => resolve(source);
+      img.src = source;
+      return;
+    }
+    resolve(source);
+  });
+}
+
 // Auto-initialize on import in browser
 if (typeof window !== 'undefined') {
   setTimeout(() => {

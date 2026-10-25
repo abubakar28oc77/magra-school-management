@@ -346,33 +346,37 @@ export function getLeadershipData(teachersListInput) {
 
   // Build resolved entries
   const presCustom = custom.president || {};
+  const presPhoto = presCustom.photo || PHOTO_CACHE.get('leadership_president') || livePresidentTeacher?.photo_url || PHOTO_PRESIDENT;
   const president = {
     ...DEFAULT_LEADERSHIP_DATA.president,
     ...presCustom,
     name: presCustom.name || livePresidentTeacher?.name_bn || DEFAULT_LEADERSHIP_DATA.president.name,
-    photo: presCustom.photo || livePresidentTeacher?.photo_url || PHOTO_PRESIDENT,
+    photo: presPhoto,
+    msg: presCustom.msg || DEFAULT_LEADERSHIP_DATA.president.msg,
     speech: (presCustom.speech && Array.isArray(presCustom.speech) && presCustom.speech.length) ? presCustom.speech : (typeof presCustom.speech === 'string' ? presCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.president.speech)
   };
 
   const headCustom = custom.head || {};
-  const headPhoto = headCustom.photo || (liveHead ? getTeacherPhoto(liveHead) : PHOTO_HEAD_TEACHER);
+  const headPhoto = headCustom.photo || PHOTO_CACHE.get('leadership_head') || (liveHead ? getTeacherPhoto(liveHead) : PHOTO_HEAD_TEACHER);
   const headName = headCustom.name || liveHead?.name_bn || DEFAULT_LEADERSHIP_DATA.head.name;
   const head = {
     ...DEFAULT_LEADERSHIP_DATA.head,
     ...headCustom,
     name: headName,
     photo: headPhoto,
+    msg: headCustom.msg || DEFAULT_LEADERSHIP_DATA.head.msg,
     speech: (headCustom.speech && Array.isArray(headCustom.speech) && headCustom.speech.length) ? headCustom.speech : (typeof headCustom.speech === 'string' ? headCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.head.speech)
   };
 
   const asstCustom = custom.asst_head || {};
-  const asstPhoto = asstCustom.photo || (liveAsst ? getTeacherPhoto(liveAsst) : PHOTO_ASST_HEAD_TEACHER);
+  const asstPhoto = asstCustom.photo || PHOTO_CACHE.get('leadership_asst_head') || (liveAsst ? getTeacherPhoto(liveAsst) : PHOTO_ASST_HEAD_TEACHER);
   const asstName = asstCustom.name || liveAsst?.name_bn || DEFAULT_LEADERSHIP_DATA.asst_head.name;
   const asst_head = {
     ...DEFAULT_LEADERSHIP_DATA.asst_head,
     ...asstCustom,
     name: asstName,
     photo: asstPhoto,
+    msg: asstCustom.msg || DEFAULT_LEADERSHIP_DATA.asst_head.msg,
     speech: (asstCustom.speech && Array.isArray(asstCustom.speech) && asstCustom.speech.length) ? asstCustom.speech : (typeof asstCustom.speech === 'string' ? asstCustom.speech.split('\n\n').filter(Boolean) : DEFAULT_LEADERSHIP_DATA.asst_head.speech)
   };
 

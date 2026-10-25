@@ -76,6 +76,7 @@ import {
   getLeadershipData,
   DEFAULT_LEADERSHIP_DATA
 } from './mockData';
+import { saveLeadershipPhoto, compressImageToDataUrl } from './photoStorage.js';
 
 // Immediate Startup Session Sanitizer
 try {
@@ -4993,40 +4994,41 @@ function StaffPanel({sub}){
   const [inlineEditId, setInlineEditId] = useState(null);
   const [inlineForm, setInlineForm] = useState({});
 
-  const uploadPhoto = (x, e) => {
+  const uploadPhoto = async (x, e) => {
     const f = e.target.files?.[0];
     if (!f) return;
-    if (f.size > 2 * 1024 * 1024) {
-      setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');
+    if (f.size > 8 * 1024 * 1024) {
+      setMsg('ছবির আকার সর্বোচ্চ 8MB হতে হবে');
       return;
     }
-    const r = new FileReader();
-    r.onload = async () => {
+    setMsg('🔄 ছবি প্রসেস ও অপটিমাইজ করা হচ্ছে...');
+    try {
+      const compressed = await compressImageToDataUrl(f, 320, 0.82);
+      const base = isTeacher ? 'teachers' : 'staff';
+      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: compressed }) });
       try {
-        const base = isTeacher ? 'teachers' : 'staff';
-        await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: r.result }) });
-        try {
-          let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
-          const dName = (x.designation || '').toLowerCase();
-          const nBn = (x.name_bn || '').toLowerCase();
-          if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
-            leaderStored.head = { ...(leaderStored.head || {}), photo: r.result, name: x.name_bn || leaderStored.head?.name };
-          } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
-            leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: r.result, name: x.name_bn || leaderStored.asst_head?.name };
-          } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
-            leaderStored.president = { ...(leaderStored.president || {}), photo: r.result, name: x.name_bn || leaderStored.president?.name };
-          }
-          localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
-        } catch {}
-        setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
-        window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
-        window.dispatchEvent(new Event('storage'));
-        load();
-      } catch (err) {
-        setMsg(err.message || 'ছবি সংরক্ষণে ত্রুটি');
-      }
-    };
-    r.readAsDataURL(f);
+        let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+        const dName = (x.designation || '').toLowerCase();
+        const nBn = (x.name_bn || '').toLowerCase();
+        if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
+          leaderStored.head = { ...(leaderStored.head || {}), photo: compressed, name: x.name_bn || leaderStored.head?.name };
+          saveLeadershipPhoto('head', compressed);
+        } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
+          leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: compressed, name: x.name_bn || leaderStored.asst_head?.name };
+          saveLeadershipPhoto('asst_head', compressed);
+        } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
+          leaderStored.president = { ...(leaderStored.president || {}), photo: compressed, name: x.name_bn || leaderStored.president?.name };
+          saveLeadershipPhoto('president', compressed);
+        }
+        localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
+      } catch {}
+      setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটের বাণীতে যুক্ত হয়েছে`);
+      window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
+      window.dispatchEvent(new Event('storage'));
+      load();
+    } catch (err) {
+      setMsg(err.message || 'ছবি সংরক্ষণে ত্রুটি');
+    }
   };
 
   const printPersonProfile = (x) => {
@@ -6551,79 +6553,142 @@ function LeadershipSettingsPanel() {
     }));
   };
 
-  const handleFileUpload = (roleKey, e) => {
+  const handleFileUpload = async (roleKey, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2.5 * 1024 * 1024) {
-      setMsg('ছবির আকার সর্বোচ্চ 2.5 MB হতে হবে।');
+    if (file.size > 8 * 1024 * 1024) {
+      setMsg('ছবির আকার সর্বোচ্চ 8 MB হতে হবে।');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateLeader(roleKey, 'photo', reader.result);
-      setMsg(`📷 ছবি নির্বাচন করা হয়েছে! পরিবর্তন সংরক্ষণ করতে নিচে "সংরক্ষণ ও লাইভ সাইটে আপডেট করুন" বাটনে ক্লিক করুন।`);
-    };
-    reader.readAsDataURL(file);
+    setMsg('🔄 ছবি প্রসেস ও অপটিমাইজ করা হচ্ছে...');
+    try {
+      const compressed = await compressImageToDataUrl(file, 360, 0.82);
+      if (compressed) {
+        updateLeader(roleKey, 'photo', compressed);
+        saveLeadershipPhoto(roleKey, compressed);
+        setMsg(`📷 ছবি সফলভাবে অপটিমাইজ করা হয়েছে (সাইজ: ~${Math.round(compressed.length / 1024)} KB)! পরিবর্তন সংরক্ষণ করতে নিচে "সংরক্ষণ ও লাইভ সাইটে আপডেট করুন" বাটনে ক্লিক করুন।`);
+      }
+    } catch (err) {
+      setMsg('ছবি প্রসেসিংয়ে সমস্যা: ' + (err.message || ''));
+    }
   };
 
   const saveSettings = async (roleKey) => {
     try {
-      const current = data[roleKey];
-      // 1. Save leadership custom settings to localStorage
+      const current = data[roleKey] || {};
+      setMsg('🔄 তথ্য সংরক্ষণ ও লাইভ সাইটে আপডেট হচ্ছে...');
+
+      // 1. Ensure photo is compressed if it's a large data URL
+      let photoVal = current.photo || '';
+      if (photoVal && photoVal.startsWith('data:image/') && photoVal.length > 40000) {
+        try {
+          photoVal = await compressImageToDataUrl(photoVal, 360, 0.82);
+          updateLeader(roleKey, 'photo', photoVal);
+        } catch {}
+      }
+
+      // Persist to high-capacity IndexedDB & PHOTO_CACHE
+      if (photoVal && photoVal.startsWith('data:image/')) {
+        saveLeadershipPhoto(roleKey, photoVal);
+      }
+
+      // 2. Prepare payload for magra_db_leadership_settings
       let stored = {};
       try {
         stored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
       } catch {}
+
+      const cleanSpeech = typeof current.speech === 'string'
+        ? current.speech.split('\n\n').map(s => s.trim()).filter(Boolean)
+        : (Array.isArray(current.speech) ? current.speech : []);
+
       stored[roleKey] = {
-        name: current.name,
-        designation: current.designation || current.role,
-        photo: current.photo,
-        msg: current.msg,
-        speech: typeof current.speech === 'string' ? current.speech.split('\n\n').filter(Boolean) : current.speech
+        name: (current.name || '').trim(),
+        designation: (current.designation || current.role || '').trim(),
+        photo: photoVal,
+        msg: (current.msg || '').trim(),
+        speech: cleanSpeech
       };
-      localStorage.setItem('magra_db_leadership_settings', JSON.stringify(stored));
 
-      // 2. Synchronize with teachers table if it's head or assistant head
-      let localT = [];
+      // 3. Safe LocalStorage save with Quota protection
       try {
-        localT = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
-      } catch {}
-      if (!localT.length) localT = [...MOCK_TEACHERS];
-
-      let targetTeacher = null;
-      if (roleKey === 'head') {
-        targetTeacher = localT.find(t => 
-          t.public_contact_role === 'head_teacher' || 
-          (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
-          t.id === 't-1' ||
-          (t.name_bn && t.name_bn.includes('শফিকুল'))
-        );
-      } else if (roleKey === 'asst_head') {
-        targetTeacher = localT.find(t => 
-          t.public_contact_role === 'assistant_head_teacher' || 
-          (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
-          t.id === 't-2' ||
-          (t.name_bn && t.name_bn.includes('তাপসী'))
-        );
-      }
-
-      if (targetTeacher) {
-        const updatedTeacher = {
-          ...targetTeacher,
-          name_bn: current.name || targetTeacher.name_bn,
-          photo_url: current.photo || targetTeacher.photo_url
-        };
-        const updatedList = localT.map(t => t.id === targetTeacher.id ? updatedTeacher : t);
-        localStorage.setItem('magra_db_teachers', JSON.stringify(updatedList));
+        localStorage.setItem('magra_db_leadership_settings', JSON.stringify(stored));
+      } catch (quotaErr) {
+        console.warn('LocalStorage quota exceeded. Falling back to lightweight storage:', quotaErr);
+        // Prune bulky base64 photos from stored to save space in localStorage
+        const lightStored = { ...stored };
+        Object.keys(lightStored).forEach(k => {
+          if (lightStored[k] && lightStored[k].photo && lightStored[k].photo.length > 5000) {
+            lightStored[k] = { ...lightStored[k], photo: '' }; // Photo is safely retrieved from IndexedDB/PHOTO_CACHE
+          }
+        });
         try {
-          await api(`/teachers/${targetTeacher.id}`, { method: 'PUT', body: JSON.stringify(updatedTeacher) });
-        } catch {}
+          localStorage.setItem('magra_db_leadership_settings', JSON.stringify(lightStored));
+        } catch (e2) {
+          try {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const k = localStorage.key(i);
+              if (k && (k.startsWith('magra_photo_') || k.startsWith('temp_') || k.includes('cache'))) {
+                localStorage.removeItem(k);
+              }
+            }
+            localStorage.setItem('magra_db_leadership_settings', JSON.stringify(lightStored));
+          } catch (e3) {
+            console.error('Critical quota error writing leadership settings:', e3);
+          }
+        }
       }
 
-      // 3. Dispatch update event across tabs and public site
+      // 4. Synchronize with teachers table if it's head or assistant head
+      try {
+        let localT = [];
+        try {
+          localT = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
+        } catch {}
+        if (!localT.length) localT = [...MOCK_TEACHERS];
+
+        let targetTeacher = null;
+        if (roleKey === 'head') {
+          targetTeacher = localT.find(t => 
+            t.public_contact_role === 'head_teacher' || 
+            (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
+            t.id === 't-1' ||
+            (t.name_bn && t.name_bn.includes('শফিকুল'))
+          );
+        } else if (roleKey === 'asst_head') {
+          targetTeacher = localT.find(t => 
+            t.public_contact_role === 'assistant_head_teacher' || 
+            (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
+            t.id === 't-2' ||
+            (t.name_bn && t.name_bn.includes('তাপসী'))
+          );
+        }
+
+        if (targetTeacher) {
+          const updatedTeacher = {
+            ...targetTeacher,
+            name_bn: current.name || targetTeacher.name_bn,
+            photo_url: photoVal || targetTeacher.photo_url
+          };
+          const updatedList = localT.map(t => t.id === targetTeacher.id ? updatedTeacher : t);
+          try {
+            localStorage.setItem('magra_db_teachers', JSON.stringify(updatedList));
+          } catch (tQuotaErr) {
+            console.warn('Skipping magra_db_teachers localStorage update due to quota');
+          }
+          try {
+            await api(`/teachers/${targetTeacher.id}`, { method: 'PUT', body: JSON.stringify(updatedTeacher) });
+          } catch {}
+        }
+      } catch (syncErr) {
+        console.warn('Teacher sync warning:', syncErr);
+      }
+
+      // 5. Dispatch update events across tabs and public site
       window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
-      setMsg(`✅ ${current.role} (${current.name})-এর ছবি ও বাণী সফলভাবে আপডেট ও লাইভ ওয়েবসাইটে প্রকাশ হয়েছে!`);
-      setTimeout(() => setMsg(''), 6000);
+      window.dispatchEvent(new Event('storage'));
+      setMsg(`✅ ${current.role || 'প্রধান শিক্ষক'} (${current.name || ''})-এর ছবি, পূর্ণাঙ্গ বাণী ও সংক্ষিপ্ত বার্তা সফলভাবে সংরক্ষিত হয়েছে এবং লাইভ ওয়েবসাইটে প্রকাশ পেয়েছে!`);
+      setTimeout(() => setMsg(''), 7000);
     } catch (err) {
       setMsg('সংরক্ষণে ত্রুটি: ' + (err.message || 'অপ্রত্যাশিত সমস্যা'));
     }
