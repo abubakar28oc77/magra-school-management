@@ -1406,7 +1406,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
         </div>
 
         <div class="meta-bar">
-          <div><b>স্মারক নম্বর:</b> ${memoNum}</div>
+          <div><b>স্মারক নংঃ</b> ${memoNum}</div>
           <div><b>প্রতিবেদনের তারিখ:</b> ${todayBn} খ্রি.</div>
         </div>
 
@@ -1816,7 +1816,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
         </div>
 
         <div class="meta-bar">
-          <div><b>স্মারক নং:</b> ${memoNum}</div>
+          <div><b>স্মারক নংঃ</b> ${memoNum}</div>
           <div><b>প্রতিবেদন তৈরির তারিখ:</b> ${todayBn}</div>
         </div>
 
@@ -2141,7 +2141,7 @@ export function SportsCultureAdminEngine({ initialSection = 'sports' }) {
         </div>
 
         <div class="meta-bar">
-          <div><b>স্মারক নং:</b> ${memoNum}</div>
+          <div><b>স্মারক নংঃ</b> ${memoNum}</div>
           <div><b>প্রতিবেদন তারিখ:</b> ${todayBn}</div>
         </div>
 

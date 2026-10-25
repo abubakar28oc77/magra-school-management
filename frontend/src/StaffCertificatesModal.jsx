@@ -120,22 +120,8 @@ export function StaffCertificatesModal({
   const photo = getTeacherPhoto(person);
   const experienceDuration = calcExperienceText(currentJoining);
 
-  // Default Memo Number
-  const defaultMemoNo = useMemo(() => {
-    const padId = String(empId).padStart(3, '0');
-    const prefixMap = {
-      bonafide: 'মপাউবি/প্রত্যয়ন',
-      experience: 'মপাউবি/অভিজ্ঞতা',
-      professional: 'মপাউবি/পেশাগত',
-      continuous: 'মপাউবি/নিরবিচ্ছিন্ন',
-      release_order: 'মপাউবি/ছাড়পত্র',
-      biodata: 'মপাউবি/সিভি'
-    };
-    const pref = prefixMap[activeTab] || 'মপাউবি/অফিস';
-    return `${pref}/২০২৬/${padId}`;
-  }, [activeTab, empId]);
-
-  const memoNo = customMemoNo || defaultMemoNo;
+  // Memo Number (default empty so it displays only "স্মারক নংঃ")
+  const memoNo = (customMemoNo || '').trim();
 
   // Generate Document HTML based on active tab
   const generateDocumentHtml = () => {
@@ -156,12 +142,12 @@ export function StaffCertificatesModal({
                 <h1 class="school-name-title">${school.nameBn}</h1>
                 <h3 class="school-name-en-title">${school.nameEn}</h3>
                 <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬</p>
-                <p class="school-contact-info">ইমেইল: ${school.email} • মোবাইল: ${toBengaliDigits(school.phone)}</p>
+                <p class="school-contact-info">ইমেইল: ${school.email}</p>
               </div>
             </div>
 
             <div class="doc-meta-row">
-              <div class="meta-item"><b>স্মারক নং:</b> ${memoNo}</div>
+              <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
               <div class="meta-item"><b>তারিখ:</b> ${formattedIssueDate} খ্রি.</div>
             </div>
 
@@ -221,7 +207,7 @@ export function StaffCertificatesModal({
             </div>
 
             <div class="doc-meta-row">
-              <div class="meta-item"><b>স্মারক নং:</b> ${memoNo}</div>
+              <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
               <div class="meta-item"><b>তারিখ:</b> ${formattedIssueDate} খ্রি.</div>
             </div>
 
@@ -281,7 +267,7 @@ export function StaffCertificatesModal({
             </div>
 
             <div class="doc-meta-row">
-              <div class="meta-item"><b>স্মারক নং:</b> ${memoNo}</div>
+              <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
               <div class="meta-item"><b>তারিখ:</b> ${formattedIssueDate} খ্রি.</div>
             </div>
 
@@ -342,7 +328,7 @@ export function StaffCertificatesModal({
             </div>
 
             <div class="doc-meta-row">
-              <div class="meta-item"><b>স্মারক নং:</b> ${memoNo}</div>
+              <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
               <div class="meta-item"><b>তারিখ:</b> ${formattedIssueDate} খ্রি.</div>
             </div>
 
@@ -427,7 +413,7 @@ export function StaffCertificatesModal({
             </div>
 
             <div class="doc-meta-row">
-              <div class="meta-item"><b>স্মারক নং:</b> ${memoNo}</div>
+              <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
               <div class="meta-item"><b>তারিখ:</b> ${formattedIssueDate} খ্রি.</div>
             </div>
 
@@ -865,7 +851,7 @@ export function StaffCertificatesModal({
 
             <div class="staff-back-footer">
               <div class="head-name">${school.headTeacher}</div>
-              <div class="head-desig">প্রধান শিক্ষক • মোবাইল: ${toBengaliDigits(school.phone)}</div>
+              <div class="head-desig">প্রধান শিক্ষক${school.phone ? ` • মোবাইল: ${toBengaliDigits(school.phone)}` : ''}</div>
               <div class="inst-name">${school.nameBn}</div>
               <div class="inst-sub">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল।</div>
             </div>
@@ -1049,10 +1035,11 @@ export function StaffCertificatesModal({
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
               <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#047857' }}>⚙️ ডকুমেন্টের সাধারণ তথ্য</h4>
               <div style={{ marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>স্মারক নম্বর</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>স্মারক নংঃ</label>
                 <input
                   type="text"
-                  value={memoNo}
+                  placeholder="স্মারক নং (ঐচ্ছিক)"
+                  value={customMemoNo}
                   onChange={e => setCustomMemoNo(e.target.value)}
                   style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
                 />

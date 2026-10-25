@@ -861,8 +861,7 @@ export function RoutinePanel({ sub }) {
                   ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল
                 </p>
                 <p class="school-contact">
-                  ই-মেইল: ${school.email || 'magrapuhs.46@gmail.com'} &nbsp;|&nbsp;
-                  মোবাইল: ${toBnDigits(school.phone || '০১৭১২-৩৪৫৬৭৮')}
+                  ই-মেইল: ${school.email || 'magrapuhs.46@gmail.com'}${school.phone ? ` &nbsp;|&nbsp; মোবাইল: ${toBnDigits(school.phone)}` : ''}
                 </p>
               </div>
               <div class="header-right-shield">

@@ -345,7 +345,7 @@ export function StudentIdCardModal({ isOpen, onClose, students = [], initialStud
           <div class="footer-head-meta">
             <div class="footer-head-name">${school.headTeacher}</div>
             <div class="footer-head-desig">প্রধান শিক্ষক</div>
-            <div class="footer-head-phone">মোবাইল: ${toBengaliDigits(school.phone)}</div>
+            ${school.phone ? `<div class="footer-head-phone">মোবাইল: ${toBengaliDigits(school.phone)}</div>` : ''}
             <div class="footer-school-name">${school.nameBn}</div>
             <div class="footer-school-address">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাংগাইল।</div>
           </div>

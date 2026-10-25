@@ -420,7 +420,7 @@ export const MOCK_SCHOOL = {
   established: '1946',
   address: 'মগড়া, কালিহাতি, টাংগাইল',
   email: 'magrapuhs.46@gmail.com',
-  phone: '01712-345678',
+  phone: '',
   classes: ['6', '7', '8', '9', '10'],
   president: 'নেয়ামুল হক খান',
   headTeacher: 'মুহাম্মদ শফিকুল ইসলাম',

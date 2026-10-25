@@ -1476,7 +1476,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                 <div style="display: inline-block; background: #ecfdf5; color: #059669; border: 1px solid #059669; padding: 3px 14px; border-radius: 20px; font-weight: 800; font-size: 13px; margin-top: 4px;">${curMeta.title}</div>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 10px; padding: 6px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
-                <div><b>স্মারক নম্বর:</b> ${memoNum}</div>
+                <div><b>স্মারক নংঃ</b> ${memoNum}</div>
                 <div><b>প্রতিবেদনের তারিখ:</b> ${todayBn} খ্রি.</div>
               </div>
               <div style="background: #ffffff; border-left: 3px solid #0f766e; padding: 6px 10px; margin-bottom: 12px; font-size: 12px;">
@@ -1943,7 +1943,7 @@ export function SportsCultureModernSection({ category = '', menuKey = '', initia
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
-                <div><b>স্মারক নং:</b> ${memoNum}</div>
+                <div><b>স্মারক নংঃ</b> ${memoNum}</div>
                 <div><b>তারিখ:</b> ${todayBn}</div>
               </div>
               <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; text-align: center;">

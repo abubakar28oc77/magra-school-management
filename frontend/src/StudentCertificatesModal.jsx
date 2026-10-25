@@ -67,14 +67,8 @@ export function StudentCertificatesModal({
     return students.find(s => String(s.id) === String(selectedStudentId) || String(s.student_id) === String(selectedStudentId)) || students[0] || null;
   }, [students, selectedStudentId]);
 
-  // Derived default memo number based on student & type
-  const defaultMemoNo = useMemo(() => {
-    const code = student?.roll_no ? String(student.roll_no).padStart(3, '0') : '001';
-    const prefix = certType === 'testimonial' ? 'মপাউবি/প্রশংসা' : certType === 'transfer' ? 'মপাউবি/ছাড়পত্র' : 'মপাউবি/প্রত্যয়ন';
-    return `${prefix}/২০২৬/${code}`;
-  }, [certType, student?.id, student?.roll_no]);
-
-  const memoNo = customMemoNo || defaultMemoNo;
+  // Memo number (default empty so it displays only "স্মারক নংঃ")
+  const memoNo = (customMemoNo || '').trim();
   const birthDate = customBirthDate || formatBnDate(student?.date_of_birth || student?.extended_profile?.dob || '2010-01-01');
 
   // Filtered student list for dropdown
@@ -127,55 +121,21 @@ export function StudentCertificatesModal({
         </div>
       `;
     } else if (certType === 'transfer') {
-      titleBn = 'ছাড়পত্র / Transfer Certificate (TC)';
-      titleEn = 'TRANSFER CERTIFICATE / RELEASE ORDER';
+      titleBn = 'ছাড়পত্র';
+      titleEn = 'TRANSFER CERTIFICATE (TC)';
       contentHtml = `
-        <div class="cert-body-text tc-body">
-          <p class="cert-lead">এই মর্মে ছাড়পত্র প্রদান করা যাইতেছে যে,</p>
-          <div class="recipient-box">
-            <span class="recipient-name">${studentNameBn}</span>
-            ${student?.name_en ? `<span class="recipient-name-en">(${student.name_en})</span>` : ''}
-          </div>
-          <table class="tc-details-table">
-            <tr>
-              <td class="lbl">১. শিক্ষার্থীর আইডি ও রোল:</td>
-              <td class="val">স্টুডেন্ট আইডি: <b>${studentId}</b> • শ্রেণি রোল: <b>${rollNo}</b></td>
-            </tr>
-            <tr>
-              <td class="lbl">২. পিতা ও মাতার নাম:</td>
-              <td class="val">পিতা: <b>${fatherName}</b> • মাতা: <b>${motherName}</b></td>
-            </tr>
-            <tr>
-              <td class="lbl">৩. বর্তমান ও স্থায়ী ঠিকানা:</td>
-              <td class="val">গ্রাম: ${village}, ডাকঘর: ${postOffice}, উপজেলা: ${upazila}, জেলা: ${district}</td>
-            </tr>
-            <tr>
-              <td class="lbl">৪. জন্মতারিখ (রেকর্ড অনুযায়ী):</td>
-              <td class="val"><b>${birthDate}</b> ${student?.birth_registration_no ? `(জন্ম নিবন্ধন: ${student.birth_registration_no})` : ''}</td>
-            </tr>
-            <tr>
-              <td class="lbl">৫. ভর্তির শ্রেণি ও তারিখ:</td>
-              <td class="val">শ্রেণি: ${toBengaliDigits(student?.admission_class || student?.class_name || '৬')} • তারিখ: ${student?.admission_date ? toBengaliDigits(student.admission_date.slice(0, 10)) : '০১-০১-২০২৪'}</td>
-            </tr>
-            <tr>
-              <td class="lbl">৬. সর্বশেষ অধ্যয়নকৃত শ্রেণি:</td>
-              <td class="val">শ্রেণি: <b>${className}</b> (${deptName})</td>
-            </tr>
-            <tr>
-              <td class="lbl">৭. পাওনা পরিশোধের অবস্থা:</td>
-              <td class="val"><span class="badge-success">✓ <b>${paidUptoMonth}</b> পর্যন্ত বিদ্যালয়ের সকল বেতন ও ফি পরিশোধিত</span></td>
-            </tr>
-            <tr>
-              <td class="lbl">৮. আচরণ ও শৃঙ্খলা:</td>
-              <td class="val">তাহার আচরণ ও নৈতিক চরিত্র <b>${conductRemark}</b> এবং সন্তোষজনক।</td>
-            </tr>
-            <tr>
-              <td class="lbl">৯. ছাড়পত্র প্রদানের কারণ:</td>
-              <td class="val"><b>${tcReason}</b></td>
-            </tr>
-          </table>
-          <p class="cert-wish" style="margin-top: 15px;">
-            তাঁহার ভবিষ্যৎ শিক্ষা জীবনে সর্বাঙ্গীন মঙ্গল ও সাফল্য কামনা করি।
+        <div class="cert-body-text">
+          <p class="cert-para">
+            এই মর্মে ছাড়পত্র প্রদান করা যাইতেছে যে, <b class="cert-highlight-name">${studentNameBn}</b>${student?.name_en ? ` (${student.name_en})` : ''}, পিতা: <b>${fatherName}</b>, মাতা: <b>${motherName}</b>, গ্রাম: <b>${village}</b>, ডাকঘর: <b>${postOffice}</b>, উপজেলা: <b>${upazila}</b>, জেলা: <b>${district}</b>; সে ঐতিহ্যবাহী <b>${school.nameBn}</b>-এর <b>শ্রেণি ${className}</b> (${deptName})-এ নিয়মিত অধ্যয়নরত ছিল। তাহার স্টুডেন্ট আইডি: <b>${studentId}</b> এবং শ্রেণি রোল নম্বর: <b>${rollNo}</b>। বিদ্যালয়ের ভর্তি বহির রেকর্ড অনুযায়ী তাহার জন্ম তারিখ: <b>${birthDate}</b> খ্রি.${student?.birth_registration_no ? ` (জন্ম নিবন্ধন নং: ${toBengaliDigits(student.birth_registration_no)})` : ''}।
+          </p>
+          <p class="cert-para">
+            বিদ্যালয়ের রেকর্ড ও হিসাব বহির তথ্যানুযায়ী তাহার <b>${paidUptoMonth}</b> পর্যন্ত সর্বপ্রকার বেতন, সেশন চার্জ ও ফি পরিশোধিত রহিয়াছে এবং অত্র প্রতিষ্ঠানের নিকট তাহার কোনো প্রকার আর্থিক বা প্রাতিষ্ঠানিক দেনা-পাওনা বকেয়া নাই। <b>${tcReason}</b> তাহার অভিভাবকের আবেদনের প্রেক্ষিতে অত্র বিদ্যালয় হইতে এই ছাড়পত্র (Transfer Certificate) মঞ্জুর ও প্রদান করা হইল।
+          </p>
+          <p class="cert-para">
+            বিদ্যালয়ে অধ্যয়নকালে সে সর্বদা নম্র, ভদ্র, বিনয়ী ও নিয়মানুবর্তী ছিল। বিদ্যালয়ের নিয়ম-শৃঙ্খলা পরিপন্থী বা নৈতিকতা বিরোধী কোনো কার্যকলাপে সে কখনো লিপ্ত ছিল না। তাহার নৈতিক চরিত্র <b>${conductRemark || 'উত্তম ও প্রশংসনীয়'}</b>।
+          </p>
+          <p class="cert-para cert-closing-para">
+            আমি তাহার ভবিষ্যৎ শিক্ষা ও ব্যক্তিজীবনের সর্বাঙ্গীন মঙ্গল, উন্নতি ও উত্তরোত্তর সাফল্য কামনা করি।
           </p>
         </div>
       `;
@@ -212,7 +172,7 @@ export function StudentCertificatesModal({
                   <p class="cert-school-sub">
                     EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ • ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল
                   </p>
-                  <p class="cert-school-contact">Email: ${school.email} • Mobile: ${school.phone}</p>
+                  <p class="cert-school-contact">Email: ${school.email}</p>
                 </div>
               </div>
               <div class="cert-type-ribbon">
@@ -223,7 +183,7 @@ export function StudentCertificatesModal({
 
             <!-- Reference & Date Line -->
             <div class="cert-ref-date">
-              <div class="ref-col">স্মারক নং: <b>${memoNo}</b></div>
+              <div class="ref-col">স্মারক নংঃ <b>${memoNo}</b></div>
               <div class="date-col">তারিখ: <b>${toBengaliDigits(issueDate)}</b> খ্রি.</div>
             </div>
 
@@ -475,10 +435,11 @@ export function StudentCertificatesModal({
             {/* Memo No & Date */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>স্মারক নং:</label>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#334155' }}>স্মারক নংঃ</label>
                 <input
                   type="text"
-                  value={memoNo}
+                  placeholder="স্মারক নং (ঐচ্ছিক)"
+                  value={customMemoNo}
                   onChange={e => setCustomMemoNo(e.target.value)}
                   style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                 />
