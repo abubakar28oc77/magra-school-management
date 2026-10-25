@@ -94,7 +94,30 @@ export function sortStudentsList(list) {
   });
 }
 
-import { saveStudentCustomPhoto } from './mockData.js';
+import {
+  MOCK_MARKS,
+  MOCK_SCHOOL,
+  MOCK_USERS,
+  MOCK_STUDENTS,
+  MOCK_TEACHERS,
+  MOCK_STAFF,
+  MOCK_COMMITTEE,
+  DEFAULT_ACADEMIC_YEARS,
+  MOCK_NOTICES,
+  MOCK_EXAMS,
+  MOCK_SUBJECTS,
+  MOCK_ROUTINES,
+  MOCK_FEES,
+  MOCK_EXPENSES,
+  MOCK_BOOKS,
+  MOCK_ADMISSIONS,
+  getStudentPhoto,
+  saveStudentCustomPhoto,
+  MOCK_SCHOLARSHIPS,
+  MOCK_PUBLIC_CONTENT,
+  MOCK_SSC_RESULTS,
+  CANONICAL_TEACHER_EDUCATION
+} from './mockData.js';
 import { saveTeacherCustomPhoto } from './photoStorage.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
 import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
