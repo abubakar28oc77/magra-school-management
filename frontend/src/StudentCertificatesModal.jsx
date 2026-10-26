@@ -253,10 +253,7 @@ export function StudentCertificatesModal({
                 <div class="sign-name">শ্রেণি শিক্ষকের স্বাক্ষর</div>
                 <div class="sign-desig">${school.nameBn}</div>
               </div>
-              <div class="sign-block seal-block">
-                <div class="official-seal-circle"></div>
-                <div class="seal-caption">(অফিসিয়াল সিল)</div>
-              </div>
+
               <div class="sign-block right-sign">
                 <div class="sign-space"></div>
                 <div class="sign-bar"></div>
