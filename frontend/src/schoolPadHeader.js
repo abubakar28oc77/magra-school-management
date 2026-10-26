@@ -27,7 +27,7 @@ export const SCHOOL_PAD_HEADER_HTML = `
 export const SCHOOL_PAD_STYLES = `
   .school-pad-header {
     display: grid !important;
-    grid-template-columns: minmax(175px, 1fr) auto minmax(175px, 1fr) !important;
+    grid-template-columns: 1fr auto 1fr !important;
     align-items: center !important;
     width: 100% !important;
     margin-bottom: 2px !important;
@@ -41,6 +41,7 @@ export const SCHOOL_PAD_STYLES = `
     align-items: center !important;
     justify-content: flex-start !important;
     width: auto !important;
+    margin-left: 0 !important;
   }
 
   .pad-logo-img {
@@ -59,6 +60,7 @@ export const SCHOOL_PAD_STYLES = `
     justify-content: center !important;
     gap: 1.5px !important;
     padding: 0 4px !important;
+    margin: 0 auto !important;
   }
 
   .pad-title-bn {
@@ -116,12 +118,14 @@ export const SCHOOL_PAD_STYLES = `
   .pad-codes-box {
     justify-self: end !important;
     margin-left: auto !important;
+    margin-right: 0 !important;
     background: #e2efda !important;
     border: 1px solid #c8e6c9 !important;
     border-radius: 4px !important;
-    padding: 5px 9px !important;
+    padding: 4px 6px !important;
     text-align: left !important;
-    min-width: 165px !important;
+    width: fit-content !important;
+    max-width: fit-content !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
@@ -139,6 +143,7 @@ export const SCHOOL_PAD_STYLES = `
     margin-bottom: 2px !important;
     letter-spacing: 0.5px !important;
     padding-bottom: 1px !important;
+    white-space: nowrap !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -167,7 +172,7 @@ export const SCHOOL_PAD_STYLES = `
     border-top: 1px solid #111 !important;
     border-bottom: 2px solid #111 !important;
     margin-top: 6px !important;
-    margin-bottom: 14px !important;
+    margin-bottom: 8px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

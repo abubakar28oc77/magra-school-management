@@ -218,16 +218,20 @@ export function StudentCertificatesModal({
             <!-- School Header -->
             <div class="cert-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
               ${SCHOOL_PAD_HEADER_HTML}
+            </div>
+
+            <!-- Reference & Date Line (প্যাডের দাগের নিচে) -->
+            <div class="cert-ref-date">
+              <div class="ref-col">স্মারক নংঃ <b>${memoNo}</b></div>
+              <div class="date-col">তারিখ: <b>${formatBnDate(issueDate)}</b> খ্রি.</div>
+            </div>
+
+            <!-- Certificate Type Ribbon (স্মারক ও তারিখের নিচে প্রত্যয়নপত্র, ছাড়পত্র, প্রশংসাপত্র ইত্যাদি) -->
+            <div class="cert-ribbon-row">
               <div class="cert-type-ribbon">
                 <div class="ribbon-bn">${titleBn}</div>
                 <div class="ribbon-en">${titleEn}</div>
               </div>
-            </div>
-
-            <!-- Reference & Date Line -->
-            <div class="cert-ref-date">
-              <div class="ref-col">স্মারক নংঃ <b>${memoNo}</b></div>
-              <div class="date-col">তারিখ: <b>${formatBnDate(issueDate)}</b> খ্রি.</div>
             </div>
 
             <!-- Main Content with Watermark -->
@@ -1657,8 +1661,13 @@ export const certificateStyles = `
   }
 
   /* Ribbon Title */
+  .cert-ribbon-row {
+    text-align: center;
+    margin: 4px 0 16px;
+  }
+
   .cert-type-ribbon {
-    margin: 10px auto 0;
+    margin: 0 auto;
     display: inline-block;
     background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
     color: #ffffff;
@@ -1689,15 +1698,18 @@ export const certificateStyles = `
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 700;
     color: #1e293b;
-    border-bottom: 1px dashed #cbd5e1;
-    padding-bottom: 8px;
-    margin-bottom: 20px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding: 0 4px;
+    border-bottom: none;
   }
 
   .ref-col b, .date-col b {
     color: #0f172a;
+    font-weight: 700;
   }
 
   /* Main Body with classical typography */

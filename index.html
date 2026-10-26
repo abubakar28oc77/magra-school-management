@@ -2541,7 +2541,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
 `,La=`
   .school-pad-header {
     display: grid !important;
-    grid-template-columns: minmax(175px, 1fr) auto minmax(175px, 1fr) !important;
+    grid-template-columns: 1fr auto 1fr !important;
     align-items: center !important;
     width: 100% !important;
     margin-bottom: 2px !important;
@@ -2555,6 +2555,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     align-items: center !important;
     justify-content: flex-start !important;
     width: auto !important;
+    margin-left: 0 !important;
   }
 
   .pad-logo-img {
@@ -2573,6 +2574,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     justify-content: center !important;
     gap: 1.5px !important;
     padding: 0 4px !important;
+    margin: 0 auto !important;
   }
 
   .pad-title-bn {
@@ -2630,12 +2632,14 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   .pad-codes-box {
     justify-self: end !important;
     margin-left: auto !important;
+    margin-right: 0 !important;
     background: #e2efda !important;
     border: 1px solid #c8e6c9 !important;
     border-radius: 4px !important;
-    padding: 5px 9px !important;
+    padding: 4px 6px !important;
     text-align: left !important;
-    min-width: 165px !important;
+    width: fit-content !important;
+    max-width: fit-content !important;
     box-sizing: border-box !important;
     display: flex !important;
     flex-direction: column !important;
@@ -2653,6 +2657,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     margin-bottom: 2px !important;
     letter-spacing: 0.5px !important;
     padding-bottom: 1px !important;
+    white-space: nowrap !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -2681,7 +2686,7 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     border-top: 1px solid #111 !important;
     border-bottom: 2px solid #111 !important;
     margin-top: 6px !important;
-    margin-bottom: 14px !important;
+    margin-bottom: 8px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -3958,16 +3963,20 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
             \x3C!-- School Header -->
             <div class="cert-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
               ${Ia}
+            </div>
+
+            \x3C!-- Reference & Date Line (প্যাডের দাগের নিচে) -->
+            <div class="cert-ref-date">
+              <div class="ref-col">স্মারক নংঃ <b>${V}</b></div>
+              <div class="date-col">তারিখ: <b>${z(A)}</b> খ্রি.</div>
+            </div>
+
+            \x3C!-- Certificate Type Ribbon (স্মারক ও তারিখের নিচে প্রত্যয়নপত্র, ছাড়পত্র, প্রশংসাপত্র ইত্যাদি) -->
+            <div class="cert-ribbon-row">
               <div class="cert-type-ribbon">
                 <div class="ribbon-bn">${r}</div>
                 <div class="ribbon-en">${i}</div>
               </div>
-            </div>
-
-            \x3C!-- Reference & Date Line -->
-            <div class="cert-ref-date">
-              <div class="ref-col">স্মারক নংঃ <b>${V}</b></div>
-              <div class="date-col">তারিখ: <b>${z(A)}</b> খ্রি.</div>
             </div>
 
             \x3C!-- Main Content with Watermark -->
@@ -4283,8 +4292,13 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
   }
 
   /* Ribbon Title */
+  .cert-ribbon-row {
+    text-align: center;
+    margin: 4px 0 16px;
+  }
+
   .cert-type-ribbon {
-    margin: 10px auto 0;
+    margin: 0 auto;
     display: inline-block;
     background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
     color: #ffffff;
@@ -4315,15 +4329,18 @@ CREATE POLICY "Allow anon insert/update students" ON public.students FOR ALL USI
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
+    font-weight: 700;
     color: #1e293b;
-    border-bottom: 1px dashed #cbd5e1;
-    padding-bottom: 8px;
-    margin-bottom: 20px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    padding: 0 4px;
+    border-bottom: none;
   }
 
   .ref-col b, .date-col b {
     color: #0f172a;
+    font-weight: 700;
   }
 
   /* Main Body with classical typography */
