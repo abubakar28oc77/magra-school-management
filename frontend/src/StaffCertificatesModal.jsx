@@ -2,6 +2,16 @@ import React, { useState, useMemo } from 'react';
 import { MOCK_SCHOOL, getTeacherPhoto } from './mockData.js';
 import schoolLogo from '../public/school-logo.png';
 
+export const STAFF_CERT_CONFIG = {
+  bonafide: { label: '📜 প্রত্যয়নপত্র', title: 'প্রত্যয়নপত্র (Bonafide Certificate)', color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+  experience: { label: '🏆 অভিজ্ঞতার সনদ', title: 'অভিজ্ঞতার সনদ (Experience Certificate)', color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+  professional: { label: '🎖️ পেশাগত সনদ', title: 'পেশাগত সনদ (Professional Certificate)', color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+  continuous: { label: '⏱️ নিরবিচ্ছিন্ন চাকুরী সনদ', title: 'নিরবিচ্ছিন্ন চাকুরী সনদ (Continuous Service)', color: '#7e22ce', bg: '#faf5ff', border: '#e9d5ff' },
+  release_order: { label: '✈️ প্রশিক্ষণ ছাড়পত্র', title: 'প্রশিক্ষণ ছাড়পত্র ও অবমুক্তি আদেশ (Release Order)', color: '#c2410c', bg: '#fff7ed', border: '#fed7aa' },
+  biodata: { label: '📄 আকর্ষণীয় বায়োডাটা (CV)', title: 'শিক্ষক/কর্মচারী প্রাতিষ্ঠানিক বায়োডাটা (CV)', color: '#1e3a8a', bg: '#eff6ff', border: '#bfdbfe' },
+  id_card: { label: '🪪 শিক্ষক পরিচয়পত্র', title: 'অফিশিয়াল পরিচয়পত্র (ID Card)', color: '#4338ca', bg: '#eef2ff', border: '#c7d2fe' }
+};
+
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
 export const toBengaliDigits = (num) => {
   if (num === null || num === undefined) return '';
@@ -13,11 +23,29 @@ export function StaffCertificatesModal({
   onClose,
   people = [],
   initialPersonId = '',
-  initialTab = 'bonafide' // 'bonafide', 'experience', 'professional', 'continuous', 'release_order', 'biodata', 'id_card'
+  initialTab = 'bonafide' // 'bonafide', 'experience', 'professional', 'continuous', 'release_order', 'biodata', 'id_card', 'office_copies'
 }) {
   const [activeTab, setActiveTab] = useState(initialTab || 'bonafide');
   const [selectedPersonId, setSelectedPersonId] = useState(initialPersonId || (people[0]?.id || ''));
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Soft Office Copies Archive & Tracking State
+  const [officeCopies, setOfficeCopies] = useState(() => {
+    try {
+      const raw = localStorage.getItem('magra_staff_certificate_office_copies');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Failed to load staff office copies', e);
+      return [];
+    }
+  });
+  const [officeNotes, setOfficeNotes] = useState('');
+  const [saveToast, setSaveToast] = useState(null);
+  const [archiveSearch, setArchiveSearch] = useState('');
+  const [archiveTypeFilter, setArchiveTypeFilter] = useState('all');
+  const [archivePersonFilter, setArchivePersonFilter] = useState('all');
+  const [previewCopyModal, setPreviewCopyModal] = useState(null);
+  const [previewCopyFormat, setPreviewCopyFormat] = useState('office'); // 'office' | 'original'
 
   // Customizable certificate fields
   const [customMemoNo, setCustomMemoNo] = useState('');
@@ -863,6 +891,81 @@ export function StaffCertificatesModal({
     return '';
   };
 
+  // Persist office copies to localStorage
+  const persistOfficeCopies = (newList) => {
+    setOfficeCopies(newList);
+    try {
+      localStorage.setItem('magra_staff_certificate_office_copies', JSON.stringify(newList));
+    } catch (e) {
+      console.error('Failed to save staff office copies', e);
+    }
+  };
+
+  // Generate official tracking reference number (e.g., OC-2026-0001)
+  const generateRefNo = () => {
+    const year = new Date().getFullYear();
+    const countThisYear = officeCopies.filter(c => c.ref_no && c.ref_no.startsWith(`OC-${year}`)).length + 1;
+    return `OC-${year}-${String(countThisYear).padStart(4, '0')}`;
+  };
+
+  // Save a soft office copy into local database
+  const handleSaveOfficeCopy = (silent = false) => {
+    if (!person) {
+      alert('অনুগ্রহ করে একজন শিক্ষক বা কর্মচারী নির্বাচন করুন।');
+      return null;
+    }
+    const currentDocHtml = generateDocumentHtml();
+    const refNo = generateRefNo();
+    const newRecord = {
+      id: 'soc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      ref_no: refNo,
+      memo_no: memoNo || 'স্মারক নং অনুল্লেখিত',
+      issue_date: issueDate,
+      saved_at: new Date().toISOString(),
+      certificate_type: activeTab,
+      certificate_title: STAFF_CERT_CONFIG[activeTab]?.title || activeTab,
+      person_id: person.id,
+      person_name_bn: personNameBn,
+      person_name_en: personNameEn,
+      employee_id: empId,
+      designation: designation,
+      subject: subject,
+      phone: phone,
+      email: email,
+      blood_group: blood,
+      nid: nid,
+      gender: gender,
+      photo: photo,
+      custom_fields: {
+        customMemoNo,
+        issueDate,
+        conductAppraisal,
+        trainingSubject,
+        trainingInstitute,
+        trainingLocation,
+        trainingStartDate,
+        trainingEndDate,
+        trainingDurationText,
+        continuousServiceRemarks,
+        officeNotes: officeNotes.trim()
+      },
+      document_html: currentDocHtml,
+      status: 'active'
+    };
+
+    const updated = [newRecord, ...officeCopies];
+    persistOfficeCopies(updated);
+
+    if (!silent) {
+      setSaveToast({
+        type: 'success',
+        msg: `✅ সফলভাবে সফট অফিস কপি জমা রাখা হয়েছে! (রেফারেন্স: ${refNo})`
+      });
+      setTimeout(() => setSaveToast(null), 3500);
+    }
+    return newRecord;
+  };
+
   // Print triggered function
   const handlePrint = () => {
     const w = window.open('', '_blank', 'width=1000,height=850');
@@ -876,7 +979,7 @@ export function StaffCertificatesModal({
       <html lang="bn">
       <head>
         <meta charset="utf-8">
-        <title>${memoNo} - ${personNameBn}</title>
+        <title>${memoNo || 'Certificate'} - ${personNameBn}</title>
         <style>
           ${staffDocumentStyles}
           body {
@@ -910,6 +1013,261 @@ export function StaffCertificatesModal({
     w.document.close();
   };
 
+  // One-click Print and Save Office Copy
+  const handlePrintAndSave = () => {
+    const saved = handleSaveOfficeCopy(true);
+    handlePrint();
+    setSaveToast({
+      type: 'success',
+      msg: `🖨️ প্রিন্ট সম্পন্ন ও সফট অফিস কপি সংরক্ষিত হয়েছে! (${saved ? saved.ref_no : ''})`
+    });
+    setTimeout(() => setSaveToast(null), 4000);
+  };
+
+  // Re-print or print as official Office Copy from archive
+  const handlePrintArchived = (record, asOfficeCopy = false) => {
+    const w = window.open('', '_blank', 'width=1000,height=850');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজার থেকে অনুমতি দিন।');
+      return;
+    }
+
+    const officeHeaderHtml = asOfficeCopy ? `
+      <div class="office-copy-top-banner">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="background:#047857;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:0.5px;">📁 অফিস রেকর্ড কপি • OFFICE COPY</span>
+            <span style="font-size:12px;font-weight:800;color:#064e3b;">রেফারেন্স: ${record.ref_no}</span>
+          </div>
+          <div style="font-size:11px;color:#334155;margin-top:3px;">
+            স্মারক নং: <b>${record.memo_no}</b> • ইস্যু তারিখ: <b>${formatBnDate(record.issue_date)}</b> • সনদ: <b>${record.certificate_title}</b>
+          </div>
+        </div>
+        <div style="text-align:right;font-size:11px;color:#475569;">
+          <div>ডিজিটাল সংরক্ষণ: <b>${new Date(record.saved_at).toLocaleString('bn-BD')}</b></div>
+          <div>গ্রহীতা: <b>${record.person_name_bn}</b> (${record.designation})</div>
+        </div>
+      </div>
+    ` : '';
+
+    const officeFooterHtml = asOfficeCopy ? `
+      <div class="office-copy-bottom-meta">
+        <div>
+          <div>দাপ্তরিক রেজিস্টার পৃষ্ঠা নং: ____________________</div>
+          <div style="margin-top:3px;">নথি/ফাইল নং: ____________________</div>
+          <div style="margin-top:3px;color:#047857;font-weight:600;font-size:10px;">ডিজিটাল সফট কপি ডাটাবেসে নথিভুক্ত সংরক্ষিত</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="border-top:1px dotted #475569;width:140px;margin:18px auto 3px;"></div>
+          <b>অফিস সহকারী / নথি রক্ষক</b>
+        </div>
+        <div style="text-align:right;">
+          <div style="border-top:1px dotted #475569;width:150px;margin:18px 0 3px auto;"></div>
+          <b>প্রতিষ্ঠান প্রধানের প্রতিস্বাক্ষর</b>
+        </div>
+      </div>
+    ` : '';
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${asOfficeCopy ? '[অফিস কপি] ' : ''}${record.ref_no} - ${record.person_name_bn}</title>
+        <style>
+          ${staffDocumentStyles}
+          body {
+            background: #ffffff;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+          }
+          @media print {
+            body { padding: 0; background: transparent; }
+            .no-print { display: none !important; }
+            .cert-card-sheet, .staff-id-card { box-shadow: none !important; border: 1px solid #475569 !important; }
+            @page {
+              size: ${record.certificate_type === 'id_card' ? 'A4 portrait' : 'A4 portrait'};
+              margin: 8mm 12mm;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-container" style="width: 100%; max-width: 820px; position: relative;">
+          ${asOfficeCopy ? '<div class="office-copy-watermark">OFFICE COPY • অফিস কপি</div>' : ''}
+          ${officeHeaderHtml}
+          ${record.document_html}
+          ${officeFooterHtml}
+        </div>
+        <script>
+          window.onload = function() { window.print(); };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
+  // Download standalone HTML soft copy file
+  const handleDownloadHtml = (record) => {
+    const fullHtml = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>${record.ref_no} - ${record.person_name_bn} - ${record.certificate_title}</title>
+  <style>
+    ${staffDocumentStyles}
+    body { background: #ffffff; padding: 20px; margin: 0; display: flex; justify-content: center; }
+    @media print {
+      body { padding: 0; background: transparent; }
+      .no-print { display: none !important; }
+      .cert-card-sheet, .staff-id-card { box-shadow: none !important; border: 1px solid #475569 !important; }
+      @page { size: A4 portrait; margin: 8mm 12mm; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-container" style="max-width: 820px; margin: 0 auto;">
+    ${record.document_html}
+  </div>
+</body>
+</html>`;
+
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = (record.person_name_bn || 'staff').replace(/\s+/g, '_');
+    a.download = `SoftCopy_${record.ref_no}_${safeName}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export full CSV register of saved office copies
+  const handleExportRegistryCSV = () => {
+    if (!officeCopies.length) {
+      alert('কোনো সংরক্ষিত রেকর্ড নেই।');
+      return;
+    }
+    const headers = ['ক্রমিক', 'রেফারেন্স আইডি', 'স্মারক নং', 'ইস্যুর তারিখ', 'সনদের ধরন', 'শিক্ষক/কর্মচারীর নাম', 'ইংরেজি নাম', 'পদবি', 'বিষয়', 'মোবাইল', 'আইডি নম্বর', 'অফিস ট্র্যাকিং নোট', 'সংরক্ষণের সময়'];
+    const rows = officeCopies.map((r, idx) => [
+      idx + 1,
+      `"${r.ref_no || ''}"`,
+      `"${r.memo_no || ''}"`,
+      `"${r.issue_date || ''}"`,
+      `"${r.certificate_title || ''}"`,
+      `"${r.person_name_bn || ''}"`,
+      `"${r.person_name_en || ''}"`,
+      `"${r.designation || ''}"`,
+      `"${r.subject || ''}"`,
+      `"${r.phone || ''}"`,
+      `"${r.employee_id || ''}"`,
+      `"${(r.custom_fields?.officeNotes || '').replace(/"/g, '""')}"`,
+      `"${new Date(r.saved_at).toLocaleString('bn-BD')}"`
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Staff_Certificates_Office_Copy_Registry_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Export JSON backup of all office copies
+  const handleExportJSON = () => {
+    if (!officeCopies.length) {
+      alert('কোনো সংরক্ষিত রেকর্ড নেই।');
+      return;
+    }
+    const jsonStr = JSON.stringify(officeCopies, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Staff_Certificates_Archive_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Import JSON backup
+  const handleImportJSON = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = JSON.parse(evt.target.result);
+        if (Array.isArray(data)) {
+          const existingIds = new Set(officeCopies.map(c => c.id));
+          const newItems = data.filter(d => !existingIds.has(d.id));
+          const combined = [...newItems, ...officeCopies];
+          persistOfficeCopies(combined);
+          setSaveToast({
+            type: 'success',
+            msg: `✅ ব্যাকআপ থেকে ${newItems.length} টি রেকর্ড সফলভাবে ইমপোর্ট করা হয়েছে!`
+          });
+          setTimeout(() => setSaveToast(null), 3500);
+        } else {
+          alert('ফাইলটি সঠিক ফরম্যাটে নেই।');
+        }
+      } catch (err) {
+        alert('ফাইল পড়তে ত্রুটি হয়েছে: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Delete an archived office copy
+  const handleDeleteOfficeCopy = (id) => {
+    const target = officeCopies.find(c => c.id === id);
+    if (!target) return;
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${target.person_name_bn}" এর জন্য সংরক্ষিত অফিস কপি (${target.ref_no}) মুছে ফেলতে চান?`)) {
+      return;
+    }
+    const updated = officeCopies.filter(c => c.id !== id);
+    persistOfficeCopies(updated);
+    if (previewCopyModal?.id === id) {
+      setPreviewCopyModal(null);
+    }
+    setSaveToast({
+      type: 'success',
+      msg: `🗑️ অফিস কপি (${target.ref_no}) সফলভাবে মুছে ফেলা হয়েছে।`
+    });
+    setTimeout(() => setSaveToast(null), 3000);
+  };
+
+  // Filtered list for the Soft Office Copies Registrar & Archive
+  const filteredOfficeCopies = useMemo(() => {
+    return officeCopies.filter(c => {
+      if (archiveTypeFilter !== 'all' && c.certificate_type !== archiveTypeFilter) return false;
+      if (archivePersonFilter !== 'all' && String(c.person_id) !== String(archivePersonFilter)) return false;
+      if (archiveSearch.trim()) {
+        const q = archiveSearch.toLowerCase();
+        const matchesName = (c.person_name_bn && c.person_name_bn.toLowerCase().includes(q)) ||
+                            (c.person_name_en && c.person_name_en.toLowerCase().includes(q));
+        const matchesMemo = c.memo_no && c.memo_no.toLowerCase().includes(q);
+        const matchesRef = c.ref_no && c.ref_no.toLowerCase().includes(q);
+        const matchesEmp = c.employee_id && String(c.employee_id).toLowerCase().includes(q);
+        const matchesDesig = c.designation && c.designation.toLowerCase().includes(q);
+        const matchesNote = c.custom_fields?.officeNotes && c.custom_fields.officeNotes.toLowerCase().includes(q);
+        return matchesName || matchesMemo || matchesRef || matchesEmp || matchesDesig || matchesNote;
+      }
+      return true;
+    });
+  }, [officeCopies, archiveTypeFilter, archivePersonFilter, archiveSearch]);
+
   return (
     <div className="modal-overlay" style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -920,7 +1278,7 @@ export function StaffCertificatesModal({
       <div className="modal-card" style={{
         background: '#ffffff', borderRadius: '16px', width: '100%', maxWidth: '1150px',
         maxHeight: '95vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)', overflow: 'hidden'
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)', overflow: 'hidden', position: 'relative'
       }}>
         {/* Header */}
         <div style={{
@@ -936,18 +1294,41 @@ export function StaffCertificatesModal({
               <span>📜</span> শিক্ষক ও কর্মচারী প্রত্যয়ন, সনদ, ছাড়পত্র ও বায়োডাটা
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#fff',
-              fontSize: '20px', width: '36px', height: '36px', borderRadius: '50%',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 'bold', transition: 'all 0.15s ease'
-            }}
-            title="বন্ধ করুন"
-          >
-            ✕
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('office_copies')}
+              style={{
+                background: activeTab === 'office_copies' ? '#f0fdf4' : 'rgba(255, 255, 255, 0.15)',
+                color: activeTab === 'office_copies' ? '#064e3b' : '#fff',
+                border: activeTab === 'office_copies' ? '2px solid #86efac' : '1px solid rgba(255, 255, 255, 0.3)',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.15s ease'
+              }}
+              title="সংরক্ষিত সকল সফট অফিস কপি দেখুন"
+            >
+              <span>📁</span> সংরক্ষিত অফিস কপি: <b>{officeCopies.length}</b> টি
+            </button>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)', border: 'none', color: '#fff',
+                fontSize: '20px', width: '36px', height: '36px', borderRadius: '50%',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 'bold', transition: 'all 0.15s ease'
+              }}
+              title="বন্ধ করুন"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Tab Switcher */}
@@ -962,212 +1343,624 @@ export function StaffCertificatesModal({
             ['continuous', '⏱️ নিরবিচ্ছিন্ন চাকুরী সনদ'],
             ['release_order', '✈️ প্রশিক্ষণ ছাড়পত্র'],
             ['biodata', '📄 আকর্ষণীয় বায়োডাটা (CV)'],
-            ['id_card', '🪪 শিক্ষক পরিচয়পত্র']
-          ].map(([k, label]) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setActiveTab(k)}
-              style={{
-                padding: '7px 14px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700,
-                border: activeTab === k ? '2px solid #047857' : '1px solid #cbd5e1',
-                background: activeTab === k ? '#047857' : '#ffffff',
-                color: activeTab === k ? '#ffffff' : '#334155',
-                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s ease'
-              }}
-            >
-              {label}
-            </button>
-          ))}
+            ['id_card', '🪪 শিক্ষক পরিচয়পত্র'],
+            ['office_copies', `📁 সংরক্ষিত অফিস কপি (${officeCopies.length})`]
+          ].map(([k, label]) => {
+            const isArchiveTab = k === 'office_copies';
+            const isActive = activeTab === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setActiveTab(k)}
+                style={{
+                  padding: '7px 14px', borderRadius: '8px', fontSize: '12.5px', fontWeight: 700,
+                  border: isActive 
+                    ? (isArchiveTab ? '2px solid #0f766e' : '2px solid #047857') 
+                    : (isArchiveTab ? '1.5px solid #99f6e4' : '1px solid #cbd5e1'),
+                  background: isActive 
+                    ? (isArchiveTab ? 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)' : '#047857') 
+                    : (isArchiveTab ? '#f0fdfa' : '#ffffff'),
+                  color: isActive ? '#ffffff' : (isArchiveTab ? '#0f766e' : '#334155'),
+                  cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s ease',
+                  boxShadow: isActive ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Top Controls: Selector & Print */}
-        <div style={{
-          padding: '12px 20px', background: '#f1f5f9', borderBottom: '1px solid #cbd5e1',
-          display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '320px', flexWrap: 'wrap' }}>
-            <div style={{ minWidth: '180px', flex: 1 }}>
-              <input
-                type="text"
-                placeholder="🔍 শিক্ষক খুঁজুন..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+        {/* Controls Bar for Document Builder */}
+        {activeTab !== 'office_copies' && (
+          <div style={{
+            padding: '12px 20px', background: '#f1f5f9', borderBottom: '1px solid #cbd5e1',
+            display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '320px', flexWrap: 'wrap' }}>
+              <div style={{ minWidth: '180px', flex: 1 }}>
+                <input
+                  type="text"
+                  placeholder="🔍 শিক্ষক খুঁজুন..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                />
+              </div>
+              <div style={{ minWidth: '240px', flex: 1.5 }}>
+                <select
+                  value={selectedPersonId}
+                  onChange={e => setSelectedPersonId(e.target.value)}
+                  style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '12.5px' }}
+                >
+                  {filteredPeople.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name_bn || p.name} ({p.designation || 'শিক্ষক'} {p.subject ? `• ${p.subject}` : ''}) - ID: {p.employee_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => handleSaveOfficeCopy()}
+                style={{
+                  background: '#ffffff',
+                  color: '#047857',
+                  border: '1.5px solid #047857',
+                  padding: '7px 13px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  transition: 'all 0.15s ease'
+                }}
+                title="প্রিন্ট না করে শুধু সফট অফিস কপি জমা রাখুন"
+              >
+                💾 সফট অফিস কপি জমা রাখুন
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePrintAndSave}
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
+                }}
+                title="সফট অফিস কপি সংরক্ষণ এবং সরাসরি প্রিন্ট/PDF করুন"
+              >
+                🖨️ প্রিন্ট ও অফিস কপি সংরক্ষণ
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{
+                  background: '#f8fafc',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  padding: '7px 11px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="সংরক্ষণ ব্যতিত শুধুমাত্র প্রিন্ট করুন"
+              >
+                🖨️ শুধু প্রিন্ট
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Body: Active Tab View */}
+        {activeTab === 'office_copies' ? (
+          /* ============================================================== */
+          /* SOFT OFFICE COPIES REGISTRAR & ARCHIVE VIEW                     */
+          /* ============================================================== */
+          <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px', background: '#f8fafc' }}>
+            {/* Top Stat Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px' }}>
+              <div style={{ background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)', color: '#fff', padding: '12px 16px', borderRadius: '10px', boxShadow: '0 2px 5px rgba(4,120,87,0.2)' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', opacity: 0.9 }}>মোট সংরক্ষিত অফিস কপি</div>
+                <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '2px' }}>{officeCopies.length} টি</div>
+                <div style={{ fontSize: '10.5px', opacity: 0.85, marginTop: '2px' }}>ডিজিটাল অফিস নথিভুক্ত</div>
+              </div>
+              <div style={{ background: '#ffffff', border: '1px solid #a7f3d0', padding: '12px 16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857' }}>📜 প্রত্যয়নপত্র</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#064e3b', marginTop: '2px' }}>
+                  {officeCopies.filter(c => c.certificate_type === 'bonafide').length} টি
+                </div>
+                <div style={{ fontSize: '10.5px', color: '#64748b' }}>Bonafide Certificates</div>
+              </div>
+              <div style={{ background: '#ffffff', border: '1px solid #fde68a', padding: '12px 16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#b45309' }}>🏆 অভিজ্ঞতার সনদ</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#78350f', marginTop: '2px' }}>
+                  {officeCopies.filter(c => c.certificate_type === 'experience').length} টি
+                </div>
+                <div style={{ fontSize: '10.5px', color: '#64748b' }}>Experience Certificates</div>
+              </div>
+              <div style={{ background: '#ffffff', border: '1px solid #99f6e4', padding: '12px 16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#0d9488' }}>🎖️ পেশাগত ও নিরবিচ্ছিন্ন</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#134e4a', marginTop: '2px' }}>
+                  {officeCopies.filter(c => c.certificate_type === 'professional' || c.certificate_type === 'continuous').length} টি
+                </div>
+                <div style={{ fontSize: '10.5px', color: '#64748b' }}>Professional & Service</div>
+              </div>
+              <div style={{ background: '#ffffff', border: '1px solid #fed7aa', padding: '12px 16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, color: '#c2410c' }}>✈️ প্রশিক্ষণ ছাড়পত্র ও অন্যান্য</div>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c2d12', marginTop: '2px' }}>
+                  {officeCopies.filter(c => c.certificate_type === 'release_order' || c.certificate_type === 'biodata' || c.certificate_type === 'id_card').length} টি
+                </div>
+                <div style={{ fontSize: '10.5px', color: '#64748b' }}>Release & ID Cards</div>
+              </div>
+            </div>
+
+            {/* Filter & Action Toolbar */}
+            <div style={{ background: '#ffffff', padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '320px', flexWrap: 'wrap' }}>
+                <div style={{ minWidth: '220px', flex: 1.5 }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 নাম, পদবি, স্মারক নং, রেফারেন্স বা নোট খুঁজুন..."
+                    value={archiveSearch}
+                    onChange={e => setArchiveSearch(e.target.value)}
+                    style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  />
+                </div>
+                <div style={{ minWidth: '180px', flex: 1 }}>
+                  <select
+                    value={archiveTypeFilter}
+                    onChange={e => setArchiveTypeFilter(e.target.value)}
+                    style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    <option value="all">সব ধরনের সনদ ও ডকুমেন্ট</option>
+                    <option value="bonafide">📜 প্রত্যয়নপত্র</option>
+                    <option value="experience">🏆 অভিজ্ঞতার সনদ</option>
+                    <option value="professional">🎖️ পেশাগত সনদ</option>
+                    <option value="continuous">⏱️ নিরবিচ্ছিন্ন চাকুরী সনদ</option>
+                    <option value="release_order">✈️ প্রশিক্ষণ ছাড়পত্র</option>
+                    <option value="biodata">📄 আকর্ষণীয় বায়োডাটা (CV)</option>
+                    <option value="id_card">🪪 শিক্ষক পরিচয়পত্র</option>
+                  </select>
+                </div>
+                <div style={{ minWidth: '180px', flex: 1 }}>
+                  <select
+                    value={archivePersonFilter}
+                    onChange={e => setArchivePersonFilter(e.target.value)}
+                    style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                  >
+                    <option value="all">সকল শিক্ষক ও কর্মচারী ({people.length})</option>
+                    {people.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name_bn || p.name} ({p.designation || 'শিক্ষক'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleExportRegistryCSV}
+                  style={{
+                    background: '#ffffff', color: '#047857', border: '1px solid #047857',
+                    padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                  }}
+                  title="সংরক্ষিত অফিস কপির পূর্ণাঙ্গ রেজিস্টার CSV ডাউনলোড করুন"
+                >
+                  📥 রেজিস্টার CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={handleExportJSON}
+                  style={{
+                    background: '#ffffff', color: '#0369a1', border: '1px solid #0369a1',
+                    padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                  }}
+                  title="ডিজিটাল আর্কাইভের পূর্ণাঙ্গ ব্যাকআপ JSON ফাইল ডাউনলোড করুন"
+                >
+                  💾 JSON ব্যাকআপ
+                </button>
+                <label
+                  style={{
+                    background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1',
+                    padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600,
+                    cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                  }}
+                  title="পূর্ববর্তী ব্যাকআপ JSON থেকে ডাটা ইমপোর্ট করুন"
+                >
+                  📤 ইমপোর্ট
+                  <input type="file" accept=".json,application/json" hidden onChange={handleImportJSON} />
+                </label>
+              </div>
+            </div>
+
+            {/* Registrar Table */}
+            <div style={{ background: '#ffffff', borderRadius: '10px', border: '1px solid #cbd5e1', overflowX: 'auto', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              {filteredOfficeCopies.length === 0 ? (
+                <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ fontSize: '42px', marginBottom: '10px' }}>📁</div>
+                  <h3 style={{ margin: '0 0 6px', color: '#1e293b', fontSize: '16px', fontWeight: 700 }}>কোনো সফট অফিস কপি পাওয়া যায়নি</h3>
+                  <p style={{ margin: '0 0 16px', fontSize: '13px', maxWidth: '480px', marginInline: 'auto' }}>
+                    {officeCopies.length === 0 
+                      ? 'আপনি যে কোনো সনদে গিয়ে "💾 সফট অফিস কপি জমা রাখুন" বা "🖨️ প্রিন্ট ও অফিস কপি সংরক্ষণ" বাটনে ক্লিক করলে তা স্বয়ংক্রিয়ভাবে এখানে অফিস রেকর্ড ফাইল হিসেবে সংরক্ষিত থাকবে।'
+                      : 'অনুসন্ধানের শর্তের সাথে মিলে এমন কোনো অফিস কপি পাওয়া যায়নি। অন্য কীওয়ার্ড দিয়ে সন্ধান করুন।'}
+                  </p>
+                  {officeCopies.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('bonafide')}
+                      style={{
+                        background: '#047857', color: '#fff', border: 'none', padding: '8px 18px',
+                        borderRadius: '8px', fontWeight: 700, fontSize: '13px', cursor: 'pointer'
+                      }}
+                    >
+                      📜 প্রথম প্রত্যয়নপত্র তৈরি ও অফিস কপি সংরক্ষণ করুন
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12.5px' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1', color: '#0f172a' }}>
+                      <th style={{ padding: '10px 12px', width: '105px', textAlign: 'center' }}>রেফারেন্স নং</th>
+                      <th style={{ padding: '10px 12px', width: '140px' }}>স্মারক ও তারিখ</th>
+                      <th style={{ padding: '10px 12px', minWidth: '190px' }}>শিক্ষক / কর্মচারী</th>
+                      <th style={{ padding: '10px 12px', width: '160px' }}>সনদের ধরন</th>
+                      <th style={{ padding: '10px 12px', minWidth: '180px' }}>নোট / বিবরণ</th>
+                      <th style={{ padding: '10px 12px', width: '140px', textAlign: 'center' }}>সংরক্ষণের সময়</th>
+                      <th style={{ padding: '10px 12px', width: '220px', textAlign: 'center' }}>অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOfficeCopies.map((item, idx) => {
+                      const cfg = STAFF_CERT_CONFIG[item.certificate_type] || {
+                        label: item.certificate_title || item.certificate_type,
+                        color: '#047857',
+                        bg: '#ecfdf5',
+                        border: '#a7f3d0'
+                      };
+                      return (
+                        <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#fbfcfd' }}>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>#{idx + 1}</div>
+                            <span style={{
+                              fontFamily: 'monospace', fontWeight: 800, color: '#047857',
+                              background: '#ecfdf5', padding: '3px 6px', borderRadius: '4px',
+                              border: '1px solid #a7f3d0', fontSize: '11px', display: 'inline-block', marginTop: '2px'
+                            }}>
+                              {item.ref_no}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                              {item.memo_no ? `স্মারক: ${item.memo_no}` : 'স্মারক অনুল্লেখিত'}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              ইস্যু: {formatBnDate(item.issue_date)}
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <img
+                                src={item.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                                alt=""
+                                style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #cbd5e1' }}
+                                onError={e => { e.target.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'; }}
+                              />
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#0f172a' }}>{item.person_name_bn}</div>
+                                <div style={{ fontSize: '11px', color: '#475569' }}>
+                                  {item.designation} {item.subject ? `• ${item.subject}` : ''}
+                                  {item.employee_id ? ` (ID: ${item.employee_id})` : ''}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <span style={{
+                              background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`,
+                              padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700,
+                              display: 'inline-flex', alignItems: 'center', gap: '4px'
+                            }}>
+                              {cfg.label}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <div style={{ fontSize: '11.5px', color: '#334155' }}>
+                              {item.custom_fields?.officeNotes ? (
+                                <span style={{ fontWeight: 600, color: '#0f766e' }}>📌 {item.custom_fields.officeNotes}</span>
+                              ) : item.custom_fields?.trainingSubject ? (
+                                <span>✈️ {item.custom_fields.trainingSubject.slice(0, 45)}...</span>
+                              ) : item.custom_fields?.conductAppraisal ? (
+                                <span>চরিত্র: {item.custom_fields.conductAppraisal}</span>
+                              ) : (
+                                <span style={{ color: '#94a3b8' }}>—</span>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '11px', color: '#64748b' }}>
+                            <div>{formatBnDate(item.saved_at.slice(0, 10))}</div>
+                            <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '1px' }}>
+                              {new Date(item.saved_at).toLocaleTimeString('bn-BD', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                onClick={() => { setPreviewCopyModal(item); setPreviewCopyFormat('office'); }}
+                                style={{
+                                  background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe',
+                                  padding: '4px 7px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px'
+                                }}
+                                title="সংরক্ষিত অফিস কপি বিস্তারিত দেখুন"
+                              >
+                                👁️ দেখুন
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePrintArchived(item, false)}
+                                style={{
+                                  background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1',
+                                  padding: '4px 7px', borderRadius: '5px', fontSize: '11px', fontWeight: 600,
+                                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px'
+                                }}
+                                title="মূল সনদপত্র প্রিন্ট করুন"
+                              >
+                                🖨️ প্রিন্ট
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handlePrintArchived(item, true)}
+                                style={{
+                                  background: '#f0fdf4', color: '#047857', border: '1px solid #a7f3d0',
+                                  padding: '4px 7px', borderRadius: '5px', fontSize: '11px', fontWeight: 700,
+                                  cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '3px'
+                                }}
+                                title="অফিস রেকর্ড কপি ফরম্যাটে প্রিন্ট করুন (সিলমোহর ও স্বাক্ষর বক্স সহ)"
+                              >
+                                📑 অফিস কপি
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadHtml(item)}
+                                style={{
+                                  background: '#f0f9ff', color: '#0284c7', border: '1px solid #bae6fd',
+                                  padding: '4px 6px', borderRadius: '5px', fontSize: '11px', fontWeight: 600,
+                                  cursor: 'pointer'
+                                }}
+                                title="সফট HTML ফাইল ডাউনলোড করুন"
+                              >
+                                📥
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteOfficeCopy(item.id)}
+                                style={{
+                                  background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca',
+                                  padding: '4px 6px', borderRadius: '5px', fontSize: '11px', fontWeight: 600,
+                                  cursor: 'pointer'
+                                }}
+                                title="রেকর্ডটি মুছে ফেলুন"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* ============================================================== */
+          /* STANDARD CERTIFICATE BUILDER & LIVE PREVIEW                    */
+          /* ============================================================== */
+          <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+            {/* Left Panel: Contextual Customization Controls */}
+            <div style={{ width: '310px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
+                <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#047857' }}>⚙️ ডকুমেন্টের সাধারণ তথ্য</h4>
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>স্মারক নংঃ</label>
+                  <input
+                    type="text"
+                    placeholder="স্মারক নং (ঐচ্ছিক)"
+                    value={customMemoNo}
+                    onChange={e => setCustomMemoNo(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
+                  />
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ইস্যুর তারিখ</label>
+                  <input
+                    type="date"
+                    value={issueDate}
+                    onChange={e => setIssueDate(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মূল্যায়ন ও চরিত্র সনদ মন্তব্য</label>
+                  <input
+                    type="text"
+                    value={conductAppraisal}
+                    onChange={e => setConductAppraisal(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                </div>
+
+                {/* Soft Office Copy Notes & Quick Action */}
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
+                    <span>📁</span> অফিস ট্র্যাকিং নোট (ঐচ্ছিক)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: MPO টাইম স্কেল / পাসপোর্ট / ব্যাংক লোন / ব্যক্তিগত"
+                    value={officeNotes}
+                    onChange={e => setOfficeNotes(e.target.value)}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '8px' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSaveOfficeCopy()}
+                    style={{
+                      width: '100%',
+                      padding: '6px 10px',
+                      background: '#ecfdf5',
+                      border: '1px solid #a7f3d0',
+                      color: '#065f46',
+                      borderRadius: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    💾 এই কপির সফট অফিস কপি জমা রাখুন
+                  </button>
+                </div>
+              </div>
+
+              {/* If Training Release Order, show full customizable training inputs */}
+              {activeTab === 'release_order' && (
+                <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '10px', padding: '14px' }}>
+                  <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#166534' }}>✈️ প্রশিক্ষণ ছাড়পত্রের তথ্য (আবশ্যক)</h4>
+                  
+                  <div style={{ marginBottom: '8px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>ট্রেনিং এর বিষয় *</label>
+                    <textarea
+                      rows={2}
+                      value={trainingSubject}
+                      onChange={e => setTrainingSubject(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px', resize: 'vertical' }}
+                      placeholder="যেমন: নতুন জাতীয় শিক্ষাক্রম বিস্তরণ ও বিষয়ভিত্তিক শ্রেণি মূল্যায়ন প্রশিক্ষণ"
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '8px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রশিক্ষণ প্রতিষ্ঠানের নাম *</label>
+                    <input
+                      type="text"
+                      value={trainingInstitute}
+                      onChange={e => setTrainingInstitute(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
+                      placeholder="যেমন: সরকারি টিচার্স ট্রেনিং কলেজ (TTC), ময়মনসিংহ"
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: '8px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রতিষ্ঠানের ঠিকানা *</label>
+                    <input
+                      type="text"
+                      value={trainingLocation}
+                      onChange={e => setTrainingLocation(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
+                      placeholder="যেমন: কালিহাতি, টাঙ্গাইল"
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                    <div>
+                      <label style={{ fontSize: '10.5px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '2px' }}>শুরুর তারিখ *</label>
+                      <input
+                        type="date"
+                        value={trainingStartDate}
+                        onChange={e => setTrainingStartDate(e.target.value)}
+                        style={{ width: '100%', padding: '5px 6px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '11px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '10.5px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '2px' }}>শেষের তারিখ *</label>
+                      <input
+                        type="date"
+                        value={trainingEndDate}
+                        onChange={e => setTrainingEndDate(e.target.value)}
+                        style={{ width: '100%', padding: '5px 6px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '11px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রশিক্ষণ স্থিতিকাল</label>
+                    <input
+                      type="text"
+                      value={trainingDurationText}
+                      onChange={e => setTrainingDurationText(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
+                      placeholder="যেমন: ৬ দিনব্যাপী / ১৪ দিনব্যাপী"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* If Continuous Service, show continuous service remark */}
+              {activeTab === 'continuous' && (
+                <div style={{ background: '#fdf4ff', border: '1.5px solid #f0abfc', borderRadius: '10px', padding: '14px' }}>
+                  <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#86198f' }}>⏱️ নিরবিচ্ছিন্ন চাকুরীর মন্তব্য</h4>
+                  <textarea
+                    rows={3}
+                    value={continuousServiceRemarks}
+                    onChange={e => setContinuousServiceRemarks(e.target.value)}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #f0abfc', fontSize: '12px', resize: 'vertical' }}
+                  />
+                </div>
+              )}
+
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px', fontSize: '12px', color: '#1e40af' }}>
+                💡 <b>অফিস পরামর্শ:</b> "প্রিন্ট ও অফিস কপি সংরক্ষণ" বাটনে চাপ দিলে স্বয়ংক্রিয়ভাবে সফট অফিস কপি জমা থাকবে এবং তাৎক্ষণিক প্রিন্ট রেডি কপি বের হবে।
+              </div>
+            </div>
+
+            {/* Right Panel: Live Document Preview */}
+            <div style={{ flex: 1, minWidth: '340px', overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
+              <div
+                className="live-document-preview-box"
+                style={{ width: '100%', maxWidth: activeTab === 'id_card' ? '700px' : '760px' }}
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    <style>${staffDocumentStyles}</style>
+                    ${generateDocumentHtml()}
+                  `
+                }}
               />
             </div>
-            <div style={{ minWidth: '240px', flex: 1.5 }}>
-              <select
-                value={selectedPersonId}
-                onChange={e => setSelectedPersonId(e.target.value)}
-                style={{ width: '100%', padding: '7px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '12.5px' }}
-              >
-                {filteredPeople.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name_bn || p.name} ({p.designation || 'শিক্ষক'} {p.subject ? `• ${p.subject}` : ''}) - ID: {p.employee_id}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={handlePrint}
-              style={{
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '8px',
-                fontWeight: 700, fontSize: '13px', cursor: 'pointer',
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
-              }}
-            >
-              🖨️ প্রিন্ট / অফিসিয়াল PDF
-            </button>
-          </div>
-        </div>
-
-        {/* Modal Body: Custom Form Fields + Live Preview */}
-        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1, display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-          {/* Left Panel: Contextual Customization Controls */}
-          <div style={{ width: '310px', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px' }}>
-              <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#047857' }}>⚙️ ডকুমেন্টের সাধারণ তথ্য</h4>
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>স্মারক নংঃ</label>
-                <input
-                  type="text"
-                  placeholder="স্মারক নং (ঐচ্ছিক)"
-                  value={customMemoNo}
-                  onChange={e => setCustomMemoNo(e.target.value)}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 600 }}
-                />
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>ইস্যুর তারিখ</label>
-                <input
-                  type="date"
-                  value={issueDate}
-                  onChange={e => setIssueDate(e.target.value)}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মূল্যায়ন ও চরিত্র সনদ মন্তব্য</label>
-                <input
-                  type="text"
-                  value={conductAppraisal}
-                  onChange={e => setConductAppraisal(e.target.value)}
-                  style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px' }}
-                />
-              </div>
-            </div>
-
-            {/* If Training Release Order, show full customizable training inputs as requested */}
-            {activeTab === 'release_order' && (
-              <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '10px', padding: '14px' }}>
-                <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#166534' }}>✈️ প্রশিক্ষণ ছাড়পত্রের তথ্য (আবশ্যক)</h4>
-                
-                <div style={{ marginBottom: '8px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>ট্রেনিং এর বিষয় *</label>
-                  <textarea
-                    rows={2}
-                    value={trainingSubject}
-                    onChange={e => setTrainingSubject(e.target.value)}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px', resize: 'vertical' }}
-                    placeholder="যেমন: নতুন জাতীয় শিক্ষাক্রম বিস্তরণ ও বিষয়ভিত্তিক শ্রেণি মূল্যায়ন প্রশিক্ষণ"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '8px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রশিক্ষণ প্রতিষ্ঠানের নাম *</label>
-                  <input
-                    type="text"
-                    value={trainingInstitute}
-                    onChange={e => setTrainingInstitute(e.target.value)}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
-                    placeholder="যেমন: সরকারি টিচার্স ট্রেনিং কলেজ (TTC), ময়মনসিংহ"
-                  />
-                </div>
-
-                <div style={{ marginBottom: '8px' }}>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রতিষ্ঠানের ঠিকানা *</label>
-                  <input
-                    type="text"
-                    value={trainingLocation}
-                    onChange={e => setTrainingLocation(e.target.value)}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
-                    placeholder="যেমন: কালিহাতি, টাঙ্গাইল"
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-                  <div>
-                    <label style={{ fontSize: '10.5px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '2px' }}>শুরুর তারিখ *</label>
-                    <input
-                      type="date"
-                      value={trainingStartDate}
-                      onChange={e => setTrainingStartDate(e.target.value)}
-                      style={{ width: '100%', padding: '5px 6px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '11px' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '10.5px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '2px' }}>শেষের তারিখ *</label>
-                    <input
-                      type="date"
-                      value={trainingEndDate}
-                      onChange={e => setTrainingEndDate(e.target.value)}
-                      style={{ width: '100%', padding: '5px 6px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '11px' }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: '11px', fontWeight: 700, color: '#166534', display: 'block', marginBottom: '3px' }}>প্রশিক্ষণ স্থিতিকাল</label>
-                  <input
-                    type="text"
-                    value={trainingDurationText}
-                    onChange={e => setTrainingDurationText(e.target.value)}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #86efac', fontSize: '12px' }}
-                    placeholder="যেমন: ৬ দিনব্যাপী / ১৪ দিনব্যাপী"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* If Continuous Service, show continuous service remark */}
-            {activeTab === 'continuous' && (
-              <div style={{ background: '#fdf4ff', border: '1.5px solid #f0abfc', borderRadius: '10px', padding: '14px' }}>
-                <h4 style={{ margin: '0 0 10px', fontSize: '13.5px', fontWeight: 700, color: '#86198f' }}>⏱️ নিরবিচ্ছিন্ন চাকুরীর মন্তব্য</h4>
-                <textarea
-                  rows={3}
-                  value={continuousServiceRemarks}
-                  onChange={e => setContinuousServiceRemarks(e.target.value)}
-                  style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #f0abfc', fontSize: '12px', resize: 'vertical' }}
-                />
-              </div>
-            )}
-
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px', fontSize: '12px', color: '#1e40af' }}>
-              💡 <b>অফিশিয়াল পরামর্শ:</b> "প্রিন্ট / অফিসিয়াল PDF" বাটনে ক্লিক করলে সিলমোহর ও স্বাক্ষরের জন্য সুনির্দিষ্ট জায়গা সহ A4 সাইজের প্রিন্ট রেডি কপি পাওয়া যাবে।
-            </div>
-          </div>
-
-          {/* Right Panel: Live Document Preview */}
-          <div style={{ flex: 1, minWidth: '340px', overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
-            <div
-              className="live-document-preview-box"
-              style={{ width: '100%', maxWidth: activeTab === 'id_card' ? '700px' : '760px' }}
-              dangerouslySetInnerHTML={{
-                __html: `
-                  <style>${staffDocumentStyles}</style>
-                  ${generateDocumentHtml()}
-                `
-              }}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Footer */}
         <div style={{
@@ -1188,6 +1981,224 @@ export function StaffCertificatesModal({
             বন্ধ করুন
           </button>
         </div>
+
+        {/* Toast Alert Notification */}
+        {saveToast && (
+          <div style={{
+            position: 'absolute',
+            bottom: '60px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: saveToast.type === 'error' ? '#ef4444' : '#064e3b',
+            color: '#ffffff',
+            padding: '10px 22px',
+            borderRadius: '10px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
+            zIndex: 10001,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            fontWeight: 600,
+            fontSize: '13px',
+            border: '1.5px solid rgba(255, 255, 255, 0.3)'
+          }}>
+            <span>{saveToast.msg}</span>
+            <button
+              type="button"
+              onClick={() => { setActiveTab('office_copies'); setSaveToast(null); }}
+              style={{
+                background: '#10b981',
+                border: 'none',
+                color: '#fff',
+                padding: '4px 10px',
+                borderRadius: '5px',
+                fontSize: '11.5px',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              রেজিস্টারে দেখুন →
+            </button>
+            <button
+              type="button"
+              onClick={() => setSaveToast(null)}
+              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '15px', cursor: 'pointer', opacity: 0.8 }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Detailed Office Copy Preview Modal */}
+        {previewCopyModal && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.8)',
+            backdropFilter: 'blur(4px)', zIndex: 10005, display: 'flex',
+            justifyContent: 'center', alignItems: 'center', padding: '16px'
+          }}>
+            <div style={{
+              background: '#ffffff', borderRadius: '14px', width: '100%', maxWidth: '960px',
+              maxHeight: '94vh', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)'
+            }}>
+              {/* Preview Modal Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',
+                color: '#ffffff', padding: '14px 20px', display: 'flex',
+                justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '11px', letterSpacing: '0.8px', textTransform: 'uppercase', opacity: 0.9, fontWeight: 700 }}>
+                    সংরক্ষিত সফট অফিস কপি প্রিভিউ • {previewCopyModal.ref_no}
+                  </div>
+                  <h3 style={{ margin: '2px 0 0', fontSize: '17px', fontWeight: 800 }}>
+                    {previewCopyModal.person_name_bn} ({previewCopyModal.designation}) — {previewCopyModal.certificate_title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPreviewCopyModal(null)}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff',
+                    fontSize: '18px', width: '32px', height: '32px', borderRadius: '50%',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Preview Format Switcher & Action Buttons */}
+              <div style={{
+                padding: '10px 20px', background: '#f1f5f9', borderBottom: '1px solid #cbd5e1',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px'
+              }}>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>প্রিভিউ ফরম্যাট:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewCopyFormat('office')}
+                    style={{
+                      padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                      border: previewCopyFormat === 'office' ? '1.5px solid #0f766e' : '1px solid #cbd5e1',
+                      background: previewCopyFormat === 'office' ? '#0f766e' : '#fff',
+                      color: previewCopyFormat === 'office' ? '#fff' : '#334155',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📑 অফিস রেকর্ড কপি (সিলমোহর ও ওয়াটারমার্ক সহ)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewCopyFormat('original')}
+                    style={{
+                      padding: '5px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700,
+                      border: previewCopyFormat === 'original' ? '1.5px solid #0f766e' : '1px solid #cbd5e1',
+                      background: previewCopyFormat === 'original' ? '#0f766e' : '#fff',
+                      color: previewCopyFormat === 'original' ? '#fff' : '#334155',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    📄 মূল কপি (ক্লিন)
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => handlePrintArchived(previewCopyModal, false)}
+                    style={{
+                      background: '#ffffff', color: '#334155', border: '1px solid #cbd5e1',
+                      padding: '6px 12px', borderRadius: '6px', fontWeight: 700, fontSize: '12px',
+                      cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                    }}
+                  >
+                    🖨️ মূল কপি প্রিন্ট
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePrintArchived(previewCopyModal, true)}
+                    style={{
+                      background: '#047857', color: '#fff', border: 'none',
+                      padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '12px',
+                      cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                    }}
+                  >
+                    📑 অফিস কপি প্রিন্ট
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadHtml(previewCopyModal)}
+                    style={{
+                      background: '#0284c7', color: '#fff', border: 'none',
+                      padding: '6px 12px', borderRadius: '6px', fontWeight: 700, fontSize: '12px',
+                      cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px'
+                    }}
+                  >
+                    📥 HTML ডাউনলোড
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body: Document Preview */}
+              <div style={{ padding: '20px', overflowY: 'auto', flex: 1, display: 'flex', justifyContent: 'center', background: '#f8fafc' }}>
+                <div style={{ width: '100%', maxWidth: '780px', position: 'relative' }}>
+                  {previewCopyFormat === 'office' && (
+                    <div style={{
+                      background: '#ecfdf5', border: '1.5px dashed #059669', borderRadius: '6px',
+                      padding: '8px 14px', marginBottom: '12px', display: 'flex',
+                      justifyContent: 'space-between', alignItems: 'center', fontSize: '11.5px'
+                    }}>
+                      <div>
+                        <span style={{ background: '#059669', color: '#fff', fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '3px', textTransform: 'uppercase' }}>
+                          অফিস কপি • OFFICE COPY
+                        </span>
+                        <span style={{ fontWeight: 800, color: '#064e3b', marginLeft: '8px' }}>
+                          রেফারেন্স: {previewCopyModal.ref_no}
+                        </span>
+                        <span style={{ color: '#475569', marginLeft: '10px' }}>
+                          স্মারক নং: {previewCopyModal.memo_no} • ইস্যু: {formatBnDate(previewCopyModal.issue_date)}
+                        </span>
+                      </div>
+                      <div style={{ color: '#64748b', fontSize: '11px' }}>
+                        সংরক্ষণ: {new Date(previewCopyModal.saved_at).toLocaleString('bn-BD')}
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: `
+                        <style>${staffDocumentStyles}</style>
+                        ${previewCopyModal.document_html}
+                      `
+                    }}
+                  />
+
+                  {previewCopyFormat === 'office' && (
+                    <div style={{
+                      marginTop: '16px', paddingTop: '10px', borderTop: '1.5px dashed #94a3b8',
+                      display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#475569'
+                    }}>
+                      <div>
+                        <div>দাপ্তরিক রেজিস্টার পৃষ্ঠা নং: ____________________</div>
+                        <div style={{ marginTop: '2px' }}>নথি/ফাইল নং: ____________________</div>
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ borderTop: '1px dotted #64748b', width: '130px', margin: '14px auto 2px' }}></div>
+                        <b>অফিস সহকারী / নথি রক্ষক</b>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ borderTop: '1px dotted #64748b', width: '140px', margin: '14px 0 2px auto' }}></div>
+                        <b>প্রতিষ্ঠান প্রধানের প্রতিস্বাক্ষর</b>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2005,5 +3016,45 @@ export const staffDocumentStyles = `
   .mono {
     font-family: monospace;
     font-size: 12px;
+  }
+
+  /* Office Copy Specific Styles */
+  .office-copy-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-28deg);
+    font-size: 50px;
+    font-weight: 900;
+    color: rgba(6, 78, 59, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    pointer-events: none;
+    z-index: 10;
+    white-space: nowrap;
+    border: 4px dashed rgba(6, 78, 59, 0.15);
+    padding: 10px 30px;
+    border-radius: 12px;
+  }
+
+  .office-copy-top-banner {
+    background: #f0fdf4;
+    border: 1.5px dashed #047857;
+    border-radius: 6px;
+    padding: 8px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Noto Sans Bengali', Arial, sans-serif;
+  }
+
+  .office-copy-bottom-meta {
+    margin-top: 18px;
+    padding-top: 10px;
+    border-top: 1.5px dashed #64748b;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Noto Sans Bengali', Arial, sans-serif;
   }
 `;

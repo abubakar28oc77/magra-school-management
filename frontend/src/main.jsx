@@ -5593,6 +5593,15 @@ function StaffPanel({sub}){
        <button 
          type="button" 
          className="mini" 
+         style={{background:'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(15,118,110,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
+         onClick={()=>handleOpenStaffDocs('', 'office_copies')}
+         title="ইস্যুকৃত শিক্ষক সনদ ও সনদের সফট অফিস কপি আর্কাইভ"
+       >
+         📁 সফট অফিস কপি আর্কাইভ
+       </button>
+       <button 
+         type="button" 
+         className="mini" 
          style={{background:'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(79,70,229,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
          onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })}
          title="শিক্ষাগত যোগ্যতা (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
@@ -5637,6 +5646,15 @@ function StaffPanel({sub}){
          title="কর্মচারী সনদ, প্রত্যয়নপত্র, ছাড়পত্র, বায়োডাটা ও পরিচয়পত্র স্টুডিও"
        >
          📜 কর্মচারী সনদ ও বায়োডাটা
+       </button>
+       <button 
+         type="button" 
+         className="mini" 
+         style={{background:'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(15,118,110,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap'}} 
+         onClick={()=>handleOpenStaffDocs('', 'office_copies')}
+         title="ইস্যুকৃত কর্মচারী সনদ ও সনদের সফট অফিস কপি আর্কাইভ"
+       >
+         📁 সফট অফিস কপি আর্কাইভ
        </button>
       </div>
      )}
@@ -5902,6 +5920,15 @@ function StaffPanel({sub}){
             onMouseLeave={e=>e.currentTarget.style.background='none'}
           >
             <span style={{fontSize:'14px'}}>✈️</span> প্রশিক্ষণ ছাড়পত্র / অবমুক্তি
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'office_copies');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:700,color:'#0f766e',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdfa'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>📁</span> সংরক্ষিত অফিস কপি রেকর্ড
           </button>
           <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
           <button
