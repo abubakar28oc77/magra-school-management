@@ -205,9 +205,7 @@ export function StaffCertificatesModal({
                 <b>${personNameBn}</b>
                 <span>সংশ্লিষ্ট শিক্ষক / কর্মচারী</span>
               </div>
-              <div class="sign-block seal-space">
-                <div class="official-seal-box">বিদ্যালয়ের গোল সিলমোহর</div>
-              </div>
+
               <div class="sign-block">
                 <div class="sign-line"></div>
                 <b>${school.headTeacher}</b>
@@ -265,9 +263,7 @@ export function StaffCertificatesModal({
                 <b>সহকারী প্রধান শিক্ষক</b>
                 <span>${school.nameBn}</span>
               </div>
-              <div class="sign-block seal-space">
-                <div class="official-seal-box">বিদ্যালয়ের অফিশিয়াল সিল</div>
-              </div>
+
               <div class="sign-block">
                 <div class="sign-line"></div>
                 <b>${school.headTeacher}</b>
@@ -325,9 +321,7 @@ export function StaffCertificatesModal({
                 <b>${school.president}</b>
                 <span>সভাপতি, ম্যানেজিং কমিটি</span>
               </div>
-              <div class="sign-block seal-space">
-                <div class="official-seal-box">প্রাতিষ্ঠানিক সিলমোহর</div>
-              </div>
+
               <div class="sign-block">
                 <div class="sign-line"></div>
                 <b>${school.headTeacher}</b>
@@ -410,9 +404,7 @@ export function StaffCertificatesModal({
                 <b>যাচাইকারী / অফিস সহকারী</b>
                 <span>${school.nameBn}</span>
               </div>
-              <div class="sign-block seal-space">
-                <div class="official-seal-box">অফিসিয়াল সিলমোহর</div>
-              </div>
+
               <div class="sign-block">
                 <div class="sign-line"></div>
                 <b>${school.headTeacher}</b>
@@ -502,9 +494,7 @@ export function StaffCertificatesModal({
                 <b>${personNameBn}</b>
                 <span>অবমুক্তিকৃত শিক্ষক / কর্মচারী</span>
               </div>
-              <div class="sign-block seal-space">
-                <div class="official-seal-box">অফিসিয়াল সিলমোহর</div>
-              </div>
+
               <div class="sign-block">
                 <div class="sign-line"></div>
                 <b>${school.headTeacher}</b>
@@ -513,13 +503,7 @@ export function StaffCertificatesModal({
               </div>
             </div>
 
-            <div class="copy-forward-box">
-              <small><b>অনুলিপি সদয় অবগতি ও প্রয়োজনীয় কার্যার্থে প্রেরিত হইল:</b></small><br>
-              <small>১. পরিচালক / অধ্যক্ষ, ${trainingInstitute}।</small><br>
-              <small>২. জেলা শিক্ষা অফিসার, টাঙ্গাইল।</small><br>
-              <small>৩. উপজেলা মাধ্যমিক শিক্ষা অফিসার, কালিহাতি, টাঙ্গাইল।</small><br>
-              <small>৪. সংশ্লিষ্ট শিক্ষক নথী ও অফিস কপি।</small>
-            </div>
+
           </div>
         </div>
       `;
