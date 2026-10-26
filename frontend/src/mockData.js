@@ -11401,7 +11401,7 @@ export const CANONICAL_TEACHER_EDUCATION = {
 export const MOCK_TEACHERS = [
   {
     "id": "t-1",
-    "employee_id": "1",
+    "employee_id": "EMP-001",
     "name_bn": "মুহাম্মদ শফিকুল ইসলাম",
     "name_en": "MUHAMMAD SHAFIQUL ISLAM",
     "designation": "প্রধান শিক্ষক",
@@ -11454,7 +11454,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-2",
-    "employee_id": "2",
+    "employee_id": "EMP-002",
     "name_bn": "তাপসী সরকার",
     "name_en": "TAPASI SARKER",
     "designation": "সহকারী প্রধান শিক্ষক",
@@ -11507,7 +11507,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-3",
-    "employee_id": "3",
+    "employee_id": "EMP-003",
     "name_bn": "মো: আনোয়ার হোসেন",
     "name_en": "MD. ANOWER HOSSEN",
     "designation": "সিনিয়র শিক্ষক",
@@ -11560,7 +11560,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-4",
-    "employee_id": "4",
+    "employee_id": "EMP-004",
     "name_bn": "মোঃ ছানোয়ার হোসেন",
     "name_en": "MD SANWAR HOSSAIN",
     "designation": "সিনিয়র শিক্ষক",
@@ -11613,7 +11613,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-5",
-    "employee_id": "5",
+    "employee_id": "EMP-005",
     "name_bn": "মোহাম্মদ খালিদুর রহমান তাং",
     "name_en": "MOHAMMAD KHALIDUR RAHMAN TUNG",
     "designation": "সিনিয়র শিক্ষক",
@@ -11666,7 +11666,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-6",
-    "employee_id": "6",
+    "employee_id": "EMP-006",
     "name_bn": "মুহাম্মদ আবুবকর সিদ্দিক",
     "name_en": "Muhammad Abubokor Siddique",
     "designation": "সিনিয়র শিক্ষক",
@@ -11719,7 +11719,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-7",
-    "employee_id": "7",
+    "employee_id": "EMP-007",
     "name_bn": "মুহাম্মদ আব্দুর রহিম লিটন",
     "name_en": "MUHAMMAD ABDUR RAHIM KHAN",
     "designation": "সিনিয়র শিক্ষক",
@@ -11772,7 +11772,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-8",
-    "employee_id": "8",
+    "employee_id": "EMP-008",
     "name_bn": "মোঃ হাবিবুর রহমান",
     "name_en": "MD. HABIBUR RAHMAN",
     "designation": "সিনিয়র শিক্ষক",
@@ -11825,7 +11825,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-9",
-    "employee_id": "9",
+    "employee_id": "EMP-009",
     "name_bn": "আরতী রানী ভদ্র",
     "name_en": "AROTI RANI BHADRA",
     "designation": "সিনিয়র শিক্ষক",
@@ -11878,7 +11878,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-10",
-    "employee_id": "10",
+    "employee_id": "EMP-010",
     "name_bn": "মোঃ ওয়াহিদুর রহমান",
     "name_en": "MD. WAHIDUR RAHMAN",
     "designation": "সহকারী শিক্ষক",
@@ -11931,7 +11931,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-11",
-    "employee_id": "11",
+    "employee_id": "EMP-011",
     "name_bn": "মোঃ শাহিন মিয়া",
     "name_en": "SHAHIN MIAH",
     "designation": "সহকারী শিক্ষক",
@@ -11984,7 +11984,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-12",
-    "employee_id": "12",
+    "employee_id": "EMP-012",
     "name_bn": "আশরাফুল",
     "name_en": "ASHRAFUL",
     "designation": "সহকারী শিক্ষক",
@@ -12037,7 +12037,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-13",
-    "employee_id": "13",
+    "employee_id": "EMP-013",
     "name_bn": "কান্তা মনি",
     "name_en": "KANTA MONI",
     "designation": "সহকারী শিক্ষক",
@@ -12090,7 +12090,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-14",
-    "employee_id": "14",
+    "employee_id": "EMP-014",
     "name_bn": "রফিকুল ইসলাম",
     "name_en": "RAFIQUL ISLAM",
     "designation": "সহকারী শিক্ষক",
@@ -12143,7 +12143,7 @@ export const MOCK_TEACHERS = [
   },
   {
     "id": "t-15",
-    "employee_id": "15",
+    "employee_id": "EMP-015",
     "name_bn": "মোঃ আব্দুল খালেক",
     "name_en": "MD. ABDUL KHALEQ",
     "designation": "সহকারী শিক্ষক",
@@ -12199,7 +12199,7 @@ export const MOCK_TEACHERS = [
 export const MOCK_STAFF = [
   {
     id: 'stf-1',
-    employee_id: '1',
+    employee_id: 'STF-001',
     name_bn: 'মোঃ আলমগীর হোসেন',
     name_en: 'Md Alamgir Hossain',
     designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
@@ -12215,7 +12215,7 @@ export const MOCK_STAFF = [
   },
   {
     id: 'stf-2',
-    employee_id: '2',
+    employee_id: 'STF-002',
     name_bn: 'মোঃ আনোয়ার হোসেন',
     name_en: 'Md Anwar Hossain',
     designation: 'অফিস সহায়ক / পিয়ন',
@@ -12230,7 +12230,7 @@ export const MOCK_STAFF = [
   },
   {
     id: 'stf-3',
-    employee_id: '3',
+    employee_id: 'STF-003',
     name_bn: 'মোঃ মোবারক আলী',
     name_en: 'Md Mobarak Ali',
     designation: 'নিরাপত্তা প্রহরী / নৈশপ্রহরী',

@@ -24,6 +24,17 @@ export function sortPeopleByEmployeeId(list = []) {
   });
 }
 
+export function formatEmployeeId(person, isTeacher = true, fallbackIndex = 0) {
+  const raw = person?.employee_id || (fallbackIndex >= 0 ? fallbackIndex + 1 : '');
+  const str = String(raw).trim();
+  if (str.toUpperCase().startsWith('EMP-') || str.toUpperCase().startsWith('STF-')) {
+    return str.toUpperCase();
+  }
+  const num = parseEmployeeIdNum(str, fallbackIndex + 1);
+  const prefix = isTeacher ? 'EMP-' : 'STF-';
+  return `${prefix}${String(num).padStart(3, '0')}`;
+}
+
 import React,{useEffect,useMemo,useState,useRef} from 'react';
 import {createRoot} from 'react-dom/client';
 import {HashRouter,useNavigate,useLocation,Link} from 'react-router-dom';
@@ -3994,15 +4005,32 @@ function StaffPanel({sub}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
  const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
 
+ const normalizeTeacherEmployeeIds = (arr, isTeacher = true) => {
+   return (arr || []).map((x, idx) => {
+     const cur = String(x?.employee_id || '').trim();
+     if (!cur || (!cur.toUpperCase().startsWith('EMP-') && !cur.toUpperCase().startsWith('STF-'))) {
+       const num = parseEmployeeIdNum(cur || x?.id, idx + 1);
+       const prefix = isTeacher ? 'EMP-' : 'STF-';
+       return { ...x, employee_id: `${prefix}${String(num).padStart(3, '0')}` };
+     }
+     return x;
+   });
+ };
+
  const getInitialTeachers = () => {
    try {
      const raw = localStorage.getItem('magra_db_teachers');
      if (raw) {
        const parsed = JSON.parse(raw);
-       if (Array.isArray(parsed) && parsed.length) return sortPeopleByEmployeeId(parsed);
+       if (Array.isArray(parsed) && parsed.length) {
+         const norm = normalizeTeacherEmployeeIds(parsed, true);
+         try { localStorage.setItem('magra_db_teachers', JSON.stringify(norm)); } catch {}
+         return sortPeopleByEmployeeId(norm);
+       }
      }
    } catch {}
-   return Array.isArray(MOCK_TEACHERS) ? sortPeopleByEmployeeId(MOCK_TEACHERS) : [];
+   const norm = normalizeTeacherEmployeeIds(MOCK_TEACHERS, true);
+   return sortPeopleByEmployeeId(norm);
  };
 
  const [tab, setTab] = useState(getInitialTab(sub));
@@ -4226,19 +4254,20 @@ function StaffPanel({sub}){
    document.body.removeChild(link);
  };
 
- const getNextEmployeeId = (arr) => {
+ const getNextEmployeeId = (arr, isTeacher = true) => {
    const max = (arr || []).reduce((acc, curr) => {
      const n = parseEmployeeIdNum(curr?.employee_id || curr?.id);
      return n > acc ? n : acc;
    }, 0);
-   return String(max + 1);
+   const prefix = isTeacher ? 'EMP-' : 'STF-';
+   return `${prefix}${String(max + 1).padStart(3, '0')}`;
  };
 
  const initNewForm = (t = tab) => {
    const targetIsTeacher = t === 'teachers';
    const targetList = targetIsTeacher ? teachers : staff;
    const base = targetIsTeacher ? emptyTeacher : emptyStaff;
-   return { ...base, employee_id: getNextEmployeeId(targetList) };
+   return { ...base, employee_id: getNextEmployeeId(targetList, targetIsTeacher) };
  };
 
  useEffect(()=>{
@@ -5703,26 +5732,52 @@ function StaffPanel({sub}){
       <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
      </label>
     </div>
-    <div className="table-wrap">
-     <table>
+    <div className="table-wrap" style={{overflowX:'auto',width:'100%'}}>
+     <table style={{
+       width: '100%',
+       maxWidth: isTeacher ? '1040px' : '880px',
+       tableLayout: 'fixed',
+       borderCollapse: 'collapse',
+       margin: '0',
+     }}>
       <thead>
        <tr style={{background:'#f2f8f5',borderBottom:'1.5px solid #bbf7d0'}}>
-        <th style={{textAlign:'center',width:'65px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px',lineHeight:'1.2'}}>Employee<br/>ID</th>
-        <th style={{textAlign:'center',width:'58px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>ছবি</th>
-        <th style={{textAlign:'left',width:'220px',padding:'10px 10px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>নাম</th>
-        <th style={{textAlign:'left',width:'150px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>পদবি</th>
-        {isTeacher&&<th style={{textAlign:'left',width:'165px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>বিষয়</th>}
-        <th style={{textAlign:'left',width:'120px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>মোবাইল</th>
-        <th style={{textAlign:'center',width:'75px',padding:'10px 6px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>অবস্থা</th>
-        <th style={{textAlign:'center',width:'85px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>সেবা</th>
+        <th style={{textAlign:'center',width:'110px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>Employee ID</th>
+        <th style={{textAlign:'center',width:'54px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>ছবি</th>
+        <th style={{textAlign:'left',width:'240px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>নাম</th>
+        <th style={{textAlign:'left',width:'160px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>পদবি</th>
+        {isTeacher&&<th style={{textAlign:'left',width:'150px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>বিষয়</th>}
+        <th style={{textAlign:'left',width:'125px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px',whiteSpace:'nowrap'}}>মোবাইল</th>
+        <th style={{textAlign:'center',width:'80px',padding:'10px 6px',color:'#065f46',fontWeight:700,fontSize:'12.5px',whiteSpace:'nowrap'}}>অবস্থা</th>
+        <th style={{textAlign:'center',width:'90px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>সেবা</th>
        </tr>
       </thead>
       <tbody>
        {(list||[]).map(x=>{
         const isInline = inlineEditId === x.id;
+        const empCode = formatEmployeeId(x, isTeacher, list.indexOf(x));
         return (
          <tr key={x.id} style={{background: isInline ? '#f0fdf4' : undefined}}>
-          <td style={{textAlign:'center',padding:'8px 4px'}}><strong style={{color:'#1e293b',fontWeight:700,fontSize:'13px'}}>{toBnDigits(x.employee_id || (list.indexOf(x) >= 0 ? list.indexOf(x) + 1 : ''))}</strong></td>
+          <td style={{textAlign:'center',padding:'7px 4px',whiteSpace:'nowrap'}}>
+           <span style={{
+             display: 'inline-flex',
+             alignItems: 'center',
+             gap: '3px',
+             background: isTeacher ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
+             color: isTeacher ? '#166534' : '#1d4ed8',
+             border: isTeacher ? '1px solid #86efac' : '1px solid #bfdbfe',
+             borderRadius: '6px',
+             padding: '3px 8px',
+             fontSize: '11.5px',
+             fontWeight: 800,
+             letterSpacing: '0.6px',
+             fontFamily: "'Outfit', 'Segoe UI', monospace",
+             boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+           }}>
+             <span style={{opacity: 0.65, fontSize: '10px', fontWeight: 900}}>#</span>
+             {empCode}
+           </span>
+          </td>
           <td style={{textAlign:'center',padding:'5px 4px'}}>
            <label style={{cursor:'pointer',display:'inline-block',position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
             <div style={{width:'40px',height:'44px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)',position:'relative'}}>
@@ -5732,7 +5787,7 @@ function StaffPanel({sub}){
             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
            </label>
           </td>
-          <td style={{padding:'8px 10px',textAlign:'left'}}>
+          <td style={{padding:'7px 8px',textAlign:'left'}}>
            {isInline ? (
             <input 
              value={inlineForm.name_bn} 
@@ -5747,7 +5802,7 @@ function StaffPanel({sub}){
             </div>
            )}
           </td>
-          <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
+          <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
            {isInline ? (
             <input 
              value={inlineForm.designation} 
@@ -5760,7 +5815,7 @@ function StaffPanel({sub}){
            )}
           </td>
           {isTeacher && (
-           <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
+           <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
             {isInline ? (
              <input 
               value={inlineForm.subject} 
@@ -5773,7 +5828,7 @@ function StaffPanel({sub}){
             )}
            </td>
           )}
-          <td style={{padding:'8px 8px',textAlign:'left',fontSize:'12px',color:'#334155',letterSpacing:'0.2px'}}>
+          <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12px',color:'#334155',letterSpacing:'0.2px',whiteSpace:'nowrap'}}>
            {isInline ? (
             <input 
              value={inlineForm.phone} 
@@ -5785,7 +5840,7 @@ function StaffPanel({sub}){
             x.phone || '—'
            )}
           </td>
-          <td style={{textAlign:'center',padding:'8px 6px',fontSize:'12px',color:'#334155',fontWeight:500}}>
+          <td style={{textAlign:'center',padding:'7px 6px',fontSize:'12px',whiteSpace:'nowrap'}}>
            {isInline ? (
             <select 
              value={inlineForm.status} 
@@ -5795,7 +5850,17 @@ function StaffPanel({sub}){
              {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
             </select>
            ) : (
-            statusBn(x.status)
+            <span style={{
+              display: 'inline-block',
+              background: x.status === 'active' || !x.status ? '#dcfce7' : '#f1f5f9',
+              color: x.status === 'active' || !x.status ? '#166534' : '#64748b',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11.5px',
+              fontWeight: 700
+            }}>
+              {statusBn(x.status)}
+            </span>
            )}
           </td>
           <td style={{textAlign:'center',padding:'4px 4px',whiteSpace:'nowrap'}}>
