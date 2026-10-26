@@ -5717,482 +5717,401 @@ function StaffPanel({sub}){
       <span>{(list||[]).length} জন</span>
      </div>
     </div>
-    <div className="filters">
-     <input placeholder="নাম / ID / বিষয় / NID খুঁজুন" value={q} onChange={e=>setQ(e.target.value)}/>
-     <select value={status} onChange={e=>setStatus(e.target.value)}>
-      <option value="">সব অবস্থা</option>
-      {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}
-     </select>
-     {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
-     {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
-     <button type="button" className="mini" onClick={exportPeople}>CSV রিপোর্ট</button>
-     <button type="button" className="mini" onClick={downloadPeopleTemplate} title="Template CSV ডাউনলোড করুন">⬇ Template CSV</button>
-     <label className="mini" style={{background:'#0d9488',color:'#fff',border:'none',padding:'4px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'12px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'4px',margin:0}} title="CSV ফাইল আপলোড করুন">
-      ⬆ CSV আপলোড
-      <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
-     </label>
-    </div>
-    <div className="table-wrap" style={{overflowX:'auto',width:'100%'}}>
-     <table style={{
-       width: '100%',
-       maxWidth: isTeacher ? '1040px' : '880px',
-       tableLayout: 'fixed',
-       borderCollapse: 'collapse',
-       margin: '0',
+     <div style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '12px',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: '16px',
+      background: '#f8fafc',
+      padding: '12px 14px',
+      borderRadius: '10px',
+      border: '1px solid #e2e8f0',
+      width: '100%'
      }}>
-      <thead>
-       <tr style={{background:'#f2f8f5',borderBottom:'1.5px solid #bbf7d0'}}>
-        <th style={{textAlign:'center',width:'110px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>Employee ID</th>
-        <th style={{textAlign:'center',width:'54px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>ছবি</th>
-        <th style={{textAlign:'left',width:'240px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>নাম</th>
-        <th style={{textAlign:'left',width:'160px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>পদবি</th>
-        {isTeacher&&<th style={{textAlign:'left',width:'150px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px'}}>বিষয়</th>}
-        <th style={{textAlign:'left',width:'125px',padding:'10px 8px',color:'#065f46',fontWeight:700,fontSize:'12.5px',whiteSpace:'nowrap'}}>মোবাইল</th>
-        <th style={{textAlign:'center',width:'80px',padding:'10px 6px',color:'#065f46',fontWeight:700,fontSize:'12.5px',whiteSpace:'nowrap'}}>অবস্থা</th>
-        <th style={{textAlign:'center',width:'90px',padding:'10px 4px',color:'#065f46',fontWeight:700,fontSize:'12px',whiteSpace:'nowrap'}}>সেবা</th>
-       </tr>
-      </thead>
-      <tbody>
-       {(list||[]).map(x=>{
-        const isInline = inlineEditId === x.id;
-        const empCode = formatEmployeeId(x, isTeacher, list.indexOf(x));
-        return (
-         <tr key={x.id} style={{background: isInline ? '#f0fdf4' : undefined}}>
-          <td style={{textAlign:'center',padding:'7px 4px',whiteSpace:'nowrap'}}>
-           <span style={{
-             display: 'inline-flex',
-             alignItems: 'center',
-             gap: '3px',
-             background: isTeacher ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
-             color: isTeacher ? '#166534' : '#1d4ed8',
-             border: isTeacher ? '1px solid #86efac' : '1px solid #bfdbfe',
-             borderRadius: '6px',
-             padding: '3px 8px',
-             fontSize: '11.5px',
-             fontWeight: 800,
-             letterSpacing: '0.6px',
-             fontFamily: "'Outfit', 'Segoe UI', monospace",
-             boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-           }}>
-             <span style={{opacity: 0.65, fontSize: '10px', fontWeight: 900}}>#</span>
-             {empCode}
-           </span>
-          </td>
-          <td style={{textAlign:'center',padding:'5px 4px'}}>
-           <label style={{cursor:'pointer',display:'inline-block',position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
-            <div style={{width:'40px',height:'44px',borderRadius:'6px',overflow:'hidden',border:'1px solid #cbd5e1',margin:'0 auto',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.05)',position:'relative'}}>
-             <img src={getTeacherPhoto(x)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}/>
-             <span style={{position:'absolute',bottom:0,right:0,background:'rgba(0,0,0,0.6)',color:'#fff',fontSize:'8px',padding:'1px 2px',borderRadius:'2px',lineHeight:1}}>📷</span>
-            </div>
-            <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
-           </label>
-          </td>
-          <td style={{padding:'7px 8px',textAlign:'left'}}>
-           {isInline ? (
-            <input 
-             value={inlineForm.name_bn} 
-             onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} 
-             style={{padding:'4px 6px',fontSize:'13px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%',fontWeight:600}} 
-             placeholder="নাম (বাংলা)"
-            />
-           ) : (
-            <div>
-             <div style={{fontWeight:700,color:'#0f172a',fontSize:'13.5px',lineHeight:'1.3'}}>{x.name_bn}</div>
-             {x.name_en&&<div style={{fontSize:'10px',fontWeight:600,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:'2px'}}>{x.name_en}</div>}
-            </div>
-           )}
-          </td>
-          <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
-           {isInline ? (
-            <input 
-             value={inlineForm.designation} 
-             onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} 
-             style={{padding:'4px 6px',fontSize:'12.5px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
-             placeholder="পদবি"
-            />
-           ) : (
-            x.designation
-           )}
-          </td>
-          {isTeacher && (
-           <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12.5px',color:'#334155'}}>
-            {isInline ? (
-             <input 
-              value={inlineForm.subject} 
-              onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} 
-              style={{padding:'4px 6px',fontSize:'12.5px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
-              placeholder="মূল বিষয়"
-             />
-            ) : (
-             x.subject || '—'
-            )}
-           </td>
-          )}
-          <td style={{padding:'7px 8px',textAlign:'left',fontSize:'12px',color:'#334155',letterSpacing:'0.2px',whiteSpace:'nowrap'}}>
-           {isInline ? (
-            <input 
-             value={inlineForm.phone} 
-             onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} 
-             style={{padding:'4px 6px',fontSize:'12px',borderRadius:'5px',border:'1px solid #3b82f6',width:'100%'}} 
-             placeholder="মোবাইল"
-            />
-           ) : (
-            x.phone || '—'
-           )}
-          </td>
-          <td style={{textAlign:'center',padding:'7px 6px',fontSize:'12px',whiteSpace:'nowrap'}}>
-           {isInline ? (
-            <select 
-             value={inlineForm.status} 
-             onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} 
-             style={{padding:'3px 6px',fontSize:'11.5px',borderRadius:'5px',border:'1px solid #3b82f6'}}
-            >
-             {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
-            </select>
-           ) : (
-            <span style={{
-              display: 'inline-block',
-              background: x.status === 'active' || !x.status ? '#dcfce7' : '#f1f5f9',
-              color: x.status === 'active' || !x.status ? '#166534' : '#64748b',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
-              fontWeight: 700
-            }}>
-              {statusBn(x.status)}
-            </span>
-           )}
-          </td>
-          <td style={{textAlign:'center',padding:'4px 4px',whiteSpace:'nowrap'}}>
-           {isInline ? (
-            <div style={{display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}}>
-             <button 
-              type="button" 
-              className="mini" 
-              style={{background:'#16a34a',color:'#fff',border:'none',padding:'3px 6px',borderRadius:'4px',cursor:'pointer',fontSize:'10px',fontWeight:600}} 
-              onClick={()=>saveInline(x)} 
-              title="সংরক্ষণ করুন"
-             >
-              💾 সংরক্ষণ
-             </button>
-             <button 
-              type="button" 
-              className="mini" 
-              style={{background:'#64748b',color:'#fff',border:'none',padding:'3px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'10px',fontWeight:600}} 
-              onClick={()=>setInlineEditId(null)} 
-              title="সম্পাদনা বাতিল"
-             >
-              ✕
-             </button>
-             <button 
-              type="button" 
-              className="mini" 
-              style={{background:'#0284c7',color:'#fff',border:'none',padding:'3px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'9.5px',fontWeight:600}} 
-              onClick={()=>begin(x)} 
-              title="পূর্ণাঙ্গ ৭ ধাপের এন্ট্রি ফরম"
-             >
-              📝 ফরম
-             </button>
-            </div>
-           ) : (
-            <button
-             type="button"
-             className="mini"
-             onClick={(e)=>toggleStaffActionMenu(e, x)}
-             style={{
-               background: staffActionMenu?.personId===x.id ? '#047857' : '#ffffff',
-               color: staffActionMenu?.personId===x.id ? '#ffffff' : '#334155',
-               border: staffActionMenu?.personId===x.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
-               fontWeight: 700,
-               cursor: 'pointer',
-               padding: '4px 8px',
-               borderRadius: '6px',
-               display: 'inline-flex',
-               alignItems: 'center',
-               gap: '4px',
-               boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-               transition: 'all 0.15s ease'
-             }}
-             title="সেবা ও অ্যাকশন মেন্যু"
-            >
-              <span style={{fontSize:'16px',lineHeight:1,fontWeight:900}}>⋮</span>
-              <span style={{fontSize:'11.5px'}}>সেবা</span>
-            </button>
-           )}
-          </td>
-         </tr>
-        );
-       })}
-       {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
-      </tbody>
-     </table>
-     {staffActionMenu && (
-      <>
-        <div
-          style={{position:'fixed',inset:0,zIndex:9998}}
-          onClick={()=>setStaffActionMenu(null)}
-        />
-        <div
+      <div style={{display:'flex', alignItems:'center', gap:'10px', flex:'1 1 420px', flexWrap:'wrap'}}>
+       <div style={{position:'relative', flex:'1 1 240px', minWidth:'220px'}}>
+        <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', color:'#94a3b8', fontSize:'14px', pointerEvents:'none'}}>🔍</span>
+        <input 
+          placeholder="নাম / ID / বিষয় / NID / মোবাইল খুঁজুন..." 
+          value={q} 
+          onChange={e=>setQ(e.target.value)}
           style={{
-            position: 'fixed',
-            top: staffActionMenu.top,
-            left: staffActionMenu.left,
-            zIndex: 9999,
-            background: '#ffffff',
-            borderRadius: '10px',
-            boxShadow: '0 12px 30px -5px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.1)',
-            border: '1px solid #cbd5e1',
-            minWidth: '225px',
-            padding: '6px 0',
-            textAlign: 'left'
+            width:'100%',
+            padding:'8px 12px 8px 32px',
+            border:'1px solid #cbd5e1',
+            borderRadius:'7px',
+            fontSize:'13px',
+            background:'#ffffff',
+            color:'#0f172a',
+            outline:'none',
+            boxShadow:'0 1px 2px rgba(0,0,0,0.03)'
           }}
-          onClick={e=>e.stopPropagation()}
+        />
+       </div>
+       <div style={{minWidth:'130px'}}>
+        <select 
+          value={status} 
+          onChange={e=>setStatus(e.target.value)}
+          style={{
+            width:'100%',
+            padding:'8px 12px',
+            border:'1px solid #cbd5e1',
+            borderRadius:'7px',
+            fontSize:'13px',
+            background:'#ffffff',
+            color:'#0f172a',
+            cursor:'pointer',
+            outline:'none',
+            boxShadow:'0 1px 2px rgba(0,0,0,0.03)'
+          }}
         >
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'biodata');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#166534',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>📄</span> পূর্ণাঙ্গ বায়োডাটা (CV)
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'id_card');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#1d4ed8',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>🪪</span> পরিচয়পত্র (ID Card Studio)
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'bonafide');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#047857',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>📜</span> প্রত্যয়নপত্র (Bonafide)
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'experience');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#b45309',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#fef3c7'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>🏆</span> অভিজ্ঞতার সনদ
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'professional');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#0d9488',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f0fdfa'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>🎖️</span> পেশাগত সনদ
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'continuous');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#7e22ce',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#faf5ff'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>⏱️</span> নিরবিচ্ছিন্ন চাকুরী সনদ
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'release_order');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#c2410c',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#fff7ed'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>✈️</span> প্রশিক্ষণ ছাড়পত্র / অবমুক্তি
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'office_copies');}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:700,color:'#0f766e',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f0fdfa'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>📁</span> সংরক্ষিত অফিস কপি রেকর্ড
-          </button>
-          <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
-          <button
-            type="button"
-            onClick={()=>{
-              const p=staffActionMenu.person;
-              setStaffActionMenu(null);
-              setInlineEditId(p.id);
-              setInlineForm({
-                name_bn: p.name_bn || '',
-                designation: p.designation || '',
-                subject: p.subject || '',
-                phone: p.phone || '',
-                status: p.status || 'active'
-              });
-            }}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#2563eb',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>✏️</span> দ্রুত সম্পাদনা
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); begin(p);}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#0f172a',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>📝</span> পূর্ণাঙ্গ এন্ট্রি ফরম
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); printPersonProfile(p);}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#475569',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>🖨️</span> প্রোফাইল প্রিন্ট
-          </button>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); exportPeople(p);}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#059669',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>📊</span> CSV একক রিপোর্ট
-          </button>
-          <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
-          <button
-            type="button"
-            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); remove(p.id);}}
-            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#dc2626',cursor:'pointer',textAlign:'left'}}
-            onMouseEnter={e=>e.currentTarget.style.background='#fee2e2'}
-            onMouseLeave={e=>e.currentTarget.style.background='none'}
-          >
-            <span style={{fontSize:'14px'}}>🗑️</span> রেকর্ড মুছুন
-          </button>
-        </div>
-      </>
-     )}
-    </div>
-   </div>
-  )}
-
-   {view==='voter' && (
-    <div className="table-card" style={{borderTop:'4px solid #16a34a'}}>
-     <div className="toolbar" style={{borderBottom:'1px solid #e2e8f0',paddingBottom:'14px',marginBottom:'16px'}}>
-      <div>
-       <span className="eyebrow" style={{color:'#16a34a',fontWeight:700}}>ELECTION & VOTER LIST • V118</span>
-       <h2 style={{display:'flex',alignItems:'center',gap:'8px',margin:'4px 0'}}>🗳️ শিক্ষক ভোটার তালিকা</h2>
-       <p className="portal-muted" style={{margin:0,fontSize:'13px'}}>
-        প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দের চূড়ান্ত ভোটার তালিকা।
-       </p>
+         <option value="">সব অবস্থা</option>
+         {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}
+        </select>
+       </div>
+       {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)} style={{padding:'8px 12px',border:'1px solid #cbd5e1',borderRadius:'7px',fontSize:'13px',background:'#fff'}}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
+       {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)} style={{padding:'8px 10px',border:'1px solid #cbd5e1',borderRadius:'7px',fontSize:'13px'}}/>}
       </div>
-      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-       <span style={{background:'#dcfce7',color:'#166534',fontWeight:700,padding:'6px 12px',borderRadius:'20px',fontSize:'13px'}}>
-        মোট ভোটার: {filteredVoters.length} জন
-       </span>
-       <button className="btn mini" type="button" style={{background:'#16a34a',color:'#fff',display:'inline-flex',alignItems:'center',gap:'6px'}} onClick={printTeacherVoterList}>
-        🖨️ ভোটার তালিকা প্রিন্ট / PDF
+
+      <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'nowrap'}}>
+       <button 
+         type="button" 
+         onClick={exportPeople}
+         style={{
+           display:'inline-flex',
+           alignItems:'center',
+           gap:'6px',
+           background:'#ffffff',
+           color:'#334155',
+           border:'1px solid #cbd5e1',
+           padding:'8px 14px',
+           borderRadius:'7px',
+           cursor:'pointer',
+           fontSize:'12.5px',
+           fontWeight:600,
+           boxShadow:'0 1px 2px rgba(0,0,0,0.04)',
+           whiteSpace:'nowrap'
+         }}
+         title="CSV রিপোর্ট ডাউনলোড করুন"
+       >
+         <span>📊</span> CSV রিপোর্ট
        </button>
-       <button className="mini" type="button" onClick={exportTeacherVoterCSV} style={{display:'inline-flex',alignItems:'center',gap:'6px'}}>
-        📥 CSV ডাউনলোড
+       <button 
+         type="button" 
+         onClick={downloadPeopleTemplate}
+         style={{
+           display:'inline-flex',
+           alignItems:'center',
+           gap:'6px',
+           background:'#ffffff',
+           color:'#334155',
+           border:'1px solid #cbd5e1',
+           padding:'8px 14px',
+           borderRadius:'7px',
+           cursor:'pointer',
+           fontSize:'12.5px',
+           fontWeight:600,
+           boxShadow:'0 1px 2px rgba(0,0,0,0.04)',
+           whiteSpace:'nowrap'
+         }}
+         title="Template CSV ডাউনলোড করুন"
+       >
+         <span>⬇️</span> Template CSV
        </button>
-       <button className="mini" type="button" onClick={()=>switchTab('teachers','list')}>
-        📋 মূল তালিকায় ফিরুন
-       </button>
+       <label 
+         style={{
+           display:'inline-flex',
+           alignItems:'center',
+           gap:'6px',
+           background:'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+           color:'#ffffff',
+           border:'none',
+           padding:'8px 14px',
+           borderRadius:'7px',
+           cursor:'pointer',
+           fontSize:'12.5px',
+           fontWeight:600,
+           boxShadow:'0 2px 4px rgba(13,148,136,0.25)',
+           whiteSpace:'nowrap',
+           margin:0
+         }} 
+         title="CSV ফাইল আপলোড করুন"
+       >
+        <span>⬆️</span> CSV আপলোড
+        <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
+       </label>
       </div>
      </div>
 
-     <div className="filters" style={{marginBottom:'16px',display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-      <input 
-       placeholder="ভোটারের নাম / পদবী / ইনডেক্স নম্বর খুঁজুন..." 
-       value={voterSearch} 
-       onChange={e=>setVoterSearch(e.target.value)}
-       style={{minWidth:'280px',flex:1}}
-      />
-      {voterSearch && (
-       <button className="mini" type="button" onClick={()=>setVoterSearch('')}>রিসেট</button>
-      )}
-     </div>
-
-     <div className="table-wrap" style={{border:'1px solid #cbd5e1',borderRadius:'8px',overflowX:'auto'}}>
-      <table>
+     <div className="table-wrap" style={{
+       overflowX: 'auto',
+       width: '100%',
+       borderRadius: '10px',
+       border: '1px solid #e2e8f0',
+       background: '#ffffff',
+       boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+     }}>
+      <table style={{
+        width: '100%',
+        tableLayout: 'auto',
+        borderCollapse: 'collapse',
+        margin: 0
+      }}>
        <thead>
-        <tr style={{background:'#f8fafc',borderBottom:'2px solid #cbd5e1'}}>
-         <th style={{width:'80px',textAlign:'center',padding:'12px 8px',fontWeight:700}}>ভোটার নং</th>
-         <th style={{minWidth:'200px',textAlign:'left',padding:'12px 10px'}}>ভোটারের নাম</th>
-         <th style={{minWidth:'150px',textAlign:'left',padding:'12px 10px'}}>পদবী</th>
-         <th style={{minWidth:'140px',textAlign:'center',padding:'12px 10px'}}>অত্র প্রতিষ্ঠানে যোগদানের তারিখ</th>
-         <th style={{minWidth:'140px',textAlign:'center',padding:'12px 10px'}}>এমপিও কোড/ইনডেক্স নম্বর</th>
-         <th style={{minWidth:'180px',textAlign:'left',padding:'12px 10px'}}>মন্তব্য</th>
+        <tr style={{background:'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderBottom:'2px solid #cbd5e1'}}>
+         <th style={{textAlign:'center', width: isTeacher ? '11%' : '12%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', whiteSpace:'nowrap', letterSpacing:'0.3px'}}>Employee ID</th>
+         <th style={{textAlign:'center', width:'6%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', whiteSpace:'nowrap'}}>ছবি</th>
+         <th style={{textAlign:'left', width: isTeacher ? '24%' : '31%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>নাম</th>
+         <th style={{textAlign:'left', width: isTeacher ? '17%' : '23%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>পদবি</th>
+         {isTeacher && <th style={{textAlign:'left', width:'15%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>বিষয়</th>}
+         <th style={{textAlign:'left', width: isTeacher ? '13%' : '14%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>মোবাইল</th>
+         <th style={{textAlign:'center', width:'7%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>অবস্থা</th>
+         <th style={{textAlign:'center', width:'7%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>সেবা</th>
         </tr>
        </thead>
        <tbody>
-        {filteredVoters.map((t, idx) => {
-         const voterNo = idx + 1;
-         const joiningDate = t.current_post_joining_date || t.joining_date || t.first_joining_date || t.appointment_date || t.extended_profile?.joining_date || '—';
-         const mpoIndex = t.mpo_index_no || t.mpo_code || t.index_no || t.extended_profile?.mpo_index_no || '—';
-         const remarkVal = voterRemarks[t.id] ?? t.remarks ?? ((t.status === 'active' || !t.status) ? 'যোগ্য ভোটার' : '');
-
+        {(list||[]).map((x, idx) => {
+         const isInline = inlineEditId === x.id;
+         const empCode = formatEmployeeId(x, isTeacher, list.indexOf(x));
+         const isEven = idx % 2 === 1;
          return (
-          <tr key={t.id} style={{borderBottom:'1px solid #e2e8f0',background:idx%2===0?'#ffffff':'#fbfcfe'}}>
-           <td style={{textAlign:'center',fontWeight:700,color:'#166534',fontSize:'14px',padding:'10px 8px'}}>
-            <span style={{background:'#dcfce7',padding:'4px 10px',borderRadius:'12px',display:'inline-block',minWidth:'32px'}}>
-             {voterNo}
+          <tr 
+            key={x.id} 
+            style={{
+              background: isInline ? '#f0fdf4' : (isEven ? '#fbfcfd' : '#ffffff'),
+              borderBottom: '1px solid #edf2f7',
+              transition: 'background 0.15s ease'
+            }}
+            onMouseEnter={e => { if(!isInline) e.currentTarget.style.background = '#f0fdf4'; }}
+            onMouseLeave={e => { if(!isInline) e.currentTarget.style.background = isEven ? '#fbfcfd' : '#ffffff'; }}
+          >
+           <td style={{textAlign:'center', padding:'10px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              background: isTeacher ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
+              color: isTeacher ? '#166534' : '#1d4ed8',
+              border: isTeacher ? '1px solid #86efac' : '1px solid #bfdbfe',
+              borderRadius: '6px',
+              padding: '3px 8px',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              letterSpacing: '0.6px',
+              fontFamily: "'Outfit', 'Segoe UI', monospace",
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+            }}>
+              <span style={{opacity: 0.65, fontSize: '10px', fontWeight: 900}}>#</span>
+              {empCode}
             </span>
            </td>
-           <td style={{padding:'10px 10px'}}>
-            <div style={{display:'flex',alignItems:'center',gap:10}}>
-             <img 
-              src={getTeacherPhoto(t)} 
-              alt="" 
-              style={{width:36,height:36,borderRadius:'6px',objectFit:'cover',border:'1px solid #cbd5e1',flexShrink:0}}
-             />
-             <div>
-              <div style={{fontWeight:600,color:'#0f172a'}}>{t.name_bn}</div>
-              {t.name_en && <div style={{fontSize:'12px',color:'#64748b'}}>{t.name_en}</div>}
+           <td style={{textAlign:'center', padding:'8px 6px', verticalAlign:'middle'}}>
+            <label style={{cursor:'pointer', display:'inline-block', position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
+             <div style={{
+               width:'42px',
+               height:'46px',
+               borderRadius:'7px',
+               overflow:'hidden',
+               border:'1.5px solid #cbd5e1',
+               margin:'0 auto',
+               background:'#f8fafc',
+               display:'flex',
+               alignItems:'center',
+               justifyContent:'center',
+               boxShadow:'0 1px 3px rgba(0,0,0,0.06)',
+               position:'relative'
+             }}>
+              <img 
+                src={getTeacherPhoto(x)} 
+                alt="" 
+                style={{width:'100%', height:'100%', objectFit:'cover'}} 
+                onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}
+              />
+              <span style={{position:'absolute', bottom:0, right:0, background:'rgba(0,0,0,0.65)', color:'#fff', fontSize:'8px', padding:'1px 3px', borderRadius:'2px', lineHeight:1}}>📷</span>
              </div>
-            </div>
+             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
+            </label>
            </td>
-           <td style={{padding:'10px 10px'}}>
-            <div style={{fontWeight:500,color:'#334155'}}>{t.designation || 'সহকারী শিক্ষক'}</div>
-            {t.subject && <div style={{fontSize:'12px',color:'#0284c7'}}>{t.subject}</div>}
+           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle'}}>
+            {isInline ? (
+             <input 
+              value={inlineForm.name_bn} 
+              onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} 
+              style={{padding:'5px 8px', fontSize:'13px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%', fontWeight:600}} 
+              placeholder="নাম (বাংলা)"
+             />
+            ) : (
+             <div>
+              <div style={{fontWeight:700, color:'#0f172a', fontSize:'13.5px', lineHeight:'1.35'}}>{x.name_bn}</div>
+              {x.name_en && (
+                <div style={{fontSize:'10.5px', fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.5px', marginTop:'2px'}}>
+                  {x.name_en}
+                </div>
+              )}
+             </div>
+            )}
            </td>
-           <td style={{textAlign:'center',padding:'10px 10px',color:'#334155',fontWeight:500}}>
-            {joiningDate}
+           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle', fontSize:'13px', color:'#334155', fontWeight:500}}>
+            {isInline ? (
+             <input 
+              value={inlineForm.designation} 
+              onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} 
+              style={{padding:'5px 8px', fontSize:'12.5px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
+              placeholder="পদবি"
+             />
+            ) : (
+             <div>
+              <div style={{fontWeight:600, color:'#1e293b'}}>{x.designation}</div>
+              {x.designation_en && <div style={{fontSize:'10px', color:'#64748b', marginTop:'1px'}}>{x.designation_en}</div>}
+             </div>
+            )}
            </td>
-           <td style={{textAlign:'center',padding:'10px 10px'}}>
-            <span style={{fontFamily:'monospace',fontWeight:600,color:'#0369a1',background:'#f0f9ff',padding:'3px 8px',borderRadius:'4px',border:'1px solid #bae6fd'}}>
-             {mpoIndex}
-            </span>
+           {isTeacher && (
+            <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle'}}>
+             {isInline ? (
+              <input 
+               value={inlineForm.subject} 
+               onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} 
+               style={{padding:'5px 8px', fontSize:'12.5px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
+               placeholder="মূল বিষয়"
+              />
+             ) : (
+              x.subject ? (
+                <span style={{
+                  display: 'inline-block',
+                  background: '#f0fdf4',
+                  color: '#166534',
+                  border: '1px solid #bbf7d0',
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  fontSize: '11.5px',
+                  fontWeight: 600
+                }}>
+                  {x.subject}
+                </span>
+              ) : (
+                <span style={{color: '#94a3b8', fontSize: '12px'}}>—</span>
+              )
+             )}
+            </td>
+           )}
+           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle', whiteSpace:'nowrap'}}>
+            {isInline ? (
+             <input 
+              value={inlineForm.phone} 
+              onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} 
+              style={{padding:'5px 8px', fontSize:'12px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
+              placeholder="মোবাইল"
+             />
+            ) : (
+             <div>
+              <div style={{fontFamily:"'Outfit', 'Segoe UI', monospace", fontWeight:600, color:'#1e293b', fontSize:'12.5px'}}>
+                {x.phone ? `📞 ${x.phone}` : '—'}
+              </div>
+              {x.email && (
+                <div style={{fontSize:'10.5px', color:'#64748b', marginTop:'2px', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}} title={x.email}>
+                  ✉️ {x.email}
+                </div>
+              )}
+             </div>
+            )}
            </td>
-           <td style={{padding:'10px 10px'}}>
-            <input 
-             type="text"
-             value={remarkVal}
-             placeholder="মন্তব্য লিখুন..."
-             onChange={e => setVoterRemarks(prev => ({ ...prev, [t.id]: e.target.value }))}
-             style={{width:'100%',padding:'6px 10px',fontSize:'12.5px',borderRadius:'6px',border:'1px solid #cbd5e1',background:'#fff'}}
-            />
+           <td style={{textAlign:'center', padding:'10px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
+            {isInline ? (
+             <select 
+              value={inlineForm.status} 
+              onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} 
+              style={{padding:'4px 6px', fontSize:'11.5px', borderRadius:'6px', border:'1px solid #3b82f6'}}
+             >
+              {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
+             </select>
+            ) : (
+             <span style={{
+               display: 'inline-flex',
+               alignItems: 'center',
+               gap: '4px',
+               background: x.status === 'active' || !x.status ? '#ecfdf5' : '#f1f5f9',
+               color: x.status === 'active' || !x.status ? '#065f46' : '#64748b',
+               border: x.status === 'active' || !x.status ? '1px solid #a7f3d0' : '1px solid #e2e8f0',
+               padding: '3px 8px',
+               borderRadius: '12px',
+               fontSize: '11px',
+               fontWeight: 700
+             }}>
+               <span style={{
+                 width: '6px',
+                 height: '6px',
+                 borderRadius: '50%',
+                 background: x.status === 'active' || !x.status ? '#10b981' : '#94a3b8'
+               }} />
+               {statusBn(x.status)}
+             </span>
+            )}
+           </td>
+           <td style={{textAlign:'center', padding:'8px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
+            {isInline ? (
+             <div style={{display:'inline-flex', alignItems:'center', gap:'4px', justifyContent:'center'}}>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#16a34a', color:'#fff', border:'none', padding:'4px 8px', borderRadius:'5px', cursor:'pointer', fontSize:'11px', fontWeight:600}} 
+               onClick={()=>saveInline(x)} 
+               title="সংরক্ষণ করুন"
+              >
+               💾 সংরক্ষণ
+              </button>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#64748b', color:'#fff', border:'none', padding:'4px 7px', borderRadius:'5px', cursor:'pointer', fontSize:'11px', fontWeight:600}} 
+               onClick={()=>setInlineEditId(null)} 
+               title="সম্পাদনা বাতিল"
+              >
+               ✕
+              </button>
+              <button 
+               type="button" 
+               className="mini" 
+               style={{background:'#0284c7', color:'#fff', border:'none', padding:'4px 7px', borderRadius:'5px', cursor:'pointer', fontSize:'10px', fontWeight:600}} 
+               onClick={()=>begin(x)} 
+               title="পূর্ণাঙ্গ ৭ ধাপের এন্ট্রি ফরম"
+              >
+               📝 ফরম
+              </button>
+             </div>
+            ) : (
+             <button
+              type="button"
+              className="mini"
+              onClick={(e)=>toggleStaffActionMenu(e, x)}
+              style={{
+                background: staffActionMenu?.personId===x.id ? '#047857' : '#ffffff',
+                color: staffActionMenu?.personId===x.id ? '#ffffff' : '#334155',
+                border: staffActionMenu?.personId===x.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
+                fontWeight: 700,
+                cursor: 'pointer',
+                padding: '5px 10px',
+                borderRadius: '6px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '11.5px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease'
+              }}
+              title="সেবা ও অ্যাকশন মেন্যু"
+             >
+               <span style={{fontSize:'16px', lineHeight:1, fontWeight:900}}>⋮</span>
+               <span style={{fontSize:'11.5px'}}>সেবা</span>
+             </button>
+            )}
            </td>
           </tr>
          );
         })}
-        {!filteredVoters.length && (
-         <tr>
-          <td colSpan="6" style={{padding:'30px',textAlign:'center',color:'#64748b'}}>
-           কোনো ভোটার তথ্য পাওয়া যায়নি।
-          </td>
-         </tr>
-        )}
+        {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
        </tbody>
       </table>
      </div>
