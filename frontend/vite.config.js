@@ -20,6 +20,11 @@ function copyToRootPlugin() {
         fs.writeFileSync(rootIndex, content);
         fs.writeFileSync(rootMagra, content);
         console.log('[Auto-Sync] Copied singlefile bundle to root index.html and magra_school_management.html');
+        const desktopMagra = 'C:\\Users\\Walton\\OneDrive\\Desktop\\Magra_School_Management.html';
+        if (fs.existsSync(desktopMagra)) {
+          fs.writeFileSync(desktopMagra, content);
+          console.log('[Auto-Sync] Copied singlefile bundle to Desktop Magra_School_Management.html');
+        }
       }
     }
   };

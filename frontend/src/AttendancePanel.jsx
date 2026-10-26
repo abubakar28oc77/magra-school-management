@@ -475,7 +475,75 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
   };
 
   const handlePrint = () => {
-    window.print();
+    const el = document.querySelector('.printable-attendance-sheet');
+    if (!el) {
+      window.print();
+      return;
+    }
+    const isLandscape = tab === 'monthly_report';
+    const reportTitle = tab === 'weekly_report' 
+      ? 'সাপ্তাহিক শিক্ষার্থী হাজিরা রেজিস্টার' 
+      : tab === 'monthly_report' 
+        ? 'মাসিক শিক্ষার্থী হাজিরা রেজিস্টার' 
+        : 'দৈনিক শিক্ষার্থী উপস্থিতি রিপোর্ট';
+
+    const printWin = window.open('', '_blank', 'width=1100,height=850');
+    if (!printWin) {
+      window.print();
+      return;
+    }
+    printWin.document.write(`<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>${reportTitle}</title>
+  <style>
+    @page {
+      size: ${isLandscape ? 'A4 landscape' : 'A4 portrait'};
+      margin: 8mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: Arial, 'Noto Sans Bengali', sans-serif;
+      background: #ffffff !important;
+      margin: 0;
+      padding: 10px;
+      color: #0f172a;
+    }
+    .printable-attendance-sheet {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    @media print {
+      body {
+        padding: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  ${el.outerHTML}
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.focus();
+        window.print();
+      }, 300);
+    };
+  </script>
+</body>
+</html>`);
+    printWin.document.close();
   };
 
   // MONTHLY DYNAMIC CALENDAR ENGINE (REQ 4: Exact days in month & Fri+Sat off-days)
@@ -510,19 +578,55 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
   return (
     <div className="attendance-suite">
       <style>{`
+        @page {
+          size: ${tab === 'monthly_report' ? 'A4 landscape' : 'A4 portrait'};
+          margin: 8mm 10mm;
+        }
         @media print {
-          .no-print, header, nav, .portal-shell > div:first-child, .admin-sidebar, footer {
+          /* 1. HIDE ALL TOP NAVIGATION, SIDEBAR, ADMIN ROLE BANNERS AND CHROME */
+          .no-print,
+          header,
+          nav,
+          aside,
+          footer,
+          .top,
+          .admin-top-actions,
+          .admin-role-banner,
+          .admin aside,
+          .admin .top,
+          .portal-shell > div:first-child,
+          .admin-sidebar {
             display: none !important;
           }
-          body, .attendance-suite {
+
+          /* Hide anything in .panel before attendance suite */
+          .panel > div:not(.attendance-suite):not(:has(.printable-attendance-sheet)) {
+            display: none !important;
+          }
+          .admin > aside {
+            display: none !important;
+          }
+
+          /* Hide any non-report controls inside attendance suite */
+          .attendance-suite > *:not(.printable-attendance-sheet) {
+            display: none !important;
+          }
+
+          html, body, #root, .admin, .panel, .attendance-suite {
             background: #ffffff !important;
             padding: 0 !important;
             margin: 0 !important;
+            width: 100% !important;
+            box-shadow: none !important;
+            border: none !important;
           }
+
           .printable-attendance-sheet {
+            display: block !important;
             border: none !important;
             box-shadow: none !important;
             padding: 0 !important;
+            margin: 0 auto !important;
             width: 100% !important;
           }
         }
@@ -1014,7 +1118,7 @@ ${MOCK_SCHOOL.nameBn || 'মগড়া পালস্‌ ইউনিয়ন উ�
       )}
 
       {msg.text && (
-        <div style={{
+        <div className="no-print" style={{
           background: msg.type === 'error' ? '#fef2f2' : msg.type === 'warning' ? '#fffbeb' : '#f0fdf4',
           color: msg.type === 'error' ? '#991b1b' : msg.type === 'warning' ? '#92400e' : '#166534',
           border: `1px solid ${msg.type === 'error' ? '#fca5a5' : msg.type === 'warning' ? '#fde68a' : '#bbf7d0'}`,

@@ -1681,7 +1681,7 @@ button,.btn{touch-action:manipulation}
     width: 100% !important;
   }
 
-  header, nav, aside, main, #main-content, .reference-public > header, .reference-public > main, .ref-section, .ref-bottom, .ref-hero-wrap, .ref-stats, .ref-demographic-stats, .ref-main, .ref-footer-line, .top, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
+  header, nav, aside, .admin aside, main, #main-content, .reference-public > header, .reference-public > main, .ref-section, .ref-bottom, .ref-hero-wrap, .ref-stats, .ref-demographic-stats, .ref-main, .ref-footer-line, .top, .admin .top, .admin-role-banner, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
     display: none !important;
   }
 
@@ -2307,7 +2307,16 @@ button,.btn{touch-action:manipulation}
   display: none !important;
 }
 
+/* Completely hide super admin banner when attendance is present */
+.admin:has(.attendance-suite) .admin-role-banner,
+.panel:has(.attendance-suite) .admin-role-banner {
+  display: none !important;
+}
+
 @media print {
+  .admin-role-banner,
+  .admin aside,
+  .admin .top,
   .no-print {
     display: none !important;
   }
