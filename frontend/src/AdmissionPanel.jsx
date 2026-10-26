@@ -3,6 +3,7 @@ import { MOCK_SCHOOL, getStudentPhoto } from './mockData';
 import { DEFAULT_CLASS_TEACHERS } from './FinancePanel';
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 // Bengali Digits & Helpers
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -281,6 +282,8 @@ export function AdmissionPanel({ sub }) {
         <meta charset="utf-8">
         <title>${titleText} - ${school.nameBn}</title>
         <style>
+          ${SCHOOL_PAD_STYLES}
+
           @page { size: A4 portrait; margin: 12mm 10mm; }
           body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 15px; font-size: 11px; color: #0f172a; margin: 0; }
           .no-print { background: #f0fdf4; border: 1.5px solid #059669; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
@@ -315,10 +318,8 @@ export function AdmissionPanel({ sub }) {
           </div>
         </div>
 
-        <div class="header">
-          <img src="${schoolLogo}" style="height: 50px; width: auto; margin-bottom: 3px;" alt="Logo" onerror="this.style.display='none'" />
-          <h1>${school.nameBn}</h1>
-          <p>${school.address} • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ খ্রি.</p>
+        <div class="header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+          ${SCHOOL_PAD_HEADER_HTML}
           <div class="title-box">
             <h2>${toBnDigits(selectedYear)} শিক্ষাবর্ষে ${titleText}</h2>
           </div>

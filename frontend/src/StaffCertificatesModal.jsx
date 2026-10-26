@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { MOCK_SCHOOL, getTeacherPhoto } from './mockData.js';
 import schoolLogo from '../public/school-logo.png';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader.js';
 
 export const STAFF_CERT_CONFIG = {
   bonafide: { label: '📜 প্রত্যয়নপত্র', title: 'প্রত্যয়নপত্র (Bonafide Certificate)', color: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
@@ -164,15 +165,7 @@ export function StaffCertificatesModal({
       return `
         <div class="cert-card-sheet bonafide-doc">
           <div class="cert-inner-border">
-            <div class="doc-header">
-              <img src="${schoolLogo}" class="doc-logo" alt="Logo">
-              <div class="doc-school-meta">
-                <h1 class="school-name-title">${school.nameBn}</h1>
-                <h3 class="school-name-en-title">${school.nameEn}</h3>
-                <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬</p>
-                <p class="school-contact-info">ইমেইল: ${school.email}</p>
-              </div>
-            </div>
+            ${SCHOOL_PAD_HEADER_HTML}
 
             <div class="doc-meta-row">
               <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
@@ -223,14 +216,7 @@ export function StaffCertificatesModal({
       return `
         <div class="cert-card-sheet experience-doc">
           <div class="cert-inner-border">
-            <div class="doc-header">
-              <img src="${schoolLogo}" class="doc-logo" alt="Logo">
-              <div class="doc-school-meta">
-                <h1 class="school-name-title">${school.nameBn}</h1>
-                <h3 class="school-name-en-title">${school.nameEn}</h3>
-                <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬</p>
-              </div>
-            </div>
+            ${SCHOOL_PAD_HEADER_HTML}
 
             <div class="doc-meta-row">
               <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
@@ -281,14 +267,7 @@ export function StaffCertificatesModal({
       return `
         <div class="cert-card-sheet professional-doc">
           <div class="cert-inner-border">
-            <div class="doc-header">
-              <img src="${schoolLogo}" class="doc-logo" alt="Logo">
-              <div class="doc-school-meta">
-                <h1 class="school-name-title">${school.nameBn}</h1>
-                <h3 class="school-name-en-title">${school.nameEn}</h3>
-                <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin}</p>
-              </div>
-            </div>
+            ${SCHOOL_PAD_HEADER_HTML}
 
             <div class="doc-meta-row">
               <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
@@ -339,15 +318,7 @@ export function StaffCertificatesModal({
       return `
         <div class="cert-card-sheet continuous-doc">
           <div class="cert-inner-border">
-            <div class="doc-header">
-              <img src="${schoolLogo}" class="doc-logo" alt="Logo">
-              <div class="doc-school-meta">
-                <h1 class="school-name-title">${school.nameBn}</h1>
-                <h3 class="school-name-en-title">${school.nameEn}</h3>
-                <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin}</p>
-                <p class="school-sub-info">উপজেলা কোড: কালিহাতি • এমপিও কোড: ৪২০৬০৭১৩০২</p>
-              </div>
-            </div>
+            ${SCHOOL_PAD_HEADER_HTML}
 
             <div class="doc-meta-row">
               <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
@@ -422,15 +393,7 @@ export function StaffCertificatesModal({
       return `
         <div class="cert-card-sheet release-doc">
           <div class="cert-inner-border">
-            <div class="doc-header">
-              <img src="${schoolLogo}" class="doc-logo" alt="Logo">
-              <div class="doc-school-meta">
-                <h1 class="school-name-title">${school.nameBn}</h1>
-                <h3 class="school-name-en-title">${school.nameEn}</h3>
-                <p class="school-sub-info">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • EIIN: ${school.eiin}</p>
-                <p class="school-sub-info">স্মারক ও প্রশিক্ষণ সেল • অফিসিয়াল ছাড়পত্র আদেশ</p>
-              </div>
-            </div>
+            ${SCHOOL_PAD_HEADER_HTML}
 
             <div class="doc-meta-row">
               <div class="meta-item"><b>স্মারক নংঃ</b> ${memoNo}</div>
@@ -2189,6 +2152,8 @@ export function StaffCertificatesModal({
 }
 
 export const staffDocumentStyles = `
+  ${SCHOOL_PAD_STYLES}
+
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700&display=swap');
 
   * { box-sizing: border-box; }

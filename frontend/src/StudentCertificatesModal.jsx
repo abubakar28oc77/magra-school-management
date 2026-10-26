@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_SCHOOL } from './mockData.js';
 import schoolLogo from '../public/school-logo.png';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader.js';
 
 export const STUDENT_CERT_CONFIG = {
   testimonial: { label: '📜 প্রশংসাপত্র', title: 'প্রশংসাপত্র (Testimonial)', color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
@@ -215,18 +216,8 @@ export function StudentCertificatesModal({
         <div class="cert-outer-border">
           <div class="cert-inner-border">
             <!-- School Header -->
-            <div class="cert-header">
-              <div class="cert-header-meta">
-                <img src="${schoolLogo}" class="cert-logo" alt="Logo">
-                <div class="cert-school-title">
-                  <h1>${school.nameBn}</h1>
-                  <h2>${school.nameEn}</h2>
-                  <p class="cert-school-sub">
-                    EIIN: ${school.eiin} • স্থাপিত: ১৯৪৬ • ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল
-                  </p>
-                  <p class="cert-school-contact">Email: ${school.email}</p>
-                </div>
-              </div>
+            <div class="cert-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+              ${SCHOOL_PAD_HEADER_HTML}
               <div class="cert-type-ribbon">
                 <div class="ribbon-bn">${titleBn}</div>
                 <div class="ribbon-en">${titleEn}</div>
@@ -1579,6 +1570,8 @@ export function StudentCertificatesModal({
 
 // Master Classical Bangladeshi Certificate CSS
 export const certificateStyles = `
+  ${SCHOOL_PAD_STYLES}
+
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700;800;900&family=Cinzel:wght@600;700;800&family=Outfit:wght@400;600;700&display=swap');
 
   * { box-sizing: border-box; }

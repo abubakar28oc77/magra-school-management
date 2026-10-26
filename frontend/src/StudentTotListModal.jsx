@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader.js';
 import { getStudentPhoto } from './mockData.js';
 
 const BN_DIGITS = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
@@ -198,6 +199,8 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
         <meta charset="utf-8">
         <title>টট লিস্ট (Tot List) - ${classLabel} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
         <style>
+          ${SCHOOL_PAD_STYLES}
+
           @page { size: A4 landscape; margin: 8mm; }
           body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 10px; color: #0f172a; background: #fff; font-size: 12px; }
           .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 6px; margin-bottom: 8px; }
@@ -221,10 +224,9 @@ export function StudentTotListModal({ isOpen, onClose, students = [] }) {
           <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px;">🖨️ প্রিন্ট করুন / Save as PDF</button>
           <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">✕ বন্ধ করুন</button>
         </div>
-        <div class="header">
-          <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
-          <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</div>
-          <div class="report-title">📑 শিক্ষার্থী শ্রেণি ভিত্তিক টট লিস্ট (Tabulation / Master Roster) — ২০২৬</div>
+        <div class="header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+          ${SCHOOL_PAD_HEADER_HTML}
+          <div style="text-align:center;"><div class="report-title">📑 শিক্ষার্থী শ্রেণি ভিত্তিক টট লিস্ট (Tabulation / Master Roster) — ২০২৬</div></div>
         </div>
         <div class="meta-bar">
           <div><b>🏫 শ্রেণি:</b> ${classLabel} | <b>বিভাগ/শাখা:</b> ${groupLabel}</div>

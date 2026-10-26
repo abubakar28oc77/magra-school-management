@@ -38,6 +38,7 @@ import {SportsCultureAdminEngine} from './SportsCultureAdminEngine';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 import {StudentDisabilityQueryModal, isSpecialNeedsStudent, getDisabilityType} from './StudentDisabilityQueryModal';
 import {StudentProfessionQueryModal, ALL_PROFESSIONS_LIST, matchesStudentProfession} from './StudentProfessionQueryModal';
 import {TeacherQueryModal, IN_SERVICE_TITLES_LIST, getTeacherAllEducation} from './TeacherQueryModal';
@@ -2751,6 +2752,7 @@ function StudentPanel({sub}){
         <title>${reportHeading} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
         <style>
           @page { size: A4 landscape; margin: 10mm; }
+          ${SCHOOL_PAD_STYLES}
           body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 12px; color: #0f172a; background: #fff; font-size: 13px; }
           .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 10px; }
           .school-title { font-size: 22px; font-weight: 800; color: #047857; margin: 0; }
@@ -2773,10 +2775,9 @@ function StudentPanel({sub}){
           <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">🖨️ প্রিন্ট করুন / Save as PDF</button>
           <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:14px;">✕ বন্ধ করুন</button>
         </div>
-        <div class="header">
-          <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
-          <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</div>
-          <div class="report-title">📋 ${reportHeading}</div>
+        <div class="header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+          ${SCHOOL_PAD_HEADER_HTML}
+          <div style="text-align:center;"><div class="report-title">📋 ${reportHeading}</div></div>
         </div>
         <div class="meta-bar">
           <div><b>🔍 প্রতিবেদন টাইপ / ফিল্টার:</b> ${filterLabel}</div>
@@ -5138,10 +5139,9 @@ function StaffPanel({sub}){
   </style>
 </head>
 <body>
-  <div class="header-box">
-    <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
-    <p>ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • EIIN: 114290 • MPO: 4206071302 • স্থাপিত: ১৯৪৬</p>
-    <div class="header-badge">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও জীবনবৃত্তান্ত (Official Profile Record)</div>
+  <div class="header-box" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+    ${SCHOOL_PAD_HEADER_HTML}
+    <div style="text-align:center;"><div class="header-badge">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও জীবনবৃত্তান্ত (Official Profile Record)</div></div>
   </div>
 
   <div class="top-summary">

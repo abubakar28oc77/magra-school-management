@@ -58,6 +58,8 @@ export function StudentProfileModal({
         <meta charset="utf-8">
         <title>শিক্ষার্থী তথ্য বিবরণী (Bio-data) - ${student.name_bn || student.student_id}</title>
         <style>
+          ${SCHOOL_PAD_STYLES}
+
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600;700;800&family=Outfit:wght@400;600;700&display=swap');
           body {
             font-family: 'Noto Sans Bengali', Arial, sans-serif;
@@ -132,10 +134,8 @@ export function StudentProfileModal({
       </head>
       <body>
         <div class="dossier-card">
-          <div class="dossier-header">
-            <h1>${school.nameBn}</h1>
-            <h2>${school.nameEn}</h2>
-            <p>EIIN: ${school.eiin} • ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৪৬</p>
+          <div class="dossier-header" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+            ${SCHOOL_PAD_HEADER_HTML}
             <h3 style="margin: 8px 0 0; font-size: 16px; color: #047857;">শিক্ষার্থী পূর্ণাঙ্গ তথ্য বিবরণী ও ডিজিটাল ডসিয়ার</h3>
           </div>
 
