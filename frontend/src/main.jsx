@@ -3592,165 +3592,121 @@ function StudentPanel({sub}){
    <div className="table-card">
     <div className="toolbar">
      <div>
-      <span className="eyebrow">STUDENT DIRECTORY • V91</span>
-      <h2>শিক্ষার্থী তালিকা</h2>
+      <span className="eyebrow">{isTeacher ? 'TEACHER DIRECTORY • V91' : 'STAFF DIRECTORY • V91'}</span>
+      <h2>{isTeacher ? 'শিক্ষকবৃন্দের তালিকা' : 'কর্মচারীর তালিকা'}</h2>
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-      <button className="mini" type="button" onClick={()=>printStudentReport()} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
+      <button className="mini" type="button" onClick={printTeacherReport} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
         🖨️ প্রিন্ট / PDF রিপোর্ট
       </button>
-      <button className="mini" type="button" onClick={()=>handleOpenIdCard()} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
+      <button className="mini" type="button" onClick={()=>handleOpenStaffDocs('', 'id_card')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
         🪪 আইডি কার্ড স্টুডিও (একক ও বাল্ক)
       </button>
-      <button className="mini" type="button" onClick={()=>handleOpenCert('', 'testimonial')} style={{background:'#1d4ed8',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(29,78,216,0.25)'}}>
-        📜 প্রশংসাপত্র, ছাড়পত্র ও প্রত্যয়ন
+      <button className="mini" type="button" onClick={()=>handleOpenStaffDocs('', 'bonafide')} style={{background:'#1d4ed8',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(29,78,216,0.25)'}}>
+        📜 {isTeacher ? 'শিক্ষক সনদ ও বায়োডাটা' : 'কর্মচারী সনদ ও বায়োডাটা'}
       </button>
-       <button className="mini" type="button" onClick={()=>handleOpenCert('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
-         📁 সনদ অফিস কপি আর্কাইভ
+      <button className="mini" type="button" onClick={()=>handleOpenStaffDocs('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
+        📁 সনদ অফিস কপি আর্কাইভ
+      </button>
+      {isTeacher && (
+       <>
+        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })} style={{background:'#eff6ff',border:'1.5px solid #2563eb',color:'#1d4ed8',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(37,99,235,0.15)'}}>
+          🎓 শিক্ষাগত যোগ্যতা কুয়েরি ও রিপোর্ট
+        </button>
+        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })} style={{background:'#f0fdfa',border:'1.5px solid #0d9488',color:'#0f766e',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(13,148,136,0.15)'}}>
+          📜 পেশাগত ডিগ্রী কুয়েরি ও রিপোর্ট
+        </button>
+        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
+          💻 আইসিটি প্রশিক্ষণ কুয়েরি ও রিপোর্ট
+        </button>
+        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
+          📚 কর্মকালীন প্রশিক্ষণ কুয়েরি ও রিপোর্ট
+        </button>
+        <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
+          🗳️ শিক্ষক ভোটার তালিকা
+        </button>
+       </>
+      )}
+      {selectedStaffIds.length > 0 && (
+       <button className="mini" type="button" onClick={deleteSelectedStaff} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
+         🗑️ নির্বাচিত ({selectedStaffIds.length}) মুছুন
        </button>
-      <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
-        📑 শ্রেণি ভিত্তিক টট লিস্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
-        ♿ প্রতিবন্ধিতা কুয়েরি ও রিপোর্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setShowProfessionQueryModal(true)} style={{background:'#eff6ff',border:'1.5px solid #2563eb',color:'#1d4ed8',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(37,99,235,0.15)'}}>
-        💼 অভিভাবকের পেশা কুয়েরি ও রিপোর্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
-        🗳️ ভোটার তালিকা
-      </button>
-      {selectedIds.length > 0 && (
-        <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
-          🗑️ নির্বাচিত ({selectedIds.length}) মুছুন
-        </button>
       )}
-      {studentList.length > 0 && (
-        <button className="mini" type="button" onClick={clearAllStudents} style={{background:'#fff1f2',color:'#be123c',border:'1px solid #fecdd3',fontWeight:600,cursor:'pointer',padding:'6px 12px',borderRadius:'6px'}}>
-          ⚠️ সব মুছুন / রিসেট
-        </button>
-      )}
-      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setSameAddress(false);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
-      <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
-      <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
-      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{studentList.length} জন</span>
+      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('form');}}>
+        ➕ {isTeacher ? 'নতুন শিক্ষক এন্ট্রি' : 'নতুন কর্মচারী এন্ট্রি'}
+      </button>
+      <button className="mini" type="button" onClick={downloadPeopleTemplate}>⬇ Template CSV</button>
+      <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>
+        ⬆ CSV আপলোড
+        <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
+      </label>
+      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>
+        {(list||[]).length} জন
+      </span>
      </div>
     </div>
+
     <div className="filters" style={{display:'flex',flexWrap:'wrap',gap:'8px',alignItems:'center',background:'#f8fafc',padding:'12px',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'16px'}}>
-     <input placeholder="🔍 নাম / ID / অভিভাবক / মোবাইল খুঁজুন" style={{minWidth:'220px',flex:1}} value={q} onChange={e=>setQ(e.target.value)}/>
-     <select value={className} onChange={e=>setClassName(e.target.value)} style={{fontWeight:600}}>
-      <option value="">🏫 সব শ্রেণি</option>
-      {classes.map(c=><option key={c} value={c}>শ্রেণি {c}</option>)}
-     </select>
-     <select value={groupFilter} onChange={e=>setGroupFilter(e.target.value)} style={{fontWeight:600,color:groupFilter?'#0284c7':undefined}}>
-      <option value="">📚 সব বিভাগ / গ্রুপ</option>
-      <option value="বিজ্ঞান">বিজ্ঞান বিভাগ</option>
-      <option value="মানবিক">মানবিক বিভাগ</option>
-      <option value="ব্যবসায়">ব্যবসায় শিক্ষা শাখা</option>
-     </select>
-     <input placeholder="শাখা (Section)" style={{maxWidth:'110px'}} value={section} onChange={e=>setSection(e.target.value)}/>
-     <select value={religionFilter} onChange={e=>setReligionFilter(e.target.value)} style={{fontWeight:600,color:religionFilter?'#059669':undefined}}>
-      <option value="">☪️ 🕉️ সব ধর্ম</option>
-      <option value="ইসলাম">ইসলাম</option>
-      <option value="হিন্দু">হিন্দু</option>
-      <option value="বৌদ্ধ">বৌদ্ধ</option>
-      <option value="খ্রিষ্টান">খ্রিষ্টান</option>
-      <option value="অন্যান্য">অন্যান্য</option>
-     </select>
-     <select value={genderFilter} onChange={e=>setGenderFilter(e.target.value)} style={{fontWeight:600}}>
-      <option value="">👥 সব জেন্ডার</option>
-      <option value="male">ছাত্র (পুরুষ)</option>
-      <option value="female">ছাত্রী (নারী)</option>
-     </select>
+     <input placeholder="🔍 নাম / ID / বিষয় / NID / মোবাইল খুঁজুন" style={{minWidth:'220px',flex:1}} value={q} onChange={e=>setQ(e.target.value)}/>
      <select value={status} onChange={e=>setStatus(e.target.value)} style={{fontWeight:600,color:status==='active'?'#16a34a':status==='inactive'?'#dc2626':undefined}}>
       <option value="">সব অবস্থা</option>
-      <option value="active">সক্রিয়</option>
-      <option value="inactive">নিষ্ক্রিয়</option>
-      <option value="graduated">উত্তীর্ণ</option>
-      <option value="transferred">স্থানান্তরিত</option>
-      <option value="dropped_out">ঝরে পড়া</option>
+      {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}
      </select>
-     <select value={ageFilter} onChange={e=>setAgeFilter(e.target.value)} style={{fontWeight:600,color:ageFilter?'#7c3aed':undefined}}>
-        <option value="">🎂 সব বয়স</option>
-        <option value="under_11">১১ বছরের নীচে (&lt;১১)</option>
-        <option value="range_11_12">১১-১২ বছর</option>
-        <option value="range_12_13">১২-১৩ বছর</option>
-        <option value="range_13_14">১৩-১৪ বছর</option>
-        <option value="range_14_15">১৪-১৫ বছর</option>
-        <option value="range_15_16">১৫-১৬ বছর</option>
-        <option value="range_16_17">১৬-১৭ বছর</option>
-        <option value="range_17_18">১৭-১৮ বছর</option>
-        <option value="above_18">১৮ বছরের উপরে (১৮+)</option>
-       </select>
-     <select value={disabilityFilter} onChange={e=>setDisabilityFilter(e.target.value)} style={{fontWeight:600,color:disabilityFilter?'#d97706':undefined,borderColor:disabilityFilter?'#d97706':undefined,backgroundColor:disabilityFilter?'#fffbeb':undefined}}>
-        <option value="">♿ সব প্রতিবন্ধিতা</option>
-        <option value="special_only">♿ সকল বিশেষ চাহিদা</option>
-        <option value="অটিস্টিক">অটিস্টিক</option>
-        <option value="শারীরিক প্রতিবন্ধিতা">শারীরিক প্রতিবন্ধিতা</option>
-        <option value="মানসিক অসুস্থতাজনিত প্রতিবন্ধিতা">মানসিক অসুস্থতাজনিত প্রতিবন্ধিতা</option>
-        <option value="দৃষ্টি প্রতিবন্ধিতা">দৃষ্টি প্রতিবন্ধিতা</option>
-        <option value="বাক প্রতিবন্ধিতা">বাক প্রতিবন্ধিতা</option>
-        <option value="বুদ্ধি প্রতিবন্ধিতা">বুদ্ধি প্রতিবন্ধিতা</option>
-        <option value="শ্রবণ প্রতিবন্ধিতা">শ্রবণ প্রতিবন্ধিতা</option>
-        <option value="শ্রবণ-দৃষ্টি প্রতিবন্ধিতা">শ্রবণ-দৃষ্টি প্রতিবন্ধিতা</option>
-        <option value="ডাউন সিন্ড্রোম">ডাউন সিন্ড্রোম</option>
-        <option value="অন্যান্য">অন্যান্য</option>
-       </select>
-      <select value={professionFilter} onChange={e=>setProfessionFilter(e.target.value)} style={{fontWeight:600,color:professionFilter?'#1d4ed8':undefined,borderColor:professionFilter?'#2563eb':undefined,backgroundColor:professionFilter?'#eff6ff':undefined}}>
-         <option value="">💼 সব অভিভাবক পেশা</option>
-         {ALL_PROFESSIONS_LIST.map(p=><option key={p} value={p}>{p}</option>)}
-      </select>
      {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
      {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)}/>}
-     <button type="button" className="mini" onClick={()=>printStudentReport()} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
-     <button type="button" className="mini" onClick={exportStudents} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
-     <button type="button" className="mini" onClick={()=>setShowTotListModal(true)} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📑 শ্রেণি ভিত্তিক টট লিস্ট</button>
-     <button type="button" className="mini" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#d97706',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(217,119,6,0.2)'}}>♿ প্রতিবন্ধিতা কুয়েরি</button>
-      <button type="button" className="mini" onClick={()=>setShowProfessionQueryModal(true)} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(37,99,235,0.2)'}}>💼 পেশা কুয়েরি</button>
-     <button type="button" className="mini" onClick={()=>setView('voter')} style={{background:'#c026d3',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(192,38,211,0.2)'}}>🗳️ ভোটার তালিকা</button>
+     <button type="button" className="mini" onClick={printTeacherReport} style={{background:'#16a34a',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>🖨️ প্রিন্ট / PDF</button>
+     <button type="button" className="mini" onClick={exportPeople} style={{background:'#2563eb',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer'}}>📊 CSV রিপোর্ট</button>
+     {isTeacher && (
+       <>
+        <button type="button" className="mini" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })} style={{background:'#4f46e5',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(79,70,229,0.2)'}}>🎓 যোগ্যতা কুয়েরি</button>
+        <button type="button" className="mini" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })} style={{background:'#0d9488',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(13,148,136,0.2)'}}>📜 ডিগ্রী কুয়েরি</button>
+        <button type="button" className="mini" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })} style={{background:'#d97706',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(217,119,6,0.2)'}}>💻 আইসিটি কুয়েরি</button>
+        <button type="button" className="mini" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(2,132,199,0.2)'}}>📚 ট্রেনিং কুয়েরি</button>
+        <button type="button" className="mini" onClick={()=>setView('voter')} style={{background:'#c026d3',color:'#fff',fontWeight:700,border:'none',padding:'6px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'5px',boxShadow:'0 2px 4px rgba(192,38,211,0.2)'}}>🗳️ ভোটার তালিকা</button>
+       </>
+     )}
     </div>
+
     <div className="table-wrap">
      <table>
       <thead>
        <tr style={{whiteSpace:'nowrap'}}>
-        <th style={{width:'36px',textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={studentList.length>0 && selectedIds.length===studentList.length} onChange={toggleSelectAll}/></th>
-        <th style={{width:'50px',textAlign:'center'}}>{lang==='en'?'Photo':'ছবি'}</th>
-        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student ID':'আইডি (ID)'}</th>
-        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Student Name':'শিক্ষার্থীর নাম'}</th>
-        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Class':'শ্রেণি'}</th>
-        <th style={{color:'#0284c7',whiteSpace:'nowrap'}}>{lang==='en'?'Department / Group':'বিভাগ'}</th>
-        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Roll':'রোল'}</th>
-        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Religion':'ধর্ম'}</th>
-        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Guardian':'অভিভাবক'}</th>
-        <th style={{whiteSpace:'nowrap'}}>{lang==='en'?'Mobile':'মোবাইল'}</th>
-        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>{lang==='en'?'Status':'অবস্থা'}</th>
-        <th style={{textAlign:'center',width:'80px',whiteSpace:'nowrap'}}>{lang==='en'?'Actions':'অ্যাকশন'}</th>
+        <th style={{width:'36px',textAlign:'center'}}>
+          <input type="checkbox" style={{cursor:'pointer'}} checked={(list||[]).length>0 && selectedStaffIds.length===(list||[]).length} onChange={toggleSelectAllStaff}/>
+        </th>
+        <th style={{width:'50px',textAlign:'center'}}>ছবি</th>
+        <th style={{whiteSpace:'nowrap'}}>আইডি (ID)</th>
+        <th style={{whiteSpace:'nowrap'}}>{isTeacher ? 'শিক্ষকের নাম' : 'কর্মচারীর নাম'}</th>
+        <th style={{whiteSpace:'nowrap'}}>পদবি</th>
+        {isTeacher && <th style={{color:'#0284c7',whiteSpace:'nowrap'}}>বিষয়</th>}
+        <th style={{whiteSpace:'nowrap'}}>মোবাইল</th>
+        <th style={{textAlign:'center',whiteSpace:'nowrap'}}>অবস্থা</th>
+        <th style={{textAlign:'center',width:'80px',whiteSpace:'nowrap'}}>অ্যাকশন</th>
        </tr>
       </thead>
       <tbody>
-       {studentList.map(s=>{
-         const isEn = lang === 'en';
-         const studentName = isEn ? (s.name_en || s.name_bn) : (s.name_bn || s.name_en);
-         const studentGuardian = getStudentGuardian(s, lang);
-         const studentGroup = formatGroup(s.department || s.group_name || s.group, lang);
-         const classDisplay = isEn ? `Class ${s.class_name}` : `শ্রেণি ${s.class_name}`;
-         const studentStatus = statusBn(s.status, lang);
+       {(list||[]).map(x=>{
+         const isInline = inlineEditId === x.id;
+         const empCode = formatEmployeeId(x, isTeacher, list.indexOf(x));
+         const isSelected = selectedStaffIds.includes(x.id);
 
          return (
-           <tr key={s.id} style={{background:selectedIds.includes(s.id)?'#f0fdf4':undefined,whiteSpace:'nowrap'}}>
-            <td style={{textAlign:'center'}}><input type="checkbox" style={{cursor:'pointer'}} checked={selectedIds.includes(s.id)} onChange={()=>toggleSelectOne(s.id)}/></td>
+           <tr key={x.id} style={{background: isSelected ? '#f0fdf4' : (isInline ? '#fefce8' : undefined), whiteSpace: 'nowrap'}}>
+            <td style={{textAlign:'center'}}>
+              <input type="checkbox" style={{cursor:'pointer'}} checked={isSelected} onChange={()=>toggleSelectOneStaff(x.id)}/>
+            </td>
             <td style={{textAlign:'center',padding:'4px 6px'}}>
               <div style={{position:'relative',width:'38px',height:'42px',margin:'0 auto'}}>
                 <div style={{width:'38px',height:'42px',borderRadius:'5px',overflow:'hidden',border:'1.5px solid #cbd5e1',background:'#f8fafc',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 1px 2px rgba(0,0,0,0.06)'}}>
                   <img
-                    src={getStudentPhoto(s)}
+                    src={getTeacherPhoto(x)}
                     alt=""
                     style={{width:'100%',height:'100%',objectFit:'cover',display:'block'}}
-                    onError={(e)=>{ e.currentTarget.onerror=null; e.currentTarget.src=PHOTO_STUDENT_MALE_1; }}
+                    onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}
                   />
                 </div>
                 <label
-                  title={`${studentName}-এর ছবি সরাসরি আপলোড বা পরিবর্তন করুন`}
+                  title={`${x.name_bn}-এর ছবি সরাসরি আপলোড বা পরিবর্তন করুন`}
                   style={{
                     position:'absolute',
                     bottom:'-3px',
@@ -3769,2364 +3725,261 @@ function StudentPanel({sub}){
                   }}
                   onClick={(e)=>e.stopPropagation()}
                 >
-                  <input type="file" accept="image/*" style={{display:'none'}} onChange={(e)=>handleTableStudentPhotoUpload(e, s)}/>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" style={{display:'none'}} onChange={(e)=>uploadPhoto(x, e)}/>
                   📷
                 </label>
               </div>
             </td>
-            <td style={{whiteSpace:'nowrap'}}><code>{s.student_id}</code></td>
-            <td style={{whiteSpace:'nowrap'}}><b>{studentName || '—'}</b></td>
-            <td style={{whiteSpace:'nowrap'}}>{classDisplay}</td>
             <td style={{whiteSpace:'nowrap'}}>
-              {s.department || s.group_name || s.group ? (
-                <span style={{background:'#e0f2fe',color:'#0369a1',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>
-                  {studentGroup}
-                </span>
+              <code>{empCode}</code>
+            </td>
+            <td style={{whiteSpace:'nowrap'}}>
+              {isInline ? (
+                <input value={inlineForm.name_bn} onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} style={{padding:'4px 6px',fontSize:'13px',borderRadius:'4px',border:'1px solid #3b82f6'}} placeholder="নাম"/>
               ) : (
-                <span style={{color:'#94a3b8'}}>—</span>
+                <>
+                  <b>{x.name_bn || '—'}</b>
+                  {x.name_en && <div style={{fontSize:'10px',color:'#64748b',textTransform:'uppercase'}}>{x.name_en}</div>}
+                </>
               )}
             </td>
-            <td style={{textAlign:'center',whiteSpace:'nowrap'}}>{s.roll_no || '—'}</td>
-             <td style={{textAlign:'center',whiteSpace:'nowrap'}}><span style={{background:(s.religion||'ইসলাম')==='হিন্দু'?'#fef3c7':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#f3e8ff':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#e0e7ff':'#f0fdf4',color:(s.religion||'ইসলাম')==='হিন্দু'?'#b45309':(s.religion||'ইসলাম')==='বৌদ্ধ'?'#7e22ce':(s.religion||'ইসলাম')==='খ্রিষ্টান'?'#4338ca':'#15803d',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>{s.religion||'ইসলাম'}</span></td>
-            <td style={{whiteSpace:'nowrap'}}>{studentGuardian}</td>
-            <td style={{whiteSpace:'nowrap'}}>{getStudentPhone(s)}</td>
-            <td style={{textAlign:'center',whiteSpace:'nowrap'}}><span style={{color: s.status==='active'?'#16a34a':'#dc2626', fontWeight:600}}>{studentStatus}</span></td>
+            <td style={{whiteSpace:'nowrap'}}>
+              {isInline ? (
+                <input value={inlineForm.designation} onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} style={{padding:'4px 6px',fontSize:'12px',borderRadius:'4px',border:'1px solid #3b82f6'}} placeholder="পদবি"/>
+              ) : (
+                x.designation || '—'
+              )}
+            </td>
+            {isTeacher && (
+              <td style={{whiteSpace:'nowrap'}}>
+                {isInline ? (
+                  <input value={inlineForm.subject} onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} style={{padding:'4px 6px',fontSize:'12px',borderRadius:'4px',border:'1px solid #3b82f6'}} placeholder="বিষয়"/>
+                ) : (
+                  x.subject ? (
+                    <span style={{background:'#e0f2fe',color:'#0369a1',padding:'2px 8px',borderRadius:'4px',fontSize:'12px',fontWeight:600}}>
+                      {x.subject}
+                    </span>
+                  ) : (
+                    <span style={{color:'#94a3b8'}}>—</span>
+                  )
+                )}
+              </td>
+            )}
+            <td style={{whiteSpace:'nowrap'}}>
+              {isInline ? (
+                <input value={inlineForm.phone} onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} style={{padding:'4px 6px',fontSize:'12px',borderRadius:'4px',border:'1px solid #3b82f6'}} placeholder="মোবাইল"/>
+              ) : (
+                x.phone || '—'
+              )}
+            </td>
+            <td style={{textAlign:'center',whiteSpace:'nowrap'}}>
+              {isInline ? (
+                <select value={inlineForm.status} onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} style={{padding:'3px 6px',fontSize:'11.5px',borderRadius:'4px'}}>
+                  {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
+                </select>
+              ) : (
+                <span style={{color: (x.status==='active'||!x.status)?'#16a34a':'#dc2626', fontWeight:600}}>
+                  {statusBn(x.status)}
+                </span>
+              )}
+            </td>
             <td style={{textAlign:'center',whiteSpace:'nowrap',width:'80px'}}>
-             <button
-               type="button"
-               className="mini"
-               onClick={(e)=>toggleActionMenu(e, s)}
-               style={{
-                 background: actionMenu?.studentId===s.id ? '#047857' : '#ffffff',
-                 color: actionMenu?.studentId===s.id ? '#ffffff' : '#334155',
-                 border: actionMenu?.studentId===s.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
-                 fontWeight: 700,
-                 cursor: 'pointer',
-                 padding: '4px 8px',
-                 borderRadius: '6px',
-                 display: 'inline-flex',
-                 alignItems: 'center',
-                 gap: '4px',
-                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-                 transition: 'all 0.15s ease'
-               }}
-               title={isEn ? 'Actions & Services' : 'সেবা ও অ্যাকশন'}
-             >
-               <span style={{fontSize:'16px',lineHeight:1,fontWeight:900}}>⋮</span>
-               <span style={{fontSize:'11.5px'}}>{isEn ? 'Actions' : 'সেবা'}</span>
-             </button>
+              {isInline ? (
+                <div style={{display:'inline-flex',alignItems:'center',gap:'3px',justifyContent:'center'}}>
+                  <button type="button" className="mini" style={{background:'#16a34a',color:'#fff',border:'none',padding:'3px 6px',borderRadius:'4px',cursor:'pointer',fontSize:'10px',fontWeight:600}} onClick={()=>saveInline(x)} title="সংরক্ষণ">💾</button>
+                  <button type="button" className="mini" style={{background:'#64748b',color:'#fff',border:'none',padding:'3px 5px',borderRadius:'4px',cursor:'pointer',fontSize:'10px',fontWeight:600}} onClick={()=>setInlineEditId(null)} title="বাতিল">✕</button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={(e)=>toggleStaffActionMenu(e, x)}
+                  style={{
+                    background: staffActionMenu?.personId===x.id ? '#047857' : '#ffffff',
+                    color: staffActionMenu?.personId===x.id ? '#ffffff' : '#334155',
+                    border: staffActionMenu?.personId===x.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title="সেবা ও অ্যাকশন"
+                >
+                  <span style={{fontSize:'16px',lineHeight:1,fontWeight:900}}>⋮</span>
+                  <span style={{fontSize:'11.5px'}}>সেবা</span>
+                </button>
+              )}
             </td>
            </tr>
          );
        })}
-       {!studentList.length&&<tr><td colSpan="12" style={{textAlign:'center',padding:'24px',color:'#64748b'}}>{lang==='en'?'No student records found.':'কোনো শিক্ষার্থী পাওয়া যায়নি।'}</td></tr>}
+       {!(list||[]).length && <tr><td colSpan={isTeacher?9:8} style={{textAlign:'center',padding:'20px',color:'#64748b'}}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
       </tbody>
      </table>
-     {actionMenu && (
-       <>
-         <div
-           style={{position:'fixed',inset:0,zIndex:9998}}
-           onClick={()=>setActionMenu(null)}
-         />
-         <div
-           style={{
-             position: 'fixed',
-             top: actionMenu.top,
-             left: actionMenu.left,
-             zIndex: 9999,
-             background: '#ffffff',
-             borderRadius: '10px',
-             boxShadow: '0 12px 30px -5px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.1)',
-             border: '1px solid #cbd5e1',
-             minWidth: '195px',
-             padding: '6px 0',
-             textAlign: 'left'
-           }}
-           onClick={e=>e.stopPropagation()}
-         >
-           <button
-             type="button"
-             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenProfile(s);}}
-             style={{
-               width:'100%',
-               padding:'8px 14px',
-               background:'none',
-               border:'none',
-               display:'flex',
-               alignItems:'center',
-               gap:'9px',
-               fontSize:'13px',
-               fontWeight:600,
-               color:'#166534',
-               cursor:'pointer',
-               textAlign:'left'
-             }}
-             onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
-             onMouseLeave={e=>e.currentTarget.style.background='none'}
-           >
-             <span style={{fontSize:'15px'}}>👁️</span> {lang==='en'?'Student Profile':'শিক্ষার্থী প্রোফাইল'}
-           </button>
-           <button
-             type="button"
-             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenIdCard(s.id);}}
-             style={{
-               width:'100%',
-               padding:'8px 14px',
-               background:'none',
-               border:'none',
-               display:'flex',
-               alignItems:'center',
-               gap:'9px',
-               fontSize:'13px',
-               fontWeight:600,
-               color:'#1d4ed8',
-               cursor:'pointer',
-               textAlign:'left'
-             }}
-             onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
-             onMouseLeave={e=>e.currentTarget.style.background='none'}
-           >
-             <span style={{fontSize:'15px'}}>🪪</span> {lang==='en'?'ID Card Studio':'পরিচয়পত্র (ID Card)'}
-           </button>
-           <button
-             type="button"
-             onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenCert(s.id, 'testimonial');}}
-             style={{
-               width:'100%',
-               padding:'8px 14px',
-               background:'none',
-               border:'none',
-               display:'flex',
-               alignItems:'center',
-               gap:'9px',
-               fontSize:'13px',
-               fontWeight:600,
-               color:'#b45309',
-               cursor:'pointer',
-               textAlign:'left'
-             }}
-             onMouseEnter={e=>e.currentTarget.style.background='#fef3c7'}
-             onMouseLeave={e=>e.currentTarget.style.background='none'}
-           >
-             <span style={{fontSize:'15px'}}>📜</span> {lang==='en'?'Certificates / TC':'প্রশংসাপত্র / সনদ / TC'}
-           </button>
-            <button
-              type="button"
-              onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenCert(s.id, 'office_copies');}}
-              style={{
-                width:'100%',
-                padding:'8px 14px',
-                background:'none',
-                border:'none',
-                display:'flex',
-                alignItems:'center',
-                gap:'9px',
-                fontSize:'13px',
-                fontWeight:600,
-                color:'#047857',
-                cursor:'pointer',
-                textAlign:'left'
-              }}
-              onMouseEnter={e=>e.currentTarget.style.background='#ecfdf5'}
-              onMouseLeave={e=>e.currentTarget.style.background='none'}
-            >
-              <span style={{fontSize:'15px'}}>📁</span> {lang==='en'?'Saved Office Copies':'সংরক্ষিত অফিস কপি রেকর্ড'}
-            </button>
-           <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
-           <button
-             type="button"
-             onClick={()=>{const s=actionMenu.student; setActionMenu(null); edit(s);}}
-             style={{
-               width:'100%',
-               padding:'8px 14px',
-               background:'none',
-               border:'none',
-               display:'flex',
-               alignItems:'center',
-               gap:'9px',
-               fontSize:'13px',
-               fontWeight:600,
-               color:'#0f172a',
-               cursor:'pointer',
-               textAlign:'left'
-             }}
-             onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
-             onMouseLeave={e=>e.currentTarget.style.background='none'}
-           >
-             <span style={{fontSize:'15px'}}>✏️</span> {lang==='en'?'Edit Information':'তথ্য সম্পাদনা'}
-           </button>
-           <button
-             type="button"
-             onClick={()=>{const s=actionMenu.student; setActionMenu(null); remove(s);}}
-             style={{
-               width:'100%',
-               padding:'8px 14px',
-               background:'none',
-               border:'none',
-               display:'flex',
-               alignItems:'center',
-               gap:'9px',
-               fontSize:'13px',
-               fontWeight:600,
-               color:'#dc2626',
-               cursor:'pointer',
-               textAlign:'left'
-             }}
-             onMouseEnter={e=>e.currentTarget.style.background='#fee2e2'}
-             onMouseLeave={e=>e.currentTarget.style.background='none'}
-           >
-             <span style={{fontSize:'15px'}}>🗑️</span> {lang==='en'?'Delete Record':'শিক্ষার্থী রেকর্ড মুছুন'}
-           </button>
-         </div>
-       </>
-     )}
     </div>
-   </div>
-  )}
-   <StudentTotListModal isOpen={showTotListModal} onClose={()=>setShowTotListModal(false)} students={students}/>
-   <StudentDisabilityQueryModal isOpen={showDisabilityQueryModal} onClose={()=>setShowDisabilityQueryModal(false)} students={students}/>
-   <StudentProfessionQueryModal isOpen={showProfessionQueryModal} onClose={()=>setShowProfessionQueryModal(false)} students={students}/>
-   {showIdCardModal && <StudentIdCardModal isOpen={showIdCardModal} onClose={()=>setShowIdCardModal(false)} students={students} initialStudentId={idCardStudentId}/>}
-   {showCertModal && <StudentCertificatesModal isOpen={showCertModal} onClose={()=>setShowCertModal(false)} students={students} initialStudentId={certStudentId} initialCertType={certType}/>}
-   {profileStudent && <StudentProfileModal isOpen={!!profileStudent} onClose={()=>setProfileStudent(null)} student={profileStudent} onEditStudent={edit} onOpenIdCard={handleOpenIdCard} onOpenCertificate={handleOpenCert}/>}
- </div>;
-}
-// AdmissionPanel is modernized and modularized in AdmissionPanel.jsx
 
-
-// ResultPanel is modernized and modularized in ResultPanel.jsx
-
-
-
-const emptyTeacher={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',designation_en:'',subject:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',first_mpo_date:'',current_post_joining_date:'',current_mpo_date:'',previous_institution_joining_date:'',previous_institution_mpo_date:'',appointment_date:'',appointment_authority:'',mpo_index_no:'',teacher_registration_no:'',registration_date:'',teacher_portal_id:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],ntrca:{},dob:'',professional_note:''}};
-const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',current_post_joining_date:'',appointment_date:'',appointment_authority:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],dob:'',professional_note:''}};
-
-function StaffPanel({sub}){
- const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
- const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
-
- const normalizeTeacherEmployeeIds = (arr, isTeacher = true) => {
-   return (arr || []).map((x, idx) => {
-     const cur = String(x?.employee_id || '').trim();
-     if (!cur || (!cur.toUpperCase().startsWith('EMP-') && !cur.toUpperCase().startsWith('STF-'))) {
-       const num = parseEmployeeIdNum(cur || x?.id, idx + 1);
-       const prefix = isTeacher ? 'EMP-' : 'STF-';
-       return { ...x, employee_id: `${prefix}${String(num).padStart(3, '0')}` };
-     }
-     return x;
-   });
- };
-
- const getInitialTeachers = () => {
-   try {
-     const raw = localStorage.getItem('magra_db_teachers');
-     if (raw) {
-       const parsed = JSON.parse(raw);
-       if (Array.isArray(parsed) && parsed.length) {
-         const norm = normalizeTeacherEmployeeIds(parsed, true);
-         try { localStorage.setItem('magra_db_teachers', JSON.stringify(norm)); } catch {}
-         return sortPeopleByEmployeeId(norm);
-       }
-     }
-   } catch {}
-   const norm = normalizeTeacherEmployeeIds(MOCK_TEACHERS, true);
-   return sortPeopleByEmployeeId(norm);
- };
-
- const [tab, setTab] = useState(getInitialTab(sub));
- const [view, setView] = useState(getInitialView(sub));
- const [teachers,setTeachers]=useState(getInitialTeachers);
- const [allTeachers,setAllTeachers]=useState(getInitialTeachers);
- const [staff,setStaff]=useState([]);
- const [q,setQ]=useState('');
- const [status,setStatus]=useState('active');
- const [editing,setEditing]=useState(null);
- const [form,setForm]=useState(getInitialTab(sub)==='staff'?{...emptyStaff}:{...emptyTeacher});
- const [msg,setMsg]=useState('');
- const [step,setStep]=useState(0);
- const [customFields,setCustomFields]=useState([]);
- const [customFieldKey,setCustomFieldKey]=useState('');
- const [customFieldValue,setCustomFieldValue]=useState('');
- const [voterSearch, setVoterSearch] = useState('');
- const [voterRemarks, setVoterRemarks] = useState({});
- const [teacherQueryModal, setTeacherQueryModal] = useState({ isOpen: false, mode: 'education' });
- const [showStaffCertModal, setShowStaffCertModal] = useState(false);
- const [staffCertPersonId, setStaffCertPersonId] = useState('');
- const [staffCertTab, setStaffCertTab] = useState('bonafide');
- const [staffActionMenu, setStaffActionMenu] = useState(null);
-
- useEffect(() => {
-   const handleScroll = () => {
-     if (staffActionMenu) setStaffActionMenu(null);
-   };
-   window.addEventListener('scroll', handleScroll, true);
-   return () => window.removeEventListener('scroll', handleScroll, true);
- }, [staffActionMenu]);
-
- const toggleStaffActionMenu = (e, person) => {
-   e.stopPropagation();
-   if (staffActionMenu?.personId === person.id) {
-     setStaffActionMenu(null);
-   } else {
-     const rect = e.currentTarget.getBoundingClientRect();
-     const menuWidth = 230;
-     let left = rect.right - menuWidth;
-     if (left < 10) left = 10;
-     const menuHeight = 360;
-     let top = rect.bottom + 4;
-     if (top + menuHeight > window.innerHeight) {
-       top = Math.max(10, rect.top - menuHeight - 4);
-     }
-     setStaffActionMenu({
-       personId: person.id,
-       top,
-       left,
-       person
-     });
-   }
- };
-
- const handleOpenStaffDocs = (personId = '', initialTab = 'bonafide') => {
-   setStaffCertPersonId(personId || (rawList[0]?.id || ''));
-   setStaffCertTab(initialTab);
-   setShowStaffCertModal(true);
- };
-
- const isExcludedVoter = (t) => {
-   if (!t) return true;
-   const d = (t?.designation || '').trim();
-   const dEn = (t?.designation_en || '').toLowerCase().trim();
-   const r = (t?.public_contact_role || '').toLowerCase().trim();
-
-   // Exclude Head Teacher
-   if (r === 'head_teacher') return true;
-   if (d === 'প্রধান শিক্ষক' || d.startsWith('প্রধান শিক্ষক')) return true;
-   if (dEn === 'head teacher' || dEn.startsWith('head teacher') || dEn.includes('headmaster') || dEn.includes('principal')) return true;
-
-   // Exclude Assistant Head Teacher
-   if (r === 'assistant_head_teacher') return true;
-   if (d.includes('সহকারী প্রধান শিক্ষক') || d.includes('সহ: প্রধান শিক্ষক') || d.includes('সহ-প্রধান শিক্ষক')) return true;
-   if (dEn.includes('assistant head') || dEn.includes('asst head') || dEn.includes('asst. head') || dEn.includes('assistant headmaster')) return true;
-
-   // Exclude known default seed IDs if designation matches head/asst head
-   if ((t?.id === 't-1' || t?.employee_id === '1') && (d.includes('প্রধান') || dEn.includes('head') || !d)) return true;
-   if ((t?.id === 't-2' || t?.employee_id === '2') && (d.includes('সহকারী প্রধান') || dEn.includes('assistant head') || !d)) return true;
-
-   return false;
- };
-
- const voterTeachers = useMemo(() => {
-   const list = (allTeachers && allTeachers.length)
-     ? allTeachers
-     : (teachers && teachers.length)
-       ? teachers
-       : getInitialTeachers();
-
-   return list.filter(t => {
-     const s = (t.status || 'active').toLowerCase().trim();
-     const isActive = s === 'active' || s === 'সক্রিয়' || !s;
-     return isActive && !isExcludedVoter(t);
-   });
- }, [allTeachers, teachers]);
-
- const filteredVoters = useMemo(() => {
-   if (!voterSearch.trim()) return voterTeachers;
-   const qLower = voterSearch.toLowerCase().trim();
-   return voterTeachers.filter(t => 
-     (t.name_bn || '').toLowerCase().includes(qLower) ||
-     (t.name_en || '').toLowerCase().includes(qLower) ||
-     (t.employee_id || '').toLowerCase().includes(qLower) ||
-     (t.designation || '').toLowerCase().includes(qLower) ||
-     (t.subject || '').toLowerCase().includes(qLower) ||
-     (t.mpo_index_no || '').toLowerCase().includes(qLower) ||
-     (t.phone || '').includes(qLower)
-   );
- }, [voterTeachers, voterSearch]);
-
- const printTeacherVoterList = () => {
-   const w = window.open('', '_blank');
-   if (!w) { alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে অনুমতি দিন।'); return; }
-   const printRows = filteredVoters;
-   const content = `<!DOCTYPE html>
-<html>
-<head>
- <meta charset="utf-8">
- <title>শিক্ষক ভোটার তালিকা ২০২৬</title>
- <style>
-   @page { size: A4 portrait; margin: 12mm; }
-   body { font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif; margin: 15px; color: #111; font-size: 11px; }
-   .print-header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #0f4c3a; padding-bottom: 8px; }
-   .print-header h1 { font-size: 20px; margin: 0 0 3px; color: #0f4c3a; font-weight: 800; }
-   .print-header p { font-size: 11px; margin: 0 0 4px; color: #444; }
-   .print-header h2 { font-size: 15px; margin: 4px 0 6px; color: #1e293b; text-decoration: underline; }
-   .meta-line { display: flex; justify-content: space-between; font-weight: 700; font-size: 11px; margin-top: 6px; }
-   .voter-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-   .voter-table th, .voter-table td { border: 1px solid #475569; padding: 6px 8px; font-size: 11px; }
-   .voter-table th { background: #e2e8f0; color: #0f172a; text-align: left; }
-   .signature-area { margin-top: 50px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; font-size: 10.5px; page-break-inside: avoid; }
-   .signature-line { border-top: 1px dashed #333; padding-top: 4px; }
- </style>
-</head>
-<body>
- <div class="print-header">
-   <h1>মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1>
-   <p>মগড়া, কালিহাতি, টাঙ্গাইল • EIIN: 114290</p>
-   <h2>শিক্ষক প্রতিনিধি নির্বাচনের চূড়ান্ত ভোটার তালিকা - ২০২৬</h2>
-   <div class="meta-line">
-     <span><b>যোগ্যতা:</b> প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দ</span>
-     <span><b>মোট ভোটার:</b> ${printRows.length} জন</span>
-   </div>
- </div>
- <table class="voter-table">
-   <thead>
-     <tr>
-       <th style="width:65px;text-align:center">ভোটার নং</th>
-       <th style="width:180px">ভোটারের নাম</th>
-       <th style="width:140px">পদবী</th>
-       <th style="width:130px;text-align:center">অত্র প্রতিষ্ঠানে যোগদানের তারিখ</th>
-       <th style="width:130px;text-align:center">এমপিও কোড/ইনডেক্স নম্বর</th>
-       <th style="width:110px;text-align:center">মন্তব্য</th>
-     </tr>
-   </thead>
-   <tbody>
-     ${printRows.map((r, idx) => {
-       const jDate = r.current_post_joining_date || r.joining_date || r.first_joining_date || r.appointment_date || r.extended_profile?.joining_date || '—';
-       const mpo = r.mpo_index_no || r.mpo_code || r.index_no || r.extended_profile?.mpo_index_no || '—';
-       const rem = voterRemarks[r.id] ?? r.remarks ?? ((r.status === 'active' || !r.status) ? 'যোগ্য ভোটার' : '—');
-       return `
-       <tr>
-         <td style="text-align:center;font-weight:700">${idx + 1}</td>
-         <td><b>${r.name_bn || r.name || '—'}</b>${r.name_en ? `<br><span style="font-size:10px;color:#475569">${r.name_en}</span>` : ''}</td>
-         <td>${r.designation || 'সহকারী শিক্ষক'}${r.subject ? ` (${r.subject})` : ''}</td>
-         <td style="text-align:center">${jDate}</td>
-         <td style="text-align:center;font-weight:600">${mpo}</td>
-         <td style="text-align:center">${rem}</td>
-       </tr>
-     `;}).join('')}
-   </tbody>
- </table>
- <div class="signature-area">
-   <div>
-     <br><br>
-     <div class="signature-line">প্রস্তুতকারীর স্বাক্ষর</div>
-   </div>
-   <div>
-     <br><br>
-     <div class="signature-line">যাচাইকারীর স্বাক্ষর</div>
-   </div>
-   <div>
-     <br><br>
-     <div class="signature-line">প্রধান শিক্ষক</div>
-   </div>
-   <div>
-     <br><br>
-     <div class="signature-line">নির্বাচন কমিশনার / প্রিজাইডিং অফিসার</div>
-   </div>
- </div>
- <script>
-   window.onload = function() { window.print(); };
- </script>
-</body>
-</html>`;
-   w.document.write(content);
-   w.document.close();
- };
-
- const exportTeacherVoterCSV = () => {
-   const headers = ['ভোটার নং', 'ভোটারের নাম (বাংলা)', 'ভোটারের নাম (ইংরেজি)', 'পদবী', 'মূল বিষয়', 'অত্র প্রতিষ্ঠানে যোগদানের তারিখ', 'এমপিও কোড/ইনডেক্স নম্বর', 'মন্তব্য'];
-   const rows = filteredVoters.map((r, idx) => [
-     idx + 1,
-     `"${(r.name_bn || r.name || '').replace(/"/g, '""')}"`,
-     `"${(r.name_en || '').replace(/"/g, '""')}"`,
-     `"${(r.designation || 'সহকারী শিক্ষক').replace(/"/g, '""')}"`,
-     `"${(r.subject || '').replace(/"/g, '""')}"`,
-     `"${r.current_post_joining_date || r.joining_date || r.first_joining_date || r.appointment_date || ''}"`,
-     `"${r.mpo_index_no || r.mpo_code || r.index_no || ''}"`,
-     `"${voterRemarks[r.id] ?? r.remarks ?? ((r.status === 'active' || !r.status) ? 'যোগ্য ভোটার' : '')}"`
-   ]);
-   const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-   const encodedUri = encodeURI(csvContent);
-   const link = document.createElement('a');
-   link.setAttribute('href', encodedUri);
-   link.setAttribute('download', `Teacher_Voter_List_${new Date().toISOString().slice(0, 10)}.csv`);
-   document.body.appendChild(link);
-   link.click();
-   document.body.removeChild(link);
- };
-
- const getNextEmployeeId = (arr, isTeacher = true) => {
-   const max = (arr || []).reduce((acc, curr) => {
-     const n = parseEmployeeIdNum(curr?.employee_id || curr?.id);
-     return n > acc ? n : acc;
-   }, 0);
-   const prefix = isTeacher ? 'EMP-' : 'STF-';
-   return `${prefix}${String(max + 1).padStart(3, '0')}`;
- };
-
- const initNewForm = (t = tab) => {
-   const targetIsTeacher = t === 'teachers';
-   const targetList = targetIsTeacher ? teachers : staff;
-   const base = targetIsTeacher ? emptyTeacher : emptyStaff;
-   return { ...base, employee_id: getNextEmployeeId(targetList, targetIsTeacher) };
- };
-
- useEffect(()=>{
-  if(sub==='staff_new'){
-   setTab('staff');
-   setView('form');
-   setEditing(null);
-   setForm(initNewForm('staff'));
-   setStep(0);
-  } else if(sub==='staff_list'||sub==='staff'||sub==='employees'){
-   setTab('staff');
-   setView('list');
-  } else if(sub==='teacher_new'){
-   setTab('teachers');
-   setView('form');
-   setEditing(null);
-   setForm(initNewForm('teachers'));
-   setStep(0);
-  } else if(sub==='teachers_list'||sub==='teachers'){
-   setTab('teachers');
-   setView('list');
-  } else if(sub==='teacher_voters'||sub==='teacher_voter_list'){
-   setTab('teachers');
-   setView('voter');
-  }
- },[sub]);
-
- const isTeacher = tab === 'teachers';
-  const rawList = isTeacher ? teachers : staff;
-  const list = useMemo(() => sortPeopleByEmployeeId(rawList), [rawList]);
-  const blank = isTeacher ? emptyTeacher : emptyStaff;
- 
- const load=()=>{
-  api(`/teachers?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
-    .then(data => setTeachers(deduplicateTeachers(Array.isArray(data) ? data : [])))
-   .catch(e=>setMsg(e.message));
-  api(`/staff?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
-    .then(data => setStaff(sortPeopleByEmployeeId(Array.isArray(data) ? data : [])))
-   .catch(()=>{});
- };
-
- useEffect(()=>{
-  api('/admin/form-fields?form_key='+(isTeacher?'teacher':'staff')).then(d=>setCustomFields(Array.isArray(d)?d:[])).catch(()=>setCustomFields([]));
- },[isTeacher]);
-
- useEffect(()=>{load();},[q,status,customFieldKey,customFieldValue]);
-
-   const formatEduSummary = (arr) => {
-    if (!Array.isArray(arr) || !arr.length) return '';
-    return arr.map(e => [e.exam, e.institution, e.board, e.subject, e.year, e.result].filter(Boolean).join(' - ')).join(' ; ');
-  };
-
-  const formatTrainingSummary = (arr) => {
-    if (!Array.isArray(arr) || !arr.length) return '';
-    return arr.map(t => [t.title || t.name, t.subject, t.institution || t.place, t.location, t.duration, t.start_date, t.end_date].filter(Boolean).join(' - ')).join(' ; ');
-  };
-
-  const parseEduText = (str) => {
-    if (!str || typeof str !== 'string') return [];
-    return str.split(';').map(part => {
-      const tokens = part.split('-').map(s => s.trim());
-      if (!tokens.length || !tokens[0]) return null;
-      return {
-        exam: tokens[0] || '',
-        institution: tokens[1] || '',
-        board: tokens[2] || '',
-        subject: tokens[3] || '',
-        year: tokens[4] || '',
-        result: tokens[5] || '',
-        is_saved: true
-      };
-    }).filter(Boolean);
-  };
-
-  const parseTrainingText = (str) => {
-    if (!str || typeof str !== 'string') return [];
-    return str.split(';').map(part => {
-      const tokens = part.split('-').map(s => s.trim());
-      if (!tokens.length || !tokens[0]) return null;
-      return {
-        title: tokens[0] || '',
-        subject: tokens[1] || '',
-        institution: tokens[2] || '',
-        location: tokens[3] || '',
-        duration: tokens[4] || '',
-        start_date: tokens[5] || '',
-        end_date: tokens[6] || '',
-        is_saved: true
-      };
-    }).filter(Boolean);
-  };
-
-  const exportPeople = (targetPerson = null) => {
-    const isSingle = targetPerson && typeof targetPerson === 'object' && targetPerson.id;
-    const targetList = isSingle ? [targetPerson] : (list || []);
-
-    const custom = customFields.filter(f => f.enabled && !f.is_system);
-    const headers = [
-      // ধাপ ১: পরিচয় ও পরিবার
-      'Employee ID',
-      'Name (Bangla)',
-      'Name (English)',
-      'Date of Birth',
-      'Gender',
-      'Blood Group',
-      'Religion',
-      'Marital Status',
-      'Nationality',
-      'NID No',
-      'TIN No',
-      'Birth Registration No',
-      'Father Name (Bangla)',
-      'Father Name (English)',
-      'Mother Name (Bangla)',
-      'Mother Name (English)',
-
-      // ধাপ ২: চাকরি ও MPO
-      'Designation',
-      ...(isTeacher ? ['Designation (English)', 'Subject'] : []),
-      'Status',
-      'First Joining Date',
-      ...(isTeacher ? ['First MPO Date'] : []),
-      'Current Post Joining Date',
-      ...(isTeacher ? ['Current MPO Date'] : []),
-      'Previous Institution Joining Date',
-      ...(isTeacher ? ['Previous Institution MPO Date'] : []),
-      'Appointment Date',
-      'Appointment Authority',
-      ...(isTeacher ? ['MPO Index No'] : []),
-
-      // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
-      'Educational Qualifications',
-
-      // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
-      'Professional Degrees',
-
-      // ধাপ ৫: প্রশিক্ষণের বিবরণ
-      'ICT Trainings',
-      'In-Service Trainings',
-      ...(isTeacher ? ['Teacher Portal ID'] : []),
-      'Professional Note',
-
-      // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
-      ...(isTeacher ? [
-        'Teacher Registration No',
-        'Registration Date',
-        'NTRCA Registered',
-        'NTRCA Recommended',
-        'NTRCA Year',
-        'NTRCA Subject',
-        'NTRCA Remarks'
-      ] : []),
-      'Mobile',
-      'WhatsApp',
-      'Email',
-      'Present Address',
-      'Permanent Address',
-
-      // অতিরিক্ত ও সিস্টেম ফিল্ড
-      'Public Contact Role',
-      'Public Contact Enabled',
-      ...custom.map(f => 'custom:' + f.field_key),
-      'extended_profile_json'
-    ];
-
-    const rows = targetList.map(x => {
-      const c = flattenCustom(x);
-      const ext = x.extended_profile || {};
-      const ntrca = ext.ntrca || {};
-      const eduList = isTeacher ? getTeacherAllEducation(x) : (ext.education || []);
-      const profList = ext.professional_qualifications || [];
-      const ictList = ext.training || [];
-      const inServiceList = ext.in_service_training || [];
-
-      return {
-        // ধাপ ১: পরিচয় ও পরিবার
-        'Employee ID': x.employee_id || '',
-        'Name (Bangla)': x.name_bn || '',
-        'Name (English)': x.name_en || '',
-        'Date of Birth': ext.dob || x.date_of_birth || '',
-        'Gender': x.gender || '',
-        'Blood Group': x.blood_group || '',
-        'Religion': x.religion || 'ইসলাম',
-        'Marital Status': x.marital_status || '',
-        'Nationality': x.nationality || 'বাংলাদেশী',
-        'NID No': x.nid_no || '',
-        'TIN No': x.tin_no || '',
-        'Birth Registration No': x.birth_registration_no || '',
-        'Father Name (Bangla)': x.father_name_bn || '',
-        'Father Name (English)': x.father_name_en || '',
-        'Mother Name (Bangla)': x.mother_name_bn || '',
-        'Mother Name (English)': x.mother_name_en || '',
-
-        // ধাপ ২: চাকরি ও MPO
-        'Designation': x.designation || '',
-        ...(isTeacher ? {
-          'Designation (English)': x.designation_en || '',
-          'Subject': x.subject || ''
-        } : {}),
-        'Status': statusBn(x.status),
-        'First Joining Date': x.first_joining_date || '',
-        ...(isTeacher ? {
-          'First MPO Date': x.first_mpo_date || ''
-        } : {}),
-        'Current Post Joining Date': x.current_post_joining_date || x.joining_date || '',
-        ...(isTeacher ? {
-          'Current MPO Date': x.current_mpo_date || ''
-        } : {}),
-        'Previous Institution Joining Date': x.previous_institution_joining_date || '',
-        ...(isTeacher ? {
-          'Previous Institution MPO Date': x.previous_institution_mpo_date || ''
-        } : {}),
-        'Appointment Date': x.appointment_date || '',
-        'Appointment Authority': x.appointment_authority || '',
-        ...(isTeacher ? {
-          'MPO Index No': x.mpo_index_no || ''
-        } : {}),
-
-        // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
-        'Educational Qualifications': formatEduSummary(eduList),
-
-        // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
-        'Professional Degrees': formatEduSummary(profList),
-
-        // ধাপ ৫: প্রশিক্ষণের বিবরণ
-        'ICT Trainings': formatTrainingSummary(ictList),
-        'In-Service Trainings': formatTrainingSummary(inServiceList),
-        ...(isTeacher ? {
-          'Teacher Portal ID': x.teacher_portal_id || ''
-        } : {}),
-        'Professional Note': ext.professional_note || '',
-
-        // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
-        ...(isTeacher ? {
-          'Teacher Registration No': x.teacher_registration_no || '',
-          'Registration Date': x.registration_date || '',
-          'NTRCA Registered': ntrca.registered || '',
-          'NTRCA Recommended': ntrca.recommended || '',
-          'NTRCA Year': ntrca.year || '',
-          'NTRCA Subject': ntrca.subject || '',
-          'NTRCA Remarks': ntrca.remarks || ''
-        } : {}),
-        'Mobile': x.phone || '',
-        'WhatsApp': x.whatsapp_no || '',
-        'Email': x.email || '',
-        'Present Address': x.address || '',
-        'Permanent Address': x.permanent_address || '',
-
-        // অতিরিক্ত ও সিস্টেম ফিল্ড
-        'Public Contact Role': x.public_contact_role || '',
-        'Public Contact Enabled': x.public_contact_enabled !== false ? 'হ্যাঁ' : 'না',
-        ...c,
-        'extended_profile_json': JSON.stringify(ext)
-      };
-    });
-
-    let filename = isTeacher ? 'magra-teachers.csv' : 'magra-staff.csv';
-    if (isSingle) {
-      const cleanName = (targetPerson.name_bn || targetPerson.name_en || 'teacher').replace(/[\s/\\:*?"<>|]+/g, '_');
-      const empTag = targetPerson.employee_id ? `_ID${targetPerson.employee_id}` : '';
-      filename = `${cleanName}${empTag}_CSV_Report.csv`;
-    }
-
-    downloadCsv(filename, rows, headers);
-  };
-
-  const peopleImportHeaders = isTeacher ? [
-    // ধাপ ১: পরিচয় ও পরিবার
-    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
-    'NID No', 'TIN No', 'Birth Registration No',
-    'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
-
-    // ধাপ ২: চাকরি ও MPO
-    'Designation', 'Designation (English)', 'Subject', 'Status',
-    'First Joining Date', 'First MPO Date', 'Current Post Joining Date', 'Current MPO Date',
-    'Previous Institution Joining Date', 'Previous Institution MPO Date', 'Appointment Date', 'Appointment Authority',
-    'MPO Index No',
-
-    // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
-    'Educational Qualifications',
-
-    // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
-    'Professional Degrees',
-
-    // ধাপ ৫: প্রশিক্ষণের বিবরণ
-    'ICT Trainings', 'In-Service Trainings', 'Teacher Portal ID', 'Professional Note',
-
-    // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
-    'Teacher Registration No', 'Registration Date', 'NTRCA Registered', 'NTRCA Recommended', 'NTRCA Year', 'NTRCA Subject', 'NTRCA Remarks',
-    'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
-
-    // অতিরিক্ত ও সিস্টেম ফিল্ড
-    'Public Contact Role', 'Public Contact Enabled', 'extended_profile_json'
-  ] : [
-    // ধাপ ১: পরিচয় ও পরিবার
-    'Employee ID', 'Name (Bangla)', 'Name (English)', 'Date of Birth', 'Gender', 'Blood Group', 'Religion', 'Marital Status', 'Nationality',
-    'NID No', 'TIN No', 'Birth Registration No',
-    'Father Name (Bangla)', 'Father Name (English)', 'Mother Name (Bangla)', 'Mother Name (English)',
-
-    // ধাপ ২: চাকরি ও MPO
-    'Designation', 'Status',
-    'First Joining Date', 'Current Post Joining Date', 'Appointment Date', 'Appointment Authority',
-
-    // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
-    'Educational Qualifications',
-
-    // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
-    'Professional Degrees',
-
-    // ধাপ ৫: প্রশিক্ষণের বিবরণ
-    'ICT Trainings', 'In-Service Trainings', 'Professional Note',
-
-    // ধাপ ৬: যোগাযোগ
-    'Mobile', 'WhatsApp', 'Email', 'Present Address', 'Permanent Address',
-
-    // অতিরিক্ত ও সিস্টেম ফিল্ড
-    'Public Contact Role', 'Public Contact Enabled', 'extended_profile_json'
-  ];
-
-  const downloadPeopleTemplate = () => {
-    const sampleRow = isTeacher ? {
-      // ধাপ ১: পরিচয় ও পরিবার
-      'Employee ID': '1',
-      'Name (Bangla)': 'মুহাম্মদ শফিকুল ইসলাম',
-      'Name (English)': 'MUHAMMAD SHAFIQUL ISLAM',
-      'Date of Birth': '1975-02-10',
-      'Gender': 'পুরুষ',
-      'Blood Group': 'B+',
-      'Religion': 'ইসলাম',
-      'Marital Status': 'বিবাহিত',
-      'Nationality': 'বাংলাদেশী',
-      'NID No': '19759312345678901',
-      'TIN No': '123456789012',
-      'Birth Registration No': '19759312345678902',
-      'Father Name (Bangla)': 'মরহুম আব্দুল কাদের',
-      'Father Name (English)': 'Late Abdul Kader',
-      'Mother Name (Bangla)': 'মোছাঃ ফাতেমা খাতুন',
-      'Mother Name (English)': 'Mst Fatema Khatun',
-
-      // ধাপ ২: চাকরি ও MPO
-      'Designation': 'প্রধান শিক্ষক',
-      'Designation (English)': 'Head Teacher',
-      'Subject': 'প্রশাসনিক',
-      'Status': 'সক্রিয়',
-      'First Joining Date': '2000-03-01',
-      'First MPO Date': '2000-05-01',
-      'Current Post Joining Date': '2010-01-15',
-      'Current MPO Date': '2010-05-01',
-      'Previous Institution Joining Date': '',
-      'Previous Institution MPO Date': '',
-      'Appointment Date': '2000-02-15',
-      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
-      'MPO Index No': '4206071302',
-
-      // ধাপ ৩: শিক্ষাগত যোগ্যতার বিবরণ
-      'Educational Qualifications': 'এসএসসি/সমমান - টাঙ্গাইল জিলা স্কুল - ঢাকা - বিজ্ঞান - ১৯৯০ - ১ম বিভাগ ; এইচএসসি/সমমান - করটিয়া সা’দত কলেজ - ঢাকা - বিজ্ঞান - ১৯৯২ - ১ম বিভাগ ; স্নাতক (সম্মান)/সমমান - ঢাকা বিশ্ববিদ্যালয় - ঢাকা - গণিত - ১৯৯৫ - ১ম শ্রেণি ; স্নাতকোত্তর/সমমান - ঢাকা বিশ্ববিদ্যালয় - ঢাকা - গণিত - ১৯৯৬ - ১ম শ্রেণি',
-
-      // ধাপ ৪: পেশাগত যোগ্যতার বিবরণ
-      'Professional Degrees': 'বিএড - সরকারি টিটিসি ঢাকা - জাতীয় বিশ্ববিদ্যালয় - শিক্ষা প্রশাসন - ১৯৯৮ - ১ম শ্রেণি',
-
-      // ধাপ ৫: প্রশিক্ষণের বিবরণ
-      'ICT Trainings': 'আইসিটি - ডিজিটাল কনটেন্ট ডেভলপমেন্ট - NAEM - ঢাকা - ১৪ দিন - 2021-03-01 - 2021-03-14',
-      'In-Service Trainings': 'কারিকুলাম বিস্তরণ - নতুন শিক্ষাক্রম - HSTTI - ময়মনসিংহ - ৭ দিন - 2023-01-05 - 2023-01-11',
-      'Teacher Portal ID': 'shafiqul.magra',
-      'Professional Note': 'প্রধান শিক্ষক হিসেবে দায়িত্ব পালনরত।',
-
-      // ধাপ ৬: নিবন্ধন / NTRCA ও যোগাযোগ
-      'Teacher Registration No': 'NTRCA-1234567',
-      'Registration Date': '2006-05-15',
-      'NTRCA Registered': 'হ্যাঁ',
-      'NTRCA Recommended': 'হ্যাঁ',
-      'NTRCA Year': '2006',
-      'NTRCA Subject': 'গণিত',
-      'NTRCA Remarks': 'সুপারিশপ্রাপ্ত ও এমপিওভুক্ত',
-      'Mobile': '01753539680',
-      'WhatsApp': '01753539680',
-      'Email': 'headteacher.magra@gmail.com',
-      'Present Address': 'গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল',
-      'Permanent Address': 'গ্রাম: মগড়া, ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল',
-
-      // অতিরিক্ত ও সিস্টেম ফিল্ড
-      'Public Contact Role': 'head_teacher',
-      'Public Contact Enabled': 'হ্যাঁ',
-      'extended_profile_json': '{}'
-    } : {
-      // স্টাফ টেমপ্লেট
-      'Employee ID': 'STF-001',
-      'Name (Bangla)': 'মোঃ আলমগীর হোসেন',
-      'Name (English)': 'MD. ALAMGIR HOSSAIN',
-      'Date of Birth': '1985-06-15',
-      'Gender': 'পুরুষ',
-      'Blood Group': 'O+',
-      'Religion': 'ইসলাম',
-      'Marital Status': 'বিবাহিত',
-      'Nationality': 'বাংলাদেশী',
-      'NID No': '19859312345678903',
-      'TIN No': '',
-      'Birth Registration No': '',
-      'Father Name (Bangla)': 'পিতার নাম',
-      'Father Name (English)': "Father's Name",
-      'Mother Name (Bangla)': 'মাতার নাম',
-      'Mother Name (English)': "Mother's Name",
-      'Designation': 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
-      'Status': 'সক্রিয়',
-      'First Joining Date': '2015-01-01',
-      'Current Post Joining Date': '2015-01-01',
-      'Appointment Date': '2014-12-15',
-      'Appointment Authority': 'ব্যবস্থাপনা কমিটি',
-      'Educational Qualifications': 'এইচএসসি/সমমান - সরকারি এম এম আলী কলেজ - ঢাকা - মানবিক - ২০০৪ - ২য় বিভাগ',
-      'Professional Degrees': 'ডিপ্লোমা ইন কম্পিউটার এপ্লিকেশন - যুব উন্নয়ন অধিদপ্তর - ঢাকা - আইসিটি - ২০০৬ - এ গ্রেড',
-      'ICT Trainings': 'কম্পিউটার অফিস এপ্লিকেশন - কারিগরি শিক্ষা বোর্ড - ঢাকা - ৬ মাস - 2008-01-01 - 2008-06-30',
-      'In-Service Trainings': '',
-      'Professional Note': '',
-      'Mobile': '01726223355',
-      'WhatsApp': '01726223355',
-      'Email': 'alamgir.magra@gmail.com',
-      'Present Address': 'গ্রাম: মগড়া, কালিহাতী, টাঙ্গাইল',
-      'Permanent Address': 'গ্রাম: মগড়া, কালিহাতী, টাঙ্গাইল',
-      'Public Contact Role': 'office_assistant',
-      'Public Contact Enabled': 'হ্যাঁ',
-      'extended_profile_json': '{}'
-    };
-    downloadCsv(isTeacher ? 'magra-teacher-import-template.csv' : 'magra-staff-import-template.csv', [sampleRow], peopleImportHeaders);
-  };
-
-  const importPeople = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    try {
-      const matrix = parseCsvText(await file.text());
-      if (matrix.length < 2) throw new Error('CSV-তে কোনো তথ্য পাওয়া যায়নি');
-      const rawHeaders = matrix[0].map(x => x.trim().toLowerCase());
-      const aliasMap = {
-        'employee id': 'employee_id',
-        'employee_id': 'employee_id',
-        'id': 'employee_id',
-        'কর্মচারী আইডি': 'employee_id',
-        'শিক্ষক আইডি': 'employee_id',
-        'name': 'name_bn',
-        'name (bangla)': 'name_bn',
-        'name_bn': 'name_bn',
-        'নাম': 'name_bn',
-        'নাম (বাংলা)': 'name_bn',
-        'শিক্ষকের নাম': 'name_bn',
-        'কর্মচারীর নাম': 'name_bn',
-        'name (english)': 'name_en',
-        'name_en': 'name_en',
-        'নাম (ইংরেজি)': 'name_en',
-        'designation': 'designation',
-        'designation_bn': 'designation',
-        'পদবি': 'designation',
-        'পদবী': 'designation',
-        'designation (english)': 'designation_en',
-        'designation_en': 'designation_en',
-        'পদবি (ইংরেজি)': 'designation_en',
-        'subject': 'subject',
-        'মূল বিষয়': 'subject',
-        'বিষয়': 'subject',
-        'date of birth': 'dob',
-        'date_of_birth': 'dob',
-        'dob': 'dob',
-        'জন্ম তারিখ': 'dob',
-        'gender': 'gender',
-        'লিঙ্গ': 'gender',
-        'জেন্ডার': 'gender',
-        'blood group': 'blood_group',
-        'blood_group': 'blood_group',
-        'রক্তের গ্রুপ': 'blood_group',
-        'religion': 'religion',
-        'ধর্ম': 'religion',
-        'marital status': 'marital_status',
-        'marital_status': 'marital_status',
-        'বৈবাহিক অবস্থা': 'marital_status',
-        'nationality': 'nationality',
-        'জাতীয়তা': 'nationality',
-        'nid no': 'nid_no',
-        'nid': 'nid_no',
-        'nid_no': 'nid_no',
-        'জাতীয় পরিচয়পত্র নম্বর': 'nid_no',
-        'tin no': 'tin_no',
-        'tin': 'tin_no',
-        'tin_no': 'tin_no',
-        'tin নম্বর': 'tin_no',
-        'birth registration no': 'birth_registration_no',
-        'birth_registration_no': 'birth_registration_no',
-        'জন্ম নিবন্ধন নম্বর': 'birth_registration_no',
-        'father name (bangla)': 'father_name_bn',
-        'father_name_bn': 'father_name_bn',
-        'পিতার নাম (বাংলা)': 'father_name_bn',
-        'পিতার নাম': 'father_name_bn',
-        'father name (english)': 'father_name_en',
-        'father_name_en': 'father_name_en',
-        'পিতার নাম (ইংরেজি)': 'father_name_en',
-        'mother name (bangla)': 'mother_name_bn',
-        'mother_name_bn': 'mother_name_bn',
-        'মাতার নাম (বাংলা)': 'mother_name_bn',
-        'মাতার নাম': 'mother_name_bn',
-        'mother name (english)': 'mother_name_en',
-        'mother_name_en': 'mother_name_en',
-        'মাতার নাম (ইংরেজি)': 'mother_name_en',
-        'first joining date': 'first_joining_date',
-        'first_joining_date': 'first_joining_date',
-        '১ম যোগদানের তারিখ': 'first_joining_date',
-        'first mpo date': 'first_mpo_date',
-        'first_mpo_date': 'first_mpo_date',
-        '১ম এমপিওভুক্তির তারিখ': 'first_mpo_date',
-        'current post joining date': 'current_post_joining_date',
-        'current_post_joining_date': 'current_post_joining_date',
-        'joining_date': 'current_post_joining_date',
-        'joining date': 'current_post_joining_date',
-        'বর্তমান পদে যোগদানের তারিখ': 'current_post_joining_date',
-        'current mpo date': 'current_mpo_date',
-        'current_mpo_date': 'current_mpo_date',
-        'বর্তমান পদে এমপিও তারিখ': 'current_mpo_date',
-        'previous institution joining date': 'previous_institution_joining_date',
-        'previous_institution_joining_date': 'previous_institution_joining_date',
-        'অত্র প্রতিষ্ঠানে যোগদানের তারিখ': 'previous_institution_joining_date',
-        'previous institution mpo date': 'previous_institution_mpo_date',
-        'previous_institution_mpo_date': 'previous_institution_mpo_date',
-        'অত্র প্রতিষ্ঠানে এমপিও তারিখ': 'previous_institution_mpo_date',
-        'appointment date': 'appointment_date',
-        'appointment_date': 'appointment_date',
-        'নিয়োগের তারিখ': 'appointment_date',
-        'appointment authority': 'appointment_authority',
-        'appointment_authority': 'appointment_authority',
-        'নিয়োগকারী কর্তৃপক্ষ': 'appointment_authority',
-        'mpo index no': 'mpo_index_no',
-        'mpo_index_no': 'mpo_index_no',
-        'এমপিও কোড/ইনডেক্স নম্বর': 'mpo_index_no',
-        'teacher registration no': 'teacher_registration_no',
-        'teacher_registration_no': 'teacher_registration_no',
-        'শিক্ষক নিবন্ধন নম্বর': 'teacher_registration_no',
-        'registration date': 'registration_date',
-        'registration_date': 'registration_date',
-        'নিবন্ধনের তারিখ': 'registration_date',
-        'ntrca registered': 'ntrca_registered',
-        'ntrca_registered': 'ntrca_registered',
-        'ntrca নিবন্ধিত?': 'ntrca_registered',
-        'ntrca recommended': 'ntrca_recommended',
-        'ntrca_recommended': 'ntrca_recommended',
-        'ntrca সুপারিশপ্রাপ্ত?': 'ntrca_recommended',
-        'ntrca year': 'ntrca_year',
-        'ntrca_year': 'ntrca_year',
-        'ntrca নিবন্ধন/সুপারিশের সন': 'ntrca_year',
-        'ntrca subject': 'ntrca_subject',
-        'ntrca_subject': 'ntrca_subject',
-        'ntrca বিষয়': 'ntrca_subject',
-        'ntrca remarks': 'ntrca_remarks',
-        'ntrca_remarks': 'ntrca_remarks',
-        'ntrca মন্তব্য': 'ntrca_remarks',
-        'teacher portal id': 'teacher_portal_id',
-        'teacher_portal_id': 'teacher_portal_id',
-        'শিক্ষক বাতায়ন id': 'teacher_portal_id',
-        'educational qualifications': 'educational_qualifications',
-        'educational_qualifications': 'educational_qualifications',
-        'শিক্ষাগত যোগ্যতার বিবরণ': 'educational_qualifications',
-        'professional degrees': 'professional_degrees',
-        'professional_degrees': 'professional_degrees',
-        'পেশাগত যোগ্যতার বিবরণ': 'professional_degrees',
-        'ict trainings': 'ict_trainings',
-        'ict_trainings': 'ict_trainings',
-        'আইসিটি প্রশিক্ষণ': 'ict_trainings',
-        'in-service trainings': 'in_service_trainings',
-        'in_service_trainings': 'in_service_trainings',
-        'কর্মকালীন বিভিন্ন প্রশিক্ষণ': 'in_service_trainings',
-        'professional note': 'professional_note',
-        'professional_note': 'professional_note',
-        'অতিরিক্ত পেশাগত তথ্য': 'professional_note',
-        'mobile': 'phone',
-        'phone': 'phone',
-        'মোবাইল': 'phone',
-        'ফোন': 'phone',
-        'whatsapp': 'whatsapp_no',
-        'whatsapp_no': 'whatsapp_no',
-        'হোয়াটসঅ্যাপ': 'whatsapp_no',
-        'হোয়াটসঅ্যাপ': 'whatsapp_no',
-        'email': 'email',
-        'ই-মেইল': 'email',
-        'ইমেইল': 'email',
-        'present address': 'address',
-        'address': 'address',
-        'বর্তমান ঠিকানা': 'address',
-        'ঠিকানা': 'address',
-        'permanent address': 'permanent_address',
-        'permanent_address': 'permanent_address',
-        'স্থায়ী ঠিকানা': 'permanent_address',
-        'public contact role': 'public_contact_role',
-        'public_contact_role': 'public_contact_role',
-        'public contact enabled': 'public_contact_enabled',
-        'public_contact_enabled': 'public_contact_enabled',
-        'status': 'status',
-        'অবস্থা': 'status',
-        'extended_profile_json': 'extended_profile_json'
-      };
-
-      const headers = rawHeaders.map(h => aliasMap[h] || h);
-      if (!headers.includes('name_bn')) {
-        throw new Error('আবশ্যিক কলাম অনুপস্থিত: নাম (বা Name / name_bn)');
-      }
-
-      const rows = matrix.slice(1).map(r => {
-        const obj = {};
-        headers.forEach((h, i) => {
-          const val = (r[i] ?? '').trim();
-          if (val) obj[h] = val;
-        });
-        if (!obj.name_bn) return null;
-
-        let ext = {
-          education: [],
-          professional_qualifications: [],
-          training: [],
-          in_service_training: [],
-          ntrca: {},
-          dob: obj.dob || '',
-          professional_note: obj.professional_note || ''
-        };
-
-        if (obj.extended_profile_json) {
-          try {
-            const parsed = JSON.parse(obj.extended_profile_json);
-            ext = { ...ext, ...parsed };
-          } catch {}
-        }
-
-        if (!ext.education?.length && obj.educational_qualifications) {
-          ext.education = parseEduText(obj.educational_qualifications);
-        }
-        if (!ext.professional_qualifications?.length && obj.professional_degrees) {
-          ext.professional_qualifications = parseEduText(obj.professional_degrees);
-        }
-        if (!ext.training?.length && obj.ict_trainings) {
-          ext.training = parseTrainingText(obj.ict_trainings);
-        }
-        if (!ext.in_service_training?.length && obj.in_service_trainings) {
-          ext.in_service_training = parseTrainingText(obj.in_service_trainings);
-        }
-
-        if (obj.dob) ext.dob = obj.dob;
-        if (obj.professional_note) ext.professional_note = obj.professional_note;
-
-        if (obj.ntrca_registered || obj.ntrca_recommended || obj.ntrca_year || obj.ntrca_subject || obj.ntrca_remarks) {
-          ext.ntrca = {
-            registered: obj.ntrca_registered || ext.ntrca?.registered || '',
-            recommended: obj.ntrca_recommended || ext.ntrca?.recommended || '',
-            year: obj.ntrca_year || ext.ntrca?.year || '',
-            subject: obj.ntrca_subject || ext.ntrca?.subject || '',
-            remarks: obj.ntrca_remarks || ext.ntrca?.remarks || ''
-          };
-        }
-
-        obj.extended_profile = ext;
-
-        if (obj.public_contact_enabled !== undefined) {
-          const pce = String(obj.public_contact_enabled).toLowerCase();
-          obj.public_contact_enabled = !(pce === 'না' || pce === 'no' || pce === 'false');
-        }
-
-        if (obj.current_post_joining_date && !obj.joining_date) {
-          obj.joining_date = obj.current_post_joining_date;
-        }
-
-        return obj;
-      }).filter(Boolean);
-
-      if (!rows.length) throw new Error('কোনো বৈধ রেকর্ড পাওয়া যায়নি');
-      const result = await api(isTeacher ? '/teachers/bulk-import' : '/staff/bulk-import', { method: 'POST', body: JSON.stringify({ people: rows }) });
-      setMsg(result.message || 'ইমপোর্ট সম্পন্ন হয়েছে');
-      setView('list');
-      load();
-    } catch (err) {
-      setMsg(err.message || 'CSV আপলোড ব্যর্থ');
-    }
-  };
-
-  const change=(k,v)=>setForm(f=>({...f,[k]:v}));
- const ext=(k,v)=>setForm(f=>({...f,extended_profile:{...(f?.extended_profile||{}),[k]:v}}));
- const addRow=k=>ext(k,[...(form?.extended_profile?.[k]||[]),{}]);
- const updateRow=(k,i,f,v)=>ext(k,(form?.extended_profile?.[k]||[]).map((r,n)=>n===i?{...r,[f]:v}:r));
- const removeRow=(k,i)=>ext(k,(form?.extended_profile?.[k]||[]).filter((_,n)=>n!==i));
- const updateNtrca=(k,v)=>ext('ntrca',{...(form?.extended_profile?.ntrca||{}),[k]:v});
- 
- const calcTrainingDuration = (start, end) => {
-  if (!start || !end) return '';
-  try {
-    const s = new Date(start);
-    const e = new Date(end);
-    if (!isNaN(s.getTime()) && !isNaN(e.getTime())) {
-      const diffMs = e.getTime() - s.getTime();
-      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
-      if (diffDays > 0) return `${diffDays} দিন`;
-    }
-  } catch {}
-  return '';
- };
-
- const updateTrainingField = (i, field, val, key = 'training') => {
-  ext(key, (form?.extended_profile?.[key] || []).map((r, n) => {
-   if (n !== i) return r;
-   const updated = { ...r, [field]: val };
-   if (field === 'start_date' || field === 'end_date') {
-    const s = field === 'start_date' ? val : updated.start_date;
-    const e = field === 'end_date' ? val : updated.end_date;
-    const d = calcTrainingDuration(s, e);
-    if (d) updated.duration = d;
-   }
-   return updated;
-  }));
- };
-
- const setTrainingSaved = (i, isSaved, key = 'training') => {
-  ext(key, (form?.extended_profile?.[key] || []).map((r, n) => n === i ? { ...r, is_saved: isSaved } : r));
-  if (isSaved) setMsg((key === 'in_service_training' ? 'কর্মকালীন প্রশিক্ষণ' : 'আইসিটি প্রশিক্ষণ') + ' তথ্য সফলভাবে সংরক্ষিত হয়েছে');
- };
-
- const setEduSaved = (i, isSaved) => {
-  ext('education', (form?.extended_profile?.education || []).map((r, n) => n === i ? { ...r, is_saved: isSaved } : r));
-  if (isSaved) setMsg('শিক্ষাগত যোগ্যতার তথ্য সফলভাবে সংরক্ষিত হয়েছে');
- };
-
- const setProfEduSaved = (i, isSaved) => {
-  ext('professional_qualifications', (form?.extended_profile?.professional_qualifications || []).map((r, n) => n === i ? { ...r, is_saved: isSaved } : r));
-  if (isSaved) setMsg('পেশাগত যোগ্যতার তথ্য সফলভাবে সংরক্ষিত হয়েছে');
- };
- 
- const file=e=>{
-  const f=e.target.files?.[0];
-  if(!f)return;
-  if(f.size>2*1024*1024){setMsg('ছবির আকার সর্বোচ্চ 2MB হতে হবে');return;}
-  const r=new FileReader();
-  r.onload=()=>change('photo_url',r.result);
-  r.readAsDataURL(f);
- };
-
- const save=async e=>{
-  e.preventDefault();
-  setMsg('সংরক্ষণ হচ্ছে...');
-  try{
-   const base=isTeacher?'teachers':'staff';
-   await api(editing?`/${base}/${editing}`:`/${base}`,{method:editing?'PUT':'POST',body:JSON.stringify(form)});
-   setMsg(editing?'তথ্য আপডেট হয়েছে':(isTeacher?'শিক্ষক সফলভাবে যুক্ত হয়েছে':'কর্মচারী সফলভাবে যুক্ত হয়েছে'));
-   setEditing(null);
-   setForm(initNewForm(tab));
-   setStep(0);
-   setView('list');
-   window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
-   load();
-  }catch(e){
-   setMsg(e.message||'সংরক্ষণ ব্যর্থ হয়েছে');
-  }
- };
-
- const begin=item=>{
-  setEditing(item.id);
-  setForm({
-   ...(isTeacher?emptyTeacher:emptyStaff),
-   ...item,
-   extended_profile:{
-    education:[],
-    professional_qualifications:[],
-    training:[],
-    ntrca:{},
-    dob:item.extended_profile?.dob||item.date_of_birth||'',
-    ...(item.extended_profile||{})
-   },
-   joining_date:item.joining_date?.slice(0,10)||'',
-   first_joining_date:item.first_joining_date?.slice(0,10)||'',
-   first_mpo_date:item.first_mpo_date?.slice(0,10)||'',
-   current_post_joining_date:item.current_post_joining_date?.slice(0,10)||item.joining_date?.slice(0,10)||'',
-   current_mpo_date:item.current_mpo_date?.slice(0,10)||'',
-   previous_institution_joining_date:item.previous_institution_joining_date?.slice(0,10)||'',
-   previous_institution_mpo_date:item.previous_institution_mpo_date?.slice(0,10)||'',
-   appointment_date:item.appointment_date?.slice(0,10)||'',
-   registration_date:item.registration_date?.slice(0,10)||''
-  });
-  setStep(0);
-  setView('form');
-  window.scrollTo({top:0,behavior:'smooth'});
- };
-
- const remove=async id=>{
-  if(!confirm('আপনি কি নিশ্চিত এই রেকর্ডটি মুছে ফেলতে চান?'))return;
-  try{
-   const base=isTeacher?'teachers':'staff';
-   await api(`/${base}/${id}`,{method:'DELETE'});
-   setMsg('সফলভাবে মুছে ফেলা হয়েছে');
-   load();
-  }catch(e){
-   setMsg(e.message||'মুছে ফেলা ব্যর্থ হয়েছে');
-  }
- };
-
-  const [inlineEditId, setInlineEditId] = useState(null);
-  const [inlineForm, setInlineForm] = useState({});
-
-  const uploadPhoto = async (x, e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > 8 * 1024 * 1024) {
-      setMsg('ছবির আকার সর্বোচ্চ 8MB হতে হবে');
-      return;
-    }
-    setMsg('🔄 ছবি প্রসেস ও অপটিমাইজ করা হচ্ছে...');
-    try {
-      const compressed = await compressImageToDataUrl(f, 360, 0.85);
-      if (isTeacher) {
-        saveTeacherCustomPhoto(x, compressed);
-      }
-      const base = isTeacher ? 'teachers' : 'staff';
-      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify({ ...x, photo_url: compressed }) });
-      try {
-        let leaderStored = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
-        const dName = (x.designation || '').toLowerCase();
-        const nBn = (x.name_bn || '').toLowerCase();
-        if (x.id === 't-1' || dName.includes('প্রধান শিক্ষক') || nBn.includes('শফিকুল')) {
-          leaderStored.head = { ...(leaderStored.head || {}), photo: compressed, name: x.name_bn || leaderStored.head?.name };
-          saveLeadershipPhoto('head', compressed);
-        } else if (x.id === 't-2' || dName.includes('সহকারী প্রধান শিক্ষক') || nBn.includes('তাপসী')) {
-          leaderStored.asst_head = { ...(leaderStored.asst_head || {}), photo: compressed, name: x.name_bn || leaderStored.asst_head?.name };
-          saveLeadershipPhoto('asst_head', compressed);
-        } else if (dName.includes('সভাপতি') || nBn.includes('নেয়ামুল')) {
-          leaderStored.president = { ...(leaderStored.president || {}), photo: compressed, name: x.name_bn || leaderStored.president?.name };
-          saveLeadershipPhoto('president', compressed);
-        }
-        localStorage.setItem('magra_db_leadership_settings', JSON.stringify(leaderStored));
-      } catch {}
-      setMsg(`${x.name_bn}-এর ছবি সফলভাবে আপডেট হয়েছে এবং মূল সাইটে যুক্ত হয়েছে`);
-      window.dispatchEvent(new CustomEvent('magra_teachers_updated'));
-      window.dispatchEvent(new CustomEvent('magra_photos_synced'));
-      window.dispatchEvent(new CustomEvent('magra_leadership_updated'));
-      window.dispatchEvent(new Event('storage'));
-      load();
-    } catch (err) {
-      setMsg(err.message || 'ছবি সংরক্ষণে ত্রুটি');
-    }
-  };
-
-  const printPersonProfile = (x) => {
-    const w = window.open('', '_blank');
-    if (!w) {
-      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন দিন।');
-      return;
-    }
-    const eduList = isTeacher ? getTeacherAllEducation(x) : (x.extended_profile?.education || []);
-    const profList = x.extended_profile?.professional_qualifications || [];
-    const ictTrainingList = x.extended_profile?.training || [];
-    const inServiceList = x.extended_profile?.in_service_training || [];
-    const ntrca = x.extended_profile?.ntrca || {};
-    const photo = getTeacherPhoto(x);
-
-    const safeVal = (v) => (v !== undefined && v !== null && String(v).trim() !== '' ? v : '—');
-
-    const content = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${x.name_bn || x.name_en} - ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও প্রোফাইল</title>
-  <style>
-    @page { size: A4 portrait; margin: 10mm 12mm; }
-    body { font-family: 'SolaimanLipi', 'Noto Sans Bengali', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 11px; line-height: 1.35; background: #fff; }
-    .header-box { text-align: center; border-bottom: 2.5px solid #0b8050; padding-bottom: 6px; margin-bottom: 10px; }
-    .header-box h1 { font-size: 19px; color: #0b8050; margin: 0 0 2px; font-weight: 800; letter-spacing: -0.2px; }
-    .header-box p { margin: 1px 0; font-size: 10.5px; color: #475569; }
-    .header-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1.5px solid #10b981; padding: 2.5px 14px; border-radius: 12px; font-weight: 700; font-size: 11.5px; margin-top: 5px; }
-
-    .top-summary { display: flex; gap: 14px; align-items: center; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; background: #f8fafc; margin-bottom: 10px; }
-    .top-photo { width: 85px; height: 100px; border: 1px solid #94a3b8; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #fff; }
-    .top-photo img { width: 100%; height: 100%; object-fit: cover; }
-    .top-info { flex: 1; }
-    .top-name-bn { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
-    .top-name-en { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .top-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 10px; font-size: 11px; margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px; }
-    .top-grid div b { color: #334155; }
-
-    .sec-title { background: #f0fdf4; color: #065f46; border: 1px solid #bbf7d0; padding: 4px 8px; font-weight: 700; font-size: 11.5px; margin: 10px 0 4px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; page-break-after: avoid; }
-    .sec-sub { font-weight: 700; font-size: 11px; color: #1e293b; margin: 6px 0 3px; display: flex; align-items: center; gap: 4px; }
-
-    .table-info { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 10.5px; }
-    .table-info td { border: 1px solid #cbd5e1; padding: 4px 6px; vertical-align: middle; }
-    .table-info td.lbl { background: #f8fafc; font-weight: 700; color: #334155; width: 18%; }
-    .table-info td.val { width: 32%; color: #0f172a; }
-
-    .table-grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; font-size: 10px; }
-    .table-grid th, .table-grid td { border: 1px solid #cbd5e1; padding: 4px 5px; text-align: left; }
-    .table-grid th { background: #f1f5f9; font-weight: 700; color: #1e293b; }
-    .table-grid td.c { text-align: center; }
-
-    .signatures { margin-top: 35px; display: flex; justify-content: space-between; page-break-inside: avoid; }
-    .sig-box { text-align: center; width: 190px; border-top: 1px dashed #475569; padding-top: 4px; font-size: 10.5px; font-weight: 600; color: #1e293b; }
-
-    @media print {
-      body { padding: 0; }
-      .no-print { display: none; }
-      .sec-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .table-info td.lbl, .table-grid th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
-</head>
-<body>
-  <div class="header-box" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
-    ${SCHOOL_PAD_HEADER_HTML}
-    <div style="text-align:center;"><div class="header-badge">📋 ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} পূর্ণাঙ্গ তথ্য বিবরণী ও জীবনবৃত্তান্ত (Official Profile Record)</div></div>
-  </div>
-
-  <div class="top-summary">
-    <div class="top-photo">
-      <img src="${photo}" alt="" />
-    </div>
-    <div class="top-info">
-      <div class="top-name-bn">${safeVal(x.name_bn)}</div>
-      <div class="top-name-en">${safeVal(x.name_en)}</div>
-      <div class="top-grid">
-        <div><b>Employee ID:</b> ${safeVal(x.employee_id)}</div>
-        <div><b>পদবী:</b> ${safeVal(x.designation)}</div>
-        <div><b>অবস্থা:</b> ${statusBn(x.status)}</div>
-        <div><b>মূল বিষয়:</b> ${safeVal(x.subject)}</div>
-        <div><b>মোবাইল:</b> ${safeVal(x.phone)}</div>
-        <div><b>এমপিও ইনডেক্স:</b> ${safeVal(x.mpo_index_no)}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ১. পরিচয় ও পরিবার -->
-  <div class="sec-title"><span>👤 ১. পরিচয় ও পরিবারের বিবরণ</span><small>ধাপ ১</small></div>
-  <table class="table-info">
-    <tr>
-      <td class="lbl">Employee ID:</td>
-      <td class="val"><b>${safeVal(x.employee_id)}</b></td>
-      <td class="lbl">নাম (বাংলা):</td>
-      <td class="val"><b>${safeVal(x.name_bn)}</b></td>
-    </tr>
-    <tr>
-      <td class="lbl">নাম (ইংরেজি):</td>
-      <td class="val">${safeVal(x.name_en)}</td>
-      <td class="lbl">জন্ম তারিখ:</td>
-      <td class="val">${safeVal(x.extended_profile?.dob || x.date_of_birth)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">লিঙ্গ:</td>
-      <td class="val">${safeVal(x.gender)}</td>
-      <td class="lbl">জাতীয় পরিচয়পত্র (NID):</td>
-      <td class="val">${safeVal(x.nid_no)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">TIN নম্বর:</td>
-      <td class="val">${safeVal(x.tin_no)}</td>
-      <td class="lbl">জন্ম নিবন্ধন নম্বর:</td>
-      <td class="val">${safeVal(x.birth_registration_no)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">রক্তের গ্রুপ:</td>
-      <td class="val"><b>${safeVal(x.blood_group)}</b></td>
-      <td class="lbl">ধর্ম:</td>
-      <td class="val">${safeVal(x.religion || 'ইসলাম')}</td>
-    </tr>
-    <tr>
-      <td class="lbl">বৈবাহিক অবস্থা:</td>
-      <td class="val">${safeVal(x.marital_status)}</td>
-      <td class="lbl">জাতীয়তা:</td>
-      <td class="val">${safeVal(x.nationality || 'বাংলাদেশী')}</td>
-    </tr>
-    <tr>
-      <td class="lbl">পিতার নাম (বাংলা):</td>
-      <td class="val">${safeVal(x.father_name_bn)}</td>
-      <td class="lbl">পিতার নাম (ইংরেজি):</td>
-      <td class="val">${safeVal(x.father_name_en)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">মাতার নাম (বাংলা):</td>
-      <td class="val">${safeVal(x.mother_name_bn)}</td>
-      <td class="lbl">মাতার নাম (ইংরেজি):</td>
-      <td class="val">${safeVal(x.mother_name_en)}</td>
-    </tr>
-  </table>
-
-  <!-- ২. চাকরি ও MPO -->
-  <div class="sec-title"><span>💼 ২. চাকরি ও MPO সংক্রান্ত বিবরণ</span><small>ধাপ ২</small></div>
-  <table class="table-info">
-    <tr>
-      <td class="lbl">পদবী (Designation):</td>
-      <td class="val"><b>${safeVal(x.designation)}</b></td>
-      <td class="lbl">Designation (English):</td>
-      <td class="val">${safeVal(x.designation_en)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">মূল বিষয় (Subject):</td>
-      <td class="val"><b>${safeVal(x.subject)}</b></td>
-      <td class="lbl">বর্তমান অবস্থা (Status):</td>
-      <td class="val"><b>${statusBn(x.status)}</b></td>
-    </tr>
-    <tr>
-      <td class="lbl">১ম যোগদানের তারিখ:</td>
-      <td class="val">${safeVal(x.first_joining_date)}</td>
-      <td class="lbl">১ম এমপিওভুক্তির তারিখ:</td>
-      <td class="val">${safeVal(x.first_mpo_date)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">বর্তমান পদে যোগদানের তারিখ:</td>
-      <td class="val">${safeVal(x.current_post_joining_date || x.joining_date)}</td>
-      <td class="lbl">বর্তমান পদে এমপিও তারিখ:</td>
-      <td class="val">${safeVal(x.current_mpo_date)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">অত্র প্রতিষ্ঠানে যোগদানের তারিখ:</td>
-      <td class="val">${safeVal(x.previous_institution_joining_date)}</td>
-      <td class="lbl">অত্র প্রতিষ্ঠানে এমপিও তারিখ:</td>
-      <td class="val">${safeVal(x.previous_institution_mpo_date)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">নিয়োগের তারিখ:</td>
-      <td class="val">${safeVal(x.appointment_date)}</td>
-      <td class="lbl">নিয়োগকারী কর্তৃপক্ষ:</td>
-      <td class="val">${safeVal(x.appointment_authority)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">এমপিও কোড / ইনডেক্স নম্বর:</td>
-      <td class="val" colspan="3"><b>${safeVal(x.mpo_index_no)}</b></td>
-    </tr>
-  </table>
-
-  <!-- ৩. শিক্ষাগত যোগ্যতার বিবরণ -->
-  <div class="sec-title"><span>🎓 ৩. শিক্ষাগত যোগ্যতার বিবরণ</span><small>ধাপ ৩</small></div>
-  <table class="table-grid">
-    <thead>
-      <tr>
-        <th style="width:35px" class="c">ক্র.নং</th>
-        <th style="width:130px">পরীক্ষার নাম</th>
-        <th>শিক্ষা প্রতিষ্ঠান</th>
-        <th>বোর্ড / বিশ্ববিদ্যালয়</th>
-        <th>গ্রুপ / বিষয়</th>
-        <th style="width:65px" class="c">পাশের সন</th>
-        <th style="width:75px" class="c">ফলাফল / GPA</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${eduList && eduList.length ? eduList.map((ed, idx) => `
-        <tr>
-          <td class="c">${idx + 1}</td>
-          <td><b>${safeVal(ed.exam)}</b></td>
-          <td>${safeVal(ed.institution)}</td>
-          <td>${safeVal(ed.board)}</td>
-          <td>${safeVal(ed.subject)}</td>
-          <td class="c"><b>${safeVal(ed.year)}</b></td>
-          <td class="c">${safeVal(ed.result)}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="7" class="c" style="color:#64748b;padding:8px">কোনো শিক্ষাগত যোগ্যতার তথ্য পাওয়া যায়নি</td></tr>'}
-    </tbody>
-  </table>
-
-  <!-- ৪. পেশাগত যোগ্যতার বিবরণ -->
-  <div class="sec-title"><span>📜 ৪. পেশাগত যোগ্যতার বিবরণ</span><small>ধাপ ৪</small></div>
-  <table class="table-grid">
-    <thead>
-      <tr>
-        <th style="width:35px" class="c">ক্র.নং</th>
-        <th style="width:130px">পেশাগত ডিগ্রী</th>
-        <th>শিক্ষা প্রতিষ্ঠান</th>
-        <th>বোর্ড / বিশ্ববিদ্যালয়</th>
-        <th>গ্রুপ / বিষয়</th>
-        <th style="width:65px" class="c">পাশের সন</th>
-        <th style="width:75px" class="c">ফলাফল / GPA</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${profList && profList.length ? profList.map((pr, idx) => `
-        <tr>
-          <td class="c">${idx + 1}</td>
-          <td><b>${safeVal(pr.exam)}</b></td>
-          <td>${safeVal(pr.institution)}</td>
-          <td>${safeVal(pr.board)}</td>
-          <td>${safeVal(pr.subject)}</td>
-          <td class="c"><b>${safeVal(pr.year)}</b></td>
-          <td class="c">${safeVal(pr.result)}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="7" class="c" style="color:#64748b;padding:8px">কোনো পেশাগত যোগ্যতার তথ্য সংরক্ষিত নেই</td></tr>'}
-    </tbody>
-  </table>
-
-  <!-- ৫. প্রশিক্ষণের বিবরণ -->
-  <div class="sec-title"><span>📚 ৫. প্রশিক্ষণের বিবরণ (আইসিটি ও কর্মকালীন)</span><small>ধাপ ৫</small></div>
-  <div class="sec-sub">🔹 ৫.১ আইসিটি প্রশিক্ষণ (ICT Training)</div>
-  <table class="table-grid">
-    <thead>
-      <tr>
-        <th style="width:35px" class="c">ক্র.নং</th>
-        <th style="width:140px">প্রশিক্ষণের শিরোনাম</th>
-        <th>প্রশিক্ষণের বিষয়</th>
-        <th>স্থান / প্রতিষ্ঠান</th>
-        <th>অবস্থান</th>
-        <th style="width:75px" class="c">শুরুর তারিখ</th>
-        <th style="width:75px" class="c">শেষের তারিখ</th>
-        <th style="width:75px" class="c">স্থিতিকাল</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${ictTrainingList && ictTrainingList.length ? ictTrainingList.map((tr, idx) => `
-        <tr>
-          <td class="c">${idx + 1}</td>
-          <td><b>${safeVal(tr.title || tr.name)}</b></td>
-          <td>${safeVal(tr.subject)}</td>
-          <td>${safeVal(tr.institution || tr.place)}</td>
-          <td>${safeVal(tr.location)}</td>
-          <td class="c">${safeVal(tr.start_date)}</td>
-          <td class="c">${safeVal(tr.end_date)}</td>
-          <td class="c">${safeVal(tr.duration)}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="8" class="c" style="color:#64748b;padding:6px">কোনো আইসিটি প্রশিক্ষণ রেকর্ড পাওয়া যায়নি</td></tr>'}
-    </tbody>
-  </table>
-
-  <div class="sec-sub">🔹 ৫.২ কর্মকালীন বিভিন্ন প্রশিক্ষণ (In-service Training)</div>
-  <table class="table-grid">
-    <thead>
-      <tr>
-        <th style="width:35px" class="c">ক্র.নং</th>
-        <th style="width:140px">প্রশিক্ষণের শিরোনাম</th>
-        <th>প্রশিক্ষণের বিষয়</th>
-        <th>স্থান / প্রতিষ্ঠান</th>
-        <th>অবস্থান</th>
-        <th style="width:75px" class="c">শুরুর তারিখ</th>
-        <th style="width:75px" class="c">শেষের তারিখ</th>
-        <th style="width:75px" class="c">স্থিতিকাল</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${inServiceList && inServiceList.length ? inServiceList.map((tr, idx) => `
-        <tr>
-          <td class="c">${idx + 1}</td>
-          <td><b>${safeVal(tr.title || tr.name)}</b></td>
-          <td>${safeVal(tr.subject)}</td>
-          <td>${safeVal(tr.institution || tr.place)}</td>
-          <td>${safeVal(tr.location)}</td>
-          <td class="c">${safeVal(tr.start_date)}</td>
-          <td class="c">${safeVal(tr.end_date)}</td>
-          <td class="c">${safeVal(tr.duration)}</td>
-        </tr>
-      `).join('') : '<tr><td colspan="8" class="c" style="color:#64748b;padding:6px">কোনো কর্মকালীন প্রশিক্ষণ রেকর্ড পাওয়া যায়নি</td></tr>'}
-    </tbody>
-  </table>
-
-  <table class="table-info" style="margin-top:4px">
-    <tr>
-      <td class="lbl">শিক্ষক বাতায়ন ID:</td>
-      <td class="val">${safeVal(x.teacher_portal_id)}</td>
-      <td class="lbl">অতিরিক্ত পেশাগত তথ্য:</td>
-      <td class="val">${safeVal(x.extended_profile?.professional_note)}</td>
-    </tr>
-  </table>
-
-  <!-- ৬. নিবন্ধন / NTRCA ও যোগাযোগ -->
-  <div class="sec-title"><span>📝 ৬. নিবন্ধন/NTRCA ও যোগাযোগের বিবরণ</span><small>ধাপ ৬</small></div>
-  <table class="table-info">
-    <tr>
-      <td class="lbl">শিক্ষক নিবন্ধন নম্বর:</td>
-      <td class="val"><b>${safeVal(x.teacher_registration_no)}</b></td>
-      <td class="lbl">নিবন্ধনের তারিখ:</td>
-      <td class="val">${safeVal(x.registration_date)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">NTRCA নিবন্ধিত?</td>
-      <td class="val">${safeVal(ntrca.registered)}</td>
-      <td class="lbl">NTRCA সুপারিশপ্রাপ্ত?</td>
-      <td class="val">${safeVal(ntrca.recommended)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">নিবন্ধন/সুপারিশের সন:</td>
-      <td class="val">${safeVal(ntrca.year)}</td>
-      <td class="lbl">NTRCA বিষয়:</td>
-      <td class="val">${safeVal(ntrca.subject)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">NTRCA মন্তব্য:</td>
-      <td class="val" colspan="3">${safeVal(ntrca.remarks)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">মোবাইল নম্বর:</td>
-      <td class="val"><b>${safeVal(x.phone)}</b></td>
-      <td class="lbl">WhatsApp নম্বর:</td>
-      <td class="val">${safeVal(x.whatsapp_no)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">ই-মেইল ঠিকানা:</td>
-      <td class="val">${safeVal(x.email)}</td>
-      <td class="lbl">বর্তমান ঠিকানা:</td>
-      <td class="val">${safeVal(x.address)}</td>
-    </tr>
-    <tr>
-      <td class="lbl">স্থায়ী ঠিকানা:</td>
-      <td class="val" colspan="3">${safeVal(x.permanent_address)}</td>
-    </tr>
-  </table>
-
-  <div class="signatures">
-    <div class="sig-box">সংশ্লিষ্ট শিক্ষক/কর্মচারীর স্বাক্ষর ও তারিখ</div>
-    <div class="sig-box">সহকারী প্রধান শিক্ষকের স্বাক্ষর</div>
-    <div class="sig-box">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
-  </div>
-
-  <script>
-    window.onload = function() { window.print(); };
-  </script>
-</body>
-</html>`;
-    w.document.write(content);
-    w.document.close();
-  };
-
-  const saveInline = async (x) => {
-    if (!inlineForm.name_bn?.trim()) {
-      setMsg('নাম আবশ্যিক');
-      return;
-    }
-    try {
-      const base = isTeacher ? 'teachers' : 'staff';
-      const updated = {
-        ...x,
-        name_bn: inlineForm.name_bn.trim(),
-        designation: inlineForm.designation?.trim() || x.designation,
-        ...(isTeacher ? { subject: inlineForm.subject?.trim() || x.subject } : {}),
-        phone: inlineForm.phone?.trim() || x.phone,
-        status: inlineForm.status || x.status || 'active'
-      };
-      await api(`/${base}/${x.id}`, { method: 'PUT', body: JSON.stringify(updated) });
-      setMsg(`✅ ${updated.name_bn}-এর তথ্য সফলভাবে সংরক্ষিত হয়েছে`);
-      setInlineEditId(null);
-      load();
-    } catch (err) {
-      setMsg(err.message || 'সংরক্ষণ ব্যর্থ হয়েছে');
-    }
-  };
-
- const switchTab=(t, v)=>{
-  setTab(t);
-  if(v) setView(v);
-  setEditing(null);
-  setInlineEditId(null);
-  setForm(initNewForm(t));
-  setStep(0);
- };
-
- const steps=[['👤','পরিচয় ও পরিবার'],['💼','চাকরি ও MPO'],['🎓','শিক্ষাগত যোগ্যতার বিবরণ'],['📜','পেশাগত যোগ্যতার বিবরণ'],['📚','প্রশিক্ষণ'],['📝','নিবন্ধন/NTRCA'],['📞','যোগাযোগ']];
-
- return <div>
-  <div className="tabs" style={{marginBottom:'16px'}}>
-   <button type="button" className={isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('teachers','list')}>👨‍🏫 শিক্ষকবৃন্দ তালিকা ({teachers.length})</button>
-   <button type="button" className={isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('teachers','form')}>➕ {isTeacher&&editing?'শিক্ষক তথ্য সম্পাদনা':'নতুন শিক্ষক এন্ট্রি'}</button>
-    <button type="button" className={isTeacher&&view==='voter'?'active':''} onClick={()=>switchTab('teachers','voter')}>🗳️ শিক্ষক ভোটার তালিকা ({voterTeachers.length})</button>
-   <button type="button" className={!isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('staff','list')}>🧑‍💼 কর্মচারীবৃন্দ তালিকা ({staff.length})</button>
-   <button type="button" className={!isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('staff','form')}>➕ {!isTeacher&&editing?'কর্মচারী তথ্য সম্পাদনা':'নতুন কর্মচারী এন্ট্রি'}</button>
-  </div>
-
-  {view==='form' && (
-   <div className="form-card modern-form full-form-v90">
-    <div className="form-head">
-     <div>
-      <span className="eyebrow">TEACHER & STAFF MANAGEMENT • V91</span>
-      <h2>{editing?'তথ্য সম্পাদনা':isTeacher?'নতুন শিক্ষক এন্ট্রি ফরম':'নতুন কর্মচারী এন্ট্রি ফরম'}</h2>
-      <p>আপনার দেওয়া ১ নম্বর ফরমের field-গুলো ধাপে ধাপে সাজানো হয়েছে।</p>
-     </div>
-     <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
-      <button className="mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('list');}}>📋 তালিকায় ফিরুন</button>
-      <button className="mini" type="button" onClick={downloadPeopleTemplate}>⬇ Template CSV</button>
-      <label className="mini" style={{cursor:'pointer'}}>⬆ {isTeacher?'শিক্ষক':'কর্মচারী'} CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/></label>
-     </div>
-    </div>
-    <div className="step-tabs">
-     {steps.map((x,i)=><button type="button" key={x[0]} className={step===i?'active':''} onClick={()=>setStep(i)}><span>{x[0]}</span>{i+1}. {x[1]}</button>)}
-    </div>
-    <form onSubmit={save} className="form-grid">
-     {step===0&&<><div className="form-section-title full"><b>ব্যক্তিগত পরিচয়</b></div><div className="field"><label>Employee ID *</label><input value={form.employee_id||''} onChange={e=>change('employee_id',e.target.value)} required disabled={!!editing}/></div><div className="field"><label>নাম (বাংলা) *</label><input value={form.name_bn||''} onChange={e=>change('name_bn',e.target.value)} required/></div><div className="field"><label>নাম (ইংরেজি)</label><input value={form.name_en||''} onChange={e=>change('name_en',e.target.value)}/></div><div className="field"><label>জন্ম তারিখ</label><input type="date" value={form.extended_profile?.dob||form.joining_date||''} onChange={e=>ext('dob',e.target.value)}/></div><div className="field"><label>লিঙ্গ</label><select value={form.gender||''} onChange={e=>change('gender',e.target.value)}><option value="">নির্বাচন করুন</option><option>পুরুষ</option><option>নারী</option><option>অন্যান্য</option></select></div><div className="field"><label>জাতীয় পরিচয়পত্র নম্বর</label><input value={form.nid_no||''} onChange={e=>change('nid_no',e.target.value)}/></div><div className="field"><label>TIN নম্বর</label><input value={form.tin_no||''} onChange={e=>change('tin_no',e.target.value)}/></div><div className="field"><label>জন্ম নিবন্ধন নম্বর</label><input value={form.birth_registration_no||''} onChange={e=>change('birth_registration_no',e.target.value)}/></div><div className="field"><label>রক্তের গ্রুপ</label><input value={form.blood_group||''} onChange={e=>change('blood_group',e.target.value)}/></div><div className="field"><label>ধর্ম</label><select value={form.religion||'ইসলাম'} onChange={e=>change('religion',e.target.value)}><option value="ইসলাম">ইসলাম</option><option value="হিন্দু">হিন্দু</option><option value="বৌদ্ধ">বৌদ্ধ</option><option value="খ্রিষ্টান">খ্রিষ্টান</option><option value="অন্যান্য">অন্যান্য</option></select></div><div className="field"><label>বৈবাহিক অবস্থা</label><select value={form.marital_status||''} onChange={e=>change('marital_status',e.target.value)}><option value="">নির্বাচন করুন</option><option>অবিবাহিত</option><option>বিবাহিত</option><option>বিধবা/বিপত্নীক</option><option>তালাকপ্রাপ্ত</option></select></div><div className="field"><label>জাতীয়তা</label><input value={form.nationality||'বাংলাদেশী'} onChange={e=>change('nationality',e.target.value)}/></div><div className="form-section-title full"><b>পিতা ও মাতার তথ্য</b></div>{[['father_name_bn','পিতার নাম (বাংলা)'],['father_name_en','পিতার নাম (ইংরেজি)'],['mother_name_bn','মাতার নাম (বাংলা)'],['mother_name_en','মাতার নাম (ইংরেজি)']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form[k]||''} onChange={e=>change(k,e.target.value)}/></div>)}</>}
-     {step===1&&<><div className="form-section-title full"><b>পেশাগত/চাকরির তথ্য</b></div><div className="field"><label>পদবী *</label><input value={form.designation||''} onChange={e=>change('designation',e.target.value)} required/></div>{isTeacher&&<><div className="field"><label>English Designation</label><input value={form.designation_en||''} onChange={e=>change('designation_en',e.target.value)}/></div><div className="field"><label>মূল বিষয়</label><input value={form.subject||''} onChange={e=>change('subject',e.target.value)}/></div></>}<div className="field"><label>১ম যোগদানের তারিখ</label><input type="date" value={form.first_joining_date||''} onChange={e=>change('first_joining_date',e.target.value)}/></div><div className="field"><label>১ম এমপিওভুক্তির তারিখ</label><input type="date" value={form.first_mpo_date||''} onChange={e=>change('first_mpo_date',e.target.value)}/></div><div className="field"><label>বর্তমান পদে যোগদানের তারিখ</label><input type="date" value={form.current_post_joining_date||form.joining_date||''} onChange={e=>{change('current_post_joining_date',e.target.value);change('joining_date',e.target.value)}}/></div>{isTeacher&&<div className="field"><label>বর্তমান পদে এমপিও তারিখ</label><input type="date" value={form.current_mpo_date||''} onChange={e=>change('current_mpo_date',e.target.value)}/></div>}<div className="field"><label>অত্র প্রতিষ্ঠানে যোগদানের তারিখ</label><input type="date" value={form.previous_institution_joining_date||''} onChange={e=>change('previous_institution_joining_date',e.target.value)}/></div>{isTeacher&&<div className="field"><label>অত্র প্রতিষ্ঠানে এমপিও তারিখ</label><input type="date" value={form.previous_institution_mpo_date||''} onChange={e=>change('previous_institution_mpo_date',e.target.value)}/></div>}<div className="field"><label>নিয়োগের তারিখ</label><input type="date" value={form.appointment_date||''} onChange={e=>change('appointment_date',e.target.value)}/></div><div className="field"><label>নিয়োগকারী কর্তৃপক্ষ</label><input value={form.appointment_authority||''} onChange={e=>change('appointment_authority',e.target.value)}/></div>{isTeacher&&<div className="field"><label>এমপিও কোড/ইনডেক্স নম্বর</label><input value={form.mpo_index_no||''} onChange={e=>change('mpo_index_no',e.target.value)}/></div>}<div className="field"><label>অবস্থা</label><select value={form.status||'active'} onChange={e=>change('status',e.target.value)}>{(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}</select></div></>}
-     {step===2&&<><div className="form-section-title full"><b>শিক্ষাগত যোগ্যতার বিবরণ</b><button type="button" className="mini" onClick={()=>addRow('education')}>+ নতুন শিক্ষাগত যোগ্যতা</button></div>{(form.extended_profile?.education||[]).map((r,i)=><div className="repeat-card full" key={i} style={{background:r.is_saved?'#f0fdf4':'#fbfdff',border:r.is_saved?'1px solid #bbf7d0':'1px solid #dfe8f2'}}><select value={r.exam||''} onChange={e=>updateRow('education',i,'exam',e.target.value)} disabled={!!r.is_saved} style={{padding:'8px 10px',borderRadius:'8px',border:'1px solid #cbd5e1',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',minWidth:0,width:'100%'}}><option value="">পরীক্ষার নাম নির্বাচন</option><option value="এসএসসি/সমমান">এসএসসি/সমমান</option><option value="এইচএসসি/সমমান">এইচএসসি/সমমান</option><option value="স্নাতক (পাস)/সমমান">স্নাতক (পাস)/সমমান</option><option value="স্নাতক সম্মান(৩ বছর মেয়াদী)">স্নাতক সম্মান(৩ বছর মেয়াদী)</option><option value="স্নাতক সম্মান(৪ বছর মেয়াদী)">স্নাতক সম্মান(৪ বছর মেয়াদী)</option><option value="স্নাতকোত্তর (অনার্সসহ)">স্নাতকোত্তর (অনার্সসহ)</option><option value="স্নাতকোত্তর (অনার্সবিহীন)">স্নাতকোত্তর (অনার্সবিহীন)</option><option value="কামিল">কামিল</option>{r.exam&&!['এসএসসি/সমমান','এইচএসসি/সমমান','স্নাতক (পাস)/সমমান','স্নাতক সম্মান(৩ বছর মেয়াদী)','স্নাতক সম্মান(৪ বছর মেয়াদী)','স্নাতকোত্তর (অনার্সসহ)','স্নাতকোত্তর (অনার্সবিহীন)','কামিল'].includes(r.exam)&&<option value={r.exam}>{r.exam}</option>}</select><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('education',i,'institution',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board||''} onChange={e=>updateRow('education',i,'board',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="গ্রুপ/বিষয়" value={r.subject||''} onChange={e=>updateRow('education',i,'subject',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="পাশের সন" value={r.year||''} onChange={e=>updateRow('education',i,'year',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="ফলাফল/GPA" value={r.result||''} onChange={e=>updateRow('education',i,'result',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><div style={{display:'inline-flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap',justifyContent:'center'}}>{!r.is_saved?<button type="button" className="mini" style={{background:'#16a34a',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setEduSaved(i,true)} title="সংরক্ষণ করুন">💾 সংরক্ষণ</button>:<button type="button" className="mini" style={{background:'#2563eb',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setEduSaved(i,false)} title="সম্পাদনা করুন">✏️ সম্পাদনা</button>}<button type="button" className="mini" style={{background:'#ef4444',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>removeRow('education',i)} title="মুছে ফেলুন">🗑️ মুছুন</button></div></div>)}{!(form.extended_profile?.education||[]).length&&<p className="portal-muted full">+ নতুন শিক্ষাগত যোগ্যতা চাপলে SSC/HSC/স্নাতক/স্নাতকোত্তরসহ যত খুশি শিক্ষাগত যোগ্যতার রেকর্ড যোগ করা যাবে।</p>}</>}
-     {step===3&&<><div className="form-section-title full"><b>পেশাগত যোগ্যতার বিবরণ</b><button type="button" className="mini" onClick={()=>addRow('professional_qualifications')}>+ নতুন পেশাগত যোগ্যতা</button></div>{(form.extended_profile?.professional_qualifications||[]).map((r,i)=><div className="repeat-card full" key={i} style={{background:r.is_saved?'#f0fdf4':'#fbfdff',border:r.is_saved?'1px solid #bbf7d0':'1px solid #dfe8f2'}}><select value={r.exam||''} onChange={e=>updateRow('professional_qualifications',i,'exam',e.target.value)} disabled={!!r.is_saved} style={{padding:'8px 10px',borderRadius:'8px',border:'1px solid #cbd5e1',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',minWidth:0,width:'100%'}}><option value="">পেশাগত ডিগ্রী</option><option value="বিএড">বিএড</option><option value="এমএড">এমএড</option><option value="বিপিএড">বিপিএড</option><option value="বিএজিএড">বিএজিএড</option><option value="ডিপইনএড">ডিপইনএড</option><option value="ডিপ্লোমা">ডিপ্লোমা</option><option value="ডিপ্লোমা ইন লাইব্রেরি অ্যান্ড ইনফরমেসন সাইন্স">ডিপ্লোমা ইন লাইব্রেরি অ্যান্ড ইনফরমেসন সাইন্স</option>{r.exam&&!['বিএড','এমএড','বিপিএড','বিএজিএড','ডিপইনএড','ডিপ্লোমা','ডিপ্লোমা ইন লাইব্রেরি অ্যান্ড ইনফরমেসন সাইন্স'].includes(r.exam)&&<option value={r.exam}>{r.exam}</option>}</select><input placeholder="প্রতিষ্ঠান" value={r.institution||''} onChange={e=>updateRow('professional_qualifications',i,'institution',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="বোর্ড/বিশ্ববিদ্যালয়" value={r.board||''} onChange={e=>updateRow('professional_qualifications',i,'board',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="গ্রুপ/বিষয়" value={r.subject||''} onChange={e=>updateRow('professional_qualifications',i,'subject',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="পাশের সন" value={r.year||''} onChange={e=>updateRow('professional_qualifications',i,'year',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><input placeholder="ফলাফল/GPA" value={r.result||''} onChange={e=>updateRow('professional_qualifications',i,'result',e.target.value)} disabled={!!r.is_saved} style={{background:r.is_saved?'#f8fafc':'#fff'}}/><div style={{display:'inline-flex',alignItems:'center',gap:'4px',whiteSpace:'nowrap',justifyContent:'center'}}>{!r.is_saved?<button type="button" className="mini" style={{background:'#16a34a',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setProfEduSaved(i,true)} title="সংরক্ষণ করুন">💾 সংরক্ষণ</button>:<button type="button" className="mini" style={{background:'#2563eb',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setProfEduSaved(i,false)} title="সম্পাদনা করুন">✏️ সম্পাদনা</button>}<button type="button" className="mini" style={{background:'#ef4444',color:'#fff',border:'none',padding:'6px 9px',borderRadius:'6px',cursor:'pointer',fontSize:'11.5px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>removeRow('professional_qualifications',i)} title="মুছে ফেলুন">🗑️ মুছুন</button></div></div>)}{!(form.extended_profile?.professional_qualifications||[]).length&&<p className="portal-muted full">+ নতুন পেশাগত যোগ্যতা চাপলে B.Ed/M.Ed/ডিপ্লোমাসহ যত খুশি পেশাগত যোগ্যতার রেকর্ড যোগ করা যাবে।</p>}</>}
-     {step===4&&<>
-     {/* ১. আইসিটি প্রশিক্ষণ টেবিল */}
-     <div className="form-section-title full" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-      <div><b>আইসিটি প্রশিক্ষণ</b><span style={{marginLeft:'10px',fontSize:'12px',color:'#64748b'}}>({(form.extended_profile?.training||[]).length}টি রেকর্ড)</span></div>
-      <button type="button" className="mini" style={{background:'#0284c7',color:'#fff',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}} onClick={()=>addRow('training')}>+ আইসিটি প্রশিক্ষণ যোগ করুন</button>
-     </div>
-     <div className="full" style={{overflowX:'auto',border:'1px solid #cbd5e1',borderRadius:'10px',background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',margin:'6px 0 10px'}}>
-      <table style={{width:'100%',borderCollapse:'collapse',fontSize:'13px',minWidth:'1220px'}}>
-       <thead>
-        <tr style={{background:'#f1f5f9',borderBottom:'2px solid #cbd5e1',color:'#1e293b'}}>
-         <th style={{padding:'10px 8px',width:'60px',textAlign:'center',whiteSpace:'nowrap'}}>ক্রমিক নং</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>শিরোনাম *</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণের বিষয়</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ গ্রহণের স্থান/প্রতিষ্ঠান</th>
-         <th style={{padding:'10px 8px',minWidth:'110px',textAlign:'left',whiteSpace:'nowrap'}}>অবস্থান</th>
-         <th style={{padding:'10px 8px',width:'140px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ শুরু তারিখ</th>
-         <th style={{padding:'10px 8px',width:'140px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ শেষের তারিখ</th>
-         <th style={{padding:'10px 8px',width:'120px',textAlign:'left',whiteSpace:'nowrap'}}>স্থিতিকাল (অটো)</th>
-         <th style={{padding:'10px 8px',width:'210px',minWidth:'200px',textAlign:'center',whiteSpace:'nowrap'}}>কাজ (সংরক্ষণ • সম্পাদনা • মুছুন)</th>
-        </tr>
-       </thead>
-       <tbody>
-        {(form.extended_profile?.training||[]).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #e2e8f0',background:r.is_saved?'#f0fdf4':(i%2===0?'#ffffff':'#f8fafc')}}>
-         <td style={{padding:'8px 6px',textAlign:'center'}}><input style={{width:'100%',padding:'6px 2px',textAlign:'center',fontWeight:700,border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#dcfce7':'#f1f5f9'}} value={r.sl_no??(i+1)} onChange={e=>updateTrainingField(i,'sl_no',e.target.value)} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><select style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} value={r.title||r.name||''} onChange={e=>{updateTrainingField(i,'title',e.target.value);updateTrainingField(i,'name',e.target.value);}} required disabled={!!r.is_saved}><option value="">প্রশিক্ষণের শিরোনাম নির্বাচন</option><option value="কম্পিউটার">কম্পিউটার</option><option value="আইসিটি">আইসিটি</option><option value="আইসিটি (মাস্টার ট্রেইনার)">আইসিটি (মাস্টার ট্রেইনার)</option><option value="বেসিক টিচার্স ট্রেনিং (BTT)">বেসিক টিচার্স ট্রেনিং (BTT)</option><option value="অন্যান্য (আইসিটি সংশ্লিষ্ট)">অন্যান্য (আইসিটি সংশ্লিষ্ট)</option>{(r.title||r.name)&&!['কম্পিউটার','আইসিটি','আইসিটি (মাস্টার ট্রেইনার)','বেসিক টিচার্স ট্রেনিং (BTT)','অন্যান্য (আইসিটি সংশ্লিষ্ট)'].includes(r.title||r.name)&&<option value={r.title||r.name}>{r.title||r.name}</option>}</select></td>
-         <td style={{padding:'8px 6px'}}><select style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} value={r.subject||''} onChange={e=>updateTrainingField(i,'subject',e.target.value)} disabled={!!r.is_saved}><option value="">প্রশিক্ষণের বিষয় নির্বাচন</option><option value="ডিজিটাল কনটেন্ট ডেভলপমেন্ট">ডিজিটাল কনটেন্ট ডেভলপমেন্ট</option><option value="ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)">ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)</option><option value="হার্ডওয়্যার এন্ড ট্রাবলশুটিং">হার্ডওয়্যার এন্ড ট্রাবলশুটিং</option><option value="হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং">হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং</option><option value="নেটওয়ার্কিং এন্ড প্রোগ্রামিং">নেটওয়ার্কিং এন্ড প্রোগ্রামিং</option><option value="বেসিক আইসিটি ট্রেনিং">বেসিক আইসিটি ট্রেনিং</option><option value="বিষয়ভিত্তিক প্রশিক্ষণ (আইসিটি)">বিষয়ভিত্তিক প্রশিক্ষণ (আইসিটি)</option><option value="শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা">শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা</option><option value="ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট">ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট</option><option value="কম্পিউটার অপারেশন এবংব্যবহার">কম্পিউটার অপারেশন এবংব্যবহার</option><option value="(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)">(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)</option>{r.subject&&!['ডিজিটাল কনটেন্ট ডেভলপমেন্ট','ডিজিটাল কনটেন্ট ডেভলপমেন্ট (ফলোআপ ট্রেনিং)','হার্ডওয়্যার এন্ড ট্রাবলশুটিং','হার্ডওয়্যার নেটওয়ার্ক এন্ড ট্রাবলশুটিং','নেটওয়ার্কিং এন্ড প্রোগ্রামিং','বেসিক আইসিটি ট্রেনিং','বিষয়ভিত্তিক প্রশিক্ষণ (আইসিটি)','শেখ রাসেল ডিজিটাল ল্যাব পরিচালনা','ইন্টারেক্টিভ টিচিং এন্ড লাইভ ক্লাস ম্যানেজমেন্ট','কম্পিউটার অপারেশন এবংব্যবহার','(ডিজিটাল কনটেন্ট ডেভলপমেন্ট, মুক্তপাঠ, শিক্ষক বাতায়ন, গুগলড্রাইভ ইত্যাদী)'].includes(r.subject)&&<option value={r.subject}>{r.subject}</option>}</select></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="স্থান/প্রতিষ্ঠান" value={r.institution||r.place||''} onChange={e=>updateTrainingField(i,'institution',e.target.value)} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="অবস্থান" value={r.location||''} onChange={e=>updateTrainingField(i,'location',e.target.value)} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input type="date" style={{width:'100%',padding:'5px 4px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} value={r.start_date||''} onChange={e=>updateTrainingField(i,'start_date',e.target.value)} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input type="date" style={{width:'100%',padding:'5px 4px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} value={r.end_date||''} onChange={e=>updateTrainingField(i,'end_date',e.target.value)} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:'#f1f5f9',fontWeight:600,color:'#166534'}} placeholder="অটো স্থিতিকাল" value={r.duration||''} onChange={e=>updateTrainingField(i,'duration',e.target.value)} title="শুরু ও শেষের তারিখ দিলে স্বয়ংক্রিয়ভাবে হিসাব হবে" disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px',textAlign:'center',whiteSpace:'nowrap'}}><div style={{display:'inline-flex',alignItems:'center',gap:'4px',justifyContent:'center'}}>{!r.is_saved?<button type="button" className="mini" style={{background:'#16a34a',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setTrainingSaved(i,true)} title="সংরক্ষণ করুন">💾 সংরক্ষণ</button>:<button type="button" className="mini" style={{background:'#2563eb',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setTrainingSaved(i,false)} title="সম্পাদনা করুন">✏️ সম্পাদনা</button>}<button type="button" className="mini" style={{background:'#ef4444',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>removeRow('training',i)} title="মুছে ফেলুন">🗑️ মুছুন</button></div></td>
-        </tr>)}
-        {!(form.extended_profile?.training||[]).length&&<tr><td colSpan="9" style={{padding:'20px',textAlign:'center',color:'#64748b'}}>কোনো আইসিটি প্রশিক্ষণ রেকর্ড যুক্ত করা হয়নি। <button type="button" className="mini" style={{marginLeft:'8px',background:'#0284c7',color:'#fff',border:'none',padding:'5px 12px',borderRadius:'4px'}} onClick={()=>addRow('training')}>+ প্রথম আইসিটি প্রশিক্ষণ যোগ করুন</button></td></tr>}
-       </tbody>
-      </table>
-     </div>
-     {(form.extended_profile?.training||[]).length>0&&<div className="full" style={{display:'flex',justifyContent:'flex-end',marginBottom:'14px'}}><button type="button" className="mini" style={{background:'#0284c7',color:'#fff',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}} onClick={()=>addRow('training')}>+ আরও আইসিটি প্রশিক্ষণ যোগ করুন</button></div>}
-
-     {/* ২. কর্মকালীন বিভিন্ন প্রশিক্ষণ টেবিল */}
-     <div className="form-section-title full" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'18px'}}>
-      <div><b>কর্মকালীন বিভিন্ন প্রশিক্ষণ</b><span style={{marginLeft:'10px',fontSize:'12px',color:'#64748b'}}>({(form.extended_profile?.in_service_training||[]).length}টি রেকর্ড)</span></div>
-      <button type="button" className="mini" style={{background:'#0d9488',color:'#fff',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}} onClick={()=>addRow('in_service_training')}>+ কর্মকালীন বিভিন্ন ট্রেনিং যোগ করুন</button>
-     </div>
-     <div className="full" style={{overflowX:'auto',border:'1px solid #cbd5e1',borderRadius:'10px',background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,0.05)',margin:'6px 0 10px'}}>
-      <table style={{width:'100%',borderCollapse:'collapse',fontSize:'13px',minWidth:'1220px'}}>
-       <thead>
-        <tr style={{background:'#f0fdfa',borderBottom:'2px solid #99f6e4',color:'#134e4a'}}>
-         <th style={{padding:'10px 8px',width:'60px',textAlign:'center',whiteSpace:'nowrap'}}>ক্রমিক নং</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>শিরোনাম *</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণের বিষয়</th>
-         <th style={{padding:'10px 8px',minWidth:'170px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ গ্রহণের স্থান/প্রতিষ্ঠান</th>
-         <th style={{padding:'10px 8px',minWidth:'110px',textAlign:'left',whiteSpace:'nowrap'}}>অবস্থান</th>
-         <th style={{padding:'10px 8px',width:'140px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ শুরু তারিখ</th>
-         <th style={{padding:'10px 8px',width:'140px',textAlign:'left',whiteSpace:'nowrap'}}>প্রশিক্ষণ শেষের তারিখ</th>
-         <th style={{padding:'10px 8px',width:'120px',textAlign:'left',whiteSpace:'nowrap'}}>স্থিতিকাল (অটো)</th>
-         <th style={{padding:'10px 8px',width:'210px',minWidth:'200px',textAlign:'center',whiteSpace:'nowrap'}}>কাজ (সংরক্ষণ • সম্পাদনা • মুছুন)</th>
-        </tr>
-       </thead>
-       <tbody>
-        {(form.extended_profile?.in_service_training||[]).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #e2e8f0',background:r.is_saved?'#f0fdf4':(i%2===0?'#ffffff':'#f8fafc')}}>
-         <td style={{padding:'8px 6px',textAlign:'center'}}><input style={{width:'100%',padding:'6px 2px',textAlign:'center',fontWeight:700,border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#dcfce7':'#f1f5f9'}} value={r.sl_no??(i+1)} onChange={e=>updateTrainingField(i,'sl_no',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><select style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} value={r.title||r.name||''} onChange={e=>{updateTrainingField(i,'title',e.target.value,'in_service_training');updateTrainingField(i,'name',e.target.value,'in_service_training');}} required disabled={!!r.is_saved}><option value="">প্রশিক্ষণের শিরোনাম নির্বাচন</option>{IN_SERVICE_TITLES_LIST.map(title=><option key={title} value={title}>{title}</option>)}{(r.title||r.name)&&!IN_SERVICE_TITLES_LIST.includes(r.title||r.name)&&<option value={r.title||r.name}>{r.title||r.name}</option>}</select></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff',fontSize:'13px',color:'#0f172a'}} placeholder="প্রশিক্ষণের বিষয়" value={r.subject||''} onChange={e=>updateTrainingField(i,'subject',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="স্থান/প্রতিষ্ঠান" value={r.institution||r.place||''} onChange={e=>updateTrainingField(i,'institution',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} placeholder="অবস্থান" value={r.location||''} onChange={e=>updateTrainingField(i,'location',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input type="date" style={{width:'100%',padding:'5px 4px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} value={r.start_date||''} onChange={e=>updateTrainingField(i,'start_date',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input type="date" style={{width:'100%',padding:'5px 4px',border:'1px solid #cbd5e1',borderRadius:'4px',background:r.is_saved?'#f8fafc':'#fff'}} value={r.end_date||''} onChange={e=>updateTrainingField(i,'end_date',e.target.value,'in_service_training')} disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px'}}><input style={{width:'100%',padding:'6px 8px',border:'1px solid #cbd5e1',borderRadius:'4px',background:'#f1f5f9',fontWeight:600,color:'#166534'}} placeholder="অটো স্থিতিকাল" value={r.duration||''} onChange={e=>updateTrainingField(i,'duration',e.target.value,'in_service_training')} title="শুরু ও শেষের তারিখ দিলে স্বয়ংক্রিয়ভাবে হিসাব হবে" disabled={!!r.is_saved}/></td>
-         <td style={{padding:'8px 6px',textAlign:'center',whiteSpace:'nowrap'}}><div style={{display:'inline-flex',alignItems:'center',gap:'4px',justifyContent:'center'}}>{!r.is_saved?<button type="button" className="mini" style={{background:'#16a34a',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setTrainingSaved(i,true,'in_service_training')} title="সংরক্ষণ করুন">💾 সংরক্ষণ</button>:<button type="button" className="mini" style={{background:'#2563eb',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>setTrainingSaved(i,false,'in_service_training')} title="সম্পাদনা করুন">✏️ সম্পাদনা</button>}<button type="button" className="mini" style={{background:'#ef4444',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'4px',cursor:'pointer',fontSize:'11px',fontWeight:600,display:'inline-flex',alignItems:'center',gap:'2px'}} onClick={()=>removeRow('in_service_training',i)} title="মুছে ফেলুন">🗑️ মুছুন</button></div></td>
-        </tr>)}
-        {!(form.extended_profile?.in_service_training||[]).length&&<tr><td colSpan="9" style={{padding:'20px',textAlign:'center',color:'#64748b'}}>কোনো কর্মকালীন প্রশিক্ষণ রেকর্ড যুক্ত করা হয়নি। <button type="button" className="mini" style={{marginLeft:'8px',background:'#0d9488',color:'#fff',border:'none',padding:'5px 12px',borderRadius:'4px'}} onClick={()=>addRow('in_service_training')}>+ প্রথম কর্মকালীন প্রশিক্ষণ যোগ করুন</button></td></tr>}
-       </tbody>
-      </table>
-     </div>
-     {(form.extended_profile?.in_service_training||[]).length>0&&<div className="full" style={{display:'flex',justifyContent:'flex-end',marginBottom:'14px'}}><button type="button" className="mini" style={{background:'#0d9488',color:'#fff',border:'none',padding:'6px 14px',borderRadius:'6px',cursor:'pointer',fontWeight:600}} onClick={()=>addRow('in_service_training')}>+ আরও কর্মকালীন ট্রেনিং যোগ করুন</button></div>}
-     <div className="form-section-title full"><b>শিক্ষক বাতায়ন/অন্যান্য পেশাগত পরিচিতি</b></div>{isTeacher&&<div className="field"><label>শিক্ষক বাতায়ন ID</label><input value={form.teacher_portal_id||''} onChange={e=>change('teacher_portal_id',e.target.value)}/></div>}<div className="field"><label>অতিরিক্ত পেশাগত তথ্য</label><input value={form.extended_profile?.professional_note||''} onChange={e=>ext('professional_note',e.target.value)}/></div></>}
-     {step===5&&<><div className="form-section-title full"><b>NTRCA / নিবন্ধন তথ্য</b></div>{isTeacher&&<><div className="field"><label>শিক্ষক নিবন্ধন নম্বর</label><input value={form.teacher_registration_no||''} onChange={e=>change('teacher_registration_no',e.target.value)}/></div><div className="field"><label>নিবন্ধনের তারিখ</label><input type="date" value={form.registration_date||''} onChange={e=>change('registration_date',e.target.value)}/></div>{[['registered','NTRCA নিবন্ধিত?'],['recommended','NTRCA সুপারিশপ্রাপ্ত?'],['year','NTRCA নিবন্ধন/সুপারিশের সন'],['subject','NTRCA বিষয়'],['remarks','NTRCA মন্তব্য']].map(([k,l])=><div className="field" key={k}><label>{l}</label><input value={form.extended_profile?.ntrca?.[k]||''} onChange={e=>updateNtrca(k,e.target.value)}/></div>)}</>}<div className="form-section-title full"><b>যোগাযোগ ও ঠিকানা</b></div><div className="field"><label>মোবাইল</label><input value={form.phone||''} onChange={e=>change('phone',e.target.value)}/></div><div className="field"><label>WhatsApp</label><input value={form.whatsapp_no||''} onChange={e=>change('whatsapp_no',e.target.value)}/></div><div className="field"><label>ই-মেইল</label><input type="email" value={form.email||''} onChange={e=>change('email',e.target.value)}/></div><div className="field"><label>বর্তমান ঠিকানা</label><input value={form.address||''} onChange={e=>change('address',e.target.value)}/></div><div className="field"><label>স্থায়ী ঠিকানা</label><input value={form.permanent_address||''} onChange={e=>change('permanent_address',e.target.value)}/></div><div className="field"><label>ছবি আপলোড</label><input type="file" accept="image/png,image/jpeg" onChange={file}/><small>JPG/PNG, সর্বোচ্চ 2MB</small></div>{(form.photo_url || getTeacherCustomPhoto(form) || getTeacherPhoto(form)) && <img className="form-photo-preview full" src={form.photo_url || getTeacherCustomPhoto(form) || getTeacherPhoto(form)} alt="প্রোফাইল ছবি"/>}</>}
-     {step===6&&<><div className="form-section-title full"><b>🌐 ওয়েবসাইটে যোগাযোগ</b><span>এই profile থেকে Home Page-এর Contact অংশ স্বয়ংক্রিয়ভাবে তথ্য নেবে।</span></div><div className="field"><label>Public Contact Role</label><select value={form.public_contact_role||''} onChange={e=>change('public_contact_role',e.target.value)}><option value="">স্বয়ংক্রিয়ভাবে পদবি/বিষয় দেখে নির্ধারণ</option>{isTeacher&&<><option value="head_teacher">প্রধান শিক্ষক</option><option value="assistant_head_teacher">সহকারী প্রধান শিক্ষক</option><option value="ict_teacher">আইসিটি শিক্ষক</option></>}{!isTeacher&&<option value="office_assistant">অফিস সহকারী</option>}</select></div><div className="field"><label className="check"><input type="checkbox" checked={form.public_contact_enabled!==false} onChange={e=>change('public_contact_enabled',e.target.checked)}/> ওয়েবসাইটের যোগাযোগ অংশে প্রদর্শনযোগ্য</label></div><CustomFields formKey={isTeacher?"teacher":"staff"} form={form} setForm={setForm}/></>}<div className="form-actions full"><button type="button" className="mini" onClick={()=>setForm(isTeacher?{...emptyTeacher}:{...emptyStaff})}>↻ ফর্ম রিসেট</button>{step>0&&<button type="button" className="mini" onClick={()=>setStep(step-1)}>← পূর্ববর্তী</button>}{step<6?<button type="button" className="btn" onClick={()=>setStep(step+1)}>পরবর্তী ধাপ →</button>:<button className="btn">✓ {editing?'তথ্য আপডেট করুন':'সংরক্ষণ করুন'}</button>}</div>
-    </form>
-    {msg&&<p className="msg" role="status">{msg}</p>}
-   </div>
-  )}
-
-  {view==='list' && (
-   <div className="table-card">
-    <div className="toolbar">
-     <div>
-      <span className="eyebrow">DIRECTORY • V91</span>
-      <h2>{isTeacher?'শিক্ষকবৃন্দের তালিকা':'কর্মচারীর তালিকা'}</h2>
-     </div>
-     {isTeacher ? (
-      <div style={{display:'inline-flex',gap:'8px',alignItems:'center',flexWrap:'nowrap',overflowX:'auto',maxWidth:'100%',padding:'2px 0'}}>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #047857 0%, #065f46 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 14px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(4,120,87,0.3)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>handleOpenStaffDocs('', 'bonafide')}
-         title="শিক্ষক সনদ, প্রত্যয়নপত্র, ছাড়পত্র, বায়োডাটা ও পরিচয়পত্র স্টুডিও"
-       >
-         📜 শিক্ষক সনদ ও বায়োডাটা
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(15,118,110,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>handleOpenStaffDocs('', 'office_copies')}
-         title="ইস্যুকৃত শিক্ষক সনদ ও সনদের সফট অফিস কপি আর্কাইভ"
-       >
-         📁 সফট অফিস কপি আর্কাইভ
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(79,70,229,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })}
-         title="শিক্ষাগত যোগ্যতা (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
-       >
-         🎓 শিক্ষাগত যোগ্যতা কুয়েরি
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #0d9488 0%, #059669 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(13,148,136,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })}
-         title="পেশাগত ডিগ্রী (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
-       >
-         📜 পেশাগত ডিগ্রী কুয়েরি
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #d97706 0%, #b45309 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(217,119,6,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })}
-         title="আইসিটি প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
-       >
-         💻 আইসিটি প্রশিক্ষণ কুয়েরি
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',color:'#fff',fontWeight:600,height:'36px',padding:'0 12px',borderRadius:'8px',border:'none',boxShadow:'0 2px 4px rgba(2,132,199,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap',flex:'1 1 auto'}} 
-         onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })}
-         title="কর্মকালীন প্রশিক্ষণ (জেন্ডার ভিত্তিক) কুয়েরি ও রিপোর্ট"
-       >
-         📚 কর্মকালীন প্রশিক্ষণ কুয়েরি
-       </button>
-      </div>
-     ) : (
-      <div style={{display:'inline-flex',gap:'8px',alignItems:'center'}}>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #047857 0%, #065f46 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 14px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(4,120,87,0.3)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12.5px',whiteSpace:'nowrap'}} 
-         onClick={()=>handleOpenStaffDocs('', 'bonafide')}
-         title="কর্মচারী সনদ, প্রত্যয়নপত্র, ছাড়পত্র, বায়োডাটা ও পরিচয়পত্র স্টুডিও"
-       >
-         📜 কর্মচারী সনদ ও বায়োডাটা
-       </button>
-       <button 
-         type="button" 
-         className="mini" 
-         style={{background:'linear-gradient(135deg, #0f766e 0%, #115e59 100%)',color:'#fff',fontWeight:700,height:'36px',padding:'0 13px',borderRadius:'8px',border:'none',boxShadow:'0 2px 5px rgba(15,118,110,0.25)',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',cursor:'pointer',fontSize:'12px',whiteSpace:'nowrap'}} 
-         onClick={()=>handleOpenStaffDocs('', 'office_copies')}
-         title="ইস্যুকৃত কর্মচারী সনদ ও সনদের সফট অফিস কপি আর্কাইভ"
-       >
-         📁 সফট অফিস কপি আর্কাইভ
-       </button>
-      </div>
-     )}
-     <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-      <button className="btn mini" type="button" onClick={()=>{setEditing(null);setForm(isTeacher?{...emptyTeacher}:{...emptyStaff});setStep(0);setView('form');}}>➕ {isTeacher?'নতুন শিক্ষক এন্ট্রি':'নতুন কর্মচারী এন্ট্রি'}</button>
-      <span>{(list||[]).length} জন</span>
-     </div>
-    </div>
-     <div style={{
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '12px',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '16px',
-      background: '#f8fafc',
-      padding: '12px 14px',
-      borderRadius: '10px',
-      border: '1px solid #e2e8f0',
-      width: '100%'
-     }}>
-      <div style={{display:'flex', alignItems:'center', gap:'10px', flex:'1 1 420px', flexWrap:'wrap'}}>
-       <div style={{position:'relative', flex:'1 1 240px', minWidth:'220px'}}>
-        <span style={{position:'absolute', left:'10px', top:'50%', transform:'translateY(-50%)', color:'#94a3b8', fontSize:'14px', pointerEvents:'none'}}>🔍</span>
-        <input 
-          placeholder="নাম / ID / বিষয় / NID / মোবাইল খুঁজুন..." 
-          value={q} 
-          onChange={e=>setQ(e.target.value)}
-          style={{
-            width:'100%',
-            padding:'8px 12px 8px 32px',
-            border:'1px solid #cbd5e1',
-            borderRadius:'7px',
-            fontSize:'13px',
-            background:'#ffffff',
-            color:'#0f172a',
-            outline:'none',
-            boxShadow:'0 1px 2px rgba(0,0,0,0.03)'
-          }}
+    {staffActionMenu && (
+      <>
+        <div
+          style={{position:'fixed',inset:0,zIndex:9998}}
+          onClick={()=>setStaffActionMenu(null)}
         />
-       </div>
-       <div style={{minWidth:'130px'}}>
-        <select 
-          value={status} 
-          onChange={e=>setStatus(e.target.value)}
+        <div
           style={{
-            width:'100%',
-            padding:'8px 12px',
-            border:'1px solid #cbd5e1',
-            borderRadius:'7px',
-            fontSize:'13px',
-            background:'#ffffff',
-            color:'#0f172a',
-            cursor:'pointer',
-            outline:'none',
-            boxShadow:'0 1px 2px rgba(0,0,0,0.03)'
+            position: 'fixed',
+            top: staffActionMenu.top,
+            left: staffActionMenu.left,
+            zIndex: 9999,
+            background: '#ffffff',
+            borderRadius: '10px',
+            boxShadow: '0 12px 30px -5px rgba(0,0,0,0.3), 0 4px 10px rgba(0,0,0,0.1)',
+            border: '1px solid #cbd5e1',
+            minWidth: '225px',
+            padding: '6px 0',
+            textAlign: 'left'
           }}
+          onClick={e=>e.stopPropagation()}
         >
-         <option value="">সব অবস্থা</option>
-         {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(x=><option key={x} value={x}>{statusBn(x)}</option>)}
-        </select>
-       </div>
-       {customFields.filter(f=>f.enabled&&!f.is_system).length>0&&<select value={customFieldKey} onChange={e=>setCustomFieldKey(e.target.value)} style={{padding:'8px 12px',border:'1px solid #cbd5e1',borderRadius:'7px',fontSize:'13px',background:'#fff'}}><option value="">Custom field</option>{customFields.filter(f=>f.enabled&&!f.is_system).map(f=><option key={f.id} value={f.field_key}>{f.label_bn}</option>)}</select>}
-       {customFieldKey&&<input placeholder="Custom value" value={customFieldValue} onChange={e=>setCustomFieldValue(e.target.value)} style={{padding:'8px 10px',border:'1px solid #cbd5e1',borderRadius:'7px',fontSize:'13px'}}/>}
-      </div>
-
-      <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'nowrap'}}>
-       <button 
-         type="button" 
-         onClick={exportPeople}
-         style={{
-           display:'inline-flex',
-           alignItems:'center',
-           gap:'6px',
-           background:'#ffffff',
-           color:'#334155',
-           border:'1px solid #cbd5e1',
-           padding:'8px 14px',
-           borderRadius:'7px',
-           cursor:'pointer',
-           fontSize:'12.5px',
-           fontWeight:600,
-           boxShadow:'0 1px 2px rgba(0,0,0,0.04)',
-           whiteSpace:'nowrap'
-         }}
-         title="CSV রিপোর্ট ডাউনলোড করুন"
-       >
-         <span>📊</span> CSV রিপোর্ট
-       </button>
-       <button 
-         type="button" 
-         onClick={downloadPeopleTemplate}
-         style={{
-           display:'inline-flex',
-           alignItems:'center',
-           gap:'6px',
-           background:'#ffffff',
-           color:'#334155',
-           border:'1px solid #cbd5e1',
-           padding:'8px 14px',
-           borderRadius:'7px',
-           cursor:'pointer',
-           fontSize:'12.5px',
-           fontWeight:600,
-           boxShadow:'0 1px 2px rgba(0,0,0,0.04)',
-           whiteSpace:'nowrap'
-         }}
-         title="Template CSV ডাউনলোড করুন"
-       >
-         <span>⬇️</span> Template CSV
-       </button>
-       <label 
-         style={{
-           display:'inline-flex',
-           alignItems:'center',
-           gap:'6px',
-           background:'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
-           color:'#ffffff',
-           border:'none',
-           padding:'8px 14px',
-           borderRadius:'7px',
-           cursor:'pointer',
-           fontSize:'12.5px',
-           fontWeight:600,
-           boxShadow:'0 2px 4px rgba(13,148,136,0.25)',
-           whiteSpace:'nowrap',
-           margin:0
-         }} 
-         title="CSV ফাইল আপলোড করুন"
-       >
-        <span>⬆️</span> CSV আপলোড
-        <input type="file" accept=".csv,text/csv" hidden onChange={importPeople}/>
-       </label>
-      </div>
-     </div>
-
-     <div className="table-wrap" style={{
-       overflowX: 'auto',
-       width: '100%',
-       borderRadius: '10px',
-       border: '1px solid #e2e8f0',
-       background: '#ffffff',
-       boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-     }}>
-      <table style={{
-        width: '100%',
-        tableLayout: 'auto',
-        borderCollapse: 'collapse',
-        margin: 0
-      }}>
-       <thead>
-        <tr style={{background:'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderBottom:'2px solid #cbd5e1'}}>
-         <th style={{textAlign:'center', width: isTeacher ? '11%' : '12%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', whiteSpace:'nowrap', letterSpacing:'0.3px'}}>Employee ID</th>
-         <th style={{textAlign:'center', width:'6%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', whiteSpace:'nowrap'}}>ছবি</th>
-         <th style={{textAlign:'left', width: isTeacher ? '24%' : '31%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>নাম</th>
-         <th style={{textAlign:'left', width: isTeacher ? '17%' : '23%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>পদবি</th>
-         {isTeacher && <th style={{textAlign:'left', width:'15%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px'}}>বিষয়</th>}
-         <th style={{textAlign:'left', width: isTeacher ? '13%' : '14%', padding:'12px 12px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>মোবাইল</th>
-         <th style={{textAlign:'center', width:'7%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>অবস্থা</th>
-         <th style={{textAlign:'center', width:'7%', padding:'12px 6px', color:'#0f172a', fontWeight:700, fontSize:'12.5px', letterSpacing:'0.3px', whiteSpace:'nowrap'}}>সেবা</th>
-        </tr>
-       </thead>
-       <tbody>
-        {(list||[]).map((x, idx) => {
-         const isInline = inlineEditId === x.id;
-         const empCode = formatEmployeeId(x, isTeacher, list.indexOf(x));
-         const isEven = idx % 2 === 1;
-         return (
-          <tr 
-            key={x.id} 
-            style={{
-              background: isInline ? '#f0fdf4' : (isEven ? '#fbfcfd' : '#ffffff'),
-              borderBottom: '1px solid #edf2f7',
-              transition: 'background 0.15s ease'
-            }}
-            onMouseEnter={e => { if(!isInline) e.currentTarget.style.background = '#f0fdf4'; }}
-            onMouseLeave={e => { if(!isInline) e.currentTarget.style.background = isEven ? '#fbfcfd' : '#ffffff'; }}
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'biodata');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#166534',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
           >
-           <td style={{textAlign:'center', padding:'10px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '3px',
-              background: isTeacher ? 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' : 'linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%)',
-              color: isTeacher ? '#166534' : '#1d4ed8',
-              border: isTeacher ? '1px solid #86efac' : '1px solid #bfdbfe',
-              borderRadius: '6px',
-              padding: '3px 8px',
-              fontSize: '11.5px',
-              fontWeight: 800,
-              letterSpacing: '0.6px',
-              fontFamily: "'Outfit', 'Segoe UI', monospace",
-              boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
-            }}>
-              <span style={{opacity: 0.65, fontSize: '10px', fontWeight: 900}}>#</span>
-              {empCode}
-            </span>
-           </td>
-           <td style={{textAlign:'center', padding:'8px 6px', verticalAlign:'middle'}}>
-            <label style={{cursor:'pointer', display:'inline-block', position:'relative'}} title="ছবি পরিবর্তন করতে ক্লিক করুন">
-             <div style={{
-               width:'42px',
-               height:'46px',
-               borderRadius:'7px',
-               overflow:'hidden',
-               border:'1.5px solid #cbd5e1',
-               margin:'0 auto',
-               background:'#f8fafc',
-               display:'flex',
-               alignItems:'center',
-               justifyContent:'center',
-               boxShadow:'0 1px 3px rgba(0,0,0,0.06)',
-               position:'relative'
-             }}>
-              <img 
-                src={getTeacherPhoto(x)} 
-                alt="" 
-                style={{width:'100%', height:'100%', objectFit:'cover'}} 
-                onError={e=>{e.target.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80';}}
-              />
-              <span style={{position:'absolute', bottom:0, right:0, background:'rgba(0,0,0,0.65)', color:'#fff', fontSize:'8px', padding:'1px 3px', borderRadius:'2px', lineHeight:1}}>📷</span>
-             </div>
-             <input type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e)=>uploadPhoto(x, e)}/>
-            </label>
-           </td>
-           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle'}}>
-            {isInline ? (
-             <input 
-              value={inlineForm.name_bn} 
-              onChange={e=>setInlineForm(f=>({...f,name_bn:e.target.value}))} 
-              style={{padding:'5px 8px', fontSize:'13px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%', fontWeight:600}} 
-              placeholder="নাম (বাংলা)"
-             />
-            ) : (
-             <div>
-              <div style={{fontWeight:700, color:'#0f172a', fontSize:'13.5px', lineHeight:'1.35'}}>{x.name_bn}</div>
-              {x.name_en && (
-                <div style={{fontSize:'10.5px', fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.5px', marginTop:'2px'}}>
-                  {x.name_en}
-                </div>
-              )}
-             </div>
-            )}
-           </td>
-           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle', fontSize:'13px', color:'#334155', fontWeight:500}}>
-            {isInline ? (
-             <input 
-              value={inlineForm.designation} 
-              onChange={e=>setInlineForm(f=>({...f,designation:e.target.value}))} 
-              style={{padding:'5px 8px', fontSize:'12.5px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
-              placeholder="পদবি"
-             />
-            ) : (
-             <div>
-              <div style={{fontWeight:600, color:'#1e293b'}}>{x.designation}</div>
-              {x.designation_en && <div style={{fontSize:'10px', color:'#64748b', marginTop:'1px'}}>{x.designation_en}</div>}
-             </div>
-            )}
-           </td>
-           {isTeacher && (
-            <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle'}}>
-             {isInline ? (
-              <input 
-               value={inlineForm.subject} 
-               onChange={e=>setInlineForm(f=>({...f,subject:e.target.value}))} 
-               style={{padding:'5px 8px', fontSize:'12.5px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
-               placeholder="মূল বিষয়"
-              />
-             ) : (
-              x.subject ? (
-                <span style={{
-                  display: 'inline-block',
-                  background: '#f0fdf4',
-                  color: '#166534',
-                  border: '1px solid #bbf7d0',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  fontSize: '11.5px',
-                  fontWeight: 600
-                }}>
-                  {x.subject}
-                </span>
-              ) : (
-                <span style={{color: '#94a3b8', fontSize: '12px'}}>—</span>
-              )
-             )}
-            </td>
-           )}
-           <td style={{padding:'10px 12px', textAlign:'left', verticalAlign:'middle', whiteSpace:'nowrap'}}>
-            {isInline ? (
-             <input 
-              value={inlineForm.phone} 
-              onChange={e=>setInlineForm(f=>({...f,phone:e.target.value}))} 
-              style={{padding:'5px 8px', fontSize:'12px', borderRadius:'6px', border:'1px solid #3b82f6', width:'100%'}} 
-              placeholder="মোবাইল"
-             />
-            ) : (
-             <div>
-              <div style={{fontFamily:"'Outfit', 'Segoe UI', monospace", fontWeight:600, color:'#1e293b', fontSize:'12.5px'}}>
-                {x.phone ? `📞 ${x.phone}` : '—'}
-              </div>
-              {x.email && (
-                <div style={{fontSize:'10.5px', color:'#64748b', marginTop:'2px', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'140px'}} title={x.email}>
-                  ✉️ {x.email}
-                </div>
-              )}
-             </div>
-            )}
-           </td>
-           <td style={{textAlign:'center', padding:'10px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
-            {isInline ? (
-             <select 
-              value={inlineForm.status} 
-              onChange={e=>setInlineForm(f=>({...f,status:e.target.value}))} 
-              style={{padding:'4px 6px', fontSize:'11.5px', borderRadius:'6px', border:'1px solid #3b82f6'}}
-             >
-              {(isTeacher?['active','inactive','retired','former']:['active','inactive']).map(st=><option key={st} value={st}>{statusBn(st)}</option>)}
-             </select>
-            ) : (
-             <span style={{
-               display: 'inline-flex',
-               alignItems: 'center',
-               gap: '4px',
-               background: x.status === 'active' || !x.status ? '#ecfdf5' : '#f1f5f9',
-               color: x.status === 'active' || !x.status ? '#065f46' : '#64748b',
-               border: x.status === 'active' || !x.status ? '1px solid #a7f3d0' : '1px solid #e2e8f0',
-               padding: '3px 8px',
-               borderRadius: '12px',
-               fontSize: '11px',
-               fontWeight: 700
-             }}>
-               <span style={{
-                 width: '6px',
-                 height: '6px',
-                 borderRadius: '50%',
-                 background: x.status === 'active' || !x.status ? '#10b981' : '#94a3b8'
-               }} />
-               {statusBn(x.status)}
-             </span>
-            )}
-           </td>
-           <td style={{textAlign:'center', padding:'8px 6px', verticalAlign:'middle', whiteSpace:'nowrap'}}>
-            {isInline ? (
-             <div style={{display:'inline-flex', alignItems:'center', gap:'4px', justifyContent:'center'}}>
-              <button 
-               type="button" 
-               className="mini" 
-               style={{background:'#16a34a', color:'#fff', border:'none', padding:'4px 8px', borderRadius:'5px', cursor:'pointer', fontSize:'11px', fontWeight:600}} 
-               onClick={()=>saveInline(x)} 
-               title="সংরক্ষণ করুন"
-              >
-               💾 সংরক্ষণ
-              </button>
-              <button 
-               type="button" 
-               className="mini" 
-               style={{background:'#64748b', color:'#fff', border:'none', padding:'4px 7px', borderRadius:'5px', cursor:'pointer', fontSize:'11px', fontWeight:600}} 
-               onClick={()=>setInlineEditId(null)} 
-               title="সম্পাদনা বাতিল"
-              >
-               ✕
-              </button>
-              <button 
-               type="button" 
-               className="mini" 
-               style={{background:'#0284c7', color:'#fff', border:'none', padding:'4px 7px', borderRadius:'5px', cursor:'pointer', fontSize:'10px', fontWeight:600}} 
-               onClick={()=>begin(x)} 
-               title="পূর্ণাঙ্গ ৭ ধাপের এন্ট্রি ফরম"
-              >
-               📝 ফরম
-              </button>
-             </div>
-            ) : (
-             <button
-              type="button"
-              className="mini"
-              onClick={(e)=>toggleStaffActionMenu(e, x)}
-              style={{
-                background: staffActionMenu?.personId===x.id ? '#047857' : '#ffffff',
-                color: staffActionMenu?.personId===x.id ? '#ffffff' : '#334155',
-                border: staffActionMenu?.personId===x.id ? '1.5px solid #047857' : '1px solid #cbd5e1',
-                fontWeight: 700,
-                cursor: 'pointer',
-                padding: '5px 10px',
-                borderRadius: '6px',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '11.5px',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                transition: 'all 0.15s ease'
-              }}
-              title="সেবা ও অ্যাকশন মেন্যু"
-             >
-               <span style={{fontSize:'16px', lineHeight:1, fontWeight:900}}>⋮</span>
-               <span style={{fontSize:'11.5px'}}>সেবা</span>
-             </button>
-            )}
-           </td>
-          </tr>
-         );
-        })}
-        {!(list||[]).length&&<tr><td colSpan={isTeacher?8:7}>কোনো তথ্য পাওয়া যায়নি।</td></tr>}
-       </tbody>
-      </table>
-     </div>
-
-     <div style={{marginTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:'12px',color:'#64748b',flexWrap:'wrap',gap:'8px'}}>
-      <div>
-       ℹ️ <strong>শর্তাবলী:</strong> প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষক ব্যতিত সকল সক্রিয় শিক্ষকবৃন্দ এই ভোটার তালিকায় অন্তর্ভুক্ত।
-      </div>
-      <div style={{display:'flex',gap:'8px'}}>
-       <button className="mini" type="button" onClick={printTeacherVoterList}>🖨️ প্রিন্ট করুন</button>
-       <button className="mini" type="button" onClick={exportTeacherVoterCSV}>📥 CSV এক্সপোর্ট</button>
-      </div>
-     </div>
-    </div>
-   )}
+            <span style={{fontSize:'14px'}}>📄</span> পূর্ণাঙ্গ বায়োডাটা (CV)
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'id_card');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#1d4ed8',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>🪪</span> পরিচয়পত্র (ID Card Studio)
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'bonafide');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#047857',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>📜</span> প্রত্যয়নপত্র (Bonafide)
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'experience');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#b45309',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#fef3c7'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>🏆</span> অভিজ্ঞতার সনদ
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'professional');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#0d9488',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdfa'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>🎖️</span> পেশাগত সনদ
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'continuous');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#7e22ce',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#faf5ff'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>⏱️</span> নিরবিচ্ছিন্ন চাকুরী সনদ
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'release_order');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#c2410c',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#fff7ed'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>✈️</span> প্রশিক্ষণ ছাড়পত্র / অবমুক্তি
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); handleOpenStaffDocs(p.id, 'office_copies');}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:700,color:'#0f766e',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdfa'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>📁</span> সংরক্ষিত অফিস কপি রেকর্ড
+          </button>
+          <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
+          <button
+            type="button"
+            onClick={()=>{
+              const p=staffActionMenu.person;
+              setStaffActionMenu(null);
+              setInlineEditId(p.id);
+              setInlineForm({
+                name_bn: p.name_bn || '',
+                designation: p.designation || '',
+                subject: p.subject || '',
+                phone: p.phone || '',
+                status: p.status || 'active'
+              });
+            }}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#2563eb',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#eff6ff'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>✏️</span> দ্রুত সম্পাদনা
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); begin(p);}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#0f172a',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>📝</span> পূর্ণাঙ্গ এন্ট্রি ফরম
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); printPersonProfile(p);}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#475569',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f8fafc'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>🖨️</span> প্রোফাইল প্রিন্ট
+          </button>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); exportPeople(p);}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#059669',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#f0fdf4'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>📊</span> CSV একক রিপোর্ট
+          </button>
+          <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
+          <button
+            type="button"
+            onClick={()=>{const p=staffActionMenu.person; setStaffActionMenu(null); remove(p.id);}}
+            style={{width:'100%',padding:'7px 14px',background:'none',border:'none',display:'flex',alignItems:'center',gap:'9px',fontSize:'12.5px',fontWeight:600,color:'#dc2626',cursor:'pointer',textAlign:'left'}}
+            onMouseEnter={e=>e.currentTarget.style.background='#fee2e2'}
+            onMouseLeave={e=>e.currentTarget.style.background='none'}
+          >
+            <span style={{fontSize:'14px'}}>🗑️</span> রেকর্ড মুছুন
+          </button>
+        </div>
+      </>
+    )}
+   </div>
+  )}
  
    {showStaffCertModal && (
     <StaffCertificatesModal
