@@ -3593,6 +3593,9 @@ function StudentPanel({sub}){
       <button className="mini" type="button" onClick={()=>handleOpenCert('', 'testimonial')} style={{background:'#1d4ed8',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(29,78,216,0.25)'}}>
         📜 প্রশংসাপত্র, ছাড়পত্র ও প্রত্যয়ন
       </button>
+       <button className="mini" type="button" onClick={()=>handleOpenCert('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
+         📁 সনদ অফিস কপি আর্কাইভ
+       </button>
       <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
         📑 শ্রেণি ভিত্তিক টট লিস্ট
       </button>
@@ -3895,6 +3898,28 @@ function StudentPanel({sub}){
            >
              <span style={{fontSize:'15px'}}>📜</span> {lang==='en'?'Certificates / TC':'প্রশংসাপত্র / সনদ / TC'}
            </button>
+            <button
+              type="button"
+              onClick={()=>{const s=actionMenu.student; setActionMenu(null); handleOpenCert(s.id, 'office_copies');}}
+              style={{
+                width:'100%',
+                padding:'8px 14px',
+                background:'none',
+                border:'none',
+                display:'flex',
+                alignItems:'center',
+                gap:'9px',
+                fontSize:'13px',
+                fontWeight:600,
+                color:'#047857',
+                cursor:'pointer',
+                textAlign:'left'
+              }}
+              onMouseEnter={e=>e.currentTarget.style.background='#ecfdf5'}
+              onMouseLeave={e=>e.currentTarget.style.background='none'}
+            >
+              <span style={{fontSize:'15px'}}>📁</span> {lang==='en'?'Saved Office Copies':'সংরক্ষিত অফিস কপি রেকর্ড'}
+            </button>
            <div style={{borderTop:'1px solid #f1f5f9',margin:'4px 0'}}/>
            <button
              type="button"
