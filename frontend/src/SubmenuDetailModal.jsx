@@ -93,6 +93,7 @@ import {
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
+import { getStoredInstitutionData } from './defaultInstitutionData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 import { SportsCultureModernSection } from './SportsCultureModernSection';
@@ -108,6 +109,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [searchQuery, setSearchQuery] = useState('');
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
+  const instData = getStoredInstitutionData();
 
   // Bengali helpers
   const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -1144,95 +1146,110 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    // 1. Institutional Information Submenus (12 items)
+    // 1. Institutional Information Submenus (12 items) - Live Synchronized with Login Admin Panel
     if (menuKey === 'public.nav.institution.about' || title === 'বিদ্যালয় পরিচিতি') {
-      let liveSt = 0, liveTch = 0;
-      try {
-        const s = JSON.parse(localStorage.getItem('magra_db_students') || '[]');
-        const t = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
-        const stf = JSON.parse(localStorage.getItem('magra_db_staff') || '[]');
-        liveSt = s.length;
-        liveTch = t.length + stf.length;
-      } catch {}
-      const toBn = n => String(n ?? 0).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-
+      const ab = instData.about || {};
+      const stats = ab.stats || {};
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">🏛️ বিদ্যালয় পরিচিতি</div>
-          <h3>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় (স্থাপিত: ১৯৪৬ খ্রি.)</h3>
+          <h3>{ab.name_bn || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়'} (স্থাপিত: {ab.established || '১৯৪৬'} খ্রি.)</h3>
           <p className="lead-text">
-            টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নে অবস্থিত একটি ঐতিহ্যবাহী ও সুপ্রাচীন বিদ্যাপীঠ।
-            বিগত ৮ দশকেরও বেশি সময় ধরে প্রতিষ্ঠানটি স্থানীয় পর্যায়ে মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক কারিগরি শিক্ষার আলো ছড়িয়ে আসছে।
+            {ab.profile_text || 'টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নে অবস্থিত একটি ঐতিহ্যবাহী ও সুপ্রাচীন বিদ্যাপীঠ। বিগত ৮ দশকেরও বেশি সময় ধরে প্রতিষ্ঠানটি স্থানীয় পর্যায়ে মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক কারিগরি শিক্ষার আলো ছড়িয়ে আসছে।'}
           </p>
           <div className="info-stats-grid">
-            <div className="info-stat-card"><b>১১৪২৯০</b><span>EIIN নম্বর</span></div>
-            <div className="info-stat-card"><b>৪২০৬০৭১৩০২</b><span>MPO কোড</span></div>
-            <div className="info-stat-card"><b>১৯৪৬</b><span>প্রতিষ্ঠার সন</span></div>
-            <div className="info-stat-card"><b>৬ষ্ঠ–১০ম</b><span>শ্রেণি পাঠদান</span></div>
-            <div className="info-stat-card"><b>{toBn(liveSt)} জন</b><span>বর্তমান শিক্ষার্থী</span></div>
-            <div className="info-stat-card"><b>{toBn(liveTch)} জন</b><span>শিক্ষক ও কর্মচারী</span></div>
+            <div className="info-stat-card"><b>{ab.eiin || '১১৪২৯০'}</b><span>EIIN নম্বর</span></div>
+            <div className="info-stat-card"><b>{ab.mpo || '৪২০৬০৭১৩০২'}</b><span>MPO কোড</span></div>
+            <div className="info-stat-card"><b>{ab.established || '১৯৪৬'}</b><span>প্রতিষ্ঠার সন</span></div>
+            <div className="info-stat-card"><b>{stats.students || '১২৫০+ জন'}</b><span>মোট শিক্ষার্থী</span></div>
+            <div className="info-stat-card"><b>{stats.teachers || '২৮ জন'}</b><span>শিক্ষক সংখ্যা</span></div>
+            <div className="info-stat-card"><b>{stats.staff || '৬ জন'}</b><span>কর্মচারী সংখ্যা</span></div>
+            <div className="info-stat-card"><b>{stats.land_area || '৩.৫০ একর'}</b><span>জমির পরিমাণ</span></div>
+            <div className="info-stat-card"><b>{stats.buildings || '৩টি ভবন'}</b><span>একাডেমিক ভবন</span></div>
+            <div className="info-stat-card"><b>{stats.classrooms || '২৪টি'}</b><span>শ্রেণিকক্ষ</span></div>
+            <div className="info-stat-card"><b>{stats.pass_rate || '৯৮.৫%'}</b><span>গড় পাসের হার</span></div>
           </div>
-          <h4>বিদ্যালয়ের লক্ষ্য ও উদ্দেশ্য</h4>
-          <ul className="bullet-list">
-            <li>আধুনিক বিজ্ঞান ও তথ্যপ্রযুক্তিভিত্তিক যুগোপযোগী শিক্ষা নিশ্চিত করা।</li>
-            <li>শিক্ষার্থীদের নৈতিক মূল্যবোধ, শৃঙ্খলা, দেশপ্রেম ও নেতৃত্বগুণে বিকশিত করা।</li>
-            <li>সহশিক্ষা কার্যক্রমের মাধ্যমে প্রতিটি শিক্ষার্থীর মেধা ও সৃজনশীলতার বিকাশ ঘটানো।</li>
-          </ul>
+          <div style={{ marginTop: '16px', background: '#f8fafc', padding: '14px 18px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <h4 style={{ margin: '0 0 6px', color: '#047857' }}>📍 ক্যাম্পাস যোগাযোগ ও অবস্থান:</h4>
+            <p style={{ margin: '2px 0', fontSize: '13.5px', color: '#334155' }}><b>ঠিকানা:</b> {ab.address || 'গ্রাম ও ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল'}</p>
+            <p style={{ margin: '2px 0', fontSize: '13.5px', color: '#334155' }}><b>মোবাইল/ফোন:</b> {ab.phone || '01712-345678'} • <b>ইমেইল:</b> {ab.email || 'magrapuhs.46@gmail.com'}</p>
+          </div>
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.history' || title === 'বিদ্যালয়ের ইতিহাস') {
+      const hist = instData.history || {};
+      const milestones = hist.milestones || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">📜 বিদ্যালয়ের ইতিহাস ও ঐতিহ্য</div>
           <h3>আট দশকের গৌরবময় ইতিহাস (১৯৪৬ - বর্তমান)</h3>
           <p className="lead-text">
-            ব্রিটিশ শাসনামলের শেষলগ্নে ১৯৪৬ খ্রিষ্টাব্দে টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নের শিক্ষানুরাগী ও বিশিষ্ট ব্যক্তিবর্গের ঐকান্তিক প্রচেষ্টায় এই বিদ্যাপীঠ প্রতিষ্ঠিত হয়।
+            {hist.founding_story || 'ব্রিটিশ শাসনামলের শেষলগ্নে ১৯৪৬ খ্রিষ্টাব্দে টাঙ্গাইল জেলার কালিহাতি উপজেলার মগড়া ইউনিয়নের শিক্ষানুরাগী ও বিশিষ্ট ব্যক্তিবর্গের ঐকান্তিক প্রচেষ্টায় এই বিদ্যাপীঠ প্রতিষ্ঠিত হয়।'}
           </p>
           <div style={{ display: 'grid', gap: '14px', margin: '18px 0' }}>
             <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #047857', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 6px', color: '#065f46' }}>🏛️ প্রতিষ্ঠা ও পটভূমি</h4>
               <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
-                তৎকালীন সময়ে এলাকার সাধারণ পরিবারগুলোর মাঝে শিক্ষার আলো পৌঁছে দেওয়ার লক্ষ্যে স্থানীয় দানশীল ও বিদ্যোৎসাহী ব্যক্তিদের জমিতে এই বিদ্যালয়ের সূচনা ঘটে।
+                {hist.founding_story}
               </p>
             </div>
             <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #2563eb', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 6px', color: '#1d4ed8' }}>🎖️ মহান মুক্তিযুদ্ধে গৌরবোজ্জ্বল ভূমিকা</h4>
               <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
-                ১৯৭১ সালের মহান মুক্তিযুদ্ধে অত্র বিদ্যালয়ের শিক্ষক, তৎকালীন ছাত্র ও স্থানীয় বীর মুক্তিযোদ্ধারা সক্রিয়ভাবে পাকিস্তানি হানাদার বাহিনীর বিরুদ্ধে প্রতিরোধ গড়ে তোলেন।
+                {hist.liberation_war || '১৯৭১ সালের মহান মুক্তিযুদ্ধে অত্র বিদ্যালয়ের শিক্ষক, তৎকালীন ছাত্র ও স্থানীয় বীর মুক্তিযোদ্ধারা সক্রিয়ভাবে পাকিস্তানি হানাদার বাহিনীর বিরুদ্ধে প্রতিরোধ গড়ে তোলেন।'}
               </p>
             </div>
             <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '8px', borderLeft: '4px solid #d97706', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 6px', color: '#b45309' }}>🚀 আধুনিকায়ন ও ডিজিটাল যুগে পদার্পণ</h4>
               <p style={{ margin: 0, fontSize: '14px', color: '#334155', lineHeight: '1.6' }}>
-                কাঁচা টিনশেড ঘর থেকে আজ সুবিশাল বহুতল একাডেমিক ভবন, আধুনিক বিজ্ঞানাগার, শেখ রাসেল ডিজিটাল কম্পিউটার ল্যাব ও অনলাইন স্কুল ম্যানেজমেন্ট সিস্টেম সমৃদ্ধ প্রতিষ্ঠানে রূপান্তর লাভ করেছে।
+                {hist.modernization || 'কাঁচা টিনশেড ঘর থেকে আজ সুবিশাল বহুতল একাডেমিক ভবন, আধুনিক বিজ্ঞানাগার, শেখ রাসেল ডিজিটাল কম্পিউটার ল্যাব ও সম্পূর্ণ স্বয়ংক্রিয় অনলাইন স্কুল ম্যানেজমেন্ট সিস্টেম সমৃদ্ধ প্রতিষ্ঠানে রূপান্তর লাভ করেছে।'}
               </p>
             </div>
           </div>
+          {milestones.length > 0 && (
+            <div style={{ marginTop: '18px' }}>
+              <h4 style={{ color: '#047857', marginBottom: '10px' }}>⏳ ঐতিহাসিক কালক্রম ও মাইলফলক:</h4>
+              <div style={{ display: 'grid', gap: '8px' }}>
+                {milestones.map((m, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: '#f1f5f9', padding: '10px 14px', borderRadius: '6px' }}>
+                    <span style={{ background: '#047857', color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 800 }}>{m.year}</span>
+                    <div>
+                      <b style={{ color: '#0f172a', fontSize: '14px' }}>{m.title}</b>
+                      <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: '#475569' }}>{m.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.committee' || title === 'পরিচালনা পর্ষদ' || title === 'পরিচালনা কমিটি') {
+      const comm = instData.committee || {};
+      const members = comm.members && comm.members.length ? comm.members : MOCK_COMMITTEE;
+      const tenure = comm.tenure || '২০২৪–২০২৬';
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">👥 পরিচালনা পর্ষদ (Managing Committee)</div>
+          <div className="modal-hero-badge">👥 পরিচালনা পর্ষদ (Managing Committee) • মেয়াদকাল: {tenure}</div>
           <p className="lead-text">বিদ্যালয়ের সার্বিক শিক্ষা, প্রশাসনিক ও ভৌত অবকাঠামোগত উন্নয়নের দায়িত্বে নিয়োজিত গভর্নিং বডি:</p>
           <div className="committee-grid">
-            {MOCK_COMMITTEE.map((m, idx) => {
+            {members.map((m, idx) => {
               const ld = getLeadershipData();
-              const photoSrc = m.role === 'সভাপতি' ? ld.president.photo : m.role === 'সদস্য সচিব' ? ld.head.photo : PHOTO_MALE_TEACHER;
+              const photoSrc = m.role === 'সভাপতি' ? (ld.president.photo || PHOTO_PRESIDENT) : m.role === 'সদস্য সচিব' ? (ld.head.photo || PHOTO_HEAD_TEACHER) : (m.photo || PHOTO_PRESIDENT);
               return (
                 <div key={idx} className="committee-card">
-                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857' }}>
                     <img src={photoSrc} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div className="member-info">
                     <span className="member-role">{m.role}</span>
                     <h4>{m.name_bn}</h4>
                     <p>{m.designation}</p>
-                    <small>মেয়াদকাল: {m.tenure}</small>
+                    <small>মেয়াদকাল: {m.tenure || tenure}</small>
                   </div>
                 </div>
               );
@@ -1243,17 +1260,17 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     }
 
     if (menuKey === 'public.nav.institution.regulations' || title === 'বিধি বিধান' || menuKey === 'public.nav.institution.rules') {
+      const regs = instData.regulations || {};
+      const rules = regs.rules || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">⚖️ প্রাতিষ্ঠানিক বিধি বিধান ও নীতিমালা</div>
           <div className="rules-section">
-            <p className="lead-text">মাধ্যমিক ও উচ্চশিক্ষা অধিদপ্তর (মাউশি) এবং ঢাকা শিক্ষা বোর্ডের বিধিমালা অনুযায়ী পরিচালিত নীতিসমূহ:</p>
+            <p className="lead-text">{regs.overview || 'মাধ্যমিক ও উচ্চশিক্ষা অধিদপ্তর (মাউশি) এবং ঢাকা শিক্ষা বোর্ডের বিধিমালা অনুযায়ী পরিচালিত নীতিসমূহ:'}</p>
             <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14.5px' }}>
-              <li><b>ভর্তি নীতিমালা:</b> সরকারি প্রজ্ঞাপন অনুযায়ী নির্ধারিত সময়সীমার মধ্যে অনলাইন/ম্যানুয়াল পদ্ধতিতে স্বচ্ছতার সাথে ভর্তি কার্যক্রম পরিচালিত হয়।</li>
-              <li><b>উপস্থিতি ও হাজিরা বিধি:</b> প্রতিটি শিক্ষার্থীর বার্ষিক পরীক্ষায় অংশগ্রহণের জন্য ন্যূনতম ৭৫% ক্লাসে উপস্থিতি বাধ্যতামূলক।</li>
-              <li><b>পরীক্ষা ও মূল্যায়ন বিধি:</b> জাতীয় শিক্ষাক্রমের আলোকে শিখনকালীন ধারাবাহিক মূল্যায়ন (CA) এবং সামষ্টিক পরীক্ষা সুষ্ঠুভাবে গ্রহণ করা হয়।</li>
-              <li><b>ফি ও আর্থিক স্বচ্ছতা:</b> সকল প্রকার টিউশন ফি ও পরীক্ষা ফি রসিদের মাধ্যমে ও ডিজিটাল ট্র্যাকারে নথিভুক্ত করা হয়।</li>
-              <li><b>সনদ ও ছাড়পত্র (TC) প্রদান:</b> যাবতীয় বকেয়া পরিশোধ সাপেক্ষে প্রধান শিক্ষকের অনুমোদনক্রমে বিধি মোতাবেক অফিশিয়াল ছাড়পত্র ও প্রশংসাপত্র প্রদান করা হয়।</li>
+              {rules.map((r, idx) => (
+                <li key={idx}><b>{r.title}:</b> {r.detail}</li>
+              ))}
             </ul>
           </div>
         </div>
@@ -1261,59 +1278,89 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     }
 
     if (menuKey === 'public.nav.institution.code_of_conduct' || title === 'আচরন বিধি' || title === 'আচরণবিধি') {
+      const coc = instData.code_of_conduct || {};
+      const studentConduct = coc.student_conduct || [];
+      const guardianConduct = coc.guardian_conduct || [];
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📋 শিক্ষক, শিক্ষার্থী ও অভিভাবকদের আচরণবিধি</div>
+          <div className="modal-hero-badge">🛡️ আচরন বিধি ও শৃঙ্খলা নীতিমালা</div>
           <div className="rules-section">
-            <h4>শিক্ষার্থীদের জন্য প্রযোজ্য আচরণবিধি:</h4>
-            <ul className="bullet-list" style={{ lineHeight: '1.7', marginBottom: '16px' }}>
-              <li>প্রতিদিন সকাল ৯:৪০ এর পূর্বে নির্ধারিত স্কুল ইউনিফর্ম ও আইডি কার্ড পরিধান করে ক্যাম্পাসে প্রবেশ বাধ্যতামূলক।</li>
-              <li>বিদ্যালয় প্রাঙ্গণে কোনো ধরনের মোবাইল ফোন বা অপ্রয়োজনীয় ইলেকট্রনিক ডিভাইস ব্যবহার সম্পূর্ণ নিষিদ্ধ।</li>
-              <li>শ্রেণিকক্ষে শিক্ষকের পাঠদানের সময় পূর্ণ মনোযোগ দিতে হবে এবং সহপাঠীদের সাথে সৌহার্দ্যপূর্ণ আচরণ বজায় রাখতে হবে।</li>
-              <li>বিদ্যালয়ের আসবাবপত্র, লাইব্রেরির বই, কম্পিউটার ল্যাব ও বিজ্ঞানের যন্ত্রপাতি রক্ষণাবেক্ষণে যত্নশীল থাকতে হবে।</li>
+            <h4 style={{ color: '#047857', margin: '14px 0 8px', fontSize: '16px' }}>🎓 শিক্ষার্থীদের জন্য পালনীয় আচরণবিধি:</h4>
+            <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+              {studentConduct.map((item, idx) => (
+                <li key={idx}>{item}</li>
+              ))}
             </ul>
-            <h4>শিক্ষক ও অভিভাবকদের জন্য নির্দেশনা:</h4>
-            <ul className="bullet-list" style={{ lineHeight: '1.7' }}>
-              <li>শিক্ষকমণ্ডলী শিক্ষার্থীদের প্রতি স্নেহশীল, নিরপেক্ষ ও নৈতিক আদর্শের প্রতীক হিসেবে দায়িত্ব পালন করবেন।</li>
-              <li>অভিভাবকবৃন্দ নিয়মিত সন্তানাদির পড়াশোনার খোঁজখবর রাখবেন এবং ত্রৈমাসিক অভিভাবক সমাবেশে উপস্থিত থাকবেন।</li>
-            </ul>
+            {guardianConduct.length > 0 && (
+              <>
+                <h4 style={{ color: '#0369a1', margin: '18px 0 8px', fontSize: '16px' }}>👨‍👩‍👧 সম্মানিত অভিভাবকদের প্রতি নির্দেশনা:</h4>
+                <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+                  {guardianConduct.map((item, idx) => (
+                    <li key={idx}>{item}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.master_plan' || title === 'মুখ্য পরিকল্পনা') {
+      const mp = instData.master_plan || {};
+      const plans = mp.plans || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">🎯 প্রাতিষ্ঠানিক মুখ্য পরিকল্পনা ও কৌশলগত রূপরেখা</div>
-          <p className="lead-text">আগামী শিক্ষাবর্ষগুলোতে গুণগত শিক্ষা ও ক্যাম্পাস উন্নয়নে গৃহীত মহাপরিকল্পনা:</p>
+          <p className="lead-text">{mp.overview || 'আগামী শিক্ষাবর্ষগুলোতে গুণগত শিক্ষা ও ক্যাম্পাস উন্নয়নে গৃহীত মহাপরিকল্পনা:'}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', margin: '16px 0' }}>
-            <div style={{ background: '#f0fdf4', padding: '14px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-              <b style={{ color: '#166534', fontSize: '15px' }}>💻 ১০০% স্মার্ট ক্লাসরুম</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155' }}>সকল শ্রেণিকক্ষে প্রজেক্টর, ইন্টারেক্টিভ ডিসপ্লে ও দ্রুতগতির ইন্টারনেট নিশ্চিতকরণ।</p>
-            </div>
-            <div style={{ background: '#eff6ff', padding: '14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-              <b style={{ color: '#1e40af', fontSize: '15px' }}>🔬 বিজ্ঞানাগার ও ইনোভেশন ল্যাব</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155' }}>হাতে-কলমে বিজ্ঞানচর্চা, রোবোটিক্স ও কোডিং ল্যাব সম্প্রসারণ।</p>
-            </div>
-            <div style={{ background: '#fefce8', padding: '14px', borderRadius: '8px', border: '1px solid #fef08a' }}>
-              <b style={{ color: '#854d0e', fontSize: '15px' }}>🏆 শতভাগ জিপিএ-৫ লক্ষ্যমাত্রা</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155' }}>দুর্বল শিক্ষার্থীদের নিবিড় প্রতিকারমূলক ক্লাস (Remedial Class) ও মডেল টেস্ট কার্যক্রম।</p>
-            </div>
-            <div style={{ background: '#fdf4ff', padding: '14px', borderRadius: '8px', border: '1px solid #f5d0fe' }}>
-              <b style={{ color: '#86198f', fontSize: '15px' }}>🏛️ আধুনিক অডিটোরিয়াম ও ক্রীড়া কমপ্লেক্স</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155' }}>সাংস্কৃতিক চর্চা ও আন্তঃস্কুল টুর্নামেন্ট আয়োজনের সক্ষমতা বৃদ্ধি।</p>
-            </div>
+            {plans.map((p, idx) => (
+              <div key={idx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#065f46', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>{p.icon || '🎯'}</span>
+                  <span>{p.title}</span>
+                </b>
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>{p.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.library' || title === 'পাঠাগার/লাইব্রেরী' || title === 'লাইব্রেরি') {
+      const lib = instData.library || {};
+      const sections = lib.sections || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">📚 বিদ্যালয় কেন্দ্রীয় পাঠাগার ও লাইব্রেরী</div>
-          <p className="lead-text">বিদ্যালয়ের সমৃদ্ধ লাইব্রেরিতে পাঠ্যবই, রেফারেন্স বই, সাহিত্য, বিজ্ঞান ও মুক্তিযুদ্ধ বিষয়ক সহস্রাধিক গ্রন্থ রয়েছে:</p>
+          <p className="lead-text">{lib.summary || 'বিদ্যালয়ের সমৃদ্ধ লাইব্রেরিতে পাঠ্যবই, রেফারেন্স বই, সাহিত্য, বিজ্ঞান ও মুক্তিযুদ্ধ বিষয়ক সহস্রাধিক গ্রন্থ রয়েছে।'}</p>
+          
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
+            <div style={{ background: '#ecfdf5', padding: '10px 16px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>মোট সংগৃহীত গ্রন্থ:</span>
+              <div style={{ fontSize: '18px', fontWeight: 900, color: '#065f46' }}>{lib.total_books || '৩,৫০০+ টি'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '10px 16px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>রিডিং রুমের সময়সূচি:</span>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#1e40af' }}>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০'}</div>
+            </div>
+          </div>
+
+          {sections.length > 0 && (
+            <div style={{ marginBottom: '18px' }}>
+              <h4 style={{ color: '#047857', marginBottom: '8px' }}>বিভাগভিত্তিক বই সংগ্রহ ও কর্নার:</h4>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {sections.map((s, idx) => (
+                  <span key={idx} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                    📖 {s.name}: <b style={{ color: '#047857' }}>{s.count}</b>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <h4>বই ক্যাটালগ ও রেজিস্টার নমুনা:</h4>
           <table className="modal-table">
             <thead>
               <tr>
@@ -1324,7 +1371,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </tr>
             </thead>
             <tbody>
-              {MOCK_BOOKS.map(b => (
+              {MOCK_BOOKS.slice(0, 8).map(b => (
                 <tr key={b.id}>
                   <td><b>{b.title}</b></td>
                   <td>{b.author}</td>
@@ -1339,23 +1386,34 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     }
 
     if (menuKey === 'public.nav.institution.curriculum' || title === 'পাঠ্যক্রম') {
+      const cur = instData.curriculum || {};
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">📖 জাতীয় শিক্ষাক্রম রূপরেখা (NCTB Curriculum)</div>
-          <p className="lead-text">এনসিটিবি (NCTB) অনুমোদিত শিক্ষাক্রম অনুযায়ী শ্রেণিভিত্তিক পাঠদান ও মূল্যায়ন পদ্ধতি:</p>
+          <p className="lead-text">{cur.overview || 'এনসিটিবি (NCTB) অনুমোদিত শিক্ষাক্রম অনুযায়ী শ্রেণিভিত্তিক পাঠদান ও মূল্যায়ন পদ্ধতি:'}</p>
           <div style={{ display: 'grid', gap: '12px', margin: '16px 0' }}>
             <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-              <b style={{ color: '#0369a1', fontSize: '15px' }}>৬ষ্ঠ হতে ৮ম শ্রেণি:</b>
-              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155' }}>
-                বাংলা, ইংরেজি, গণিত, বিজ্ঞান, ইতিহাস ও সামাজিক বিজ্ঞান, ডিজিটাল প্রযুক্তি, জীবন ও জীবিকা, স্বাস্থ্য সুরক্ষা, ধর্ম ও নৈতিক শিক্ষা, শিল্প ও সংস্কৃতি।
+              <b style={{ color: '#0369a1', fontSize: '15px' }}>৬ষ্ঠ হতে ৮ম শ্রেণি (নিম্ন মাধ্যমিক):</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.lower_secondary || 'বাংলা, ইংরেজি, গণিত, বিজ্ঞান, ইতিহাস ও সামাজিক বিজ্ঞান, ডিজিটাল প্রযুক্তি, জীবন ও জীবিকা, স্বাস্থ্য সুরক্ষা, ধর্ম ও নৈতিক শিক্ষা, শিল্প ও সংস্কৃতি।'}
               </p>
             </div>
             <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-              <b style={{ color: '#15803d', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি (শাখাভিত্তিক):</b>
-              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155' }}>
-                <b>বিজ্ঞান বিভাগ:</b> পদার্থবিজ্ঞান, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত।<br/>
-                <b>মানবিক বিভাগ:</b> বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা, ভূগোল ও পরিবেশ, পৌরনীতি ও নাগরিকতা, অর্থনীতি।<br/>
-                <b>ব্যবসায় শিক্ষা শাখা:</b> হিসাববিজ্ঞান, ফিন্যান্স ও ব্যাংকিং, ব্যবসায় উদ্যোগ।
+              <b style={{ color: '#15803d', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — বিজ্ঞান বিভাগ:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_science || 'বাংলা, ইংরেজি, গণিত, পদার্থবিজ্ঞান, রসায়ন, জীববিজ্ঞান, উচ্চতর গণিত/কৃষি শিক্ষা, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম ও নৈতিক শিক্ষা।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#854d0e', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — মানবিক বিভাগ:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_humanities || 'বাংলা, ইংরেজি, গণিত, বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা, ভূগোল ও পরিবেশ, পৌরনীতি ও নাগরিকতা, অর্থনীতি/কৃষি শিক্ষা, সাধারণ বিজ্ঞান, ধর্ম।'}
+              </p>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+              <b style={{ color: '#86198f', fontSize: '15px' }}>৯ম ও ১০ম শ্রেণি — ব্যবসায় শিক্ষা শাখা:</b>
+              <p style={{ margin: '4px 0 0', fontSize: '13.5px', color: '#334155', lineHeight: '1.6' }}>
+                {cur.secondary_business || 'বাংলা, ইংরেজি, গণিত, হিসাববিজ্ঞান, ফিন্যান্স ও ব্যাংকিং, ব্যবসায় উদ্যোগ, সাধারণ বিজ্ঞান, তথ্য ও যোগাযোগ প্রযুক্তি, ধর্ম।'}
               </p>
             </div>
           </div>
@@ -1364,16 +1422,22 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     }
 
     if (menuKey === 'public.nav.institution.syllabus' || title === 'পাঠ্যতালিকা') {
+      const syl = instData.syllabus || {};
+      const classes = syl.classes || [];
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📑 শ্রেণিভিত্তিক পাঠ্যতালিকা ও পাঠ্যসূচি</div>
+          <div className="modal-hero-badge">📑 শ্রেণিভিত্তিক পাঠ্যতালিকা ও পাঠ্যসূচি — শিক্ষাবর্ষ {syl.year || '২০২৬'}</div>
           <p className="lead-text">চলতি শিক্ষাবর্ষের অর্ধবার্ষিক, প্রাক-নির্বাচনী ও বার্ষিক পরীক্ষার পাঠ্যবই ও সিলেবাস বিভাজন:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', margin: '16px 0' }}>
-            {['৬ষ্ঠ শ্রেণি', '৭ম শ্রেণি', '৮ম শ্রেণি', '৯ম শ্রেণি', '১০ম শ্রেণি'].map((cls, idx) => (
-              <div key={idx} style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-                <b style={{ color: '#1e293b', fontSize: '15px' }}>{cls}</b>
-                <p style={{ margin: '6px 0 10px', fontSize: '12px', color: '#64748b' }}>বোর্ড নির্ধারিত পাঠ্যবই ও সহপাঠ্য</p>
-                <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>সিলেবাস অনুমোদিত</span>
+          <div style={{ display: 'grid', gap: '10px', margin: '16px 0' }}>
+            {classes.map((c, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <div>
+                  <b style={{ color: '#0f172a', fontSize: '15px' }}>{c.class_name}</b>
+                  <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#475569' }}>{c.syllabus_title}</p>
+                </div>
+                <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px' }}>
+                  {c.status || 'সিলেবাস অনুমোদিত'}
+                </span>
               </div>
             ))}
           </div>
@@ -1382,66 +1446,69 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     }
 
     if (menuKey === 'public.nav.institution.publications' || title === 'প্রকাশনা') {
+      const pub = instData.publications || {};
+      const items = pub.items || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">📰 বিদ্যালয় প্রকাশনা ও সাময়িকী</div>
-          <p className="lead-text">শিক্ষার্থীদের সৃজনশীল লেখালেখি, কবিতা, চিত্রাঙ্কন ও প্রাতিষ্ঠানিক স্মরণিকা:</p>
+          <p className="lead-text">{pub.summary || 'শিক্ষার্থীদের সৃজনশীল লেখালেখি, কবিতা, চিত্রাঙ্কন ও প্রাতিষ্ঠানিক স্মরণিকা:'}</p>
           <div style={{ display: 'grid', gap: '14px', margin: '16px 0' }}>
-            <div style={{ background: '#fdf4ff', padding: '14px', borderRadius: '8px', border: '1px solid #f0abfc' }}>
-              <b style={{ color: '#86198f', fontSize: '15px' }}>📖 বার্ষিক স্কুল ম্যাগাজিন 'মগড়া প্রভাত'</b>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>শিক্ষক ও ছাত্র-ছাত্রীদের সৃজনশীল সাহিত্যকর্ম, বিদ্যালয় বার্ষিকী ও ফলাফলের স্মারক প্রকাশনা।</p>
-            </div>
-            <div style={{ background: '#ecfdf5', padding: '14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-              <b style={{ color: '#065f46', fontSize: '15px' }}>🎨 ত্রৈমাসিক দেয়াল পত্রিকা ও সাহিত্য বুলেটিন</b>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>ভাষা ও সাহিত্য ক্লাবের উদ্যোগে প্রতি তিন মাস অন্তর দেয়াল পত্রিকা ও বিশেষ ক্রোড়পত্র উন্মোচন।</p>
-            </div>
-            <div style={{ background: '#fffbeb', padding: '14px', borderRadius: '8px', border: '1px solid #fde68a' }}>
-              <b style={{ color: '#92400e', fontSize: '15px' }}>🇧🇩 জাতীয় দিবস সংখ্যা ও স্মরণিকা</b>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>২১শে ফেব্রুয়ারি, ২৬শে মার্চ ও ১৬ই ডিসেম্বর উপলক্ষে বিশেষ প্রবন্ধ ও স্মৃতিচারণ প্রকাশনা।</p>
-            </div>
+            {items.map((it, idx) => (
+              <div key={idx} style={{ background: idx === 0 ? '#fdf4ff' : idx === 1 ? '#ecfdf5' : '#fffbeb', padding: '14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#0f172a', fontSize: '15px' }}>📖 {it.title} <small style={{ color: '#047857', fontWeight: 700 }}>({it.type})</small></b>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#475569' }}>{it.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.hostel' || title === 'ছাত্রাবাস') {
+      const hos = instData.hostel || {};
+      const features = hos.features || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">🏢 ছাত্রাবাস ও আবাসিক সুবিধা</div>
-          <p className="lead-text">দূরবর্তী অঞ্চল ও যমুনা নদীবিধৌত চরাঞ্চলের শিক্ষার্থীদের জন্য নিরাপদ আবাসন সুবিধা:</p>
+          <p className="lead-text"><b>{hos.name || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় আবাসিক ছাত্রাবাস'}</b></p>
+          <div style={{ background: '#eff6ff', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bfdbfe', marginBottom: '14px' }}>
+            <span style={{ fontSize: '13px', color: '#1e40af', fontWeight: 700 }}>{hos.superintendent || 'হোস্টেল সুপারিনটেনডেন্ট কর্তৃক সার্বক্ষণিক পরিচালিত'}</span>
+            <span style={{ display: 'block', fontSize: '12px', color: '#3b82f6', marginTop: '2px' }}>মোট ধারণক্ষমতা: {hos.capacity || '৬০ জন শিক্ষার্থী'} • {hos.fees || 'ভর্তুকিমূল্যে নির্ধারিত'}</span>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', margin: '16px 0' }}>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <b style={{ color: '#0f172a' }}>🛌 আবাসন ও পড়ার পরিবেশ</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>পর্যাপ্ত আলো-বাতাসপূর্ণ পরিচ্ছন্ন কক্ষ, পৃথক পড়ার টেবিল ও নিরিবিলি পড়ার সুব্যবস্থা।</p>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <b style={{ color: '#0f172a' }}>🍲 স্বাস্থ্যসম্মত খাবার</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>পুষ্টিকর ও স্বাস্থ্যসম্মত খাবারের সার্বক্ষণিক ডাইনিং ব্যবস্থা এবং বিশুদ্ধ পানীয় জল।</p>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <b style={{ color: '#0f172a' }}>🛡️ সার্বক্ষণিক নিরাপত্তা</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>হোস্টেল সুপারিনটেনডেন্ট কর্তৃক নিবিড় তত্ত্বাবধান ও সার্বক্ষণিক নিরাপত্তা কর্মী নিয়োজিত।</p>
-            </div>
-            <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <b style={{ color: '#0f172a' }}>📚 সান্ধ্যকালীন বিশেষ কোচিং</b>
-              <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>নিয়মিত শিক্ষকবৃন্দের তত্ত্বাবধানে সান্ধ্যকালীন স্টাডি আওয়ার ও পড়ালেখার মনিটরিং।</p>
-            </div>
+            {features.map((feat, idx) => (
+              <div key={idx} style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <b style={{ color: '#0f172a' }}>{feat.title}</b>
+                <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#475569' }}>{feat.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       );
     }
 
     if (menuKey === 'public.nav.institution.transport' || title === 'পরিবহণ সুবিধা') {
+      const tr = instData.transport || {};
+      const guidelines = tr.safety_guidelines || [];
       return (
         <div className="submenu-content">
           <div className="modal-hero-badge">🚌 পরিবহণ ও যাতায়াত সুবিধা</div>
           <p className="lead-text">বিদ্যালয়ে ছাত্র-ছাত্রীদের নিরাপদে যাতায়াতের সামগ্রিক ব্যবস্থা ও দিকনির্দেশনা:</p>
-          <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
-            <li><b>ক্যাম্পাস সংলগ্ন যোগাযোগ:</b> কালিহাতি উপজেলার মগড়া ইউনিয়ন ও পার্শ্ববর্তী গ্রামগুলো থেকে পাকা সড়কপথে সুলভ যোগাযোগের সুবিধা।</li>
-            <li><b>সাইকেল ও ব্যক্তিগত যানবাহন শেড:</b> দূরদূরান্ত থেকে বাইসাইকেলে আগত শিক্ষার্থীদের জন্য ক্যাম্পাসে নিরাপদ ও সুপরিসর শেড ব্যবস্থা রয়েছে।</li>
-            <li><b>সড়ক নিরাপত্তা ও ট্রাফিক শৃঙ্খলা:</b> বিদ্যালয় শুরু ও ছুটির সময় শিক্ষার্থীদের রাস্তা পারাপারে বিশেষ সতর্কতামূলক নিরাপত্তা নির্দেশনা নিশ্চিত করা হয়।</li>
-            <li><b>ভবিষ্যৎ বাস সার্ভিস পরিকল্পনা:</b> শিক্ষার্থীদের সুবিধার্থে প্রাতিষ্ঠানিক মিনিবাস/পরিবহণ সার্ভিস চালুর উদ্যোগ প্রক্রিয়াধীন রয়েছে।</li>
-          </ul>
+          <div style={{ marginBottom: '14px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+            <p style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#334155' }}><b>ক্যাম্পাস সংযোগ:</b> {tr.road_connectivity || 'কালিহাতি উপজেলার মগড়া ইউনিয়ন ও পার্শ্ববর্তী গ্রামগুলো থেকে পাকা সড়কপথে সুলভ যোগাযোগের সুবিধা।'}</p>
+            <p style={{ margin: '0 0 6px', fontSize: '13.5px', color: '#334155' }}><b>সাইকেল শেড:</b> {tr.bicycle_shed || 'শিক্ষার্থীদের জন্য ক্যাম্পাসে নিরাপদ ও সুপরিসর সাইকেল শেড ব্যবস্থা রয়েছে।'}</p>
+            {tr.future_bus && <p style={{ margin: 0, fontSize: '13.5px', color: '#047857' }}><b>ভবিষ্যৎ পরিকল্পনা:</b> {tr.future_bus}</p>}
+          </div>
+          {guidelines.length > 0 && (
+            <>
+              <h4 style={{ color: '#047857', marginBottom: '8px' }}>সড়ক নিরাপত্তা ও শৃঙ্খলা নির্দেশনাবলী:</h4>
+              <ul className="bullet-list" style={{ lineHeight: '1.8', fontSize: '14px' }}>
+                {guidelines.map((g, idx) => (
+                  <li key={idx}>{g}</li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
       );
     }
