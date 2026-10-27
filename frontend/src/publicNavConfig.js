@@ -2,7 +2,18 @@
 export const publicNavConfig = [
  {key:'public.nav.home',label:'হোম',href:'#home'},
  {key:'public.nav.institution',label:'প্রাতিষ্ঠানিক তথ্য',children:[
-  ['public.nav.institution.about','বিদ্যালয় পরিচিতি','#school-info'],['public.nav.institution.message','সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী','#leadership'],['public.nav.institution.committee','পরিচালনা কমিটি','#committee'],['public.nav.institution.rules','নিয়ম-কানুন','#rules'],['public.nav.institution.library','লাইব্রেরি','#library'],['public.nav.institution.curriculum','পাঠ্যক্রম ও পাঠ্যপুস্তক','#curriculum']
+  ['public.nav.institution.about','বিদ্যালয় পরিচিতি','#school-info'],
+  ['public.nav.institution.history','বিদ্যালয়ের ইতিহাস','#school-history'],
+  ['public.nav.institution.committee','পরিচালনা পর্ষদ','#committee'],
+  ['public.nav.institution.regulations','বিধি বিধান','#regulations'],
+  ['public.nav.institution.code_of_conduct','আচরন বিধি','#code-of-conduct'],
+  ['public.nav.institution.master_plan','মুখ্য পরিকল্পনা','#master-plan'],
+  ['public.nav.institution.library','পাঠাগার/লাইব্রেরী','#library'],
+  ['public.nav.institution.curriculum','পাঠ্যক্রম','#curriculum'],
+  ['public.nav.institution.syllabus','পাঠ্যতালিকা','#syllabus'],
+  ['public.nav.institution.publications','প্রকাশনা','#publications'],
+  ['public.nav.institution.hostel','ছাত্রাবাস','#hostel'],
+  ['public.nav.institution.transport','পরিবহণ সুবিধা','#transport']
  ]},
  {key:'public.nav.sport',label:'ক্রীড়া ও সংস্কৃতি',children:[
   ['public.nav.sport.debate','ডিবেটিং ক্লাব (বিতর্ক)','#debate'],['public.nav.sport.science','বিজ্ঞান ক্লাব (মেলা ও উদ্ভাবন)','#science-club'],['public.nav.sport.ict','আইসিটি ও কোডিং ক্লাব','#ict-club'],['public.nav.sport.literature','ভাষা ও সাহিত্য ক্লাব','#literature-club'],['public.nav.sport.clubs','সকল ক্লাব ও সংগঠন (ডিরেক্টরি)','#clubs'],['public.nav.sport.sports','বার্ষিক ক্রীড়া','#sports'],['public.nav.sport.culture','সাংস্কৃতিক অনুষ্ঠান','#culture'],['public.nav.sport.achievements','অর্জন ও পুরস্কার','#achievements'],['public.nav.sport.tour','শিক্ষা সফর','#tour'],['public.nav.sport.lab','কম্পিউটার ল্যাব','#computer-lab'],['public.nav.sport.multimedia','মাল্টিমিডিয়া ক্লাস','#multimedia'],['public.nav.sport.scouts','স্কাউট/গার্লস গাইড','#scouts'],['public.nav.sport.inter','আন্তঃবিদ্যালয় ক্রীড়া','#inter-school-sports']
