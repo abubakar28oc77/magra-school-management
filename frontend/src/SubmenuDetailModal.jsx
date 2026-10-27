@@ -1375,52 +1375,22 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
             {lib.summary || 'বিদ্যালয়ের সমৃদ্ধ কেন্দ্রীয় গ্রন্থাগারে পাঠ্যবই, রেফারেন্স গ্রন্থ, বিশ্বসাহিত্য, বিজ্ঞান, মুক্তিযুদ্ধ ও সাধারণ জ্ঞানের সমৃদ্ধ সংগ্রহ রয়েছে।'}
           </p>
 
-          {/* Librarian & Desk Link Card */}
+          {/* Librarian Info Card */}
           <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
             background: 'linear-gradient(135deg, #064e3b 0%, #0f766e 100%)',
             color: '#ffffff',
             padding: '12px 18px',
             borderRadius: '10px',
             marginBottom: '16px',
-            boxShadow: '0 2px 6px rgba(6,78,59,0.15)',
-            flexWrap: 'wrap',
-            gap: '10px'
+            boxShadow: '0 2px 6px rgba(6,78,59,0.15)'
           }}>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>👨‍🏫 দায়িত্বপ্রাপ্ত শিক্ষক:</span>
-                <span>{LIBRARIAN_TEACHER.name_bn}</span>
-              </div>
-              <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>
-                {LIBRARIAN_TEACHER.designation} • রিডিং রুম সময়সূচি: <b>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০'}</b>
-              </div>
+            <div style={{ fontWeight: 800, fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>👨‍🏫 দায়িত্বপ্রাপ্ত শিক্ষক:</span>
+              <span>{LIBRARIAN_TEACHER.name_bn}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (onNavigateRole) {
-                  onNavigateRole('librarian');
-                }
-              }}
-              style={{
-                background: '#fbbf24',
-                color: '#78350f',
-                border: 'none',
-                padding: '6px 14px',
-                borderRadius: '6px',
-                fontWeight: 900,
-                fontSize: '12px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px'
-              }}
-            >
-              🔐 লাইব্রেরিয়ান ও প্রশাসন লগইন (বই ইস্যু ও এন্ট্রি) ➔
-            </button>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '3px' }}>
+              {LIBRARIAN_TEACHER.designation} • রিডিং রুম সময়সূচি: <b>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০ (কর্মদিবসে)'}</b>
+            </div>
           </div>
 
           {/* 4 Summary Cards */}
