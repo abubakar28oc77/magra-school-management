@@ -3596,29 +3596,14 @@ function StudentPanel({sub}){
       <h2>শিক্ষার্থী তালিকা</h2>
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-      <button className="mini" type="button" onClick={()=>printStudentReport()} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
-        🖨️ প্রিন্ট / PDF রিপোর্ট
-      </button>
       <button className="mini" type="button" onClick={()=>handleOpenIdCard()} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
         🪪 আইডি কার্ড স্টুডিও (একক ও বাল্ক)
       </button>
       <button className="mini" type="button" onClick={()=>handleOpenCert('', 'testimonial')} style={{background:'#1d4ed8',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(29,78,216,0.25)'}}>
         📜 প্রশংসাপত্র, ছাড়পত্র ও প্রত্যয়ন
       </button>
-       <button className="mini" type="button" onClick={()=>handleOpenCert('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
-         📁 সনদ অফিস কপি আর্কাইভ
-       </button>
-      <button className="mini" type="button" onClick={()=>setShowTotListModal(true)} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
-        📑 শ্রেণি ভিত্তিক টট লিস্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setShowDisabilityQueryModal(true)} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
-        ♿ প্রতিবন্ধিতা কুয়েরি ও রিপোর্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setShowProfessionQueryModal(true)} style={{background:'#eff6ff',border:'1.5px solid #2563eb',color:'#1d4ed8',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(37,99,235,0.15)'}}>
-        💼 অভিভাবকের পেশা কুয়েরি ও রিপোর্ট
-      </button>
-      <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
-        🗳️ ভোটার তালিকা
+      <button className="mini" type="button" onClick={()=>handleOpenCert('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
+        📁 সনদ অফিস কপি আর্কাইভ
       </button>
       {selectedIds.length > 0 && (
         <button className="mini" type="button" onClick={deleteSelected} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
@@ -5715,9 +5700,6 @@ function StaffPanel({sub}){
       <h2>{isTeacher ? 'শিক্ষকবৃন্দের তালিকা' : 'কর্মচারীর তালিকা'}</h2>
      </div>
      <div style={{display:'flex',gap:'10px',alignItems:'center',flexWrap:'wrap'}}>
-      <button className="mini" type="button" onClick={printTeacherReport} style={{background:'#0b6b43',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(11,107,67,0.25)'}}>
-        🖨️ প্রিন্ট / PDF রিপোর্ট
-      </button>
       <button className="mini" type="button" onClick={()=>handleOpenStaffDocs('', 'id_card')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
         🪪 আইডি কার্ড স্টুডিও (একক ও বাল্ক)
       </button>
@@ -5727,25 +5709,6 @@ function StaffPanel({sub}){
       <button className="mini" type="button" onClick={()=>handleOpenStaffDocs('', 'office_copies')} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>
         📁 সনদ অফিস কপি আর্কাইভ
       </button>
-      {isTeacher && (
-       <>
-        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'education' })} style={{background:'#eff6ff',border:'1.5px solid #2563eb',color:'#1d4ed8',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(37,99,235,0.15)'}}>
-          🎓 শিক্ষাগত যোগ্যতা কুয়েরি ও রিপোর্ট
-        </button>
-        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'professional' })} style={{background:'#f0fdfa',border:'1.5px solid #0d9488',color:'#0f766e',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(13,148,136,0.15)'}}>
-          📜 পেশাগত ডিগ্রী কুয়েরি ও রিপোর্ট
-        </button>
-        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'ict' })} style={{background:'#fef3c7',border:'1.5px solid #d97706',color:'#b45309',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(217,119,6,0.15)'}}>
-          💻 আইসিটি প্রশিক্ষণ কুয়েরি ও রিপোর্ট
-        </button>
-        <button className="mini" type="button" onClick={()=>setTeacherQueryModal({ isOpen: true, mode: 'training' })} style={{background:'#f0f9ff',border:'1.5px solid #0284c7',color:'#0284c7',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.15)'}}>
-          📚 কর্মকালীন প্রশিক্ষণ কুয়েরি ও রিপোর্ট
-        </button>
-        <button className="mini" type="button" onClick={()=>setView('voter')} style={{background:'#fdf4ff',border:'1.5px solid #c026d3',color:'#c026d3',fontWeight:700,padding:'7px 12px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(192,38,211,0.15)'}}>
-          🗳️ শিক্ষক ভোটার তালিকা
-        </button>
-       </>
-      )}
       {selectedStaffIds.length > 0 && (
        <button className="mini" type="button" onClick={deleteSelectedStaff} style={{background:'#dc2626',color:'#fff',border:'none',fontWeight:700,cursor:'pointer',padding:'6px 14px',borderRadius:'6px',boxShadow:'0 2px 4px rgba(220,38,38,0.2)'}}>
          🗑️ নির্বাচিত ({selectedStaffIds.length}) মুছুন
