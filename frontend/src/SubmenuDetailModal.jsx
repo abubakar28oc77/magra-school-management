@@ -94,6 +94,7 @@ import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
 import { getStoredInstitutionData } from './defaultInstitutionData';
+import { getStoredReligiousEventsData } from './religiousEventsData';
 import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
@@ -390,7 +391,180 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       return <SportsCultureModernSection category="inter_sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
-    // Routine & Schedule (Class & Exam Routine)
+    
+    // 9. Milad Mahfil (মিলাদ-মাহফিল ও দোয়া মাহফিল) - Live Synchronized
+    if (menuKey === 'public.nav.sport.milad' || title === 'মিলাদ-মাহফিল' || title?.includes('মিলাদ') || title?.includes('মাহফিল')) {
+      const relData = getStoredReligiousEventsData();
+      const m = relData.milad || {};
+      const schedule = m.schedule || [];
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🕌 {m.title || 'বার্ষিক দোয়া ও মিলাদ মাহফিল'}</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {m.occasion || 'পবিত্র শবে বরাত ও এসএসসি পরীক্ষার্থীদের শুভকামনায় বার্ষিক দোয়া ও মিলাদ মাহফিল।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>📅 তারিখ ও সময়:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{m.date || '২০২৬-০২-১২'} • {m.time || 'সকাল ১০:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 স্থান / ভেন্যু:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{m.venue || 'বিদ্যালয় অডিটোরিয়াম ও মূল প্রাঙ্গণ'}</div>
+            </div>
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a' }}>
+              <span style={{ fontSize: '12px', color: '#854d0e', fontWeight: 700 }}>🎤 প্রধান আলোচক / ইমাম:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#854d0e', marginTop: '2px' }}>{m.speaker || 'মাওলানা মোঃ আনোয়ার হোসেন'}</div>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '12px', color: '#475569', fontWeight: 700 }}>👑 প্রধান অতিথি:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{m.chief_guest || 'নেয়ামুল হক খান (সভাপতি)'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 অনুষ্ঠানের কর্মসূচি ও সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়সূচি</th>
+                  <th style={{ padding: '8px 12px' }}>কর্মসূচির বিষয় ও বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Special Dua & Tabarruk */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {m.special_dua && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#047857', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🤲 বিশেষ দোয়া ও মুনাজাতের উদ্দেশ্য:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{m.special_dua}</p>
+              </div>
+            )}
+            {m.tabarruk_details && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#0284c7', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🍬 তাবাররুক ও আপ্যায়ন:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{m.tabarruk_details}</p>
+              </div>
+            )}
+          </div>
+
+          {m.committee && (
+            <div style={{ background: '#ecfdf5', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#065f46' }}>
+              <b>আহ্বায়ক ও সমন্বয়ক:</b> {m.committee}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 10. Puja & Vani Archana (পূজা ও ধর্মীয় উৎসব) - Live Synchronized
+    if (menuKey === 'public.nav.sport.puja' || title === 'পূজা' || title?.includes('পূজা') || title?.includes('পুজা') || title?.includes('বাণী অর্চনা')) {
+      const relData = getStoredReligiousEventsData();
+      const p = relData.puja || {};
+      const schedule = p.schedule || [];
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🪔 {p.title || 'শ্রী শ্রী সরস্বতী পূজা ও বাণী অর্চনা'}</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {p.occasion || 'বিদ্যার দেবী শ্রী শ্রী সরস্বতীর শুভ আবির্ভাব উপলক্ষে বাৎসরিক বাণী অর্চনা ও পুষ্পাঞ্জলি প্রদান।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#fdf4ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #f0abfc' }}>
+              <span style={{ fontSize: '12px', color: '#86198f', fontWeight: 700 }}>📅 পূজার তিথি ও সময়:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#86198f', marginTop: '2px' }}>{p.date || '২০২৬-০১-২৩'} • {p.time || 'সকাল ৮:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 মণ্ডপ ও পূজার স্থান:</span>
+              <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{p.venue || 'বিদ্যালয় প্রাঙ্গণ ও বিশেষ পূজা মণ্ডপ'}</div>
+            </div>
+            <div style={{ background: '#fffbeb', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fde68a' }}>
+              <span style={{ fontSize: '12px', color: '#92400e', fontWeight: 700 }}>🪔 প্রধান পুরোহিত:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#92400e', marginTop: '2px' }}>{p.purohit || 'পণ্ডিত শ্রী রামকৃষ্ণ চক্রবর্তী'}</div>
+            </div>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>👩‍🏫 সমন্বয়ক শিক্ষিকা:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{p.coordinator || 'শ্রীমতী আরতী রানী ভদ্র'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 পূজার বাৎসরিক নির্ঘণ্ট ও অঞ্জলি সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়</th>
+                  <th style={{ padding: '8px 12px' }}>পূজা কর্মসূচি ও ধর্মীয় আচার</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#86198f' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Message & Prasad */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {p.message && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#86198f', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🕊️ বাণীর সারসংক্ষেপ ও শুভেচ্ছা বার্তা:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{p.message}</p>
+              </div>
+            )}
+            {p.prasad_details && (
+              <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <b style={{ color: '#d97706', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🍎 মহাপ্রসাদ বিতরণ ও আপ্যায়ন:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{p.prasad_details}</p>
+              </div>
+            )}
+          </div>
+
+          {p.committee && (
+            <div style={{ background: '#fdf4ff', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#86198f' }}>
+              <b>পূজা উদযাপন কমিটি:</b> {p.committee}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+// Routine & Schedule (Class & Exam Routine)
     if (menuKey?.includes('routine') || title?.includes('রুটিন')) {
       return (
         <div className="submenu-content" style={{ padding: '4px' }}>
