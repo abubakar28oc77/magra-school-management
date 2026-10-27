@@ -8,7 +8,7 @@ export const publicNavConfig = [
   ['public.nav.institution.regulations','বিধি বিধান','#regulations'],
   ['public.nav.institution.code_of_conduct','আচরন বিধি','#code-of-conduct'],
   ['public.nav.institution.master_plan','মুখ্য পরিকল্পনা','#master-plan'],
-  ['public.nav.institution.library','পাঠাগার/লাইব্রেরী','#library'],
+  ['public.nav.institution.library','গ্রন্থাগার/লাইব্রেরী','#library'],
   ['public.nav.institution.curriculum','পাঠ্যক্রম','#curriculum'],
   ['public.nav.institution.syllabus','পাঠ্যতালিকা','#syllabus'],
   ['public.nav.institution.publications','প্রকাশনা','#publications'],

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getStoredInstitutionData, saveStoredInstitutionData, DEFAULT_INSTITUTION_DATA } from './defaultInstitutionData';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 
-export function InstitutionalInfoAdminPanel({ sub, setSub }) {
+export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
   const [data, setData] = useState(getStoredInstitutionData);
   const [activeTab, setActiveTab] = useState(sub || 'about');
   const [toastMsg, setToastMsg] = useState('');
@@ -59,7 +59,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub }) {
       regulations: 'বিধি বিধান',
       code_of_conduct: 'আচরন বিধি',
       master_plan: 'মুখ্য পরিকল্পনা',
-      library: 'পাঠাগার/লাইব্রেরী',
+      library: 'গ্রন্থাগার/লাইব্রেরী',
       curriculum: 'পাঠ্যক্রম',
       syllabus: 'পাঠ্যতালিকা',
       publications: 'প্রকাশনা',
@@ -99,7 +99,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub }) {
     { key: 'regulations', label: 'বিধি বিধান', icon: '⚖️' },
     { key: 'code_of_conduct', label: 'আচরন বিধি', icon: '🛡️' },
     { key: 'master_plan', label: 'মুখ্য পরিকল্পনা', icon: '🎯' },
-    { key: 'library', label: 'পাঠাগার/লাইব্রেরী', icon: '📚' },
+    { key: 'library', label: 'গ্রন্থাগার/লাইব্রেরী', icon: '📚' },
     { key: 'curriculum', label: 'পাঠ্যক্রম', icon: '📖' },
     { key: 'syllabus', label: 'পাঠ্যতালিকা', icon: '📑' },
     { key: 'publications', label: 'প্রকাশনা', icon: '📰' },
@@ -340,6 +340,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub }) {
             onSave={handleSaveAll}
             onReset={() => handleResetSection('library')}
             onPreview={() => openLivePreview('library')}
+            onNavigate={onNavigate}
           />
         )}
 
@@ -1142,9 +1143,9 @@ function SectionMasterPlan({ data, onChange, onSave, onReset, onPreview }) {
 }
 
 // ----------------------------------------------------
-// Section 7: পাঠাগার/লাইব্রেরী
+// Section 7: গ্রন্থাগার/লাইব্রেরী
 // ----------------------------------------------------
-function SectionLibrary({ data, onChange, onSave, onReset, onPreview }) {
+function SectionLibrary({ data, onChange, onSave, onReset, onPreview, onNavigate }) {
   const updateField = (f, v) => onChange({ ...data, [f]: v });
 
   const updateSection = (index, field, value) => {
@@ -1168,7 +1169,7 @@ function SectionLibrary({ data, onChange, onSave, onReset, onPreview }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px' }}>📚 ৭. কেন্দ্রীয় পাঠাগার ও লাইব্রেরী তথ্য এন্ট্রি</h3>
+        <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px' }}>📚 ৭. কেন্দ্রীয় গ্রন্থাগার ও লাইব্রেরী তথ্য এন্ট্রি</h3>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ</button>
           <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569' }}>🔄 রিসেট</button>
@@ -1176,8 +1177,57 @@ function SectionLibrary({ data, onChange, onSave, onReset, onPreview }) {
         </div>
       </div>
 
+            {/* Direct Quick Link to Login Page Main Library System */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+        color: '#ffffff',
+        padding: '14px 18px',
+        borderRadius: '10px',
+        marginBottom: '16px',
+        boxShadow: '0 2px 8px rgba(6,78,59,0.15)',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '28px' }}>📚</span>
+          <div>
+            <b style={{ fontSize: '15px' }}>লগইন পেজের মূল গ্রন্থাগার ক্যাটালগ ও স্টক রেজিস্টার</b>
+            <p style={{ margin: '2px 0 0', fontSize: '12.5px', opacity: 0.9 }}>
+              বইয়ের নতুন স্টক এন্ট্রি, বই ইস্যু-জমা, রেজিস্টার ও বারকোড পরিচালনা করতে সরাসরি গ্রন্থাগার ডেস্কে যান।
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (onNavigate) {
+              onNavigate('library', 'catalog');
+            } else {
+              window.location.hash = '#/admin';
+            }
+          }}
+          style={{
+            background: '#fbbf24',
+            color: '#78350f',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '6px',
+            fontWeight: 900,
+            cursor: 'pointer',
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          📖 মূল গ্রন্থাগার প্যানেল খুলুন ➔
+        </button>
+      </div>
       <GuidanceGuideCard
-        title="পাঠাগার/লাইব্রেরী"
+        title="গ্রন্থাগার/লাইব্রেরী"
         steps={[
           '১. লাইব্রেরির সাধারণ পরিচিতি, মোট বইয়ের সংখ্যা ও রিডিং রুমের সময়সূচি লিখুন।',
           '২. বইয়ের বিভিন্ন কর্নার (যেমন: মুক্তিযুদ্ধ কর্নার, বিজ্ঞান, সাহিত্য, সাধারণ জ্ঞান) ও বইয়ের সংখ্যা আপডেট করুন।',

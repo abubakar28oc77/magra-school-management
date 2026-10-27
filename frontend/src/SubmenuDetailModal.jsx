@@ -94,6 +94,7 @@ import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
 import { getStoredInstitutionData } from './defaultInstitutionData';
+import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 import { SportsCultureModernSection } from './SportsCultureModernSection';
@@ -107,6 +108,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [filterReligion, setFilterReligion] = useState('all');
   const [filterGender, setFilterGender] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [libraryCategory, setLibraryCategory] = useState('all');
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
   const instData = getStoredInstitutionData();
@@ -1328,59 +1330,278 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    if (menuKey === 'public.nav.institution.library' || title === 'পাঠাগার/লাইব্রেরী' || title === 'লাইব্রেরি') {
+    if (menuKey === 'public.nav.institution.library' || title === 'গ্রন্থাগার/লাইব্রেরী' || title === 'পাঠাগার/লাইব্রেরী' || title?.includes('গ্রন্থাগার') || title?.includes('লাইব্রেরি')) {
       const lib = instData.library || {};
       const sections = lib.sections || [];
+
+      // Retrieve live library books from Login Page / Admin Library Database
+      let liveBooks = [];
+      try {
+        const saved = localStorage.getItem('magra_db_library_books');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) liveBooks = parsed;
+        }
+      } catch {}
+      if (!liveBooks.length) liveBooks = SEED_BOOKS;
+
+      // Calculate Stock Totals
+      const totalCopies = liveBooks.reduce((acc, b) => acc + (Number(b.quantity) || 1), 0);
+      const availableCopies = liveBooks.reduce((acc, b) => acc + (Number(b.available_quantity !== undefined ? b.available_quantity : b.quantity) || 0), 0);
+      const borrowedCopies = Math.max(0, totalCopies - availableCopies);
+
+      // Filter books
+      const filteredBooks = liveBooks.filter(b => {
+        const matchesCategory = libraryCategory === 'all' || b.category === libraryCategory;
+        const q = searchQuery.trim().toLowerCase();
+        const matchesQuery = !q || [b.title, b.author, b.accession_no, b.publisher, b.shelf, b.category]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(q);
+        return matchesCategory && matchesQuery;
+      });
+
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📚 বিদ্যালয় কেন্দ্রীয় পাঠাগার ও লাইব্রেরী</div>
-          <p className="lead-text">{lib.summary || 'বিদ্যালয়ের সমৃদ্ধ লাইব্রেরিতে পাঠ্যবই, রেফারেন্স বই, সাহিত্য, বিজ্ঞান ও মুক্তিযুদ্ধ বিষয়ক সহস্রাধিক গ্রন্থ রয়েছে।'}</p>
-          
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginBottom: '16px' }}>
-            <div style={{ background: '#ecfdf5', padding: '10px 16px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>মোট সংগৃহীত গ্রন্থ:</span>
-              <div style={{ fontSize: '18px', fontWeight: 900, color: '#065f46' }}>{lib.total_books || '৩,৫০০+ টি'}</div>
+          <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            <span>📚 বিদ্যালয় কেন্দ্রীয় গ্রন্থাগার ও লাইব্রেরী</span>
+            <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+              EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.
+            </span>
+          </div>
+
+          <p className="lead-text">
+            {lib.summary || 'বিদ্যালয়ের সমৃদ্ধ কেন্দ্রীয় গ্রন্থাগারে পাঠ্যবই, রেফারেন্স গ্রন্থ, বিশ্বসাহিত্য, বিজ্ঞান, মুক্তিযুদ্ধ ও সাধারণ জ্ঞানের সমৃদ্ধ সংগ্রহ রয়েছে।'}
+          </p>
+
+          {/* Librarian & Desk Link Card */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            background: 'linear-gradient(135deg, #064e3b 0%, #0f766e 100%)',
+            color: '#ffffff',
+            padding: '12px 18px',
+            borderRadius: '10px',
+            marginBottom: '16px',
+            boxShadow: '0 2px 6px rgba(6,78,59,0.15)',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>👨‍🏫 দায়িত্বপ্রাপ্ত শিক্ষক:</span>
+                <span>{LIBRARIAN_TEACHER.name_bn}</span>
+              </div>
+              <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '2px' }}>
+                {LIBRARIAN_TEACHER.designation} • রিডিং রুম সময়সূচি: <b>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০'}</b>
+              </div>
             </div>
-            <div style={{ background: '#eff6ff', padding: '10px 16px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
-              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>রিডিং রুমের সময়সূচি:</span>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: '#1e40af' }}>{lib.reading_hours || 'সকাল ১০:০০ - বিকাল ৪:০০'}</div>
+            <button
+              type="button"
+              onClick={() => {
+                if (onNavigateRole) {
+                  onNavigateRole('librarian');
+                }
+              }}
+              style={{
+                background: '#fbbf24',
+                color: '#78350f',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 900,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              🔐 লাইব্রেরিয়ান ও প্রশাসন লগইন (বই ইস্যু ও এন্ট্রি) ➔
+            </button>
+          </div>
+
+          {/* 4 Summary Cards */}
+          <div className="info-stats-grid" style={{ marginBottom: '16px' }}>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #047857' }}>
+              <b>{toBn(totalCopies)} টি</b>
+              <span>মোট বইয়ের স্টক</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0284c7' }}>
+              <b>{toBn(liveBooks.length)} টি</b>
+              <span>অনন্য বই / শিরোনাম</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #16a34a' }}>
+              <b>{toBn(availableCopies)} টি</b>
+              <span>বর্তমানে শেলফে মজুত</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #d97706' }}>
+              <b>{toBn(borrowedCopies)} টি</b>
+              <span>শিক্ষার্থীদের ইস্যুকৃত</span>
             </div>
           </div>
 
-          {sections.length > 0 && (
-            <div style={{ marginBottom: '18px' }}>
-              <h4 style={{ color: '#047857', marginBottom: '8px' }}>বিভাগভিত্তিক বই সংগ্রহ ও কর্নার:</h4>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {sections.map((s, idx) => (
-                  <span key={idx} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
-                    📖 {s.name}: <b style={{ color: '#047857' }}>{s.count}</b>
-                  </span>
-                ))}
-              </div>
+          {/* Search & Category Filter Toolbar */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '12px 14px',
+            marginBottom: '16px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '10px',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 280px' }}>
+              <span style={{ fontSize: '15px' }}>🔍</span>
+              <input
+                type="text"
+                placeholder="বইয়ের নাম, লেখক, অ্যাকসেশন নং বা প্রকাশনী দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#475569' }}>ক্যাটাগরি:</span>
+              <select
+                value={libraryCategory}
+                onChange={(e) => setLibraryCategory(e.target.value)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px',
+                  background: '#ffffff'
+                }}
+              >
+                <option value="all">সব ক্যাটাগরি ({liveBooks.length})</option>
+                {BOOK_CATEGORIES.map(c => {
+                  const count = liveBooks.filter(b => b.category === c.label).length;
+                  return (
+                    <option key={c.key} value={c.label}>
+                      {c.icon} {c.label} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          </div>
+
+          {/* Book Catalog & Stock Register Table */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h4 style={{ margin: 0, color: '#047857', fontSize: '15px', fontWeight: 800 }}>
+              📖 বইয়ের তালিকা ও স্টক রেজিস্টার (মোট {toBn(filteredBooks.length)} টি প্রদর্শিত):
+            </h4>
+            {searchQuery && (
+              <button
+                type="button"
+                className="mini"
+                onClick={() => setSearchQuery('')}
+                style={{ background: '#f1f5f9', color: '#475569', fontSize: '11px' }}
+              >
+                ফিল্টার মুছুন ✕
+              </button>
+            )}
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>অ্যাকসেশন নং</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>বইয়ের নাম ও লেখক</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>ক্যাটাগরি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>প্রকাশনী ও তাক</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px', textAlign: 'center' }}>মোট কপি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px', textAlign: 'center' }}>মজুত স্থিতি</th>
+                  <th style={{ padding: '9px 10px', fontSize: '12.5px' }}>সংগ্রহ সূত্র</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBooks.length > 0 ? (
+                  filteredBooks.map(b => {
+                    const avail = Number(b.available_quantity !== undefined ? b.available_quantity : b.quantity) || 0;
+                    return (
+                      <tr key={b.id || b.accession_no}>
+                        <td style={{ fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 700, color: '#0369a1' }}>
+                          {b.accession_no || 'MAG-BK'}
+                        </td>
+                        <td>
+                          <b style={{ color: '#0f172a', fontSize: '13.5px' }}>{b.title}</b>
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '1px' }}>✍️ {b.author}</div>
+                        </td>
+                        <td>
+                          <span className="badge" style={{ fontSize: '11.5px' }}>{b.category}</span>
+                        </td>
+                        <td style={{ fontSize: '12px', color: '#475569' }}>
+                          <div>{b.publisher || '—'}</div>
+                          <small style={{ color: '#64748b' }}>📍 {b.shelf || 'সাধারণ তাক'}</small>
+                        </td>
+                        <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '13px' }}>
+                          {toBn(b.quantity || 1)} টি
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          {avail > 0 ? (
+                            <span style={{
+                              background: '#ecfdf5',
+                              color: '#065f46',
+                              border: '1px solid #86efac',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '11.5px',
+                              fontWeight: 800
+                            }}>
+                              ✓ {toBn(avail)}টি মজুত
+                            </span>
+                          ) : (
+                            <span style={{
+                              background: '#fee2e2',
+                              color: '#991b1b',
+                              border: '1px solid #fca5a5',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '11.5px',
+                              fontWeight: 800
+                            }}>
+                              ইস্যুকৃত (স্টকে নেই)
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '11.5px', color: '#475569' }}>
+                          {b.source || 'বিদ্যালয়ের নিজস্ব তহবিল'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="7" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                      কোনো বইয়ের রেকর্ড পাওয়া যায়নি।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Library Rules */}
+          {lib.rules && (
+            <div style={{ background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.5px', color: '#475569' }}>
+              <b style={{ color: '#047857' }}>📜 বই ইস্যু ও ব্যবহারের নীতিমালা:</b> {lib.rules}
             </div>
           )}
-
-          <h4>বই ক্যাটালগ ও রেজিস্টার নমুনা:</h4>
-          <table className="modal-table">
-            <thead>
-              <tr>
-                <th>বইয়ের নাম</th>
-                <th>লেখক</th>
-                <th>ক্যাটাগরি</th>
-                <th>সংগ্রহ সংখ্যা</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_BOOKS.slice(0, 8).map(b => (
-                <tr key={b.id}>
-                  <td><b>{b.title}</b></td>
-                  <td>{b.author}</td>
-                  <td><span className="badge">{b.category}</span></td>
-                  <td>{b.copies} টি</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       );
     }
