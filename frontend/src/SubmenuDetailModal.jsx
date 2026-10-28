@@ -99,6 +99,7 @@ import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 import { SportsCultureModernSection } from './SportsCultureModernSection';
+import { getStoredFormerPersonnelData } from './formerPersonnelData';
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
@@ -1878,51 +1879,424 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    // 2. Staff / Teachers submenus
-    if (menuKey.startsWith('public.nav.staff')) {
-      let liveTeachers = [];
-      try {
-        liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]');
-      } catch {}
-      const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
-      let listToDisplay = rawList.filter(t => {
-        if (!t) return false;
-        const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
-        const desig = (t.designation || '').toLowerCase();
-        const role = (t.role || t.public_contact_role || '').toLowerCase();
-        const empId = (t.employee_id || '').toUpperCase();
-        const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
-        const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক') || desig.includes('এমএলএসএস') || desig.includes('mlss') || role.includes('staff');
-        return isAct && !isPresident && !isStaff;
-      });
+    // 2. Staff / Teachers submenus (8 distinct modules)
+    if (menuKey.startsWith('public.nav.staff') || title?.includes('শিক্ষক') || title?.includes('কর্মচারী')) {
+      const formerPersonnel = getStoredFormerPersonnelData();
+      
+      // A. Head Teacher (প্রধান শিক্ষক)
+      if (menuKey === 'public.nav.staff.head' || title === 'প্রধান শিক্ষক' || title?.includes('প্রধান শিক্ষক পরিচিতি')) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const head = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'head_teacher' || 
+            (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) ||
+            t.id === 't-1' ||
+            (t.name_bn && t.name_bn.includes('শফিকুল'))
+          )
+        ) || rawList[0] || {};
 
-      listToDisplay = sortPeopleByEmployeeId(listToDisplay);
+        const leaderData = getLeadershipData(rawList);
+        const headLeader = leaderData.map['public.nav.leadership.head'] || {};
+        const speechParas = Array.isArray(headLeader.speech) ? headLeader.speech : [headLeader.speech || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে আপনাকে স্বাগতম। মানসম্মত শিক্ষা ও নৈতিক চরিত্র গঠনে আমাদের প্রচেষ্টা সর্বদা অব্যাহত।'];
 
-      return (
-        <div className="submenu-content">
-          <div className="modal-hero-badge">👨‍🏫 সম্মানিত শিক্ষকবৃন্দ ({listToDisplay.length} জন)</div>
-          <p className="lead-text">বিদ্যালয়ের অভিজ্ঞ, দক্ষ ও দায়িত্বশীল শিক্ষকমণ্ডলী:</p>
-          <div className="teachers-modal-grid">
-            {listToDisplay.map((t, idx) => (
-              <div key={t.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2874c6', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-                  <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🎓 প্রতিষ্ঠান প্রধান পরিচিতি</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(4,120,87,0.25)', border: '3px solid #047857' }}>
+                <img src={getTeacherPhoto(head)} alt={head.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {head.employee_id || 'EMP-001'}
+                  </span>
+                  {head.mpo_index_no && (
+                    <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {head.mpo_index_no}
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
-                    <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>Employee ID: {t.employee_id}</span>
-                    <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
-                  </div>
-                  <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#1d4ed8', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}{t.subject ? ` (${t.subject})` : ''}</p>
-                  {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{head.name_bn || 'মুহাম্মদ শফিকুল ইসলাম'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{head.name_en || 'MUHAMMAD SHAFIQUL ISLAM'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#047857', fontWeight: 700, fontSize: '15px' }}>{head.designation || 'প্রধান শিক্ষক'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {head.phone && <span>📱 {head.phone}</span>}
+                  {head.email && <span>✉️ {head.email}</span>}
+                  {head.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {head.current_post_joining_date}</span>}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
+            </div>
 
+            {head.educational_qualifications && (
+              <div style={{ background: '#ecfdf5', padding: '12px 16px', borderRadius: '8px', border: '1px solid #a7f3d0', marginBottom: '16px' }}>
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065f46', display: 'block', marginBottom: '2px' }}>
+                  📜 শিক্ষাগত যোগ্যতা:
+                </span>
+                <p style={{ margin: 0, fontSize: '13px', color: '#047857', fontWeight: 600 }}>
+                  {head.educational_qualifications}
+                </p>
+              </div>
+            )}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#047857', fontSize: '16px', fontWeight: 800 }}>
+                💬 প্রধান শিক্ষকের শুভেচ্ছা বাণী:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B. Assistant Head Teacher (সহকারী প্রধান শিক্ষক)
+      if (menuKey === 'public.nav.staff.assistant' || title === 'সহকারী প্রধান শিক্ষক' || title?.includes('সহকারী প্রধান শিক্ষক পরিচিতি')) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const asst = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'assistant_head_teacher' || 
+            (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) ||
+            t.id === 't-2' ||
+            (t.name_bn && t.name_bn.includes('তাপসী'))
+          )
+        ) || rawList[1] || {};
+
+        const leaderData = getLeadershipData(rawList);
+        const asstLeader = leaderData.map['public.nav.leadership.asst_head'] || {};
+        const speechParas = Array.isArray(asstLeader.speech) ? asstLeader.speech : [asstLeader.speech || 'শিক্ষার্থীদের মেধা বিকাশ ও পাঠদানের গুণগত মান বজায় রাখতে আমরা প্রতিটি ক্ষেত্রে যত্নশীল।'];
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>📖 সহকারী প্রতিষ্ঠান প্রধান পরিচিতি</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(13,148,136,0.25)', border: '3px solid #0d9488' }}>
+                <img src={getTeacherPhoto(asst)} alt={asst.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#0d9488', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {asst.employee_id || 'EMP-002'}
+                  </span>
+                  {asst.mpo_index_no && (
+                    <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {asst.mpo_index_no}
+                    </span>
+                  )}
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{asst.name_bn || 'তাপসী সরকার'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{asst.name_en || 'TAPASI SARKER'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#0d9488', fontWeight: 700, fontSize: '15px' }}>{asst.designation || 'সহকারী প্রধান শিক্ষক'} {asst.subject ? ('(' + asst.subject + ')') : ''}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {asst.phone && <span>📱 {asst.phone}</span>}
+                  {asst.email && <span>✉️ {asst.email}</span>}
+                  {asst.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {asst.current_post_joining_date}</span>}
+                </div>
+              </div>
+            </div>
+
+            {asst.educational_qualifications && (
+              <div style={{ background: '#f0fdfa', padding: '12px 16px', borderRadius: '8px', border: '1px solid #99f6e4', marginBottom: '16px' }}>
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f766e', display: 'block', marginBottom: '2px' }}>
+                  📜 শিক্ষাগত যোগ্যতা:
+                </span>
+                <p style={{ margin: 0, fontSize: '13px', color: '#0d9488', fontWeight: 600 }}>
+                  {asst.educational_qualifications}
+                </p>
+              </div>
+            )}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#0d9488', fontSize: '16px', fontWeight: 800 }}>
+                💬 সহকারী প্রধান শিক্ষকের একাডেমিক বার্তা:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // C. Active Teachers (কর্মরত শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.active_teachers' || menuKey === 'public.nav.staff.active' || title === 'কর্মরত শিক্ষকবৃন্দ' || title === 'সক্রিয় শিক্ষকবৃন্দ') {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        let listToDisplay = rawList.filter(t => {
+          if (!t) return false;
+          const isAct = t.status === 'active' || t.status === 'সক্রিয়' || !t.status;
+          const desig = (t.designation || '').toLowerCase();
+          const role = (t.role || t.public_contact_role || '').toLowerCase();
+          const empId = (t.employee_id || '').toUpperCase();
+          const isPresident = desig.includes('সভাপতি') || role.includes('president') || role === 'সভাপতি';
+          const isStaff = empId.startsWith('STF') || desig.includes('অফিস সহকারী') || desig.includes('হিসাব সহকারী') || desig.includes('অফিস সহায়ক') || desig.includes('এমএলএসএস') || desig.includes('mlss') || role.includes('staff');
+          return isAct && !isPresident && !isStaff;
+        });
+
+        listToDisplay = sortPeopleByEmployeeId(listToDisplay);
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>👨‍🏫 কর্মরত সম্মানিত শিক্ষকবৃন্দ ({listToDisplay.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+              </span>
+            </div>
+            <p className="lead-text">বিদ্যালয়ের দক্ষ, অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষকমণ্ডলী:</p>
+            <div className="teachers-modal-grid">
+              {listToDisplay.map((t, idx) => (
+                <div key={t.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>ID: {t.employee_id}</span>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
+                    </div>
+                    <p style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}{t.subject ? (' (' + t.subject + ')') : ''}</p>
+                    {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // D. Active Staff (কর্মরত কর্মচারীবৃন্দ)
+      if (menuKey === 'public.nav.staff.active_staff' || menuKey === 'public.nav.staff.employees' || title === 'কর্মরত কর্মচারীবৃন্দ' || title === 'কর্মচারীবৃন্দ') {
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const staffList = liveStaff.length ? liveStaff : MOCK_STAFF;
+        const sortedStaff = sortPeopleByEmployeeId(staffList.filter(s => s && s.status !== 'inactive'));
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🧑‍💼 কর্মরত কর্মচারীবৃন্দ ({sortedStaff.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+              </span>
+            </div>
+            <p className="lead-text">বিদ্যালয়ের প্রশাসনিক, অফিস ও সেবামূলক কার্যক্রমে নিয়োজিত দায়িত্বশীল কর্মচারীবৃন্দ:</p>
+            <div className="teachers-modal-grid">
+              {sortedStaff.map((s, idx) => (
+                <div key={s.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ width: '60px', height: '60px', minWidth: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2563eb', background: '#eff6ff', display: 'grid', placeItems: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                    {s.photo_url ? (
+                      <img src={s.photo_url} alt={s.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '26px' }}>🧑‍💼</span>
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>ID: {s.employee_id}</span>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{s.name_bn || s.name_en}</h4>
+                    </div>
+                    <p style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#2563eb', fontWeight: 600 }}>{s.designation}</p>
+                    {s.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {s.phone}</small>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // E. Former Head Teachers (প্রাক্তন প্রধান শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_heads' || title === 'প্রাক্তন প্রধান শিক্ষকবৃন্দ' || title?.includes('প্রাক্তন প্রধান শিক্ষক')) {
+        const formerHeads = formerPersonnel.former_heads || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🏛️ প্রাক্তন প্রধান শিক্ষকবৃন্দের তালিকা ({formerHeads.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                প্রতিষ্ঠাকাল: ১৯৪৬ খ্রি.
+              </span>
+            </div>
+            <p className="lead-text">
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে প্রতিষ্ঠালগ্ন থেকে বিভিন্ন মেয়াদে নিষ্ঠা ও সুনামের সাথে দায়িত্ব পালনকারী শ্রদ্ধেয় প্রাক্তন প্রধান শিক্ষকবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerHeads.map((fh, idx) => (
+                <div key={fh.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
+                    {fh.photo_url ? (
+                      <img src={fh.photo_url} alt={fh.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '28px' }}>🎓</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>{fh.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fh.tenure}
+                      </span>
+                    </div>
+                    {fh.name_en && <small style={{ color: '#64748b', display: 'block' }}>{fh.name_en}</small>}
+                    <p style={{ margin: '4px 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>{fh.designation || 'প্রাক্তন প্রধান শিক্ষক'}</p>
+                    {fh.education && <small style={{ color: '#475569', display: 'block' }}>📜 {fh.education}</small>}
+                    {fh.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.4 }}>{fh.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // F. Former Assistant Head Teachers (প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_assistants' || title === 'প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ' || title?.includes('প্রাক্তন সহকারী প্রধান')) {
+        const formerAssistants = formerPersonnel.former_assistants || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🏛️ প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দের তালিকা ({formerAssistants.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+              </span>
+            </div>
+            <p className="lead-text">
+              বিদ্যালয়ে বিভিন্ন মেয়াদে প্রাত্যহিক একাডেমিক ও প্রশাসনিক পরিচালনায় নিষ্ঠার সাথে দায়িত্ব পালনকারী শ্রদ্ধেয় প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerAssistants.map((fa, idx) => (
+                <div key={fa.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #0d9488', background: '#f0fdfa', display: 'grid', placeItems: 'center' }}>
+                    {fa.photo_url ? (
+                      <img src={fa.photo_url} alt={fa.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '28px' }}>📖</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>{fa.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#ccfbf1', color: '#0f766e', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fa.tenure}
+                      </span>
+                    </div>
+                    {fa.name_en && <small style={{ color: '#64748b', display: 'block' }}>{fa.name_en}</small>}
+                    <p style={{ margin: '4px 0 2px 0', fontSize: '13px', color: '#0d9488', fontWeight: 700 }}>{fa.designation || 'প্রাক্তন সহকারী প্রধান শিক্ষক'}</p>
+                    {fa.education && <small style={{ color: '#475569', display: 'block' }}>📜 {fa.education}</small>}
+                    {fa.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b', lineHeight: 1.4 }}>{fa.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // G. Former Teachers (প্রাক্তন শিক্ষকবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_teachers' || menuKey === 'public.nav.staff.former' || title === 'প্রাক্তন শিক্ষকবৃন্দ' || title === 'সাবেক শিক্ষকবৃন্দ') {
+        const formerTeachers = formerPersonnel.former_teachers || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>👨‍🏫 প্রাক্তন শিক্ষকবৃন্দের তালিকা ({formerTeachers.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                স্মরণীয় শিক্ষকবৃন্দ
+              </span>
+            </div>
+            <p className="lead-text">
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের প্রাক্তন ও অবসরপ্রাপ্ত সম্মানিত শিক্ষকবৃন্দ, যাঁদের অক্লান্ত পরিশ্রমে গড়ে উঠেছে হাজারো কৃতী শিক্ষার্থী:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerTeachers.map((ft, idx) => (
+                <div key={ft.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '60px', height: '60px', minWidth: '60px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', background: '#ecfdf5', display: 'grid', placeItems: 'center' }}>
+                    {ft.photo_url ? (
+                      <img src={ft.photo_url} alt={ft.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '26px' }}>👨‍🏫</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>{ft.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {ft.tenure}
+                      </span>
+                    </div>
+                    <p style={{ margin: '3px 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 700 }}>
+                      {ft.designation || 'প্রাক্তন শিক্ষক'} {ft.subject ? ('• বিষয়: ' + ft.subject) : ''}
+                    </p>
+                    {ft.education && <small style={{ color: '#475569', display: 'block' }}>🎓 {ft.education}</small>}
+                    {ft.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>{ft.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // H. Former Staff (প্রাক্তন কর্মচারীবৃন্দ)
+      if (menuKey === 'public.nav.staff.former_staff' || menuKey === 'public.nav.staff.formerEmployees' || title === 'প্রাক্তন কর্মচারীবৃন্দ' || title === 'সাবেক কর্মচারীবৃন্দ') {
+        const formerStaff = formerPersonnel.former_staff || [];
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span>🧑‍💼 প্রাক্তন কর্মচারীবৃন্দের তালিকা ({formerStaff.length} জন)</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                শ্রদ্ধেয় কর্মচারীবৃন্দ
+              </span>
+            </div>
+            <p className="lead-text">
+              বিদ্যালয়ে অতীতে নিষ্ঠা ও আন্তরিকতার সাথে সেবা প্রদানকারী সম্মানিত প্রাক্তন কর্মচারীবৃন্দ:
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px', marginTop: '14px' }}>
+              {formerStaff.map((fs, idx) => (
+                <div key={fs.id || idx} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '56px', height: '56px', minWidth: '56px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #2563eb', background: '#eff6ff', display: 'grid', placeItems: 'center' }}>
+                    {fs.photo_url ? (
+                      <img src={fs.photo_url} alt={fs.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <span style={{ fontSize: '24px' }}>🧑‍💼</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '15px', color: '#0f172a', fontWeight: 800 }}>{fs.name_bn}</h4>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '4px' }}>
+                        📅 {fs.tenure}
+                      </span>
+                    </div>
+                    <p style={{ margin: '3px 0 2px 0', fontSize: '13px', color: '#2563eb', fontWeight: 700 }}>
+                      {fs.designation || 'প্রাক্তন কর্মচারী'}
+                    </p>
+                    {fs.notes && <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>{fs.notes}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+    }
     // 3. Students
     if (menuKey.startsWith('public.nav.students')) {
       let liveStudents = [];

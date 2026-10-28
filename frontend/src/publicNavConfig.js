@@ -18,8 +18,15 @@ export const publicNavConfig = [
  {key:'public.nav.sport',label:'ক্রীড়া ও সংস্কৃতি',children:[
   ['public.nav.sport.debate','ডিবেটিং ক্লাব (বিতর্ক)','#debate'],['public.nav.sport.science','বিজ্ঞান ক্লাব (মেলা ও উদ্ভাবন)','#science-club'],['public.nav.sport.ict','আইসিটি ও কোডিং ক্লাব','#ict-club'],['public.nav.sport.literature','ভাষা ও সাহিত্য ক্লাব','#literature-club'],['public.nav.sport.clubs','সকল ক্লাব ও সংগঠন (ডিরেক্টরি)','#clubs'],['public.nav.sport.sports','বার্ষিক ক্রীড়া','#sports'],['public.nav.sport.culture','সাংস্কৃতিক অনুষ্ঠান','#culture'],['public.nav.sport.achievements','অর্জন ও পুরস্কার','#achievements'],['public.nav.sport.tour','শিক্ষা সফর','#tour'],['public.nav.sport.lab','কম্পিউটার ল্যাব','#computer-lab'],['public.nav.sport.multimedia','মাল্টিমিডিয়া ক্লাস','#multimedia'],['public.nav.sport.scouts','স্কাউট/গার্লস গাইড','#scouts'],['public.nav.sport.inter','আন্তঃবিদ্যালয় ক্রীড়া','#inter-school-sports'],['public.nav.sport.milad','মিলাদ-মাহফিল','#milad'],['public.nav.sport.puja','পূজা','#puja']
  ]},
- {key:'public.nav.staff',label:'শিক্ষক ও কর্মচারী',children:[
-  ['public.nav.staff.head','প্রধান শিক্ষক','#headteacher'],['public.nav.staff.assistant','সহকারী প্রধান শিক্ষক','#assistant-headteacher'],['public.nav.staff.active','সক্রিয় শিক্ষকবৃন্দ','#teachers'],['public.nav.staff.former','সাবেক শিক্ষকবৃন্দ','#former-teachers'],['public.nav.staff.employees','কর্মচারীবৃন্দ','#staff'],['public.nav.staff.formerEmployees','সাবেক কর্মচারীবৃন্দ','#former-staff']
+ {key:'public.nav.staff',label:'শিক্ষক ও কর্মচারীবৃন্দ',children:[
+  ['public.nav.staff.head','প্রধান শিক্ষক','#headteacher'],
+  ['public.nav.staff.assistant','সহকারী প্রধান শিক্ষক','#assistant-headteacher'],
+  ['public.nav.staff.active_teachers','কর্মরত শিক্ষকবৃন্দ','#teachers'],
+  ['public.nav.staff.active_staff','কর্মরত কর্মচারীবৃন্দ','#staff'],
+  ['public.nav.staff.former_heads','প্রাক্তন প্রধান শিক্ষকবৃন্দ','#former-headteachers'],
+  ['public.nav.staff.former_assistants','প্রাক্তন সহকারী প্রধান শিক্ষকবৃন্দ','#former-assistant-headteachers'],
+  ['public.nav.staff.former_teachers','প্রাক্তন শিক্ষকবৃন্দ','#former-teachers'],
+  ['public.nav.staff.former_staff','প্রাক্তন কর্মচারীবৃন্দ','#former-staff']
  ]},
  {key:'public.nav.students',label:'শিক্ষার্থীর তথ্য',children:[
   ['public.nav.students.attendance','স্মার্ট উপস্থিতি ও রিপোর্ট','#attendance'],['public.nav.students.all','সকল শিক্ষার্থী','#students'],['public.nav.students.scholarship','বৃত্তিপ্রাপ্ত শিক্ষার্থী','#scholarship'],['public.nav.students.seats','শ্রেণি ও আসন তথ্য','#class-seats'],['public.nav.students.distinguished','কৃতি শিক্ষার্থী','#distinguished'],['public.nav.students.formerDistinguished','সাবেক কৃতি শিক্ষার্থী','#former-distinguished']
