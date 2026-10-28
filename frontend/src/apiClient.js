@@ -14,6 +14,29 @@ try {
     if (!Array.isArray(curMarks) || curMarks.length < 10) {
       localStorage.setItem('magra_db_marks', JSON.stringify(MOCK_MARKS));
     }
+    try {
+      const curFeatures = JSON.parse(localStorage.getItem('magra_db_features') || '[]');
+      if (Array.isArray(curFeatures) && curFeatures.length > 0) {
+        let changed = false;
+        let resFeat = curFeatures.find(f => f && f.feature_key === 'public.nav.results');
+        if (!resFeat) {
+          curFeatures.push({ feature_key: 'public.nav.results', label_bn: 'পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true });
+          changed = true;
+        } else if (resFeat.enabled === false) {
+          resFeat.enabled = true;
+          changed = true;
+        }
+        curFeatures.forEach(f => {
+          if (f && f.feature_key && f.feature_key.startsWith('public.nav.results') && f.enabled === false) {
+            f.enabled = true;
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('magra_db_features', JSON.stringify(curFeatures));
+        }
+      }
+    } catch (_) {}
     const curExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
     if (!Array.isArray(curExams) || !curExams.some(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')))) {
       const mergedExams = [
@@ -538,9 +561,27 @@ function getLocalStore(key, defaultVal = []) {
       return cleaned;
     }
     if (key === 'features' && Array.isArray(parsed)) {
+      let changed = false;
       const hasLibrary = parsed.some(f => f && f.feature_key === 'admin.library');
       if (!hasLibrary) {
         parsed.push({ feature_key: 'admin.library', label_bn: 'লাইব্রেরি', scope: 'admin', group_name: 'প্রশাসন', enabled: true });
+        changed = true;
+      }
+      let resultsFeature = parsed.find(f => f && f.feature_key === 'public.nav.results');
+      if (!resultsFeature) {
+        parsed.push({ feature_key: 'public.nav.results', label_bn: 'পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true });
+        changed = true;
+      } else if (resultsFeature.enabled === false) {
+        resultsFeature.enabled = true;
+        changed = true;
+      }
+      parsed.forEach(f => {
+        if (f && f.feature_key && f.feature_key.startsWith('public.nav.results') && f.enabled === false) {
+          f.enabled = true;
+          changed = true;
+        }
+      });
+      if (changed) {
         try { localStorage.setItem('magra_db_features', JSON.stringify(parsed)); } catch {}
       }
       return parsed;
@@ -951,6 +992,12 @@ function handleMockRequest(path, opts = {}) {
     { feature_key: 'public.nav.staff', label_bn: 'শিক্ষক ও কর্মচারী', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.students', label_bn: 'শিক্ষার্থীর তথ্য', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.results', label_bn: 'পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.admission', label_bn: 'ভর্তি পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.half_yearly', label_bn: 'অর্ধ-বার্ষিক পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.annual', label_bn: 'বার্ষিক পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.pre_test', label_bn: 'প্রাক-নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.test', label_bn: 'নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.results.public_exams', label_bn: 'পাবলিক পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.notice', label_bn: 'নোটিশ', scope: 'public', group_name: 'যোগাযোগ', enabled: true },
     { feature_key: 'public.nav.gallery', label_bn: 'গ্যালারি', scope: 'public', group_name: 'মিডিয়া', enabled: true },
