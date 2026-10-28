@@ -46,6 +46,7 @@ import {getSchoolTeachers, isAssignedRoleTeacher, getRoleDefaultDesk} from './mo
 import {SubmenuDetailModal} from './SubmenuDetailModal';
 import {InstitutionalInfoAdminPanel} from './InstitutionalInfoAdminPanel';
 import {SportsCultureMasterAdminPanel} from './SportsCultureMasterAdminPanel';
+import {StaffMasterAdminPanel} from './StaffMasterAdminPanel';
 import {LanguageLiteratureClubSection} from './LanguageLiteratureClubSection';
 import {SportsCultureAdminEngine} from './SportsCultureAdminEngine';
 import SupabaseSyncModal from './SupabaseSyncModal';
