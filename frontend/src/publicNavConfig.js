@@ -38,7 +38,12 @@ export const publicNavConfig = [
   ['public.nav.students.attendance','শিক্ষার্থীর স্মার্ট উপস্থিতি ও রেকর্ড','#smart-attendance']
  ]},
  {key:'public.nav.results',label:'পরীক্ষার ফলাফল',children:[
-  ['public.nav.results.admission','ভর্তি পরীক্ষা','#admission-test'],['public.nav.results.internal','অভ্যন্তরীণ পরীক্ষা','#internal-results'],['public.nav.results.ssc','SSC ফলাফল','#ssc-results'],['public.nav.results.analysis','ফলাফল বিশ্লেষণ','#result-analysis'],['public.nav.results.marksheet','মার্কশিট','#marksheet'],['public.nav.results.progress','প্রগ্রেস রিপোর্ট','#progress-report']
+  ['public.nav.results.admission','ভর্তি পরীক্ষার ফলাফল','#admission-test-results'],
+  ['public.nav.results.half_yearly','অর্ধ-বার্ষিক পরীক্ষার ফলাফল','#half-yearly-results'],
+  ['public.nav.results.annual','বার্ষিক পরীক্ষার ফলাফল','#annual-results'],
+  ['public.nav.results.pre_test','প্রাক-নির্বাচনী পরীক্ষার ফলাফল','#pre-test-results'],
+  ['public.nav.results.test','নির্বাচনী পরীক্ষার ফলাফল','#test-results'],
+  ['public.nav.results.public_exams','পাবলিক পরীক্ষার ফলাফল','#public-exam-results']
  ]},
  {key:'public.nav.guide',label:'শিক্ষার্থীর গাইড',children:[
   ['public.nav.guide.routine','ক্লাস ও পরীক্ষার রুটিন','#routine'],['public.nav.guide.syllabus','সিলেবাস','#syllabus'],['public.nav.guide.learning','ডিজিটাল লার্নিং','#learning'],['public.nav.guide.notes','নোট/লেকচার','#notes'],['public.nav.guide.question','প্রশ্নব্যাংক ও মডেল প্রশ্ন','#question-bank'],['public.nav.guide.assignment','অ্যাসাইনমেন্ট ও মক টেস্ট','#assignments'],['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam'],['public.nav.guide.ai','AI শিক্ষা সহকারী','#ai']

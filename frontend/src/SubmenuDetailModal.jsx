@@ -93,6 +93,14 @@ import {
 import { requestApi } from './apiClient';
 import schoolLogo from '../public/school-logo.png';
 import { RoutinePanel } from './RoutinePanel';
+import { 
+  getStoredAdmissionResults,
+  getStoredHalfYearlyResults,
+  getStoredAnnualResults,
+  getStoredPreTestResults,
+  getStoredTestResults,
+  getStoredPublicExamResults
+} from './examResultsDataStore';
 import { getStoredInstitutionData } from './defaultInstitutionData';
 import { getStoredReligiousEventsData } from './religiousEventsData';
 import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
@@ -581,7 +589,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
     // 0. Online Admission Module & Submenus
-    if (menuKey.startsWith('public.nav.admission') || menuKey === 'public.nav.results.admission' || title.includes('ভর্তি')) {
+    if (menuKey.startsWith('public.nav.admission') || (!menuKey.startsWith('public.nav.results') && title.includes('ভর্তি') && !title.includes('ফলাফল'))) {
       return (
         <div className="submenu-content admission-modal-flow">
           <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
@@ -3032,42 +3040,652 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
-    // 4. Results
+    // 4. Results (Strictly mapped to the 6 submenus and class rules)
     if (menuKey.startsWith('public.nav.results')) {
-      if (menuKey === 'public.nav.results.ssc') {
+      // 4.1 ভর্তি পরীক্ষার ফলাফল
+      if (menuKey === 'public.nav.results.admission') {
+        const admList = getStoredAdmissionResults();
+        const filtered = admList.filter(item => {
+          if (filterClass !== 'all' && item.applied_class !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.applicant_name, item.roll_no, item.application_no, item.status].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrint = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filtered.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:center;font-weight:700;">${r.roll_no}</td>
+              <td><b>${r.applicant_name}</b><br><small>${r.application_no || '—'}</small></td>
+              <td style="text-align:center;">শ্রেণি ${r.applied_class}</td>
+              <td style="text-align:center;font-weight:700;color:#047857;">${r.marks}</td>
+              <td style="text-align:center;font-weight:700;">#${r.merit_position || '—'}</td>
+              <td><b>${r.status}</b></td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>ভর্তি পরীক্ষার ফলাফল</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #0284c7; padding-bottom: 10px; margin-bottom: 14px; }
+              .hdr h1 { margin: 0; color: #15803d; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+              th { background: #f8fafc; font-weight: 700; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>ভর্তি পরীক্ষা ২০২৬ — চূড়ান্ত ফলাফল ও মেধা তালিকা</p></div>
+            <table><thead><tr><th>ক্রম</th><th>রোল</th><th>পরীক্ষার্থীর নাম</th><th>শ্রেণি</th><th>নম্বর</th><th>মেধা স্থান</th><th>ফলাফল স্ট্যাটাস</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge">📈 বিগত বছরের SSC পরীক্ষার ফলাফল ও পরিসংখ্যান</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0, background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd' }}>
+                📝 ভর্তি পরীক্ষার ফলাফল ও মেধা তালিকা ({filtered.length} জন)
+              </div>
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট / PDF তালিকা
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="পরীক্ষার্থীর নাম / রোল / আবেদন নম্বর খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+              </select>
+            </div>
+
             <table className="modal-table">
               <thead>
                 <tr>
-                  <th>শিক্ষাবর্ষ</th>
-                  <th>পরীক্ষার্থী</th>
-                  <th>উত্তীর্ণ</th>
-                  <th>GPA 5 (A+)</th>
-                  <th>পাশের হার</th>
+                  <th>ভর্তি রোল</th>
+                  <th>পরীক্ষার্থীর নাম ও আইডি</th>
+                  <th>ভর্তিকৃত শ্রেণি</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>মেধা স্থান</th>
+                  <th>ফলাফল অবস্থা</th>
                 </tr>
               </thead>
               <tbody>
-                {MOCK_SSC_RESULTS.map((r, i) => (
-                  <tr key={i}>
-                    <td><b>{r.year}</b></td>
-                    <td>{r.candidates} জন</td>
-                    <td>{r.passed} জন</td>
-                    <td><b style={{ color: '#075c3a' }}>{r.gpa5} জন</b></td>
-                    <td><span className="status-green">{r.pass_rate}</span></td>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td>
+                      <b>{item.applicant_name}</b>
+                      {item.application_no && <small style={{ display: 'block', color: '#64748b' }}>{item.application_no}</small>}
+                    </td>
+                    <td>শ্রেণি {item.applied_class}</td>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{item.marks} / ১০০</td>
+                    <td><b style={{ color: '#0369a1' }}>#{item.merit_position || '—'}</b></td>
+                    <td>
+                      <span style={{
+                        background: item.status.includes('নির্বাচিত') ? '#dcfce7' : '#fef3c7',
+                        color: item.status.includes('নির্বাচিত') ? '#14532d' : '#92400e',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700
+                      }}>
+                        {item.status}
+                      </span>
+                    </td>
                   </tr>
                 ))}
+                {!filtered.length && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো ভর্তি পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
               </tbody>
             </table>
           </div>
         );
       }
 
+      // 4.2 অর্ধ-বার্ষিক পরীক্ষার ফলাফল (৬ষ্ঠ-১০ম শ্রেণি)
+      if (menuKey === 'public.nav.results.half_yearly' || menuKey === 'public.nav.results.internal') {
+        const hyList = getStoredHalfYearlyResults();
+        const filtered = hyList.filter(item => {
+          if (filterClass !== 'all' && item.class_name !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.grade].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrint = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filtered.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:center;font-weight:700;">${r.roll_no}</td>
+              <td><b>${r.name_bn}</b></td>
+              <td style="text-align:center;">শ্রেণি ${r.class_name} (${r.section || '—'})</td>
+              <td style="text-align:center;">${r.marks}</td>
+              <td style="text-align:center;font-weight:700;color:#047857;">${r.gpa}</td>
+              <td style="text-align:center;"><b>${r.grade}</b></td>
+              <td style="text-align:center;">#${r.merit_pos || '—'}</td>
+              <td style="text-align:center;">${r.status}</td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>অর্ধ-বার্ষিক পরীক্ষার ফলাফল</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #0284c7; padding-bottom: 10px; margin-bottom: 14px; }
+              .hdr h1 { margin: 0; color: #15803d; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+              th { background: #f8fafc; font-weight: 700; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>অর্ধ-বার্ষিক পরীক্ষা (৬ষ্ঠ-১০ম শ্রেণি) — অফিসিয়াল ফলাফল শিট</p></div>
+            <table><thead><tr><th>ক্রম</th><th>রোল</th><th>শিক্ষার্থীর নাম</th><th>শ্রেণি ও শাখা</th><th>নম্বর</th><th>GPA</th><th>গ্রেড</th><th>মেধা স্থান</th><th>অবস্থা</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0 }}>📊 অর্ধ-বার্ষিক পরীক্ষার ফলাফল ({filtered.length} জন)</div>
+                <small style={{ color: '#0369a1', fontWeight: 600, display: 'block', marginTop: '4px' }}>
+                  * ৬ষ্ঠ থেকে ১০ম শ্রেণি পর্যন্ত অনুষ্ঠিত অর্ধ-বার্ষিক পরীক্ষার ফলাফল
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{ background: '#047857', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট ফলাফল শিট
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি (৬ষ্ঠ-১০ম)</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th>শ্রেণি ও শাখা</th>
+                  <th>মোট প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>মেধা স্থান</th>
+                  <th>ফলাফল অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>শ্রেণি {item.class_name} ({item.section || '—'})</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><b style={{ color: '#0369a1' }}>#{item.merit_pos || '—'}</b></td>
+                    <td><span className="status-green">✓ {item.status}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো অর্ধ-বার্ষিক পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.3 বার্ষিক পরীক্ষার ফলাফল (৬ষ্ঠ-৯ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.annual') {
+        const anList = getStoredAnnualResults();
+        const filtered = anList.filter(item => {
+          if (filterClass !== 'all' && item.class_name !== filterClass) return false;
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.promotion_status].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrint = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filtered.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:center;font-weight:700;">${r.roll_no}</td>
+              <td><b>${r.name_bn}</b></td>
+              <td style="text-align:center;">শ্রেণি ${r.class_name}</td>
+              <td style="text-align:center;font-weight:700;color:#047857;">${r.gpa} (${r.grade})</td>
+              <td style="text-align:center;">#${r.merit_pos || '—'}</td>
+              <td><b>${r.promotion_status}</b></td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>বার্ষিক পরীক্ষার ফলাফল ও প্রমোশন তালিকা</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #b45309; padding-bottom: 10px; margin-bottom: 14px; }
+              .hdr h1 { margin: 0; color: #b45309; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+              th { background: #fef3c7; font-weight: 700; color: #92400e; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>বার্ষিক পরীক্ষা (৬ষ্ঠ-৯ম শ্রেণি) — মেধা তালিকা ও পরবর্তী শ্রেণিতে প্রমোশন রেজিস্ট্রি</p></div>
+            <table><thead><tr><th>ক্রম</th><th>রোল</th><th>শিক্ষার্থীর নাম</th><th>শ্রেণি</th><th>GPA ও গ্রেড</th><th>মেধা স্থান</th><th>প্রমোশন স্ট্যাটাস</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                  🏆 বার্ষিক পরীক্ষার ফলাফল ও প্রমোশন তালিকা ({filtered.length} জন)
+                </div>
+                <small style={{ color: '#b45309', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * বার্ষিক পরীক্ষা শুধুমাত্র ৬ষ্ঠ থেকে ৯ম শ্রেণির শিক্ষার্থীদের জন্য (১০ম শ্রেণির জন্য প্রাক-নির্বাচনী ও নির্বাচনী পরীক্ষা)
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{ background: '#b45309', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট প্রমোশন শিট
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="শিক্ষার্থীর নাম / রোল খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
+                <option value="all">🏫 সকল শ্রেণি (৬ষ্ঠ-৯ম)</option>
+                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="৮ম">৮ম শ্রেণি</option>
+                <option value="৯ম">৯ম শ্রেণি</option>
+              </select>
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th>শ্রেণি</th>
+                  <th>মোট প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>মেধা স্থান</th>
+                  <th>প্রমোশন স্ট্যাটাস</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>শ্রেণি {item.class_name}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#fef3c7', color: '#b45309', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><b style={{ color: '#b45309' }}>#{item.merit_pos || '—'}</b></td>
+                    <td><span className="status-green">✓ {item.promotion_status}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো বার্ষিক পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.4 প্রাক-নির্বাচনী পরীক্ষার ফলাফল (১০ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.pre_test') {
+        const ptList = getStoredPreTestResults();
+        const filtered = ptList.filter(item => {
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.status, item.notes].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrint = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filtered.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:center;font-weight:700;">${r.roll_no}</td>
+              <td><b>${r.name_bn}</b></td>
+              <td>${r.section}</td>
+              <td style="text-align:center;">${r.marks}</td>
+              <td style="text-align:center;font-weight:700;color:#047857;">${r.gpa} (${r.grade})</td>
+              <td>${r.status}</td>
+              <td>${r.notes || '—'}</td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>১০ম শ্রেণি প্রাক-নির্বাচনী ফলাফল</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #6d28d9; padding-bottom: 10px; margin-bottom: 14px; }
+              .hdr h1 { margin: 0; color: #6d28d9; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+              th { background: #f5f3ff; font-weight: 700; color: #6d28d9; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>১০ম শ্রেণি — প্রাক-নির্বাচনী (Pre-Test) পরীক্ষা ফলাফল ও প্রস্তুতি মূল্যায়ন</p></div>
+            <table><thead><tr><th>ক্রম</th><th>রোল</th><th>পরীক্ষার্থীর নাম</th><th>বিভাগ</th><th>নম্বর</th><th>GPA ও গ্রেড</th><th>প্রস্তুতি অবস্থা</th><th>দিকনির্দেশনা</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }}>
+                  📑 প্রাক-নির্বাচনী (Pre-Test) পরীক্ষার ফলাফল ({filtered.length} জন)
+                </div>
+                <small style={{ color: '#6d28d9', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * শুধুমাত্র ১০ম শ্রেণির শিক্ষার্থীদের এসএসসি প্রস্তুতিমূলক প্রাক-নির্বাচনী পরীক্ষা
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{ background: '#7c3aed', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট প্রাক-নির্বাচনী শিট
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল / বিভাগ খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>পরীক্ষার্থীর নাম</th>
+                  <th>বিভাগ / শাখা</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>প্রস্তুতি মূল্যায়ন অবস্থা</th>
+                  <th>বিশেষ দিকনির্দেশনা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>{item.section}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#f5f3ff', color: '#6d28d9', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><span className="badge">{item.status}</span></td>
+                    <td><small>{item.notes || '—'}</small></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো প্রাক-নির্বাচনী পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.5 নির্বাচনী পরীক্ষার ফলাফল (১০ম শ্রেণি strictly)
+      if (menuKey === 'public.nav.results.test') {
+        const testList = getStoredTestResults();
+        const filtered = testList.filter(item => {
+          if (!searchQuery) return true;
+          return [item.name_bn, item.roll_no, item.section, item.ssc_clearance].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+        });
+
+        const handlePrint = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filtered.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${i + 1}</td>
+              <td style="text-align:center;font-weight:700;">${r.roll_no}</td>
+              <td><b>${r.name_bn}</b></td>
+              <td>${r.section}</td>
+              <td style="text-align:center;font-weight:700;color:#047857;">${r.gpa} (${r.grade})</td>
+              <td><b>${r.ssc_clearance}</b></td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>১০ম শ্রেণি নির্বাচনী পরীক্ষার ফলাফল ও এসএসসি ছাড়পত্র</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #047857; padding-bottom: 10px; margin-bottom: 14px; }
+              .hdr h1 { margin: 0; color: #047857; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+              th { background: #ecfdf5; font-weight: 700; color: #065f46; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>১০ম শ্রেণি — নির্বাচনী (Test) পরীক্ষা ফলাফল ও এসএসসি পরীক্ষার চূড়ান্ত ছাড়পত্র তালিকা</p></div>
+            <table><thead><tr><th>ক্রম</th><th>রোল</th><th>পরীক্ষার্থীর নাম</th><th>বিভাগ</th><th>GPA ও গ্রেড</th><th>এসএসসি পরীক্ষার ছাড়পত্র অবস্থা</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
+
+        return (
+          <div className="submenu-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div>
+                <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0' }}>
+                  🎯 নির্বাচনী (Test) পরীক্ষার ফলাফল ও এসএসসি ছাড়পত্র ({filtered.length} জন)
+                </div>
+                <small style={{ color: '#065f46', fontWeight: 700, display: 'block', marginTop: '4px' }}>
+                  * শুধুমাত্র ১০ম শ্রেণির এসএসসি পরীক্ষার্থীদের নির্বাচনী পরীক্ষার ফলাফল ও ফরমপূরণ অনুমোদন
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={handlePrint}
+                style={{ background: '#059669', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট এসএসসি ছাড়পত্র তালিকা
+              </button>
+            </div>
+
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল / বিভাগ খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '200px' }}
+              />
+            </div>
+
+            <table className="modal-table">
+              <thead>
+                <tr>
+                  <th>রোল</th>
+                  <th>পরীক্ষার্থীর নাম</th>
+                  <th>বিভাগ / শাখা</th>
+                  <th>প্রাপ্ত নম্বর</th>
+                  <th>GPA ও গ্রেড</th>
+                  <th>এসএসসি পরীক্ষার ছাড়পত্র অবস্থা</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(item => (
+                  <tr key={item.id}>
+                    <td style={{ fontWeight: 800 }}>{item.roll_no}</td>
+                    <td><b>{item.name_bn}</b></td>
+                    <td>{item.section}</td>
+                    <td>{item.marks}</td>
+                    <td>
+                      <b style={{ color: '#047857' }}>{item.gpa}</b>
+                      <span style={{ marginLeft: '6px', background: '#ecfdf5', color: '#065f46', padding: '1px 6px', borderRadius: '3px', fontSize: '11px', fontWeight: 700 }}>
+                        {item.grade}
+                      </span>
+                    </td>
+                    <td><span className="status-green">✓ {item.ssc_clearance}</span></td>
+                  </tr>
+                ))}
+                {!filtered.length && (
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো নির্বাচনী পরীক্ষার রেকর্ড পাওয়া যায়নি।</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+
+      // 4.6 পাবলিক পরীক্ষার ফলাফল (SSC ও JSC আর্কাইভ)
+      const pubList = getStoredPublicExamResults();
+      const handlePrintPublic = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        const rows = pubList.map((r, i) => `
+          <tr>
+            <td style="text-align:center;font-weight:700;">${r.year}</td>
+            <td><b>${r.exam_name}</b></td>
+            <td style="text-align:center;">${r.candidates}</td>
+            <td style="text-align:center;color:#047857;font-weight:700;">${r.passed}</td>
+            <td style="text-align:center;color:#0369a1;font-weight:700;">${r.gpa5} (${r.golden_gpa5 || '—'} গোল্ডেন)</td>
+            <td style="text-align:center;font-weight:700;">${r.pass_rate}</td>
+            <td>${r.board}</td>
+          </tr>
+        `).join('');
+        w.document.write(`
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>এসএসসি পাবলিক পরীক্ষার ঐতিহাসিক ফলাফল</title>
+          <style>
+            body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+            .hdr { text-align: center; border-bottom: 2px double #0f766e; padding-bottom: 10px; margin-bottom: 14px; }
+            .hdr h1 { margin: 0; color: #0f766e; font-size: 22px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+            th { background: #f0fdfa; font-weight: 700; color: #0f766e; }
+          </style></head><body>
+          <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>এসএসসি পাবলিক পরীক্ষার বিগত বছরসমূহের সাফল্য ও পরিসংখ্যান</p></div>
+          <table><thead><tr><th>সাল</th><th>পরীক্ষার নাম</th><th>পরীক্ষার্থী</th><th>উত্তীর্ণ</th><th>GPA 5.00</th><th>পাশের হার</th><th>শিক্ষা বোর্ড</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+          <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+          </body></html>
+        `);
+        w.document.close();
+      };
+
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">📊 পরীক্ষার ফলাফল ও মূল্যায়ন</div>
-          <p className="lead-text">বিদ্যালয়ের অভ্যন্তরীণ ও পাবলিক পরীক্ষার ফলাফল সংক্রান্ত তথ্যাদি নিয়মিত হালনাগাদ করা হয়।</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
+              🏛️ পাবলিক পরীক্ষার (SSC) ফলাফল ও পরিসংখ্যান
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintPublic}
+              style={{ background: '#0f766e', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+            >
+              🖨️ প্রিন্ট পাবলিক ফলাফল
+            </button>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শিক্ষাবর্ষ</th>
+                <th>পরীক্ষার নাম</th>
+                <th>পরীক্ষার্থী</th>
+                <th>উত্তীর্ণ</th>
+                <th>GPA 5 (A+)</th>
+                <th>পাশের হার</th>
+                <th>শিক্ষা বোর্ড</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pubList.map(item => (
+                <tr key={item.id}>
+                  <td style={{ fontWeight: 800 }}>{item.year}</td>
+                  <td><b>{item.exam_name}</b></td>
+                  <td>{item.candidates} জন</td>
+                  <td style={{ color: '#047857', fontWeight: 700 }}>{item.passed} জন</td>
+                  <td>
+                    <b style={{ color: '#0369a1' }}>{item.gpa5} জন</b>
+                    {item.golden_gpa5 && <small style={{ display: 'block', color: '#b45309' }}>গোল্ডেন: {item.golden_gpa5} জন</small>}
+                  </td>
+                  <td><span className="status-green">{item.pass_rate}</span></td>
+                  <td>{item.board}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
     }
