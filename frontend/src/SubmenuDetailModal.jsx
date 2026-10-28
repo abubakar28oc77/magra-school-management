@@ -132,6 +132,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     return <PublicAttendancePortal isOpen={true} onClose={onClose} />;
   }
   const [filterClass, setFilterClass] = useState('all');
+  const [classFilter, setClassFilter] = useState('all');
   const [filterGroup, setFilterGroup] = useState('all');
   const [filterReligion, setFilterReligion] = useState('all');
   const [filterGender, setFilterGender] = useState('all');
