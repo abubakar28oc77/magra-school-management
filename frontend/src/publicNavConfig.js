@@ -29,7 +29,13 @@ export const publicNavConfig = [
   ['public.nav.staff.former_staff','প্রাক্তন কর্মচারীবৃন্দ','#former-staff']
  ]},
  {key:'public.nav.students',label:'শিক্ষার্থীর তথ্য',children:[
-  ['public.nav.students.attendance','স্মার্ট উপস্থিতি ও রিপোর্ট','#attendance'],['public.nav.students.all','সকল শিক্ষার্থী','#students'],['public.nav.students.scholarship','বৃত্তিপ্রাপ্ত শিক্ষার্থী','#scholarship'],['public.nav.students.seats','শ্রেণি ও আসন তথ্য','#class-seats'],['public.nav.students.distinguished','কৃতি শিক্ষার্থী','#distinguished'],['public.nav.students.formerDistinguished','সাবেক কৃতি শিক্ষার্থী','#former-distinguished']
+  ['public.nav.students.enrolled','অধ্যয়নরত শিক্ষার্থী','#enrolled-students'],
+  ['public.nav.students.govt_scholarship','সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী','#govt-scholarship'],
+  ['public.nav.students.stipend','উপবৃত্তি প্রাপ্ত শিক্ষার্থী','#stipend-students'],
+  ['public.nav.students.meritorious','অধ্যয়নরত কৃতি শিক্ষার্থী','#meritorious-students'],
+  ['public.nav.students.former_meritorious','সাবেক কৃতি শিক্ষার্থী','#former-meritorious-students'],
+  ['public.nav.students.class_seats','শিক্ষার্থীর শ্রেণি ও আসন','#class-seats'],
+  ['public.nav.students.attendance','শিক্ষার্থীর স্মার্ট উপস্থিতি ও রেকর্ড','#smart-attendance']
  ]},
  {key:'public.nav.results',label:'পরীক্ষার ফলাফল',children:[
   ['public.nav.results.admission','ভর্তি পরীক্ষা','#admission-test'],['public.nav.results.internal','অভ্যন্তরীণ পরীক্ষা','#internal-results'],['public.nav.results.ssc','SSC ফলাফল','#ssc-results'],['public.nav.results.analysis','ফলাফল বিশ্লেষণ','#result-analysis'],['public.nav.results.marksheet','মার্কশিট','#marksheet'],['public.nav.results.progress','প্রগ্রেস রিপোর্ট','#progress-report']
