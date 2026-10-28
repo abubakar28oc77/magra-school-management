@@ -1,3 +1,14 @@
+import {
+  getStoredClassRoutines,
+  getStoredExamRoutines,
+  getStoredSyllabuses,
+  getStoredDigitalLearning,
+  getStoredNotes,
+  getStoredQuestions,
+  getStoredAssignments,
+  getStoredOnlineExams,
+  AI_TEACHER_ASSISTANT_PRESETS
+} from './studentGuideDataStore';
 
 function parseEmployeeIdNum(raw) {
   if (!raw) return 999999;
@@ -3690,6 +3701,681 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
+
+    // ==========================================
+    // 5. শিক্ষার্থীর গাইড (STUDENT GUIDE SUBMENUS)
+    // ==========================================
+
+    // 5.1 ক্লাস রুটিন (Class Routine)
+    if (menuKey === 'public.nav.guide.class_routine' || title?.includes('ক্লাস রুটিন')) {
+      const routines = getStoredClassRoutines();
+      const filtered = routines.filter(r => {
+        if (classFilter !== 'all' && r.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [r.subject_name, r.teacher_name, r.day_of_week, r.room_no, r.period].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      const handlePrintRoutine = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        const rows = filtered.map((r, i) => `
+          <tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td style="text-align:center;font-weight:700;">${r.class_name} শ্রেণি (${r.section})</td>
+            <td style="text-align:center;font-weight:700;color:#047857;">${r.day_of_week}</td>
+            <td style="text-align:center;">${r.period} (${r.start_time} - ${r.end_time})</td>
+            <td><b>${r.subject_name}</b> ${r.subject_code ? '<small>(' + r.subject_code + ')</small>' : ''}</td>
+            <td>${r.teacher_name}</td>
+            <td style="text-align:center;font-weight:700;">${r.room_no}</td>
+          </tr>
+        `).join('');
+        w.document.write(`
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>দৈনিক শ্রেণি পাঠদান রুটিন ও সময়সূচি</title>
+          <style>
+            body { font-family: 'SolaimanLipi', sans-serif; padding: 24px; color: #1e293b; }
+            .hdr { text-align: center; border-bottom: 2px double #047857; padding-bottom: 12px; margin-bottom: 16px; }
+            .hdr h1 { margin: 0; color: #047857; font-size: 22px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #ecfdf5; font-weight: 700; color: #065f46; }
+          </style></head><body>
+          <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>দৈনিক শ্রেণি পাঠদান রুটিন ও শিক্ষক সময়সূচি — ২০২৬</p></div>
+          <table><thead><tr><th>ক্রম</th><th>শ্রেণি ও শাখা</th><th>বার</th><th>পিরিয়ড ও সময়</th><th>বিষয়</th><th>শিক্ষক</th><th>কক্ষ</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+          <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+          </body></html>
+        `);
+        w.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+              🗓️ প্রাতিষ্ঠানিক ক্লাস রুটিন ও সময়সূচি ২০২৬
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintRoutine}
+              style={{ background: '#15803d', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+            >
+              🖨️ প্রিন্ট ক্লাস রুটিন
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="বিষয়, শিক্ষক, বার বা কক্ষ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শ্রেণি</th>
+                <th>বার</th>
+                <th>পিরিয়ড</th>
+                <th>সময়</th>
+                <th>বিষয়</th>
+                <th>শিক্ষক</th>
+                <th>কক্ষ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(r => (
+                <tr key={r.id}>
+                  <td style={{ fontWeight: 800 }}>{r.class_name} শ্রেণি ({r.section})</td>
+                  <td style={{ color: '#047857', fontWeight: 700 }}>{r.day_of_week}</td>
+                  <td>{r.period}</td>
+                  <td><span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{r.start_time} - {r.end_time}</span></td>
+                  <td><b>{r.subject_name}</b> {r.subject_code && <small style={{ color: '#64748b' }}>({r.subject_code})</small>}</td>
+                  <td style={{ color: '#0369a1', fontWeight: 600 }}>{r.teacher_name}</td>
+                  <td><b style={{ color: '#b45309' }}>{r.room_no}</b></td>
+                </tr>
+              ))}
+              {!filtered.length && (
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো ক্লাস রুটিন পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.2 পরীক্ষার রুটিন (Exam Routine)
+    if (menuKey === 'public.nav.guide.exam_routine' || title?.includes('পরীক্ষার রুটিন')) {
+      const examRoutines = getStoredExamRoutines();
+      const filtered = examRoutines.filter(r => {
+        if (classFilter !== 'all' && r.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [r.exam_name, r.subject_name, r.exam_date, r.day_name, r.room_nos].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      const handlePrintExamRoutine = () => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+        const rows = filtered.map((r, i) => `
+          <tr>
+            <td style="text-align:center;">${i + 1}</td>
+            <td><b>${r.exam_name}</b></td>
+            <td style="text-align:center;font-weight:700;">${r.class_name} শ্রেণি</td>
+            <td style="text-align:center;font-weight:700;color:#b45309;">${r.exam_date} (${r.day_name})</td>
+            <td style="text-align:center;">${r.time_slot}</td>
+            <td><b>${r.subject_name}</b> ${r.subject_code ? '<small>(' + r.subject_code + ')</small>' : ''}</td>
+            <td style="text-align:center;">${r.room_nos}</td>
+          </tr>
+        `).join('');
+        w.document.write(`
+          <!DOCTYPE html><html><head><meta charset="utf-8"><title>পরীক্ষার সময়সূচি ও রুটিন</title>
+          <style>
+            body { font-family: 'SolaimanLipi', sans-serif; padding: 24px; color: #1e293b; }
+            .hdr { text-align: center; border-bottom: 2px double #b45309; padding-bottom: 12px; margin-bottom: 16px; }
+            .hdr h1 { margin: 0; color: #b45309; font-size: 22px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background: #fef3c7; font-weight: 700; color: #92400e; }
+          </style></head><body>
+          <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>পরীক্ষার সময়সূচি, আসন বিন্যাস ও পরীক্ষার রুটিন — ২০২৬</p></div>
+          <table><thead><tr><th>ক্রম</th><th>পরীক্ষার নাম</th><th>শ্রেণি</th><th>তারিখ ও বার</th><th>সময়</th><th>বিষয়</th><th>পরীক্ষার কক্ষ</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+          <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+          </body></html>
+        `);
+        w.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+              📝 পরীক্ষার রুটিন ও আসন বণ্টন ২০২৬
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintExamRoutine}
+              style={{ background: '#b45309', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+            >
+              🖨️ প্রিন্ট পরীক্ষার রুটিন
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="পরীক্ষা, বিষয়, তারিখ বা কক্ষ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>পরীক্ষার নাম</th>
+                <th>শ্রেণি</th>
+                <th>তারিখ ও বার</th>
+                <th>সময়</th>
+                <th>বিষয়</th>
+                <th>পরীক্ষার কক্ষ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(r => (
+                <tr key={r.id}>
+                  <td><b>{r.exam_name}</b></td>
+                  <td style={{ fontWeight: 800 }}>{r.class_name} শ্রেণি</td>
+                  <td style={{ color: '#b45309', fontWeight: 700 }}>{r.exam_date} <small>({r.day_name})</small></td>
+                  <td><span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>{r.time_slot}</span></td>
+                  <td><b>{r.subject_name}</b> {r.subject_code && <small style={{ color: '#64748b' }}>({r.subject_code})</small>}</td>
+                  <td><span style={{ background: '#ecfdf5', color: '#065f46', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>{r.room_nos}</span></td>
+                </tr>
+              ))}
+              {!filtered.length && (
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>কোনো পরীক্ষার রুটিন পাওয়া যায়নি।</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.3 সিলেবাস (Syllabus)
+    if (menuKey === 'public.nav.guide.syllabus' || title?.includes('সিলেবাস')) {
+      const syls = getStoredSyllabuses();
+      const filtered = syls.filter(s => {
+        if (classFilter !== 'all' && s.class_name !== classFilter) return false;
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          return [s.subject_name, s.exam_type, s.total_chapters, s.chapters_detail].filter(Boolean).join(' ').toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#eff6ff', color: '#1e3a8a', border: '1px solid #bfdbfe' }}>
+            📚 বিষয়ভিত্তিক একাডেমিক সিলেবাস ও মূল্যায়ন পরিকল্পনা ২০২৬
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <input
+              type="text"
+              placeholder="বিষয়, অধ্যায় বা বিবরণ খুঁজুন..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              style={{ flex: 1, minWidth: '200px', padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px' }}
+            />
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(s => (
+              <div key={s.id} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#0284c7', color: '#fff', fontSize: '12px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {s.class_name} শ্রেণি
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{s.exam_type}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '16px', color: '#0f172a' }}>{s.subject_name}</h4>
+                <div style={{ fontSize: '12.5px', color: '#0369a1', fontWeight: 700, marginBottom: '6px' }}>
+                  📌 পরিধি: {s.total_chapters}
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: 1.5, background: '#f8fafc', padding: '8px 10px', borderRadius: '6px' }}>
+                  {s.chapters_detail}
+                </p>
+                <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                  <button type="button" onClick={() => alert('সিলেবাস পিডিএফ কপি প্রস্তুত আছে। সরাসরি ডাউনলোড শুরু হচ্ছে...')} style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    📥 সিলেবাস PDF
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.4 ডিজিটাল লার্নিং (Digital Learning)
+    if (menuKey === 'public.nav.guide.learning' || title?.includes('ডিজিটাল লার্নিং') || title?.includes('ডিজিটাল শিক্ষা')) {
+      const items = getStoredDigitalLearning();
+      const filtered = items.filter(it => classFilter === 'all' || it.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }}>
+            💻 মাল্টিমিডিয়া ডিজিটাল কনটেন্ট ও স্মার্ট ক্লাস ভিডিও
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>শিক্ষার্থীদের ঘরে বসে সহজবোধ্যভাবে শেখার জন্য স্মার্ট ক্লাস ভিডিও ও অ্যানিমেশন লেকচার।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '14px' }}>
+            {filtered.map(it => (
+              <div key={it.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#8b5cf6', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {it.class_name} শ্রেণি • {it.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>⏱️ {it.duration}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{it.title}</h4>
+                <div style={{ fontSize: '12.5px', color: '#475569', marginBottom: '10px' }}>
+                  👨‍🏫 শিক্ষক: <b>{it.teacher_name}</b>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert('ভিডিও লেকচার প্লেয়ার প্রস্তুত: ' + it.title)}
+                  style={{ width: '100%', background: '#6d28d9', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+                >
+                  ▶️ ভিডিও লেকচার দেখুন
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.5 নোট/লেকচার (Notes/Lectures)
+    if (menuKey === 'public.nav.guide.notes' || title?.includes('নোট/লেকচার')) {
+      const notes = getStoredNotes();
+      const filtered = notes.filter(n => classFilter === 'all' || n.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
+            📝 অভিজ্ঞ শিক্ষকবৃন্দের প্রস্তুতকৃত হ্যান্ডনোট ও লেকচার শিট
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>ক্লাস পরীক্ষার প্রস্তুতি এবং বোর্ড পরীক্ষার সাজেশনের জন্য প্রিন্ট উপযোগী লেকচার নোট।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শ্রেণি</th>
+                <th>বিষয়</th>
+                <th>নোটের শিরোনাম</th>
+                <th>অধ্যায়</th>
+                <th>প্রণয়নকারী শিক্ষক</th>
+                <th>সাইজ</th>
+                <th>ডাউনলোড</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(n => (
+                <tr key={n.id}>
+                  <td style={{ fontWeight: 800 }}>{n.class_name} শ্রেণি</td>
+                  <td><b>{n.subject_name}</b></td>
+                  <td>{n.title}</td>
+                  <td><span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{n.chapter}</span></td>
+                  <td style={{ color: '#0369a1', fontWeight: 600 }}>{n.author_teacher}</td>
+                  <td>{n.file_size}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => alert('নোট ডাউনলোড হচ্ছে: ' + n.title)}
+                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      📥 PDF নোট
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.6 প্রশ্নব্যাংক ও মডেল প্রশ্ন (Question Bank)
+    if (menuKey === 'public.nav.guide.question' || title?.includes('প্রশ্নব্যাংক')) {
+      const questions = getStoredQuestions();
+      const filtered = questions.filter(q => classFilter === 'all' || q.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#fff7ed', color: '#c2410c', border: '1px solid #ffedd5' }}>
+            ❓ প্রশ্নব্যাংক, অধ্যায়ভিত্তিক প্রশ্ন ও পূর্ণাঙ্গ মডেল প্রশ্নপত্র
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>সৃজনশীল (CQ), বহুনির্বাচনী (MCQ) এবং বোর্ড স্ট্যান্ডার্ড মডেল প্রশ্নমালা।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(q => (
+              <div key={q.id} style={{ background: '#fff', border: '1px solid #fed7aa', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#ea580c', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {q.class_name} শ্রেণি • {q.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#7c2d12', fontWeight: 700 }}>পূর্ণমান: {q.marks}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{q.title}</h4>
+                <div style={{ fontSize: '12.5px', color: '#c2410c', fontWeight: 600, marginBottom: '8px' }}>
+                  🏷️ টাইপ: {q.type} | {q.chapter}
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#475569', background: '#fffbeb', padding: '8px 10px', borderRadius: '6px', border: '1px solid #fef3c7' }}>
+                  {q.question_preview}
+                </p>
+                <div style={{ marginTop: '12px', textAlign: 'right' }}>
+                  <button type="button" onClick={() => alert('মডেল প্রশ্ন প্রিন্ট ভিউ প্রস্তুত: ' + q.title)} style={{ background: '#ea580c', color: '#fff', border: 'none', padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                    🖨️ প্রিন্ট প্রশ্নপত্র
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.7 অ্যাসাইনমেন্ট ও মক টেস্ট (Assignments)
+    if (menuKey === 'public.nav.guide.assignment' || title?.includes('অ্যাসাইনমেন্ট')) {
+      const assignments = getStoredAssignments();
+      const filtered = assignments.filter(a => classFilter === 'all' || a.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd' }}>
+            📘 সাপ্তাহিক অ্যাসাইনমেন্ট, বাড়ির কাজ ও অনলাইন মক টেস্ট
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>নিয়মিত মূল্যায়নের জন্য নির্ধারিত অ্যাসাইনমেন্ট ও জমাদানের চূড়ান্ত তারিখ।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <table className="modal-table">
+            <thead>
+              <tr>
+                <th>শ্রেণি</th>
+                <th>বিষয়</th>
+                <th>অ্যাসাইনমেন্ট শিরোনাম</th>
+                <th>জমাদানের শেষ তারিখ</th>
+                <th>পূর্ণমান</th>
+                <th>স্ট্যাটাস</th>
+                <th>কাজ শিট</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(a => (
+                <tr key={a.id}>
+                  <td style={{ fontWeight: 800 }}>{a.class_name} শ্রেণি</td>
+                  <td><b>{a.subject_name}</b></td>
+                  <td>{a.title}</td>
+                  <td style={{ color: '#b91c1c', fontWeight: 700 }}>📅 {a.deadline}</td>
+                  <td>{a.marks} নম্বর</td>
+                  <td><span className="status-green">সক্রিয়</span></td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => alert('অ্যাসাইনমেন্ট কাজের শিট ও নির্দেশনা ডাউনলোড হচ্ছে: ' + a.title)}
+                      style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      📥 টাস্ক শিট
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    // 5.8 অনলাইন পরীক্ষা (Online Exam)
+    if (menuKey === 'public.nav.guide.online' || title?.includes('অনলাইন পরীক্ষা')) {
+      const exams = getStoredOnlineExams();
+      const filtered = exams.filter(e => classFilter === 'all' || e.class_name === classFilter);
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge" style={{ background: '#faf5ff', color: '#7e22ce', border: '1px solid #e9d5ff' }}>
+            🧪 লাইভ অনলাইন MCQ পরীক্ষা ও তাৎক্ষণিক ফলাফল মূল্যায়ন
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>টাইমার ভিত্তিক অনলাইন পরীক্ষা দিন এবং সাথে সাথে সঠিক উত্তর ও প্রোগ্রেস কার্ড দেখুন।</p>
+            <select
+              value={classFilter}
+              onChange={e => setClassFilter(e.target.value)}
+              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">🏫 সকল শ্রেণি</option>
+              <option value="৬">৬ষ্ঠ শ্রেণি</option>
+              <option value="৭">৭ম শ্রেণি</option>
+              <option value="৮">৮ম শ্রেণি</option>
+              <option value="৯">৯ম শ্রেণি</option>
+              <option value="১০">১০ম শ্রেণি</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+            {filtered.map(ex => (
+              <div key={ex.id} style={{ background: '#fff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ background: '#9333ea', color: '#fff', fontSize: '11.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '12px' }}>
+                    {ex.class_name} শ্রেণি • {ex.subject_name}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: 700 }}>● {ex.status}</span>
+                </div>
+                <h4 style={{ margin: '0 0 6px', fontSize: '15.5px', color: '#0f172a' }}>{ex.title}</h4>
+                <div style={{ display: 'flex', gap: '12px', fontSize: '12.5px', color: '#6b21a8', marginBottom: '12px' }}>
+                  <span>⏱️ সময়: <b>{ex.duration_minutes} মিনিট</b></span>
+                  <span>❓ প্রশ্ন: <b>{ex.total_questions} টি MCQ</b></span>
+                  <span>🏆 পূর্ণমান: <b>{ex.total_marks}</b></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => alert('অনলাইন পরীক্ষা পোর্টাল প্রস্তুত! আপনার টাইমার শুরু হচ্ছে: ' + ex.title)}
+                  style={{ width: '100%', background: '#7e22ce', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+                >
+                  🚀 পরীক্ষায় অংশ নিন
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 5.9 AI শিক্ষা সহকারী (AI Study Assistant & Teacher Copilot)
+    if (menuKey === 'public.nav.guide.ai' || title?.includes('AI শিক্ষা সহকারী') || title?.includes('AI শিক্ষা')) {
+      const presets = AI_TEACHER_ASSISTANT_PRESETS;
+      return (
+        <div className="submenu-content">
+          <div style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)', color: '#fff', padding: '18px 20px', borderRadius: '12px', marginBottom: '16px', boxShadow: '0 4px 12px rgba(49,46,129,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '24px' }}>🤖</span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#fff' }}>স্মার্ট AI শিক্ষা সহকারী ও শিক্ষক পাওয়ার টুলস</h3>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', opacity: 0.9, lineHeight: 1.5 }}>
+              শিক্ষকবৃন্দ এখান থেকেই সরাসরি তাদের বিষয়ভিত্তিক লেসন প্ল্যান, ডিজিটাল মাল্টিমিডিয়া কন্টেন্ট আইডিয়া, ক্লাসরুম ম্যানেজমেন্ট স্ট্র্যাটেজি সহ প্রযুক্তি নির্ভর সকল পাঠদান উপকরণ ১-ক্লিকে তৈরি ও প্রিন্ট করে নিতে পারেন।
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            <div style={{ background: '#fff', border: '1px solid #c7d2fe', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>📋</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#312e81' }}>১-ক্লিক লেসন প্ল্যান জেনারেটর</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                জাতীয় শিক্ষাক্রম ও পাঠ্যপুস্তক বোর্ড (NCTB) কারিকুলাম অনুযায়ী ৪৫ মিনিটের পূর্ণাঙ্গ ৫-ধাপ পাঠ পরিকল্পনা।
+              </p>
+              {presets.lesson_plans.slice(0, 2).map((lp, i) => (
+                <div key={i} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '13px', color: '#1e293b' }}>{lp.subject} ({lp.class_name} শ্রেণি)</b>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>পাঠ: {lp.chapter} • সময়: {lp.period || '৪৫ মিনিট'}</div>
+                  <div style={{ fontSize: '12px', color: '#047857', marginTop: '4px' }}><b>শিখনফল:</b> {lp.plan?.split('\n')?.[1]?.replace('২. শিখনফল:', '')?.trim() || 'বোর্ড কারিকুলাম শিখনফল'}</div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => alert('লেসন প্ল্যান তৈরি সম্পন্ন! শিক্ষক এডমিন প্যানেল থেকে প্রিন্ট ও ডাউনলোড করুন।')}
+                style={{ width: '100%', background: '#4338ca', color: '#fff', border: 'none', padding: '7px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', marginTop: '4px' }}
+              >
+                ✨ নতুন লেসন প্ল্যান তৈরি করুন
+              </button>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>🖥️</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#065f46' }}>ডিজিটাল মাল্টিমিডিয়া স্লাইড রূপরেখা</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                মাল্টিমিডিয়া ক্লাসরুম ও প্রজেক্টরের জন্য স্লাইড-বাই-স্লাইড ইন্টারঅ্যাক্টিভ রূপরেখা।
+              </p>
+              {presets.digital_content_ideas.slice(0, 2).map((dc, i) => (
+                <div key={i} style={{ background: '#f0fdf4', border: '1px solid #dcfce7', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '13px', color: '#14532d' }}>{dc.topic} ({dc.class_name} শ্রেণি)</b>
+                  <ul style={{ margin: '4px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#166534' }}>
+                    {(dc.slides || []).slice(0, 2).map((so, j) => <li key={j}>{so}</li>)}
+                  </ul>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => alert('স্লাইড রূপরেখা কপি করা হয়েছে।')}
+                style={{ width: '100%', background: '#059669', color: '#fff', border: 'none', padding: '7px', borderRadius: '6px', fontWeight: 700, fontSize: '12.5px', cursor: 'pointer', marginTop: '4px' }}
+              >
+                📊 স্লাইড স্ট্রাকচার কপি করুন
+              </button>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #fed7aa', borderRadius: '10px', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <span style={{ fontSize: '20px' }}>🎯</span>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#9a3412' }}>ক্লাসরুম ম্যানেজমেন্ট স্ট্র্যাটেজি</h4>
+              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginBottom: '12px' }}>
+                শিক্ষার্থীদের পূর্ণ মনোযোগ, কোলাহল নিয়ন্ত্রণ ও পেছিয়ে পড়া শিক্ষার্থীদের সক্রিয় করার আধুনিক কৌশল।
+              </p>
+              {presets.classroom_management.map((cm, i) => (
+                <div key={i} style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderRadius: '6px', padding: '10px', marginBottom: '8px' }}>
+                  <b style={{ fontSize: '12.5px', color: '#9a3412' }}>💡 {cm.scenario}</b>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#7c2d12', lineHeight: 1.4 }}>{cm.strategy}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Default Fallback
     return (
       <div className="submenu-content">
@@ -3703,6 +4389,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     const isClubModal = menuKey === 'public.nav.sport.clubs' || title?.includes('ভাষা ও সাহিত্য') || title?.includes('সাহিত্য') || title?.includes('ক্লাব');
   const isWideModal = isClubModal || 
     menuKey?.startsWith('public.nav.sport') || 
+    menuKey?.startsWith('public.nav.guide') || 
     title?.includes('ক্রীড়া') || 
     title?.includes('সাংস্কৃতিক') || 
     title?.includes('সংস্কৃতি') || 

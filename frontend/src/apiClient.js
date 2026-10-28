@@ -32,6 +32,20 @@ try {
             changed = true;
           }
         });
+        let guideFeat = curFeatures.find(f => f && f.feature_key === 'public.nav.guide');
+        if (!guideFeat) {
+          curFeatures.push({ feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true });
+          changed = true;
+        } else if (guideFeat.enabled === false) {
+          guideFeat.enabled = true;
+          changed = true;
+        }
+        curFeatures.forEach(f => {
+          if (f && f.feature_key && f.feature_key.startsWith('public.nav.guide') && f.enabled === false) {
+            f.enabled = true;
+            changed = true;
+          }
+        });
         if (changed) {
           localStorage.setItem('magra_db_features', JSON.stringify(curFeatures));
         }
@@ -1014,7 +1028,16 @@ function handleMockRequest(path, opts = {}) {
     { feature_key: 'public.nav.results.pre_test', label_bn: 'প্রাক-নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.results.test', label_bn: 'নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.results.public_exams', label_bn: 'পাবলিক পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
-    { feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+        { feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.guide.class_routine', label_bn: 'ক্লাস রুটিন', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.exam_routine', label_bn: 'পরীক্ষার রুটিন', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.syllabus', label_bn: 'সিলেবাস', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.learning', label_bn: 'ডিজিটাল লার্নিং', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.notes', label_bn: 'নোট/লেকচার', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.question', label_bn: 'প্রশ্নব্যাংক ও মডেল প্রশ্ন', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.assignment', label_bn: 'অ্যাসাইনমেন্ট ও মক টেস্ট', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.online', label_bn: 'অনলাইন পরীক্ষা', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
+    { feature_key: 'public.nav.guide.ai', label_bn: 'AI শিক্ষা সহকারী', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
     { feature_key: 'public.nav.notice', label_bn: 'নোটিশ', scope: 'public', group_name: 'যোগাযোগ', enabled: true },
     { feature_key: 'public.nav.gallery', label_bn: 'গ্যালারি', scope: 'public', group_name: 'মিডিয়া', enabled: true },
     { feature_key: 'public.nav.contact', label_bn: 'যোগাযোগ', scope: 'public', group_name: 'যোগাযোগ', enabled: true },
@@ -1029,6 +1052,7 @@ function handleMockRequest(path, opts = {}) {
     { feature_key: 'admin.sports_culture', label_bn: 'ক্রীড়া ও সংস্কৃতি', scope: 'admin', group_name: 'প্রশাসন', enabled: true },
     { feature_key: 'admin.finance', label_bn: 'ফি ও হিসাব', scope: 'admin', group_name: 'প্রশাসন', enabled: true },
     { feature_key: 'admin.library', label_bn: 'লাইব্রেরি', scope: 'admin', group_name: 'প্রশাসন', enabled: true },
+        { feature_key: 'admin.guide', label_bn: 'শিক্ষার্থীর গাইড ও AI সহকারী', scope: 'admin', group_name: 'শিক্ষা', enabled: true },
     { feature_key: 'admin.learning', label_bn: 'ডিজিটাল লার্নিং', scope: 'admin', group_name: 'শিক্ষা', enabled: true },
     { feature_key: 'admin.question', label_bn: 'প্রশ্নব্যাংক', scope: 'admin', group_name: 'শিক্ষা', enabled: true },
     { feature_key: 'admin.assignment', label_bn: 'অ্যাসাইনমেন্ট', scope: 'admin', group_name: 'শিক্ষা', enabled: true },

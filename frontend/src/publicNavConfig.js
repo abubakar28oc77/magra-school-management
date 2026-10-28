@@ -46,7 +46,15 @@ export const publicNavConfig = [
   ['public.nav.results.public_exams','পাবলিক পরীক্ষার ফলাফল','#public-exam-results']
  ]},
  {key:'public.nav.guide',label:'শিক্ষার্থীর গাইড',children:[
-  ['public.nav.guide.routine','ক্লাস ও পরীক্ষার রুটিন','#routine'],['public.nav.guide.syllabus','সিলেবাস','#syllabus'],['public.nav.guide.learning','ডিজিটাল লার্নিং','#learning'],['public.nav.guide.notes','নোট/লেকচার','#notes'],['public.nav.guide.question','প্রশ্নব্যাংক ও মডেল প্রশ্ন','#question-bank'],['public.nav.guide.assignment','অ্যাসাইনমেন্ট ও মক টেস্ট','#assignments'],['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam'],['public.nav.guide.ai','AI শিক্ষা সহকারী','#ai']
+  ['public.nav.guide.class_routine','ক্লাস রুটিন','#class-routine'],
+  ['public.nav.guide.exam_routine','পরীক্ষার রুটিন','#exam-routine'],
+  ['public.nav.guide.syllabus','সিলেবাস','#syllabus'],
+  ['public.nav.guide.learning','ডিজিটাল লার্নিং','#learning'],
+  ['public.nav.guide.notes','নোট/লেকচার','#notes'],
+  ['public.nav.guide.question','প্রশ্নব্যাংক ও মডেল প্রশ্ন','#question-bank'],
+  ['public.nav.guide.assignment','অ্যাসাইনমেন্ট ও মক টেস্ট','#assignments'],
+  ['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam'],
+  ['public.nav.guide.ai','AI শিক্ষা সহকারী','#ai']
  ]},
  {key:'public.nav.notice',label:'নোটিশ',href:'#notice'},
  {key:'public.nav.gallery',label:'গ্যালারি',href:'#gallery'},
