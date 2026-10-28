@@ -17,13 +17,25 @@ function copyToRootPlugin() {
       const rootMagra = path.resolve(__dirname, '..', 'magra_school_management.html');
       if (fs.existsSync(distIndex)) {
         const content = fs.readFileSync(distIndex);
-        fs.writeFileSync(rootIndex, content);
-        fs.writeFileSync(rootMagra, content);
-        console.log('[Auto-Sync] Copied singlefile bundle to root index.html and magra_school_management.html');
+        const safeWrite = (p, label) => {
+          for (let attempt = 0; attempt < 5; attempt++) {
+            try {
+              fs.writeFileSync(p, content);
+              console.log(`[Auto-Sync] Copied singlefile bundle to ${label}`);
+              break;
+            } catch (err) {
+              if (attempt === 4) console.warn(`[Auto-Sync] Warning: could not write to ${label}:`, err.message);
+              // Small sync wait
+              const start = Date.now();
+              while (Date.now() - start < 100) {}
+            }
+          }
+        };
+        safeWrite(rootIndex, 'root index.html');
+        safeWrite(rootMagra, 'magra_school_management.html');
         const desktopMagra = 'C:\\Users\\Walton\\OneDrive\\Desktop\\Magra_School_Management.html';
         if (fs.existsSync(desktopMagra)) {
-          fs.writeFileSync(desktopMagra, content);
-          console.log('[Auto-Sync] Copied singlefile bundle to Desktop Magra_School_Management.html');
+          safeWrite(desktopMagra, 'Desktop Magra_School_Management.html');
         }
       }
     }

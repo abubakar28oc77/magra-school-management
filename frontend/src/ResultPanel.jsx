@@ -214,18 +214,29 @@ export function ResultPanel({ sub, userRole }) {
 
       const examList = await api('/exams');
       if (Array.isArray(examList)) {
-        const cleanList = examList.filter(e => {
-          if (!e) return false;
-          if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
-          const bn = e.name_bn || '';
-          const en = e.name_en || '';
-          const rem = e.remarks || '';
-          if ((!bn.includes('প্রাক') && (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬'))) || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
-          if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
-          return true;
-        });
+        const cleanList = examList.filter(Boolean);
         setExams(cleanList);
-        if (cleanList.length && !selectedExam) {
+        
+        let targetExam = null;
+        try {
+          const reqType = localStorage.getItem('magra_selected_exam_type');
+          if (reqType === 'half_yearly') {
+            targetExam = cleanList.find(e => (e.name_bn && e.name_bn.includes('অর্ধ')) || (e.exam_type && e.exam_type.includes('অর্ধ')));
+          } else if (reqType === 'annual') {
+            targetExam = cleanList.find(e => (e.name_bn && e.name_bn.includes('বার্ষিক')) || (e.exam_type && e.exam_type.includes('বার্ষিক')));
+          } else if (reqType === 'pre_test') {
+            targetExam = cleanList.find(e => (e.name_bn && e.name_bn.includes('প্রাক')) || (e.exam_type && e.exam_type.includes('প্রাক')));
+          } else if (reqType === 'test') {
+            targetExam = cleanList.find(e => ((e.name_bn && !e.name_bn.includes('প্রাক') && e.name_bn.includes('নির্বাচন')) || (e.name_en && e.name_en.toLowerCase().includes('test'))));
+          }
+          if (targetExam) {
+            localStorage.removeItem('magra_selected_exam_type');
+          }
+        } catch(e){}
+
+        if (targetExam) {
+          setSelectedExam(targetExam.id);
+        } else if (cleanList.length && !selectedExam) {
           const preTest = cleanList.find(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')));
           if (preTest) setSelectedExam(preTest.id); else
           setSelectedExam(cleanList[0].id);

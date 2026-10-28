@@ -491,6 +491,50 @@ export function ResultMasterAdminPanel({
 
       {/* TAB 1: ভর্তি পরীক্ষার ফলাফল */}
       {activeTab === 'admission' && (
+        <div>
+          {/* Notice & Action Banner */}
+          <div style={{
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            borderRadius: '10px',
+            padding: '12px 18px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '20px' }}>📝</span>
+              <span style={{ fontSize: '13.5px', color: '#1e40af', fontWeight: 700 }}>
+                ভর্তি পরীক্ষা: সকল শ্রেণির ভর্তিচ্ছু শিক্ষার্থীদের লিখিত ও মৌখিক পরীক্ষার নম্বর এন্ট্রি ও মেধা তালিকা ব্যবস্থাপনা।
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {onNavigate && (
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => onNavigate('admission', 'applications')}
+                  style={{ background: '#0284c7', color: '#fff', fontWeight: 700 }}
+                >
+                  📋 ভর্তি আবেদন স্ক্রুটিনি ➔
+                </button>
+              )}
+              <button
+                type="button"
+                className="mini"
+                onClick={() => {
+                  const el = document.querySelector('form.form-grid');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                style={{ background: '#047857', color: '#fff', fontWeight: 700 }}
+              >
+                ✏️ ভর্তি পরীক্ষার নম্বর এন্ট্রি ফরম ➔
+              </button>
+            </div>
+          </div>
         <div className="module-grid">
           {/* Form */}
           <div className="form-card">
@@ -718,6 +762,7 @@ export function ResultMasterAdminPanel({
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {/* TAB 2: অর্ধ-বার্ষিক পরীক্ষার ফলাফল (৬ষ্ঠ-১০ম শ্রেণি) */}
@@ -745,7 +790,10 @@ export function ResultMasterAdminPanel({
               <button
                 type="button"
                 className="mini"
-                onClick={() => onNavigate('results', 'marks')}
+                onClick={() => {
+                  try { localStorage.setItem('magra_selected_exam_type', 'half_yearly'); } catch(e){}
+                  onNavigate('results', 'marks');
+                }}
                 style={{ background: '#0284c7', color: '#fff', fontWeight: 700 }}
               >
                 ✏️ বিষয়ভিত্তিক নম্বর এন্ট্রি শিট ➔
@@ -975,16 +1023,31 @@ export function ResultMasterAdminPanel({
                 বার্ষিক পরীক্ষা: শুধুমাত্র ৬ষ্ঠ থেকে ৯ম শ্রেণির শিক্ষার্থীদের জন্য প্রযোজ্য (১০ম শ্রেণির জন্য প্রাক-নির্বাচনী ও নির্বাচনী পরীক্ষা নির্ধারিত)।
               </span>
             </div>
-            {onNavigate && (
-              <button
-                type="button"
-                className="mini"
-                onClick={() => onNavigate('results', 'promotion')}
-                style={{ background: '#047857', color: '#fff', fontWeight: 700 }}
-              >
-                🎓 প্রমোশন শিট ➔
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {onNavigate && (
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => {
+                    try { localStorage.setItem('magra_selected_exam_type', 'annual'); } catch(e){}
+                    onNavigate('results', 'marks');
+                  }}
+                  style={{ background: '#0284c7', color: '#fff', fontWeight: 700 }}
+                >
+                  ✏️ বিষয়ভিত্তিক নম্বর এন্ট্রি শিট ➔
+                </button>
+              )}
+              {onNavigate && (
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => onNavigate('results', 'promotion')}
+                  style={{ background: '#047857', color: '#fff', fontWeight: 700 }}
+                >
+                  🎓 প্রমোশন শিট ➔
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="module-grid">
@@ -1210,6 +1273,19 @@ export function ResultMasterAdminPanel({
                 প্রাক-নির্বাচনী পরীক্ষা (Pre-Test): শুধুমাত্র ১০ম শ্রেণির শিক্ষার্থীদের এসএসসি প্রস্তুতি মূল্যায়নের জন্য নির্ধারিত।
               </span>
             </div>
+            {onNavigate && (
+              <button
+                type="button"
+                className="mini"
+                onClick={() => {
+                  try { localStorage.setItem('magra_selected_exam_type', 'pre_test'); } catch(e){}
+                  onNavigate('results', 'marks');
+                }}
+                style={{ background: '#6d28d9', color: '#fff', fontWeight: 700 }}
+              >
+                ✏️ বিষয়ভিত্তিক নম্বর এন্ট্রি শিট ➔
+              </button>
+            )}
           </div>
 
           <div className="module-grid">
@@ -1427,6 +1503,19 @@ export function ResultMasterAdminPanel({
                 নির্বাচনী পরীক্ষা (Test Examination): শুধুমাত্র ১০ম শ্রেণির এসএসসি পরীক্ষার্থীদের বোর্ড ফরমপূরণ ছাড়পত্রের জন্য প্রযোজ্য।
               </span>
             </div>
+            {onNavigate && (
+              <button
+                type="button"
+                className="mini"
+                onClick={() => {
+                  try { localStorage.setItem('magra_selected_exam_type', 'test'); } catch(e){}
+                  onNavigate('results', 'marks');
+                }}
+                style={{ background: '#059669', color: '#fff', fontWeight: 700 }}
+              >
+                ✏️ বিষয়ভিত্তিক নম্বর এন্ট্রি শিট ➔
+              </button>
+            )}
           </div>
 
           <div className="module-grid">
@@ -1786,7 +1875,31 @@ export function ResultMasterAdminPanel({
 
       {/* Advanced Legacy Exam System / ResultPanel Wrapper (If needed) */}
       {activeTab === 'advanced_system' && ResultPanelComponent && (
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '10px' }}>
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '10px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
+          }}>
+            <button
+              type="button"
+              className="mini"
+              onClick={() => handleTabChange('half_yearly')}
+              style={{ background: '#047857', color: '#ffffff', fontWeight: 800, padding: '7px 14px', borderRadius: '6px' }}
+            >
+              ⬅️ পরীক্ষার ফলাফল (৬টি সাবমেনু) ড্যাশবোর্ডে ফিরে যান
+            </button>
+            <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: 700 }}>
+              📈 বিষয়ভিত্তিক নম্বর এন্ট্রি ও মূল্যায়ন শিট
+            </span>
+          </div>
           <ResultPanelComponent sub={sub} userRole={userRole} />
         </div>
       )}

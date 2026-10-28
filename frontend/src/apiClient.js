@@ -38,12 +38,22 @@ try {
       }
     } catch (_) {}
     const curExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
-    if (!Array.isArray(curExams) || !curExams.some(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')))) {
-      const mergedExams = [
-        { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: 'ফলাফল প্রকাশিত ও অনুমোদিত' },
-        ...(Array.isArray(curExams) && curExams.length ? curExams : MOCK_EXAMS)
-      ];
-      localStorage.setItem('magra_db_exams', JSON.stringify(mergedExams));
+    const requiredExams = [
+      { id: 'ex-half-yearly-2026', academic_year: '2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', name_en: 'Half-Yearly Examination 2026', exam_type: 'অর্ধ-বার্ষিক', status: 'published', remarks: '৬ষ্ঠ-১০ম শ্রেণি' },
+      { id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক', status: 'active', remarks: '৬ষ্ঠ-৯ম শ্রেণি' },
+      { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: '১০ম শ্রেণি' },
+      { id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' }
+    ];
+    let examArr = Array.isArray(curExams) && curExams.length ? [...curExams] : [...MOCK_EXAMS];
+    let examChanged = false;
+    requiredExams.forEach(req => {
+      if (!examArr.some(e => e && (e.id === req.id || e.name_bn === req.name_bn))) {
+        examArr.push(req);
+        examChanged = true;
+      }
+    });
+    if (examChanged || !curExams || !curExams.length) {
+      localStorage.setItem('magra_db_exams', JSON.stringify(examArr));
     }
   }
 } catch (_) {}
@@ -486,17 +496,23 @@ function getLocalStore(key, defaultVal = []) {
     }
     const parsed = JSON.parse(raw);
     if (key === 'exams' && Array.isArray(parsed)) {
-      const filtered = parsed.filter(e => {
-        if (!e) return false;
-        if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
-        if (e.name_bn && !e.name_bn.includes('প্রাক') && (e.name_bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || e.name_bn.includes('বার্ষিক পরীক্ষা ২০২৬'))) return false;
-        if (e.name_en && (e.name_en.includes('SSC Test Examination 2026') || e.name_en.includes('Annual Examination 2026'))) return false;
-        return true;
+      const requiredExams = [
+        { id: 'ex-half-yearly-2026', academic_year: '2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', name_en: 'Half-Yearly Examination 2026', exam_type: 'অর্ধ-বার্ষিক', status: 'published', remarks: '৬ষ্ঠ-১০ম শ্রেণি' },
+        { id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক', status: 'active', remarks: '৬ষ্ঠ-৯ম শ্রেণি' },
+        { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: '১০ম শ্রেণি' },
+        { id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' }
+      ];
+      let changed = false;
+      requiredExams.forEach(req => {
+        if (!parsed.some(e => e && (e.id === req.id || e.name_bn === req.name_bn))) {
+          parsed.push(req);
+          changed = true;
+        }
       });
-      if (filtered.length !== parsed.length) {
-        try { localStorage.setItem('magra_db_exams', JSON.stringify(filtered)); } catch(e){}
+      if (changed) {
+        try { localStorage.setItem('magra_db_exams', JSON.stringify(parsed)); } catch(e){}
       }
-      return filtered;
+      return parsed;
     }
     if (key === 'students' && Array.isArray(parsed)) {
       const seenIds = new Set();
