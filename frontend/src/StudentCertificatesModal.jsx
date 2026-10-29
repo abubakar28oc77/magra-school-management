@@ -358,24 +358,28 @@ export function StudentCertificatesModal({
             .no-print { display: none !important; }
             .certificate-sheet { box-shadow: none !important; border: none !important; }
             .cert-type-ribbon {
-              padding: 9px 52px !important;
-              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
+              padding: 7px 44px !important;
+              background: #f8fafc !important;
+              border: 1.5px solid #0284c7 !important;
+              border-radius: 30px !important;
+              box-shadow: none !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
             .ribbon-bn {
-              font-size: 32px !important;
+              font-size: 30px !important;
               font-weight: 900 !important;
               letter-spacing: 2px !important;
               line-height: 1.25 !important;
-              color: #ffffff !important;
+              color: #000000 !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
             .ribbon-en {
               font-size: 10px !important;
-              letter-spacing: 1.5px !important;
-              color: #fef08a !important;
+              font-weight: 700 !important;
+              letter-spacing: 1.8px !important;
+              color: #0369a1 !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
@@ -484,24 +488,28 @@ export function StudentCertificatesModal({
             .no-print { display: none !important; }
             .certificate-sheet { box-shadow: none !important; border: none !important; }
             .cert-type-ribbon {
-              padding: 9px 52px !important;
-              background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%) !important;
+              padding: 7px 44px !important;
+              background: #f8fafc !important;
+              border: 1.5px solid #0284c7 !important;
+              border-radius: 30px !important;
+              box-shadow: none !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
             .ribbon-bn {
-              font-size: 32px !important;
+              font-size: 30px !important;
               font-weight: 900 !important;
               letter-spacing: 2px !important;
               line-height: 1.25 !important;
-              color: #ffffff !important;
+              color: #000000 !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
             .ribbon-en {
               font-size: 10px !important;
-              letter-spacing: 1.5px !important;
-              color: #fef08a !important;
+              font-weight: 700 !important;
+              letter-spacing: 1.8px !important;
+              color: #0369a1 !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
@@ -1669,12 +1677,12 @@ export const certificateStyles = `
   .cert-type-ribbon {
     margin: 0 auto;
     display: inline-block;
-    background: linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%);
-    color: #ffffff;
+    background: #f0f9ff;
+    color: #0f172a;
     padding: 6px 36px;
     border-radius: 30px;
-    box-shadow: 0 4px 10px rgba(3, 105, 161, 0.35);
-    border: 2px solid #fbbf24;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12);
+    border: 2px solid #0284c7;
     text-align: center;
   }
 
@@ -1683,13 +1691,15 @@ export const certificateStyles = `
     font-weight: 900;
     letter-spacing: 1.5px;
     line-height: 1.2;
+    color: #0f172a;
   }
 
   .ribbon-en {
     font-family: 'Cinzel', serif;
     font-size: 9px;
+    font-weight: 700;
     letter-spacing: 2px;
-    color: #fef08a;
+    color: #0369a1;
     margin-top: 2px;
   }
 
