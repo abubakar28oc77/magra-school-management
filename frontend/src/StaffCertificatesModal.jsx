@@ -940,6 +940,20 @@ export function StaffCertificatesModal({
             body { padding: 0; background: transparent; }
             .no-print { display: none !important; }
             .cert-card-sheet, .staff-id-card { box-shadow: none !important; border: 1px solid #475569 !important; }
+            .doc-title-banner h2 {
+              background: #f8fafc !important;
+              color: #000000 !important;
+              border: 1.5px solid #047857 !important;
+              box-shadow: none !important;
+              padding: 6px 28px !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .doc-title-banner .sub-title-en {
+              color: #047857 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             @page {
               size: ${activeTab === 'id_card' ? 'A4 portrait' : 'A4 portrait'};
               margin: 8mm 12mm;
@@ -1034,6 +1048,20 @@ export function StaffCertificatesModal({
             body { padding: 0; background: transparent; }
             .no-print { display: none !important; }
             .cert-card-sheet, .staff-id-card { box-shadow: none !important; border: 1px solid #475569 !important; }
+            .doc-title-banner h2 {
+              background: #f8fafc !important;
+              color: #000000 !important;
+              border: 1.5px solid #047857 !important;
+              box-shadow: none !important;
+              padding: 6px 28px !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .doc-title-banner .sub-title-en {
+              color: #047857 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             @page {
               size: ${record.certificate_type === 'id_card' ? 'A4 portrait' : 'A4 portrait'};
               margin: 8mm 12mm;
@@ -1071,6 +1099,20 @@ export function StaffCertificatesModal({
       body { padding: 0; background: transparent; }
       .no-print { display: none !important; }
       .cert-card-sheet, .staff-id-card { box-shadow: none !important; border: 1px solid #475569 !important; }
+            .doc-title-banner h2 {
+              background: #f8fafc !important;
+              color: #000000 !important;
+              border: 1.5px solid #047857 !important;
+              box-shadow: none !important;
+              padding: 6px 28px !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .doc-title-banner .sub-title-en {
+              color: #047857 !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
       @page { size: A4 portrait; margin: 8mm 12mm; }
     }
   </style>
@@ -2246,12 +2288,14 @@ export const staffDocumentStyles = `
     margin: 0;
     font-size: 21px;
     font-weight: 900;
-    color: #ffffff;
-    background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
-    padding: 6px 20px;
+    color: #0f172a;
+    background: #f0fdf4;
+    padding: 6px 28px;
     border-radius: 30px;
     display: inline-block;
-    box-shadow: 0 3px 6px rgba(4, 120, 87, 0.25);
+    border: 2px solid #047857;
+    box-shadow: 0 2px 6px rgba(4, 120, 87, 0.12);
+    letter-spacing: 1px;
   }
 
   .doc-title-banner .sub-title-en {
