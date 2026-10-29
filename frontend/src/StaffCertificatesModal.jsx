@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MOCK_SCHOOL, getTeacherPhoto } from './mockData.js';
+import { MOCK_SCHOOL, getTeacherPhoto, getLeadershipData } from './mockData.js';
 import schoolLogo from '../public/school-logo.png';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader.js';
 
@@ -149,6 +149,24 @@ export function StaffCertificatesModal({
   const photo = getTeacherPhoto(person);
   const experienceDuration = calcExperienceText(currentJoining);
 
+  // Leadership & Signatory Resolution
+  const leadership = typeof getLeadershipData === 'function' ? getLeadershipData() : null;
+  const headTeacherName = leadership?.head?.name || school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম';
+  const presidentName = leadership?.president?.name || school.president || 'নেয়ামুল হক খান';
+
+  // Check if selected person is the Head Teacher (প্রধান শিক্ষক)
+  const isHeadTeacher = Boolean(
+    person?.public_contact_role === 'head_teacher' ||
+    (person?.designation && person.designation.includes('প্রধান শিক্ষক') && !person.designation.includes('সহকারী') && !person.designation.includes('প্রাক্তন')) ||
+    (person?.role === 'head_teacher') ||
+    (personNameBn && (personNameBn.includes('শফিকুল ইসলাম') || personNameBn.trim() === headTeacherName.trim()))
+  );
+
+  // Signer data: President for Head Teacher; Head Teacher for other teachers & staff
+  const signerName = isHeadTeacher ? presidentName : headTeacherName;
+  const signerDesig = isHeadTeacher ? (leadership?.president?.role || 'সভাপতি') : 'প্রধান শিক্ষক';
+  const signerSchool = school.nameBn;
+
   // Memo Number (default empty so it displays only "স্মারক নংঃ")
   const memoNo = (customMemoNo || '').trim();
 
@@ -195,15 +213,9 @@ export function StaffCertificatesModal({
             <div class="doc-sign-area">
               <div class="sign-block">
                 <div class="sign-line"></div>
-                <b>${personNameBn}</b>
-                <span>সংশ্লিষ্ট শিক্ষক / কর্মচারী</span>
-              </div>
-
-              <div class="sign-block">
-                <div class="sign-line"></div>
-                <b>${school.headTeacher}</b>
-                <span>প্রধান শিক্ষক</span>
-                <span>${school.nameBn}</span>
+                <b>${signerName}</b>
+                <span>${signerDesig}</span>
+                <span>${signerSchool}</span>
               </div>
             </div>
           </div>
@@ -246,15 +258,9 @@ export function StaffCertificatesModal({
             <div class="doc-sign-area">
               <div class="sign-block">
                 <div class="sign-line"></div>
-                <b>সহকারী প্রধান শিক্ষক</b>
-                <span>${school.nameBn}</span>
-              </div>
-
-              <div class="sign-block">
-                <div class="sign-line"></div>
-                <b>${school.headTeacher}</b>
-                <span>প্রধান শিক্ষক</span>
-                <span>${school.nameBn}</span>
+                <b>${signerName}</b>
+                <span>${signerDesig}</span>
+                <span>${signerSchool}</span>
               </div>
             </div>
           </div>
@@ -297,15 +303,9 @@ export function StaffCertificatesModal({
             <div class="doc-sign-area">
               <div class="sign-block">
                 <div class="sign-line"></div>
-                <b>${school.president}</b>
-                <span>সভাপতি, ম্যানেজিং কমিটি</span>
-              </div>
-
-              <div class="sign-block">
-                <div class="sign-line"></div>
-                <b>${school.headTeacher}</b>
-                <span>প্রধান শিক্ষক</span>
-                <span>${school.nameBn}</span>
+                <b>${signerName}</b>
+                <span>${signerDesig}</span>
+                <span>${signerSchool}</span>
               </div>
             </div>
           </div>
@@ -372,15 +372,9 @@ export function StaffCertificatesModal({
             <div class="doc-sign-area">
               <div class="sign-block">
                 <div class="sign-line"></div>
-                <b>যাচাইকারী / অফিস সহকারী</b>
-                <span>${school.nameBn}</span>
-              </div>
-
-              <div class="sign-block">
-                <div class="sign-line"></div>
-                <b>${school.headTeacher}</b>
-                <span>প্রধান শিক্ষক</span>
-                <span>${school.nameBn}</span>
+                <b>${signerName}</b>
+                <span>${signerDesig}</span>
+                <span>${signerSchool}</span>
               </div>
             </div>
           </div>
@@ -454,15 +448,9 @@ export function StaffCertificatesModal({
             <div class="doc-sign-area">
               <div class="sign-block">
                 <div class="sign-line"></div>
-                <b>${personNameBn}</b>
-                <span>অবমুক্তিকৃত শিক্ষক / কর্মচারী</span>
-              </div>
-
-              <div class="sign-block">
-                <div class="sign-line"></div>
-                <b>${school.headTeacher}</b>
-                <span>প্রধান শিক্ষক</span>
-                <span>${school.nameBn}</span>
+                <b>${signerName}</b>
+                <span>${signerDesig}</span>
+                <span>${signerSchool}</span>
               </div>
             </div>
 
@@ -704,9 +692,9 @@ export function StaffCertificatesModal({
             </div>
             <div class="b-sig">
               <div class="b-sig-line"></div>
-              <b>${school.headTeacher}</b>
-              <span>প্রধান শিক্ষক</span>
-              <span>${school.nameBn}</span>
+              <b>${signerName}</b>
+              <span>${signerDesig}</span>
+              <span>${signerSchool}</span>
             </div>
           </div>
         </div>
@@ -774,7 +762,7 @@ export function StaffCertificatesModal({
               </div>
               <div class="sign-area">
                 <div class="sign-line"></div>
-                <span>প্রধান শিক্ষক</span>
+                <span>${signerDesig}</span>
               </div>
             </div>
           </div>
@@ -825,9 +813,9 @@ export function StaffCertificatesModal({
             </div>
 
             <div class="staff-back-footer">
-              <div class="head-name">${school.headTeacher}</div>
-              <div class="head-desig">প্রধান শিক্ষক${school.phone ? ` • মোবাইল: ${toBengaliDigits(school.phone)}` : ''}</div>
-              <div class="inst-name">${school.nameBn}</div>
+              <div class="head-name">${signerName}</div>
+              <div class="head-desig">${signerDesig}${school.phone ? ` • মোবাইল: ${toBengaliDigits(school.phone)}` : ''}</div>
+              <div class="inst-name">${signerSchool}</div>
               <div class="inst-sub">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল।</div>
             </div>
           </div>
@@ -1808,6 +1796,16 @@ export function StaffCertificatesModal({
                   />
                 </div>
 
+                <div style={{ marginTop: '10px', padding: '8px 10px', background: isHeadTeacher ? '#fef3c7' : '#ecfdf5', borderRadius: '6px', border: isHeadTeacher ? '1px solid #fde68a' : '1px solid #a7f3d0' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: isHeadTeacher ? '#92400e' : '#065f46', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span>{isHeadTeacher ? '👑' : '✍️'}</span>
+                    <span>{isHeadTeacher ? 'প্রত্যয়নকারী কর্তৃপক্ষ: সভাপতি' : 'প্রত্যয়নকারী কর্তৃপক্ষ: প্রতিষ্ঠান প্রধান'}</span>
+                  </div>
+                  <div style={{ fontSize: '11px', color: isHeadTeacher ? '#78350f' : '#047857', marginTop: '2px', fontWeight: 600 }}>
+                    {signerName} • {signerDesig} ({signerSchool})
+                  </div>
+                </div>
+
                 {/* Soft Office Copy Notes & Quick Action */}
                 <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
                   <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '4px' }}>
@@ -2418,7 +2416,7 @@ export const staffDocumentStyles = `
 
   .doc-sign-area {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: flex-end;
     margin-top: 48px;
     page-break-inside: avoid;
@@ -2426,8 +2424,9 @@ export const staffDocumentStyles = `
 
   .sign-block {
     text-align: center;
-    width: 170px;
-    font-size: 12px;
+    min-width: 190px;
+    max-width: 250px;
+    font-size: 12.5px;
     color: #0f172a;
   }
 
