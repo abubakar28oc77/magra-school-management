@@ -452,8 +452,15 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
  * Fully supports Dhaka Board Combined Bangla (101+102) & English (107+108) for Classes 9 & 10.
  */
 export function processClassResults(students, subjects, marksList, className, examId) {
-  const isSSC = ['9', '10', '৯', '১০'].includes(String(className));
-  const classStudents = students.filter(s => s && String(s.class_name) === String(className));
+  const normCls = (c) => {
+    if (!c) return '';
+    return String(c).replace(/^(class|শ্রেণি|শ্রেণী)\s*/i, '').replace(/[thstndrdমষ্ঠর্থ]/gi, '').trim()
+      .replace(/০/g, '0').replace(/১/g, '1').replace(/২/g, '2').replace(/৩/g, '3').replace(/৪/g, '4')
+      .replace(/৫/g, '5').replace(/৬/g, '6').replace(/৭/g, '7').replace(/৮/g, '8').replace(/৯/g, '9');
+  };
+  const targetNorm = normCls(className);
+  const isSSC = ['9', '10'].includes(targetNorm);
+  const classStudents = (students || []).filter(s => s && (String(s.class_name) === String(className) || normCls(s.class_name) === targetNorm));
   
   // Build lookup map for marks: `${exam_id}_${student_id}_${subject_id}`
   const marksMap = new Map();

@@ -2580,8 +2580,15 @@ function handleMockRequest(path, opts = {}) {
     const processed = processClassResults(students, subs, marks, cls, examId);
     setLocalStore(`results_${examId}_${cls}`, processed);
 
-    // Auto-sync into public exam results datastores:
-    const isPreTest = String(examId) === 'ex-pre-test-10' || String(examId).includes('pre-test') || String(examId).includes('pre_test');
+    const examStr = String(examId).toLowerCase();
+    const examObj = exams.find(e => String(e.id) === String(examId));
+    const examName = (examObj?.name_bn || '').toLowerCase();
+    const isPreTest = examStr === 'ex-pre-test-10' || examStr.includes('pre-test') || examStr.includes('pre_test') || examName.includes('প্রাক-নির্বাচন');
+    const isTest = !isPreTest && (examStr === 'ex-test-10' || examStr.includes('test') || examName.includes('নির্বাচন'));
+    const isHalfYearly = examStr === 'ex-2' || examStr.includes('half') || examName.includes('অর্ধ');
+    const isAnnual = !isHalfYearly && (examStr === 'ex-3' || examStr.includes('annual') || examName.includes('বার্ষিক'));
+
+    // 1. Auto-sync Pre-Test (Class 10)
     if (isPreTest && ['10', '১০', '১০ম'].includes(String(cls))) {
       const ptFormatted = processed.map((p, idx) => {
         const rollBn = toBnDigits(p.roll_no || (idx + 1));
@@ -2608,6 +2615,89 @@ function handleMockRequest(path, opts = {}) {
         };
       });
       setLocalStore('pre_test_results', ptFormatted);
+    }
+
+    // 2. Auto-sync Test Exam (Class 10)
+    if (isTest && ['10', '১০', '১০ম'].includes(String(cls))) {
+      const testFormatted = processed.map((p, idx) => {
+        const rollBn = toBnDigits(p.roll_no || (idx + 1));
+        const deptRaw = p.department || p.group_name || 'বিজ্ঞান';
+        const sectionStr = deptRaw.includes('বিভাগ') || deptRaw.includes('শাখা') ? deptRaw : `${deptRaw} বিভাগ`;
+        const finalGrade = p.final_grade || p.letter_grade || 'F';
+        const isPass = p.is_pass !== false && finalGrade !== 'F';
+        return {
+          id: p.student_id ? `test-live-${p.student_id}` : `test-live-${idx}`,
+          student_id: p.student_id || p.id,
+          roll_no: rollBn,
+          name_bn: p.name_bn || 'শিক্ষার্থী',
+          class_name: '১০ম',
+          section: sectionStr,
+          department: deptRaw,
+          marks: Number(p.total_marks || 0),
+          gpa: typeof p.gpa === 'number' ? p.gpa.toFixed(2) : (p.gpa || '0.00'),
+          grade: finalGrade,
+          merit_pos: p.merit || (idx + 1),
+          ssc_clearance: isPass ? 'বোর্ড পরীক্ষার জন্য মনোনীত ও সম্পূর্ণ যোগ্য (Clear)' : 'বোর্ড পরীক্ষার জন্য সাময়িক স্থগিত (অননুমোদিত)',
+          notes: isPass ? 'এসএসসি ফরমপূরণ ও প্রবেশপত্র অনুমোদিত' : 'বিশেষ বিবেচনা ও পুনঃমূল্যায়ন সাপেক্ষ',
+          is_live: true
+        };
+      });
+      setLocalStore('test_results', testFormatted);
+    }
+
+    // 3. Auto-sync Half-Yearly (Classes 6-10)
+    if (isHalfYearly) {
+      const clsBn = { '6': '৬ষ্ঠ', '7': '৭ম', '8': '৮ম', '9': '৯ম', '10': '১০ম' }[String(cls)] || `${cls}ম`;
+      const curHy = getLocalStore('half_yearly_results', []).filter(item => item.class_name !== clsBn && !String(item.id).startsWith('hy-live-' + cls));
+      const hyFormatted = processed.map((p, idx) => {
+        const rollBn = toBnDigits(p.roll_no || (idx + 1));
+        const finalGrade = p.final_grade || p.letter_grade || 'F';
+        const isPass = p.is_pass !== false && finalGrade !== 'F';
+        return {
+          id: p.student_id ? `hy-live-${cls}-${p.student_id}` : `hy-live-${cls}-${idx}`,
+          student_id: p.student_id || p.id,
+          roll_no: rollBn,
+          name_bn: p.name_bn || 'শিক্ষার্থী',
+          class_name: clsBn,
+          section: p.section || (p.department ? `${p.department} বিভাগ` : 'ক শাখা'),
+          department: p.department || '',
+          marks: Number(p.total_marks || 0),
+          gpa: typeof p.gpa === 'number' ? p.gpa.toFixed(2) : (p.gpa || '0.00'),
+          grade: finalGrade,
+          merit_pos: p.merit || (idx + 1),
+          status: isPass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ',
+          is_live: true
+        };
+      });
+      setLocalStore('half_yearly_results', [...curHy, ...hyFormatted]);
+    }
+
+    // 4. Auto-sync Annual (Classes 6-9)
+    if (isAnnual && !['10', '১০', '১০ম'].includes(String(cls))) {
+      const clsBn = { '6': '৬ষ্ঠ', '7': '৭ম', '8': '৮ম', '9': '৯ম' }[String(cls)] || `${cls}ম`;
+      const nextClass = { '6': '৭ম', '7': '৮ম', '8': '৯ম', '9': '১০ম' }[String(cls)] || '';
+      const curAn = getLocalStore('annual_results', []).filter(item => item.class_name !== clsBn && !String(item.id).startsWith('an-live-' + cls));
+      const anFormatted = processed.map((p, idx) => {
+        const rollBn = toBnDigits(p.roll_no || (idx + 1));
+        const finalGrade = p.final_grade || p.letter_grade || 'F';
+        const isPass = p.is_pass !== false && finalGrade !== 'F';
+        return {
+          id: p.student_id ? `an-live-${cls}-${p.student_id}` : `an-live-${cls}-${idx}`,
+          student_id: p.student_id || p.id,
+          roll_no: rollBn,
+          name_bn: p.name_bn || 'শিক্ষার্থী',
+          class_name: clsBn,
+          section: p.section || (p.department ? `${p.department} বিভাগ` : 'ক শাখা'),
+          department: p.department || '',
+          marks: Number(p.total_marks || 0),
+          gpa: typeof p.gpa === 'number' ? p.gpa.toFixed(2) : (p.gpa || '0.00'),
+          grade: finalGrade,
+          merit_pos: p.merit || (idx + 1),
+          promotion_status: isPass ? `${nextClass} শ্রেণিতে উত্তীর্ণ ও প্রমোশনপ্রাপ্ত` : 'প্রমোশন স্থগিত (অকৃতকার্য)',
+          is_live: true
+        };
+      });
+      setLocalStore('annual_results', [...curAn, ...anFormatted]);
     }
 
     return { ok: true, count: processed.length, summary: processed };
