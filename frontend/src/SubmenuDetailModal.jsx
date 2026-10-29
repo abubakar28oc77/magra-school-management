@@ -1906,6 +1906,245 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       );
     }
 
+    
+function parseTeacherEducationDetails(teacher) {
+  if (!teacher) return { academic: [], professional: [] };
+
+  const rawStr = teacher.educational_qualifications || '';
+  const isYear = (s) => /^[০-৯0-9]{4}$/.test(String(s || '').trim());
+  const toBn = (str) => {
+    if (str === null || str === undefined) return '';
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(str).replace(/[0-9]/g, d => bn[Number(d)]);
+  };
+
+  // 1. Parse raw text items
+  let parsedFromText = [];
+  if (rawStr.trim()) {
+    const items = rawStr.split(';').map(s => s.trim()).filter(Boolean);
+    parsedFromText = items.map(item => {
+      const parts = item.split(/\s*-\s*/).map(p => p.trim()).filter(Boolean);
+      if (!parts.length) return null;
+
+      let degree = parts[0] || '—';
+      let institution = '—';
+      let board = '—';
+      let subject = '—';
+      let year = '—';
+      let result = '—';
+
+      if (parts.length >= 6) {
+        institution = parts[1] || '—';
+        board = parts[2] || '—';
+        subject = parts[3] || '—';
+        year = toBn(parts[4] || '—');
+        result = parts.slice(5).join(' - ') || '—';
+      } else if (parts.length === 5) {
+        institution = parts[1] || '—';
+        board = parts[2] || '—';
+        if (isYear(parts[3])) {
+          year = toBn(parts[3]);
+          result = parts[4] || '—';
+        } else {
+          subject = parts[3];
+          if (isYear(parts[4])) {
+            year = toBn(parts[4]);
+          } else {
+            result = parts[4];
+          }
+        }
+      } else if (parts.length === 4) {
+        institution = parts[1] || '—';
+        if (isYear(parts[2])) {
+          year = toBn(parts[2]);
+          result = parts[3] || '—';
+        } else {
+          board = parts[2] || '—';
+          if (isYear(parts[3])) {
+            year = toBn(parts[3]);
+          } else {
+            result = parts[3];
+          }
+        }
+      } else if (parts.length === 3) {
+        institution = parts[1] || '—';
+        if (isYear(parts[2])) {
+          year = toBn(parts[2]);
+        } else {
+          result = parts[2] || '—';
+        }
+      } else if (parts.length === 2) {
+        institution = parts[1] || '—';
+      }
+
+      return { 
+        degree: degree.trim(), 
+        institution: institution.trim(), 
+        board: board.trim(), 
+        subject: subject.trim(), 
+        year: year.trim(), 
+        result: result.trim(), 
+        type: 'academic' 
+      };
+    }).filter(Boolean);
+  }
+
+  // 2. Parse extended_profile_json if available
+  let extEdu = [];
+  let profEdu = [];
+  if (teacher.extended_profile_json) {
+    try {
+      const ext = typeof teacher.extended_profile_json === 'string'
+        ? JSON.parse(teacher.extended_profile_json)
+        : teacher.extended_profile_json;
+
+      if (Array.isArray(ext?.education) && ext.education.length > 0) {
+        extEdu = ext.education.map(e => ({
+          degree: (e.exam || e.degree || e.name || '—').trim(),
+          institution: (e.institution || '—').trim(),
+          board: (e.board || '—').trim(),
+          subject: e.subject ? e.subject.trim() : '—',
+          year: e.year ? toBn(e.year.trim()) : '—',
+          result: (e.result || '—').trim(),
+          type: 'academic'
+        }));
+      }
+
+      if (Array.isArray(ext?.professional_qualifications) && ext.professional_qualifications.length > 0) {
+        profEdu = ext.professional_qualifications.map(e => ({
+          degree: (e.exam || e.degree || 'বিএড').trim(),
+          institution: (e.institution || '—').trim(),
+          board: (e.board || '—').trim(),
+          subject: e.subject ? e.subject.trim() : '—',
+          year: e.year ? toBn(e.year.trim()) : '—',
+          result: (e.result || '—').trim(),
+          type: 'professional'
+        }));
+      }
+    } catch {}
+  }
+
+  // If text was parsed, enrich missing fields from extEdu if same exam exists
+  let finalAcademic = parsedFromText.length ? parsedFromText : extEdu;
+  if (parsedFromText.length && extEdu.length) {
+    finalAcademic = parsedFromText.map(pt => {
+      const match = extEdu.find(ee => 
+        (ee.degree && pt.degree && (ee.degree.includes(pt.degree) || pt.degree.includes(ee.degree))) ||
+        (ee.year && pt.year && ee.year === pt.year)
+      );
+      if (match) {
+        return {
+          degree: pt.degree !== '—' ? pt.degree : match.degree,
+          institution: pt.institution !== '—' ? pt.institution : match.institution,
+          board: pt.board !== '—' ? pt.board : match.board,
+          subject: pt.subject !== '—' ? pt.subject : match.subject,
+          year: pt.year !== '—' ? pt.year : match.year,
+          result: pt.result !== '—' ? pt.result : match.result,
+          type: 'academic'
+        };
+      }
+      return pt;
+    });
+  }
+
+  return { academic: finalAcademic, professional: profEdu };
+}
+
+function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = '#ecfdf5', badgeBorder = '#a7f3d0') {
+  const { academic, professional } = parseTeacherEducationDetails(teacher);
+  const totalRows = [...academic, ...professional];
+
+  if (!totalRows.length) {
+    if (!teacher?.educational_qualifications) return null;
+    return (
+      <div style={{ background: badgeBg, padding: '12px 16px', borderRadius: '8px', border: `1px solid ${badgeBorder}`, marginBottom: '16px' }}>
+        <span style={{ fontSize: '12.5px', fontWeight: 800, color: themeColor, display: 'block', marginBottom: '2px' }}>
+          📜 শিক্ষাগত যোগ্যতা:
+        </span>
+        <p style={{ margin: 0, fontSize: '13px', color: themeColor, fontWeight: 600 }}>
+          {teacher.educational_qualifications}
+        </p>
+      </div>
+    );
+  }
+
+  const toBn = (n) => {
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(n).replace(/[0-9]/g, d => bn[Number(d)]);
+  };
+
+  return (
+    <div style={{ background: '#ffffff', borderRadius: '10px', border: `1px solid ${badgeBorder}`, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', marginBottom: '18px' }}>
+      <div style={{ background: badgeBg, padding: '10px 16px', borderBottom: `1px solid ${badgeBorder}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+        <span style={{ fontSize: '13.5px', fontWeight: 800, color: themeColor, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          📜 শিক্ষাগত যোগ্যতার বিবরণ
+        </span>
+        <span style={{ fontSize: '11px', fontWeight: 700, color: themeColor, background: 'rgba(255,255,255,0.7)', padding: '2px 8px', borderRadius: '4px', border: `1px solid ${badgeBorder}` }}>
+          অফিসিয়াল একাডেমিক রেকর্ড ({toBn(totalRows.length)} টি)
+        </span>
+      </div>
+
+      <div style={{ overflowX: 'auto', width: '100%' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left', minWidth: '640px' }}>
+          <thead>
+            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1', color: '#334155' }}>
+              <th style={{ padding: '10px 12px', textAlign: 'center', width: '45px', fontWeight: 700 }}>ক্রম</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700 }}>পরীক্ষা / অর্জিত ডিগ্রি</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700 }}>শিক্ষা প্রতিষ্ঠান</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700 }}>বোর্ড / বিশ্ববিদ্যালয়</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700 }}>বিভাগ / বিষয়</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>পাসের সন</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>ফলাফল / শ্রেণি</th>
+            </tr>
+          </thead>
+          <tbody>
+            {academic.map((row, idx) => (
+              <tr key={'acad-' + idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#fcfdfd' }}>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>{toBn(idx + 1)}</td>
+                <td style={{ padding: '9px 12px', fontWeight: 700, color: '#0f172a' }}>{row.degree}</td>
+                <td style={{ padding: '9px 12px', color: '#334155' }}>{row.institution}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{row.board}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{row.subject}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>{row.year}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center' }}>
+                  <span style={{ 
+                    display: 'inline-block',
+                    padding: '2px 8px', 
+                    borderRadius: '4px', 
+                    fontSize: '11.5px', 
+                    fontWeight: 700,
+                    background: (row.result.includes('প্রথম') || row.result.includes('১ম') || row.result.includes('জিপিএ-৫') || row.result.includes('5.')) ? '#dcfce7' : '#e0f2fe',
+                    color: (row.result.includes('প্রথম') || row.result.includes('১ম') || row.result.includes('জিপিএ-৫') || row.result.includes('5.')) ? '#15803d' : '#0369a1'
+                  }}>
+                    {row.result}
+                  </span>
+                </td>
+              </tr>
+            ))}
+            {professional.map((pRow, pIdx) => (
+              <tr key={'prof-' + pIdx} style={{ borderBottom: '1px solid #e2e8f0', background: '#fdfbfe' }}>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#7c3aed' }}>{toBn(academic.length + pIdx + 1)}</td>
+                <td style={{ padding: '9px 12px', fontWeight: 700, color: '#6d28d9' }}>
+                  {pRow.degree} <span style={{ fontSize: '10.5px', background: '#ede9fe', color: '#6d28d9', padding: '1px 6px', borderRadius: '3px', marginLeft: '4px' }}>পেশাগত</span>
+                </td>
+                <td style={{ padding: '9px 12px', color: '#334155' }}>{pRow.institution}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{pRow.board}</td>
+                <td style={{ padding: '9px 12px', color: '#475569' }}>{pRow.subject}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center', fontWeight: 700, color: '#7c3aed' }}>{pRow.year}</td>
+                <td style={{ padding: '9px 12px', textAlign: 'center' }}>
+                  <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700, background: '#ede9fe', color: '#6d28d9' }}>
+                    {pRow.result}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
     // 2. Staff / Teachers submenus (8 distinct modules)
     if (menuKey.startsWith('public.nav.staff') || title?.includes('শিক্ষক') || title?.includes('কর্মচারী')) {
       const formerPersonnel = getStoredFormerPersonnelData();
@@ -1963,16 +2202,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </div>
             </div>
 
-            {head.educational_qualifications && (
-              <div style={{ background: '#ecfdf5', padding: '12px 16px', borderRadius: '8px', border: '1px solid #a7f3d0', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#065f46', display: 'block', marginBottom: '2px' }}>
-                  📜 শিক্ষাগত যোগ্যতা:
-                </span>
-                <p style={{ margin: 0, fontSize: '13px', color: '#047857', fontWeight: 600 }}>
-                  {head.educational_qualifications}
-                </p>
-              </div>
-            )}
+            {renderTeacherEducationTable(head, '#047857', '#ecfdf5', '#a7f3d0')}
 
             <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
               <h4 style={{ margin: '0 0 10px 0', color: '#047857', fontSize: '16px', fontWeight: 800 }}>
@@ -2039,16 +2269,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </div>
             </div>
 
-            {asst.educational_qualifications && (
-              <div style={{ background: '#f0fdfa', padding: '12px 16px', borderRadius: '8px', border: '1px solid #99f6e4', marginBottom: '16px' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f766e', display: 'block', marginBottom: '2px' }}>
-                  📜 শিক্ষাগত যোগ্যতা:
-                </span>
-                <p style={{ margin: 0, fontSize: '13px', color: '#0d9488', fontWeight: 600 }}>
-                  {asst.educational_qualifications}
-                </p>
-              </div>
-            )}
+            {renderTeacherEducationTable(asst, '#0d9488', '#f0fdfa', '#99f6e4')}
 
             <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #e2e8f0', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
               <h4 style={{ margin: '0 0 10px 0', color: '#0d9488', fontSize: '16px', fontWeight: 800 }}>
