@@ -167,7 +167,7 @@ import {
 } from './mockData.js';
 import { saveTeacherCustomPhoto } from './photoStorage.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
-import { processClassResults, generateResultAnalytics } from './boardExamEngine.js';
+import { processClassResults, generateResultAnalytics, toBnDigits } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
 import { SEED_BOOKS, SEED_LOANS, SEED_DAMAGED } from './libraryData.js';
 
@@ -2579,6 +2579,37 @@ function handleMockRequest(path, opts = {}) {
     // Compute real results via Dhaka Board Exam Engine
     const processed = processClassResults(students, subs, marks, cls, examId);
     setLocalStore(`results_${examId}_${cls}`, processed);
+
+    // Auto-sync into public exam results datastores:
+    const isPreTest = String(examId) === 'ex-pre-test-10' || String(examId).includes('pre-test') || String(examId).includes('pre_test');
+    if (isPreTest && ['10', '১০', '১০ম'].includes(String(cls))) {
+      const ptFormatted = processed.map((p, idx) => {
+        const rollBn = toBnDigits(p.roll_no || (idx + 1));
+        const deptRaw = p.department || p.group_name || 'বিজ্ঞান';
+        const sectionStr = deptRaw.includes('বিভাগ') || deptRaw.includes('শাখা') ? deptRaw : `${deptRaw} বিভাগ`;
+        const gpaNum = Number(p.gpa) || 0;
+        const finalGrade = p.final_grade || p.letter_grade || 'F';
+        const isPass = p.is_pass !== false && finalGrade !== 'F';
+        return {
+          id: p.student_id ? `pt-live-${p.student_id}` : `pt-live-${idx}`,
+          student_id: p.student_id || p.id,
+          roll_no: rollBn,
+          name_bn: p.name_bn || 'শিক্ষার্থী',
+          class_name: '১০ম',
+          section: sectionStr,
+          department: deptRaw,
+          marks: Number(p.total_marks || 0),
+          gpa: typeof p.gpa === 'number' ? p.gpa.toFixed(2) : (p.gpa || '0.00'),
+          grade: finalGrade,
+          merit_pos: p.merit || (idx + 1),
+          status: isPass ? (gpaNum >= 5.0 ? 'উত্তীর্ণ (চমৎকার প্রস্তুতি)' : 'উত্তীর্ণ (সন্তোষজনক)') : 'অনুত্তীর্ণ (বিশেষ পরিচর্যা আবশ্যক)',
+          notes: p.remarks || (isPass ? (gpaNum >= 5.0 ? 'বোর্ড পরীক্ষায় জিপিএ-৫ প্রত্যাশী' : 'এসএসসি পরীক্ষার জন্য ভালো প্রস্তুতি') : 'বিশেষ কোচিং ক্লাসে উপস্থিতি আবশ্যক'),
+          is_live: true
+        };
+      });
+      setLocalStore('pre_test_results', ptFormatted);
+    }
+
     return { ok: true, count: processed.length, summary: processed };
   }
 

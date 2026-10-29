@@ -3409,6 +3409,12 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       if (menuKey === 'public.nav.results.pre_test') {
         const ptList = getStoredPreTestResults();
         const filtered = ptList.filter(item => {
+          if (filterGroup && filterGroup !== 'all') {
+            const grp = filterGroup.trim().toLowerCase();
+            const matchesGroup = (item.section && item.section.toLowerCase().includes(grp)) ||
+                                 (item.department && item.department.toLowerCase().includes(grp));
+            if (!matchesGroup) return false;
+          }
           if (!searchQuery) return true;
           return [item.name_bn, item.roll_no, item.section, item.status, item.notes].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
         });
@@ -3438,7 +3444,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
               th { background: #f5f3ff; font-weight: 700; color: #6d28d9; }
             </style></head><body>
-            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>১০ম শ্রেণি — প্রাক-নির্বাচনী (Pre-Test) পরীক্ষা ফলাফল ও প্রস্তুতি মূল্যায়ন</p></div>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>১০ম শ্রেণি — প্রাক-নির্বাচনী (Pre-Test) পরীক্ষা ফলাফল ও প্রস্তুতি মূল্যায়ন${filterGroup !== 'all' ? ` (${filterGroup} বিভাগ)` : ''}</p></div>
             <table><thead><tr><th>ক্রম</th><th>রোল</th><th>পরীক্ষার্থীর নাম</th><th>বিভাগ</th><th>নম্বর</th><th>GPA ও গ্রেড</th><th>প্রস্তুতি অবস্থা</th><th>দিকনির্দেশনা</th></tr></thead>
             <tbody>${rows}</tbody></table>
             <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
@@ -3452,7 +3458,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
               <div>
                 <div className="modal-hero-badge" style={{ margin: 0, background: '#f5f3ff', color: '#6d28d9', border: '1px solid #ddd6fe' }}>
-                  📑 প্রাক-নির্বাচনী (Pre-Test) পরীক্ষার ফলাফল ({filtered.length} জন)
+                  📑 প্রাক-নির্বাচনী (Pre-Test) পরীক্ষার ফলাফল ({filtered.length} জন){filterGroup !== 'all' ? ` • ${filterGroup} বিভাগ` : ''}
                 </div>
                 <small style={{ color: '#6d28d9', fontWeight: 700, display: 'block', marginTop: '4px' }}>
                   * শুধুমাত্র ১০ম শ্রেণির শিক্ষার্থীদের এসএসসি প্রস্তুতিমূলক প্রাক-নির্বাচনী পরীক্ষা
@@ -3467,13 +3473,23 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               </button>
             </div>
 
-            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap' }}>
               <input
-                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল / বিভাগ খুঁজুন..."
+                placeholder="১০ম শ্রেণির শিক্ষার্থীর নাম / রোল খুঁজুন..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ flex: 1, minWidth: '200px' }}
               />
+              <select 
+                value={filterGroup} 
+                onChange={e => setFilterGroup(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#fff', fontWeight: 600, color: '#334155' }}
+              >
+                <option value="all">🌐 সকল বিভাগ (১০ম শ্রেণি)</option>
+                <option value="বিজ্ঞান">🔬 বিজ্ঞান বিভাগ</option>
+                <option value="মানবিক">📚 মানবিক বিভাগ</option>
+                <option value="ব্যবসায় শিক্ষা">💼 ব্যবসায় শিক্ষা শাখা</option>
+              </select>
             </div>
 
             <table className="modal-table">

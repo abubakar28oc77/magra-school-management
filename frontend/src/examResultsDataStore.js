@@ -1,3 +1,6 @@
+import { processClassResults, toBnDigits } from './boardExamEngine.js';
+import { MOCK_STUDENTS, MOCK_SUBJECTS, MOCK_MARKS } from './mockData.js';
+
 // Data Store for Exam Results: Admission, Half-Yearly, Annual, Pre-Test, Test & Public Exams
 // Strictly respects class restrictions:
 // - অর্ধ-বার্ষিক পরীক্ষা: ৬ষ্ঠ-১০ম শ্রেণি
@@ -386,9 +389,149 @@ export function saveStoredAnnualResults(data) {
   } catch {}
 }
 
+// Helper to compute or retrieve live results for Class 10 Pre-Test from the exam engine
+export function getLivePreTestClassResults() {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return null;
+
+    let preTestExamId = 'ex-pre-test-10';
+    try {
+      const rawExams = localStorage.getItem('magra_db_exams');
+      if (rawExams) {
+        const exams = JSON.parse(rawExams);
+        const found = exams.find(e => 
+          e.id === 'ex-pre-test-10' ||
+          (e.name_bn && (e.name_bn.includes('প্রাক-নির্বাচনী') || e.name_bn.includes('প্রাক-নির্বাচনি'))) ||
+          (e.exam_type && (e.exam_type.includes('pre_test') || e.exam_type.includes('প্রাক-নির্বাচন')))
+        );
+        if (found) preTestExamId = found.id;
+      }
+    } catch {}
+
+    // 1. Check if results were already processed in localStorage
+    let processed = null;
+    const cacheKeys = [
+      `magra_db_results_${preTestExamId}_10`,
+      `magra_db_results_${preTestExamId}_১০ম`,
+      'magra_db_results_ex-pre-test-10_10'
+    ];
+    for (const key of cacheKeys) {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) {
+            processed = parsed;
+            break;
+          }
+        } catch {}
+      }
+    }
+
+    // 2. If no processed cache, check if raw marks exist in magra_db_marks
+    const rawMarks = localStorage.getItem('magra_db_marks');
+    const marksList = rawMarks ? JSON.parse(rawMarks) : (Array.isArray(MOCK_MARKS) ? MOCK_MARKS : []);
+    
+    const preTestMarks = marksList.filter(m => 
+      String(m.exam_id) === String(preTestExamId) || 
+      String(m.exam_id) === 'ex-pre-test-10' ||
+      String(m.exam_id).includes('pre-test') ||
+      String(m.exam_id).includes('pre_test')
+    );
+
+    if (!processed && preTestMarks.length > 0) {
+      const rawStudents = localStorage.getItem('magra_db_students');
+      const students = rawStudents ? JSON.parse(rawStudents) : MOCK_STUDENTS;
+      const rawSubjects = localStorage.getItem('magra_db_subjects');
+      let subjects = rawSubjects ? JSON.parse(rawSubjects) : MOCK_SUBJECTS;
+      if (!Array.isArray(subjects) || subjects.length < 20) subjects = MOCK_SUBJECTS;
+
+      processed = processClassResults(students, subjects, marksList, '10', preTestExamId);
+      if (processed && processed.length) {
+        try {
+          localStorage.setItem(`magra_db_results_${preTestExamId}_10`, JSON.stringify(processed));
+        } catch {}
+      }
+    }
+
+    if (processed && Array.isArray(processed) && processed.length > 0) {
+      return processed.map((p, idx) => {
+        const rollBn = toBnDigits(p.roll_no || p.roll || (idx + 1));
+        const deptRaw = p.department || p.group_name || 'বিজ্ঞান';
+        const sectionStr = deptRaw.includes('বিভাগ') || deptRaw.includes('শাখা') ? deptRaw : `${deptRaw} বিভাগ`;
+        const gpaNum = Number(p.gpa) || 0;
+        const finalGrade = p.final_grade || p.letter_grade || p.grade || 'F';
+        const isPass = p.is_pass !== false && finalGrade !== 'F';
+
+        let status = isPass 
+          ? (gpaNum >= 5.0 ? 'উত্তীর্ণ (চমৎকার প্রস্তুতি)' : (gpaNum >= 4.0 ? 'উত্তীর্ণ (সন্তোষজনক)' : 'উত্তীর্ণ (অগ্রগতিশীল)'))
+          : 'অনুত্তীর্ণ (বিশেষ পরিচর্যা আবশ্যক)';
+
+        let notes = p.remarks || '';
+        if (!notes) {
+          if (isPass) {
+            notes = gpaNum >= 5.0 ? 'বোর্ড পরীক্ষায় জিপিএ-৫ প্রত্যাশী' : 'এসএসসি পরীক্ষার জন্য ভালো প্রস্তুতি';
+          } else {
+            const failCount = p.failed_count || p.failed_subjects_count || 1;
+            notes = `${toBnDigits(failCount)} টি বিষয়ে বিশেষ কোচিং ও অতিরিক্ত ক্লাসে উপস্থিতি বাধ্যতামূলক`;
+          }
+        }
+
+        return {
+          id: p.student_id ? `pt-live-${p.student_id}` : `pt-live-${p.roll_no || idx}`,
+          student_id: p.student_id || p.id,
+          roll_no: rollBn,
+          name_bn: p.name_bn || p.name || 'শিক্ষার্থী',
+          name_en: p.name_en || '',
+          class_name: '১০ম',
+          section: sectionStr,
+          department: deptRaw,
+          marks: Number(p.total_marks || p.marks || 0),
+          gpa: typeof p.gpa === 'number' ? p.gpa.toFixed(2) : (p.gpa || '0.00'),
+          grade: finalGrade,
+          merit_pos: p.merit || (idx + 1),
+          status,
+          notes,
+          subjects: p.subjects || [],
+          is_live: true
+        };
+      });
+    }
+  } catch (err) {
+    console.error('getLivePreTestClassResults error:', err);
+  }
+  return null;
+}
+
 export function getStoredPreTestResults() {
   try {
+    // 1. Try to get live results calculated from entered marks & exam engine
+    const liveResults = getLivePreTestClassResults();
+
+    // 2. Also check if user added custom manual records in magra_db_pre_test_results
     const raw = localStorage.getItem('magra_db_pre_test_results');
+    let customItems = [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) {
+        customItems = parsed.filter(p => !p.id || !String(p.id).startsWith('pt-10-') || p.is_custom);
+      }
+    }
+
+    if (liveResults && liveResults.length > 0) {
+      if (customItems.length > 0) {
+        const liveIds = new Set(liveResults.map(r => String(r.student_id || r.id)));
+        const nonDup = customItems.filter(c => !liveIds.has(String(c.student_id || c.id)));
+        return [...liveResults, ...nonDup];
+      }
+      return liveResults;
+    }
+
+    if (customItems.length > 0) {
+      return customItems;
+    }
+
+    // 3. Fallback to raw stored pre-test results if present
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) return parsed;
