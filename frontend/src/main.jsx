@@ -2252,7 +2252,7 @@ function Admin(){
   if(!isModuleAllowed(k))return;
   setActive(k);
   if(s){setSub(s);setExpanded(x=>({...x,[k]:true}));}
-  else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else setSub(null);setExpanded(x=>({...x,[k]:true}));}
+  else{if(k==='settings')setSub('leadership');else if(k==='feature_control')setSub('system');else if(k==='students')setSub('enrolled');else if(k==='staff')setSub('active_teachers');else setSub(null);setExpanded(x=>({...x,[k]:true}));}
  };
 
  useEffect(() => {
@@ -2342,7 +2342,7 @@ function Admin(){
           <span style={{fontSize:'12px',fontWeight:700,background:'#ecfdf5',color:'#065f46',border:'1px solid #a7f3d0',padding:'3px 10px',borderRadius:'20px',display:'inline-flex',alignItems:'center',gap:'5px'}}>
             👑 {effectiveMe?.full_name?.split('(')[0]?.trim()||'মুহাম্মদ আবুবকর সিদ্দিক'} • {userRole==='super_admin'?'সুপার অ্যাডমিন':userRole==='admin'?'প্রধান শিক্ষক':userRole==='co_admin'?'শ্রেণি শিক্ষক':userRole==='staff'?'অফিস সহকারী':userRole==='librarian'?'লাইব্রেরিয়ান':'শিক্ষক'}
           </span>
-          {sub && <span style={{fontSize:'11.5px',fontWeight:600,color:'#64748b',background:'#f1f5f9',padding:'2px 8px',borderRadius:'4px'}}>↳ {sub}</span>}
+          {sub && <span style={{fontSize:'11.5px',fontWeight:600,color:'#065f46',background:'#ecfdf5',border:'1px solid #a7f3d0',padding:'2px 8px',borderRadius:'4px'}}>↳ {(()=>{const item=ADMIN_NAV_GROUPS.flatMap(g=>g.items).find(x=>x.k===active);const s=item?.subs?.find(([sk])=>sk===sub);return s?(lang==='en'?adminEn[s[1]]||s[1]:s[1]):sub})()}</span>}
         </div>
         <div className="admin-top-actions" style={{display:'flex',alignItems:'center',gap:'8px'}}>
           {userRole==='super_admin'&&<button type="button" className="btn mini" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'#0b8050',color:'#fff',fontWeight:700,display:'flex',alignItems:'center',gap:'5px',padding:'6px 12px',borderRadius:'6px',border:'none',cursor:'pointer',fontSize:'12.5px',boxShadow:'0 1px 2px rgba(11,128,80,0.2)'}} title="সুপাবেজ ক্লাউড ডেটাবেস সিঙ্ক">☁️ ক্লাউড সিঙ্ক</button>}
@@ -2487,7 +2487,7 @@ const DISABILITY_OPTIONS = [
 
 const emptyStudent={student_id:'',roll_no:'',name_bn:'',name_en:'',class_name:'6',group_name:'',group:'',section:'',gender:'',date_of_birth:'',blood_group:'',religion:'ইসলাম',is_special_needs:'না',disability_type:'',father_name:'',father_name_en:'',father_nid_no:'',father_profession:'',father_mobile:'',father_abroad_country:'',mother_name:'',mother_name_en:'',mother_nid_no:'',mother_profession:'',mother_mobile:'',mother_death_year:'',guardian_name:'',guardian_name_en:'',guardian_nid_no:'',guardian_relation:'',guardian_phone:'',guardian_email:'',address:'',current_village:'',current_post_office:'',current_upazila:'',current_district:'',permanent_village:'',permanent_post_office:'',permanent_upazila:'',permanent_district:'',admission_date:'',admission_class:'6',admission_group:'',previous_school:'',birth_registration_no:'',student_nid_no:'',primary_school_name:'',primary_registration_no:'',primary_completion_year:'',emergency_phone:'',photo_url:'',special_needs:'',additional_notes:'',status:'active',extended_profile:{}};
 
-function StudentPanel({sub}){
+function StudentPanel({sub, onLivePreview, onNavigatePromotion}){
  const { lang } = useLanguage();
  const [view, setView] = useState(sub==='new' ? 'form' : sub==='csv' ? 'csv' : sub==='voter' ? 'voter' : 'list');
  const [students,setStudents]=useState([]);
@@ -3638,7 +3638,7 @@ function StudentPanel({sub}){
       <button className="btn mini" type="button" onClick={()=>{setEditing(null);setSameAddress(false);setForm({...emptyStudent,extended_profile:{education:[]}});setStep(0);setView('form');}}>➕ নতুন শিক্ষার্থী এন্ট্রি</button>
       <button className="mini" type="button" onClick={downloadStudentTemplate}>⬇ Template CSV</button>
       <label className="mini btn-upload" style={{cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'4px'}}>⬆ CSV আপলোড<input type="file" accept=".csv,text/csv" hidden onChange={importStudents} disabled={importing}/></label>
-      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{studentList.length} জন</span>
+      <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>{studentList.length} জন</span>{onLivePreview && <button className="mini" type="button" onClick={onLivePreview} style={{background:'#0284c7',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(2,132,199,0.25)'}}>🌐 ভিউপেজ প্রিভিউ</button>}{onNavigatePromotion && <button className="mini" type="button" onClick={onNavigatePromotion} style={{background:'#047857',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(4,120,87,0.25)'}}>📈 প্রমোশন ও SSC ফরমপূরণ ➔</button>}
      </div>
     </div>
     <div className="filters" style={{display:'flex',flexWrap:'wrap',gap:'8px',alignItems:'center',background:'#f8fafc',padding:'12px',borderRadius:'8px',border:'1px solid #e2e8f0',marginBottom:'16px'}}>
@@ -4006,7 +4006,7 @@ function StudentPanel({sub}){
 const emptyTeacher={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',designation_en:'',subject:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',first_mpo_date:'',current_post_joining_date:'',current_mpo_date:'',previous_institution_joining_date:'',previous_institution_mpo_date:'',appointment_date:'',appointment_authority:'',mpo_index_no:'',teacher_registration_no:'',registration_date:'',teacher_portal_id:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],ntrca:{},dob:'',professional_note:''}};
 const emptyStaff={public_contact_role:'',public_contact_enabled:true,employee_id:'',name_bn:'',name_en:'',designation:'',phone:'',email:'',joining_date:'',gender:'',address:'',photo_url:'',status:'active',nid_no:'',tin_no:'',birth_registration_no:'',whatsapp_no:'',blood_group:'',religion:'',marital_status:'',nationality:'বাংলাদেশী',father_name_bn:'',father_name_en:'',mother_name_bn:'',mother_name_en:'',first_joining_date:'',current_post_joining_date:'',appointment_date:'',appointment_authority:'',permanent_address:'',extended_profile:{education:[],professional_qualifications:[],training:[],in_service_training:[],dob:'',professional_note:''}};
 
-function StaffPanel({sub}){
+function StaffPanel({sub, onLivePreview}){
  const getInitialTab = (s) => (s==='staff'||s==='staff_list'||s==='staff_new'||s==='employees') ? 'staff' : 'teachers';
  const getInitialView = (s) => (s==='teacher_new'||s==='staff_new') ? 'form' : (s==='teacher_voters'||s==='teacher_voter_list') ? 'voter' : 'list';
 
@@ -5598,6 +5598,7 @@ function StaffPanel({sub}){
  const steps=[['👤','পরিচয় ও পরিবার'],['💼','চাকরি ও MPO'],['🎓','শিক্ষাগত যোগ্যতার বিবরণ'],['📜','পেশাগত যোগ্যতার বিবরণ'],['📚','প্রশিক্ষণ'],['📝','নিবন্ধন/NTRCA'],['📞','যোগাযোগ']];
 
  return <div>
+  {view !== 'list' && (
   <div className="tabs" style={{marginBottom:'16px'}}>
    <button type="button" className={isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('teachers','list')}>👨‍🏫 শিক্ষকবৃন্দ তালিকা ({teachers.length})</button>
    <button type="button" className={isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('teachers','form')}>➕ {isTeacher&&editing?'শিক্ষক তথ্য সম্পাদনা':'নতুন শিক্ষক এন্ট্রি'}</button>
@@ -5605,6 +5606,7 @@ function StaffPanel({sub}){
    <button type="button" className={!isTeacher&&view==='list'?'active':''} onClick={()=>switchTab('staff','list')}>🧑‍💼 কর্মচারীবৃন্দ তালিকা ({staff.length})</button>
    <button type="button" className={!isTeacher&&view==='form'?'active':''} onClick={()=>switchTab('staff','form')}>➕ {!isTeacher&&editing?'কর্মচারী তথ্য সম্পাদনা':'নতুন কর্মচারী এন্ট্রি'}</button>
   </div>
+  )}
 
   {view==='form' && (
    <div className="form-card modern-form full-form-v90">
@@ -5744,7 +5746,7 @@ function StaffPanel({sub}){
       </label>
       <span style={{fontWeight:700,color:'#0f172a',background:'#f1f5f9',padding:'4px 10px',borderRadius:'6px'}}>
         {(list||[]).length} জন
-      </span>
+      </span>{onLivePreview && <button className="mini" type="button" onClick={onLivePreview} style={{background:'#059669',color:'#fff',fontWeight:700,border:'none',padding:'7px 14px',borderRadius:'6px',cursor:'pointer',display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 2px 4px rgba(5,150,105,0.25)'}}>🌐 ভিউপেজ প্রিভিউ</button>}
      </div>
     </div>
 

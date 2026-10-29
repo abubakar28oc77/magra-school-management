@@ -440,149 +440,75 @@ export function StudentMasterAdminPanel({
         </div>
       )}
 
-      {/* Main Header Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1e3a8a 0%, #0369a1 100%)',
-        color: '#ffffff',
-        padding: '18px 22px',
-        borderRadius: '14px',
-        marginBottom: '20px',
-        boxShadow: '0 4px 16px rgba(3,105,161,0.2)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <span style={{ fontSize: '36px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>🎓</span>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>শিক্ষার্থীর তথ্য ব্যবস্থাপনা ও রেজিস্ট্রি</h2>
-              <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-                অফিসিয়াল প্যানেল
-              </span>
-            </div>
-            <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.9 }}>
-              অধ্যয়নরত শিক্ষার্থী, সরকারি বৃত্তি, উপবৃত্তি, কৃতি শিক্ষার্থী, শ্রেণি আসন ও স্মার্ট উপস্থিতির সমন্বিত ডাটা সেন্টার
-            </p>
+      {/* Sleek single-line sub-header only for non-enrolled submenus */}
+      {activeTab !== 'enrolled' && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '8px 14px',
+          background: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '14px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>
+              {activeTab === 'govt_scholarship' ? '🎖️' :
+               activeTab === 'stipend' ? '💳' :
+               activeTab === 'meritorious' ? '🏆' :
+               activeTab === 'former_meritorious' ? '⭐' :
+               activeTab === 'class_seats' ? '🪑' :
+               activeTab === 'attendance_records' ? '🕘' : '🎓'}
+            </span>
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              {activeTab === 'govt_scholarship' ? 'সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী' :
+               activeTab === 'stipend' ? 'উপবৃত্তি প্রাপ্ত শিক্ষার্থী' :
+               activeTab === 'meritorious' ? 'অধ্যয়নরত কৃতি শিক্ষার্থী' :
+               activeTab === 'former_meritorious' ? 'সাবেক কৃতি শিক্ষার্থী' :
+               activeTab === 'class_seats' ? 'শিক্ষার্থীর শ্রেণি ও আসন' :
+               activeTab === 'attendance_records' ? 'শিক্ষার্থীর স্মার্ট উপস্থিতি ও রেকর্ড' : 'শিক্ষার্থীর তথ্য'}
+            </h2>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
             className="mini"
-            onClick={() => setPreviewModal({ key: 'public.nav.students.' + activeTab, title: 'ভিউপেজ প্রিভিউ: শিক্ষার্থীর তথ্য' })}
+            onClick={() => setPreviewModal({ 
+              key: 'public.nav.students.' + activeTab, 
+              title: activeTab === 'govt_scholarship' ? 'সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী' :
+                     activeTab === 'stipend' ? 'উপবৃত্তি প্রাপ্ত শিক্ষার্থী' :
+                     activeTab === 'meritorious' ? 'অধ্যয়নরত কৃতি শিক্ষার্থী' :
+                     activeTab === 'former_meritorious' ? 'সাবেক কৃতি শিক্ষার্থী' :
+                     activeTab === 'class_seats' ? 'শিক্ষার্থীর শ্রেণি ও আসন' :
+                     activeTab === 'attendance_records' ? 'শিক্ষার্থীর স্মার্ট উপস্থিতি ও রেকর্ড' : 'ভিউপেজ প্রিভিউ'
+            })}
             style={{
-              background: '#ffffff',
-              color: '#0369a1',
-              fontWeight: 800,
-              padding: '8px 14px',
-              borderRadius: '8px',
+              background: '#0284c7',
+              color: '#fff',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '6px',
               border: 'none',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+              fontSize: '12.5px'
             }}
           >
             🌐 ভিউপেজে কেমন দেখায় (Live Preview)
           </button>
         </div>
-      </div>
+      )}
 
-      {/* 7 Ordered Submenus Tab Bar */}
-      <div style={{
-        background: '#ffffff',
-        padding: '8px',
-        borderRadius: '12px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-        marginBottom: '20px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '6px'
-      }}>
-        {[
-          { key: 'enrolled', label: '১. অধ্যয়নরত শিক্ষার্থী', icon: '👥' },
-          { key: 'govt_scholarship', label: '২. সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী', icon: '🎖️' },
-          { key: 'stipend', label: '৩. উপবৃত্তি প্রাপ্ত শিক্ষার্থী', icon: '💳' },
-          { key: 'meritorious', label: '৪. অধ্যয়নরত কৃতি শিক্ষার্থী', icon: '🏆' },
-          { key: 'former_meritorious', label: '৫. সাবেক কৃতি শিক্ষার্থী', icon: '⭐' },
-          { key: 'class_seats', label: '৬. শিক্ষার্থীর শ্রেণি ও আসন', icon: '🪑' },
-          { key: 'attendance_records', label: '৭. শিক্ষার্থীর স্মার্ট উপস্থিতি ও রেকর্ড', icon: '🕘' }
-        ].map(item => {
-          const isActive = activeTab === item.key;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => handleTabChange(item.key)}
-              style={{
-                flex: '1 1 auto',
-                minWidth: '150px',
-                padding: '11px 14px',
-                border: 'none',
-                borderRadius: '8px',
-                background: isActive ? 'linear-gradient(135deg, #0369a1 0%, #0284c7 100%)' : '#f8fafc',
-                color: isActive ? '#ffffff' : '#475569',
-                fontWeight: isActive ? 800 : 600,
-                fontSize: '13px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.2s',
-                boxShadow: isActive ? '0 3px 8px rgba(3,105,161,0.25)' : 'none'
-              }}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* TAB 1: অধ্যয়নরত শিক্ষার্থী (Wraps StudentPanelComponent) */}
-      {activeTab === 'enrolled' && (
-        <div>
-          <div style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '10px',
-            padding: '12px 18px',
-            marginBottom: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '10px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '20px' }}>ℹ️</span>
-              <span style={{ fontSize: '13.5px', color: '#166534', fontWeight: 600 }}>
-                অধ্যয়নরত সকল শিক্ষার্থীর ডাটাবেস, নতুন শিক্ষার্থী ভর্তি এন্ট্রি, আইডি কার্ড, প্রত্যয়ন ও প্রমোশন মডিউল।
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {onNavigate && (
-                <>
-                  <button
-                    type="button"
-                    className="mini"
-                    onClick={() => onNavigate('results', 'promotion')}
-                    style={{ background: '#047857', color: '#fff', fontWeight: 700 }}
-                  >
-                    📈 প্রমোশন ও SSC ফরমপূরণ ➔
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-          {StudentPanelComponent && <StudentPanelComponent sub={sub === 'new' ? 'new' : sub === 'csv' ? 'csv' : 'list'} />}
-        </div>
+      {/* TAB 1: অধ্যয়নরত শিক্ষার্থী (Directly renders StudentPanelComponent for full table visibility without duplicate top tabs) */}
+      {activeTab === 'enrolled' && StudentPanelComponent && (
+        <StudentPanelComponent 
+          sub={sub === 'new' ? 'new' : sub === 'csv' ? 'csv' : 'list'} 
+          onLivePreview={() => setPreviewModal({ key: 'public.nav.students.enrolled', title: 'ভিউপেজ প্রিভিউ: অধ্যয়নরত শিক্ষার্থী' })}
+          onNavigatePromotion={() => onNavigate && onNavigate('results', 'promotion')}
+        />
       )}
 
       {/* TAB 2: সরকারি বৃত্তি প্রাপ্ত শিক্ষার্থী */}

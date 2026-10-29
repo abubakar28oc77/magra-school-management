@@ -13,7 +13,14 @@ import {
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 
 export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
-  const [activeTab, setActiveTab] = useState(sub || 'head');
+  const normalizeTab = (s) => {
+    if (!s) return 'active_teachers';
+    if (['teachers', 'teachers_list', 'active_teachers'].includes(s)) return 'active_teachers';
+    if (['staff', 'staff_list', 'active_staff', 'employees'].includes(s)) return 'active_staff';
+    return s;
+  };
+
+  const [activeTab, setActiveTab] = useState(() => normalizeTab(sub));
   const [formerData, setFormerData] = useState(getStoredFormerPersonnelData);
   const [toastMsg, setToastMsg] = useState('');
   const [previewModal, setPreviewModal] = useState(null); // { key, title }
@@ -90,9 +97,12 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
   });
 
   useEffect(() => {
-    if (sub && sub !== activeTab) {
-      setActiveTab(sub);
-      setEditingFormerId(null);
+    if (sub) {
+      const norm = normalizeTab(sub);
+      if (norm !== activeTab) {
+        setActiveTab(norm);
+        setEditingFormerId(null);
+      }
     }
   }, [sub]);
 
@@ -332,94 +342,47 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%)',
-        color: '#ffffff',
-        padding: '20px 24px',
-        borderRadius: '12px',
-        marginBottom: '20px',
-        boxShadow: '0 4px 16px rgba(15,23,42,0.18)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.12)', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 700, color: '#6ee7b7', marginBottom: '8px' }}>
-              <span>👨‍🏫 TEACHERS & STAFF MASTER MANAGEMENT • V118</span>
-            </div>
-            <h1 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 800, letterSpacing: '-0.3px' }}>
-              শিক্ষক ও কর্মচারীবৃন্দ ব্যবস্থাপনা প্যানেল
-            </h1>
-            <p style={{ margin: 0, fontSize: '13px', opacity: 0.85, maxWidth: '780px', lineHeight: 1.5 }}>
-              ভিউ পেজের শিক্ষক ও কর্মচারী মেনুর ৮টি সাবমেনুর তথ্য ইনপুট, আপডেট ও লাইভ নিয়ন্ত্রণ।
-            </p>
+      {/* Sleek single-line sub-header only for non-directory submenus (head, assistant, former_*) */}
+      {!['active_teachers', 'active_staff'].includes(activeTab) && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '8px 14px',
+          background: '#ffffff',
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0',
+          marginBottom: '14px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>{currentTabObj.icon}</span>
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+              {currentTabObj.label}
+            </h2>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => setPreviewModal({ key: `public.nav.staff.${activeTab}`, title: currentTabObj.label })}
-              style={{
-                background: '#059669',
-                color: '#fff',
-                fontWeight: 700,
-                padding: '9px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '13px',
-                boxShadow: '0 2px 6px rgba(5,150,105,0.3)'
-              }}
-            >
-              👁️ ভিউ পেজে লাইভ প্রিভিউ দেখুন
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => setPreviewModal({ key: `public.nav.staff.${activeTab}`, title: currentTabObj.label })}
+            style={{
+              background: '#059669',
+              color: '#fff',
+              fontWeight: 700,
+              padding: '6px 14px',
+              borderRadius: '6px',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '12.5px'
+            }}
+          >
+            👁️ ভিউ পেজে লাইভ প্রিভিউ দেখুন
+          </button>
         </div>
-      </div>
-
-      {/* 8 Sequential Submenu Navigation Tabs */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '6px',
-        background: '#ffffff',
-        padding: '10px 12px',
-        borderRadius: '10px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        border: '1px solid #e2e8f0',
-        marginBottom: '20px'
-      }}>
-        {tabsList.map(tab => {
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => handleTabChange(tab.key)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: isActive ? '1px solid #047857' : '1px solid transparent',
-                background: isActive ? '#047857' : '#f8fafc',
-                color: isActive ? '#ffffff' : '#334155',
-                fontWeight: isActive ? 800 : 600,
-                cursor: 'pointer',
-                fontSize: '13px',
-                transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 2px 6px rgba(4,120,87,0.25)' : 'none'
-              }}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      )}
 
       {/* TAB 1: Head Teacher Management (প্রধান শিক্ষক) */}
       {activeTab === 'head' && (
@@ -769,18 +732,20 @@ export function StaffMasterAdminPanel({ sub, setSub, StaffPanelComponent }) {
         </div>
       )}
 
-      {/* TAB 3: Active Teachers (কর্মরত শিক্ষকবৃন্দ) */}
+      {/* TAB 3: Active Teachers (কর্মরত শিক্ষকবৃন্দ - Directly renders StaffPanelComponent for full table visibility without duplicate top tabs) */}
       {activeTab === 'active_teachers' && StaffPanelComponent && (
-        <div>
-          <StaffPanelComponent sub="teachers_list" />
-        </div>
+        <StaffPanelComponent 
+          sub="teachers_list" 
+          onLivePreview={() => setPreviewModal({ key: 'public.nav.staff.active_teachers', title: 'কর্মরত শিক্ষকবৃন্দ' })}
+        />
       )}
 
       {/* TAB 4: Active Staff (কর্মরত কর্মচারীবৃন্দ) */}
       {activeTab === 'active_staff' && StaffPanelComponent && (
-        <div>
-          <StaffPanelComponent sub="staff_list" />
-        </div>
+        <StaffPanelComponent 
+          sub="staff_list" 
+          onLivePreview={() => setPreviewModal({ key: 'public.nav.staff.active_staff', title: 'কর্মরত কর্মচারীবৃন্দ' })}
+        />
       )}
 
       {/* TABS 5, 6, 7, 8: Former Heads, Former Assistants, Former Teachers, Former Staff */}
