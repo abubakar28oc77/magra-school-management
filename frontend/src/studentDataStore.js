@@ -198,70 +198,180 @@ export const DEFAULT_STIPEND_STUDENTS = [
 ];
 
 export const DEFAULT_MERITORIOUS_STUDENTS = [
+  // ১০ম শ্রেণি — বিজ্ঞান বিভাগ
   {
-    id: 'merit-1',
-    student_id: 'stu-10-sci-01',
-    name_bn: 'তানভীর আহমেদ',
+    id: 'merit-10-sci-01',
+    student_id: 'STU-10-SCI-01',
+    name_bn: 'আহনাফ সিদ্দিক',
     roll_no: '০১',
     class_name: '১০ম',
     section: 'বিজ্ঞান বিভাগ',
-    category: 'বার্ষিক মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
     academic_year: '২০২৫-২০২৬',
-    achievement_title: 'কালিহাতি উপজেলা বিজ্ঞান মেলা ২০২৫ — সেরা খুদে উদ্ভাবক পুরস্কার',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ১ম স্থান ও জিপিএ ৫.০০',
     photo_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&h=240&fit=crop',
-    notes: 'জাতীয় কিশোর প্রোগ্রামিং প্রতিযোগিতায় জেলা পর্যায়ে শ্রেষ্ঠত্ব অর্জন'
+    notes: 'গণিত ও বিজ্ঞান মেলায় শ্রেষ্ঠত্ব অর্জনকারী'
   },
   {
-    id: 'merit-2',
-    student_id: 'stu-09-sci-01',
-    name_bn: 'ফারজানা মেহজাবীন',
+    id: 'merit-10-sci-02',
+    student_id: 'STU-10-SCI-02',
+    name_bn: 'শিহাব উদ্দিন',
+    roll_no: '০২',
+    class_name: '১০ম',
+    section: 'বিজ্ঞান বিভাগ',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ২য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ২য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop',
+    notes: 'নিয়মিত উপস্থিতি ও পড়াশোনায় বিশেষ পারদর্শী'
+  },
+  {
+    id: 'merit-10-sci-03',
+    student_id: 'STU-10-SCI-03',
+    name_bn: 'শাওন আহমেদ',
+    roll_no: '০৩',
+    class_name: '১০ম',
+    section: 'বিজ্ঞান বিভাগ',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ৩য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ৩য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop',
+    notes: 'সহশিক্ষা কার্যক্রম ও কুইজ প্রতিযোগিতায় পারদর্শী'
+  },
+
+  // ৯ম শ্রেণি — বিজ্ঞান বিভাগ
+  {
+    id: 'merit-09-sci-01',
+    student_id: 'STU-09-SCI-01',
+    name_bn: 'দেবজিৎ কর্মকার',
     roll_no: '০১',
     class_name: '৯ম',
     section: 'বিজ্ঞান বিভাগ',
-    category: 'বার্ষিক মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
     academic_year: '২০২৫-২০২৬',
-    achievement_title: 'টাঙ্গাইল জেলা সাহিত্য ও আবৃত্তি উৎসব ২০২৫ — স্বর্ণপদক ও ১ম স্থান',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ১ম স্থান ও জিপিএ ৫.০০',
     photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&h=240&fit=crop',
-    notes: 'বিদ্যালয় দেয়াল পত্রিকা "কিশলয়"-এর প্রধান শিক্ষার্থী সম্পাদক'
+    notes: 'বিজ্ঞান অলিম্পিয়াড ও সাহিত্য চর্চায় অগ্রগামী'
   },
   {
-    id: 'merit-3',
-    student_id: 'stu-08-01',
-    name_bn: 'তাহসিন হাসান',
+    id: 'merit-09-sci-02',
+    student_id: 'STU-09-SCI-02',
+    name_bn: 'মোঃ আবু রাসেল সিদ্দিকী',
+    roll_no: '০২',
+    class_name: '৯ম',
+    section: 'বিজ্ঞান বিভাগ',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ২য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ২য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=240&h=240&fit=crop',
+    notes: 'নিয়মিত উপস্থিতি ও আদর্শ আচরণে অগ্রণী'
+  },
+  {
+    id: 'merit-09-sci-03',
+    student_id: 'STU-09-SCI-03',
+    name_bn: 'মোঃ সিফাত আহমেদ',
+    roll_no: '০৩',
+    class_name: '৯ম',
+    section: 'বিজ্ঞান বিভাগ',
+    department: 'বিজ্ঞান',
+    category: 'মেধা তালিকায় ৩য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ৩য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=240&h=240&fit=crop',
+    notes: 'বিজ্ঞান প্রজেক্ট ও বিতর্ক ক্লাবের সক্রিয় সদস্য'
+  },
+
+  // ৮ম শ্রেণি
+  {
+    id: 'merit-08-01',
+    student_id: 'STU-08-01',
+    name_bn: 'দিপ্ত',
     roll_no: '০১',
     class_name: '৮ম',
-    section: 'ক শাখা',
-    category: 'বার্ষিক মেধা তালিকায় ১ম স্থান',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ১ম স্থান',
     academic_year: '২০২৫-২০২৬',
-    achievement_title: 'উপজেলা গণিত অলিম্পিয়াড ২০২৫ — রানার-আপ পদক',
-    photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop',
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ১ম স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop',
     notes: 'শুদ্ধাচার ও নিয়মিত উপস্থিতিতে আদর্শ শিক্ষার্থী'
   },
   {
-    id: 'merit-4',
-    student_id: 'stu-07-02',
+    id: 'merit-08-02',
+    student_id: 'STU-08-02',
+    name_bn: 'আদর্শ পাল',
+    roll_no: '০২',
+    class_name: '৮ম',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ২য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ২য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=240&h=240&fit=crop',
+    notes: 'পড়াশোনায় গভীর মনোযোগী ও সৃজনশীল শিক্ষার্থী'
+  },
+  {
+    id: 'merit-08-03',
+    student_id: 'STU-08-03',
+    name_bn: 'তাহসিন হাসান',
+    roll_no: '০৩',
+    class_name: '৮ম',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ৩য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ৩য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=240&h=240&fit=crop',
+    notes: 'উপজেলা গণিত অলিম্পিয়াডে রানার-আপ পদক'
+  },
+
+  // ৭ম শ্রেণি
+  {
+    id: 'merit-07-01',
+    student_id: 'STU-07-01',
+    name_bn: 'মাহির ফয়সাল',
+    roll_no: '০১',
+    class_name: '৭ম',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ১ম স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ১ম স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=240&h=240&fit=crop',
+    notes: 'ভর্তি পরীক্ষায় সর্বোচ্চ নম্বর ও উপস্থিতিতে সেরা'
+  },
+  {
+    id: 'merit-07-02',
+    student_id: 'STU-07-02',
     name_bn: 'নাদিয়া সুলতানা',
     roll_no: '০২',
     class_name: '৭ম',
-    section: 'খ শাখা',
-    category: 'মেধা তালিকায় শীর্ষ স্থান',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ২য় স্থান',
     academic_year: '২০২৫-২০২৬',
-    achievement_title: 'জাতীয় শিশু-কিশোর প্রতিযোগিতা — দেশাত্মবোধক গানে জেলা সেরা',
-    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop',
-    notes: 'সাংস্কৃতিক ও সহশিক্ষা কার্যক্রমে অনন্য অবদান'
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ২য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop',
+    notes: 'সাংস্কৃতিক ও দেশাত্মবোধক গানে জেলা সেরা'
   },
   {
-    id: 'merit-5',
-    student_id: 'stu-06-01',
-    name_bn: 'আরিফুর রহমান',
-    roll_no: '০১',
-    class_name: '৬ষ্ঠ',
-    section: 'ক শাখা',
-    category: 'প্রাথমিক মেধা বৃত্তি ও ভর্তি পরীক্ষায় ১ম স্থান',
-    academic_year: '২০২৬',
-    achievement_title: 'ভর্তি পরীক্ষা ২০২৬-এ ১০০ নম্বরের মধ্যে ৯৮ নম্বর পেয়ে শীর্ষ স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop',
-    notes: 'মেধাবী ও ভবিষ্যৎ সম্ভাবনাময় তরুণ শিক্ষার্থী'
+    id: 'merit-07-03',
+    student_id: 'STU-07-03',
+    name_bn: 'তানজিম আহমেদ',
+    roll_no: '০৩',
+    class_name: '৭ম',
+    section: 'সাধারণ বিভাগ',
+    department: '',
+    category: 'মেধা তালিকায় ৩য় স্থান',
+    academic_year: '২০২৫-২০২৬',
+    achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ৩য় স্থান',
+    photo_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=240&h=240&fit=crop',
+    notes: 'সৃজনশীল মেধা অন্বেষণে বিশেষ প্রশংসাপ্রাপ্ত'
   }
 ];
 
@@ -418,11 +528,107 @@ export function saveStoredStipendStudents(data) {
 
 export function getStoredMeritoriousStudents() {
   try {
-    const raw = localStorage.getItem('magra_db_meritorious_students');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+    let enrolled = [];
+    try {
+      const rawEnrolled = localStorage.getItem('magra_db_students');
+      if (rawEnrolled) {
+        const parsed = JSON.parse(rawEnrolled);
+        if (Array.isArray(parsed) && parsed.length) enrolled = parsed;
+      }
+    } catch {}
+
+    let customList = [];
+    try {
+      const rawCustom = localStorage.getItem('magra_db_meritorious_students');
+      if (rawCustom) {
+        const parsed = JSON.parse(rawCustom);
+        if (Array.isArray(parsed) && parsed.length) customList = parsed;
+      }
+    } catch {}
+
+    // Check if stored list is obsolete mock list (<= 5 students or has old mock name 'তানভীর আহমেদ')
+    const isObsoleteMock = !customList.length || customList.length <= 5 || customList.some(s => s.name_bn === 'তানভীর আহমেদ' || s.student_id === 'stu-06-01');
+
+    const customMap = new Map();
+    if (!isObsoleteMock) {
+      customList.forEach(item => {
+        if (item.student_id) customMap.set(String(item.student_id).toUpperCase().trim(), item);
+        if (item.id) customMap.set(String(item.id).toUpperCase().trim(), item);
+      });
     }
+
+    const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+    const parseNum = (val) => {
+      if (!val && val !== 0) return 99999;
+      const str = String(val).trim();
+      const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+      const m = converted.match(/\d+/);
+      return m ? parseInt(m[0], 10) : 99999;
+    };
+    const isSci = (s) => {
+      const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id].filter(Boolean).join(' ').toLowerCase();
+      return str.includes('বিজ্ঞান') || str.includes('sci');
+    };
+
+    const targets = [
+      { classNum: 10, classBn: '১০ম', isScience: true, roll: 1, posLabel: '১ম স্থান ও জিপিএ ৫.০০' },
+      { classNum: 10, classBn: '১০ম', isScience: true, roll: 2, posLabel: '২য় স্থান' },
+      { classNum: 10, classBn: '১০ম', isScience: true, roll: 3, posLabel: '৩য় স্থান' },
+      { classNum: 9, classBn: '৯ম', isScience: true, roll: 1, posLabel: '১ম স্থান ও জিপিএ ৫.০০' },
+      { classNum: 9, classBn: '৯ম', isScience: true, roll: 2, posLabel: '২য় স্থান' },
+      { classNum: 9, classBn: '৯ম', isScience: true, roll: 3, posLabel: '৩য় স্থান' },
+      { classNum: 8, classBn: '৮ম', isScience: false, roll: 1, posLabel: '১ম স্থান' },
+      { classNum: 8, classBn: '৮ম', isScience: false, roll: 2, posLabel: '২য় স্থান' },
+      { classNum: 8, classBn: '৮ম', isScience: false, roll: 3, posLabel: '৩য় স্থান' },
+      { classNum: 7, classBn: '৭ম', isScience: false, roll: 1, posLabel: '১ম স্থান' },
+      { classNum: 7, classBn: '৭ম', isScience: false, roll: 2, posLabel: '২য় স্থান' },
+      { classNum: 7, classBn: '৭ম', isScience: false, roll: 3, posLabel: '৩য় স্থান' },
+    ];
+
+    const result = targets.map((t, idx) => {
+      const defaultItem = DEFAULT_MERITORIOUS_STUDENTS[idx] || {};
+      
+      const found = enrolled.find(s => {
+        const c = parseNum(s.class_name);
+        if (c !== t.classNum) return false;
+        const r = parseNum(s.roll_no);
+        if (r !== t.roll) return false;
+        if (t.isScience) return isSci(s);
+        return true;
+      });
+
+      const name_bn = found?.name_bn || defaultItem.name_bn || '';
+      const student_id = found?.student_id || defaultItem.student_id || `STU-${t.classNum}-${t.roll}`;
+      const roll_no = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'][t.roll] ? '০' + ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'][t.roll] : String(t.roll);
+      const section = t.isScience ? 'বিজ্ঞান বিভাগ' : (found?.section || defaultItem.section || 'সাধারণ বিভাগ');
+      
+      const custom = customMap.get(String(student_id).toUpperCase().trim()) || 
+                     customMap.get(String(defaultItem.student_id || '').toUpperCase().trim()) ||
+                     customMap.get(String(defaultItem.id || '').toUpperCase().trim());
+
+      return {
+        id: defaultItem.id || `merit-${t.classNum}-${t.roll}`,
+        student_id: student_id,
+        name_bn: custom?.name_bn || name_bn,
+        roll_no: roll_no,
+        class_name: t.classBn,
+        section: section,
+        department: t.isScience ? 'বিজ্ঞান' : (found?.department || ''),
+        category: custom?.category || defaultItem.category || `মেধা তালিকায় ${t.posLabel}`,
+        academic_year: custom?.academic_year || defaultItem.academic_year || '২০২৫-২০২৬',
+        achievement_title: custom?.achievement_title || defaultItem.achievement_title || `বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ${t.posLabel}`,
+        photo_url: custom?.photo_url || defaultItem.photo_url || found?.photo_url || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&h=240&fit=crop',
+        notes: custom?.notes || defaultItem.notes || ''
+      };
+    });
+
+    if (isObsoleteMock) {
+      try {
+        localStorage.setItem('magra_db_meritorious_students', JSON.stringify(result));
+      } catch {}
+    }
+
+    return result;
   } catch {}
   return DEFAULT_MERITORIOUS_STUDENTS;
 }

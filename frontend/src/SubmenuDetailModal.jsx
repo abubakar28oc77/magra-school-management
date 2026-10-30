@@ -2970,73 +2970,122 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
         );
       }
 
-      // 3.3 অধ্যয়নরত কৃতি শিক্ষার্থী
+      // 3.3 অধ্যয়নরত কৃতি শিক্ষার্থী (৭ম, ৮ম এবং ৯ম ও ১০ম শ্রেণির বিজ্ঞান বিভাগের রোল ১, ২, ৩)
       if (menuKey === 'public.nav.students.meritorious' || menuKey === 'public.nav.students.distinguished') {
         const meritList = getStoredMeritoriousStudents();
         const filteredMerit = meritList.filter(item => {
           if (filterClass !== 'all' && !item.class_name.includes(filterClass)) return false;
           if (!searchQuery) return true;
-          return [item.name_bn, item.category, item.achievement_title, item.academic_year].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+          return [item.name_bn, item.category, item.achievement_title, item.academic_year, item.student_id, item.roll_no, item.section].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
         });
+
+        const handlePrintMerit = () => {
+          const w = window.open('', '_blank');
+          if (!w) return;
+          const rows = filteredMerit.map((r, i) => `
+            <tr>
+              <td style="text-align:center;">${toBn(i + 1)}</td>
+              <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
+              <td style="text-align:center;font-weight:700;">শ্রেণি ${r.class_name}</td>
+              <td style="text-align:center;">${r.section || '—'}</td>
+              <td style="text-align:center;font-weight:800;">${toBn(r.roll_no || '—')}</td>
+              <td style="color:#b45309;font-weight:700;">${r.category}</td>
+              <td>${r.achievement_title}</td>
+              <td style="text-align:center;">${r.academic_year || '২০২৫-২০২৬'}</td>
+            </tr>
+          `).join('');
+          w.document.write(`
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা</title>
+            <style>
+              body { font-family: 'SolaimanLipi', sans-serif; padding: 20px; color: #1e293b; }
+              .hdr { text-align: center; border-bottom: 2px double #b45309; padding-bottom: 10px; margin-bottom: 15px; }
+              .hdr h1 { margin: 0; color: #b45309; font-size: 22px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+              th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+              th { background: #fef3c7; font-weight: 700; color: #78350f; }
+            </style></head><body>
+            <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা রেজিস্ট্রি</p></div>
+            <table><thead><tr><th>ক্রম</th><th>শিক্ষার্থীর নাম ও আইডি</th><th>শ্রেণি</th><th>বিভাগ/শাখা</th><th>রোল</th><th>মেধার ক্যাটাগরি</th><th>বিশেষ কৃতিত্ব ও অর্জন</th><th>শিক্ষাবর্ষ</th></tr></thead>
+            <tbody>${rows}</tbody></table>
+            <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
+            </body></html>
+          `);
+          w.document.close();
+        };
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', marginBottom: '14px' }}>
-              🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা গ্যালারি ({filteredMerit.length} জন)
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div className="modal-hero-badge" style={{ margin: 0, background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা গ্যালারি ({filteredMerit.length} জন)
+              </div>
+              <button
+                type="button"
+                onClick={handlePrintMerit}
+                style={{ background: '#b45309', color: '#fff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px' }}
+              >
+                🖨️ প্রিন্ট সম্মাননা তালিকা
+              </button>
             </div>
 
             <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <input
-                placeholder="কৃতি শিক্ষার্থীর নাম / অর্জন খুঁজুন..."
+                placeholder="কৃতি শিক্ষার্থীর নাম / রোল / অর্জন খুঁজুন..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ flex: 1, minWidth: '200px' }}
               />
               <select value={filterClass} onChange={e => setFilterClass(e.target.value)}>
                 <option value="all">🏫 সকল শ্রেণি</option>
-                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
-                <option value="৭ম">৭ম শ্রেণি</option>
+                <option value="১০ম">১০ম শ্রেণি (বিজ্ঞান)</option>
+                <option value="৯ম">৯ম শ্রেণি (বিজ্ঞান)</option>
                 <option value="৮ম">৮ম শ্রেণি</option>
-                <option value="৯ম">৯ম শ্রেণি</option>
-                <option value="১০ম">১০ম শ্রেণি</option>
+                <option value="৭ম">৭ম শ্রেণি</option>
               </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '14px' }}>
               {filteredMerit.map(item => (
                 <div key={item.id} style={{
                   background: '#ffffff',
                   border: '1px solid #fde68a',
                   borderRadius: '12px',
                   padding: '16px',
-                  boxShadow: '0 2px 8px rgba(180,83,9,0.08)',
+                  boxShadow: '0 2px 8px rgba(180,83,9,0.06)',
                   display: 'flex',
                   gap: '14px',
-                  alignItems: 'flex-start'
+                  alignItems: 'flex-start',
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                 }}>
                   <img
                     src={item.photo_url || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&h=120&fit=crop'}
                     alt={item.name_bn}
-                    style={{ width: '64px', height: '64px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #fde68a', flexShrink: 0 }}
+                    style={{ width: '68px', height: '68px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #fde68a', flexShrink: 0 }}
                   />
-                  <div>
-                    <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b' }}>{item.name_bn}</h4>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px', flexWrap: 'wrap' }}>
+                      <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e293b', fontWeight: 800 }}>{item.name_bn}</h4>
+                      <span style={{ fontSize: '11px', color: '#92400e', fontWeight: 700, background: '#fef3c7', padding: '1px 6px', borderRadius: '4px' }}>
+                        রোল {toBn(item.roll_no)}
+                      </span>
+                    </div>
                     <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginBottom: '6px' }}>
-                      শ্রেণি {item.class_name} • {item.section || '—'} (রোল {item.roll_no || '—'})
+                      শ্রেণি {item.class_name} • {item.section || '—'}
                     </span>
                     <span style={{
                       display: 'inline-block',
-                      background: '#fef3c7',
-                      color: '#92400e',
+                      background: '#ecfdf5',
+                      color: '#065f46',
                       padding: '2px 8px',
                       borderRadius: '4px',
                       fontSize: '11px',
                       fontWeight: 700,
-                      marginBottom: '6px'
+                      marginBottom: '6px',
+                      border: '1px solid #a7f3d0'
                     }}>
                       ⭐ {item.category}
                     </span>
-                    <p style={{ margin: 0, fontSize: '12.5px', color: '#047857', fontWeight: 600 }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#047857', fontWeight: 600, lineHeight: 1.4 }}>
                       {item.achievement_title}
                     </p>
                   </div>
