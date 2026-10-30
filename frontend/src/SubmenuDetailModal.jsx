@@ -2761,10 +2761,18 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
       // 3.2 উপবৃত্তি প্রাপ্ত শিক্ষার্থী
       if (menuKey === 'public.nav.students.stipend') {
         const stipendList = getStoredStipendStudents();
+        const normCls = (cls) => {
+          if (!cls) return '';
+          return String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
+        };
         const filteredStipend = stipendList.filter(item => {
-          if (filterClass !== 'all' && !item.class_name.includes(filterClass)) return false;
+          if (filterClass !== 'all') {
+            const fc = normCls(filterClass);
+            const ic = normCls(item.class_name);
+            if (ic !== fc && !item.class_name.includes(filterClass)) return false;
+          }
           if (!searchQuery) return true;
-          return [item.name_bn, item.student_id, item.guardian_name, item.scheme_name].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+          return [item.name_bn, item.student_id, item.roll_no, item.guardian_name, item.scheme_name, item.section].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
         });
 
         const handlePrintStipend = () => {
@@ -2852,7 +2860,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                       <b>{item.name_bn}</b>
                       {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
                     </td>
-                    <td>শ্রেণি {item.class_name} ({item.section || '—'})</td>
+                    <td>শ্রেণি {item.class_name} (রোল {item.roll_no || '—'}{item.section ? ` • ${item.section}` : ''})</td>
                     <td>{item.guardian_name || '—'}</td>
                     <td>
                       <span style={{ fontWeight: 700, color: '#0369a1' }}>{item.mfs_provider}:</span> {item.mfs_account ? item.mfs_account.slice(0, 5) + '****' + item.mfs_account.slice(-2) : '—'}

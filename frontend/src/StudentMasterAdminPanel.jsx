@@ -12,6 +12,7 @@ import {
   saveStoredClassSeats 
 } from './studentDataStore';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
+import { MOCK_STUDENTS } from './mockData';
 
 export function StudentMasterAdminPanel({ 
   sub, 
@@ -124,28 +125,190 @@ export function StudentMasterAdminPanel({
     showToast('সরকারি বৃত্তির রেকর্ড মুছে ফেলা হয়েছে!');
   };
 
-  // 2. Stipend Students State & CRUD
+  // 2. Stipend Students State & Class-wise Selection Engine
   const [stipendStudents, setStipendStudents] = useState(getStoredStipendStudents);
-  const [editingStipendId, setEditingStipendId] = useState(null);
   const [stipendSearch, setStipendSearch] = useState('');
   const [stipendClassFilter, setStipendClassFilter] = useState('all');
-  const [stipendForm, setStipendForm] = useState({
-    student_id: '',
-    name_bn: '',
-    roll_no: '',
-    class_name: '৬ষ্ঠ',
-    section: 'ক শাখা',
-    guardian_name: '',
-    guardian_phone: '',
-    mfs_provider: 'নগদ',
-    mfs_account: '',
-    scheme_name: 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)',
-    academic_year: '২০২৬',
-    amount: '৩,০০০',
-    cycle: 'দ্বি-বার্ষিক',
-    status: 'অনুমোদিত ও সক্রিয়',
-    notes: ''
+  const [stipendStatusFilter, setStipendStatusFilter] = useState('all'); // 'all' | 'stipend' | 'non_stipend'
+  const [editingMfsStudent, setEditingMfsStudent] = useState(null);
+
+  const [enrolledStudents, setEnrolledStudents] = useState(() => {
+    try {
+      const raw = localStorage.getItem('magra_db_students');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch {}
+    return Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : [];
   });
+
+  useEffect(() => {
+    if (activeTab === 'stipend') {
+      try {
+        const raw = localStorage.getItem('magra_db_students');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) setEnrolledStudents(parsed);
+        }
+      } catch {}
+    }
+  }, [activeTab]);
+
+  const normClass = (cls) => {
+    if (!cls) return '';
+    const s = String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
+    const map = {
+      '6': '৬ষ্ঠ', '৬': '৬ষ্ঠ', '৬ষ্ঠ': '৬ষ্ঠ',
+      '7': '৭ম', '৭': '৭ম', '৭ম': '৭ম',
+      '8': '৮ম', '৮': '৮ম', '৮ম': '৮ম',
+      '9': '৯ম', '৯': '৯ম', '৯ম': '৯ম',
+      '10': '১০ম', '১০': '১০ম', '১০ম': '১০ম'
+    };
+    return map[s] || s;
+  };
+
+  const toBnDigits = (num) => {
+    if (num === null || num === undefined || num === '') return '—';
+    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+    return String(num).replace(/[0-9]/g, d => bn[Number(d)]);
+  };
+
+  // Lookup map for existing stipend students
+  const stipendMap = new Map();
+  (stipendStudents || []).forEach(st => {
+    if (st.student_id) stipendMap.set(String(st.student_id), st);
+    if (st.id) {
+      stipendMap.set(String(st.id), st);
+      stipendMap.set(String(st.id).replace(/^stp-/, ''), st);
+    }
+    if (st.roll_no && st.class_name) {
+      stipendMap.set(`${normClass(st.class_name)}_${st.roll_no}`, st);
+    }
+  });
+
+  const isStudentStipend = (s) => {
+    if (!s) return false;
+    const sId = String(s.student_id || s.id || '');
+    const rollKey = `${normClass(s.class_name)}_${toBnDigits(s.roll_no)}`;
+    return stipendMap.has(sId) || stipendMap.has(String(s.id)) || stipendMap.has(rollKey) || s.is_stipend === true;
+  };
+
+  const getStudentStipendRecord = (s) => {
+    if (!s) return null;
+    const sId = String(s.student_id || s.id || '');
+    const rollKey = `${normClass(s.class_name)}_${toBnDigits(s.roll_no)}`;
+    return stipendMap.get(sId) || stipendMap.get(String(s.id)) || stipendMap.get(rollKey) || null;
+  };
+
+  const toggleStudentStipend = (student) => {
+    const isChecked = isStudentStipend(student);
+    const sId = String(student.student_id || student.id);
+    let updated;
+    if (isChecked) {
+      updated = stipendStudents.filter(st => {
+        const match = String(st.student_id || st.id) === sId || 
+                      String(st.id) === `stp-${sId}` || 
+                      (st.roll_no === toBnDigits(student.roll_no) && normClass(st.class_name) === normClass(student.class_name));
+        return !match;
+      });
+      showToast(`${student.name_bn}-কে উপবৃত্তি তালিকা থেকে বাদ দেওয়া হয়েছে!`);
+    } else {
+      const clsName = normClass(student.class_name);
+      const defaultAmount = clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০';
+      const newStipendItem = {
+        id: 'stp-' + (student.id || student.student_id || Date.now()),
+        student_id: student.student_id || student.id,
+        name_bn: student.name_bn,
+        roll_no: toBnDigits(student.roll_no),
+        class_name: clsName,
+        section: student.section || (student.department ? `${student.department} বিভাগ` : 'ক শাখা'),
+        department: student.department || '',
+        guardian_name: student.guardian_name || student.father_name || 'অভিভাবক',
+        guardian_phone: student.guardian_phone || student.father_mobile || student.emergency_phone || '—',
+        mfs_provider: 'নগদ',
+        mfs_account: student.guardian_phone || student.father_mobile || '—',
+        scheme_name: 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)',
+        academic_year: '২০২৬',
+        amount: defaultAmount,
+        cycle: 'দ্বি-বার্ষিক',
+        status: 'অনুমোদিত ও সক্রিয়',
+        notes: 'উপবৃত্তি সুবিধাভোগী আইডি: HSP-2026-' + (student.roll_no || '01'),
+        is_stipend: true
+      };
+      updated = [newStipendItem, ...stipendStudents];
+      showToast(`${student.name_bn}-কে উপবৃত্তি সুবিধাভোগী হিসেবে চিহ্নিত করা হয়েছে!`);
+    }
+    setStipendStudents(updated);
+    saveStoredStipendStudents(updated);
+  };
+
+  const handleBatchSelectClass = (list) => {
+    if (!list.length) return;
+    const existingIds = new Set(stipendStudents.map(st => String(st.student_id || st.id)));
+    const newItems = [];
+    list.forEach(student => {
+      const sId = String(student.student_id || student.id);
+      if (!existingIds.has(sId) && !isStudentStipend(student)) {
+        const clsName = normClass(student.class_name);
+        const defaultAmount = clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০';
+        newItems.push({
+          id: 'stp-' + (student.id || student.student_id),
+          student_id: student.student_id || student.id,
+          name_bn: student.name_bn,
+          roll_no: toBnDigits(student.roll_no),
+          class_name: clsName,
+          section: student.section || (student.department ? `${student.department} বিভাগ` : 'ক শাখা'),
+          department: student.department || '',
+          guardian_name: student.guardian_name || student.father_name || 'অভিভাবক',
+          guardian_phone: student.guardian_phone || student.father_mobile || student.emergency_phone || '—',
+          mfs_provider: 'নগদ',
+          mfs_account: student.guardian_phone || student.father_mobile || '—',
+          scheme_name: 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)',
+          academic_year: '২০২৬',
+          amount: defaultAmount,
+          cycle: 'দ্বি-বার্ষিক',
+          status: 'অনুমোদিত ও সক্রিয়',
+          notes: 'উপবৃত্তি সুবিধাভোগী আইডি: HSP-2026-' + (student.roll_no || '01'),
+          is_stipend: true
+        });
+      }
+    });
+    if (newItems.length > 0) {
+      const updated = [...newItems, ...stipendStudents];
+      setStipendStudents(updated);
+      saveStoredStipendStudents(updated);
+      showToast(`নির্বাচিত ${toBnDigits(newItems.length)} জন শিক্ষার্থীকে উপবৃত্তি তালিকায় অন্তর্ভুক্ত করা হয়েছে!`);
+    } else {
+      showToast('চলতি তালিকার সকল শিক্ষার্থী ইতিমধ্যে উপবৃত্তি তালিকায় অন্তর্ভুক্ত রয়েছে।');
+    }
+  };
+
+  const handleBatchDeselectClass = (list) => {
+    if (!list.length) return;
+    const idsToRemove = new Set(list.map(s => String(s.student_id || s.id)));
+    const updated = stipendStudents.filter(st => {
+      const match = idsToRemove.has(String(st.student_id || st.id)) ||
+                    idsToRemove.has(String(st.id).replace(/^stp-/, ''));
+      return !match;
+    });
+    setStipendStudents(updated);
+    saveStoredStipendStudents(updated);
+    showToast('নির্বাচিত শিক্ষার্থীদের উপবৃত্তি তালিকা থেকে বাদ দেওয়া হয়েছে!');
+  };
+
+  const saveEditedMfs = (updatedItem) => {
+    const updated = stipendStudents.map(st => {
+      if (st.id === updatedItem.id || st.student_id === updatedItem.student_id) {
+        return { ...st, ...updatedItem };
+      }
+      return st;
+    });
+    setStipendStudents(updated);
+    saveStoredStipendStudents(updated);
+    setEditingMfsStudent(null);
+    showToast(`${updatedItem.name_bn}-এর উপবৃত্তি ও MFS তথ্য আপডেট হয়েছে!`);
+  };
 
   const saveStipendStudent = (e) => {
     e.preventDefault();
@@ -750,255 +913,607 @@ export function StudentMasterAdminPanel({
         </div>
       )}
 
-      {/* TAB 3: উপবৃত্তি প্রাপ্ত শিক্ষার্থী */}
-      {activeTab === 'stipend' && (
-        <div className="module-grid">
-          {/* Form Card */}
-          <div className="form-card">
-            <div className="toolbar">
+      {/* TAB 3: উপবৃত্তি প্রাপ্ত শিক্ষার্থী (শ্রেণিভিত্তিক টিক সিলেকশন সিস্টেম) */}
+      {activeTab === 'stipend' && (() => {
+        // Compute class counts
+        const countByClass = {};
+        enrolledStudents.forEach(s => {
+          const c = normClass(s.class_name);
+          countByClass[c] = (countByClass[c] || 0) + 1;
+        });
+
+        // Filter students by selected class & search
+        const displayedStudents = enrolledStudents.filter(s => {
+          const cls = normClass(s.class_name);
+          if (stipendClassFilter !== 'all' && cls !== stipendClassFilter) return false;
+          
+          const isStipend = isStudentStipend(s);
+          if (stipendStatusFilter === 'stipend' && !isStipend) return false;
+          if (stipendStatusFilter === 'non_stipend' && isStipend) return false;
+
+          if (!stipendSearch) return true;
+          const q = stipendSearch.toLowerCase();
+          return [
+            s.name_bn,
+            s.name_en,
+            s.student_id,
+            s.roll_no,
+            s.guardian_name,
+            s.father_name,
+            s.guardian_phone,
+            s.father_mobile
+          ].filter(Boolean).join(' ').toLowerCase().includes(q);
+        });
+
+        const selectedInCurrentFilter = displayedStudents.filter(isStudentStipend).length;
+        const totalAmount = stipendStudents.reduce((acc, curr) => acc + (parseInt(String(curr.amount || '0').replace(/[,৳s]/g, ''), 10) || 0), 0);
+
+        return (
+          <div className="stipend-selection-panel" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Top Summary Bar */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 20px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '14px'
+            }}>
               <div>
-                <span className="eyebrow">STIPEND BENEFICIARY MANAGEMENT</span>
-                <h2>{editingStipendId ? 'উপবৃত্তি তথ্য সম্পাদনা' : 'নতুন উপবৃত্তি সুবিধাভোগী শিক্ষার্থী যোগ'}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '20px' }}>💳</span>
+                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                    উপবৃত্তি সুবিধাভোগী শিক্ষার্থী ব্যবস্থাপনা ও শ্রেণিভিত্তিক সিলেকশন
+                  </h2>
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                  বিদ্যালয়ে এন্ট্রিকৃত শিক্ষার্থীদের শ্রেণি তালিকা থেকে টিক চিহ্নের মাধ্যমে সরাসরি উপবৃত্তি সুবিধাভোগী নির্বাচন করুন
+                </p>
               </div>
-              {editingStipendId && (
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '8px', textAlign: 'center' }}>
+                  <small style={{ color: '#047857', fontWeight: 700, display: 'block', fontSize: '11px' }}>উপবৃত্তি সুবিধাভোগী</small>
+                  <b style={{ color: '#065f46', fontSize: '16px' }}>{toBnDigits(stipendStudents.length)} জন</b>
+                </div>
+
+                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', padding: '6px 14px', borderRadius: '8px', textAlign: 'center' }}>
+                  <small style={{ color: '#0369a1', fontWeight: 700, display: 'block', fontSize: '11px' }}>মোট শিক্ষার্থী</small>
+                  <b style={{ color: '#0c4a6e', fontSize: '16px' }}>{toBnDigits(enrolledStudents.length)} জন</b>
+                </div>
+
                 <button
                   type="button"
-                  className="mini"
                   onClick={() => {
-                    setEditingStipendId(null);
-                    setStipendForm({
-                      student_id: '',
-                      name_bn: '',
-                      roll_no: '',
-                      class_name: '৬ষ্ঠ',
-                      section: 'ক শাখা',
-                      guardian_name: '',
-                      guardian_phone: '',
-                      mfs_provider: 'নগদ',
-                      mfs_account: '',
-                      scheme_name: 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)',
-                      academic_year: '২০২৬',
-                      amount: '৩,০০০',
-                      cycle: 'দ্বি-বার্ষিক',
-                      status: 'অনুমোদিত ও সক্রিয়',
-                      notes: ''
-                    });
+                    const rows = stipendStudents.map((r, i) => `
+                      <tr>
+                        <td style="text-align:center;">${i + 1}</td>
+                        <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
+                        <td style="text-align:center;">শ্রেণি ${r.class_name} (রোল ${r.roll_no || '—'})</td>
+                        <td>${r.guardian_name || '—'}<br><small>${r.guardian_phone || ''}</small></td>
+                        <td><span style="font-weight:700;">${r.mfs_provider}:</span> ${r.mfs_account || '—'}</td>
+                        <td>${r.scheme_name}</td>
+                        <td style="text-align:center;font-weight:700;">৳ ${r.amount}</td>
+                        <td style="text-align:center;">${r.status}</td>
+                      </tr>
+                    `).join('');
+                    const tableHtml = `
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>ক্রম</th>
+                            <th>শিক্ষার্থীর নাম</th>
+                            <th>শ্রেণি ও রোল</th>
+                            <th>অভিভাবক</th>
+                            <th>MFS / ব্যাংক একাউন্ট</th>
+                            <th>প্রকল্পের নাম</th>
+                            <th>পরিমাণ</th>
+                            <th>স্ট্যাটাস</th>
+                          </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                      </table>
+                    `;
+                    printContent('উপবৃত্তি প্রাপ্ত শিক্ষার্থীদের মাস্টার রোল ও পে-রোল তালিকা', tableHtml);
+                  }}
+                  style={{
+                    background: '#047857',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
                   }}
                 >
-                  বাতিল
+                  🖨️ প্রিন্ট মাস্টার রোল
                 </button>
-              )}
-            </div>
-
-            <form onSubmit={saveStipendStudent} className="form-grid">
-              <input
-                placeholder="শিক্ষার্থীর পূর্ণ নাম *"
-                value={stipendForm.name_bn}
-                onChange={e => setStipendForm({ ...stipendForm, name_bn: e.target.value })}
-                required
-              />
-              <input
-                placeholder="Student ID (যেমন: stu-06-05)"
-                value={stipendForm.student_id}
-                onChange={e => setStipendForm({ ...stipendForm, student_id: e.target.value })}
-              />
-              <select
-                value={stipendForm.class_name}
-                onChange={e => setStipendForm({ ...stipendForm, class_name: e.target.value })}
-              >
-                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
-                <option value="৭ম">৭ম শ্রেণি</option>
-                <option value="৮ম">৮ম শ্রেণি</option>
-                <option value="৯ম">৯ম শ্রেণি</option>
-                <option value="১০ম">১০ম শ্রেণি</option>
-              </select>
-              <input
-                placeholder="রোল নম্বর (যেমন: ০৫)"
-                value={stipendForm.roll_no}
-                onChange={e => setStipendForm({ ...stipendForm, roll_no: e.target.value })}
-              />
-              <input
-                placeholder="অভিভাবকের নাম *"
-                value={stipendForm.guardian_name}
-                onChange={e => setStipendForm({ ...stipendForm, guardian_name: e.target.value })}
-              />
-              <input
-                placeholder="অভিভাবকের মোবাইল নম্বর"
-                value={stipendForm.guardian_phone}
-                onChange={e => setStipendForm({ ...stipendForm, guardian_phone: e.target.value })}
-              />
-              <select
-                value={stipendForm.mfs_provider}
-                onChange={e => setStipendForm({ ...stipendForm, mfs_provider: e.target.value })}
-              >
-                <option value="নগদ">নগদ (Nagad)</option>
-                <option value="বিকাশ">বিকাশ (bKash)</option>
-                <option value="রকেট">রকেট (Rocket)</option>
-                <option value="উপায়">উপায় (Upay)</option>
-                <option value="ব্যাংক একাউন্ট">ব্যাংক একাউন্ট</option>
-              </select>
-              <input
-                placeholder="MFS ওয়ালেট / হিসাব নম্বর *"
-                value={stipendForm.mfs_account}
-                onChange={e => setStipendForm({ ...stipendForm, mfs_account: e.target.value })}
-              />
-              <select
-                value={stipendForm.scheme_name}
-                onChange={e => setStipendForm({ ...stipendForm, scheme_name: e.target.value })}
-              >
-                <option value="সমন্বিত উপবৃত্তি কর্মসূচি (HSP)">সমন্বিত উপবৃত্তি কর্মসূচি (HSP)</option>
-                <option value="প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট">প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট</option>
-                <option value="বিদ্যালয় কল্যাণ তহবিল উপবৃত্তি">বিদ্যালয় কল্যাণ তহবিল উপবৃত্তি</option>
-              </select>
-              <input
-                placeholder="শিক্ষাবর্ষ (যেমন: ২০২৬)"
-                value={stipendForm.academic_year}
-                onChange={e => setStipendForm({ ...stipendForm, academic_year: e.target.value })}
-              />
-              <input
-                placeholder="উপবৃত্তির পরিমাণ (টাকা)"
-                value={stipendForm.amount}
-                onChange={e => setStipendForm({ ...stipendForm, amount: e.target.value })}
-              />
-              <select
-                value={stipendForm.status}
-                onChange={e => setStipendForm({ ...stipendForm, status: e.target.value })}
-              >
-                <option value="অনুমোদিত ও সক্রিয়">অনুমোদিত ও সক্রিয়</option>
-                <option value="অপেক্ষমাণ">যাচাই ও অনুমোদনের অপেক্ষায়</option>
-                <option value="স্থগিত">স্থগিত</option>
-              </select>
-
-              <textarea
-                className="full"
-                rows="2"
-                placeholder="উপবৃত্তি সুবিধাভোগী কোড বা অতিরিক্ত মন্তব্য"
-                value={stipendForm.notes}
-                onChange={e => setStipendForm({ ...stipendForm, notes: e.target.value })}
-              />
-
-              <button type="submit" className="btn full" style={{ background: '#059669' }}>
-                {editingStipendId ? '✓ উপবৃত্তি তথ্য আপডেট করুন' : '➕ উপবৃত্তি শিক্ষার্থী সংরক্ষণ করুন'}
-              </button>
-            </form>
-          </div>
-
-          {/* Table Card */}
-          <div className="table-card">
-            <div className="toolbar">
-              <div>
-                <h2>উপবৃত্তি প্রাপ্ত শিক্ষার্থীদের তালিকা</h2>
-                <span>মোট: {stipendStudents.length} জন</span>
               </div>
-              <button
-                type="button"
-                className="mini"
-                onClick={() => {
-                  const rows = stipendStudents.map((r, i) => `
-                    <tr>
-                      <td style="text-align:center;">${i + 1}</td>
-                      <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
-                      <td style="text-align:center;">শ্রেণি ${r.class_name} (রোল ${r.roll_no || '—'})</td>
-                      <td>${r.guardian_name || '—'}<br><small>${r.guardian_phone || ''}</small></td>
-                      <td><span style="font-weight:700;">${r.mfs_provider}:</span> ${r.mfs_account || '—'}</td>
-                      <td>${r.scheme_name}</td>
-                      <td style="text-align:center;font-weight:700;">৳ ${r.amount}</td>
-                      <td style="text-align:center;">${r.status}</td>
+            </div>
+
+            {/* Class Tabs & Filter Bar */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '14px 18px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {/* Class Tabs */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#334155', marginRight: '4px' }}>🏫 শ্রেণি নির্বাচন:</span>
+                {[
+                  { key: 'all', label: '🌐 সকল শ্রেণি', count: enrolledStudents.length },
+                  { key: '১০ম', label: '১০ম শ্রেণি', count: countByClass['১০ম'] || 0 },
+                  { key: '৯ম', label: '৯ম শ্রেণি', count: countByClass['৯ম'] || 0 },
+                  { key: '৮ম', label: '৮ম শ্রেণি', count: countByClass['৮ম'] || 0 },
+                  { key: '৭ম', label: '৭ম শ্রেণি', count: countByClass['৭ম'] || 0 },
+                  { key: '৬ষ্ঠ', label: '৬ষ্ঠ শ্রেণি', count: countByClass['৬ষ্ঠ'] || 0 },
+                ].map(clsTab => {
+                  const isActive = stipendClassFilter === clsTab.key;
+                  return (
+                    <button
+                      key={clsTab.key}
+                      type="button"
+                      onClick={() => setStipendClassFilter(clsTab.key)}
+                      style={{
+                        background: isActive ? '#059669' : '#f8fafc',
+                        color: isActive ? '#ffffff' : '#475569',
+                        border: isActive ? '1px solid #059669' : '1px solid #cbd5e1',
+                        borderRadius: '8px',
+                        padding: '6px 14px',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <span>{clsTab.label}</span>
+                      <span style={{
+                        background: isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                        color: isActive ? '#ffffff' : '#334155',
+                        fontSize: '11px',
+                        padding: '1px 6px',
+                        borderRadius: '10px'
+                      }}>
+                        {toBnDigits(clsTab.count)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Search, Status & Batch Buttons */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: '220px', position: 'relative' }}>
+                  <input
+                    type="text"
+                    placeholder="শিক্ষার্থীর নাম / রোল / আইডি / অভিভাবক খুঁজুন..."
+                    value={stipendSearch}
+                    onChange={e => setStipendSearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '13.5px'
+                    }}
+                  />
+                  {stipendSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setStipendSearch('')}
+                      style={{
+                        position: 'absolute',
+                        right: '8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        color: '#94a3b8',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <select
+                  value={stipendStatusFilter}
+                  onChange={e => setStipendStatusFilter(e.target.value)}
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '13px',
+                    background: '#ffffff',
+                    fontWeight: 600,
+                    color: '#334155'
+                  }}
+                >
+                  <option value="all">📋 সকল শিক্ষার্থী</option>
+                  <option value="stipend">✅ শুধুমাত্র উপবৃত্তি প্রাপ্ত ({toBnDigits(stipendStudents.length)})</option>
+                  <option value="non_stipend">⬜ উপবৃত্তি ছাড়া ({toBnDigits(enrolledStudents.length - stipendStudents.length)})</option>
+                </select>
+
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleBatchSelectClass(displayedStudents)}
+                    style={{
+                      background: '#ecfdf5',
+                      color: '#065f46',
+                      border: '1px solid #a7f3d0',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✓ চলতি তালিকার সবাইকে টিক দিন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleBatchDeselectClass(displayedStudents)}
+                    style={{
+                      background: '#fff1f2',
+                      color: '#be123c',
+                      border: '1px solid #fecdd3',
+                      padding: '7px 12px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '12.5px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✕ চলতি তালিকার টিক বাতিল
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Students Table with Checkbox */}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                padding: '12px 18px',
+                background: '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}>
+                <span style={{ fontSize: '13.5px', fontWeight: 800, color: '#334155' }}>
+                  শ্রেণি ভিত্তিক শিক্ষার্থী তালিকা — টিক দিয়ে উপবৃত্তি সুবিধাভোগী নির্বাচন করুন
+                </span>
+                <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>
+                  প্রদর্শিত হচ্ছে: {toBnDigits(displayedStudents.length)} জন (উপবৃত্তি প্রাপ্ত: {toBnDigits(selectedInCurrentFilter)} জন)
+                </span>
+              </div>
+
+              <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left', minWidth: '780px' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #cbd5e1', color: '#1e293b' }}>
+                      <th style={{ padding: '11px 14px', width: '70px', textAlign: 'center', fontWeight: 800 }}>
+                        টিক চিহ্ন
+                      </th>
+                      <th style={{ padding: '11px 12px', width: '60px', textAlign: 'center', fontWeight: 700 }}>রোল</th>
+                      <th style={{ padding: '11px 12px', fontWeight: 700 }}>শিক্ষার্থীর নাম ও আইডি</th>
+                      <th style={{ padding: '11px 12px', fontWeight: 700 }}>শ্রেণি ও বিভাগ/শাখা</th>
+                      <th style={{ padding: '11px 12px', fontWeight: 700 }}>অভিভাবক ও মোবাইল</th>
+                      <th style={{ padding: '11px 12px', fontWeight: 700 }}>MFS পেমেন্ট গেটওয়ে</th>
+                      <th style={{ padding: '11px 12px', fontWeight: 700 }}>উপবৃত্তি প্রকল্প ও অনুদান</th>
+                      <th style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 700 }}>স্ট্যাটাস ও অ্যাকশন</th>
                     </tr>
-                  `).join('');
-                  const tableHtml = `
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>ক্রম</th>
-                          <th>শিক্ষার্থীর নাম</th>
-                          <th>শ্রেণি ও রোল</th>
-                          <th>অভিভাবক</th>
-                          <th>MFS / ব্যাংক একাউন্ট</th>
-                          <th>প্রকল্পের নাম</th>
-                          <th>পরিমাণ</th>
-                          <th>স্ট্যাটাস</th>
+                  </thead>
+                  <tbody>
+                    {displayedStudents.map((s, idx) => {
+                      const checked = isStudentStipend(s);
+                      const stipendRecord = getStudentStipendRecord(s);
+                      const clsName = normClass(s.class_name);
+
+                      return (
+                        <tr
+                          key={s.id || s.student_id || idx}
+                          style={{
+                            borderBottom: '1px solid #e2e8f0',
+                            background: checked ? '#f0fdf4' : (idx % 2 === 0 ? '#ffffff' : '#fafafa'),
+                            transition: 'background 0.15s ease'
+                          }}
+                        >
+                          {/* Checkbox cell */}
+                          <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleStudentStipend(s)}
+                              title={checked ? 'উপবৃত্তি তালিকা থেকে বাদ দিতে ক্লিক করুন' : 'উপবৃত্তি তালিকায় যুক্ত করতে টিক দিন'}
+                              style={{
+                                width: '20px',
+                                height: '20px',
+                                cursor: 'pointer',
+                                accentColor: '#059669',
+                                transform: 'scale(1.15)'
+                              }}
+                            />
+                          </td>
+
+                          {/* Roll */}
+                          <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: checked ? '#047857' : '#475569' }}>
+                            {toBnDigits(s.roll_no)}
+                          </td>
+
+                          {/* Name & ID */}
+                          <td style={{ padding: '10px 12px' }}>
+                            <b style={{ color: checked ? '#065f46' : '#0f172a', fontSize: '13.5px' }}>{s.name_bn}</b>
+                            {s.student_id && (
+                              <small style={{ display: 'block', color: '#64748b', fontSize: '11px' }}>
+                                {s.student_id}
+                              </small>
+                            )}
+                          </td>
+
+                          {/* Class & Section */}
+                          <td style={{ padding: '10px 12px', color: '#334155' }}>
+                            <span style={{ fontWeight: 700 }}>শ্রেণি {clsName}</span>
+                            <small style={{ display: 'block', color: '#64748b' }}>
+                              {s.section || (s.department ? `${s.department} বিভাগ` : 'ক শাখা')}
+                            </small>
+                          </td>
+
+                          {/* Guardian & Phone */}
+                          <td style={{ padding: '10px 12px', color: '#334155' }}>
+                            {s.guardian_name || s.father_name || '—'}
+                            {(s.guardian_phone || s.father_mobile) && (
+                              <small style={{ display: 'block', color: '#64748b' }}>
+                                📱 {s.guardian_phone || s.father_mobile}
+                              </small>
+                            )}
+                          </td>
+
+                          {/* MFS Account */}
+                          <td style={{ padding: '10px 12px' }}>
+                            {checked ? (
+                              <div>
+                                <span style={{ fontWeight: 800, color: '#0369a1' }}>
+                                  {stipendRecord?.mfs_provider || 'নগদ'}:
+                                </span>{' '}
+                                <span style={{ color: '#0f172a', fontWeight: 600 }}>
+                                  {stipendRecord?.mfs_account || s.guardian_phone || s.father_mobile || '—'}
+                                </span>
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
+                            )}
+                          </td>
+
+                          {/* Scheme & Amount */}
+                          <td style={{ padding: '10px 12px' }}>
+                            {checked ? (
+                              <div>
+                                <span style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>
+                                  {stipendRecord?.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}
+                                </span>
+                                <b style={{ display: 'block', color: '#047857', fontSize: '12.5px' }}>
+                                  ৳ {stipendRecord?.amount || (clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০')}
+                                </b>
+                              </div>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
+                            )}
+                          </td>
+
+                          {/* Status & Actions */}
+                          <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                            {checked ? (
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{
+                                  background: '#dcfce7',
+                                  color: '#15803d',
+                                  fontWeight: 800,
+                                  fontSize: '11px',
+                                  padding: '3px 8px',
+                                  borderRadius: '4px',
+                                  border: '1px solid #86efac'
+                                }}>
+                                  ✓ উপবৃত্তি প্রাপ্ত
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingMfsStudent(stipendRecord || {
+                                    id: 'stp-' + (s.id || s.student_id),
+                                    student_id: s.student_id || s.id,
+                                    name_bn: s.name_bn,
+                                    roll_no: toBnDigits(s.roll_no),
+                                    class_name: clsName,
+                                    section: s.section || '',
+                                    guardian_name: s.guardian_name || s.father_name || '',
+                                    guardian_phone: s.guardian_phone || s.father_mobile || '',
+                                    mfs_provider: 'নগদ',
+                                    mfs_account: s.guardian_phone || s.father_mobile || '',
+                                    scheme_name: 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)',
+                                    amount: clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০',
+                                    status: 'অনুমোদিত ও সক্রিয়'
+                                  })}
+                                  title="MFS একাউন্ট বা প্রকল্প পরিবর্তন করুন"
+                                  style={{
+                                    background: '#f1f5f9',
+                                    border: '1px solid #cbd5e1',
+                                    padding: '3px 7px',
+                                    borderRadius: '4px',
+                                    fontSize: '11.5px',
+                                    cursor: 'pointer',
+                                    color: '#334155',
+                                    fontWeight: 700
+                                  }}
+                                >
+                                  ⚙️ MFS
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                fontSize: '11px',
+                                padding: '3px 8px',
+                                borderRadius: '4px'
+                              }}>
+                                উপবৃত্তি ছাড়া
+                              </span>
+                            )}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>${rows}</tbody>
-                    </table>
-                  `;
-                  printContent('উপবৃত্তি প্রাপ্ত শিক্ষার্থীদের মাস্টার রোল ও পে-রোল তালিকা', tableHtml);
-                }}
-                style={{ background: '#047857', color: '#fff', fontWeight: 700 }}
-              >
-                🖨️ প্রিন্ট মাস্টার রোল
-              </button>
-            </div>
+                      );
+                    })}
 
-            <div className="filters" style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-              <input
-                placeholder="শিক্ষার্থী / অভিভাবক / মোবাইল খুঁজুন..."
-                value={stipendSearch}
-                onChange={e => setStipendSearch(e.target.value)}
-                style={{ flex: 1 }}
-              />
-              <select value={stipendClassFilter} onChange={e => setStipendClassFilter(e.target.value)}>
-                <option value="all">সকল শ্রেণি</option>
-                <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
-                <option value="৭ম">৭ম শ্রেণি</option>
-                <option value="৮ম">৮ম শ্রেণি</option>
-                <option value="৯ম">৯ম শ্রেণি</option>
-                <option value="১০ম">১০ম শ্রেণি</option>
-              </select>
-            </div>
-
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>শিক্ষার্থীর নাম ও আইডি</th>
-                    <th>শ্রেণি ও রোল</th>
-                    <th>অভিভাবক ও মোবাইল</th>
-                    <th>MFS গেটওয়ে</th>
-                    <th>প্রকল্পের নাম</th>
-                    <th>পরিমাণ</th>
-                    <th>অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stipendStudents
-                    .filter(item => {
-                      if (stipendClassFilter !== 'all' && item.class_name !== stipendClassFilter) return false;
-                      if (!stipendSearch) return true;
-                      return [item.name_bn, item.student_id, item.guardian_name, item.guardian_phone, item.mfs_account].filter(Boolean).join(' ').toLowerCase().includes(stipendSearch.toLowerCase());
-                    })
-                    .map(item => (
-                      <tr key={item.id}>
-                        <td>
-                          <b>{item.name_bn}</b>
-                          {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
-                        </td>
-                        <td>{item.class_name} (রোল {item.roll_no || '—'})</td>
-                        <td>
-                          {item.guardian_name || '—'}
-                          <small style={{ display: 'block', color: '#64748b' }}>{item.guardian_phone}</small>
-                        </td>
-                        <td>
-                          <span style={{ fontWeight: 700, color: '#0369a1' }}>{item.mfs_provider}:</span> {item.mfs_account || '—'}
-                        </td>
-                        <td><small>{item.scheme_name}</small></td>
-                        <td style={{ fontWeight: 700, color: '#047857' }}>৳ {item.amount}</td>
-                        <td>
-                          <button type="button" className="mini" onClick={() => editStipendStudent(item)}>সম্পাদনা</button>
-                          <button type="button" className="mini" style={{ color: '#dc2626' }} onClick={() => deleteStipendStudent(item.id)}>মুছুন</button>
+                    {!displayedStudents.length && (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: 'center', padding: '32px 16px', color: '#64748b' }}>
+                          🔍 নির্বাচিত ফিল্টারে কোনো শিক্ষার্থী পাওয়া যায়নি।
                         </td>
                       </tr>
-                    ))}
-                  {!stipendStudents.length && (
-                    <tr><td colSpan="7" style={{ textAlign: 'center', padding: '16px' }}>কোনো উপবৃত্তি রেকর্ড পাওয়া যায়নি।</td></tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {/* MFS Quick Edit Modal */}
+            {editingMfsStudent && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(15,23,42,0.6)',
+                display: 'grid',
+                placeItems: 'center',
+                zIndex: 99999,
+                padding: '20px'
+              }}>
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  width: '100%',
+                  maxWidth: '480px',
+                  boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                    <h3 style={{ margin: 0, color: '#047857', fontSize: '16px', fontWeight: 800 }}>
+                      ⚙️ উপবৃত্তি ও MFS পেমেন্ট তথ্য সম্পাদনা
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingMfsStudent(null)}
+                      style={{ background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#334155' }}>
+                    শিক্ষার্থী: <b>{editingMfsStudent.name_bn}</b> (শ্রেণি: {editingMfsStudent.class_name}, রোল: {editingMfsStudent.roll_no})
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>MFS গেটওয়ে:</label>
+                      <select
+                        value={editingMfsStudent.mfs_provider || 'নগদ'}
+                        onChange={e => setEditingMfsStudent({ ...editingMfsStudent, mfs_provider: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      >
+                        <option value="নগদ">নগদ (Nagad)</option>
+                        <option value="বিকাশ">বিকাশ (bKash)</option>
+                        <option value="রকেট">রকেট (Rocket)</option>
+                        <option value="উপায়">উপায় (Upay)</option>
+                        <option value="ব্যাংক একাউন্ট">ব্যাংক একাউন্ট</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>MFS ওয়ালেট / একাউন্ট নম্বর:</label>
+                      <input
+                        type="text"
+                        value={editingMfsStudent.mfs_account || ''}
+                        onChange={e => setEditingMfsStudent({ ...editingMfsStudent, mfs_account: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>উপবৃত্তি প্রকল্পের নাম:</label>
+                      <select
+                        value={editingMfsStudent.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}
+                        onChange={e => setEditingMfsStudent({ ...editingMfsStudent, scheme_name: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      >
+                        <option value="সমন্বিত উপবৃত্তি কর্মসূচি (HSP)">সমন্বিত উপবৃত্তি কর্মসূচি (HSP)</option>
+                        <option value="প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট">প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট</option>
+                        <option value="বিদ্যালয় কল্যাণ তহবিল উপবৃত্তি">বিদ্যালয় কল্যাণ তহবিল উপবৃত্তি</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>অনুদানের পরিমাণ (টাকা):</label>
+                      <input
+                        type="text"
+                        value={editingMfsStudent.amount || ''}
+                        onChange={e => setEditingMfsStudent({ ...editingMfsStudent, amount: e.target.value })}
+                        style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingMfsStudent(null)}
+                        style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        বাতিল
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => saveEditedMfs(editingMfsStudent)}
+                        style={{ background: '#059669', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        ✓ সংরক্ষণ করুন
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 4: অধ্যয়নরত কৃতি শিক্ষার্থী */}
       {activeTab === 'meritorious' && (
