@@ -945,7 +945,45 @@ export function StudentMasterAdminPanel({
           ].filter(Boolean).join(' ').toLowerCase().includes(q);
         });
 
-        const selectedInCurrentFilter = displayedStudents.filter(isStudentStipend).length;
+        const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+        const parseNum = (val) => {
+          if (!val && val !== 0) return 99999;
+          const str = String(val).trim();
+          const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+          const m = converted.match(/\d+/);
+          return m ? parseInt(m[0], 10) : 99999;
+        };
+
+        const getDeptPriority = (s) => {
+          const norm = normClass(s.class_name);
+          const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(norm);
+          if (!isSSC) return 0;
+          const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id].filter(Boolean).join(' ').toLowerCase();
+          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 1;
+          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 2;
+          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 3;
+          return 4;
+        };
+
+        const sortedDisplayedStudents = [...displayedStudents].sort((a, b) => {
+          const ca = parseNum(a.class_name);
+          const cb = parseNum(b.class_name);
+          if (ca !== cb) return ca - cb;
+
+          if (ca === 9 || ca === 10 || ['9', '10', '৯', '১০'].includes(String(ca))) {
+            const pa = getDeptPriority(a);
+            const pb = getDeptPriority(b);
+            if (pa !== pb) return pa - pb;
+          }
+
+          const ra = parseNum(a.roll_no);
+          const rb = parseNum(b.roll_no);
+          if (ra !== rb) return ra - rb;
+
+          return String(a.name_bn || '').localeCompare(String(b.name_bn || ''));
+        });
+
+        const selectedInCurrentFilter = sortedDisplayedStudents.filter(isStudentStipend).length;
         const totalAmount = stipendStudents.reduce((acc, curr) => acc + (parseInt(String(curr.amount || '0').replace(/[,৳s]/g, ''), 10) || 0), 0);
 
         return (
@@ -1232,7 +1270,7 @@ export function StudentMasterAdminPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {displayedStudents.map((s, idx) => {
+                    {sortedDisplayedStudents.map((s, idx) => {
                       const checked = isStudentStipend(s);
                       const stipendRecord = getStudentStipendRecord(s);
                       const clsName = normClass(s.class_name);

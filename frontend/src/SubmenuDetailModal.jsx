@@ -2758,13 +2758,67 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
         );
       }
 
-      // 3.2 উপবৃত্তি প্রাপ্ত শিক্ষার্থী
+      // 3.2 উপবৃত্তি প্রাপ্ত শিক্ষার্থী (৭টি শিরোনামযুক্ত টেবিল ও সুনির্দিষ্ট সর্টিং)
       if (menuKey === 'public.nav.students.stipend') {
         const stipendList = getStoredStipendStudents();
         const normCls = (cls) => {
           if (!cls) return '';
           return String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
         };
+
+        const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+        const parseNum = (val) => {
+          if (!val && val !== 0) return 99999;
+          const str = String(val).trim();
+          const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+          const m = converted.match(/\d+/);
+          return m ? parseInt(m[0], 10) : 99999;
+        };
+
+        const getDepartmentName = (item) => {
+          const norm = normCls(item.class_name);
+          if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) {
+            return '—';
+          }
+          const str = [item.department, item.group_name, item.group, item.section].filter(Boolean).join(' ').toLowerCase();
+          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
+          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
+          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
+          return item.department || '—';
+        };
+
+        const getDeptPriority = (s) => {
+          const norm = normCls(s.class_name);
+          const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(norm);
+          if (!isSSC) return 0;
+          const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id].filter(Boolean).join(' ').toLowerCase();
+          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 1;
+          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 2;
+          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 3;
+          return 4;
+        };
+
+        // Strict sorting: 9-10 (Science -> Humanities -> Business Studies, then roll 1,2,3...), 6-8 (roll 1,2,3...)
+        const sortStipendBeneficiaries = (list) => {
+          return [...list].sort((a, b) => {
+            const ca = parseNum(a.class_name);
+            const cb = parseNum(b.class_name);
+            if (ca !== cb) return ca - cb;
+
+            if (ca === 9 || ca === 10 || ['9', '10', '৯', '১০'].includes(String(ca))) {
+              const pa = getDeptPriority(a);
+              const pb = getDeptPriority(b);
+              if (pa !== pb) return pa - pb;
+            }
+
+            const ra = parseNum(a.roll_no);
+            const rb = parseNum(b.roll_no);
+            if (ra !== rb) return ra - rb;
+
+            return String(a.name_bn || '').localeCompare(String(b.name_bn || ''));
+          });
+        };
+
         const filteredStipend = stipendList.filter(item => {
           if (filterClass !== 'all') {
             const fc = normCls(filterClass);
@@ -2772,22 +2826,23 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
             if (ic !== fc && !item.class_name.includes(filterClass)) return false;
           }
           if (!searchQuery) return true;
-          return [item.name_bn, item.student_id, item.roll_no, item.guardian_name, item.scheme_name, item.section].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
+          return [item.name_bn, item.student_id, item.roll_no, item.guardian_name, item.scheme_name, item.section, item.department].filter(Boolean).join(' ').toLowerCase().includes(searchQuery.toLowerCase());
         });
+
+        const sortedStipend = sortStipendBeneficiaries(filteredStipend);
 
         const handlePrintStipend = () => {
           const w = window.open('', '_blank');
           if (!w) return;
-          const rows = filteredStipend.map((r, i) => `
+          const rows = sortedStipend.map((r, i) => `
             <tr>
-              <td style="text-align:center;">${i + 1}</td>
               <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
-              <td style="text-align:center;">শ্রেণি ${r.class_name} (রোল ${r.roll_no || '—'})</td>
-              <td>${r.guardian_name || '—'}</td>
-              <td>${r.mfs_provider} (${r.mfs_account ? r.mfs_account.slice(0, 5) + '***' : '—'})</td>
-              <td>${r.scheme_name}</td>
-              <td style="text-align:center;font-weight:700;">৳ ${r.amount}</td>
-              <td style="text-align:center;">${r.status}</td>
+              <td style="text-align:center;font-weight:700;">${normCls(r.class_name)}</td>
+              <td style="text-align:center;">${getDepartmentName(r)}</td>
+              <td style="text-align:center;font-weight:800;">${toBn(r.roll_no || '—')}</td>
+              <td>${r.guardian_name || r.father_name || '—'}</td>
+              <td>${r.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</td>
+              <td style="text-align:center;color:#047857;font-weight:700;">✓ ${r.status || 'অনুমোদিত ও সক্রিয়'}</td>
             </tr>
           `).join('');
           w.document.write(`
@@ -2801,7 +2856,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               th { background: #f0fdf4; font-weight: 700; color: #166534; }
             </style></head><body>
             <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>সমন্বিত উপবৃত্তি কর্মসূচি (HSP) ও ট্রাস্ট সুবিধাভোগী শিক্ষার্থী রেজিস্ট্রি</p></div>
-            <table><thead><tr><th>ক্রম</th><th>শিক্ষার্থীর নাম</th><th>শ্রেণি ও রোল</th><th>অভিভাবক</th><th>MFS পেমেন্ট</th><th>প্রকল্পের নাম</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead>
+            <table><thead><tr><th>শিক্ষার্থীর নাম ও আইডি</th><th>শ্রেণি</th><th>বিভাগ</th><th>রোল নং</th><th>অভিভাবকের নাম</th><th>উপবৃত্তি প্রকল্প</th><th>স্ট্যাটাস</th></tr></thead>
             <tbody>${rows}</tbody></table>
             <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
             </body></html>
@@ -2813,7 +2868,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           <div className="submenu-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
               <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
-                💳 উপবৃত্তি প্রাপ্ত শিক্ষার্থী ({filteredStipend.length} জন)
+                💳 উপবৃত্তি প্রাপ্ত শিক্ষার্থী ({sortedStipend.length} জন)
               </div>
               <button
                 type="button"
@@ -2826,7 +2881,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
 
             <div className="filter-bar-modal" style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <input
-                placeholder="শিক্ষার্থীর নাম / অভিভাবক / প্রকল্প খুঁজুন..."
+                placeholder="শিক্ষার্থীর নাম / অভিভাবক / প্রকল্প / রোল খুঁজুন..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ flex: 1, minWidth: '200px' }}
@@ -2845,33 +2900,62 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               <thead>
                 <tr>
                   <th>শিক্ষার্থীর নাম ও আইডি</th>
-                  <th>শ্রেণি ও শাখা</th>
+                  <th style={{ textAlign: 'center', width: '80px' }}>শ্রেণি</th>
+                  <th style={{ textAlign: 'center', width: '110px' }}>বিভাগ</th>
+                  <th style={{ textAlign: 'center', width: '80px' }}>রোল নং</th>
                   <th>অভিভাবকের নাম</th>
-                  <th>MFS গেটওয়ে</th>
                   <th>উপবৃত্তি প্রকল্প</th>
-                  <th>অনুদানের পরিমাণ</th>
-                  <th>স্ট্যাটাস</th>
+                  <th style={{ textAlign: 'center', width: '130px' }}>স্ট্যাটাস</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredStipend.map(item => (
-                  <tr key={item.id}>
-                    <td>
-                      <b>{item.name_bn}</b>
-                      {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
-                    </td>
-                    <td>শ্রেণি {item.class_name} (রোল {item.roll_no || '—'}{item.section ? ` • ${item.section}` : ''})</td>
-                    <td>{item.guardian_name || '—'}</td>
-                    <td>
-                      <span style={{ fontWeight: 700, color: '#0369a1' }}>{item.mfs_provider}:</span> {item.mfs_account ? item.mfs_account.slice(0, 5) + '****' + item.mfs_account.slice(-2) : '—'}
-                    </td>
-                    <td><small>{item.scheme_name}</small></td>
-                    <td style={{ fontWeight: 700, color: '#047857' }}>৳ {item.amount}</td>
-                    <td><span className="status-green">✓ {item.status}</span></td>
-                  </tr>
-                ))}
-                {!filteredStipend.length && (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px' }}>কোনো উপবৃত্তি সুবিধাভোগীর রেকর্ড পাওয়া যায়নি।</td></tr>
+                {sortedStipend.map(item => {
+                  const dept = getDepartmentName(item);
+                  return (
+                    <tr key={item.id || item.student_id}>
+                      <td>
+                        <b style={{ color: '#0f172a' }}>{item.name_bn}</b>
+                        {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#047857' }}>
+                        {normCls(item.class_name)}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {dept !== '—' ? (
+                          <span style={{
+                            background: dept === 'বিজ্ঞান' ? '#e0f2fe' : dept === 'মানবিক' ? '#fef3c7' : '#f3e8ff',
+                            color: dept === 'বিজ্ঞান' ? '#0369a1' : dept === 'মানবিক' ? '#92400e' : '#6b21a8',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            fontSize: '12px'
+                          }}>
+                            {dept}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8' }}>—</span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#0f172a' }}>
+                        {toBn(item.roll_no)}
+                      </td>
+                      <td>
+                        <span style={{ color: '#1e293b' }}>{item.guardian_name || item.father_name || '—'}</span>
+                        {item.guardian_phone && (
+                          <small style={{ display: 'block', color: '#64748b' }}>📱 {item.guardian_phone}</small>
+                        )}
+                      </td>
+                      <td>
+                        <small style={{ fontWeight: 600, color: '#334155' }}>{item.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</small>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span className="status-green">✓ {item.status || 'অনুমোদিত ও সক্রিয়'}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!sortedStipend.length && (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '24px 16px', color: '#64748b' }}>কোনো উপবৃত্তি সুবিধাভোগীর রেকর্ড পাওয়া যায়নি।</td></tr>
                 )}
               </tbody>
             </table>
