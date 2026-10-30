@@ -2841,12 +2841,12 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           const rows = sortedStipend.map((r, i) => `
             <tr>
               <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
-              <td style="text-align:center;font-weight:700;">${normCls(r.class_name)}</td>
-              <td style="text-align:center;">${getDepartmentName(r)}</td>
-              <td style="text-align:center;font-weight:800;">${toBn(r.roll_no || '—')}</td>
+              <td style="text-align:center;font-weight:700;padding:6px 4px;">${normCls(r.class_name)}</td>
+              <td style="text-align:center;padding:6px 4px;">${getDepartmentName(r)}</td>
+              <td style="text-align:center;font-weight:800;padding:6px 4px;">${toBn(r.roll_no || '—')}</td>
               <td>${r.guardian_name || r.father_name || '—'}</td>
               <td>${r.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</td>
-              <td style="text-align:center;color:#047857;font-weight:700;">✓ ${r.status || 'অনুমোদিত ও সক্রিয়'}</td>
+              <td style="text-align:center;color:#047857;font-weight:700;font-size:11px;padding:6px 4px;">✓ ${r.status || 'অনুমোদিত ও সক্রিয়'}</td>
             </tr>
           `).join('');
           w.document.write(`
@@ -2860,7 +2860,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               th { background: #f0fdf4; font-weight: 700; color: #166534; }
             </style></head><body>
             <div class="hdr"><h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1><p>সমন্বিত উপবৃত্তি কর্মসূচি (HSP) ও ট্রাস্ট সুবিধাভোগী শিক্ষার্থী রেজিস্ট্রি</p></div>
-            <table><thead><tr><th>শিক্ষার্থীর নাম ও আইডি</th><th>শ্রেণি</th><th>বিভাগ</th><th>রোল নং</th><th>অভিভাবকের নাম</th><th>উপবৃত্তি প্রকল্প</th><th>স্ট্যাটাস</th></tr></thead>
+            <table><thead><tr><th style="min-width:200px;">শিক্ষার্থীর নাম ও আইডি</th><th style="text-align:center;width:48px;">শ্রেণি</th><th style="text-align:center;width:75px;">বিভাগ</th><th style="text-align:center;width:50px;">রোল নং</th><th>অভিভাবকের নাম</th><th>উপবৃত্তি প্রকল্প</th><th style="text-align:center;width:95px;">স্ট্যাটাস</th></tr></thead>
             <tbody>${rows}</tbody></table>
             <script>window.onload = function() { setTimeout(function(){ window.print(); }, 250); };</script>
             </body></html>
@@ -2900,16 +2900,16 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               </select>
             </div>
 
-            <table className="modal-table">
+            <table className="modal-table" style={{ width: '100%', tableLayout: 'auto' }}>
               <thead>
                 <tr>
-                  <th>শিক্ষার্থীর নাম ও আইডি</th>
-                  <th style={{ textAlign: 'center', width: '80px' }}>শ্রেণি</th>
-                  <th style={{ textAlign: 'center', width: '110px' }}>বিভাগ</th>
-                  <th style={{ textAlign: 'center', width: '80px' }}>রোল নং</th>
-                  <th>অভিভাবকের নাম</th>
-                  <th>উপবৃত্তি প্রকল্প</th>
-                  <th style={{ textAlign: 'center', width: '130px' }}>স্ট্যাটাস</th>
+                  <th style={{ minWidth: '220px', width: '28%' }}>শিক্ষার্থীর নাম ও আইডি</th>
+                  <th style={{ textAlign: 'center', width: '48px', padding: '10px 4px', whiteSpace: 'nowrap' }}>শ্রেণি</th>
+                  <th style={{ textAlign: 'center', width: '75px', padding: '10px 4px', whiteSpace: 'nowrap' }}>বিভাগ</th>
+                  <th style={{ textAlign: 'center', width: '50px', padding: '10px 4px', whiteSpace: 'nowrap' }}>রোল নং</th>
+                  <th style={{ minWidth: '150px' }}>অভিভাবকের নাম</th>
+                  <th style={{ minWidth: '140px' }}>উপবৃত্তি প্রকল্প</th>
+                  <th style={{ textAlign: 'center', width: '95px', padding: '10px 4px', whiteSpace: 'nowrap' }}>স্ট্যাটাস</th>
                 </tr>
               </thead>
               <tbody>
@@ -2917,22 +2917,23 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                   const dept = getDepartmentName(item);
                   return (
                     <tr key={item.id || item.student_id}>
-                      <td>
-                        <b style={{ color: '#0f172a' }}>{item.name_bn}</b>
-                        {item.student_id && <small style={{ display: 'block', color: '#64748b' }}>{item.student_id}</small>}
+                      <td style={{ padding: '10px 12px' }}>
+                        <b style={{ color: '#0f172a', fontSize: '13.5px', display: 'inline-block', lineHeight: 1.35 }}>{item.name_bn}</b>
+                        {item.student_id && <small style={{ display: 'block', color: '#64748b', fontSize: '11px', marginTop: '2px' }}>{item.student_id}</small>}
                       </td>
-                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#047857' }}>
+                      <td style={{ textAlign: 'center', fontWeight: 700, color: '#047857', padding: '9px 4px', whiteSpace: 'nowrap' }}>
                         {normCls(item.class_name)}
                       </td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td style={{ textAlign: 'center', padding: '9px 4px', whiteSpace: 'nowrap' }}>
                         {dept !== '—' ? (
                           <span style={{
                             background: dept === 'বিজ্ঞান' ? '#e0f2fe' : dept === 'মানবিক' ? '#fef3c7' : '#f3e8ff',
                             color: dept === 'বিজ্ঞান' ? '#0369a1' : dept === 'মানবিক' ? '#92400e' : '#6b21a8',
-                            padding: '3px 8px',
+                            padding: '2px 6px',
                             borderRadius: '4px',
                             fontWeight: 700,
-                            fontSize: '12px'
+                            fontSize: '11.5px',
+                            display: 'inline-block'
                           }}>
                             {dept}
                           </span>
@@ -2940,7 +2941,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                           <span style={{ color: '#94a3b8' }}>—</span>
                         )}
                       </td>
-                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#0f172a' }}>
+                      <td style={{ textAlign: 'center', fontWeight: 800, color: '#0f172a', padding: '9px 4px', whiteSpace: 'nowrap' }}>
                         {toBn(item.roll_no)}
                       </td>
                       <td>
@@ -2952,8 +2953,10 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                       <td>
                         <small style={{ fontWeight: 600, color: '#334155' }}>{item.scheme_name || 'সমন্বিত উপবৃত্তি কর্মসূচি (HSP)'}</small>
                       </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <span className="status-green">✓ {item.status || 'অনুমোদিত ও সক্রিয়'}</span>
+                      <td style={{ textAlign: 'center', padding: '9px 4px' }}>
+                        <span className="status-green" style={{ fontSize: '11px', padding: '3px 6px', display: 'inline-block', lineHeight: 1.2 }}>
+                          ✓ {item.status || 'অনুমোদিত ও সক্রিয়'}
+                        </span>
                       </td>
                     </tr>
                   );
