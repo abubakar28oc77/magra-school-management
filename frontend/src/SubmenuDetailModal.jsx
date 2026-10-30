@@ -137,6 +137,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [filterReligion, setFilterReligion] = useState('all');
   const [filterGender, setFilterGender] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState('all');
   const [libraryCategory, setLibraryCategory] = useState('all');
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
@@ -2087,14 +2088,14 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
       <div style={{ overflowX: 'auto', width: '100%' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left', minWidth: '640px' }}>
           <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1', color: '#334155' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'center', width: '45px', fontWeight: 700 }}>ক্রম</th>
-              <th style={{ padding: '10px 12px', fontWeight: 700 }}>পরীক্ষা / অর্জিত ডিগ্রি</th>
-              <th style={{ padding: '10px 12px', fontWeight: 700 }}>শিক্ষা প্রতিষ্ঠান</th>
-              <th style={{ padding: '10px 12px', fontWeight: 700 }}>বোর্ড / বিশ্ববিদ্যালয়</th>
-              <th style={{ padding: '10px 12px', fontWeight: 700 }}>বিভাগ / বিষয়</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>পাসের সন</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700 }}>ফলাফল / শ্রেণি</th>
+            <tr style={{ background: badgeBg, borderBottom: `2px solid ${badgeBorder}`, color: themeColor }}>
+              <th style={{ padding: '10px 12px', textAlign: 'center', width: '45px', fontWeight: 700, color: themeColor }}>ক্রম</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>পরীক্ষা / অর্জিত ডিগ্রি</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>শিক্ষা প্রতিষ্ঠান</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>বোর্ড / বিশ্ববিদ্যালয়</th>
+              <th style={{ padding: '10px 12px', fontWeight: 700, color: themeColor }}>বিভাগ / বিষয়</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>পাসের সন</th>
+              <th style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 700, color: themeColor }}>ফলাফল / শ্রেণি</th>
             </tr>
           </thead>
           <tbody>
@@ -2301,32 +2302,121 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
 
         listToDisplay = sortPeopleByEmployeeId(listToDisplay);
 
+        const filteredTeachers = listToDisplay.filter(t => {
+          if (selectedTeacherId && selectedTeacherId !== 'all') {
+            if (String(t.id) !== String(selectedTeacherId) && String(t.employee_id) !== String(selectedTeacherId)) {
+              return false;
+            }
+          }
+          if (!searchQuery) return true;
+          const q = searchQuery.toLowerCase();
+          return [
+            t.name_bn,
+            t.name_en,
+            t.employee_id,
+            t.mpo_index_no,
+            t.designation,
+            t.subject,
+            t.phone,
+            t.email,
+            t.educational_qualifications
+          ].filter(Boolean).some(val => String(val).toLowerCase().includes(q));
+        });
+
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <span>👨‍🏫 কর্মরত সম্মানিত শিক্ষকবৃন্দ ({listToDisplay.length} জন)</span>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+              <span>👨‍🏫 কর্মরত সম্মানিত শিক্ষকবৃন্দ ({filteredTeachers.length} জন)</span>
               <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
-                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
-            <p className="lead-text">বিদ্যালয়ের দক্ষ, অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষকমণ্ডলী:</p>
-            <div className="teachers-modal-grid">
-              {listToDisplay.map((t, idx) => (
-                <div key={t.id || idx} className="teacher-modal-card" style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ width: '64px', height: '64px', minWidth: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid #047857', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
-                    <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', flexWrap: 'wrap' }}>
-                      <span style={{ background: '#047857', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '1px 6px', borderRadius: '4px' }}>ID: {t.employee_id}</span>
-                      <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{t.name_bn || t.name_en}</h4>
-                    </div>
-                    <p style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#047857', fontWeight: 600 }}>{t.designation || 'সহকারী শিক্ষক'}{t.subject ? (' (' + t.subject + ')') : ''}</p>
-                    {t.phone && <small style={{ display: 'block', color: '#475569' }}>📱 {t.phone}</small>}
-                  </div>
-                </div>
-              ))}
+
+            {/* Search & Quick Dropdown Filter */}
+            <div className="filter-bar-modal" style={{ display: 'flex', gap: '10px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                placeholder="শিক্ষকের নাম / আইডি / পদবী / বিষয় / যোগ্যতা দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ flex: 1, minWidth: '220px', padding: '9px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13.5px' }}
+              />
+              <select
+                value={selectedTeacherId}
+                onChange={e => setSelectedTeacherId(e.target.value)}
+                style={{ padding: '9px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13.5px', background: '#fff', fontWeight: 600, color: '#334155' }}
+              >
+                <option value="all">👥 সকল কর্মরত শিক্ষক ({listToDisplay.length} জন)</option>
+                {listToDisplay.map((t, i) => (
+                  <option key={t.id || t.employee_id || i} value={t.id || t.employee_id}>
+                    {t.employee_id}: {t.name_bn} {t.designation ? `(${t.designation})` : ''}
+                  </option>
+                ))}
+              </select>
+              {(searchQuery || selectedTeacherId !== 'all') && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchQuery(''); setSelectedTeacherId('all'); }}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '9px 14px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 700, color: '#475569' }}
+                >
+                  ✕ রিসেট
+                </button>
+              )}
             </div>
+
+            {filteredTeachers.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1' }}>
+                🔍 কোনো শিক্ষকের তথ্য পাওয়া যায়নি। অনুগ্রহ করে অনুসন্ধান কীওয়ার্ড পরিবর্তন করুন।
+              </div>
+            ) : (
+              <div className="active-teachers-detailed-list" style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
+                {filteredTeachers.map((t, idx) => (
+                  <div 
+                    key={t.id || t.employee_id || idx}
+                    style={{ 
+                      background: '#ffffff',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                      padding: '16px 18px 4px',
+                      position: 'relative'
+                    }}
+                  >
+                    {/* Profile Header Card */}
+                    <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '0 0 16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+                      <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(13,148,136,0.25)', border: '3px solid #0d9488' }}>
+                        <img src={getTeacherPhoto(t)} alt={t.name_bn || t.name_en} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: '220px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ background: '#0d9488', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                            Employee ID: {t.employee_id || `EMP-${String(idx + 1).padStart(3, '0')}`}
+                          </span>
+                          {t.mpo_index_no && (
+                            <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                              MPO Index: {t.mpo_index_no}
+                            </span>
+                          )}
+                        </div>
+                        <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{t.name_bn || t.name_en}</h3>
+                        {t.name_en && <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{t.name_en}</p>}
+                        <p style={{ margin: '0 0 4px 0', color: '#0d9488', fontWeight: 700, fontSize: '15px' }}>
+                          {t.designation || 'সহকারী শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                        </p>
+                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                          {t.phone && <span>📱 {t.phone}</span>}
+                          {t.email && <span>✉️ {t.email}</span>}
+                          {t.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {t.current_post_joining_date}</span>}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Educational Qualification Table */}
+                    {renderTeacherEducationTable(t, '#0d9488', '#f0fdfa', '#99f6e4')}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
       }
