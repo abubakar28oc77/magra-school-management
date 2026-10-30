@@ -174,56 +174,147 @@ export function StudentMasterAdminPanel({
     return String(num).replace(/[0-9]/g, d => bn[Number(d)]);
   };
 
-  // Lookup map for existing stipend students
+  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+  const parseNum = (val) => {
+    if (!val && val !== 0) return 99999;
+    const str = String(val).trim();
+    const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+    const m = converted.match(/\d+/);
+    return m ? parseInt(m[0], 10) : 99999;
+  };
+
+  const cleanId = (val) => {
+    if (!val && val !== 0) return '';
+    return String(val).trim().replace(/^stp-/i, '').toLowerCase();
+  };
+
+  const resolveDepartment = (s) => {
+    if (!s) return '';
+    const norm = normClass(s.class_name);
+    if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) return '';
+    const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id]
+      .filter(Boolean)
+      .join(' ')
+      .replace(/য়/g, 'য়')
+      .toLowerCase();
+
+    if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
+    if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
+    if (str.includes('ব্যবসায়') || str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
+    return s.department ? String(s.department).replace(/য়/g, 'য়') : '';
+  };
+
+  const getStudentAcademicKey = (item) => {
+    if (!item) return '';
+    const cls = normClass(item.class_name);
+    const roll = parseNum(item.roll_no);
+    if (!cls || roll === 99999) return '';
+    const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(cls);
+    if (isSSC) {
+      const dept = resolveDepartment(item);
+      return `${cls}_${dept || 'all'}_${roll}`;
+    } else {
+      const sec = (item.section || '').includes('খ') ? 'খ' : ((item.section || '').includes('ক') ? 'ক' : '');
+      return sec ? `${cls}_${sec}_${roll}` : `${cls}_${roll}`;
+    }
+  };
+
+  const isSameStudent = (a, b) => {
+    if (!a || !b) return false;
+
+    const aId = cleanId(a.id);
+    const aSid = cleanId(a.student_id);
+    const bId = cleanId(b.id);
+    const bSid = cleanId(b.student_id);
+
+    if (aId && (aId === bId || aId === bSid)) return true;
+    if (aSid && (aSid === bId || aSid === bSid)) return true;
+
+    const aCls = normClass(a.class_name);
+    const bCls = normClass(b.class_name);
+    if (!aCls || !bCls || aCls !== bCls) return false;
+
+    const aRoll = parseNum(a.roll_no);
+    const bRoll = parseNum(b.roll_no);
+    if (aRoll === 99999 || bRoll === 99999 || aRoll !== bRoll) return false;
+
+    const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(aCls);
+    if (isSSC) {
+      const aDept = resolveDepartment(a);
+      const bDept = resolveDepartment(b);
+      if (aDept && bDept) {
+        return aDept === bDept;
+      }
+    } else {
+      const aSec = (a.section || '').includes('খ') ? 'খ' : ((a.section || '').includes('ক') ? 'ক' : '');
+      const bSec = (b.section || '').includes('খ') ? 'খ' : ((b.section || '').includes('ক') ? 'ক' : '');
+      if (aSec && bSec && aSec !== bSec) return false;
+      return true;
+    }
+
+    if (a.name_bn && b.name_bn && a.name_bn.trim() === b.name_bn.trim()) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Lookup map for existing stipend students (ID-first, with specific class+dept+roll key)
   const stipendMap = new Map();
   (stipendStudents || []).forEach(st => {
-    if (st.student_id) stipendMap.set(String(st.student_id), st);
-    if (st.id) {
-      stipendMap.set(String(st.id), st);
-      stipendMap.set(String(st.id).replace(/^stp-/, ''), st);
-    }
-    if (st.roll_no && st.class_name) {
-      stipendMap.set(`${normClass(st.class_name)}_${st.roll_no}`, st);
+    const idClean = cleanId(st.id);
+    const sidClean = cleanId(st.student_id);
+    if (idClean) stipendMap.set(`id:${idClean}`, st);
+    if (sidClean) stipendMap.set(`id:${sidClean}`, st);
+
+    const acadKey = getStudentAcademicKey(st);
+    if (acadKey) {
+      stipendMap.set(`acad:${acadKey}`, st);
     }
   });
 
-  const isStudentStipend = (s) => {
-    if (!s) return false;
-    const sId = String(s.student_id || s.id || '');
-    const rollKey = `${normClass(s.class_name)}_${toBnDigits(s.roll_no)}`;
-    return stipendMap.has(sId) || stipendMap.has(String(s.id)) || stipendMap.has(rollKey) || s.is_stipend === true;
-  };
-
   const getStudentStipendRecord = (s) => {
     if (!s) return null;
-    const sId = String(s.student_id || s.id || '');
-    const rollKey = `${normClass(s.class_name)}_${toBnDigits(s.roll_no)}`;
-    return stipendMap.get(sId) || stipendMap.get(String(s.id)) || stipendMap.get(rollKey) || null;
+    const idClean = cleanId(s.id);
+    const sidClean = cleanId(s.student_id);
+    if (idClean && stipendMap.has(`id:${idClean}`)) {
+      return stipendMap.get(`id:${idClean}`);
+    }
+    if (sidClean && stipendMap.has(`id:${sidClean}`)) {
+      return stipendMap.get(`id:${sidClean}`);
+    }
+    const acadKey = getStudentAcademicKey(s);
+    if (acadKey && stipendMap.has(`acad:${acadKey}`)) {
+      return stipendMap.get(`acad:${acadKey}`);
+    }
+    return null;
+  };
+
+  const isStudentStipend = (s) => {
+    if (!s) return false;
+    return getStudentStipendRecord(s) !== null;
   };
 
   const toggleStudentStipend = (student) => {
     const isChecked = isStudentStipend(student);
-    const sId = String(student.student_id || student.id);
     let updated;
     if (isChecked) {
-      updated = stipendStudents.filter(st => {
-        const match = String(st.student_id || st.id) === sId || 
-                      String(st.id) === `stp-${sId}` || 
-                      (st.roll_no === toBnDigits(student.roll_no) && normClass(st.class_name) === normClass(student.class_name));
-        return !match;
-      });
+      updated = stipendStudents.filter(st => !isSameStudent(st, student));
       showToast(`${student.name_bn}-কে উপবৃত্তি তালিকা থেকে বাদ দেওয়া হয়েছে!`);
     } else {
       const clsName = normClass(student.class_name);
       const defaultAmount = clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০';
+      const dept = resolveDepartment(student);
+      const sId = student.student_id || student.id;
       const newStipendItem = {
         id: 'stp-' + (student.id || student.student_id || Date.now()),
-        student_id: student.student_id || student.id,
+        student_id: sId,
         name_bn: student.name_bn,
         roll_no: toBnDigits(student.roll_no),
         class_name: clsName,
-        section: student.section || (student.department ? `${student.department} বিভাগ` : 'ক শাখা'),
-        department: student.department || '',
+        section: student.section || (dept ? `${dept} বিভাগ` : 'ক শাখা'),
+        department: dept || student.department || '',
+        group_name: student.group_name || (dept ? `${dept} বিভাগ` : ''),
         guardian_name: student.guardian_name || student.father_name || 'অভিভাবক',
         guardian_phone: student.guardian_phone || student.father_mobile || student.emergency_phone || '—',
         mfs_provider: 'নগদ',
@@ -245,21 +336,22 @@ export function StudentMasterAdminPanel({
 
   const handleBatchSelectClass = (list) => {
     if (!list.length) return;
-    const existingIds = new Set(stipendStudents.map(st => String(st.student_id || st.id)));
     const newItems = [];
     list.forEach(student => {
-      const sId = String(student.student_id || student.id);
-      if (!existingIds.has(sId) && !isStudentStipend(student)) {
+      if (!isStudentStipend(student)) {
         const clsName = normClass(student.class_name);
         const defaultAmount = clsName === '১০ম' ? '৪,৫০০' : clsName === '৯ম' ? '৪,২০০' : '৩,০০০';
+        const dept = resolveDepartment(student);
+        const sId = student.student_id || student.id;
         newItems.push({
-          id: 'stp-' + (student.id || student.student_id),
-          student_id: student.student_id || student.id,
+          id: 'stp-' + (student.id || student.student_id || Date.now()),
+          student_id: sId,
           name_bn: student.name_bn,
           roll_no: toBnDigits(student.roll_no),
           class_name: clsName,
-          section: student.section || (student.department ? `${student.department} বিভাগ` : 'ক শাখা'),
-          department: student.department || '',
+          section: student.section || (dept ? `${dept} বিভাগ` : 'ক শাখা'),
+          department: dept || student.department || '',
+          group_name: student.group_name || (dept ? `${dept} বিভাগ` : ''),
           guardian_name: student.guardian_name || student.father_name || 'অভিভাবক',
           guardian_phone: student.guardian_phone || student.father_mobile || student.emergency_phone || '—',
           mfs_provider: 'নগদ',
@@ -286,11 +378,8 @@ export function StudentMasterAdminPanel({
 
   const handleBatchDeselectClass = (list) => {
     if (!list.length) return;
-    const idsToRemove = new Set(list.map(s => String(s.student_id || s.id)));
     const updated = stipendStudents.filter(st => {
-      const match = idsToRemove.has(String(st.student_id || st.id)) ||
-                    idsToRemove.has(String(st.id).replace(/^stp-/, ''));
-      return !match;
+      return !list.some(s => isSameStudent(st, s));
     });
     setStipendStudents(updated);
     saveStoredStipendStudents(updated);
@@ -945,23 +1034,14 @@ export function StudentMasterAdminPanel({
           ].filter(Boolean).join(' ').toLowerCase().includes(q);
         });
 
-        const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
-        const parseNum = (val) => {
-          if (!val && val !== 0) return 99999;
-          const str = String(val).trim();
-          const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
-          const m = converted.match(/\d+/);
-          return m ? parseInt(m[0], 10) : 99999;
-        };
-
         const getDeptPriority = (s) => {
           const norm = normClass(s.class_name);
           const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(norm);
           if (!isSSC) return 0;
-          const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id].filter(Boolean).join(' ').toLowerCase();
-          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 1;
-          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 2;
-          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 3;
+          const dept = resolveDepartment(s);
+          if (dept === 'বিজ্ঞান') return 1;
+          if (dept === 'মানবিক') return 2;
+          if (dept === 'ব্যবসায় শিক্ষা') return 3;
           return 4;
         };
 
@@ -1318,9 +1398,27 @@ export function StudentMasterAdminPanel({
 
                           {/* Class & Section */}
                           <td style={{ padding: '10px 12px', color: '#334155' }}>
-                            <span style={{ fontWeight: 700 }}>শ্রেণি {clsName}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: 700 }}>শ্রেণি {clsName}</span>
+                              {(() => {
+                                const dept = resolveDepartment(s);
+                                if (!dept) return null;
+                                return (
+                                  <span style={{
+                                    background: dept === 'বিজ্ঞান' ? '#e0f2fe' : dept === 'মানবিক' ? '#fef3c7' : '#f3e8ff',
+                                    color: dept === 'বিজ্ঞান' ? '#0369a1' : dept === 'মানবিক' ? '#92400e' : '#6b21a8',
+                                    padding: '2px 7px',
+                                    borderRadius: '4px',
+                                    fontWeight: 700,
+                                    fontSize: '11px'
+                                  }}>
+                                    {dept}
+                                  </span>
+                                );
+                              })()}
+                            </div>
                             <small style={{ display: 'block', color: '#64748b' }}>
-                              {s.section || (s.department ? `${s.department} বিভাগ` : 'ক শাখা')}
+                              {s.section || (resolveDepartment(s) ? `${resolveDepartment(s)} বিভাগ` : 'ক শাখা')}
                             </small>
                           </td>
 

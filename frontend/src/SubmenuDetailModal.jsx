@@ -2780,21 +2780,25 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) {
             return '—';
           }
-          const str = [item.department, item.group_name, item.group, item.section].filter(Boolean).join(' ').toLowerCase();
+          const str = [item.department, item.group_name, item.group, item.section, item.student_id, item.id]
+            .filter(Boolean)
+            .join(' ')
+            .replace(/য়/g, 'য়')
+            .toLowerCase();
           if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
           if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
-          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
-          return item.department || '—';
+          if (str.includes('ব্যবসায়') || str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
+          return item.department ? String(item.department).replace(/য়/g, 'য়') : '—';
         };
 
         const getDeptPriority = (s) => {
           const norm = normCls(s.class_name);
           const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(norm);
           if (!isSSC) return 0;
-          const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id].filter(Boolean).join(' ').toLowerCase();
-          if (str.includes('বিজ্ঞান') || str.includes('sci')) return 1;
-          if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 2;
-          if (str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 3;
+          const dept = getDepartmentName(s);
+          if (dept === 'বিজ্ঞান') return 1;
+          if (dept === 'মানবিক') return 2;
+          if (dept === 'ব্যবসায় শিক্ষা') return 3;
           return 4;
         };
 
