@@ -685,6 +685,7 @@ function Home(){
 
        try {
          if (sId) localStorage.setItem('magra_photo_' + sId, compressed);
+         saveStudentCustomPhoto(targetStudent, compressed);
          if (targetStudent.student_id) localStorage.setItem('magra_photo_' + targetStudent.student_id, compressed);
          if (cName && rNo) {
            localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, compressed);

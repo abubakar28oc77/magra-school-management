@@ -92,86 +92,120 @@ export function saveStudentCustomPhoto(student, dataUrl) {
     const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
     const rNo = String(student.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
     const sDept = normalizeStudentDept(student);
+    const sId = String(student.id || student.student_id || '').toLowerCase().trim();
 
     // 2. Also update in-memory student object
     student.photo_url = dataUrl;
     student.photo = dataUrl;
 
-    // 3. Update in magra_db_students in localStorage safely
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('magra_db_students') : null;
-    if (raw) {
-      const list = JSON.parse(raw);
-      if (Array.isArray(list)) {
-        let updated = false;
-        const sId = (student.id || student.student_id || '').toLowerCase().trim();
-        const newList = list.map(x => {
-          if (!x) return x;
-          const xId = String(x.id || '').toLowerCase().trim();
-          const xSid = String(x.student_id || '').toLowerCase().trim();
-          const matchId = sId && (xId === sId || xSid === sId);
-
-          const xc = String(x.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          const xr = String(x.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          const xDept = normalizeStudentDept(x);
-          const matchDept = (cName === '9' || cName === '10') ? Boolean(sDept && xDept && sDept === xDept) : (!sDept || !xDept || sDept === xDept);
-          const matchRoll = !sId && cName && rNo && xc === cName && xr === rNo && matchDept;
-
-          if (matchId || matchRoll) {
-            updated = true;
-            return { ...x, photo_url: dataUrl, photo: dataUrl, image: dataUrl };
-          }
-          return x;
-        });
-        if (updated) {
-          try {
-            localStorage.setItem('magra_db_students', JSON.stringify(newList));
-          } catch (e) {
-            console.warn('localStorage quota reached, photo safely in IndexedDB & memory cache');
-          }
+    // 2b. Synchronously save across direct localStorage keys
+    try {
+      if (sId) {
+        localStorage.setItem('magra_photo_' + sId, dataUrl);
+        localStorage.setItem('magra_photo_' + sId.toUpperCase(), dataUrl);
+      }
+      if (student.student_id) {
+        localStorage.setItem('magra_photo_' + String(student.student_id).toLowerCase().trim(), dataUrl);
+        localStorage.setItem('magra_photo_' + String(student.student_id).toUpperCase().trim(), dataUrl);
+      }
+      if (cName && rNo) {
+        if (sDept) {
+          localStorage.setItem(`magra_photo_cls_${cName}_${sDept}_roll_${rNo}`, dataUrl);
+          localStorage.setItem(`magra_photo_${cName}_${sDept}_${rNo}`, dataUrl);
+        } else {
+          localStorage.setItem(`magra_photo_cls_${cName}_roll_${rNo}`, dataUrl);
+          localStorage.setItem(`magra_photo_${cName}_${rNo}`, dataUrl);
         }
       }
+    } catch {}
+
+    // 3. Update in magra_db_students in localStorage safely
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('magra_db_students') : null;
+    let list = [];
+    try {
+      if (raw) list = JSON.parse(raw);
+    } catch {}
+    if (!Array.isArray(list) || !list.length) {
+      list = Array.isArray(MOCK_STUDENTS) ? [...MOCK_STUDENTS] : [];
+    }
+    if (Array.isArray(list)) {
+      let updated = false;
+      const newList = list.map(x => {
+        if (!x) return x;
+        const xId = String(x.id || '').toLowerCase().trim();
+        const xSid = String(x.student_id || '').toLowerCase().trim();
+        const matchId = Boolean(sId && (xId === sId || xSid === sId));
+
+        const xc = String(x.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+        const xr = String(x.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+        const xDept = normalizeStudentDept(x);
+        const matchDept = (cName === '9' || cName === '10') ? Boolean(sDept && xDept && sDept === xDept) : (!sDept || !xDept || sDept === xDept);
+        const matchRoll = Boolean(cName && rNo && xc === cName && xr === rNo && matchDept);
+
+        if (matchId || matchRoll) {
+          updated = true;
+          return { ...x, photo_url: dataUrl, photo: dataUrl, image: dataUrl };
+        }
+        return x;
+      });
+      if (updated || !raw) {
+        try {
+          localStorage.setItem('magra_db_students', JSON.stringify(newList));
+        } catch (e) {
+          console.warn('localStorage quota reached, photo safely in IndexedDB & memory cache');
+        }
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('magra_photos_synced'));
     }
   } catch (err) {
     console.warn('saveStudentCustomPhoto error:', err);
   }
 }
 
+export function isUserAttachedPhoto(url) {
+  if (!url || typeof url !== 'string') return false;
+  if (url.includes('fakepath')) return false;
+  if (url.startsWith('data:image/svg+xml') || url.includes('<svg')) return false;
+  if (url.includes('images.unsplash.com') || url.includes('unsplash.com')) return false;
+  if (url === PHOTO_STUDENT_MALE_1 || url === PHOTO_STUDENT_MALE_2 || url === PHOTO_STUDENT_FEMALE_1 || url === PHOTO_STUDENT_FEMALE_2) return false;
+  if (url === PHOTO_REAL_STUDENT_7 || url === PHOTO_REAL_STUDENT_8 || url === PHOTO_REAL_STUDENT_9) return false;
+  return url.length > 20;
+}
+
 export function getStudentPhoto(student) {
   if (!student) return PHOTO_STUDENT_MALE_1;
-
-  const isCustom = (url) => {
-    if (!url || typeof url !== 'string') return false;
-    if (url.includes('fakepath')) return false;
-    if (url.startsWith('data:image/svg+xml') || url.includes('<svg')) return false;
-    return url.length > 20;
-  };
-
-  // 1. Direct custom photo on the student object itself (highest priority)
-  const candidates = [
-    student.photo_url,
-    student.photo,
-    student.image,
-    student.avatar,
-    student.student_photo,
-    student.extended_profile?.photo_url
-  ];
-  for (const c of candidates) {
-    if (isCustom(c)) return c;
-  }
 
   const sId = String(student.id || student.student_id || '').toLowerCase().trim();
   const cName = String(student.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
   const rNo = String(student.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
   const dept = normalizeStudentDept(student);
 
+  // ================= PHASE 1: Priority for User-Attached Student Photos =================
+  // 1. Direct user-attached photo on student object
+  const candidates = [
+    student.photo_url,
+    student.photo,
+    student.image,
+    student.avatar,
+    student.student_photo,
+    student.scanned_photo,
+    student.extended_profile?.photo_url
+  ];
+  for (const c of candidates) {
+    if (isUserAttachedPhoto(c)) return c;
+  }
+
   // 2. In-Memory PHOTO_CACHE by unique ID
   if (sId && PHOTO_CACHE.has(sId)) {
     const cached = PHOTO_CACHE.get(sId);
-    if (isCustom(cached)) return cached;
+    if (isUserAttachedPhoto(cached)) return cached;
   }
   if (student.student_id && PHOTO_CACHE.has(String(student.student_id).toLowerCase())) {
     const cached = PHOTO_CACHE.get(String(student.student_id).toLowerCase());
-    if (isCustom(cached)) return cached;
+    if (isUserAttachedPhoto(cached)) return cached;
   }
 
   // 3. Department-specific roll key in PHOTO_CACHE
@@ -180,18 +214,18 @@ export function getStudentPhoto(student) {
       const deptRollKey = `cls_${cName}_${dept}_roll_${rNo}`.toLowerCase();
       if (PHOTO_CACHE.has(deptRollKey)) {
         const cached = PHOTO_CACHE.get(deptRollKey);
-        if (isCustom(cached)) return cached;
+        if (isUserAttachedPhoto(cached)) return cached;
       }
       const shortDeptKey = `cls_${cName}_${dept}_${rNo}`.toLowerCase();
       if (PHOTO_CACHE.has(shortDeptKey)) {
         const cached = PHOTO_CACHE.get(shortDeptKey);
-        if (isCustom(cached)) return cached;
+        if (isUserAttachedPhoto(cached)) return cached;
       }
     } else if (cName !== '9' && cName !== '10') {
       const rollKey = ('cls_' + cName + '_roll_' + rNo).toLowerCase();
       if (PHOTO_CACHE.has(rollKey)) {
         const cached = PHOTO_CACHE.get(rollKey);
-        if (isCustom(cached)) return cached;
+        if (isUserAttachedPhoto(cached)) return cached;
       }
     }
   }
@@ -200,20 +234,31 @@ export function getStudentPhoto(student) {
   try {
     if (sId) {
       const p1 = localStorage.getItem('magra_photo_' + sId);
-      if (isCustom(p1)) return p1;
+      if (isUserAttachedPhoto(p1)) return p1;
       const pLower = localStorage.getItem('magra_photo_' + sId.toLowerCase());
-      if (isCustom(pLower)) return pLower;
+      if (isUserAttachedPhoto(pLower)) return pLower;
       const pUpper = localStorage.getItem('magra_photo_' + sId.toUpperCase());
-      if (isCustom(pUpper)) return pUpper;
+      if (isUserAttachedPhoto(pUpper)) return pUpper;
+    }
+
+    if (student.student_id) {
+      const psid = localStorage.getItem('magra_photo_' + String(student.student_id).toLowerCase().trim());
+      if (isUserAttachedPhoto(psid)) return psid;
+      const psidU = localStorage.getItem('magra_photo_' + String(student.student_id).toUpperCase().trim());
+      if (isUserAttachedPhoto(psidU)) return psidU;
     }
 
     if (cName && rNo) {
       if (dept) {
         const pDept = localStorage.getItem(`magra_photo_cls_${cName}_${dept}_roll_${rNo}`);
-        if (isCustom(pDept)) return pDept;
+        if (isUserAttachedPhoto(pDept)) return pDept;
+        const pDept2 = localStorage.getItem(`magra_photo_${cName}_${dept}_${rNo}`);
+        if (isUserAttachedPhoto(pDept2)) return pDept2;
       } else if (cName !== '9' && cName !== '10') {
         const pRoll = localStorage.getItem(`magra_photo_cls_${cName}_roll_${rNo}`);
-        if (isCustom(pRoll)) return pRoll;
+        if (isUserAttachedPhoto(pRoll)) return pRoll;
+        const pRoll2 = localStorage.getItem(`magra_photo_${cName}_${rNo}`);
+        if (isUserAttachedPhoto(pRoll2)) return pRoll2;
       }
     }
   } catch {}
@@ -227,6 +272,7 @@ export function getStudentPhoto(student) {
         const found = local.find(x => {
           if (!x) return false;
           if (sId && (String(x.id).toLowerCase() === sId || String(x.student_id).toLowerCase() === sId)) return true;
+          if (student.student_id && String(x.student_id).toLowerCase() === String(student.student_id).toLowerCase()) return true;
           if (cName && rNo) {
             const xc = String(x.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
             const xr = String(x.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
@@ -241,16 +287,24 @@ export function getStudentPhoto(student) {
           return false;
         });
         if (found) {
-          const fcand = [found.photo_url, found.photo, found.image, found.avatar, found.student_photo, found.extended_profile?.photo_url];
+          const fcand = [found.photo_url, found.photo, found.image, found.avatar, found.student_photo, found.scanned_photo, found.extended_profile?.photo_url];
           for (const c of fcand) {
-            if (isCustom(c)) return c;
+            if (isUserAttachedPhoto(c)) return c;
           }
         }
       }
     }
   } catch {}
 
-  // 5. Fifth priority: Default realistic student portrait photos for seeded top students
+  // ================= PHASE 2: Default Photos (Fallback when no attached photo exists) =================
+  // 6. Direct fallback photo on the student object if valid (not SVG)
+  for (const c of candidates) {
+    if (c && typeof c === 'string' && c.length > 20 && !c.includes('fakepath') && !c.startsWith('data:image/svg')) {
+      return c;
+    }
+  }
+
+  // 7. Default realistic student portrait photos for seeded top students
   if ((cName === '7' && rNo === '1') || sId.includes('stu-07-01')) {
     return PHOTO_REAL_STUDENT_7;
   }
@@ -264,7 +318,7 @@ export function getStudentPhoto(student) {
     return PHOTO_REAL_STUDENT_9;
   }
 
-  // 6. Fallback SVGs
+  // 8. Fallback SVGs
   const name = (student.name_bn || student.name_en || '').toLowerCase();
   const roll = parseInt(rNo, 10) || 1;
   const isFemale = student.gender === 'নারী' || student.gender === 'female' || name.includes('খাতুন') || name.includes('বেগম') || name.includes('সুলতানা') || name.includes('আক্তার') || name.includes('মারিয়া') || name.includes('জান্নাত') || name.includes('ফাতেমা') || name.includes('সাদিয়া');

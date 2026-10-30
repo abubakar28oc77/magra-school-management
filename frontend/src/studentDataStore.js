@@ -1,5 +1,6 @@
 // Data Store for Student Details: Scholarships, Stipends, Meritorious & Class Seats
 // Synchronizes with localStorage so user inputs/edits persist across browser reloads
+import { getStudentPhoto, isUserAttachedPhoto } from './mockData';
 
 export const DEFAULT_GOVT_SCHOLARSHIPS = [
   {
@@ -210,7 +211,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ১ম স্থান ও জিপিএ ৫.০০',
-    photo_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'গণিত ও বিজ্ঞান মেলায় শ্রেষ্ঠত্ব অর্জনকারী'
   },
   {
@@ -224,7 +225,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ২য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ২য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'নিয়মিত উপস্থিতি ও পড়াশোনায় বিশেষ পারদর্শী'
   },
   {
@@ -238,7 +239,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ৩য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ৩য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'সহশিক্ষা কার্যক্রম ও কুইজ প্রতিযোগিতায় পারদর্শী'
   },
 
@@ -254,7 +255,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ১ম স্থান ও জিপিএ ৫.০০',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ১ম স্থান ও জিপিএ ৫.০০',
-    photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'বিজ্ঞান অলিম্পিয়াড ও সাহিত্য চর্চায় অগ্রগামী'
   },
   {
@@ -268,7 +269,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ২য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ২য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'নিয়মিত উপস্থিতি ও আদর্শ আচরণে অগ্রণী'
   },
   {
@@ -282,7 +283,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ৩য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় বিজ্ঞান বিভাগে ৩য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'বিজ্ঞান প্রজেক্ট ও বিতর্ক ক্লাবের সক্রিয় সদস্য'
   },
 
@@ -298,7 +299,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ১ম স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ১ম স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'শুদ্ধাচার ও নিয়মিত উপস্থিতিতে আদর্শ শিক্ষার্থী'
   },
   {
@@ -312,7 +313,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ২য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ২য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'পড়াশোনায় গভীর মনোযোগী ও সৃজনশীল শিক্ষার্থী'
   },
   {
@@ -326,7 +327,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ৩য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ৩য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'উপজেলা গণিত অলিম্পিয়াডে রানার-আপ পদক'
   },
 
@@ -342,7 +343,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ১ম স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ১ম স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'ভর্তি পরীক্ষায় সর্বোচ্চ নম্বর ও উপস্থিতিতে সেরা'
   },
   {
@@ -356,7 +357,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ২য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ২য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'সাংস্কৃতিক ও দেশাত্মবোধক গানে জেলা সেরা'
   },
   {
@@ -370,7 +371,7 @@ export const DEFAULT_MERITORIOUS_STUDENTS = [
     category: 'মেধা তালিকায় ৩য় স্থান',
     academic_year: '২০২৫-২০২৬',
     achievement_title: 'বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ৩য় স্থান',
-    photo_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=240&h=240&fit=crop',
+    photo_url: '',
     notes: 'সৃজনশীল মেধা অন্বেষণে বিশেষ প্রশংসাপ্রাপ্ত'
   }
 ];
@@ -606,6 +607,24 @@ export function getStoredMeritoriousStudents() {
                      customMap.get(String(defaultItem.student_id || '').toUpperCase().trim()) ||
                      customMap.get(String(defaultItem.id || '').toUpperCase().trim());
 
+      // Resolve student photo: strictly prioritize real attached photo from the student list / storage
+      const studentObjForPhoto = found || {
+        id: student_id,
+        student_id: student_id,
+        class_name: t.classBn,
+        roll_no: t.roll,
+        department: t.isScience ? 'বিজ্ঞান' : ''
+      };
+      const listAttachedPhoto = getStudentPhoto(studentObjForPhoto);
+      const isListPhotoAttached = isUserAttachedPhoto(listAttachedPhoto);
+      const isCustomPhotoAttached = isUserAttachedPhoto(custom?.photo_url);
+
+      const photo_url = isListPhotoAttached 
+        ? listAttachedPhoto 
+        : (isCustomPhotoAttached 
+            ? custom.photo_url 
+            : (listAttachedPhoto || defaultItem.photo_url || ''));
+
       return {
         id: defaultItem.id || `merit-${t.classNum}-${t.roll}`,
         student_id: student_id,
@@ -617,7 +636,7 @@ export function getStoredMeritoriousStudents() {
         category: custom?.category || defaultItem.category || `মেধা তালিকায় ${t.posLabel}`,
         academic_year: custom?.academic_year || defaultItem.academic_year || '২০২৫-২০২৬',
         achievement_title: custom?.achievement_title || defaultItem.achievement_title || `বার্ষিক পরীক্ষায় শ্রেণি মেধা তালিকায় ${t.posLabel}`,
-        photo_url: custom?.photo_url || defaultItem.photo_url || found?.photo_url || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=240&h=240&fit=crop',
+        photo_url: photo_url,
         notes: custom?.notes || defaultItem.notes || ''
       };
     });

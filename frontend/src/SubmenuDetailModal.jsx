@@ -98,6 +98,8 @@ import {
   PHOTO_ASST_HEAD_TEACHER,
   PHOTO_ICT_TEACHER,
   PHOTO_OFFICE_ASSISTANT,
+  PHOTO_STUDENT_MALE_1,
+  getStudentPhoto,
   getTeacherPhoto,
   getLeadershipData
 } from './mockData';
@@ -3058,9 +3060,10 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                   transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                 }}>
                   <img
-                    src={item.photo_url || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&h=120&fit=crop'}
+                    src={getStudentPhoto(item) || item.photo_url || PHOTO_STUDENT_MALE_1}
                     alt={item.name_bn}
                     style={{ width: '68px', height: '68px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #fde68a', flexShrink: 0 }}
+                    onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = item.photo_url || PHOTO_STUDENT_MALE_1; }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '4px', flexWrap: 'wrap' }}>
@@ -3492,7 +3495,17 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 <tr key={s.id}>
                   <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{s.student_id || '—'}</td>
                   <td style={{ fontWeight: 700 }}>{s.roll_no || '—'}</td>
-                  <td><b>{s.name_bn || s.name_en}</b></td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img
+                        src={getStudentPhoto(s)}
+                        alt=""
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #cbd5e1', flexShrink: 0 }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = PHOTO_STUDENT_MALE_1; }}
+                      />
+                      <b>{s.name_bn || s.name_en}</b>
+                    </div>
+                  </td>
                   <td>শ্রেণি {s.class_name || '১০'}</td>
                   <td>{s.group_name || s.group || s.section || '—'}</td>
                   <td>{s.religion || 'ইসলাম'}</td>

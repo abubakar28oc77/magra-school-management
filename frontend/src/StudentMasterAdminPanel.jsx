@@ -12,7 +12,7 @@ import {
   saveStoredClassSeats 
 } from './studentDataStore';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
-import { MOCK_STUDENTS } from './mockData';
+import { MOCK_STUDENTS, getStudentPhoto, PHOTO_STUDENT_MALE_1 } from './mockData';
 
 export function StudentMasterAdminPanel({ 
   sub, 
@@ -1834,9 +1834,10 @@ export function StudentMasterAdminPanel({
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <img
-                              src={item.photo_url || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=60&h=60&fit=crop'}
+                              src={getStudentPhoto(item) || item.photo_url || PHOTO_STUDENT_MALE_1}
                               alt=""
                               style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = item.photo_url || PHOTO_STUDENT_MALE_1; }}
                             />
                             <div>
                               <b>{item.name_bn}</b>
