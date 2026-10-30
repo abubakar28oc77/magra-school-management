@@ -13,6 +13,7 @@ import {
 } from './studentDataStore';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 import { MOCK_STUDENTS, getStudentPhoto, PHOTO_STUDENT_MALE_1 } from './mockData';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 export function StudentMasterAdminPanel({ 
   sub, 
@@ -619,13 +620,14 @@ export function StudentMasterAdminPanel({
     showToast('শ্রেণি ও আসন বিন্যাস সেটিংস সফলভাবে আপডেট হয়েছে!');
   };
 
-  // Print helper with official header
+  // Print helper with official school pad header & styles
   const printContent = (title, tableHtml) => {
     const w = window.open('', '_blank');
     if (!w) {
       alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার পপ-আপ অনুমোদন করুন।');
       return;
     }
+    const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
     w.document.write(`
       <!DOCTYPE html>
       <html lang="bn">
@@ -633,29 +635,148 @@ export function StudentMasterAdminPanel({
         <title>${title} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
         <meta charset="utf-8">
         <style>
-          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #1e293b; }
-          .header { text-align: center; border-bottom: 2px double #0284c7; padding-bottom: 12px; margin-bottom: 18px; }
-          .header h1 { margin: 0; font-size: 24px; color: #15803d; }
-          .header p { margin: 4px 0 0; font-size: 13px; color: #64748b; }
-          .report-title { text-align: center; font-size: 18px; font-weight: 800; margin-bottom: 16px; color: #0369a1; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-          th, td { border: 1px solid #cbd5e1; padding: 7px 10px; text-align: left; }
-          th { background: #f1f5f9; font-weight: 700; color: #334155; }
-          .footer { margin-top: 40px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; }
+          ${SCHOOL_PAD_STYLES}
+
+          @page { size: A4 landscape; margin: 8mm 10mm; }
+          body {
+            font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 10px 14px;
+            color: #0f172a;
+            background: #fff;
+            font-size: 11.5px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .cert-ref-date {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 4px 0 8px 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #1e293b;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 4px;
+          }
+          .cert-ribbon-row {
+            text-align: center;
+            margin: 6px 0 10px 0;
+          }
+          .cert-type-ribbon {
+            display: inline-block;
+            background: #fef3c7;
+            border: 1.5px solid #b45309;
+            border-radius: 6px;
+            padding: 4px 20px;
+            box-shadow: 0 1px 3px rgba(180,83,9,0.12);
+          }
+          .ribbon-bn {
+            font-size: 15px;
+            font-weight: 900;
+            color: #78350f;
+            letter-spacing: 0.3px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            font-size: 11.5px;
+          }
+          th {
+            background: #fef3c7 !important;
+            color: #78350f !important;
+            font-weight: 800 !important;
+            border: 1px solid #cbd5e1;
+            padding: 6px 5px;
+            text-align: center;
+            font-size: 11px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          td {
+            border: 1px solid #cbd5e1;
+            padding: 5px 6px;
+            vertical-align: middle;
+            font-size: 11px;
+          }
+          tr:nth-child(even) {
+            background-color: #fffbeb !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .cert-footer-signs {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 20px;
+            page-break-inside: avoid;
+          }
+          .sign-box {
+            text-align: center;
+            border-top: 1.5px solid #0f172a;
+            width: 160px;
+            padding-top: 4px;
+          }
+          .sign-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0f172a;
+          }
+          .sign-sub {
+            font-size: 10px;
+            color: #475569;
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; margin: 0; }
+            tr { page-break-inside: avoid; }
+          }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
-          <p>স্থাপিত: ১৯৪৬ খ্রি. | ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল | EIIN: 114321</p>
+        <div class="no-print" style="margin-bottom: 12px; display: flex; gap: 10px; justify-content: flex-end; background: #f0fdf4; padding: 8px 12px; border-radius: 8px; border: 1px solid #86efac;">
+          <button onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:7px 18px;border-radius:6px;font-weight:700;cursor:pointer;font-size:13.5px;">🖨️ প্রিন্ট করুন / Save as PDF</button>
+          <button onclick="window.close()" style="background:#64748b;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13.5px;">✕ বন্ধ করুন</button>
         </div>
-        <div class="report-title">${title}</div>
+
+        <!-- Official School Pad Header (As used in student certificates) -->
+        <div class="cert-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+          ${SCHOOL_PAD_HEADER_HTML}
+        </div>
+
+        <!-- Reference & Date Line -->
+        <div class="cert-ref-date">
+          <div>স্মারক নংঃ <b>মপাউবি/প্রশা/তালিকা/${new Date().getFullYear()}-১০১</b></div>
+          <div>তারিখ: <b>${todayBn} খ্রি.</b></div>
+        </div>
+
+        <!-- Certificate Ribbon -->
+        <div class="cert-ribbon-row">
+          <div class="cert-type-ribbon">
+            <div class="ribbon-bn">${title}</div>
+          </div>
+        </div>
+
         ${tableHtml}
-        <div class="footer">
-          <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
-          <div>সহকারী প্রধান শিক্ষকের স্বাক্ষর</div>
-          <div>প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+
+        <!-- Three-signature official bottom section as in school pad / certificates -->
+        <div class="cert-footer-signs">
+          <div class="sign-box">
+            <div class="sign-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
+          <div class="sign-box">
+            <div class="sign-title">সহকারী প্রধান শিক্ষক</div>
+            <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
+          <div class="sign-box">
+            <div class="sign-title">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
+            <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
         </div>
+
         <script>
           window.onload = function() {
             setTimeout(function() { window.print(); }, 250);
@@ -1770,32 +1891,45 @@ export function StudentMasterAdminPanel({
                 type="button"
                 className="mini"
                 onClick={() => {
-                  const rows = meritoriousList.map((r, i) => `
+                  const rows = meritoriousList.map((r, i) => {
+                    const photoSrc = getStudentPhoto(r) || r.photo_url || PHOTO_STUDENT_MALE_1;
+                    return `
                     <tr>
-                      <td style="text-align:center;">${i + 1}</td>
-                      <td><b>${r.name_bn}</b><br><small>${r.student_id || '—'}</small></td>
-                      <td style="text-align:center;">শ্রেণি ${r.class_name} (${r.section || '—'})</td>
+                      <td style="text-align:center;font-weight:700;">${i + 1}</td>
+                      <td style="text-align:center;padding:3px;">
+                        <div style="width:38px;height:38px;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+                          <img src="${photoSrc}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
+                        </div>
+                      </td>
+                      <td><b>${r.name_bn}</b><br><small style="color:#0369a1;font-family:monospace;font-weight:600;">ID: ${r.student_id || '—'}</small></td>
+                      <td style="text-align:center;font-weight:700;color:#047857;">শ্রেণি ${r.class_name}</td>
+                      <td style="text-align:center;">${r.section || '—'}</td>
+                      <td style="text-align:center;font-weight:800;">${r.roll_no || '—'}</td>
                       <td><span style="color:#b45309;font-weight:700;">${r.category}</span></td>
-                      <td><b>${r.achievement_title}</b></td>
-                      <td style="text-align:center;">${r.academic_year}</td>
+                      <td style="font-weight:600;">${r.achievement_title}</td>
+                      <td style="text-align:center;">${r.academic_year || '২০২৫-২০২৬'}</td>
                     </tr>
-                  `).join('');
+                  `;
+                  }).join('');
                   const tableHtml = `
                     <table>
                       <thead>
                         <tr>
-                          <th>ক্রম</th>
-                          <th>কৃতি শিক্ষার্থীর নাম</th>
-                          <th>শ্রেণি ও বিভাগ</th>
-                          <th>মেধার ক্যাটাগরি</th>
-                          <th>বিশেষ অর্জন</th>
-                          <th>সেশন</th>
+                          <th style="width:30px;">ক্রম</th>
+                          <th style="width:48px;">ছবি</th>
+                          <th>শিক্ষার্থীর নাম ও আইডি</th>
+                          <th style="width:85px;">শ্রেণি</th>
+                          <th style="width:90px;">বিভাগ/শাখা</th>
+                          <th style="width:45px;">রোল</th>
+                          <th style="width:170px;">মেধার ক্যাটাগরি</th>
+                          <th>বিশেষ কৃতিত্ব ও অর্জন</th>
+                          <th style="width:75px;">সেশন</th>
                         </tr>
                       </thead>
                       <tbody>${rows}</tbody>
                     </table>
                   `;
-                  printContent('মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় — অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা', tableHtml);
+                  printContent('🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা ও মেধা রেজিস্ট্রি', tableHtml);
                 }}
                 style={{ background: '#b45309', color: '#fff', fontWeight: 700 }}
               >
