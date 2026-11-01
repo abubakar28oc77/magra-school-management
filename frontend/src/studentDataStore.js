@@ -1,6 +1,6 @@
 // Data Store for Student Details: Scholarships, Stipends, Meritorious & Class Seats
 // Synchronizes with localStorage so user inputs/edits persist across browser reloads
-import { getStudentPhoto, isUserAttachedPhoto } from './mockData';
+import { getStudentPhoto, isUserAttachedPhoto, MOCK_STUDENTS } from './mockData';
 
 export const DEFAULT_GOVT_SCHOLARSHIPS = [
   {
@@ -439,11 +439,11 @@ export const DEFAULT_CLASS_SEATS = [
     class_id: '6',
     class_name: '৬ষ্ঠ শ্রেণি',
     sections: 'ক ও খ শাখা',
-    capacity: 120,
+    capacity: 150,
     boys: 57,
     girls: 53,
     enrolled: 110,
-    vacant: 10,
+    vacant: 40,
     admission_status: 'চলমান (সীমিত আসন ফাঁকা)'
   },
   {
@@ -675,15 +675,86 @@ export function saveStoredFormerMeritorious(data) {
   } catch {}
 }
 
-export function getStoredClassSeats() {
+export function getStudentClassId(student) {
+  if (!student) return '';
+  const c = String(student.class_name || student.admission_class || student.class || '').trim();
+  const raw = c.replace(/শ্রেণি|শ্রেণী|class/gi, '').trim();
+  if (['6', '৬', '৬ষ্ঠ', 'six'].includes(raw)) return '6';
+  if (['7', '৭', '৭ম', 'seven'].includes(raw)) return '7';
+  if (['8', '৮', '৮ম', 'eight'].includes(raw)) return '8';
+  if (['9', '৯', '৯ম', 'nine'].includes(raw)) return '9';
+  if (['10', '১০', '১০ম', 'ten'].includes(raw)) return '10';
+  return raw;
+}
+
+export function isStudentFemale(student) {
+  if (!student) return false;
+  const g = String(student.gender || '').toLowerCase().trim();
+  return g.includes('নারী') || g.includes('মহিলা') || g.includes('ছাত্রী') || g === 'female' || g === 'f';
+}
+
+export function isStudentMale(student) {
+  if (!student) return false;
+  const g = String(student.gender || '').toLowerCase().trim();
+  return g.includes('পুরুষ') || g.includes('ছাত্র') || g === 'male' || g === 'm';
+}
+
+export function getStoredClassSeats(providedStudents) {
+  let baseSeats = DEFAULT_CLASS_SEATS;
   try {
-    const raw = localStorage.getItem('magra_db_class_seats');
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('magra_db_class_seats') : null;
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+      if (Array.isArray(parsed) && parsed.length) {
+        baseSeats = DEFAULT_CLASS_SEATS.map(def => {
+          const found = parsed.find(p => String(p.class_id) === String(def.class_id));
+          return found ? { ...def, ...found } : def;
+        });
+      }
     }
   } catch {}
-  return DEFAULT_CLASS_SEATS;
+
+  let students = providedStudents;
+  if (!students) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const rawSt = localStorage.getItem('magra_db_students');
+        if (rawSt) {
+          const parsedSt = JSON.parse(rawSt);
+          if (Array.isArray(parsedSt) && parsedSt.length) students = parsedSt;
+        }
+      }
+    } catch {}
+  }
+  if (!students) {
+    students = Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : [];
+  }
+
+  return baseSeats.map(item => {
+    const classId = String(item.class_id);
+    const classStudents = (students || []).filter(s => getStudentClassId(s) === classId);
+    let boys = 0;
+    let girls = 0;
+    classStudents.forEach(s => {
+      if (isStudentFemale(s)) {
+        girls++;
+      } else {
+        boys++;
+      }
+    });
+    const enrolled = boys + girls;
+    const capacity = Number(item.capacity) || 0;
+    const vacant = Math.max(0, capacity - enrolled);
+
+    return {
+      ...item,
+      capacity,
+      boys,
+      girls,
+      enrolled,
+      vacant
+    };
+  });
 }
 
 export function saveStoredClassSeats(data) {

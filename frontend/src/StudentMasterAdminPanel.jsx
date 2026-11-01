@@ -145,7 +145,7 @@ export function StudentMasterAdminPanel({
   });
 
   useEffect(() => {
-    if (activeTab === 'stipend') {
+    if (activeTab === 'stipend' || activeTab === 'class_seats') {
       try {
         const raw = localStorage.getItem('magra_db_students');
         if (raw) {
@@ -155,6 +155,10 @@ export function StudentMasterAdminPanel({
       } catch {}
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    setClassSeats(getStoredClassSeats(enrolledStudents));
+  }, [enrolledStudents]);
 
   const normClass = (cls) => {
     if (!cls) return '';
@@ -585,29 +589,25 @@ export function StudentMasterAdminPanel({
   };
 
   // 5. Class Seats State & Settings
-  const [classSeats, setClassSeats] = useState(getStoredClassSeats);
+  const [classSeats, setClassSeats] = useState(() => getStoredClassSeats(enrolledStudents));
   const [editingClassId, setEditingClassId] = useState(null);
   const [seatForm, setSeatForm] = useState({
+    sections: '',
     capacity: 120,
-    boys: 50,
-    girls: 50,
     admission_status: 'চলমান'
   });
 
   const saveSeatConfig = (item) => {
     const updated = classSeats.map(cs => {
       if (cs.class_id === item.class_id) {
-        const cap = parseInt(seatForm.capacity, 10) || cs.capacity;
-        const b = parseInt(seatForm.boys, 10) || cs.boys;
-        const g = parseInt(seatForm.girls, 10) || cs.girls;
-        const total = b + g;
-        const vac = Math.max(0, cap - total);
+        const cap = parseInt(seatForm.capacity, 10);
+        const finalCap = isNaN(cap) ? cs.capacity : Math.max(0, cap);
+        const sections = (seatForm.sections !== undefined && seatForm.sections !== null && seatForm.sections.trim() !== '') ? seatForm.sections.trim() : cs.sections;
+        const vac = Math.max(0, finalCap - (cs.enrolled || 0));
         return {
           ...cs,
-          capacity: cap,
-          boys: b,
-          girls: g,
-          enrolled: total,
+          sections: sections,
+          capacity: finalCap,
           vacant: vac,
           admission_status: seatForm.admission_status || cs.admission_status
         };
@@ -2289,62 +2289,61 @@ export function StudentMasterAdminPanel({
                 <tbody>
                   {classSeats.map(item => {
                     const isEditing = editingClassId === item.class_id;
-                    const percent = Math.round(((item.enrolled || 0) / (item.capacity || 1)) * 100);
+                    const currentCap = isEditing ? (parseInt(seatForm.capacity, 10) || 0) : (item.capacity || 0);
+                    const currentVacant = Math.max(0, currentCap - (item.enrolled || 0));
+                    const percent = currentCap > 0 ? Math.round(((item.enrolled || 0) / currentCap) * 100) : 0;
                     return (
                       <tr key={item.class_id}>
                         <td style={{ fontWeight: 700 }}>{item.class_name}</td>
-                        <td>{item.sections}</td>
+                        <td>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={seatForm.sections}
+                              onChange={e => setSeatForm({ ...seatForm, sections: e.target.value })}
+                              style={{ width: '100%', minWidth: '150px', padding: '5px 8px', borderRadius: '4px', border: '1px solid #0284c7', fontSize: '13px' }}
+                              placeholder="শাখা ও বিভাগ লিখুন"
+                            />
+                          ) : (
+                            <span>{item.sections}</span>
+                          )}
+                        </td>
                         <td>
                           {isEditing ? (
                             <input
                               type="number"
                               value={seatForm.capacity}
                               onChange={e => setSeatForm({ ...seatForm, capacity: e.target.value })}
-                              style={{ width: '80px', padding: '4px' }}
+                              style={{ width: '80px', padding: '5px 8px', borderRadius: '4px', border: '1px solid #0284c7', fontWeight: 700, fontSize: '14px' }}
+                              min="0"
                             />
                           ) : (
                             <b style={{ fontSize: '15px' }}>{item.capacity}</b>
                           )}
                         </td>
                         <td>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={seatForm.boys}
-                              onChange={e => setSeatForm({ ...seatForm, boys: e.target.value })}
-                              style={{ width: '65px', padding: '4px' }}
-                            />
-                          ) : (
-                            <span>{item.boys}</span>
-                          )}
+                          <span style={{ fontWeight: 600 }}>{item.boys}</span>
                         </td>
                         <td>
-                          {isEditing ? (
-                            <input
-                              type="number"
-                              value={seatForm.girls}
-                              onChange={e => setSeatForm({ ...seatForm, girls: e.target.value })}
-                              style={{ width: '65px', padding: '4px' }}
-                            />
-                          ) : (
-                            <span>{item.girls}</span>
-                          )}
+                          <span style={{ fontWeight: 600 }}>{item.girls}</span>
                         </td>
                         <td>
-                          <b style={{ color: '#0369a1' }}>{item.enrolled}</b>
+                          <b style={{ color: '#0369a1', fontSize: '14px' }}>{item.enrolled}</b>
                           <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '4px', height: '6px', marginTop: '4px', overflow: 'hidden' }}>
                             <div style={{ width: `${Math.min(100, percent)}%`, background: percent >= 95 ? '#dc2626' : '#0284c7', height: '100%' }} />
                           </div>
                         </td>
-                        <td style={{ fontWeight: 800, color: item.vacant > 0 ? '#059669' : '#dc2626' }}>
-                          {item.vacant} টি
+                        <td style={{ fontWeight: 800, color: currentVacant > 0 ? '#059669' : '#dc2626', fontSize: '14px' }}>
+                          {currentVacant} টি
                         </td>
                         <td>
                           {isEditing ? (
                             <input
+                              type="text"
                               value={seatForm.admission_status}
                               onChange={e => setSeatForm({ ...seatForm, admission_status: e.target.value })}
-                              style={{ width: '130px', padding: '4px' }}
+                              style={{ width: '100%', minWidth: '130px', padding: '5px 8px', borderRadius: '4px', border: '1px solid #0284c7', fontSize: '13px' }}
+                              placeholder="ভর্তি অবস্থা"
                             />
                           ) : (
                             <span className="badge">{item.admission_status}</span>
@@ -2353,7 +2352,7 @@ export function StudentMasterAdminPanel({
                         <td>
                           {isEditing ? (
                             <div style={{ display: 'flex', gap: '4px' }}>
-                              <button type="button" className="mini" style={{ background: '#047857', color: '#fff' }} onClick={() => saveSeatConfig(item)}>সংরক্ষণ</button>
+                              <button type="button" className="mini" style={{ background: '#047857', color: '#fff', fontWeight: 700 }} onClick={() => saveSeatConfig(item)}>💾 সংরক্ষণ</button>
                               <button type="button" className="mini" onClick={() => setEditingClassId(null)}>বাতিল</button>
                             </div>
                           ) : (
@@ -2363,10 +2362,9 @@ export function StudentMasterAdminPanel({
                               onClick={() => {
                                 setEditingClassId(item.class_id);
                                 setSeatForm({
-                                  capacity: item.capacity,
-                                  boys: item.boys,
-                                  girls: item.girls,
-                                  admission_status: item.admission_status
+                                  sections: item.sections || '',
+                                  capacity: item.capacity || 0,
+                                  admission_status: item.admission_status || ''
                                 });
                               }}
                             >
