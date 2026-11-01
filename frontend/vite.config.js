@@ -31,7 +31,7 @@ function copyToRootPlugin() {
             }
           }
         };
-        safeWrite(rootIndex, 'root index.html');
+        // Note: root index.html is omitted to avoid duplicate 6.75MB bundle
         safeWrite(rootMagra, 'magra_school_management.html');
         const desktopMagra = 'C:\\Users\\Walton\\OneDrive\\Desktop\\Magra_School_Management.html';
         if (fs.existsSync(desktopMagra)) {
