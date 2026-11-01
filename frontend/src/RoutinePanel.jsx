@@ -185,13 +185,25 @@ export function RoutinePanel({ sub }) {
     room: '১০১'
   });
 
+  // Day name in Bengali helper
+  const getDayNameBn = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const days = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
+    return days[d.getDay()];
+  };
+
   const [showExamModal, setShowExamModal] = useState(false);
   const [editingExamSlot, setEditingExamSlot] = useState(null);
+  const [examViewMode, setExamViewMode] = useState('concurrent'); // 'concurrent' (একই দিনে একাধিক শ্রেণি) or 'list' (তালিকা)
   const [examForm, setExamForm] = useState({
     exam_id: 'ex-2',
     exam_name: 'অর্ধবার্ষিক পরীক্ষা ২০২৬',
     academic_year: '2026',
     class_name: 'all',
+    target_classes: ['6', '7', '8', '9', '10'],
+    create_individual_slots: true,
     section: 'সকল শাখা/বিভাগ',
     subject_name: 'বাংলা ১ম পত্র',
     subject_code: '১০১',
@@ -294,14 +306,54 @@ export function RoutinePanel({ sub }) {
     }
   };
 
-  // Filtered Exam Routines
+  // Filtered & Sorted Exam Routines (কালানুক্রমিক ও শ্রেণিভিত্তিক সুবিন্যস্ত তালিকা)
   const filteredExamRoutines = useMemo(() => {
-    return examRoutines.filter(e => {
+    const list = examRoutines.filter(e => {
       if (selectedExamId !== 'all' && String(e.exam_id) !== String(selectedExamId)) return false;
-      if (selectedExamClass !== 'all' && String(e.class_name) !== String(selectedExamClass) && e.class_name !== 'all' && e.class_name !== 'সকল শ্রেণি') return false;
+      if (selectedExamClass !== 'all') {
+        const cStr = String(e.class_name || '');
+        if (cStr !== 'all' && cStr !== 'সকল শ্রেণি' && cStr !== String(selectedExamClass) && !cStr.split(',').map(x => x.trim()).includes(String(selectedExamClass))) {
+          return false;
+        }
+      }
       return true;
     });
+
+    return [...list].sort((a, b) => {
+      const dateA = a.exam_date || '';
+      const dateB = b.exam_date || '';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      const timeA = a.start_time || '';
+      const timeB = b.start_time || '';
+      if (timeA !== timeB) return timeA.localeCompare(timeB);
+      const clsA = parseInt(a.class_name, 10) || 99;
+      const clsB = parseInt(b.class_name, 10) || 99;
+      return clsA - clsB;
+    });
   }, [examRoutines, selectedExamId, selectedExamClass]);
+
+  // Grouped Exam Routines by Date & Time (একই দিনে ও সময়ে একাধিক শ্রেণির পরীক্ষা সমন্বিত দর্শন)
+  const groupedExamSlots = useMemo(() => {
+    const map = new Map();
+    filteredExamRoutines.forEach(ex => {
+      const key = `${ex.exam_date || ''}___${ex.start_time || ''}___${ex.end_time || ''}`;
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          exam_id: ex.exam_id,
+          exam_name: ex.exam_name,
+          exam_date: ex.exam_date,
+          day_name: ex.day_name || getDayNameBn(ex.exam_date),
+          start_time: ex.start_time,
+          end_time: ex.end_time,
+          duration: ex.duration,
+          items: []
+        });
+      }
+      map.get(key).items.push(ex);
+    });
+    return Array.from(map.values());
+  }, [filteredExamRoutines]);
 
   // Teacher Schedule List
   const teacherRoutines = useMemo(() => {
@@ -461,22 +513,51 @@ export function RoutinePanel({ sub }) {
     setTimeout(() => setMsg({ text: '', type: 'success' }), 4000);
   };
 
-  // Handle Exam Routine Save
+  // Handle Exam Routine Save (একক বা একাধিক শ্রেণির সমলয় পরীক্ষা সংরক্ষণ)
   const handleSaveExamSlot = async (e) => {
     e.preventDefault();
     try {
+      const tClasses = (examForm.target_classes && examForm.target_classes.length)
+        ? examForm.target_classes
+        : (examForm.class_name === 'all' ? ['6', '7', '8', '9', '10'] : [String(examForm.class_name)]);
+
       if (editingExamSlot) {
+        const payload = {
+          ...examForm,
+          class_name: tClasses.length === 5 ? 'all' : (tClasses.length === 1 ? tClasses[0] : tClasses.join(',')),
+          day_name: examForm.day_name || getDayNameBn(examForm.exam_date)
+        };
         await requestApi(`/exam_routines/${editingExamSlot.id}`, {
           method: 'PUT',
-          body: JSON.stringify(examForm)
+          body: JSON.stringify(payload)
         });
         setMsg({ text: 'পরীক্ষার সময়সূচি সফলভাবে আপডেট হয়েছে!', type: 'success' });
       } else {
-        await requestApi('/exam_routines', {
-          method: 'POST',
-          body: JSON.stringify(examForm)
-        });
-        setMsg({ text: 'নতুন পরীক্ষার সময়সূচি সফলভাবে তৈরি হয়েছে!', type: 'success' });
+        // If creating individual slots for each class
+        if (examForm.create_individual_slots && tClasses.length > 1) {
+          const batchPayload = tClasses.map(cls => ({
+            ...examForm,
+            class_name: cls,
+            section: examForm.section || 'সকল শাখা',
+            day_name: examForm.day_name || getDayNameBn(examForm.exam_date)
+          }));
+          await requestApi('/exam_routines', {
+            method: 'POST',
+            body: JSON.stringify(batchPayload)
+          });
+          setMsg({ text: `${toBnDigits(tClasses.length)}টি শ্রেণির পরীক্ষার সময়সূচি একই দিনে ও সময়ে সফলভাবে নির্ধারণ করা হয়েছে!`, type: 'success' });
+        } else {
+          const singlePayload = {
+            ...examForm,
+            class_name: tClasses.length === 5 ? 'all' : (tClasses.length === 1 ? tClasses[0] : tClasses.join(',')),
+            day_name: examForm.day_name || getDayNameBn(examForm.exam_date)
+          };
+          await requestApi('/exam_routines', {
+            method: 'POST',
+            body: JSON.stringify(singlePayload)
+          });
+          setMsg({ text: 'নতুন পরীক্ষার সময়সূচি সফলভাবে তৈরি হয়েছে!', type: 'success' });
+        }
       }
       setShowExamModal(false);
       setEditingExamSlot(null);
@@ -577,11 +658,72 @@ export function RoutinePanel({ sub }) {
       const activeExamObj = exams.find(e => String(e.id) === String(selectedExamId)) || { name_bn: 'অর্ধবার্ষিক পরীক্ষা ২০২৬' };
       titleText = `${activeExamObj.name_bn} এর প্রাতিষ্ঠানিক সময়সূচি ও পরীক্ষার রুটিন`;
 
-      bodyContent = `
+      if (selectedExamClass === 'all') {
+        bodyContent = `
+          <div style="text-align:center; margin-bottom: 6px;">
+            <h2 style="margin: 0 0 2px; font-size: 15px; color: #0f172a; font-weight: 900;">${titleText}</h2>
+            <div style="font-size: 9.5px; color: #b45309; font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: 0.8px; margin-bottom: 3px;">OFFICIAL MULTI-CLASS CONCURRENT EXAMINATION TIMETABLE - 2026</div>
+            <p style="margin: 0; font-size: 10.5px; color: #475569;">শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b> | ৬ষ্ঠ থেকে ১০ম শ্রেণির সকল পরীক্ষা একই দিনে ও সময়ে অনুষ্ঠিত হবে</p>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-bottom: 6px; table-layout: fixed;">
+            <thead>
+              <tr style="background: #f1f5f9; color: #0f172a;">
+                <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 24px; text-align: center;">ক্র.</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 72px; text-align: center;">তারিখ ও বার</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 64px; text-align: center;">সময়</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; width: 14%;">৬ষ্ঠ শ্রেণি</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; width: 14%;">৭ম শ্রেণি</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; width: 14%;">৮ম শ্রেণি</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; width: 16%;">৯ম শ্রেণি</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 3px; text-align: center; width: 16%;">১০ম শ্রেণি</th>
+                <th style="border: 1px solid #94a3b8; padding: 4px 2px; width: 60px; text-align: center;">কক্ষ নং</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${groupedExamSlots.map((slot, idx) => {
+                const getSubjectForClass = (cls) => {
+                  const match = slot.items.find(x => String(x.class_name) === String(cls) || x.class_name === 'all' || x.class_name === 'সকল শ্রেণি' || String(x.class_name).split(',').map(s => s.trim()).includes(String(cls)));
+                  if (!match) return '<span style="color:#94a3b8;">—</span>';
+                  return `<b style="color: #0369a1; font-size: 8.5px;">${match.subject_name}</b>${match.subject_code ? `<br/><small style="color: #64748b; font-size: 7.5px;">কোড: ${toBnDigits(match.subject_code)}</small>` : ''}`;
+                };
+
+                const rooms = Array.from(new Set(slot.items.map(x => x.room_no).filter(Boolean))).join(', ') || '১০১-২০৩';
+
+                return `
+                  <tr>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; font-weight: bold;">${toBnDigits(idx + 1)}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">
+                      <b>${formatDateBn(slot.exam_date)}</b><br/>
+                      <small style="color: #64748b; font-size: 8px;">${slot.day_name}</small>
+                    </td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; font-weight: 700; font-size: 8.5px;">
+                      ${toBnDigits(slot.start_time)} - ${toBnDigits(slot.end_time)}
+                    </td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">${getSubjectForClass('6')}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">${getSubjectForClass('7')}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">${getSubjectForClass('8')}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">${getSubjectForClass('9')}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center;">${getSubjectForClass('10')}</td>
+                    <td style="border: 1px solid #94a3b8; padding: 3px 2px; text-align: center; font-size: 8px;">${rooms}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+
+          <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 3.5px 8px; border-radius: 4px; font-size: 8.5px; line-height: 1.25; margin-bottom: 5px;">
+            <div style="font-weight: 800; color: #92400e; margin-bottom: 1px;">📌 পরীক্ষার্থীদের জরুরি সাধারণ নির্দেশনাবলী:</div>
+            <ol style="margin: 0; padding-left: 15px; color: #78350f;">
+              ${EXAM_INSTRUCTIONS.slice(0, 4).map(ins => `<li>${ins}</li>`).join('')}
+            </ol>
+          </div>
+        `;
+      } else {
+        bodyContent = `
         <div style="text-align:center; margin-bottom: 6px;">
           <h2 style="margin: 0 0 2px; font-size: 15px; color: #0f172a; font-weight: 900;">${titleText}</h2>
           <div style="font-size: 9.5px; color: #b45309; font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: 0.8px; margin-bottom: 3px;">OFFICIAL EXAMINATION TIMETABLE - 2026</div>
-          <p style="margin: 0; font-size: 10.5px; color: #475569;">শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b> | সময়: <b>সকাল ১০:০০ টা হতে দুপুর ০১:০০ টা</b></p>
+          <p style="margin: 0; font-size: 10.5px; color: #475569;">শ্রেণি: <b>${toBnDigits(selectedExamClass)}ম শ্রেণি</b> | শিক্ষাবর্ষ: <b>২০২৬ খ্রি.</b> | কেন্দ্র কোড: <b>১১৭ (কালিহাতি)</b></p>
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 6px; table-layout: fixed;">
           <thead>
@@ -631,7 +773,8 @@ export function RoutinePanel({ sub }) {
             ${EXAM_INSTRUCTIONS.slice(0, 4).map(ins => `<li>${ins}</li>`).join('')}
           </ol>
         </div>
-      `;
+        `;
+      }
     }
 
     printWin.document.write(`
@@ -642,8 +785,8 @@ export function RoutinePanel({ sub }) {
         <meta charset="utf-8" />
         <style>
           @page {
-            size: ${isClass ? 'landscape' : 'portrait'};
-            margin: ${isClass ? '5mm 8mm' : '4mm 6mm'};
+            size: ${isClass || selectedExamClass === 'all' ? 'landscape' : 'portrait'};
+            margin: ${isClass || selectedExamClass === 'all' ? '5mm 8mm' : '4mm 6mm'};
           }
           body {
             font-family: 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', 'Segoe UI', Tahoma, sans-serif;
@@ -1217,6 +1360,10 @@ export function RoutinePanel({ sub }) {
                       <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
                       <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
                       <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
+                      <option value="পদ্মা শাখা">পদ্মা শাখা</option>
+                      <option value="মেঘনা শাখা">মেঘনা শাখা</option>
+                      <option value="ক শাখা">ক শাখা</option>
+                      <option value="খ শাখা">খ শাখা</option>
                     </>
                   ) : (
                     <>
@@ -1974,7 +2121,89 @@ export function RoutinePanel({ sub }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              {/* View Mode Toggle */}
+              <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                <button
+                  type="button"
+                  onClick={() => setExamViewMode('concurrent')}
+                  style={{
+                    background: examViewMode === 'concurrent' ? '#ffffff' : 'transparent',
+                    color: examViewMode === 'concurrent' ? '#92400e' : '#64748b',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: examViewMode === 'concurrent' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                  }}
+                >
+                  🗓️ সমলয় সময়সূচি (একই দিনে একাধিক শ্রেণি)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExamViewMode('list')}
+                  style={{
+                    background: examViewMode === 'list' ? '#ffffff' : 'transparent',
+                    color: examViewMode === 'list' ? '#92400e' : '#64748b',
+                    border: 'none',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: examViewMode === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                  }}
+                >
+                  📋 বিস্তারিত তালিকা
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingExamSlot(null);
+                  setExamForm({
+                    exam_id: selectedExamId !== 'all' ? selectedExamId : 'ex-2',
+                    exam_name: exams.find(e => String(e.id) === String(selectedExamId))?.name_bn || 'অর্ধবার্ষিক পরীক্ষা ২০২৬',
+                    academic_year: '2026',
+                    class_name: 'all',
+                    target_classes: ['6', '7', '8', '9', '10'],
+                    create_individual_slots: true,
+                    section: 'সকল শাখা/বিভাগ',
+                    subject_name: 'বাংলা ১ম পত্র',
+                    subject_code: '১০১',
+                    exam_date: new Date().toISOString().slice(0, 10),
+                    day_name: getDayNameBn(new Date().toISOString().slice(0, 10)),
+                    start_time: '10:00',
+                    end_time: '13:00',
+                    duration: '৩ ঘণ্টা',
+                    full_marks: 100,
+                    room_no: '১০১, ১০২, ১০৩, ২০১, ২০৩',
+                    invigilator: 'মোঃ আনোয়ার হোসেন, তাপসী সরকার',
+                    instructions: 'পরীক্ষা শুরুর ৩০ মিনিট পূর্বে হলে উপস্থিত হতে হবে।'
+                  });
+                  setShowExamModal(true);
+                }}
+                style={{
+                  background: '#f59e0b',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  boxShadow: '0 2px 5px rgba(245,158,11,0.3)'
+                }}
+              >
+                <span>➕</span> নতুন সময়সূচি
+              </button>
+
               <button
                 type="button"
                 onClick={() => handlePrintRoutine('exam')}
@@ -1992,110 +2221,319 @@ export function RoutinePanel({ sub }) {
                   gap: '5px'
                 }}
               >
-                <span>🖨️</span> পরীক্ষার রুটিন প্রিন্ট
+                <span>🖨️</span> রুটিন প্রিন্ট
               </button>
             </div>
           </div>
 
-          {/* Exam Schedule Table */}
+          {/* Exam Schedule Display */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '16px', color: '#92400e', fontWeight: 800 }}>
                   {exams.find(e => String(e.id) === String(selectedExamId))?.name_bn || 'পরীক্ষার পূর্ণাঙ্গ সময়সূচি'}
                 </h3>
-                <small style={{ color: '#78350f' }}>কেন্দ্র: মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় (কোড: ১১৭) • সময়: সকাল ১০:০০ - দুপুর ০১:০০</small>
+                <small style={{ color: '#78350f' }}>কেন্দ্র: মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় (কোড: ১১৭) • অর্ধ-বার্ষিক ও বার্ষিক পরীক্ষায় একই দিনে ও সময়ে একাধিক শ্রেণির পরীক্ষা সমলয় অনুষ্ঠিত হয়</small>
               </div>
-              <span style={{ background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-                মোট পরীক্ষা: {toBnDigits(filteredExamRoutines.length)} টি
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#fef3c7', color: '#b45309', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                  মোট পরীক্ষা: {toBnDigits(filteredExamRoutines.length)} টি
+                </span>
+                <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                  মোট দিবস / শিফট: {toBnDigits(groupedExamSlots.length)} টি
+                </span>
+              </div>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#334155' }}>
-                    <th style={{ padding: '10px 14px', textAlign: 'center', width: '50px' }}>ক্র.</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>তারিখ ও বার</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>শ্রেণি ও বিভাগ</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>বিষয় ও কোড</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>সময়</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>পূর্ণমান</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>কক্ষ নম্বর</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'left' }}>হল পরিদর্শক</th>
-                    <th style={{ padding: '10px 14px', textAlign: 'center' }}>অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredExamRoutines.map((ex, idx) => (
-                    <tr key={ex.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 800, color: '#64748b' }}>
-                        {toBnDigits(idx + 1)}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                        <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '13px' }}>
-                          {formatDateBn(ex.exam_date)}
+            {/* VIEW 1: CONCURRENT MULTI-CLASS VIEW (একই দিনে ও সময়ে একাধিক শ্রেণির সমলয় রুটিন দর্শন) */}
+            {examViewMode === 'concurrent' && (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {groupedExamSlots.map((slot, sIdx) => (
+                  <div
+                    key={slot.key}
+                    style={{
+                      borderBottom: sIdx === groupedExamSlots.length - 1 ? 'none' : '1px solid #e2e8f0',
+                      padding: '16px 20px',
+                      background: sIdx % 2 === 0 ? '#ffffff' : '#fcfcfd'
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                          color: '#fff',
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 900,
+                          fontSize: '15px',
+                          boxShadow: '0 2px 6px rgba(245,158,11,0.3)'
+                        }}>
+                          {toBnDigits(sIdx + 1)}
                         </div>
-                        <small style={{ color: '#64748b', fontWeight: 600 }}>{ex.day_name}</small>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f172a' }}>
-                          {ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি' ? '৬ষ্ঠ থেকে ১০ম' : `${toBnDigits(ex.class_name)}ম শ্রেণি`}
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>{formatDateBn(slot.exam_date)}</span>
+                            <span style={{ color: '#b45309', background: '#fef3c7', padding: '1px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 800 }}>
+                              {slot.day_name}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#475569', fontWeight: 600, marginTop: '2px' }}>
+                            ⏰ সময়: <b style={{ color: '#0f766e' }}>{toBnDigits(slot.start_time)} হতে {toBnDigits(slot.end_time)}</b> ({slot.duration || '৩ ঘণ্টা'})
+                          </div>
                         </div>
-                        <small style={{ color: '#475569' }}>{ex.section || 'সকল শাখা'}</small>
-                      </td>
-                      <td style={{ padding: '10px 14px' }}>
-                        <div style={{ fontWeight: 800, color: '#0369a1', fontSize: '13px' }}>
-                          {ex.subject_name}
-                        </div>
-                        <small style={{ color: '#64748b' }}>কোড: {toBnDigits(ex.subject_code || '১০১')}</small>
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600 }}>
-                        {toBnDigits(ex.start_time)} - {toBnDigits(ex.end_time)}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
-                          {toBnDigits(ex.full_marks || 100)}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          background: slot.items.length > 1 ? '#ecfdf5' : '#eff6ff',
+                          color: slot.items.length > 1 ? '#047857' : '#1d4ed8',
+                          border: `1px solid ${slot.items.length > 1 ? '#a7f3d0' : '#bfdbfe'}`,
+                          padding: '4px 10px',
+                          borderRadius: '16px',
+                          fontSize: '11px',
+                          fontWeight: 800
+                        }}>
+                          🎯 {toBnDigits(slot.items.length)}টি শ্রেণির পরীক্ষা একই সময়ে অনুষ্ঠিত হবে
                         </span>
-                      </td>
-                      <td style={{ padding: '10px 14px', color: '#334155' }}>
-                        🚪 {ex.room_no || '১০১-২০৩'}
-                      </td>
-                      <td style={{ padding: '10px 14px', color: '#475569', fontSize: '12px' }}>
-                        {ex.invigilator || 'নির্ধারিত শিক্ষকবৃন্দ'}
-                      </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+
                         <button
                           type="button"
                           onClick={() => {
-                            setEditingExamSlot(ex);
-                            setExamForm({ ...ex });
+                            setEditingExamSlot(null);
+                            const used = new Set();
+                            slot.items.forEach(it => {
+                              if (it.class_name === 'all') ['6', '7', '8', '9', '10'].forEach(c => used.add(c));
+                              else String(it.class_name).split(',').forEach(c => used.add(c.trim()));
+                            });
+                            const remaining = ['6', '7', '8', '9', '10'].filter(c => !used.has(c));
+                            const defCls = remaining.length ? [remaining[0]] : ['6'];
+
+                            setExamForm({
+                              exam_id: slot.exam_id || (selectedExamId !== 'all' ? selectedExamId : 'ex-2'),
+                              exam_name: slot.exam_name || 'অর্ধবার্ষিক পরীক্ষা ২০২৬',
+                              academic_year: '2026',
+                              class_name: defCls[0],
+                              target_classes: defCls,
+                              create_individual_slots: true,
+                              section: 'সকল শাখা',
+                              subject_name: '',
+                              subject_code: '',
+                              exam_date: slot.exam_date,
+                              day_name: slot.day_name,
+                              start_time: slot.start_time,
+                              end_time: slot.end_time,
+                              duration: slot.duration || '৩ ঘণ্টা',
+                              full_marks: 100,
+                              room_no: '১০১',
+                              invigilator: '',
+                              instructions: 'পরীক্ষা শুরুর ৩০ মিনিট পূর্বে হলে উপস্থিত হতে হবে।'
+                            });
                             setShowExamModal(true);
                           }}
-                          style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginRight: '6px' }}
+                          style={{
+                            background: '#ffffff',
+                            color: '#92400e',
+                            border: '1.5px dashed #f59e0b',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
                         >
-                          সম্পাদনা
+                          ➕ এই সময়ে আরও পরীক্ষা যোগ
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteExamSlot(ex.id)}
-                          style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                        >
-                          মুছুন
-                        </button>
-                      </td>
+                      </div>
+                    </div>
+
+                    {/* Concurrent Classes Sub-Table */}
+                    <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', width: '130px' }}>শ্রেণি ও শাখা</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>বিষয় ও বিষয় কোড</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'center', width: '70px' }}>পূর্ণমান</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left', width: '140px' }}>পরীক্ষা কক্ষ</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'left' }}>হল পরিদর্শক শিক্ষক</th>
+                            <th style={{ padding: '8px 12px', textAlign: 'center', width: '120px' }}>অ্যাকশন</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {slot.items.map(ex => (
+                            <tr key={ex.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '8px 12px' }}>
+                                <span style={{
+                                  fontWeight: 800,
+                                  color: '#0f766e',
+                                  background: '#ccfbf1',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  display: 'inline-block'
+                                }}>
+                                  {ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি' ? '৬ষ্ঠ-১০ম শ্রেণি' : `${toBnDigits(ex.class_name)}ম শ্রেণি`}
+                                </span>
+                                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                                  {ex.section || 'সকল শাখা'}
+                                </div>
+                              </td>
+                              <td style={{ padding: '8px 12px' }}>
+                                <div style={{ fontWeight: 800, color: '#0369a1', fontSize: '13px' }}>
+                                  {ex.subject_name}
+                                </div>
+                                <small style={{ color: '#64748b' }}>বিষয় কোড: {toBnDigits(ex.subject_code || '১০১')}</small>
+                              </td>
+                              <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 800, color: '#15803d' }}>
+                                {toBnDigits(ex.full_marks || 100)}
+                              </td>
+                              <td style={{ padding: '8px 12px', color: '#334155', fontWeight: 600 }}>
+                                🚪 {ex.room_no || '১০১-২০৩'}
+                              </td>
+                              <td style={{ padding: '8px 12px', color: '#475569', fontSize: '11.5px' }}>
+                                👨‍🏫 {ex.invigilator || 'নির্ধারিত শিক্ষক'}
+                              </td>
+                              <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingExamSlot(ex);
+                                    const exClasses = (ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি')
+                                      ? ['6', '7', '8', '9', '10']
+                                      : String(ex.class_name).split(',').map(x => x.trim()).filter(Boolean);
+                                    setExamForm({
+                                      ...ex,
+                                      target_classes: exClasses.length ? exClasses : ['6'],
+                                      create_individual_slots: false
+                                    });
+                                    setShowExamModal(true);
+                                  }}
+                                  style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginRight: '5px' }}
+                                >
+                                  সম্পাদনা
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteExamSlot(ex.id)}
+                                  style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                                >
+                                  মুছুন
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+
+                {!groupedExamSlots.length && (
+                  <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+                    কোনো পরীক্ষার সময়সূচি তথ্য পাওয়া যায়নি। উপরে <b>➕ নতুন সময়সূচি</b> বাটনে ক্লিক করে নতুন রুটিন তৈরি করুন।
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* VIEW 2: FLAT LIST TABLE */}
+            {examViewMode === 'list' && (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#334155' }}>
+                      <th style={{ padding: '10px 14px', textAlign: 'center', width: '50px' }}>ক্র.</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>তারিখ ও বার</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>শ্রেণি ও বিভাগ</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>বিষয় ও কোড</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>সময়</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>পূর্ণমান</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>কক্ষ নম্বর</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'left' }}>হল পরিদর্শক</th>
+                      <th style={{ padding: '10px 14px', textAlign: 'center' }}>অ্যাকশন</th>
                     </tr>
-                  ))}
-                  {!filteredExamRoutines.length && (
-                    <tr>
-                      <td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-                        কোনো পরীক্ষার সময়সূচি তথ্য পাওয়া যায়নি।
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredExamRoutines.map((ex, idx) => (
+                      <tr key={ex.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 800, color: '#64748b' }}>
+                          {toBnDigits(idx + 1)}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                          <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '13px' }}>
+                            {formatDateBn(ex.exam_date)}
+                          </div>
+                          <small style={{ color: '#64748b', fontWeight: 600 }}>{ex.day_name}</small>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                            {ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি' ? '৬ষ্ঠ থেকে ১০ম' : `${toBnDigits(ex.class_name)}ম শ্রেণি`}
+                          </div>
+                          <small style={{ color: '#475569' }}>{ex.section || 'সকল শাখা'}</small>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, color: '#0369a1', fontSize: '13px' }}>
+                            {ex.subject_name}
+                          </div>
+                          <small style={{ color: '#64748b' }}>কোড: {toBnDigits(ex.subject_code || '১০১')}</small>
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center', fontWeight: 600 }}>
+                          {toBnDigits(ex.start_time)} - {toBnDigits(ex.end_time)}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>
+                            {toBnDigits(ex.full_marks || 100)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', color: '#334155' }}>
+                          🚪 {ex.room_no || '১০১-২০৩'}
+                        </td>
+                        <td style={{ padding: '10px 14px', color: '#475569', fontSize: '12px' }}>
+                          {ex.invigilator || 'নির্ধারিত শিক্ষকবৃন্দ'}
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingExamSlot(ex);
+                              const exClasses = (ex.class_name === 'all' || ex.class_name === 'সকল শ্রেণি')
+                                ? ['6', '7', '8', '9', '10']
+                                : String(ex.class_name).split(',').map(x => x.trim()).filter(Boolean);
+                              setExamForm({
+                                ...ex,
+                                target_classes: exClasses.length ? exClasses : ['6'],
+                                create_individual_slots: false
+                              });
+                              setShowExamModal(true);
+                            }}
+                            style={{ background: '#fef3c7', color: '#92400e', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer', marginRight: '6px' }}
+                          >
+                            সম্পাদনা
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteExamSlot(ex.id)}
+                            style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            মুছুন
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {!filteredExamRoutines.length && (
+                      <tr>
+                        <td colSpan="9" style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                          কোনো পরীক্ষার সময়সূচি তথ্য পাওয়া যায়নি।
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Exam Guidelines Card */}
@@ -2398,7 +2836,7 @@ export function RoutinePanel({ sub }) {
                       setClassForm({
                         ...classForm,
                         class_name: c,
-                        section: isHigh ? 'বিজ্ঞান বিভাগ' : 'পদ্মা শাখা'
+                        section: classForm.section || (isHigh ? 'বিজ্ঞান বিভাগ' : 'পদ্মা শাখা')
                       });
                     }}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
@@ -2414,29 +2852,36 @@ export function RoutinePanel({ sub }) {
 
                 <div>
                   <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>
-                    {['9', '10'].includes(String(classForm.class_name)) ? 'বিভাগ নির্বাচন *' : 'শাখা নির্ধারণ / এডিট *'}
+                    {['9', '10'].includes(String(classForm.class_name)) ? 'শাখা / বিভাগ নির্ধারণ বা এডিট *' : 'শাখা নির্ধারণ / এডিট *'}
                   </label>
-                  {['9', '10'].includes(String(classForm.class_name)) ? (
-                    <select
-                      value={classForm.section}
-                      onChange={e => setClassForm({ ...classForm, section: e.target.value })}
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #16a34a', fontSize: '13px', fontWeight: 700, color: '#15803d', background: '#f0fdf4' }}
-                      required
-                    >
-                      <option value="বিজ্ঞান বিভাগ">বিজ্ঞান বিভাগ</option>
-                      <option value="মানবিক বিভাগ">মানবিক বিভাগ</option>
-                      <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      value={classForm.section}
-                      onChange={e => setClassForm({ ...classForm, section: e.target.value })}
-                      placeholder="যেমন: পদ্মা শাখা, ক শাখা বা সাধারণ"
-                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
-                      required
-                    />
-                  )}
+                  <input
+                    type="text"
+                    list="routine-class-section-suggestions"
+                    value={classForm.section}
+                    onChange={e => setClassForm({ ...classForm, section: e.target.value })}
+                    placeholder={['9', '10'].includes(String(classForm.class_name)) ? "যেমন: বিজ্ঞান বিভাগ, মানবিক বিভাগ, ব্যবসায় শিক্ষা বা পদ্মা শাখা" : "যেমন: পদ্মা শাখা, ক শাখা বা সাধারণ"}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #0284c7',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      background: '#f8fafc'
+                    }}
+                    required
+                  />
+                  <datalist id="routine-class-section-suggestions">
+                    <option value="বিজ্ঞান বিভাগ" />
+                    <option value="মানবিক বিভাগ" />
+                    <option value="ব্যবসায় শিক্ষা" />
+                    <option value="পদ্মা শাখা" />
+                    <option value="মেঘনা শাখা" />
+                    <option value="যমুনা শাখা" />
+                    <option value="ক শাখা" />
+                    <option value="খ শাখা" />
+                    <option value="সাধারণ শাখা" />
+                  </datalist>
                 </div>
               </div>
 
@@ -2782,21 +3227,113 @@ export function RoutinePanel({ sub }) {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>শ্রেণি *</label>
-                  <select
-                    value={examForm.class_name}
-                    onChange={e => setExamForm({ ...examForm, class_name: e.target.value })}
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>শাখা / বিভাগ</label>
+                  <input
+                    type="text"
+                    list="exam-section-suggestions"
+                    value={examForm.section || ''}
+                    onChange={e => setExamForm({ ...examForm, section: e.target.value })}
+                    placeholder="যেমন: সকল শাখা, বিজ্ঞান বিভাগ বা সাধারণ"
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
-                    required
-                  >
-                    <option value="all">সকল শ্রেণি (৬ষ্ঠ-১০ম)</option>
-                    <option value="6">৬ষ্ঠ শ্রেণি</option>
-                    <option value="7">৭ম শ্রেণি</option>
-                    <option value="8">৮ম শ্রেণি</option>
-                    <option value="9">৯ম শ্রেণি</option>
-                    <option value="10">১০ম শ্রেণি</option>
-                  </select>
+                  />
+                  <datalist id="exam-section-suggestions">
+                    <option value="সকল শাখা" />
+                    <option value="বিজ্ঞান বিভাগ" />
+                    <option value="মানবিক বিভাগ" />
+                    <option value="ব্যবসায় শিক্ষা" />
+                    <option value="পদ্মা শাখা" />
+                    <option value="মেঘনা শাখা" />
+                    <option value="ক শাখা" />
+                    <option value="খ শাখা" />
+                  </datalist>
                 </div>
+              </div>
+
+              {/* Multi-Class Concurrent Selector for Half-Yearly / Annual Exams */}
+              <div style={{ background: '#fffbeb', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 800, color: '#92400e' }}>
+                    👥 অংশগ্রহণকারী শ্রেণি নির্বাচন (এক বা একাধিক শ্রেণির পরীক্ষা একই সময়ে শুরু হবে) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const all = ['6', '7', '8', '9', '10'];
+                      const isAll = (examForm.target_classes || []).length === 5;
+                      setExamForm({
+                        ...examForm,
+                        target_classes: isAll ? ['6'] : all,
+                        class_name: isAll ? '6' : 'all'
+                      });
+                    }}
+                    style={{
+                      background: (examForm.target_classes || []).length === 5 ? '#f59e0b' : '#ffffff',
+                      color: (examForm.target_classes || []).length === 5 ? '#ffffff' : '#b45309',
+                      border: '1px solid #d97706',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {(examForm.target_classes || []).length === 5 ? '✓ সকল শ্রেণি নির্বাচিত (৬ষ্ঠ-১০ম)' : 'সবগুলো নির্বাচন করুন'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                  {['6', '7', '8', '9', '10'].map(c => {
+                    const isChecked = (examForm.target_classes || []).includes(c);
+                    return (
+                      <label
+                        key={c}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: isChecked ? '1.5px solid #d97706' : '1px solid #cbd5e1',
+                          background: isChecked ? '#fef3c7' : '#ffffff',
+                          color: isChecked ? '#78350f' : '#475569',
+                          fontSize: '12.5px',
+                          fontWeight: isChecked ? 800 : 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={e => {
+                            let updated = [...(examForm.target_classes || [])];
+                            if (e.target.checked) {
+                              if (!updated.includes(c)) updated.push(c);
+                            } else {
+                              if (updated.length > 1) {
+                                updated = updated.filter(x => x !== c);
+                              }
+                            }
+                            updated.sort((a, b) => Number(a) - Number(b));
+                            const clsVal = updated.length === 5 ? 'all' : (updated.length === 1 ? updated[0] : updated.join(','));
+                            setExamForm({ ...examForm, target_classes: updated, class_name: clsVal });
+                          }}
+                        />
+                        {toBnDigits(c)}ম শ্রেণি
+                      </label>
+                    );
+                  })}
+                </div>
+
+                {!editingExamSlot && (examForm.target_classes || []).length > 1 && (
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: '#92400e', fontWeight: 700, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={examForm.create_individual_slots !== false}
+                      onChange={e => setExamForm({ ...examForm, create_individual_slots: e.target.checked })}
+                    />
+                    প্রত্যেক শ্রেণির জন্য পৃথক স্লট তৈরি করুন (যাতে পরবর্তীতে শ্রেণিভিত্তিক ভিন্ন কক্ষ বা পরিদর্শক নির্ধারণ করা যায়)
+                  </label>
+                )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -2804,12 +3341,34 @@ export function RoutinePanel({ sub }) {
                   <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বিষয় *</label>
                   <input
                     type="text"
+                    list="exam-subject-suggestions"
                     value={examForm.subject_name}
                     onChange={e => setExamForm({ ...examForm, subject_name: e.target.value })}
                     placeholder="যেমন: বাংলা ১ম পত্র"
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
                     required
                   />
+                  <datalist id="exam-subject-suggestions">
+                    <option value="বাংলা ১ম পত্র" />
+                    <option value="বাংলা ২য় পত্র" />
+                    <option value="ইংরেজি ১ম পত্র" />
+                    <option value="ইংরেজি ২য় পত্র" />
+                    <option value="গণিত" />
+                    <option value="সাধারণ বিজ্ঞান" />
+                    <option value="পদার্থবিজ্ঞান" />
+                    <option value="রসায়ন" />
+                    <option value="জীববিজ্ঞান" />
+                    <option value="উচ্চতর গণিত" />
+                    <option value="বাংলাদেশ ও বিশ্বপরিচয়" />
+                    <option value="ইসলাম ও নৈতিক শিক্ষা" />
+                    <option value="হিন্দুধর্ম ও নৈতিক শিক্ষা" />
+                    <option value="তথ্য ও যোগাযোগ প্রযুক্তি" />
+                    <option value="হিসাববিজ্ঞান" />
+                    <option value="ব্যবসায় উদ্যোগ" />
+                    <option value="বাংলাদেশের ইতিহাস ও বিশ্বসভ্যতা" />
+                    <option value="ভূগোল ও পরিবেশ" />
+                    <option value="কৃষি শিক্ষা" />
+                  </datalist>
                 </div>
 
                 <div>
@@ -2830,20 +3389,23 @@ export function RoutinePanel({ sub }) {
                   <input
                     type="date"
                     value={examForm.exam_date}
-                    onChange={e => setExamForm({ ...examForm, exam_date: e.target.value })}
+                    onChange={e => {
+                      const dt = e.target.value;
+                      setExamForm({ ...examForm, exam_date: dt, day_name: getDayNameBn(dt) || examForm.day_name });
+                    }}
                     style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বার / দিন</label>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '3px' }}>বার / দিন (স্বয়ংক্রিয়)</label>
                   <input
                     type="text"
                     value={examForm.day_name}
                     onChange={e => setExamForm({ ...examForm, day_name: e.target.value })}
                     placeholder="যেমন: রবিবার"
-                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: '#f8fafc', fontWeight: 600 }}
                   />
                 </div>
               </div>

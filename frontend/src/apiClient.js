@@ -2465,6 +2465,16 @@ function handleMockRequest(path, opts = {}) {
       setLocalStore('exam_routines', examRoutines);
     }
     if (method === 'POST') {
+      if (Array.isArray(body)) {
+        const newItems = body.map((item, idx) => ({
+          id: 'exr-' + (Date.now() + idx) + '-' + Math.random().toString(36).slice(2, 6),
+          ...item,
+          created_at: new Date().toISOString()
+        }));
+        examRoutines = [...newItems, ...examRoutines];
+        setLocalStore('exam_routines', examRoutines);
+        return newItems;
+      }
       const newEx = {
         id: 'exr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
         ...body,
@@ -2487,7 +2497,10 @@ function handleMockRequest(path, opts = {}) {
       filtered = filtered.filter(e => String(e.exam_name || '').includes(examName));
     }
     if (cls && cls !== 'all' && cls !== 'সকল শ্রেণি') {
-      filtered = filtered.filter(e => String(e.class_name) === String(cls) || e.class_name === 'all' || e.class_name === 'সকল শ্রেণি');
+      filtered = filtered.filter(e => {
+        const cStr = String(e.class_name || '');
+        return cStr === String(cls) || cStr === 'all' || cStr === 'সকল শ্রেণি' || cStr.split(',').map(x => x.trim()).includes(String(cls));
+      });
     }
     if (yr && yr !== 'all') {
       filtered = filtered.filter(e => String(e.academic_year) === String(yr));
