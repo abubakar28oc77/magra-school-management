@@ -3,6 +3,7 @@
 // Designed for the responsible Librarian / Teacher of Library & Information Science
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import QRCode from 'qrcode';
 import {
   LIBRARIAN_TEACHER,
   BOOK_CATEGORIES,
@@ -437,6 +438,8 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [smsCustomPhone, setSmsCustomPhone] = useState('');
   const [smsCustomText, setSmsCustomText] = useState('');
   const [smsSentSuccess, setSmsSentSuccess] = useState(false);
+  const [smsQrDataUrl, setSmsQrDataUrl] = useState('');
+  const [smsDeliveryTab, setSmsDeliveryTab] = useState('qr'); // 'qr' (Mobile scan) | 'editor' (Text edit)
   const [smsGatewayConfig, setSmsGatewayConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_sms_gateway_config');
@@ -455,6 +458,23 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [smsSendingLoading, setSmsSendingLoading] = useState(false);
   const [smsGatewayError, setSmsGatewayError] = useState('');
   const [smsDeliveryStatus, setSmsDeliveryStatus] = useState(null);
+
+  // Generate Mobile-to-Mobile SMS QR Code whenever phone or text updates
+  useEffect(() => {
+    if (smsCustomPhone && smsCustomText) {
+      const cleanPhone = String(smsCustomPhone).replace(/[^\d+]/g, '');
+      const smsUri = `SMSTO:${cleanPhone}:${smsCustomText}`;
+      QRCode.toDataURL(smsUri, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#0f172a', light: '#ffffff' }
+      })
+        .then(url => setSmsQrDataUrl(url))
+        .catch(err => console.warn('QR Code generation error:', err));
+    } else {
+      setSmsQrDataUrl('');
+    }
+  }, [smsCustomPhone, smsCustomText]);
 
   // Issue & Return Register Checkbox Selection State
   const [selectedLoanIds, setSelectedLoanIds] = useState([]);
@@ -2014,15 +2034,19 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়`;
   };
 
-  const buildShortSmsText = (l, mode = 'standard') => {
+  const buildShortSmsText = (l, mode = 'feature_phone') => {
     if (!l) return '';
     const info = getLoanStudentInfo(l);
     const overdue = getOverdueDays(l.due_at);
+    if (mode === 'feature_phone') {
+      // 100% Button / Feature phone friendly (Banglish - no unicode corruption, fits 1 SMS <160 chars)
+      return `Magra Pals HS: ${info.studentName} (Roll ${info.rollNo}, Class ${info.className})-er library boi "${l.book_title}" ferot deyar somoy par hoyeche (${overdue} din). Shighroi joma din.`;
+    }
     if (mode === 'short') {
       return `মগড়া পালস্ উ/বি: ${info.studentName} (রোল ${toBn(info.rollNo)}) এর বই "${l.book_title}" জমা দেওয়ার মেয়াদ শেষ হয়েছে। অবিলম্বে লাইব্রেরিতে জমা দিন।`;
     }
     if (mode === 'english') {
-      return `Magra High School: Student ${info.studentName} (Class ${info.className}, Roll ${info.rollNo}) library book "${l.book_title}" is overdue by ${overdue} days. Please return within 3 days.`;
+      return `Magra Pals High School: Student ${info.studentName} (Class ${info.className}, Roll ${info.rollNo}) library book "${l.book_title}" is overdue by ${overdue} days. Please return within 3 days.`;
     }
     return `মগড়া পালস্ উ/বি লাইব্রেরি: শিক্ষার্থী ${info.studentName} (শ্রেণি ${toBn(info.className)}ম, রোল ${toBn(info.rollNo)}) এর নেওয়া বই "${l.book_title}" জমা দেওয়ার মেয়াদ ${toBn(overdue)} দিন পার হয়েছে। আগামী ৩ দিনের মধ্যে বইটি লাইব্রেরিতে জমা দেওয়ার অনুরোধ রইল।`;
   };
@@ -2094,17 +2118,21 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     const info = getLoanStudentInfo(loan);
     setSmsModalLoan(loan);
     setSmsCustomPhone(info.phone || loan.guardian_phone || '');
-    setSmsCustomText(buildShortSmsText(loan, 'standard'));
+    // Default to feature_phone safe Banglish (no font scramble on button phones, fits 1 SMS)
+    setSmsCustomText(buildShortSmsText(loan, 'feature_phone'));
     setSmsSentSuccess(false);
     setSmsGatewayError('');
     setSmsDeliveryStatus(null);
     setShowSmsSettings(false);
+    setSmsDeliveryTab('qr'); // Show mobile scan QR first
   };
 
   const handleDirectDeviceSms = (phone, text) => {
     const cleanPhone = String(phone || '').replace(/[^\d+]/g, '');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const separator = isIOS ? '&' : '?';
     showNotification('আপনার মোবাইল/ডিভাইসের মেসেজিং অ্যাপ চালু হচ্ছে...', 'info');
-    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(text)}`;
+    window.location.href = `sms:${cleanPhone}${separator}body=${encodeURIComponent(text)}`;
   };
 
   const handleSaveSmsGatewayConfig = (newConfig) => {
@@ -5382,18 +5410,20 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
           <div style={{
             background: '#fff',
             borderRadius: '14px',
-            maxWidth: '520px',
+            maxWidth: '580px',
             width: '100%',
             padding: '24px',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)'
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+            maxHeight: '90vh',
+            overflowY: 'auto'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '14px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>✉️</span> পিতা/অভিভাবককে তাগাদা SMS প্রেরণ
+                  <span>✉️</span> ফিচার/বাটন ফোনে সরাসরি মোবাইল SMS প্রেরণ
                 </h3>
                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                  মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • লাইব্রেরি শাখা
+                  মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • সিম-টু-সিম সরাসরি সেলুলার SMS
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -5415,7 +5445,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     gap: '4px'
                   }}
                 >
-                  <span>⚙️</span> {showSmsSettings ? 'সেটিংস বন্ধ' : 'গেটওয়ে সেটিংস'}
+                  <span>⚙️</span> {showSmsSettings ? 'সেটিংস বন্ধ' : 'গেটওয়ে'}
                 </button>
                 <button
                   type="button"
@@ -5456,7 +5486,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   >
                     <option value="bulksmsbd">BulkSMSBD (বাংলাদেশ - https://bulksmsbd.net)</option>
                     <option value="greenweb">Greenweb BD (https://greenweb.com.bd)</option>
-                    <option value="custom">কাস্টম HTTP API (যেকোনো গেটওয়ে)</option>
+                    <option value="custom">কাস্টম HTTP API (যেকোনো গেটওয়ে / Android Local Gateway)</option>
                   </select>
                 </div>
 
@@ -5541,144 +5571,301 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               </div>
             )}
 
-            {/* Real SMS Explanation & Channel Indicator */}
-            {!showSmsSettings && (
-              <div style={{
-                background: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#f0fdf4' : '#fffbeb',
-                border: `1px solid ${smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#86efac' : '#fde68a'}`,
-                borderRadius: '8px',
-                padding: '10px 12px',
-                marginBottom: '12px',
-                fontSize: '11.5px',
-                lineHeight: 1.5,
-                color: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#166534' : '#92400e'
-              }}>
-                {smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>🟢 <b>টেলিকম গেটওয়ে সক্রিয়:</b> {smsGatewayConfig.provider.toUpperCase()} (সরাসরি ওয়েব থেকে পাঠানোর জন্য প্রস্তুত)</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowSmsSettings(true)}
-                      style={{ background: 'none', border: 'none', textDecoration: 'underline', color: '#15803d', fontSize: '11px', cursor: 'pointer', fontWeight: 700 }}
-                    >
-                      পরিবর্তন
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontWeight: 700, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <span>💡</span> <b>সরাসরি রিয়েল SMS ডেলিভারি সংক্রান্ত তথ্য:</b>
-                    </div>
-                    <div>
-                      • <b>বিনা খরচে আসল SMS পাঠাতে:</b> নিচে <b style={{ color: '#0284c7' }}>"📱 মোবাইল SMS অ্যাপে"</b> বাটনে চাপুন—মোবাইলের সিমের ফ্রি/প্যাক ব্যালেন্স দিয়ে ১-ক্লিকে তাৎক্ষণিক আসল SMS চলে যাবে।
-                      <br />
-                      • <b>সরাসরি গেটওয়ে API দিয়ে পাঠাতে:</b> উপরে <b>"⚙️ গেটওয়ে সেটিংস"</b> বাটনে গিয়ে স্কুলের BulkSMSBD বা Greenweb API Key বসিয়ে সক্রিয় করুন।
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Student & Book Summary Box */}
-            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px' }}>
+            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px', fontSize: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                 <span>👤 <b>শিক্ষার্থী:</b> {smsModalLoan.name_bn}</span>
                 <span>🏫 <b>শ্রেণি:</b> {toBn(smsModalLoan.class_name)}ম (রোল {toBn(smsModalLoan.roll_no)})</span>
               </div>
-              <div>📖 <b>বই:</b> {smsModalLoan.book_title} (কোড: {smsModalLoan.accession_no})</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>📖 <b>বই:</b> {smsModalLoan.book_title} (কোড: {smsModalLoan.accession_no})</div>
+                <div style={{ color: '#0369a1', fontWeight: 700 }}>
+                  📞 <b>{smsCustomPhone || 'নম্বর নেই'}</b>
+                </div>
+              </div>
               <div style={{ color: '#dc2626', fontWeight: 700, marginTop: '3px' }}>
                 ⚠️ নির্ধারিত মেয়াদ উত্তীর্ণ: {toBn(getOverdueDays(smsModalLoan.due_at))} দিন অতিবাহিত হয়েছে
               </div>
             </div>
 
-            {/* Mobile Number Input */}
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                📲 পিতা/অভিভাবকের মোবাইল নম্বর:
-              </label>
-              <input
-                type="text"
-                value={smsCustomPhone}
-                onChange={e => setSmsCustomPhone(e.target.value)}
-                placeholder="017xxxxxxxx"
+            {/* Workflow Mode Tabs */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setSmsDeliveryTab('qr')}
                 style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  border: '1.5px solid #cbd5e1',
-                  fontSize: '13px',
-                  fontFamily: 'monospace',
+                  background: smsDeliveryTab === 'qr' ? '#0284c7' : '#f1f5f9',
+                  color: smsDeliveryTab === 'qr' ? '#fff' : '#475569',
+                  border: 'none',
+                  padding: '7px 14px',
+                  borderRadius: '7px',
+                  fontSize: '12px',
                   fontWeight: 700,
-                  color: '#0f172a',
-                  boxSizing: 'border-box'
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
-              />
-            </div>
+              >
+                <span>📷</span> মোবাইল দিয়ে স্ক্যান করে পাঠান (১-ট্যাপ QR)
+              </button>
 
-            {/* Template Buttons */}
-            <div style={{ marginBottom: '10px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '5px' }}>
-                নমুনা টেমপ্লেট নির্বাচন করুন:
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'standard'))}
-                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  বাংলা (স্ট্যান্ডার্ড)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'short'))}
-                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  বাংলা (খুব সংক্ষিপ্ত)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'english'))}
-                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
-                >
-                  English (১টি SMS)
-                </button>
-              </div>
-            </div>
-
-            {/* SMS Body Area */}
-            <div style={{ marginBottom: '8px' }}>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                💬 SMS বার্তা (প্রয়োজনে সম্পাদনা করুন):
-              </label>
-              <textarea
-                value={smsCustomText}
-                onChange={e => setSmsCustomText(e.target.value)}
-                rows={4}
+              <button
+                type="button"
+                onClick={() => setSmsDeliveryTab('editor')}
                 style={{
-                  width: '100%',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  border: '1.5px solid #0284c7',
-                  fontSize: '12.5px',
-                  lineHeight: 1.5,
-                  boxSizing: 'border-box',
-                  fontFamily: 'inherit',
-                  resize: 'vertical'
+                  background: smsDeliveryTab === 'editor' ? '#0284c7' : '#f1f5f9',
+                  color: smsDeliveryTab === 'editor' ? '#fff' : '#475569',
+                  border: 'none',
+                  padding: '7px 14px',
+                  borderRadius: '7px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
-              />
+              >
+                <span>✏️</span> বাটন ফোন টেমপ্লেট ও টেক্সট
+              </button>
             </div>
 
-            {/* Character & Part Counter */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b', marginBottom: '16px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px' }}>
-              <span>📊 দৈর্ঘ্য: <b>{toBn(smsCustomText.length)}</b> অক্ষর</span>
-              <span>
-                {/[^\u0000-\u007F]/.test(smsCustomText) ? (
-                  <span>ইউনিকোড SMS: <b>{toBn(Math.ceil(smsCustomText.length / 70) || 1)}</b> টি অংশ (৭০ অক্ষর/SMS)</span>
-                ) : (
-                  <span>স্ট্যান্ডার্ড GSM: <b>{toBn(Math.ceil(smsCustomText.length / 160) || 1)}</b> টি অংশ (১৬০ অক্ষর/SMS)</span>
-                )}
-              </span>
-            </div>
+            {/* TAB 1: QR CODE DIRECT MOBILE-TO-MOBILE SMS SCANNER */}
+            {smsDeliveryTab === 'qr' && (
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '10px',
+                padding: '14px',
+                marginBottom: '14px'
+              }}>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {/* Left: QR Code */}
+                  <div style={{ textAlign: 'center', minWidth: '180px', flex: '0 0 auto', margin: '0 auto' }}>
+                    {smsQrDataUrl ? (
+                      <img
+                        src={smsQrDataUrl}
+                        alt="SMS QR Code"
+                        style={{
+                          width: '180px',
+                          height: '180px',
+                          display: 'block',
+                          borderRadius: '8px',
+                          border: '2px solid #0284c7',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.08)',
+                          background: '#fff',
+                          padding: '4px'
+                        }}
+                      />
+                    ) : (
+                      <div style={{ width: '180px', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', borderRadius: '8px', fontSize: '11px', color: '#64748b' }}>
+                        QR কোড লোড হচ্ছে...
+                      </div>
+                    )}
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0369a1', marginTop: '6px' }}>
+                      📲 মোবাইলের ক্যামেরা দিয়ে ধরুন
+                    </div>
+                  </div>
+
+                  {/* Right: Step-by-step Instructions & 1-tap Actions */}
+                  <div style={{ flex: '1 1 240px', fontSize: '12px', lineHeight: 1.55 }}>
+                    <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '6px', fontSize: '13px' }}>
+                      🚀 মোবাইল-টু-মোবাইল সরাসরি SMS পাঠানোর নিয়ম:
+                    </div>
+                    <div style={{ color: '#334155', marginBottom: '4px' }}>
+                      <b>১.</b> আপনার মোবাইল ফোনের <b>ক্যামেরা</b> বা <b>Google Lens / QR Scanner</b> চালু করুন।
+                    </div>
+                    <div style={{ color: '#334155', marginBottom: '4px' }}>
+                      <b>২.</b> কম্পিউটারের এই QR কোডে ধরলেই আপনার মোবাইলের মেসেজ বক্সে নম্বর ও বার্তা বসে যাবে।
+                    </div>
+                    <div style={{ color: '#334155', marginBottom: '10px' }}>
+                      <b>৩.</b> মোবাইলে শুধু <b>"Send"</b> চাপুন—আপনার নিজস্ব সিমের SMS প্যাক দিয়ে অভিভাবকের <b>ফিচার/বাটন ফোনে সরাসরি সেলুলার SMS</b> চলে যাবে!
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleDirectDeviceSms(smsCustomPhone, smsCustomText)}
+                        style={{
+                          background: '#0284c7',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '7px 12px',
+                          borderRadius: '6px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        📱 এই ডিভাইসের মেসেজিং অ্যাপে খুলুন (যদি মোবাইল ব্রাউজারে থাকেন)
+                      </button>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(smsCustomPhone);
+                            alert(`অভিভাবকের মোবাইল নম্বর (${smsCustomPhone}) কপি করা হয়েছে!`);
+                          }}
+                          style={{
+                            flex: 1,
+                            background: '#fff',
+                            border: '1px solid #cbd5e1',
+                            color: '#1e293b',
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          📋 নম্বর কপি ({smsCustomPhone})
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(smsCustomText);
+                            alert('SMS টেক্সট ক্লিপবোর্ডে কপি করা হয়েছে!');
+                          }}
+                          style={{
+                            flex: 1,
+                            background: '#fff',
+                            border: '1px solid #cbd5e1',
+                            color: '#1e293b',
+                            padding: '6px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          📋 মেসেজ কপি
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: TEMPLATES & TEXT EDITOR */}
+            {smsDeliveryTab === 'editor' && (
+              <div>
+                {/* Mobile Number Input */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    📲 পিতা/অভিভাবকের মোবাইল নম্বর:
+                  </label>
+                  <input
+                    type="text"
+                    value={smsCustomPhone}
+                    onChange={e => setSmsCustomPhone(e.target.value)}
+                    placeholder="017xxxxxxxx"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #cbd5e1',
+                      fontSize: '13px',
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                {/* Template Selection */}
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '5px' }}>
+                    নমুনা টেমপ্লেট নির্বাচন করুন (ফিচার ফোনের জন্য বাংলিশ সুপারিশকৃত):
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'feature_phone'))}
+                      title="যেকোনো বাটন/ফিচার ফোনে ফন্ট ভাঙবে না এবং ১টি SMS-এর মধ্যে ১৬০ অক্ষরে শেষ হবে"
+                      style={{
+                        background: '#16a34a',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        fontWeight: 700
+                      }}
+                    >
+                      🔘 বাটন ফোন ফ্রেন্ডলি (বাংলিশ) ⭐
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'short'))}
+                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      সহজ বাংলা (খুব সংক্ষিপ্ত)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'standard'))}
+                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      বাংলা (স্ট্যান্ডার্ড)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'english'))}
+                      style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      English
+                    </button>
+                  </div>
+                </div>
+
+                {/* SMS Body Area */}
+                <div style={{ marginBottom: '8px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    💬 SMS বার্তা (প্রয়োজনে সম্পাদনা করুন):
+                  </label>
+                  <textarea
+                    value={smsCustomText}
+                    onChange={e => setSmsCustomText(e.target.value)}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '6px',
+                      border: '1.5px solid #0284c7',
+                      fontSize: '12.5px',
+                      lineHeight: 1.5,
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+
+                {/* Feature phone safety advice */}
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '8px 10px', marginBottom: '10px', fontSize: '11px', color: '#065f46' }}>
+                  💡 <b>ফিচার (বাটন) ফোনের সুরক্ষা:</b> সাধারণ নোকিয়া, ওয়ালটন বা সিম্ফনি বাটন ফোনে অনেক সময় ইউনিকোড বাংলা সাপোর্ট না থাকায় লেখা '???' বা ভেঙে যায়। <b>"বাটন ফোন ফ্রেন্ডলি (বাংলিশ)"</b> টেক্সট নির্বাচন করলে যেকোনো বাটন ফোনে ১০০% পরিষ্কার ও অক্ষতভাবে বার্তাটি পৌঁছায়।
+                </div>
+
+                {/* Character & Part Counter */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b', marginBottom: '14px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px' }}>
+                  <span>📊 দৈর্ঘ্য: <b>{toBn(smsCustomText.length)}</b> অক্ষর</span>
+                  <span>
+                    {/[^\u0000-\u007F]/.test(smsCustomText) ? (
+                      <span>ইউনিকোড SMS: <b>{toBn(Math.ceil(smsCustomText.length / 70) || 1)}</b> টি অংশ (৭০ অক্ষর/SMS)</span>
+                    ) : (
+                      <span>স্ট্যান্ডার্ড GSM: <b>{toBn(Math.ceil(smsCustomText.length / 160) || 1)}</b> টি অংশ (১৬০ অক্ষর/SMS)</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Error & Status Alert */}
             {smsGatewayError && (
@@ -5698,18 +5885,17 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               </div>
             )}
 
-            {/* Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+            {/* Actions Footer */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', paddingTop: '8px', borderTop: '1px solid #f1f5f9' }}>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {/* 1. Direct device SMS (100% Free, Guaranteed to arrive via SIM) */}
+                {/* 1. Toggle QR View Button */}
                 <button
                   type="button"
-                  onClick={() => handleDirectDeviceSms(smsCustomPhone, smsCustomText)}
-                  title="আপনার মোবাইল বা ডিভাইসের ডিফল্ট SMS মেসেজিং অ্যাপ ওপেন করে সিম ব্যালেন্স দিয়ে আসল SMS পাঠান (১০০% ফ্রি ও তাৎক্ষণিক)"
+                  onClick={() => setSmsDeliveryTab('qr')}
                   style={{
-                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    background: smsDeliveryTab === 'qr' ? '#0f172a' : '#0284c7',
                     color: '#fff',
-                    padding: '8px 14px',
+                    padding: '8px 12px',
                     borderRadius: '7px',
                     border: 'none',
                     fontWeight: 700,
@@ -5717,14 +5903,35 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                    gap: '5px'
                   }}
                 >
-                  <span>📱</span> মোবাইল SMS অ্যাপে (১০০% ফ্রি)
+                  <span>📷</span> QR স্ক্যান
                 </button>
 
-                {/* 2. Direct WhatsApp dispatch */}
+                {/* 2. Direct device SMS */}
+                <button
+                  type="button"
+                  onClick={() => handleDirectDeviceSms(smsCustomPhone, smsCustomText)}
+                  title="আপনার মোবাইল বা ডিভাইসের ডিফল্ট SMS মেসেজিং অ্যাপ ওপেন করে সিম ব্যালেন্স দিয়ে আসল SMS পাঠান (১০০% ফ্রি ও তাৎক্ষণিক)"
+                  style={{
+                    background: '#0284c7',
+                    color: '#fff',
+                    padding: '8px 12px',
+                    borderRadius: '7px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <span>📱</span> মোবাইল SMS
+                </button>
+
+                {/* 3. Direct WhatsApp dispatch */}
                 <button
                   type="button"
                   onClick={() => {
@@ -5741,7 +5948,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   style={{
                     background: '#25D366',
                     color: '#fff',
-                    padding: '8px 12px',
+                    padding: '8px 10px',
                     borderRadius: '7px',
                     border: 'none',
                     fontWeight: 700,
@@ -5749,13 +5956,13 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    gap: '4px'
                   }}
                 >
-                  <span>💬</span> WhatsApp
+                  <span>💬</span> WA
                 </button>
 
-                {/* 3. Direct Gateway SMS */}
+                {/* 4. Direct Gateway SMS */}
                 <button
                   type="button"
                   onClick={handleSendGatewaySms}
@@ -5764,7 +5971,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   style={{
                     background: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#059669' : '#64748b',
                     color: '#fff',
-                    padding: '8px 14px',
+                    padding: '8px 12px',
                     borderRadius: '7px',
                     border: 'none',
                     fontWeight: 700,
@@ -5772,14 +5979,14 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     cursor: smsSendingLoading ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px'
+                    gap: '5px'
                   }}
                 >
                   <span>{smsSendingLoading ? '⏳' : '🚀'}</span>
-                  {smsSendingLoading ? 'পাঠানো হচ্ছে...' : 'সরাসরি গেটওয়ে SMS'}
+                  {smsSendingLoading ? 'পাঠানো হচ্ছে...' : 'গেটওয়ে SMS'}
                 </button>
 
-                {/* 4. Copy Text */}
+                {/* 5. Copy Text */}
                 <button
                   type="button"
                   onClick={() => {
@@ -5790,7 +5997,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     background: '#fff',
                     color: '#334155',
                     border: '1px solid #cbd5e1',
-                    padding: '8px 12px',
+                    padding: '8px 10px',
                     borderRadius: '7px',
                     fontSize: '12px',
                     fontWeight: 600,
