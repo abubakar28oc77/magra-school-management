@@ -261,6 +261,12 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [printCatalogMode, setPrintCatalogMode] = useState(false);
   const [printReportMode, setPrintReportMode] = useState(false);
 
+  // CSV Bulk Upload Modal States
+  const [showUploadCSVModal, setShowUploadCSVModal] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvParsedBooks, setCsvParsedBooks] = useState([]);
+  const [csvError, setCsvError] = useState('');
+
   // -------------------------------------------------------------
   // Catalog Filtering & Sorting State
   // -------------------------------------------------------------
@@ -825,6 +831,248 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     document.body.removeChild(link);
   };
 
+  // Sample CSV Template Download for Bulk Book Import
+  const downloadSampleCSV = () => {
+    const headers = ['Accession No', 'Author', 'Title', 'Category', 'Shelf', 'Total Copies', 'Price', 'Source', 'Remarks'];
+    const sampleRows = [
+      ['MAG-BK-021', 'কাজী নজরুল ইসলাম', 'অগ্নিবীণা', 'কবিতা', 'আলমারি-১ (বাংলা সাহিত্য)', 5, 220, 'বিদ্যালয়ের নিজস্ব তহবিল ক্রয়', 'উন্নত সংস্করণ'],
+      ['MAG-BK-022', 'রবীন্দ্রনাথ ঠাকুর', 'গীতাঞ্জলি', 'কবিতা', 'আলমারি-১ (বাংলা সাহিত্য)', 4, 300, 'সরকারি অনুদান', 'নোবেল পুরস্কারপ্রাপ্ত সংস্করণ'],
+      ['MAG-BK-023', 'অধ্যাপক এম এ কালাম', 'সাধারণ জ্ঞান ও বাংলাদেশ বিষয়াবলী ২০২৬', 'সাধারণ জ্ঞান ও বিশ্বকোষ', 'আলমারি-৫ (সাধারণ জ্ঞান ও রেফারেন্স)', 6, 250, 'বিদ্যালয়ের নিজস্ব তহবিল ক্রয়', '২০২৬ সংস্করণ']
+    ];
+    const csvContent = '\uFEFF' + [headers.join(','), ...sampleRows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'sample_library_books_import_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // CSV File Upload & Parsing Handler
+  const handleCSVFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setCsvFile(file);
+    setCsvError('');
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+        if (lines.length < 2) {
+          setCsvError('CSV ফাইলে পর্যাপ্ত তথ্য নেই। প্রথম সারিতে কলাম হেডার এবং পরবর্তী সারিতে বইয়ের তথ্য থাকতে হবে।');
+          return;
+        }
+
+        const parseLine = (line) => {
+          const res = [];
+          let cur = '';
+          let inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+              if (inQ && line[i + 1] === '"') {
+                cur += '"';
+                i++;
+              } else {
+                inQ = !inQ;
+              }
+            } else if (ch === ',' && !inQ) {
+              res.push(cur.trim());
+              cur = '';
+            } else {
+              cur += ch;
+            }
+          }
+          res.push(cur.trim());
+          return res;
+        };
+
+        const headers = parseLine(lines[0]).map(h => h.replace(/^["']|["']$/g, '').trim().toLowerCase());
+        const findIdx = (keywords) => headers.findIndex(h => keywords.some(k => h.includes(k)));
+
+        const accIdx = findIdx(['accession', 'acc', 'কোড', 'নম্বর']);
+        const authorIdx = findIdx(['author', 'লেখক']);
+        const titleIdx = findIdx(['title', 'বই', 'নাম', 'শিরোনাম']);
+        const catIdx = findIdx(['category', 'ক্যাটাগরি', 'বিভাগ']);
+        const shelfIdx = findIdx(['shelf', 'আলমারি', 'সেলফ']);
+        const qtyIdx = findIdx(['total copies', 'quantity', 'qty', 'কপি', 'সংখ্যা']);
+        const priceIdx = findIdx(['price', 'মূল্য', 'দাম']);
+        const sourceIdx = findIdx(['source', 'উৎস', 'তহবিল']);
+        const remarksIdx = findIdx(['remark', 'মন্তব্য']);
+
+        if (titleIdx === -1 && authorIdx === -1) {
+          setCsvError('CSV ফাইলে "বইয়ের নাম" (Title) বা "লেখক" (Author) কলামটি শনাক্ত করা যায়নি। অনুগ্রহ করে নমুনা টেমপ্লেট ডাউনলোড করে ফরম্যাটটি পরীক্ষা করুন।');
+          return;
+        }
+
+        const existingNums = books.map(b => {
+          const m = String(b.accession_no || '').match(/\d+/g);
+          return m ? parseInt(m[m.length - 1], 10) : 0;
+        });
+        let curMax = existingNums.length ? Math.max(...existingNums) : 0;
+
+        const parsed = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = parseLine(lines[i]);
+          if (!cols || cols.length === 0 || cols.every(c => !c)) continue;
+
+          const rawTitle = titleIdx !== -1 && cols[titleIdx] ? cols[titleIdx].replace(/^["']|["']$/g, '').trim() : '';
+          const rawAuthor = authorIdx !== -1 && cols[authorIdx] ? cols[authorIdx].replace(/^["']|["']$/g, '').trim() : '';
+          if (!rawTitle && !rawAuthor) continue;
+
+          let accNo = accIdx !== -1 && cols[accIdx] ? cols[accIdx].replace(/^["']|["']$/g, '').trim() : '';
+          if (!accNo) {
+            curMax += 1;
+            accNo = `MAG-BK-${String(curMax).padStart(3, '0')}`;
+          }
+
+          const rawQty = qtyIdx !== -1 && cols[qtyIdx] ? parseInt(cols[qtyIdx].replace(/[^\d]/g, ''), 10) || 1 : 1;
+          const rawPrice = priceIdx !== -1 && cols[priceIdx] ? parseFloat(cols[priceIdx].replace(/[^\d.]/g, '')) || 0 : 0;
+          const rawCat = catIdx !== -1 && cols[catIdx] ? cols[catIdx].replace(/^["']|["']$/g, '').trim() : 'উপন্যাস';
+          const rawShelf = shelfIdx !== -1 && cols[shelfIdx] ? cols[shelfIdx].replace(/^["']|["']$/g, '').trim() : 'আলমারি-১ (বাংলা সাহিত্য)';
+          const rawSource = sourceIdx !== -1 && cols[sourceIdx] ? cols[sourceIdx].replace(/^["']|["']$/g, '').trim() : 'বিদ্যালয়ের নিজস্ব তহবিল ক্রয়';
+          const rawRemarks = remarksIdx !== -1 && cols[remarksIdx] ? cols[remarksIdx].replace(/^["']|["']$/g, '').trim() : '';
+
+          parsed.push({
+            id: 'bk-csv-' + Date.now() + '-' + i,
+            accession_no: accNo,
+            author: rawAuthor || 'অজ্ঞাত লেখক',
+            title: rawTitle || 'শিরোনামহীন বই',
+            category: rawCat,
+            shelf: rawShelf,
+            quantity: rawQty,
+            available_quantity: rawQty,
+            price: rawPrice,
+            source: rawSource,
+            remarks: rawRemarks
+          });
+        }
+
+        if (parsed.length === 0) {
+          setCsvError('CSV ফাইলে কোনো বৈধ বইয়ের সারি পাওয়া যায়নি।');
+        } else {
+          setCsvParsedBooks(parsed);
+          setCsvError('');
+        }
+      } catch (err) {
+        setCsvError('ফাইল পড়তে ত্রুটি হয়েছে: ' + err.message);
+      }
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const handleConfirmImportCSV = () => {
+    if (!csvParsedBooks.length) return;
+    setBooks(prev => [...csvParsedBooks, ...prev]);
+    showNotification(`সফলভাবে ${toBn(csvParsedBooks.length)}টি বই CSV ফাইল থেকে ক্যাটালগে আপলোড ও যুক্ত করা হয়েছে!`, 'success');
+    setShowUploadCSVModal(false);
+    setCsvFile(null);
+    setCsvParsedBooks([]);
+    setCsvError('');
+  };
+
+  // Comprehensive CSV Library Inventory & Audit Report Export
+  const exportLibraryReportCSV = () => {
+    const reportDate = new Date().toISOString().slice(0, 10);
+    const activeLoans = loans.filter(l => !l.returned_at);
+    const overdueLoans = activeLoans.filter(l => getOverdueDays(l.due_at) > 0);
+    const totalDamagedCopies = damaged.reduce((acc, d) => acc + (parseInt(d.quantity, 10) || 0), 0);
+    const totalStockValue = books.reduce((acc, b) => acc + ((parseFloat(b.price) || 0) * (parseInt(b.quantity, 10) || 0)), 0);
+
+    const lines = [
+      `"মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - কেন্দ্রীয় লাইব্রেরি পূর্ণাঙ্গ স্টক ও অডিট রিপোর্ট"`,
+      `"রিপোর্ট প্রস্তুতের তারিখ","${reportDate}"`,
+      `"দায়িত্বপ্রাপ্ত শিক্ষক","${LIBRARIAN_TEACHER.name_bn} (${LIBRARIAN_TEACHER.designation})"`,
+      `"EIIN","114290","অবস্থান","${LIBRARIAN_TEACHER.room}"`,
+      `""`,
+      `"--- লাইব্রেরি সার্বিক সারসংক্ষেপ (KPI SUMMARY) ---"`,
+      `"মেট্রিক্সের নাম","পরিমাণ / সংখ্যা","মন্তব্য"`,
+      `"মোট বইয়ের টাইটেল (Unique Titles)","${books.length} টি","লেখকের নামানুসারে ক্যাটালগভুক্ত"`,
+      `"মোট বইয়ের কপি সংখ্যা (Total Copies)","${kpis.totalCopies} কপি","লাইব্রেরির সর্বমোট স্টক"`,
+      `"শেলফে বর্তমানে উপলব্ধ (Available in Shelf)","${kpis.availableCopies} কপি","ইস্যু করার জন্য প্রস্তুত"`,
+      `"শিক্ষার্থীদের কাছে ইস্যুকৃত (Currently Issued)","${kpis.issuedCount} কপি","চলমান রিডিং লোন"`,
+      `"বকেয়া / মেয়াদোত্তীর্ণ বই (Overdue Loans)","${kpis.overdueCount} টি","তাগাদা নোটিশ প্রদানযোগ্য"`,
+      `"নষ্ট ও বাতিল বই (Damaged/Discarded)","${totalDamagedCopies} কপি","অডিট রেজিস্টারভুক্ত"`,
+      `"লাইব্রেরি স্টকের আনুমানিক মোট আর্থিক মূল্য","${totalStockValue.toLocaleString('bn-BD')} টাকা","একক বইয়ের মূল্যের ভিত্তিতে"`,
+      `""`,
+      `"--- ক্যাটাগরিভিত্তিক স্টক বিশ্লেষণ (CATEGORY-WISE DISTRIBUTION) ---"`,
+      `"ক্যাটাগরি","টাইটেল সংখ্যা","মোট কপি","শেলফে উপলব্ধ","ইস্যুকৃত কপি"`
+    ];
+
+    const catMap = {};
+    books.forEach(b => {
+      const c = b.category || 'অন্যান্য';
+      if (!catMap[c]) catMap[c] = { titles: 0, total: 0, avail: 0 };
+      catMap[c].titles += 1;
+      catMap[c].total += (parseInt(b.quantity, 10) || 0);
+      catMap[c].avail += (parseInt(b.available_quantity, 10) || 0);
+    });
+    Object.keys(catMap).sort().forEach(cat => {
+      const d = catMap[cat];
+      const issued = d.total - d.avail;
+      lines.push(`"${cat}","${d.titles}","${d.total}","${d.avail}","${issued}"`);
+    });
+
+    lines.push(`""`);
+    lines.push(`"--- আলমারি / সেলফভিত্তিক বইয়ের বিন্যাস (SHELF DISTRIBUTION) ---"`);
+    lines.push(`"আলমারি/সেলফ","টাইটেল সংখ্যা","মোট কপি"`);
+    const shelfMap = {};
+    books.forEach(b => {
+      const s = b.shelf || 'অন্যান্য';
+      if (!shelfMap[s]) shelfMap[s] = { titles: 0, total: 0 };
+      shelfMap[s].titles += 1;
+      shelfMap[s].total += (parseInt(b.quantity, 10) || 0);
+    });
+    Object.keys(shelfMap).sort().forEach(shelf => {
+      const d = shelfMap[shelf];
+      lines.push(`"${shelf}","${d.titles}","${d.total}"`);
+    });
+
+    lines.push(`""`);
+    lines.push(`"--- বিস্তারিত গ্রন্থ ও স্টক রেজিস্টার (DETAILED BOOK INVENTORY) ---"`);
+    lines.push(`"ক্রমিক","অ্যাকসেশন নং","লেখকের নাম","বইয়ের নাম","ক্যাটাগরি","আলমারি/সেলফ","মোট কপি","উপলব্ধ কপি","ইস্যুকৃত","একক মূল্য (টাকা)","মোট মূল্য (টাকা)","উৎস","স্টক স্ট্যাটাস"`);
+
+    books.forEach((b, idx) => {
+      const qty = parseInt(b.quantity, 10) || 0;
+      const avail = parseInt(b.available_quantity, 10) || 0;
+      const issued = qty - avail;
+      const price = parseFloat(b.price) || 0;
+      const rowTotal = price * qty;
+      const status = avail === 0 ? 'স্টক শূন্য' : avail <= 2 ? 'সীমিত স্টক' : 'পর্যাপ্ত স্টক';
+
+      lines.push([
+        idx + 1,
+        `"${b.accession_no || ''}"`,
+        `"${(b.author || '').replace(/"/g, '""')}"`,
+        `"${(b.title || '').replace(/"/g, '""')}"`,
+        `"${b.category || ''}"`,
+        `"${b.shelf || ''}"`,
+        qty,
+        avail,
+        issued,
+        price,
+        rowTotal,
+        `"${(b.source || '').replace(/"/g, '""')}"`,
+        `"${status}"`
+      ].join(','));
+    });
+
+    const csvContent = '\uFEFF' + lines.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `magra_school_library_report_${reportDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showNotification('লাইব্রেরির সামগ্রিক স্টক ও অডিট রিপোর্ট (CSV) ডাউনলোড সম্পন্ন হয়েছে।', 'success');
+  };
+
   return (
     <div className="library-management-panel" style={{ width: '100%', fontFamily: 'inherit' }}>
       {/* ------------------------------------------------------------------ */}
@@ -1225,6 +1473,53 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                 }}
               >
                 📥 এক্সেল (CSV)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUploadCSVModal(true);
+                  setCsvFile(null);
+                  setCsvParsedBooks([]);
+                  setCsvError('');
+                }}
+                title="CSV ফাইল থেকে বইয়ের তালিকা ও স্টক ক্যাটালগে আপলোড / ইমপোর্ট করুন"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #10b981',
+                  background: '#ecfdf5',
+                  color: '#065f46',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                📤 আপলোড (CSV)
+              </button>
+
+              <button
+                type="button"
+                onClick={exportLibraryReportCSV}
+                title="লাইব্রেরি স্টক, অডিট ও ইনভেন্টরির পূর্ণাঙ্গ রিপোর্ট CSV ফরম্যাটে ডাউনলোড করুন"
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #6366f1',
+                  background: '#eef2ff',
+                  color: '#4338ca',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                📊 রিপোর্ট (CSV)
               </button>
 
               <button
@@ -2372,6 +2667,255 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* MODAL: আপলোড (CSV) - Bulk Books Import from CSV */}
+      {/* ================================================================== */}
+      {showUploadCSVModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.65)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            maxWidth: '780px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+            border: '1px solid #e2e8f0'
+          }}>
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+              color: '#fff',
+              padding: '16px 22px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>📤</span> লাইব্রেরি বই ক্যাটালগ আপলোড (CSV Import)
+                </h3>
+                <p style={{ margin: '4px 0 0', fontSize: '12.5px', opacity: 0.9 }}>
+                  এক্সেল বা স্প্রেডশিট থেকে তৈরি CSV ফাইলের মাধ্যমে একসাথে শত শত বই স্বয়ংক্রিয়ভাবে ক্যাটালগে যুক্ত করুন।
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUploadCSVModal(false);
+                  setCsvFile(null);
+                  setCsvParsedBooks([]);
+                  setCsvError('');
+                }}
+                style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px 24px' }}>
+              {/* Sample Download Card */}
+              <div style={{
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                marginBottom: '18px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '13px', color: '#166534' }}>
+                    💡 সঠিক ফরম্যাট বজায় রাখতে নমুনা টেমপ্লেট ব্যবহার করুন
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>
+                    কলামসমূহ: Accession No, Author, Title, Category, Shelf, Total Copies, Price, Source, Remarks
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadSampleCSV}
+                  style={{
+                    background: '#15803d',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '7px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  📥 নমুনা CSV ডাউনলোড
+                </button>
+              </div>
+
+              {/* File Upload Dropzone */}
+              <div style={{
+                border: '2px dashed #94a3b8',
+                borderRadius: '10px',
+                padding: '24px 16px',
+                textAlign: 'center',
+                background: '#f8fafc',
+                cursor: 'pointer',
+                marginBottom: '16px',
+                transition: 'border-color 0.2s'
+              }}>
+                <input
+                  type="file"
+                  id="library-csv-file-input"
+                  accept=".csv,text/csv"
+                  onChange={handleCSVFileChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="library-csv-file-input" style={{ cursor: 'pointer', display: 'block' }}>
+                  <div style={{ fontSize: '36px', marginBottom: '8px' }}>📂</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
+                    {csvFile ? `নির্বাচিত ফাইল: ${csvFile.name}` : 'এখানে ক্লিক করে আপনার .CSV ফাইলটি নির্বাচন করুন'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    {csvFile ? `ফাইলের আকার: ${(csvFile.size / 1024).toFixed(1)} KB` : 'সমর্থিত ফাইল: কমা সেপারেটেড ভ্যালুজ (.csv)'}
+                  </div>
+                </label>
+              </div>
+
+              {/* Error Alert */}
+              {csvError && (
+                <div style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  color: '#991b1b',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <span>⚠️</span>
+                  <span>{csvError}</span>
+                </div>
+              )}
+
+              {/* Parsed Books Preview Table */}
+              {csvParsedBooks.length > 0 && (
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#047857' }}>
+                      ✅ প্রস্তুতকৃত বইয়ের তালিকা ({toBn(csvParsedBooks.length)}টি বই পাওয়া গেছে)
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                      আপলোড নিশ্চিত করার পূর্বে ডেটা যাচাই করুন
+                    </div>
+                  </div>
+
+                  <div style={{ maxHeight: '220px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                      <thead>
+                        <tr style={{ background: '#f1f5f9', color: '#334155', textAlign: 'left', position: 'sticky', top: 0, zIndex: 1 }}>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1' }}>কোড নং</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1' }}>বইয়ের নাম</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1' }}>লেখক</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1' }}>ক্যাটাগরি</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1' }}>আলমারি/সেলফ</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1', textAlign: 'center' }}>কপি</th>
+                          <th style={{ padding: '7px 10px', borderBottom: '1px solid #cbd5e1', textAlign: 'right' }}>মূল্য</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvParsedBooks.map((b, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                            <td style={{ padding: '6px 10px', fontWeight: 700, color: '#0284c7' }}>{b.accession_no}</td>
+                            <td style={{ padding: '6px 10px', fontWeight: 600, color: '#0f172a' }}>{b.title}</td>
+                            <td style={{ padding: '6px 10px', color: '#475569' }}>{b.author}</td>
+                            <td style={{ padding: '6px 10px' }}><span style={{ background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontSize: '11px' }}>{b.category}</span></td>
+                            <td style={{ padding: '6px 10px', color: '#64748b', fontSize: '11.5px' }}>{b.shelf}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 700, color: '#047857' }}>{toBn(b.quantity)}</td>
+                            <td style={{ padding: '6px 10px', textAlign: 'right' }}>{b.price ? `৳ ${toBn(b.price)}` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer Actions */}
+            <div style={{
+              padding: '14px 24px',
+              background: '#f8fafc',
+              borderTop: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '10px'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUploadCSVModal(false);
+                  setCsvFile(null);
+                  setCsvParsedBooks([]);
+                  setCsvError('');
+                }}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  color: '#475569',
+                  cursor: 'pointer',
+                  fontSize: '13px'
+                }}
+              >
+                বাতিল
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmImportCSV}
+                disabled={!csvParsedBooks.length}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: csvParsedBooks.length ? '#059669' : '#94a3b8',
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: csvParsedBooks.length ? 'pointer' : 'not-allowed',
+                  fontSize: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>💾</span> ক্যাটালগে আপলোড সম্পন্ন করুন {csvParsedBooks.length ? `(${toBn(csvParsedBooks.length)}টি বই)` : ''}
+              </button>
+            </div>
           </div>
         </div>
       )}
