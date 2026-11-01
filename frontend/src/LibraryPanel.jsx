@@ -437,6 +437,24 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [smsCustomPhone, setSmsCustomPhone] = useState('');
   const [smsCustomText, setSmsCustomText] = useState('');
   const [smsSentSuccess, setSmsSentSuccess] = useState(false);
+  const [smsGatewayConfig, setSmsGatewayConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('magra_sms_gateway_config');
+      return saved ? JSON.parse(saved) : {
+        provider: 'bulksmsbd', // 'bulksmsbd' | 'greenweb' | 'custom'
+        apiKey: '',
+        senderId: '',
+        customUrl: '',
+        isActive: false
+      };
+    } catch {
+      return { provider: 'bulksmsbd', apiKey: '', senderId: '', customUrl: '', isActive: false };
+    }
+  });
+  const [showSmsSettings, setShowSmsSettings] = useState(false);
+  const [smsSendingLoading, setSmsSendingLoading] = useState(false);
+  const [smsGatewayError, setSmsGatewayError] = useState('');
+  const [smsDeliveryStatus, setSmsDeliveryStatus] = useState(null);
 
   // Issue & Return Register Checkbox Selection State
   const [selectedLoanIds, setSelectedLoanIds] = useState([]);
@@ -2078,14 +2096,29 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     setSmsCustomPhone(info.phone || loan.guardian_phone || '');
     setSmsCustomText(buildShortSmsText(loan, 'standard'));
     setSmsSentSuccess(false);
+    setSmsGatewayError('');
+    setSmsDeliveryStatus(null);
+    setShowSmsSettings(false);
   };
 
   const handleDirectDeviceSms = (phone, text) => {
     const cleanPhone = String(phone || '').replace(/[^\d+]/g, '');
+    showNotification('আপনার মোবাইল/ডিভাইসের মেসেজিং অ্যাপ চালু হচ্ছে...', 'info');
     window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(text)}`;
   };
 
-  const handleSendGatewaySms = () => {
+  const handleSaveSmsGatewayConfig = (newConfig) => {
+    setSmsGatewayConfig(newConfig);
+    try {
+      localStorage.setItem('magra_sms_gateway_config', JSON.stringify(newConfig));
+    } catch (e) {
+      console.error(e);
+    }
+    setSmsGatewayError('');
+    showNotification('SMS গেটওয়ে সেটিংস সফলভাবে সংরক্ষিত হয়েছে!', 'success');
+  };
+
+  const handleSendGatewaySms = async () => {
     if (!smsCustomPhone.trim()) {
       alert('অনুগ্রহ করে পিতা/অভিভাবকের মোবাইল নম্বর প্রদান করুন।');
       return;
@@ -2095,8 +2128,61 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
       return;
     }
 
-    setSmsSentSuccess(true);
-    showNotification(`পিতা/অভিভাবকের (${smsCustomPhone}) নাম্বারে তাগাদা SMS সফলভাবে প্রেরিত হয়েছে!`, 'success');
+    // Check if SMS gateway is configured & active
+    if (!smsGatewayConfig.apiKey?.trim() || !smsGatewayConfig.isActive) {
+      setSmsGatewayError('⚠️ কোনো SMS গেটওয়ে API Key সেট বা সক্রিয় করা নেই! ওয়েব থেকে টেলিকম নেটওয়ার্কে সরাসরি SMS পাঠাতে স্কুলের একটি গেটওয়ে API Key (যেমন BulkSMSBD বা Greenweb) প্রয়োজন। নিচে সেটিংস থেকে API Key প্রদান করুন অথবা বিনামূল্যে এখনই পাঠাতে "📱 মোবাইল SMS অ্যাপে" বাটন চাপুন।');
+      setShowSmsSettings(true);
+      return;
+    }
+
+    setSmsSendingLoading(true);
+    setSmsGatewayError('');
+    setSmsDeliveryStatus(null);
+    setSmsSentSuccess(false);
+
+    let cleanPhone = smsCustomPhone.trim().replace(/[^\d+]/g, '');
+    let localDigits = cleanPhone.replace(/^\+88/, '').replace(/^88/, '');
+    if (localDigits.length === 10 && localDigits.startsWith('1')) {
+      localDigits = '0' + localDigits;
+    }
+
+    try {
+      let requestUrl = '';
+      if (smsGatewayConfig.provider === 'bulksmsbd') {
+        const fullNumber = '88' + localDigits;
+        requestUrl = `https://bulksmsbd.net/api/smsapi?api_key=${encodeURIComponent(smsGatewayConfig.apiKey.trim())}&type=text&number=${encodeURIComponent(fullNumber)}&senderid=${encodeURIComponent(smsGatewayConfig.senderId?.trim() || '')}&message=${encodeURIComponent(smsCustomText)}`;
+      } else if (smsGatewayConfig.provider === 'greenweb') {
+        const fullNumber = '88' + localDigits;
+        requestUrl = `https://api.greenweb.com.bd/api.php?token=${encodeURIComponent(smsGatewayConfig.apiKey.trim())}&to=${encodeURIComponent(fullNumber)}&message=${encodeURIComponent(smsCustomText)}`;
+      } else if (smsGatewayConfig.provider === 'custom' && smsGatewayConfig.customUrl) {
+        requestUrl = smsGatewayConfig.customUrl
+          .replace('{phone}', encodeURIComponent(localDigits))
+          .replace('{phone_int}', encodeURIComponent('88' + localDigits))
+          .replace('{message}', encodeURIComponent(smsCustomText))
+          .replace('{apikey}', encodeURIComponent(smsGatewayConfig.apiKey.trim()))
+          .replace('{senderid}', encodeURIComponent(smsGatewayConfig.senderId?.trim() || ''));
+      }
+
+      if (!requestUrl) {
+        throw new Error('অননুমোদিত গেটওয়ে কনফিগারেশন। API URL বা Key পরীক্ষা করুন।');
+      }
+
+      const res = await fetch(requestUrl, { method: 'GET', mode: 'cors' });
+      const data = await res.text();
+
+      setSmsSentSuccess(true);
+      setSmsDeliveryStatus({
+        type: 'success',
+        message: `টেলিকম গেটওয়েতে (${smsCustomPhone}) নাম্বারে SMS সফলভাবে পাঠানো হয়েছে!`,
+        details: data.substring(0, 150)
+      });
+      showNotification(`টেলিকম গেটওয়েতে SMS সফলভাবে রিকোয়েস্ট করা হয়েছে!`, 'success');
+    } catch (err) {
+      console.warn('SMS Gateway dispatch error / CORS:', err);
+      setSmsGatewayError(`⚠️ গেটওয়েতে রিকোয়েস্ট পাঠানোর সময় সমস্যা হয়েছে (${err.message || 'নেটওয়ার্ক বা ব্রাউজার বাধা'})। পেইড ব্যালেন্স/কী যাচাই করুন অথবা বিনামূল্যে এখনই পাঠাতে নিচের '📱 মোবাইল SMS অ্যাপে' বাটন ব্যবহার করুন।`);
+    } finally {
+      setSmsSendingLoading(false);
+    }
   };
 
   // CSV Catalog Export
@@ -5304,20 +5390,194 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '14px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>✉️</span> পিতা/অভিভাবককে সংক্ষিপ্ত নোটিশ SMS প্রেরণ
+                  <span>✉️</span> পিতা/অভিভাবককে তাগাদা SMS প্রেরণ
                 </h3>
                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                   মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • লাইব্রেরি শাখা
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setSmsModalLoan(null)}
-                style={{ background: '#f1f5f9', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontWeight: 800, color: '#64748b' }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowSmsSettings(!showSmsSettings)}
+                  title="SMS Gateway API সেটিংস"
+                  style={{
+                    background: showSmsSettings ? '#0284c7' : '#f8fafc',
+                    color: showSmsSettings ? '#fff' : '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '5px 10px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <span>⚙️</span> {showSmsSettings ? 'সেটিংস বন্ধ' : 'গেটওয়ে সেটিংস'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSmsModalLoan(null)}
+                  style={{ background: '#f1f5f9', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontWeight: 800, color: '#64748b' }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
+
+            {/* Gateway Settings Drawer/Panel */}
+            {showSmsSettings && (
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px solid #0284c7',
+                borderRadius: '10px',
+                padding: '14px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 800, color: '#0369a1' }}>
+                    ⚙️ SMS Gateway API কনফিগারেশন
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    (স্কুলের জন্য একবার সেট করলেই হবে)
+                  </span>
+                </div>
+
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    টেলিকম গেটওয়ে প্রোভাইডার:
+                  </label>
+                  <select
+                    value={smsGatewayConfig.provider}
+                    onChange={e => setSmsGatewayConfig({ ...smsGatewayConfig, provider: e.target.value })}
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                  >
+                    <option value="bulksmsbd">BulkSMSBD (বাংলাদেশ - https://bulksmsbd.net)</option>
+                    <option value="greenweb">Greenweb BD (https://greenweb.com.bd)</option>
+                    <option value="custom">কাস্টম HTTP API (যেকোনো গেটওয়ে)</option>
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: '10px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    API Key / Token:
+                  </label>
+                  <input
+                    type="text"
+                    value={smsGatewayConfig.apiKey || ''}
+                    onChange={e => setSmsGatewayConfig({ ...smsGatewayConfig, apiKey: e.target.value })}
+                    placeholder="আপনার SMS গেটওয়ের API Key দিন"
+                    style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                {smsGatewayConfig.provider === 'bulksmsbd' && (
+                  <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Sender ID (ঐচ্ছিক / মাস্কিং আইডি):
+                    </label>
+                    <input
+                      type="text"
+                      value={smsGatewayConfig.senderId || ''}
+                      onChange={e => setSmsGatewayConfig({ ...smsGatewayConfig, senderId: e.target.value })}
+                      placeholder="যেমন: 8809612... বা অনুমোদিত মাস্কিং"
+                      style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                )}
+
+                {smsGatewayConfig.provider === 'custom' && (
+                  <div style={{ marginBottom: '10px' }}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Custom API URL Template:
+                    </label>
+                    <input
+                      type="text"
+                      value={smsGatewayConfig.customUrl || ''}
+                      onChange={e => setSmsGatewayConfig({ ...smsGatewayConfig, customUrl: e.target.value })}
+                      placeholder="https://api.example.com/send?to={phone}&msg={message}&key={apikey}"
+                      style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', boxSizing: 'border-box' }}
+                    />
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                      ব্যবহার্য ভেরিয়েবল: &#123;phone&#125;, &#123;phone_int&#125;, &#123;message&#125;, &#123;apikey&#125;
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    id="chkSmsActive"
+                    checked={smsGatewayConfig.isActive || false}
+                    onChange={e => setSmsGatewayConfig({ ...smsGatewayConfig, isActive: e.target.checked })}
+                    style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="chkSmsActive" style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b', cursor: 'pointer' }}>
+                    সরাসরি SMS গেটওয়ে সক্রিয় রাখুন (Active)
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleSaveSmsGatewayConfig(smsGatewayConfig);
+                      setShowSmsSettings(false);
+                    }}
+                    style={{ background: '#059669', color: '#fff', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    💾 সংরক্ষণ করুন
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSmsSettings(false)}
+                    style={{ background: '#e2e8f0', color: '#475569', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    বন্ধ
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Real SMS Explanation & Channel Indicator */}
+            {!showSmsSettings && (
+              <div style={{
+                background: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#f0fdf4' : '#fffbeb',
+                border: `1px solid ${smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#86efac' : '#fde68a'}`,
+                borderRadius: '8px',
+                padding: '10px 12px',
+                marginBottom: '12px',
+                fontSize: '11.5px',
+                lineHeight: 1.5,
+                color: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#166534' : '#92400e'
+              }}>
+                {smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>🟢 <b>টেলিকম গেটওয়ে সক্রিয়:</b> {smsGatewayConfig.provider.toUpperCase()} (সরাসরি ওয়েব থেকে পাঠানোর জন্য প্রস্তুত)</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSmsSettings(true)}
+                      style={{ background: 'none', border: 'none', textDecoration: 'underline', color: '#15803d', fontSize: '11px', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      পরিবর্তন
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span>💡</span> <b>সরাসরি রিয়েল SMS ডেলিভারি সংক্রান্ত তথ্য:</b>
+                    </div>
+                    <div>
+                      • <b>বিনা খরচে আসল SMS পাঠাতে:</b> নিচে <b style={{ color: '#0284c7' }}>"📱 মোবাইল SMS অ্যাপে"</b> বাটনে চাপুন—মোবাইলের সিমের ফ্রি/প্যাক ব্যালেন্স দিয়ে ১-ক্লিকে তাৎক্ষণিক আসল SMS চলে যাবে।
+                      <br />
+                      • <b>সরাসরি গেটওয়ে API দিয়ে পাঠাতে:</b> উপরে <b>"⚙️ গেটওয়ে সেটিংস"</b> বাটনে গিয়ে স্কুলের BulkSMSBD বা Greenweb API Key বসিয়ে সক্রিয় করুন।
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Student & Book Summary Box */}
             <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px' }}>
@@ -5420,41 +5680,122 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               </span>
             </div>
 
-            {/* Success Alert */}
-            {smsSentSuccess && (
-              <div style={{ background: '#ecfdf5', border: '1px solid #059669', color: '#065f46', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>✅</span> অভিভাবকের ({smsCustomPhone}) নাম্বারে তাগাদা SMS সফলভাবে প্রেরিত হয়েছে!
+            {/* Error & Status Alert */}
+            {smsGatewayError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #f87171', color: '#991b1b', padding: '10px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 600, marginBottom: '14px' }}>
+                {smsGatewayError}
+              </div>
+            )}
+
+            {smsDeliveryStatus && (
+              <div style={{ background: '#ecfdf5', border: '1px solid #34d399', color: '#065f46', padding: '10px 12px', borderRadius: '8px', fontSize: '11.5px', fontWeight: 600, marginBottom: '14px' }}>
+                <div>✅ {smsDeliveryStatus.message}</div>
+                {smsDeliveryStatus.details && (
+                  <div style={{ fontSize: '10px', color: '#047857', marginTop: '3px', fontFamily: 'monospace' }}>
+                    সার্ভার রেসপন্স: {smsDeliveryStatus.details}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {/* 1. Direct device SMS (100% Free, Guaranteed to arrive via SIM) */}
                 <button
                   type="button"
                   onClick={() => handleDirectDeviceSms(smsCustomPhone, smsCustomText)}
-                  title="মোবাইলের ডিফল্ট SMS মেসেজিং অ্যাপে মেসেজটি ওপেন করুন"
-                  style={{ background: '#0284c7', color: '#fff', padding: '8px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  title="আপনার মোবাইল বা ডিভাইসের ডিফল্ট SMS মেসেজিং অ্যাপ ওপেন করে সিম ব্যালেন্স দিয়ে আসল SMS পাঠান (১০০% ফ্রি ও তাৎক্ষণিক)"
+                  style={{
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    color: '#fff',
+                    padding: '8px 14px',
+                    borderRadius: '7px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                  }}
                 >
-                  <span>📱</span> মোবাইল SMS অ্যাপে
+                  <span>📱</span> মোবাইল SMS অ্যাপে (১০০% ফ্রি)
                 </button>
 
+                {/* 2. Direct WhatsApp dispatch */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cleanPhone = String(smsCustomPhone || '').replace(/[^\d+]/g, '');
+                    let intPhone = cleanPhone;
+                    if (intPhone.startsWith('0')) {
+                      intPhone = '88' + intPhone;
+                    } else if (!intPhone.startsWith('88')) {
+                      intPhone = '88' + intPhone;
+                    }
+                    window.open(`https://wa.me/${intPhone}?text=${encodeURIComponent(smsCustomText)}`, '_blank');
+                  }}
+                  title="অভিভাবকের হোয়াটসঅ্যাপ নাম্বারে সংক্ষিপ্ত নোটিশটি সরাসরি পাঠান"
+                  style={{
+                    background: '#25D366',
+                    color: '#fff',
+                    padding: '8px 12px',
+                    borderRadius: '7px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <span>💬</span> WhatsApp
+                </button>
+
+                {/* 3. Direct Gateway SMS */}
                 <button
                   type="button"
                   onClick={handleSendGatewaySms}
-                  title="সিস্টেমের মাধ্যমে তাৎক্ষণিক SMS পাঠান"
-                  style={{ background: '#059669', color: '#fff', padding: '8px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  disabled={smsSendingLoading}
+                  title="স্কুলের টেলিকম গেটওয়ে সার্ভার দিয়ে সরাসরি SMS পাঠান"
+                  style={{
+                    background: smsGatewayConfig.isActive && smsGatewayConfig.apiKey ? '#059669' : '#64748b',
+                    color: '#fff',
+                    padding: '8px 14px',
+                    borderRadius: '7px',
+                    border: 'none',
+                    fontWeight: 700,
+                    fontSize: '12px',
+                    cursor: smsSendingLoading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
                 >
-                  <span>🚀</span> সরাসরি SMS পাঠান
+                  <span>{smsSendingLoading ? '⏳' : '🚀'}</span>
+                  {smsSendingLoading ? 'পাঠানো হচ্ছে...' : 'সরাসরি গেটওয়ে SMS'}
                 </button>
 
+                {/* 4. Copy Text */}
                 <button
                   type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(smsCustomText);
                     alert('SMS টেক্সট সফলভাবে কপি করা হয়েছে!');
                   }}
-                  style={{ background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                  style={{
+                    background: '#fff',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    padding: '8px 12px',
+                    borderRadius: '7px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
                 >
                   📋 কপি
                 </button>
@@ -5463,7 +5804,16 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               <button
                 type="button"
                 onClick={() => setSmsModalLoan(null)}
-                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                style={{
+                  background: '#f1f5f9',
+                  border: '1px solid #cbd5e1',
+                  color: '#475569',
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
               >
                 বন্ধ
               </button>
