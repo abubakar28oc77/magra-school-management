@@ -31,8 +31,11 @@ function copyToRootPlugin() {
             }
           }
         };
-        // Note: root index.html is omitted to avoid duplicate 6.75MB bundle
-        safeWrite(rootMagra, 'magra_school_management.html');
+        // Root index.html is the primary entrypoint for clean GitHub Pages URL
+        safeWrite(rootIndex, 'root index.html');
+        // Keep magra_school_management.html as lightweight redirect for backwards compatibility
+        const redirectHtml = '<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0; url=./"><script>window.location.replace("./" + window.location.search + window.location.hash);</script></head><body>Redirecting... <a href="./">Click here</a></body></html>';
+        try { fs.writeFileSync(rootMagra, redirectHtml); } catch {}
         const desktopMagra = 'C:\\Users\\Walton\\OneDrive\\Desktop\\Magra_School_Management.html';
         if (fs.existsSync(desktopMagra)) {
           safeWrite(desktopMagra, 'Desktop Magra_School_Management.html');
