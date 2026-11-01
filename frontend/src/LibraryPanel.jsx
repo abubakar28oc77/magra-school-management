@@ -1002,16 +1002,25 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
           </tbody>
         </table>
 
-        <div class="signatures-box">
-          <div class="sig-card">
-            <p style="font-weight: 800; font-size: 12px;">${LIBRARIAN_TEACHER.name_bn}</p>
-            <p style="font-size: 10.5px; color: #475569;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
-          </div>
-          <div class="sig-card">
-            <p style="font-weight: 800; font-size: 12px;">প্রধান শিক্ষক</p>
-            <p style="font-size: 10.5px; color: #475569;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
-          </div>
-        </div>
+        <table style="width: 100% !important; border: none !important; margin-top: 55px !important; page-break-inside: avoid !important;">
+          <tr style="border: none !important; background: transparent !important;">
+            <td style="width: 250px; text-align: left; border: none !important; padding: 0; vertical-align: top;">
+              <div style="border-top: 1.5px solid #000; padding-top: 5px; width: 220px; text-align: center;">
+                <p style="margin: 0; font-weight: 800; font-size: 12px; color: #0f172a;">${LIBRARIAN_TEACHER.name_bn}</p>
+                <p style="margin: 2px 0 0; font-size: 10.5px; color: #475569;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+                <p style="margin: 1px 0 0; font-size: 10px; color: #64748b;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+              </div>
+            </td>
+            <td style="border: none !important; padding: 0;"></td>
+            <td style="width: 250px; text-align: right; border: none !important; padding: 0; vertical-align: top;">
+              <div style="border-top: 1.5px solid #000; padding-top: 5px; width: 220px; margin-left: auto; text-align: center;">
+                <p style="margin: 0; font-weight: 800; font-size: 12px; color: #0f172a;">প্রধান শিক্ষক</p>
+                <p style="margin: 2px 0 0; font-size: 10.5px; color: #475569;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                <p style="margin: 1px 0 0; font-size: 10px; color: #64748b;">কালিহাতি, টাঙ্গাইল</p>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <script>
           window.onload = function() {
@@ -1120,16 +1129,25 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
           </div>
         </div>
 
-        <div class="signatures-box">
-          <div class="sig-card">
-            <p style="font-weight: 700; font-size: 12px; margin: 0;">${LIBRARIAN_TEACHER.name_bn}</p>
-            <p style="font-size: 10px; color: #555; margin: 0;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
-          </div>
-          <div class="sig-card">
-            <p style="font-weight: 700; font-size: 12px; margin: 0;">প্রধান শিক্ষক</p>
-            <p style="font-size: 10px; color: #555; margin: 0;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
-          </div>
-        </div>
+        <table style="width: 100% !important; border: none !important; margin-top: 55px !important; page-break-inside: avoid !important;">
+          <tr style="border: none !important; background: transparent !important;">
+            <td style="width: 250px; text-align: left; border: none !important; padding: 0; vertical-align: top;">
+              <div style="border-top: 1.5px solid #000; padding-top: 5px; width: 220px; text-align: center;">
+                <p style="margin: 0; font-weight: 800; font-size: 12px; color: #0f172a;">${LIBRARIAN_TEACHER.name_bn}</p>
+                <p style="margin: 2px 0 0; font-size: 10.5px; color: #475569;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+                <p style="margin: 1px 0 0; font-size: 10px; color: #64748b;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+              </div>
+            </td>
+            <td style="border: none !important; padding: 0;"></td>
+            <td style="width: 250px; text-align: right; border: none !important; padding: 0; vertical-align: top;">
+              <div style="border-top: 1.5px solid #000; padding-top: 5px; width: 220px; margin-left: auto; text-align: center;">
+                <p style="margin: 0; font-weight: 800; font-size: 12px; color: #0f172a;">প্রধান শিক্ষক</p>
+                <p style="margin: 2px 0 0; font-size: 10.5px; color: #475569;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                <p style="margin: 1px 0 0; font-size: 10px; color: #64748b;">কালিহাতি, টাঙ্গাইল</p>
+              </div>
+            </td>
+          </tr>
+        </table>
 
         <script>
           window.onload = function() {
@@ -3799,17 +3817,27 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             </table>
 
             {/* Official Signatures */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', paddingTop: '10px' }}>
-              <div style={{ textAlign: 'center', width: '220px', borderTop: '1px solid #000' }}>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', fontWeight: 700 }}>{LIBRARIAN_TEACHER.name_bn}</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
-              </div>
-
-              <div style={{ textAlign: 'center', width: '200px', borderTop: '1px solid #000' }}>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', fontWeight: 700 }}>প্রধান শিক্ষক</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
-              </div>
-            </div>
+            <table style={{ width: '100%', border: 'none', marginTop: '60px', paddingTop: '10px' }}>
+              <tbody>
+                <tr style={{ border: 'none', background: 'transparent' }}>
+                  <td style={{ width: '250px', textAlign: 'left', border: 'none', padding: 0, verticalAlign: 'top' }}>
+                    <div style={{ textAlign: 'center', width: '220px', borderTop: '1.5px solid #000', paddingTop: '5px' }}>
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>{LIBRARIAN_TEACHER.name_bn}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#475569' }}>গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+                      <p style={{ margin: '1px 0 0', fontSize: '10px', color: '#64748b' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                    </div>
+                  </td>
+                  <td style={{ border: 'none', padding: 0 }}></td>
+                  <td style={{ width: '250px', textAlign: 'right', border: 'none', padding: 0, verticalAlign: 'top' }}>
+                    <div style={{ textAlign: 'center', width: '220px', borderTop: '1.5px solid #000', paddingTop: '5px', marginLeft: 'auto' }}>
+                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>প্রধান শিক্ষক</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#475569' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                      <p style={{ margin: '1px 0 0', fontSize: '10px', color: '#64748b' }}>কালিহাতি, টাঙ্গাইল</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -4131,17 +4159,27 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             </div>
 
             {/* Signatures */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', paddingTop: '10px' }}>
-              <div style={{ textAlign: 'center', width: '220px', borderTop: '1px solid #000' }}>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', fontWeight: 700 }}>{LIBRARIAN_TEACHER.name_bn}</p>
-                <p style={{ margin: 0, fontSize: '10px', color: '#555' }}>গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
-              </div>
-
-              <div style={{ textAlign: 'center', width: '200px', borderTop: '1px solid #000' }}>
-                <p style={{ margin: '4px 0 0', fontSize: '11px', fontWeight: 700 }}>প্রধান শিক্ষক</p>
-                <p style={{ margin: 0, fontSize: '10px', color: '#555' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
-              </div>
-            </div>
+            <table style={{ width: '100%', border: 'none', marginTop: '60px', paddingTop: '10px' }}>
+              <tbody>
+                <tr style={{ border: 'none', background: 'transparent' }}>
+                  <td style={{ width: '250px', textAlign: 'left', border: 'none', padding: 0, verticalAlign: 'top' }}>
+                    <div style={{ textAlign: 'center', width: '220px', borderTop: '1.5px solid #000', paddingTop: '5px' }}>
+                      <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#0f172a' }}>{LIBRARIAN_TEACHER.name_bn}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '10.5px', color: '#475569' }}>গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+                      <p style={{ margin: '1px 0 0', fontSize: '10px', color: '#64748b' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                    </div>
+                  </td>
+                  <td style={{ border: 'none', padding: 0 }}></td>
+                  <td style={{ width: '250px', textAlign: 'right', border: 'none', padding: 0, verticalAlign: 'top' }}>
+                    <div style={{ textAlign: 'center', width: '220px', borderTop: '1.5px solid #000', paddingTop: '5px', marginLeft: 'auto' }}>
+                      <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, color: '#0f172a' }}>প্রধান শিক্ষক</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '10.5px', color: '#475569' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+                      <p style={{ margin: '1px 0 0', fontSize: '10px', color: '#64748b' }}>কালিহাতি, টাঙ্গাইল</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       )}
