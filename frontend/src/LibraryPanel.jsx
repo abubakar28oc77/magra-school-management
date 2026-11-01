@@ -32,6 +32,62 @@ export const normClass = (c) => {
     .trim();
 };
 
+// Robust phone normalizer: handles Bengali numerals, trims prefixes, adds leading zero if missing
+export const normalizePhoneNumber = (raw) => {
+  if (raw === null || raw === undefined) return '';
+  const bnMap = { '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' };
+  let s = String(raw).trim().replace(/[০-৯]/g, d => bnMap[d] || d);
+  let digits = s.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('880')) {
+    digits = digits.slice(2);
+  }
+  if (digits.length === 10 && digits.startsWith('1')) {
+    digits = '0' + digits;
+  }
+  return digits;
+};
+
+// Dynamically resolves a student from the entered student database (magra_db_students / Admission Form)
+export const resolveStudentFromRegistry = (loan, studentsList) => {
+  if (!loan || !Array.isArray(studentsList) || studentsList.length === 0) return null;
+
+  // 1. Match by student_uid or student_id or id
+  const targetUid = String(loan.student_uid || loan.student_id || '').toLowerCase().trim();
+  if (targetUid) {
+    const found = studentsList.find(s => {
+      const sUid = String(s.student_id || s.id || '').toLowerCase().trim();
+      return sUid && sUid === targetUid;
+    });
+    if (found) return found;
+  }
+
+  // 2. Match by class and roll
+  const loanCls = normClass(loan.class_name);
+  const loanRoll = String(loan.roll_no || '').trim();
+  if (loanCls && loanRoll) {
+    const found = studentsList.find(s => {
+      const sCls = normClass(s.class_name);
+      const sRoll = String(s.roll_no || '').trim();
+      return sCls === loanCls && sRoll === loanRoll;
+    });
+    if (found) return found;
+  }
+
+  // 3. Match by Bangla name
+  if (loan.name_bn) {
+    const cleanLoanName = loan.name_bn.trim().toLowerCase();
+    const found = studentsList.find(s => {
+      const sName = (s.name_bn || '').trim().toLowerCase();
+      return sName && (sName === cleanLoanName || sName.includes(cleanLoanName) || cleanLoanName.includes(sName));
+    });
+    if (found) return found;
+  }
+
+  return null;
+};
+
+
 export function LibraryPanel({ sub, setSub, onNavigate }) {
   // Navigation tab: 'catalog' | 'issue' | 'overdue' | 'reports' | 'damaged'
   // Guarantee activeTab always matches one of the valid tabs (defaults to 'catalog')
@@ -184,9 +240,123 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     }
   };
 
-  // Load students for loan issuance with solid multi-tier fallbacks
+  // Helper to resolve student & contact info dynamically from magra_db_students (Admission Form database)
+  const getLoanStudentInfo = (loan) => {
+    if (!loan) return { student: null, phone: '', fatherName: '', studentUid: '', studentName: '', className: '', rollNo: '', address: '', isLinked: false };
+    const st = resolveStudentFromRegistry(loan, students);
+    const rawPhone = (st && (st.guardian_phone || st.father_mobile || st.emergency_phone || st.mother_mobile || st.phone)) || loan.guardian_phone || '';
+    const norm = normalizePhoneNumber(rawPhone);
+    const dummyPhones = ['01712000007', '01712000008', '01713000001', '01714000009', '01715000010', '01712000072', '01712000000'];
+    const phone = dummyPhones.includes(norm) ? (st ? normalizePhoneNumber(st.guardian_phone || st.father_mobile) : '') : norm;
+    const fatherName = (st && (st.father_name || st.guardian_name)) || loan.father_name || '';
+    const studentUid = (st && (st.student_id || st.id)) || loan.student_uid || loan.student_id || '';
+    const studentName = (st && st.name_bn) || loan.name_bn;
+    const className = (st && st.class_name) || loan.class_name;
+    const rollNo = (st && st.roll_no) || loan.roll_no;
+    const address = (st && (st.address || st.current_village)) || '';
+    const isLinked = Boolean(st);
+
+    return {
+      student: st,
+      phone,
+      fatherName,
+      studentUid,
+      studentName,
+      className,
+      rollNo,
+      address,
+      isLinked
+    };
+  };
+
+  // Helper to load freshest student dataset directly from local storage
+  const loadFreshStudentsFromStorage = () => {
+    try {
+      const raw = localStorage.getItem('magra_db_students');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setStudents(parsed);
+          return parsed;
+        }
+      }
+    } catch {}
+    const fallback = Array.isArray(MOCK_STUDENTS) ? MOCK_STUDENTS : [];
+    setStudents(fallback);
+    return fallback;
+  };
+
+  // Live Sync with Student Admission Form updates (storage & custom event)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e || e.key === 'magra_db_students' || e.type === 'magra_students_updated') {
+        loadFreshStudentsFromStorage();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('magra_students_updated', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('magra_students_updated', handleStorageChange);
+    };
+  }, []);
+
+  // Sync / heal all loans with real student registry (magra_db_students)
+  const handleSyncLoansWithStudentRegistry = (customStudentList = null, showToast = true) => {
+    const studentDb = customStudentList || (Array.isArray(students) && students.length ? students : loadFreshStudentsFromStorage());
+    if (!Array.isArray(studentDb) || studentDb.length === 0) {
+      if (showToast) showNotification('শিক্ষার্থী ডাটাবেজ পাওয়া যায়নি।', 'error');
+      return;
+    }
+
+    let syncedCount = 0;
+    const dummyPhones = ['01712000007', '01712000008', '01713000001', '01714000009', '01715000010', '01712000072', '01712000000', ''];
+
+    const healedLoans = loans.map(l => {
+      const matched = resolveStudentFromRegistry(l, studentDb);
+      if (matched) {
+        const cleanPhone = normalizePhoneNumber(
+          matched.guardian_phone || matched.father_mobile || matched.emergency_phone || matched.mother_mobile || matched.phone
+        );
+        const father = matched.father_name || matched.guardian_name || l.father_name || '';
+        const isDummy = dummyPhones.includes(normalizePhoneNumber(l.guardian_phone));
+
+        if (cleanPhone || isDummy || !l.father_name) {
+          syncedCount++;
+          return {
+            ...l,
+            student_id: matched.id,
+            student_uid: matched.student_id || matched.id,
+            name_bn: matched.name_bn || l.name_bn,
+            class_name: matched.class_name || l.class_name,
+            roll_no: matched.roll_no || l.roll_no,
+            father_name: father,
+            guardian_phone: cleanPhone || l.guardian_phone
+          };
+        }
+      }
+      return l;
+    });
+
+    setLoans(healedLoans);
+    try {
+      localStorage.setItem('magra_db_library_loans', JSON.stringify(healedLoans));
+    } catch {}
+
+    if (showToast) {
+      showNotification(`ভর্তি ফরম (Student Database) থেকে মোট ${toBn(syncedCount)} টি বই ইস্যু রেকর্ডের মোবাইল ও তথ্য সফলভাবে সিঙ্ক করা হয়েছে!`, 'success');
+    }
+  };
+
+  // Load students on mount with priority given to magra_db_students
   useEffect(() => {
     async function fetchStudents() {
+      // 1. Try local storage first since it has newly admitted students
+      const localSt = loadFreshStudentsFromStorage();
+      if (Array.isArray(localSt) && localSt.length > 50) {
+        return;
+      }
+      // 2. Try API fallback
       try {
         const res = await requestApi('/students?status=active');
         if (Array.isArray(res) && res.length) {
@@ -196,20 +366,20 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
       } catch (err) {
         console.warn('Student load fallback:', err);
       }
-      try {
-        const raw = localStorage.getItem('magra_db_students');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length) {
-            setStudents(parsed);
-            return;
-          }
-        }
-      } catch {}
-      setStudents(MOCK_STUDENTS || []);
     }
     fetchStudents();
   }, []);
+
+  // Auto-heal loans on initial mount if loans contain dummy phone numbers
+  useEffect(() => {
+    if (Array.isArray(students) && students.length > 0 && Array.isArray(loans) && loans.length > 0) {
+      const dummyPhones = ['01712000007', '01712000008', '01713000001', '01714000009', '01715000010', '01712000072', '01712000000'];
+      const hasDummy = loans.some(l => dummyPhones.includes(normalizePhoneNumber(l.guardian_phone)));
+      if (hasDummy) {
+        handleSyncLoansWithStudentRegistry(students, false);
+      }
+    }
+  }, [students]);
 
   const showNotification = (text, type = 'success') => {
     setMsg({ text, type });
@@ -547,6 +717,8 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [issueFilterStudentSearch, setIssueFilterStudentSearch] = useState('');
   const [issueForm, setIssueForm] = useState({
     student_id: '',
+    guardian_phone: '',
+    father_name: '',
     book_id: '',
     issued_at: new Date().toISOString().slice(0, 10),
     duration_days: '7',
@@ -562,7 +734,22 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     setIssueForm(prev => ({ ...prev, due_at: d.toISOString().slice(0, 10) }));
   }, [issueForm.issued_at, issueForm.duration_days]);
 
-  // Filter students for picker
+  // Automatically populate guardian mobile & father's name directly from student's admission record
+  useEffect(() => {
+    if (issueForm.student_id) {
+      const st = students.find(s => String(s.id) === String(issueForm.student_id) || String(s.student_id) === String(issueForm.student_id));
+      if (st) {
+        const ph = normalizePhoneNumber(st.guardian_phone || st.father_mobile || st.emergency_phone || st.mother_mobile || st.phone || '');
+        setIssueForm(prev => ({
+          ...prev,
+          guardian_phone: ph,
+          father_name: st.father_name || st.guardian_name || ''
+        }));
+      }
+    }
+  }, [issueForm.student_id, students]);
+
+  // Filter students for picker directly from magra_db_students database
   const filteredStudentsForIssue = useMemo(() => {
     return students.filter(s => {
       if (issueFilterClass !== 'all' && normClass(s.class_name) !== normClass(issueFilterClass)) return false;
@@ -571,15 +758,16 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
         const matchName = (s.name_bn || '').toLowerCase().includes(q) || (s.name_en || '').toLowerCase().includes(q);
         const matchRoll = String(s.roll_no || '').includes(q);
         const matchId = (s.student_id || s.id || '').toLowerCase().includes(q);
-        if (!matchName && !matchRoll && !matchId) return false;
+        const matchPhone = String(s.guardian_phone || s.father_mobile || '').includes(q);
+        if (!matchName && !matchRoll && !matchId && !matchPhone) return false;
       }
       return true;
-    }).slice(0, 80);
+    }).slice(0, 100);
   }, [students, issueFilterClass, issueFilterStudentSearch]);
 
   // Selected student object & their active overdue warning
   const selectedStudentObj = useMemo(() => {
-    return students.find(s => s.id === issueForm.student_id || s.student_id === issueForm.student_id);
+    return students.find(s => String(s.id) === String(issueForm.student_id) || String(s.student_id) === String(issueForm.student_id));
   }, [students, issueForm.student_id]);
 
   const studentOutstandingLoans = useMemo(() => {
@@ -590,6 +778,8 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const openIssueModal = (preselectedBook = null) => {
     setIssueForm({
       student_id: '',
+      guardian_phone: '',
+      father_name: '',
       book_id: preselectedBook ? preselectedBook.id : '',
       issued_at: new Date().toISOString().slice(0, 10),
       duration_days: '7',
@@ -617,6 +807,8 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     }
 
     const st = selectedStudentObj || { name_bn: 'শিক্ষার্থী', class_name: '—', roll_no: '—', id: issueForm.student_id };
+    const confirmedPhone = normalizePhoneNumber(issueForm.guardian_phone || st.guardian_phone || st.father_mobile || '');
+    const fatherName = issueForm.father_name || st.father_name || st.guardian_name || '';
 
     const newLoan = {
       id: 'loan-' + Date.now(),
@@ -627,9 +819,10 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
       student_id: st.id,
       student_uid: st.student_id || st.id,
       name_bn: st.name_bn,
+      father_name: fatherName,
       class_name: st.class_name,
       roll_no: st.roll_no,
-      guardian_phone: st.guardian_phone || st.father_mobile || '01712000000',
+      guardian_phone: confirmedPhone,
       issued_at: issueForm.issued_at,
       due_at: issueForm.due_at,
       returned_at: null,
@@ -638,6 +831,26 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
       status: 'active',
       remarks: issueForm.remarks || 'ইস্যুকৃত'
     };
+
+    // If phone was confirmed or edited, sync it back into magra_db_students database
+    if (confirmedPhone && st) {
+      try {
+        const raw = localStorage.getItem('magra_db_students');
+        if (raw) {
+          const list = JSON.parse(raw);
+          const updatedList = list.map(item => {
+            if (item.id === st.id || item.student_id === st.student_id) {
+              return { ...item, guardian_phone: confirmedPhone, father_mobile: item.father_mobile || confirmedPhone };
+            }
+            return item;
+          });
+          localStorage.setItem('magra_db_students', JSON.stringify(updatedList));
+          setStudents(updatedList);
+        }
+      } catch (err) {
+        console.warn('Could not sync updated phone back to student db:', err);
+      }
+    }
 
     // Deduct 1 from available quantity
     setBooks(prev => prev.map(b => {
@@ -1207,6 +1420,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     const renderSlip = (l, copyLabel = '', isQuarter = false) => {
       const overdue = getOverdueDays(l.due_at);
       const isReturned = Boolean(l.returned_at);
+      const info = getLoanStudentInfo(l);
 
       if (isQuarter) {
         // Quarter A4 slip (4 slips per A4 page in 2x2 grid)
@@ -1224,9 +1438,10 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             </div>
 
             <div class="slip-body-q">
-              <div class="row-q"><b>শিক্ষার্থী:</b> <span style="font-weight: 800; color: #0f172a;">${l.name_bn || ''}</span></div>
-              <div class="row-q"><b>শ্রেণি ও রোল:</b> <span>${toBn(l.class_name)}ম শ্রেণি • রোল: ${toBn(l.roll_no)}</span></div>
-              <div class="row-q"><b>আইডি:</b> <span>${l.student_uid || ''}</span> &nbsp;|&nbsp; <b>মোবাইল:</b> <span>${l.guardian_phone || '—'}</span></div>
+              <div class="row-q"><b>শিক্ষার্থী:</b> <span style="font-weight: 800; color: #0f172a;">${info.studentName || l.name_bn || ''}</span></div>
+              <div class="row-q"><b>শ্রেণি ও রোল:</b> <span>${toBn(info.className || l.class_name)}ম শ্রেণি • রোল: ${toBn(info.rollNo || l.roll_no)}</span></div>
+              <div class="row-q"><b>আইডি:</b> <span>${info.studentUid || l.student_uid || ''}</span> ${info.fatherName ? `&nbsp;|&nbsp; <b>পিতা:</b> <span>${info.fatherName}</span>` : ''}</div>
+              <div class="row-q"><b>অভিভাবকের মোবাইল:</b> <span style="color:#0284c7; font-weight:700;">${info.phone || '—'}</span></div>
               
               <div class="divider-q"></div>
               
@@ -1269,11 +1484,12 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
           <div class="slip-grid-half">
             <div class="slip-col-half">
-              <div class="section-title-half">👤 শিক্ষার্থী পরিচিতি</div>
-              <div class="info-row"><b>শিক্ষার্থীর নাম:</b> <span class="val-highlight">${l.name_bn || ''}</span></div>
-              <div class="info-row"><b>শ্রেণি:</b> ${toBn(l.class_name)}ম শ্রেণি &nbsp;&nbsp;&nbsp; <b>রোল নম্বর:</b> ${toBn(l.roll_no)}</div>
-              <div class="info-row"><b>শিক্ষার্থী আইডি:</b> <span style="font-family: monospace; font-weight: 700;">${l.student_uid || ''}</span></div>
-              <div class="info-row"><b>অভিভাবকের মোবাইল:</b> ${l.guardian_phone || '—'}</div>
+              <div class="section-title-half">👤 শিক্ষার্থী ও অভিভাবক পরিচিতি</div>
+              <div class="info-row"><b>শিক্ষার্থীর নাম:</b> <span class="val-highlight">${info.studentName || l.name_bn || ''}</span></div>
+              <div class="info-row"><b>শ্রেণি:</b> ${toBn(info.className || l.class_name)}ম শ্রেণি &nbsp;&nbsp;&nbsp; <b>রোল নম্বর:</b> ${toBn(info.rollNo || l.roll_no)}</div>
+              <div class="info-row"><b>শিক্ষার্থী আইডি:</b> <span style="font-family: monospace; font-weight: 700;">${info.studentUid || l.student_uid || ''}</span></div>
+              ${info.fatherName ? `<div class="info-row"><b>পিতা/অভিভাবক:</b> <span>${info.fatherName}</span></div>` : ''}
+              <div class="info-row"><b>অভিভাবকের মোবাইল:</b> <span style="font-weight: 700; color: #0284c7;">${info.phone || '—'}</span></div>
             </div>
 
             <div class="slip-col-half">
@@ -1748,8 +1964,10 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
   const buildDefaulterNoticeText = (l) => {
     if (!l) return '';
+    const info = getLoanStudentInfo(l);
     const overdue = getOverdueDays(l.due_at);
     const todayBn = formatDateBn(new Date().toISOString().slice(0, 10));
+    const recipientText = info.fatherName ? `${info.fatherName} (${info.studentName}-এর পিতা/অভিভাবক)` : `${info.studentName}-এর সম্মানিত পিতা/অভিভাবক`;
     return `*জরুরি তাগাদা নোটিশ: লাইব্রেরি বই ফেরত সংক্রান্ত*
 *মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়*
 কেন্দ্রীয় লাইব্রেরি শাখা • EIIN: 114290 • কালিহাতি, টাঙ্গাইল
@@ -1757,10 +1975,10 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 স্মারক নং: MAG/LIB/${new Date().getFullYear()}/${l.accession_no}
 তারিখ: ${todayBn}
 
-প্রাপক: ${l.name_bn}-এর সম্মানিত পিতা/অভিভাবক
-শিক্ষার্থী: ${l.name_bn}
-শ্রেণি: ${toBn(l.class_name)}ম শ্রেণি, রোল নং: ${toBn(l.roll_no)} (আইডি: ${l.student_uid})
-অভিভাবকের মোবাইল: ${l.guardian_phone || '01712000008'}
+প্রাপক: ${recipientText}
+শিক্ষার্থী: ${info.studentName}
+শ্রেণি: ${toBn(info.className)}ম শ্রেণি, রোল নং: ${toBn(info.rollNo)} (আইডি: ${info.studentUid})
+অভিভাবকের মোবাইল: ${info.phone || '— (ভর্তি ফরমে উল্লেখ নেই)'}
 
 সম্মানিত অভিভাবক,
 এতদ্বারা আপনাকে বিনীতভাবে জানানো যাচ্ছে যে, আপনার সন্তান বিদ্যালয় লাইব্রেরি থেকে নিম্নবর্ণিত বইটি অধ্যয়নের উদ্দেশ্যে গ্রহণ করেছিল। নির্ধারিত মেয়াদ শেষ হলেও অদ্যবধি বইটি লাইব্রেরিতে জমা দেওয়া হয়নি:
@@ -1780,19 +1998,26 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
   const buildShortSmsText = (l, mode = 'standard') => {
     if (!l) return '';
+    const info = getLoanStudentInfo(l);
     const overdue = getOverdueDays(l.due_at);
     if (mode === 'short') {
-      return `মগড়া পালস্ উ/বি: ${l.name_bn} (রোল ${toBn(l.roll_no)}) এর বই "${l.book_title}" জমা দেওয়ার মেয়াদ শেষ হয়েছে। অবিলম্বে লাইব্রেরিতে জমা দিন।`;
+      return `মগড়া পালস্ উ/বি: ${info.studentName} (রোল ${toBn(info.rollNo)}) এর বই "${l.book_title}" জমা দেওয়ার মেয়াদ শেষ হয়েছে। অবিলম্বে লাইব্রেরিতে জমা দিন।`;
     }
     if (mode === 'english') {
-      return `Magra High School: Student ${l.name_bn} (Class ${l.class_name}, Roll ${l.roll_no}) library book "${l.book_title}" is overdue by ${overdue} days. Please return within 3 days.`;
+      return `Magra High School: Student ${info.studentName} (Class ${info.className}, Roll ${info.rollNo}) library book "${l.book_title}" is overdue by ${overdue} days. Please return within 3 days.`;
     }
-    return `মগড়া পালস্ উ/বি লাইব্রেরি: শিক্ষার্থী ${l.name_bn} (শ্রেণি ${toBn(l.class_name)}ম, রোল ${toBn(l.roll_no)}) এর নেওয়া বই "${l.book_title}" জমা দেওয়ার মেয়াদ ${toBn(overdue)} দিন পার হয়েছে। আগামী ৩ দিনের মধ্যে বইটি লাইব্রেরিতে জমা দেওয়ার অনুরোধ রইল।`;
+    return `মগড়া পালস্ উ/বি লাইব্রেরি: শিক্ষার্থী ${info.studentName} (শ্রেণি ${toBn(info.className)}ম, রোল ${toBn(info.rollNo)}) এর নেওয়া বই "${l.book_title}" জমা দেওয়ার মেয়াদ ${toBn(overdue)} দিন পার হয়েছে। আগামী ৩ দিনের মধ্যে বইটি লাইব্রেরিতে জমা দেওয়ার অনুরোধ রইল।`;
   };
 
   const handleSendWhatsApp = (loan) => {
     if (!loan) return;
-    const fullPhone = getFormattedPhone(loan.guardian_phone);
+    const info = getLoanStudentInfo(loan);
+    const phoneToUse = info.phone || loan.guardian_phone;
+    const fullPhone = getFormattedPhone(phoneToUse);
+    if (!fullPhone) {
+      alert(`শিক্ষার্থী ${info.studentName}-এর ভর্তি ফরমে কোনো কার্যকর মোবাইল নম্বর পাওয়া যায়নি।\nঅনুগ্রহ করে শিক্ষার্থীর ভর্তি তথ্য বা বই ইস্যু রেকর্ডে মোবাইল নম্বর আপডেট করুন।`);
+      return;
+    }
     const text = buildDefaulterNoticeText(loan);
     const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -1800,9 +2025,10 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
   const handleSendMessenger = (loan) => {
     if (!loan) return;
+    const info = getLoanStudentInfo(loan);
     const text = buildDefaulterNoticeText(loan);
     navigator.clipboard.writeText(text).then(() => {
-      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবক (${loan.name_bn}-এর পিতা/মাতা)-কে পাঠানোর জন্য এবার ফেসবুক মেসেঞ্জারে পেস্ট (Paste) করে সেন্ড করুন।`);
+      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবক (${info.studentName}-এর পিতা/মাতা)-কে পাঠানোর জন্য এবার ফেসবুক মেসেঞ্জারে পেস্ট (Paste) করে সেন্ড করুন।`);
       window.open('https://www.messenger.com/', '_blank');
     }).catch(() => {
       window.open('https://www.messenger.com/', '_blank');
@@ -1811,11 +2037,15 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
   const handleSendImo = (loan) => {
     if (!loan) return;
-    const fullPhone = getFormattedPhone(loan.guardian_phone);
+    const info = getLoanStudentInfo(loan);
+    const phoneToUse = info.phone || loan.guardian_phone;
+    const fullPhone = getFormattedPhone(phoneToUse);
     const text = buildDefaulterNoticeText(loan);
     navigator.clipboard.writeText(text).then(() => {
-      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবকের ইমো নম্বর: ${loan.guardian_phone || '01712000008'}\nইমো অ্যাপে গিয়ে পেস্ট (Paste) করে সেন্ড করুন।`);
-      window.location.href = `imo://chat?phone=${fullPhone}`;
+      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবকের ইমো নম্বর: ${phoneToUse || 'নম্বর নেই'}\nইমো অ্যাপে গিয়ে পেস্ট (Paste) করে সেন্ড করুন।`);
+      if (fullPhone) {
+        window.location.href = `imo://chat?phone=${fullPhone}`;
+      }
       setTimeout(() => {
         window.open('https://imo.im/', '_blank');
       }, 600);
@@ -1843,8 +2073,9 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
   const handleOpenSmsModal = (loan) => {
     if (!loan) return;
+    const info = getLoanStudentInfo(loan);
     setSmsModalLoan(loan);
-    setSmsCustomPhone(loan.guardian_phone || '01712000008');
+    setSmsCustomPhone(info.phone || loan.guardian_phone || '');
     setSmsCustomText(buildShortSmsText(loan, 'standard'));
     setSmsSentSuccess(false);
   };
@@ -2909,6 +3140,28 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   >
                     <span>🖨️</span> ৪টি স্লিপ / পাতা (A4)
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSyncLoansWithStudentRegistry(students, true)}
+                    title="ভর্তি ফরম (Student Database) থেকে শিক্ষার্থীদের মোবাইল নম্বর ও তথ্য সিঙ্ক করুন"
+                    style={{
+                      background: '#f8fafc',
+                      color: '#0284c7',
+                      border: '1.5px solid #0284c7',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span>🔄</span> ফরম থেকে সিঙ্ক
+                  </button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', fontSize: '12px', borderLeft: '1px solid #cbd5e1', paddingLeft: '10px' }}>
@@ -2946,6 +3199,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     const overdue = getOverdueDays(l.due_at);
                     const isReturned = Boolean(l.returned_at);
                     const isSelected = selectedLoanIds.includes(l.id);
+                    const info = getLoanStudentInfo(l);
 
                     return (
                       <tr
@@ -2968,15 +3222,25 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                         </td>
 
                         <td style={{ padding: '10px 14px' }}>
-                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{l.name_bn}</div>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{info.studentName}</div>
                           <div style={{ fontSize: '11px', color: '#64748b' }}>
-                            শ্রেণি {toBn(l.class_name)} • রোল {toBn(l.roll_no)} • আইডি: {l.student_uid}
+                            শ্রেণি {toBn(info.className)} • রোল {toBn(info.rollNo)} • আইডি: {info.studentUid}
                           </div>
-                          {l.guardian_phone && (
-                            <div style={{ fontSize: '11px', color: '#0284c7' }}>
-                              📞 {l.guardian_phone}
+                          {info.fatherName && (
+                            <div style={{ fontSize: '10.5px', color: '#475569', marginTop: '2px' }}>
+                              👨‍👦 পিতা: {info.fatherName}
                             </div>
                           )}
+                          {info.phone ? (
+                            <div style={{ fontSize: '11px', color: '#0284c7', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <a href={`tel:${info.phone}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                📞 <b>{info.phone}</b>
+                              </a>
+                              <span style={{ fontSize: '9px', color: '#059669', background: '#ecfdf5', padding: '1px 5px', borderRadius: '3px', border: '1px solid #a7f3d0', fontWeight: 600 }}>
+                                ✓ ভর্তি ফরম
+                              </span>
+                            </div>
+                          ) : null}
                         </td>
 
                         <td style={{ padding: '10px 14px' }}>
@@ -3121,6 +3385,28 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
               <button
                 type="button"
+                onClick={() => handleSyncLoansWithStudentRegistry(students, true)}
+                title="ভর্তি ফরম (Student Database) থেকে শিক্ষার্থীদের মোবাইল নম্বর ও তথ্য সিঙ্ক করুন"
+                style={{
+                  background: '#fff',
+                  color: '#059669',
+                  border: '1.5px solid #059669',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 1px 3px rgba(5,150,105,0.1)'
+                }}
+              >
+                <span>🔄</span> ফরম থেকে মোবাইল সিঙ্ক করুন
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   if (!filteredOverdueLoans.length) {
                     alert('বর্তমানে কোনো বকেয়া শিক্ষার্থী নেই।');
@@ -3166,6 +3452,8 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                 <tbody>
                   {filteredOverdueLoans.map((l, idx) => {
                     const days = getOverdueDays(l.due_at);
+                    const info = getLoanStudentInfo(l);
+
                     return (
                       <tr
                         key={l.id || idx}
@@ -3175,21 +3463,35 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                         }}
                       >
                         <td style={{ padding: '10px 14px', fontWeight: 700, color: '#881337' }}>
-                          {l.name_bn}
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>রোল নং: {toBn(l.roll_no)}</div>
+                          {info.studentName}
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>রোল নং: {toBn(info.rollNo)}</div>
+                          {info.fatherName && (
+                            <div style={{ fontSize: '10.5px', color: '#475569', fontWeight: 500, marginTop: '2px' }}>
+                              👨‍👦 পিতা: {info.fatherName}
+                            </div>
+                          )}
                         </td>
 
                         <td style={{ padding: '10px 14px' }}>
                           <span style={{ background: '#fecdd3', color: '#9f1239', padding: '2px 7px', borderRadius: '4px', fontWeight: 700, fontSize: '11px' }}>
-                            {toBn(l.class_name)}ম শ্রেণি
+                            {toBn(info.className)}ম শ্রেণি
                           </span>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{l.student_uid}</div>
+                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{info.studentUid}</div>
                         </td>
 
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0369a1' }}>
-                          <a href={`tel:${l.guardian_phone}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            📞 {l.guardian_phone || '01712000000'}
-                          </a>
+                          {info.phone ? (
+                            <div>
+                              <a href={`tel:${info.phone}`} style={{ textDecoration: 'none', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                📞 <b>{info.phone}</b>
+                              </a>
+                              <span style={{ display: 'inline-block', marginTop: '3px', fontSize: '10px', color: '#059669', background: '#ecfdf5', padding: '1px 6px', borderRadius: '4px', border: '1px solid #a7f3d0', fontWeight: 600 }}>
+                                ✓ ভর্তি ফরম সংযুক্ত
+                              </span>
+                            </div>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '11px' }}>— নম্বর নেই</span>
+                          )}
                         </td>
 
                         <td style={{ padding: '10px 14px' }}>
@@ -4349,13 +4651,71 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   onChange={e => setIssueForm({ ...issueForm, student_id: e.target.value })}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #0284c7', fontSize: '13px', background: '#fff', fontWeight: 600 }}
                 >
-                  <option value="">-- শিক্ষার্থী নির্বাচন করুন --</option>
-                  {filteredStudentsForIssue.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name_bn} • শ্রেণি {toBn(s.class_name)} • রোল {toBn(s.roll_no)} (আইডি: {s.student_id || s.id})
-                    </option>
-                  ))}
+                  <option value="">-- শিক্ষার্থী নির্বাচন করুন (ভর্তি ফরম ডাটাবেজ) --</option>
+                  {filteredStudentsForIssue.map(s => {
+                    const phoneDisplay = normalizePhoneNumber(s.guardian_phone || s.father_mobile || s.emergency_phone || '');
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {s.name_bn} • শ্রেণি {toBn(s.class_name)} • রোল {toBn(s.roll_no)} (পিতা: {s.father_name || '—'} • মোবা: {phoneDisplay || '—'})
+                      </option>
+                    );
+                  })}
                 </select>
+
+                {/* Linked Student Admission Form Profile Card */}
+                {selectedStudentObj && (
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '12px 14px',
+                    borderRadius: '8px',
+                    background: '#f0fdf4',
+                    border: '1.5px solid #86efac'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontWeight: 800, fontSize: '13px', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>📋</span> ভর্তি ফরম থেকে প্রাপ্ত শিক্ষার্থীর প্রোফাইল
+                      </span>
+                      <span style={{ background: '#dcfce7', color: '#15803d', border: '1px solid #86efac', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                        ✓ ভর্তি ফরম সংযুক্ত
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px', fontSize: '12px', color: '#1e293b' }}>
+                      <div><b>শিক্ষার্থীর নাম:</b> {selectedStudentObj.name_bn}</div>
+                      <div><b>শ্রেণি ও রোল:</b> {toBn(selectedStudentObj.class_name)}ম শ্রেণি • রোল: {toBn(selectedStudentObj.roll_no)}</div>
+                      <div><b>পিতার নাম:</b> {selectedStudentObj.father_name || selectedStudentObj.guardian_name || '—'}</div>
+                      <div><b>শিক্ষার্থী আইডি:</b> <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>{selectedStudentObj.student_id || selectedStudentObj.id}</span></div>
+                      <div style={{ gridColumn: 'span 2', fontSize: '11.5px', color: '#475569' }}><b>ঠিকানা:</b> {selectedStudentObj.address || selectedStudentObj.current_village || '—'}</div>
+                    </div>
+
+                    <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #86efac' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
+                        📱 পিতা/অভিভাবকের মোবাইল নম্বর (ভর্তি ফরম থেকে স্বয়ংক্রিয়ভাবে যুক্ত, প্রয়োজনে সম্পাদনযোগ্য):
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={issueForm.guardian_phone}
+                        onChange={e => setIssueForm({ ...issueForm, guardian_phone: e.target.value })}
+                        placeholder="যেমন: 01710689846"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          border: '1.5px solid #059669',
+                          fontSize: '13.5px',
+                          fontWeight: 700,
+                          color: '#065f46',
+                          background: '#fff',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <small style={{ color: '#047857', fontSize: '11px', display: 'block', marginTop: '3px' }}>
+                        💡 এই নম্বরেই সরাসরি তাগাদা নোটিশ, WhatsApp বার্তা ও SMS স্বয়ংক্রিয়ভাবে পাঠানো হবে।
+                      </small>
+                    </div>
+                  </div>
+                )}
 
                 {/* Overdue Alert if student has prior overdue book */}
                 {studentOutstandingLoans.length > 0 && (
@@ -4796,8 +5156,16 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
               {printDefaulterNotice.single && printDefaulterNotice.loan && (
                 <div style={{ marginTop: '8px', fontSize: '11.5px', color: '#475569', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', borderTop: '1px dashed #cbd5e1', paddingTop: '6px' }}>
-                  <span>📲 পিতা/অভিভাবকের মোবাইল: <b style={{ color: '#0369a1', fontFamily: 'monospace', fontSize: '12px' }}>{printDefaulterNotice.loan.guardian_phone || '01712000008'}</b></span>
-                  <span style={{ color: '#059669', fontSize: '11px', fontWeight: 600 }}>• উপরের বাটনে ক্লিক করে সরাসরি WhatsApp, SMS, Messenger, Imo বা Telegram এ তাগাদা বার্তা পাঠানো যাবে</span>
+                  {(() => {
+                    const info = getLoanStudentInfo(printDefaulterNotice.loan);
+                    return (
+                      <>
+                        <span>📲 পিতা/অভিভাবকের মোবাইল: <b style={{ color: '#0369a1', fontFamily: 'monospace', fontSize: '12px' }}>{info.phone || '— (ভর্তি ফরমে উল্লেখ নেই)'}</b></span>
+                        {info.isLinked && <span style={{ color: '#059669', fontSize: '11px', fontWeight: 700, background: '#ecfdf5', padding: '1px 6px', borderRadius: '4px', border: '1px solid #86efac' }}>✓ ভর্তি ফরম ডাটাবেজ সংযুক্ত</span>}
+                        <span style={{ color: '#059669', fontSize: '11px', fontWeight: 600 }}>• উপরের বাটনে ক্লিক করে সরাসরি WhatsApp, SMS, Messenger, Imo বা Telegram এ তাগাদা বার্তা পাঠানো যাবে</span>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -4818,11 +5186,19 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
             {printDefaulterNotice.single && printDefaulterNotice.loan ? (
               <div style={{ fontSize: '13px', lineHeight: 1.6, color: '#1e293b' }}>
-                <p><b>স্মারক নং:</b> MAG/LIB/{new Date().getFullYear()}/{printDefaulterNotice.loan.accession_no} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>তারিখ:</b> {formatDateBn(new Date().toISOString().slice(0, 10))}</p>
-                <p><b>প্রাপক:</b> {printDefaulterNotice.loan.name_bn} <br />
-                  <b>শ্রেণি:</b> {toBn(printDefaulterNotice.loan.class_name)}ম শ্রেণি, <b>রোল নং:</b> {toBn(printDefaulterNotice.loan.roll_no)} (আইডি: {printDefaulterNotice.loan.student_uid}) <br />
-                  <b>অভিভাবকের মোবাইল:</b> {printDefaulterNotice.loan.guardian_phone || '01712000000'}
-                </p>
+                {(() => {
+                  const info = getLoanStudentInfo(printDefaulterNotice.loan);
+                  return (
+                    <>
+                      <p><b>স্মারক নং:</b> MAG/LIB/{new Date().getFullYear()}/{printDefaulterNotice.loan.accession_no} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>তারিখ:</b> {formatDateBn(new Date().toISOString().slice(0, 10))}</p>
+                      <p><b>প্রাপক:</b> {info.fatherName ? `${info.fatherName} (শিক্ষার্থী: ${info.studentName}-এর পিতা/অভিভাবক)` : `${info.studentName}-এর অভিভাবক`} <br />
+                        <b>শিক্ষার্থী:</b> {info.studentName} <br />
+                        <b>শ্রেণি:</b> {toBn(info.className)}ম শ্রেণি, <b>রোল নং:</b> {toBn(info.rollNo)} (আইডি: {info.studentUid}) <br />
+                        <b>অভিভাবকের মোবাইল:</b> <span style={{ color: '#0369a1', fontWeight: 700 }}>{info.phone || '— (ভর্তি ফরমে যুক্ত করা হয়নি)'}</span> {info.isLinked && <span style={{ fontSize: '10px', color: '#059669', background: '#ecfdf5', padding: '1px 5px', borderRadius: '4px', border: '1px solid #a7f3d0' }}>✓ ভর্তি ফরম সংযুক্ত</span>}
+                      </p>
+                    </>
+                  );
+                })()}
 
                 <p>
                   এতদ্বারা তোমাকে এবং তোমার অভিভাবককে জানানো যাচ্ছে যে, তুমি বিদ্যালয়ের লাইব্রেরি থেকে নিম্নবর্ণিত বইটি অধ্যয়নের উদ্দেশ্যে গ্রহণ করেছিলে। নির্ধারিত মেয়াদ শেষ হলেও অদ্যবধি বইটি লাইব্রেরিতে জমা দেওয়া হয়নি:
@@ -4861,19 +5237,25 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {(printDefaulterNotice.list || []).map((l, i) => (
-                      <tr key={i}>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px', textAlign: 'center' }}>{toBn(i + 1)}</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px', fontWeight: 700 }}>{l.name_bn}</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{toBn(l.class_name)}ম ({toBn(l.roll_no)})</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{l.guardian_phone}</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{l.book_title}</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{formatDateBn(l.due_at)}</td>
-                        <td style={{ border: '1px solid #e2e8f0', padding: '5px', textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>
-                          {toBn(getOverdueDays(l.due_at))} দিন
-                        </td>
-                      </tr>
-                    ))}
+                    {(printDefaulterNotice.list || []).map((l, i) => {
+                      const info = getLoanStudentInfo(l);
+                      return (
+                        <tr key={i}>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px', textAlign: 'center' }}>{toBn(i + 1)}</td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px', fontWeight: 700 }}>
+                            {info.studentName}
+                            {info.fatherName ? <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 400 }}>পিতা: {info.fatherName}</div> : null}
+                          </td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{toBn(info.className)}ম ({toBn(info.rollNo)})</td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px', fontWeight: 600, color: '#0369a1' }}>{info.phone || '—'}</td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{l.book_title}</td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px' }}>{formatDateBn(l.due_at)}</td>
+                          <td style={{ border: '1px solid #e2e8f0', padding: '5px', textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>
+                            {toBn(getOverdueDays(l.due_at))} দিন
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -5158,9 +5540,17 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               </div>
 
               <div style={{ fontSize: '12px', lineHeight: 1.5, color: '#1e293b' }}>
-                <div><b>শিক্ষার্থী:</b> {printReceiptLoan.name_bn}</div>
-                <div><b>শ্রেণি:</b> {toBn(printReceiptLoan.class_name)}ম শ্রেণি • <b>রোল নং:</b> {toBn(printReceiptLoan.roll_no)}</div>
-                <div><b>আইডি:</b> {printReceiptLoan.student_uid}</div>
+                {(() => {
+                  const info = getLoanStudentInfo(printReceiptLoan);
+                  return (
+                    <>
+                      <div><b>শিক্ষার্থী:</b> {info.studentName}</div>
+                      <div><b>শ্রেণি:</b> {toBn(info.className)}ম শ্রেণি • <b>রোল নং:</b> {toBn(info.rollNo)}</div>
+                      <div><b>আইডি:</b> {info.studentUid} {info.fatherName ? `• পিতা: ${info.fatherName}` : ''}</div>
+                      {info.phone && <div style={{ color: '#0369a1', fontWeight: 600, marginTop: '2px' }}><b>অভিভাবকের মোবাইল:</b> 📞 {info.phone}</div>}
+                    </>
+                  );
+                })()}
                 <div style={{ borderTop: '1px solid #f1f5f9', margin: '6px 0', paddingTop: '6px' }}>
                   <div>📖 <b>বই:</b> {printReceiptLoan.book_title}</div>
                   <div>✍️ <b>লেখক:</b> {printReceiptLoan.author}</div>
