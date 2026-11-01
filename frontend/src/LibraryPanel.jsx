@@ -262,6 +262,23 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [printCatalogMode, setPrintCatalogMode] = useState(false);
   const [printReportMode, setPrintReportMode] = useState(false);
 
+  // Issue & Return Register Checkbox Selection State
+  const [selectedLoanIds, setSelectedLoanIds] = useState([]);
+
+  const handleToggleSelectLoan = (loanId) => {
+    setSelectedLoanIds(prev =>
+      prev.includes(loanId) ? prev.filter(id => id !== loanId) : [...prev, loanId]
+    );
+  };
+
+  const handleToggleSelectAllLoans = () => {
+    if (selectedLoanIds.length === loans.length) {
+      setSelectedLoanIds([]);
+    } else {
+      setSelectedLoanIds(loans.map(l => l.id));
+    }
+  };
+
   // CSV Bulk Upload Modal States
   const [showUploadCSVModal, setShowUploadCSVModal] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
@@ -1158,6 +1175,550 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
       </html>
     `);
     printWin.document.close();
+  };
+
+  // -------------------------------------------------------------
+  // A4 Slip Print Engine: 2 Slips or 4 Slips per A4 Page
+  // -------------------------------------------------------------
+  const handlePrintSlips = (loanList, perPage = 2, customCopyLabels = null) => {
+    if (!loanList || loanList.length === 0) {
+      alert('প্রিন্ট করার জন্য কোনো স্লিপ পাওয়া যায়নি। অনুগ্রহ করে টিক চিহ্নের মাধ্যমে অন্তত একটি রেকর্ড নির্বাচন করুন।');
+      return;
+    }
+
+    const printWin = window.open('', '_blank', 'width=1000,height=850');
+    if (!printWin) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। অনুগ্রহ করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      return;
+    }
+
+    // Chunk loanList by perPage
+    const pages = [];
+    for (let i = 0; i < loanList.length; i += perPage) {
+      pages.push(loanList.slice(i, i + perPage));
+    }
+
+    const renderSlip = (l, copyLabel = '', isQuarter = false) => {
+      const overdue = getOverdueDays(l.due_at);
+      const isReturned = Boolean(l.returned_at);
+
+      if (isQuarter) {
+        // Quarter A4 slip (4 slips per A4 page in 2x2 grid)
+        return `
+          <div class="slip-card-quarter">
+            <div class="slip-header-q">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <img src="${schoolLogo}" style="width: 28px; height: 28px; object-fit: contain;" alt="Logo" />
+                <div>
+                  <div class="school-name-q">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+                  <div class="school-sub-q">লাইব্রেরি ইস্যু স্লিপ • EIIN: 114290</div>
+                </div>
+              </div>
+              ${copyLabel ? `<span class="copy-badge-q">${copyLabel}</span>` : `<span class="code-badge-q">${l.accession_no || ''}</span>`}
+            </div>
+
+            <div class="slip-body-q">
+              <div class="row-q"><b>শিক্ষার্থী:</b> <span style="font-weight: 800; color: #0f172a;">${l.name_bn || ''}</span></div>
+              <div class="row-q"><b>শ্রেণি ও রোল:</b> <span>${toBn(l.class_name)}ম শ্রেণি • রোল: ${toBn(l.roll_no)}</span></div>
+              <div class="row-q"><b>আইডি:</b> <span>${l.student_uid || ''}</span> &nbsp;|&nbsp; <b>মোবাইল:</b> <span>${l.guardian_phone || '—'}</span></div>
+              
+              <div class="divider-q"></div>
+              
+              <div class="row-q"><b>বইয়ের নাম:</b> <span style="font-weight: 800; color: #064e3b;">${l.book_title || ''}</span></div>
+              <div class="row-q"><b>লেখক:</b> <span>${l.author || ''}</span> &nbsp;|&nbsp; <b>কোড:</b> <span style="color:#0284c7; font-weight:700;">${l.accession_no || ''}</span></div>
+              
+              <div class="date-box-q">
+                <div>📅 ইস্যু: <b>${formatDateBn(l.issued_at)}</b></div>
+                <div>⏰ শেষ জমা: <b style="color: #be123c;">${formatDateBn(l.due_at)}</b></div>
+              </div>
+              ${isReturned ? `<div style="font-size: 9.5px; color: #059669; font-weight: 700; margin-top: 2px;">✅ জমা সম্পন্ন: ${formatDateBn(l.returned_at)}</div>` : ''}
+            </div>
+
+            <div class="slip-footer-q">
+              <div class="sig-line-q">শিক্ষার্থীর স্বাক্ষর</div>
+              <div class="sig-line-q">লাইব্রেরিয়ান স্বাক্ষর</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Half A4 slip (2 slips per A4 page)
+      return `
+        <div class="slip-card-half">
+          <div class="slip-header-half">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <img src="${schoolLogo}" style="width: 44px; height: 44px; object-fit: contain;" alt="Logo" />
+              <div>
+                <div class="school-name-half">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+                <div class="school-sub-half">ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল • স্থাপিতঃ ১৯৪৬ • EIIN: 114290</div>
+                <div class="school-branch-half">কেন্দ্রীয় লাইব্রেরি ও বুক ব্যাংক শাখা</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div class="slip-title-pill">লাইব্রেরি বই ইস্যু ও জমাদান স্লিপ</div>
+              ${copyLabel ? `<div style="margin-top: 3px;"><span class="copy-badge-half">${copyLabel}</span></div>` : ''}
+              <div style="font-size: 10px; color: #64748b; margin-top: 2px;">কোড: <b style="color:#0284c7;">${l.accession_no || ''}</b></div>
+            </div>
+          </div>
+
+          <div class="slip-grid-half">
+            <div class="slip-col-half">
+              <div class="section-title-half">👤 শিক্ষার্থী পরিচিতি</div>
+              <div class="info-row"><b>শিক্ষার্থীর নাম:</b> <span class="val-highlight">${l.name_bn || ''}</span></div>
+              <div class="info-row"><b>শ্রেণি:</b> ${toBn(l.class_name)}ম শ্রেণি &nbsp;&nbsp;&nbsp; <b>রোল নম্বর:</b> ${toBn(l.roll_no)}</div>
+              <div class="info-row"><b>শিক্ষার্থী আইডি:</b> <span style="font-family: monospace; font-weight: 700;">${l.student_uid || ''}</span></div>
+              <div class="info-row"><b>অভিভাবকের মোবাইল:</b> ${l.guardian_phone || '—'}</div>
+            </div>
+
+            <div class="slip-col-half">
+              <div class="section-title-half">📖 বইয়ের বিবরণী</div>
+              <div class="info-row"><b>বইয়ের শিরোনাম:</b> <span class="val-highlight-book">${l.book_title || ''}</span></div>
+              <div class="info-row"><b>রচয়িতা / লেখক:</b> ${l.author || ''}</div>
+              <div class="info-row"><b>অ্যাকসেশন নম্বর:</b> <span style="color: #0284c7; font-weight: 700;">${l.accession_no || ''}</span></div>
+              <div class="info-row"><b>বইয়ের অবস্থা:</b> ভালো ও অক্ষত</div>
+            </div>
+          </div>
+
+          <div class="dates-strip-half">
+            <div>📅 <b>ইস্যুর তারিখ:</b> ${formatDateBn(l.issued_at)}</div>
+            <div>⏰ <b>নির্ধারিত জমাদানের শেষ তারিখ:</b> <span style="color: #be123c; font-weight: 800;">${formatDateBn(l.due_at)}</span></div>
+            <div>
+              ${isReturned ? `<span style="color: #059669; font-weight: 700;">✅ জমা সম্পন্ন: ${formatDateBn(l.returned_at)}</span>` : overdue > 0 ? `<span style="color: #dc2626; font-weight: 800; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">⚠️ ${toBn(overdue)} দিন বকেয়া</span>` : `<span style="color: #1d4ed8; font-weight: 700; background: #dbeafe; padding: 2px 8px; border-radius: 4px;">🟢 চলমান</span>`}
+            </div>
+          </div>
+
+          <div class="slip-footer-half">
+            <div class="sig-box-half">
+              <div class="sig-line">শিক্ষার্থীর স্বাক্ষর</div>
+            </div>
+            <div class="rules-note-half">
+              * বইটি সযত্নে পড়তে হবে। কোনো পৃষ্ঠা ছেঁড়া বা দাগ দেওয়া সম্পূর্ণ নিষেধ। নির্ধারিত তারিখে লাইব্রেরিতে জমা দিতে হবে। *
+            </div>
+            <div class="sig-box-half">
+              <div class="sig-line">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</div>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    const pagesHtml = pages.map((pageChunk, pageIdx) => {
+      if (perPage === 4) {
+        const slips = pageChunk.map((l, sIdx) => {
+          const label = customCopyLabels ? customCopyLabels[sIdx] : '';
+          return renderSlip(l, label, true);
+        }).join('');
+
+        return `
+          <div class="a4-sheet">
+            <div class="grid-4-container">
+              ${slips}
+            </div>
+          </div>
+        `;
+      } else {
+        // perPage === 2
+        const slip1 = renderSlip(pageChunk[0], customCopyLabels ? customCopyLabels[0] : (pageChunk.length === 1 ? 'শিক্ষার্থী কপি' : ''), false);
+        let slip2 = '';
+        if (pageChunk.length > 1) {
+          slip2 = renderSlip(pageChunk[1], customCopyLabels ? customCopyLabels[1] : '', false);
+        } else if (customCopyLabels && customCopyLabels[1]) {
+          slip2 = renderSlip(pageChunk[0], customCopyLabels[1], false);
+        }
+
+        return `
+          <div class="a4-sheet">
+            <div class="stack-2-container">
+              ${slip1}
+              ${slip2 ? `
+                <div class="cut-divider-line">
+                  <span>✂️ ------------------------------- কাটার দাগ (Cut Here) -------------------------------</span>
+                </div>
+                ${slip2}
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+    }).join('');
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8" />
+        <title>লাইব্রেরি ইস্যু স্লিপ প্রিন্ট (${perPage === 2 ? '২টি / পাতা' : '৪টি / পাতা'}) - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 8mm 8mm 8mm 8mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Nikosh', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #e2e8f0;
+            color: #0f172a;
+          }
+          .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0f172a;
+            color: #fff;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+          }
+          .toolbar-title {
+            font-size: 14px;
+            font-weight: 700;
+          }
+          .btn-print {
+            background: #059669;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          }
+          .btn-close {
+            background: #fff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 10px;
+          }
+          .a4-sheet {
+            background: #fff;
+            width: 194mm;
+            min-height: 281mm;
+            margin: 15px auto;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border-radius: 4px;
+            page-break-after: always;
+            break-after: page;
+          }
+          .a4-sheet:last-child {
+            page-break-after: auto;
+            break-after: auto;
+          }
+
+          /* 2 Slips per page layout */
+          .stack-2-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 280mm;
+            padding: 2mm 0;
+          }
+          .slip-card-half {
+            border: 1.5px solid #065f46;
+            border-radius: 8px;
+            padding: 12px 16px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 134mm;
+            box-sizing: border-box;
+          }
+          .slip-header-half {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid #065f46;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+          }
+          .school-name-half {
+            font-size: 16px;
+            font-weight: 900;
+            color: #064e3b;
+            line-height: 1.2;
+          }
+          .school-sub-half {
+            font-size: 10px;
+            color: #475569;
+            margin-top: 1px;
+          }
+          .school-branch-half {
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #047857;
+            margin-top: 1px;
+          }
+          .slip-title-pill {
+            background: #047857;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 12px;
+            border-radius: 12px;
+            display: inline-block;
+          }
+          .copy-badge-half {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-block;
+          }
+          .slip-grid-half {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+          }
+          .section-title-half {
+            font-size: 11px;
+            font-weight: 800;
+            color: #065f46;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 3px;
+            margin-bottom: 4px;
+          }
+          .info-row {
+            font-size: 11.5px;
+            line-height: 1.55;
+            color: #1e293b;
+          }
+          .val-highlight {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 12.5px;
+          }
+          .val-highlight-book {
+            font-weight: 800;
+            color: #047857;
+            font-size: 12.5px;
+          }
+          .dates-strip-half {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11.5px;
+            margin: 6px 0;
+          }
+          .slip-footer-half {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 4px;
+          }
+          .sig-box-half {
+            width: 170px;
+            text-align: center;
+          }
+          .sig-line {
+            border-top: 1px dashed #475569;
+            padding-top: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #1e293b;
+          }
+          .rules-note-half {
+            font-size: 9.5px;
+            color: #64748b;
+            text-align: center;
+            max-width: 250px;
+            font-style: italic;
+            line-height: 1.25;
+          }
+          .cut-divider-line {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 2mm 0;
+            white-space: nowrap;
+            overflow: hidden;
+          }
+
+          /* 4 Slips per page layout */
+          .grid-4-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 6mm;
+            height: 280mm;
+            padding: 2mm 0;
+            box-sizing: border-box;
+          }
+          .slip-card-quarter {
+            border: 1.5px solid #065f46;
+            border-radius: 6px;
+            padding: 8px 10px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 135mm;
+            box-sizing: border-box;
+          }
+          .slip-header-q {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #065f46;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+          }
+          .school-name-q {
+            font-size: 12px;
+            font-weight: 900;
+            color: #064e3b;
+            line-height: 1.15;
+          }
+          .school-sub-q {
+            font-size: 8.5px;
+            color: #64748b;
+          }
+          .copy-badge-q {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 9px;
+            font-weight: 700;
+          }
+          .code-badge-q {
+            color: #0284c7;
+            font-size: 9.5px;
+            font-weight: 800;
+            border: 1px dashed #cbd5e1;
+            padding: 1px 5px;
+            border-radius: 4px;
+          }
+          .slip-body-q {
+            font-size: 10.5px;
+            line-height: 1.45;
+            color: #1e293b;
+          }
+          .row-q {
+            margin-bottom: 2px;
+          }
+          .divider-q {
+            border-top: 1px dashed #cbd5e1;
+            margin: 4px 0;
+          }
+          .date-box-q {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 4px 6px;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9.5px;
+          }
+          .slip-footer-q {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 4px;
+            margin-top: 4px;
+          }
+          .sig-line-q {
+            font-size: 9px;
+            font-weight: 700;
+            color: #334155;
+          }
+
+          @media print {
+            .toolbar {
+              display: none !important;
+            }
+            body {
+              background: #fff;
+            }
+            .a4-sheet {
+              width: 100%;
+              min-height: auto;
+              margin: 0;
+              padding: 0;
+              box-shadow: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="toolbar">
+          <div class="toolbar-title">
+            🖨️ লাইব্রেরি ইস্যু স্লিপ প্রিন্ট প্রিভিউ (${perPage === 2 ? '২টি / পাতা - A4' : '৪টি / পাতা - A4'} • মোট ${toBn(loanList.length)} টি স্লিপ • ${toBn(pages.length)} পাতা)
+          </div>
+          <div>
+            <button class="btn-print" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+            <button class="btn-close" onclick="window.close()">✕ উইন্ডো বন্ধ</button>
+          </div>
+        </div>
+
+        ${pagesHtml}
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+  };
+
+  // Batch print selected loans or all loans (2 or 4 per A4 page)
+  const handlePrintBatchSlips = (perPage = 2) => {
+    let target = [];
+    if (selectedLoanIds.length > 0) {
+      target = loans.filter(l => selectedLoanIds.includes(l.id));
+    } else {
+      const confirmAll = window.confirm(`আপনি কোনো নির্দিষ্ট স্লিপে টিক চিহ্ন দেননি।\n\nআপনি কি রেজিস্টারের সকল (${toBn(loans.length)} টি) বই ইস্যু স্লিপ প্রিন্ট করতে চান?\n\n(নির্দিষ্ট শিক্ষার্থীর স্লিপ প্রিন্ট করতে চাইলে প্রথমে বামের টিক চিহ্নে ক্লিক করুন)`);
+      if (!confirmAll) return;
+      target = [...loans];
+    }
+    handlePrintSlips(target, perPage);
+  };
+
+  // Single loan print with multiple copies on 1 A4 page
+  const handlePrintSingleLoan = (loanItem, perPage = 2) => {
+    if (!loanItem) return;
+    if (perPage === 2) {
+      // 2 copies on 1 A4 page: Student Copy & Office Copy
+      handlePrintSlips([loanItem, loanItem], 2, ['শিক্ষার্থী কপি', 'অফিস / লাইব্রেরি কপি']);
+    } else if (perPage === 4) {
+      // 4 copies on 1 A4 page: Student, Office, Guardian, Record Copy
+      handlePrintSlips([loanItem, loanItem, loanItem, loanItem], 4, ['শিক্ষার্থী কপি', 'অফিস কপি', 'অভিভাবক কপি', 'রেকর্ড কপি']);
+    } else {
+      handlePrintSlips([loanItem], 2, ['মূল কপি']);
+    }
   };
 
   // CSV Catalog Export
@@ -2130,14 +2691,84 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
           {/* Active Loans Table */}
           <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
-            <div style={{ padding: '12px 18px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '14px' }}>
-                📋 ইস্যু ও ফেরত রেজিস্টার ({toBn(loans.length)} টি রেকর্ড)
+            <div style={{ padding: '12px 18px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '14px' }}>
+                  📋 ইস্যু ও ফেরত রেজিস্টার ({toBn(loans.length)} টি রেকর্ড)
+                </div>
+                {selectedLoanIds.length > 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 800, border: '1px solid #86efac' }}>
+                      ☑️ {toBn(selectedLoanIds.length)} টি স্লিপ নির্বাচিত
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedLoanIds([])}
+                      style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '11.5px', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}
+                    >
+                      টিক বাতিল
+                    </button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    (নির্দিষ্ট স্লিপ প্রিন্ট করতে বামের ঘরে টিক দিন)
+                  </span>
+                )}
               </div>
-              <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                <span style={{ color: '#059669', fontWeight: 700 }}>🟢 চলমান: {toBn(loans.filter(l => !l.returned_at && getOverdueDays(l.due_at) <= 0).length)}</span>
-                <span style={{ color: '#dc2626', fontWeight: 700 }}>🔴 বকেয়া: {toBn(kpis.overdueCount)}</span>
-                <span style={{ color: '#64748b' }}>✅ জমা সম্পন্ন: {toBn(loans.filter(l => l.returned_at).length)}</span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {/* Print Action Buttons: 2 Slips or 4 Slips per A4 */}
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handlePrintBatchSlips(2)}
+                    title="A4 সাইজের কাগজে একসাথে ২টি স্লিপ প্রিন্ট করুন"
+                    style={{
+                      background: selectedLoanIds.length > 0 ? '#059669' : '#f0fdf4',
+                      color: selectedLoanIds.length > 0 ? '#ffffff' : '#047857',
+                      border: '1.5px solid #059669',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span>🖨️</span> ২টি স্লিপ / পাতা (A4)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePrintBatchSlips(4)}
+                    title="A4 সাইজের কাগজে একসাথে ৪টি স্লিপ প্রিন্ট করুন"
+                    style={{
+                      background: selectedLoanIds.length > 0 ? '#0284c7' : '#f0f9ff',
+                      color: selectedLoanIds.length > 0 ? '#ffffff' : '#0369a1',
+                      border: '1.5px solid #0284c7',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                    }}
+                  >
+                    <span>🖨️</span> ৪টি স্লিপ / পাতা (A4)
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px', fontSize: '12px', borderLeft: '1px solid #cbd5e1', paddingLeft: '10px' }}>
+                  <span style={{ color: '#059669', fontWeight: 700 }}>🟢 চলমান: {toBn(loans.filter(l => !l.returned_at && getOverdueDays(l.due_at) <= 0).length)}</span>
+                  <span style={{ color: '#dc2626', fontWeight: 700 }}>🔴 বকেয়া: {toBn(kpis.overdueCount)}</span>
+                  <span style={{ color: '#64748b' }}>✅ জমা সম্পন্ন: {toBn(loans.filter(l => l.returned_at).length)}</span>
+                </div>
               </div>
             </div>
 
@@ -2145,6 +2776,15 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: '#f1f5f9', borderBottom: '1.5px solid #cbd5e1', color: '#475569', fontWeight: 700 }}>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '38px' }}>
+                      <input
+                        type="checkbox"
+                        checked={loans.length > 0 && selectedLoanIds.length === loans.length}
+                        onChange={handleToggleSelectAllLoans}
+                        title={selectedLoanIds.length === loans.length ? "সব টিক বাতিল করুন" : "সবগুলোতে টিক দিন"}
+                        style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#059669' }}
+                      />
+                    </th>
                     <th style={{ padding: '10px 14px' }}>শিক্ষার্থী পরিচিতি</th>
                     <th style={{ padding: '10px 14px' }}>বইয়ের নাম ও লেখক</th>
                     <th style={{ padding: '10px 14px' }}>কোড নং</th>
@@ -2158,15 +2798,28 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                   {loans.map((l, idx) => {
                     const overdue = getOverdueDays(l.due_at);
                     const isReturned = Boolean(l.returned_at);
+                    const isSelected = selectedLoanIds.includes(l.id);
 
                     return (
                       <tr
                         key={l.id || idx}
                         style={{
                           borderBottom: '1px solid #f1f5f9',
-                          background: isReturned ? '#fff' : overdue > 0 ? '#fef2f2' : idx % 2 === 0 ? '#fff' : '#fafafa'
+                          background: isSelected
+                            ? '#ecfdf5'
+                            : isReturned ? '#fff' : overdue > 0 ? '#fef2f2' : idx % 2 === 0 ? '#fff' : '#fafafa',
+                          transition: 'background 0.15s ease'
                         }}
                       >
+                        <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelectLoan(l.id)}
+                            style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#059669' }}
+                          />
+                        </td>
+
                         <td style={{ padding: '10px 14px' }}>
                           <div style={{ fontWeight: 700, color: '#0f172a' }}>{l.name_bn}</div>
                           <div style={{ fontSize: '11px', color: '#64748b' }}>
@@ -2259,7 +2912,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
                   {loans.length === 0 && (
                     <tr>
-                      <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan="8" style={{ padding: '30px', textAlign: 'center', color: '#64748b' }}>
                         কোনো ইস্যু রেকর্ড পাওয়া যায়নি।
                       </td>
                     </tr>
@@ -3998,23 +4651,42 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
           <div style={{
             background: '#fff',
             borderRadius: '12px',
-            maxWidth: '450px',
+            maxWidth: '520px',
             width: '100%',
             padding: '24px',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }} className="no-print">
-              <button
-                type="button"
-                onClick={triggerBrowserPrint}
-                style={{ background: '#059669', color: '#fff', padding: '6px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-              >
-                🖨️ স্লিপ প্রিন্ট
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }} className="no-print">
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => handlePrintSingleLoan(printReceiptLoan, 2)}
+                  title="A4 সাইজের কাগজে একসাথে ২টি স্লিপ (শিক্ষার্থী ও অফিস কপি) প্রিন্ট করুন"
+                  style={{ background: '#059669', color: '#fff', padding: '6px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <span>🖨️</span> ২টি স্লিপ (A4 পাতা)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrintSingleLoan(printReceiptLoan, 4)}
+                  title="A4 সাইজের কাগজে একসাথে ৪টি স্লিপ প্রিন্ট করুন"
+                  style={{ background: '#0284c7', color: '#fff', padding: '6px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <span>🖨️</span> ৪টি স্লিপ (A4 পাতা)
+                </button>
+                <button
+                  type="button"
+                  onClick={triggerBrowserPrint}
+                  title="একক স্লিপ প্রিন্ট"
+                  style={{ background: '#475569', color: '#fff', padding: '6px 10px', borderRadius: '6px', border: 'none', fontWeight: 600, fontSize: '11px', cursor: 'pointer' }}
+                >
+                  সিঙ্গেল
+                </button>
+              </div>
               <button
                 type="button"
                 onClick={() => setPrintReceiptLoan(null)}
-                style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 }}
+                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px', color: '#334155' }}
               >
                 ✕ বন্ধ
               </button>
