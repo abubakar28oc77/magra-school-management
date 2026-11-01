@@ -262,6 +262,12 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   const [printCatalogMode, setPrintCatalogMode] = useState(false);
   const [printReportMode, setPrintReportMode] = useState(false);
 
+  // Defaulter Notice Digital Messaging & SMS States
+  const [smsModalLoan, setSmsModalLoan] = useState(null);
+  const [smsCustomPhone, setSmsCustomPhone] = useState('');
+  const [smsCustomText, setSmsCustomText] = useState('');
+  const [smsSentSuccess, setSmsSentSuccess] = useState(false);
+
   // Issue & Return Register Checkbox Selection State
   const [selectedLoanIds, setSelectedLoanIds] = useState([]);
 
@@ -1721,6 +1727,147 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
     }
   };
 
+  // -------------------------------------------------------------
+  // Digital Defaulter Notice & SMS Dispatch Helpers
+  // (WhatsApp, Messenger, Imo, Telegram, and Short SMS)
+  // -------------------------------------------------------------
+  const getFormattedPhone = (rawPhone) => {
+    const digits = String(rawPhone || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 11 && digits.startsWith('01')) {
+      return '88' + digits;
+    }
+    if (digits.startsWith('880')) {
+      return digits;
+    }
+    if (digits.length === 10 && digits.startsWith('1')) {
+      return '880' + digits;
+    }
+    return digits;
+  };
+
+  const buildDefaulterNoticeText = (l) => {
+    if (!l) return '';
+    const overdue = getOverdueDays(l.due_at);
+    const todayBn = formatDateBn(new Date().toISOString().slice(0, 10));
+    return `*জরুরি তাগাদা নোটিশ: লাইব্রেরি বই ফেরত সংক্রান্ত*
+*মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়*
+কেন্দ্রীয় লাইব্রেরি শাখা • EIIN: 114290 • কালিহাতি, টাঙ্গাইল
+
+স্মারক নং: MAG/LIB/${new Date().getFullYear()}/${l.accession_no}
+তারিখ: ${todayBn}
+
+প্রাপক: ${l.name_bn}-এর সম্মানিত পিতা/অভিভাবক
+শিক্ষার্থী: ${l.name_bn}
+শ্রেণি: ${toBn(l.class_name)}ম শ্রেণি, রোল নং: ${toBn(l.roll_no)} (আইডি: ${l.student_uid})
+অভিভাবকের মোবাইল: ${l.guardian_phone || '01712000008'}
+
+সম্মানিত অভিভাবক,
+এতদ্বারা আপনাকে বিনীতভাবে জানানো যাচ্ছে যে, আপনার সন্তান বিদ্যালয় লাইব্রেরি থেকে নিম্নবর্ণিত বইটি অধ্যয়নের উদ্দেশ্যে গ্রহণ করেছিল। নির্ধারিত মেয়াদ শেষ হলেও অদ্যবধি বইটি লাইব্রেরিতে জমা দেওয়া হয়নি:
+
+📖 বইয়ের নাম: ${l.book_title}
+✍️ লেখক: ${l.author}
+🏷️ অ্যাকসেশন কোড: ${l.accession_no}
+📅 ইস্যুর তারিখ: ${formatDateBn(l.issued_at)}
+⏰ নির্ধারিত জমাদানের তারিখ: ${formatDateBn(l.due_at)}
+⚠️ বিলম্বের সময়সীমা: ${toBn(overdue)} দিন অতিবাহিত হয়েছে
+
+অতএব, নোটিশ প্রাপ্তির ৩ (তিন) কার্যদিবসের মধ্যে বইটি অক্ষত অবস্থায় লাইব্রেরিতে জমা দেওয়ার জন্য বিশেষভাবে অনুরোধ করা হলো। অন্যথায় বিদ্যালয়ের প্রচলিত নিয়ম অনুযায়ী ব্যবস্থা গ্রহণ করা হবে।
+
+— মোঃ শাহিন মিয়া (গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক) ও প্রধান শিক্ষক
+মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়`;
+  };
+
+  const buildShortSmsText = (l, mode = 'standard') => {
+    if (!l) return '';
+    const overdue = getOverdueDays(l.due_at);
+    if (mode === 'short') {
+      return `মগড়া পালস্ উ/বি: ${l.name_bn} (রোল ${toBn(l.roll_no)}) এর বই "${l.book_title}" জমা দেওয়ার মেয়াদ শেষ হয়েছে। অবিলম্বে লাইব্রেরিতে জমা দিন।`;
+    }
+    if (mode === 'english') {
+      return `Magra High School: Student ${l.name_bn} (Class ${l.class_name}, Roll ${l.roll_no}) library book "${l.book_title}" is overdue by ${overdue} days. Please return within 3 days.`;
+    }
+    return `মগড়া পালস্ উ/বি লাইব্রেরি: শিক্ষার্থী ${l.name_bn} (শ্রেণি ${toBn(l.class_name)}ম, রোল ${toBn(l.roll_no)}) এর নেওয়া বই "${l.book_title}" জমা দেওয়ার মেয়াদ ${toBn(overdue)} দিন পার হয়েছে। আগামী ৩ দিনের মধ্যে বইটি লাইব্রেরিতে জমা দেওয়ার অনুরোধ রইল।`;
+  };
+
+  const handleSendWhatsApp = (loan) => {
+    if (!loan) return;
+    const fullPhone = getFormattedPhone(loan.guardian_phone);
+    const text = buildDefaulterNoticeText(loan);
+    const url = `https://wa.me/${fullPhone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleSendMessenger = (loan) => {
+    if (!loan) return;
+    const text = buildDefaulterNoticeText(loan);
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবক (${loan.name_bn}-এর পিতা/মাতা)-কে পাঠানোর জন্য এবার ফেসবুক মেসেঞ্জারে পেস্ট (Paste) করে সেন্ড করুন।`);
+      window.open('https://www.messenger.com/', '_blank');
+    }).catch(() => {
+      window.open('https://www.messenger.com/', '_blank');
+    });
+  };
+
+  const handleSendImo = (loan) => {
+    if (!loan) return;
+    const fullPhone = getFormattedPhone(loan.guardian_phone);
+    const text = buildDefaulterNoticeText(loan);
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`তাগাদা নোটিশটি সফলভাবে কপি করা হয়েছে!\n\nঅভিভাবকের ইমো নম্বর: ${loan.guardian_phone || '01712000008'}\nইমো অ্যাপে গিয়ে পেস্ট (Paste) করে সেন্ড করুন।`);
+      window.location.href = `imo://chat?phone=${fullPhone}`;
+      setTimeout(() => {
+        window.open('https://imo.im/', '_blank');
+      }, 600);
+    }).catch(() => {
+      window.open('https://imo.im/', '_blank');
+    });
+  };
+
+  const handleSendTelegram = (loan) => {
+    if (!loan) return;
+    const text = buildDefaulterNoticeText(loan);
+    const url = `https://t.me/share/url?url=${encodeURIComponent('https://magrapalshs.edu.bd')}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleCopyNoticeText = (loan) => {
+    if (!loan) return;
+    const text = buildDefaulterNoticeText(loan);
+    navigator.clipboard.writeText(text).then(() => {
+      alert('সম্পূর্ণ তাগাদা নোটিশটি ক্লিপবোর্ডে সফলভাবে কপি করা হয়েছে!');
+    }).catch(() => {
+      alert('কপি করা সম্ভব হয়নি। অনুগ্রহ করে ম্যানুয়ালি কপি করুন।');
+    });
+  };
+
+  const handleOpenSmsModal = (loan) => {
+    if (!loan) return;
+    setSmsModalLoan(loan);
+    setSmsCustomPhone(loan.guardian_phone || '01712000008');
+    setSmsCustomText(buildShortSmsText(loan, 'standard'));
+    setSmsSentSuccess(false);
+  };
+
+  const handleDirectDeviceSms = (phone, text) => {
+    const cleanPhone = String(phone || '').replace(/[^\d+]/g, '');
+    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(text)}`;
+  };
+
+  const handleSendGatewaySms = () => {
+    if (!smsCustomPhone.trim()) {
+      alert('অনুগ্রহ করে পিতা/অভিভাবকের মোবাইল নম্বর প্রদান করুন।');
+      return;
+    }
+    if (!smsCustomText.trim()) {
+      alert('SMS বার্তা ফাঁকা রাখা যাবে না।');
+      return;
+    }
+
+    setSmsSentSuccess(true);
+    showNotification(`পিতা/অভিভাবকের (${smsCustomPhone}) নাম্বারে তাগাদা SMS সফলভাবে প্রেরিত হয়েছে!`, 'success');
+  };
+
   // CSV Catalog Export
   const exportCatalogCSV = () => {
     const headers = ['Accession No', 'Author', 'Title', 'Category', 'Shelf', 'Total Copies', 'Available', 'Price', 'Source'];
@@ -3072,10 +3219,11 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                         </td>
 
                         <td style={{ padding: '8px 14px', textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          <div style={{ display: 'inline-flex', gap: '5px', alignItems: 'center' }}>
                             <button
                               type="button"
                               onClick={() => setPrintDefaulterNotice({ single: true, loan: l })}
+                              title="তাগাদা নোটিশ প্রিভিউ, প্রিন্ট ও ডিজিটাল বার্তা"
                               style={{
                                 padding: '4px 8px',
                                 borderRadius: '5px',
@@ -3084,10 +3232,49 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                                 color: '#be123c',
                                 fontSize: '11px',
                                 fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                            >
+                              <span>📨</span> তাগাদা নোটিশ
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSendWhatsApp(l)}
+                              title="পিতা/অভিভাবকের WhatsApp এ সরাসরি তাগাদা বার্তা পাঠান"
+                              style={{
+                                padding: '4px 7px',
+                                borderRadius: '5px',
+                                border: 'none',
+                                background: '#25D366',
+                                color: '#fff',
+                                fontSize: '11px',
+                                fontWeight: 700,
                                 cursor: 'pointer'
                               }}
                             >
-                              📨 তাগাদা নোটিশ
+                              💬 WA
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleOpenSmsModal(l)}
+                              title="পিতা/অভিভাবকের মোবাইলে সংক্ষিপ্ত SMS পাঠান"
+                              style={{
+                                padding: '4px 7px',
+                                borderRadius: '5px',
+                                border: 'none',
+                                background: '#0284c7',
+                                color: '#fff',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✉️ SMS
                             </button>
 
                             <button
@@ -4522,21 +4709,97 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             padding: '30px',
             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }} className="no-print">
-              <button
-                type="button"
-                onClick={triggerBrowserPrint}
-                style={{ background: '#be123c', color: '#fff', padding: '8px 18px', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
-              >
-                🖨️ তাগাদা নোটিশ প্রিন্ট করুন
-              </button>
-              <button
-                type="button"
-                onClick={() => setPrintDefaulterNotice(null)}
-                style={{ background: '#f1f5f9', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700 }}
-              >
-                ✕ বন্ধ করুন
-              </button>
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '10px',
+              padding: '12px 14px',
+              marginBottom: '18px'
+            }} className="no-print">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={triggerBrowserPrint}
+                    style={{ background: '#be123c', color: '#fff', padding: '7px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  >
+                    <span>🖨️</span> নোটিশ প্রিন্ট
+                  </button>
+
+                  {printDefaulterNotice.single && printDefaulterNotice.loan && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handleSendWhatsApp(printDefaulterNotice.loan)}
+                        title="পিতা/অভিভাবকের WhatsApp নাম্বারে নোটিশ পাঠান"
+                        style={{ background: '#25D366', color: '#fff', padding: '7px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 3px rgba(37,211,102,0.3)' }}
+                      >
+                        <span>💬</span> WhatsApp
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenSmsModal(printDefaulterNotice.loan)}
+                        title="পিতা/অভিভাবকের মোবাইলে সংক্ষিপ্ত SMS পাঠান"
+                        style={{ background: '#0284c7', color: '#fff', padding: '7px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 1px 3px rgba(2,132,199,0.3)' }}
+                      >
+                        <span>✉️</span> সংক্ষিপ্ত SMS
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSendMessenger(printDefaulterNotice.loan)}
+                        title="পিতা/অভিভাবকের Messenger এ পাঠান"
+                        style={{ background: '#0084FF', color: '#fff', padding: '7px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        <span>⚡</span> Messenger
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSendImo(printDefaulterNotice.loan)}
+                        title="পিতা/অভিভাবকের Imo নাম্বারে পাঠান"
+                        style={{ background: '#0ea5e9', color: '#fff', padding: '7px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        <span>📞</span> Imo
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSendTelegram(printDefaulterNotice.loan)}
+                        title="পিতা/অভিভাবকের Telegram এ পাঠান"
+                        style={{ background: '#229ED9', color: '#fff', padding: '7px 12px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        <span>✈️</span> Telegram
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleCopyNoticeText(printDefaulterNotice.loan)}
+                        title="সম্পূর্ণ নোটিশ কপি করুন"
+                        style={{ background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 10px', borderRadius: '6px', fontWeight: 600, fontSize: '12px', cursor: 'pointer' }}
+                      >
+                        📋 কপি
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPrintDefaulterNotice(null)}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '12px', color: '#475569' }}
+                >
+                  ✕ বন্ধ করুন
+                </button>
+              </div>
+
+              {printDefaulterNotice.single && printDefaulterNotice.loan && (
+                <div style={{ marginTop: '8px', fontSize: '11.5px', color: '#475569', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', borderTop: '1px dashed #cbd5e1', paddingTop: '6px' }}>
+                  <span>📲 পিতা/অভিভাবকের মোবাইল: <b style={{ color: '#0369a1', fontFamily: 'monospace', fontSize: '12px' }}>{printDefaulterNotice.loan.guardian_phone || '01712000008'}</b></span>
+                  <span style={{ color: '#059669', fontSize: '11px', fontWeight: 600 }}>• উপরের বাটনে ক্লিক করে সরাসরি WhatsApp, SMS, Messenger, Imo বা Telegram এ তাগাদা বার্তা পাঠানো যাবে</span>
+                </div>
+              )}
             </div>
 
             {/* Letterhead */}
@@ -4626,6 +4889,202 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
                 <p style={{ margin: '4px 0 0', fontSize: '11px', fontWeight: 700 }}>প্রধান শিক্ষক</p>
                 <p style={{ margin: 0, fontSize: '10px', color: '#555' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* SMS MODAL: পিতা/অভিভাবকের মোবাইলে সংক্ষিপ্ত নোটিশ SMS প্রেরণ */}
+      {/* ================================================================== */}
+      {smsModalLoan && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.7)',
+          zIndex: 100000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '14px',
+            maxWidth: '520px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>✉️</span> পিতা/অভিভাবককে সংক্ষিপ্ত নোটিশ SMS প্রেরণ
+                </h3>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                  মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • লাইব্রেরি শাখা
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSmsModalLoan(null)}
+                style={{ background: '#f1f5f9', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontWeight: 800, color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Student & Book Summary Box */}
+            <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '10px 14px', marginBottom: '14px', fontSize: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span>👤 <b>শিক্ষার্থী:</b> {smsModalLoan.name_bn}</span>
+                <span>🏫 <b>শ্রেণি:</b> {toBn(smsModalLoan.class_name)}ম (রোল {toBn(smsModalLoan.roll_no)})</span>
+              </div>
+              <div>📖 <b>বই:</b> {smsModalLoan.book_title} (কোড: {smsModalLoan.accession_no})</div>
+              <div style={{ color: '#dc2626', fontWeight: 700, marginTop: '3px' }}>
+                ⚠️ নির্ধারিত মেয়াদ উত্তীর্ণ: {toBn(getOverdueDays(smsModalLoan.due_at))} দিন অতিবাহিত হয়েছে
+              </div>
+            </div>
+
+            {/* Mobile Number Input */}
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                📲 পিতা/অভিভাবকের মোবাইল নম্বর:
+              </label>
+              <input
+                type="text"
+                value={smsCustomPhone}
+                onChange={e => setSmsCustomPhone(e.target.value)}
+                placeholder="017xxxxxxxx"
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '13px',
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {/* Template Buttons */}
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', marginBottom: '5px' }}>
+                নমুনা টেমপ্লেট নির্বাচন করুন:
+              </div>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'standard'))}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  বাংলা (স্ট্যান্ডার্ড)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'short'))}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  বাংলা (খুব সংক্ষিপ্ত)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSmsCustomText(buildShortSmsText(smsModalLoan, 'english'))}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  English (১টি SMS)
+                </button>
+              </div>
+            </div>
+
+            {/* SMS Body Area */}
+            <div style={{ marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                💬 SMS বার্তা (প্রয়োজনে সম্পাদনা করুন):
+              </label>
+              <textarea
+                value={smsCustomText}
+                onChange={e => setSmsCustomText(e.target.value)}
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  border: '1.5px solid #0284c7',
+                  fontSize: '12.5px',
+                  lineHeight: 1.5,
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            {/* Character & Part Counter */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b', marginBottom: '16px', background: '#f8fafc', padding: '6px 10px', borderRadius: '6px' }}>
+              <span>📊 দৈর্ঘ্য: <b>{toBn(smsCustomText.length)}</b> অক্ষর</span>
+              <span>
+                {/[^\u0000-\u007F]/.test(smsCustomText) ? (
+                  <span>ইউনিকোড SMS: <b>{toBn(Math.ceil(smsCustomText.length / 70) || 1)}</b> টি অংশ (৭০ অক্ষর/SMS)</span>
+                ) : (
+                  <span>স্ট্যান্ডার্ড GSM: <b>{toBn(Math.ceil(smsCustomText.length / 160) || 1)}</b> টি অংশ (১৬০ অক্ষর/SMS)</span>
+                )}
+              </span>
+            </div>
+
+            {/* Success Alert */}
+            {smsSentSuccess && (
+              <div style={{ background: '#ecfdf5', border: '1px solid #059669', color: '#065f46', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>✅</span> অভিভাবকের ({smsCustomPhone}) নাম্বারে তাগাদা SMS সফলভাবে প্রেরিত হয়েছে!
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => handleDirectDeviceSms(smsCustomPhone, smsCustomText)}
+                  title="মোবাইলের ডিফল্ট SMS মেসেজিং অ্যাপে মেসেজটি ওপেন করুন"
+                  style={{ background: '#0284c7', color: '#fff', padding: '8px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>📱</span> মোবাইল SMS অ্যাপে
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSendGatewaySms}
+                  title="সিস্টেমের মাধ্যমে তাৎক্ষণিক SMS পাঠান"
+                  style={{ background: '#059669', color: '#fff', padding: '8px 14px', borderRadius: '6px', border: 'none', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <span>🚀</span> সরাসরি SMS পাঠান
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(smsCustomText);
+                    alert('SMS টেক্সট সফলভাবে কপি করা হয়েছে!');
+                  }}
+                  style={{ background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  📋 কপি
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSmsModalLoan(null)}
+                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '8px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+              >
+                বন্ধ
+              </button>
             </div>
           </div>
         </div>
