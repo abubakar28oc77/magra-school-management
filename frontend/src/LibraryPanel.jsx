@@ -18,6 +18,7 @@ import {
 import { requestApi } from './apiClient';
 import { MOCK_STUDENTS } from './mockData';
 import schoolLogo from '../public/school-logo.png';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 const VALID_TABS = ['catalog', 'issue', 'overdue', 'reports', 'damaged'];
 
@@ -800,10 +801,345 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
   }, [reportType, reportMonth, customStartDate, customEndDate, loans, damaged]);
 
   // -------------------------------------------------------------
-  // Print Handler
+  // Print Handlers (Robust Multi-Page Print Engine)
   // -------------------------------------------------------------
   const triggerBrowserPrint = () => {
     window.print();
+  };
+
+  const handlePrintCatalog = () => {
+    const printWin = window.open('', '_blank', 'width=1100,height=850');
+    if (!printWin) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। অনুগ্রহ করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      return;
+    }
+
+    const todayDateBn = formatDateBn(new Date().toISOString().slice(0, 10));
+    const totalTitlesCount = filteredBooks.length;
+    const totalCopiesCount = filteredBooks.reduce((acc, b) => acc + (parseInt(b.quantity, 10) || 0), 0);
+    const totalAvailableCount = filteredBooks.reduce((acc, b) => acc + (parseInt(b.available_quantity, 10) || 0), 0);
+
+    const rowsHtml = filteredBooks.map((b, idx) => `
+      <tr style="page-break-inside: avoid; background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+        <td style="border: 1px solid #94a3b8; padding: 5px 6px; text-align: center; font-weight: 700;">${toBn(idx + 1)}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 8px; font-weight: 800; color: #0284c7; white-space: nowrap;">${b.accession_no || ''}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 8px; font-weight: 700; color: #0f172a;">${b.author || ''}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 8px; font-weight: 700; color: #1e293b;">${b.title || ''}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 8px; color: #334155;">${b.category || ''}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 8px; color: #475569; font-size: 11px;">${b.shelf || ''}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 6px; text-align: center; font-weight: 800; color: #0f172a;">${toBn(b.quantity || 0)}</td>
+        <td style="border: 1px solid #94a3b8; padding: 5px 6px; text-align: center; font-weight: 800; color: #047857;">${toBn(b.available_quantity || 0)}</td>
+      </tr>
+    `).join('');
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8" />
+        <title>কেন্দ্রীয় লাইব্রেরি ও স্টক রেজিস্টার - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 12mm 12mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Nikosh', Arial, sans-serif;
+            margin: 0;
+            padding: 10px 14px;
+            color: #0f172a;
+            background: #fff;
+            font-size: 11.5px;
+            line-height: 1.3;
+          }
+          .no-print-toolbar {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justifyContent: space-between;
+            align-items: center;
+          }
+          .btn-print {
+            background: #059669;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .btn-close {
+            background: #fff;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+          }
+          .catalog-banner-title {
+            text-align: center;
+            margin: 8px 0 10px 0;
+          }
+          .catalog-badge {
+            display: inline-block;
+            background: #f8fafc;
+            border: 1.5px solid #064e3b;
+            color: #064e3b;
+            padding: 4px 18px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+          }
+          .meta-info-row {
+            display: flex;
+            justifyContent: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #475569;
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            page-break-inside: auto;
+          }
+          thead {
+            display: table-header-group;
+          }
+          tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+          }
+          th {
+            background: #f1f5f9;
+            border: 1px solid #64748b;
+            padding: 6px 8px;
+            font-weight: 800;
+            color: #0f172a;
+            text-align: center;
+          }
+          .signatures-box {
+            display: flex;
+            justifyContent: space-between;
+            margin-top: 45px;
+            padding-top: 10px;
+            page-break-inside: avoid;
+          }
+          .sig-card {
+            text-align: center;
+            width: 220px;
+            border-top: 1.5px solid #000;
+            padding-top: 5px;
+          }
+          .sig-card p {
+            margin: 2px 0 0 0;
+          }
+          @media print {
+            .no-print-toolbar {
+              display: none !important;
+            }
+            body {
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print-toolbar">
+          <div>
+            <span style="font-size: 14px; font-weight: 800; color: #064e3b;">📚 কেন্দ্রীয় লাইব্রেরি ও স্টক রেজিস্টার (প্রিন্ট ভিউ)</span>
+            <span style="margin-left: 12px; color: #64748b; font-size: 12px; font-weight: 600;">(মোট বই: ${toBn(totalTitlesCount)} টি • সর্বমোট কপি: ${toBn(totalCopiesCount)} টি)</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-print" onclick="window.print()">🖨️ প্রিন্ট করুন / Save as PDF</button>
+            <button class="btn-close" onclick="window.close()">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
+        ${SCHOOL_PAD_HEADER_HTML}
+
+        <div class="catalog-banner-title">
+          <span class="catalog-badge">কেন্দ্রীয় লাইব্রেরি ও স্টক রেজিস্টার (লেখকের নামানুসারে)</span>
+        </div>
+
+        <div class="meta-info-row">
+          <div>প্রিন্টের তারিখ: <b>${todayDateBn}</b></div>
+          <div>মোট বইয়ের টাইটেল: <b>${toBn(totalTitlesCount)} টি</b> | লাইব্রেরি সর্বমোট কপি: <b>${toBn(totalCopiesCount)} কপি</b> | শেলফে প্রস্তুত: <b>${toBn(totalAvailableCount)} কপি</b></div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 32px;">ক্র.</th>
+              <th style="width: 82px;">কোড নং</th>
+              <th style="width: 140px; text-align: left;">লেখকের নাম</th>
+              <th style="text-align: left;">বইয়ের নাম</th>
+              <th style="width: 110px; text-align: left;">ক্যাটাগরি</th>
+              <th style="width: 130px; text-align: left;">আলমারি/সেলফ</th>
+              <th style="width: 44px;">মোট</th>
+              <th style="width: 48px;">উপলব্ধ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="signatures-box">
+          <div class="sig-card">
+            <p style="font-weight: 800; font-size: 12px;">${LIBRARIAN_TEACHER.name_bn}</p>
+            <p style="font-size: 10.5px; color: #475569;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+          </div>
+          <div class="sig-card">
+            <p style="font-weight: 800; font-size: 12px;">প্রধান শিক্ষক</p>
+            <p style="font-size: 10.5px; color: #475569;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 350);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
+  };
+
+  const handlePrintReport = () => {
+    const printWin = window.open('', '_blank', 'width=1100,height=850');
+    if (!printWin) {
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। অনুগ্রহ করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      return;
+    }
+
+    const reportTitleText = reportType === 'weekly' ? 'সাপ্তাহিক লাইব্রেরি সঞ্চালন ও অডিট রিপোর্ট' : 'মাসিক লাইব্রেরি সঞ্চালন ও অডিট রিপোর্ট';
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8" />
+        <title>${reportTitleText} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 10mm 12mm; }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Nikosh', Arial, sans-serif; margin: 0; padding: 10px 14px; font-size: 11.5px; }
+          .no-print-toolbar { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+          .btn-print { background: #0369a1; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+          .btn-close { background: #fff; color: #475569; border: 1px solid #cbd5e1; padding: 7px 14px; border-radius: 6px; cursor: pointer; }
+          table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 16px; }
+          th { background: #f8fafc; border: 1px solid #94a3b8; padding: 6px 10px; font-weight: 700; }
+          td { border: 1px solid #cbd5e1; padding: 6px 10px; }
+          .signatures-box { display: flex; justify-content: space-between; margin-top: 45px; padding-top: 10px; page-break-inside: avoid; }
+          .sig-card { text-align: center; width: 220px; border-top: 1.5px solid #000; padding-top: 5px; }
+          @media print { .no-print-toolbar { display: none !important; } body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="no-print-toolbar">
+          <span style="font-weight: 700; color: #0369a1;">📊 ${reportTitleText}</span>
+          <div>
+            <button class="btn-print" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+            <button class="btn-close" onclick="window.close()" style="margin-left: 8px;">✕ বন্ধ করুন</button>
+          </div>
+        </div>
+
+        ${SCHOOL_PAD_HEADER_HTML}
+
+        <div style="text-align: center; margin: 8px 0 12px 0;">
+          <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: #0369a1;">${reportTitleText}</h2>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+            সময়কাল: ${formatDateBn(reportData.startStr)} হতে ${formatDateBn(reportData.endStr)} পর্যন্ত
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align: left;">অডিট সূচক / বিবরণ</th>
+              <th style="width: 140px; text-align: center;">পরিমাণ / সংখ্যা</th>
+              <th style="text-align: left;">মন্তব্য ও সুপারিশ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>মোট ইস্যুকৃত বই সংখ্যা</td>
+              <td style="text-align: center; font-weight: 700; color: #0369a1;">${toBn(reportData.issuedInPeriod.length)} টি</td>
+              <td>নির্ধারিত মেয়াদে শিক্ষার্থীদের বিতরণ</td>
+            </tr>
+            <tr>
+              <td>মোট জমাপ্রাপ্ত বই সংখ্যা</td>
+              <td style="text-align: center; font-weight: 700; color: #15803d;">${toBn(reportData.returnedInPeriod.length)} টি</td>
+              <td>স্টকে ফেরত গৃহীত</td>
+            </tr>
+            <tr>
+              <td>অনিষ্পন্ন বকেয়া বই</td>
+              <td style="text-align: center; font-weight: 700; color: #dc2626;">${toBn(reportData.overdueInPeriod.length)} টি</td>
+              <td>তাগাদা নোটিশ প্রদান করা হয়েছে</td>
+            </tr>
+            <tr>
+              <td>নষ্ট ও বাতিল বই</td>
+              <td style="text-align: center; font-weight: 700; color: #b91c1c;">${toBn(reportData.damagedInPeriod.length)} টি</td>
+              <td>ক্ষতিগ্রস্ত বিধায় বাতিল রেজিস্টারভুক্ত</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 8px 0; font-size: 13px; font-weight: 700; color: #0f172a;">
+            🏆 পাঠাভ্যাস ও সেরা পাঠক মূল্যায়ন:
+          </h4>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${reportData.topReaders.map(r => `
+              <div style="border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 11px; background: #f8fafc;">
+                <b>${r.name}</b> (${toBn(r.class_name)}ম শ্রেণি, রোল ${toBn(r.roll)}) — ${toBn(r.count)}টি বই
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="signatures-box">
+          <div class="sig-card">
+            <p style="font-weight: 700; font-size: 12px; margin: 0;">${LIBRARIAN_TEACHER.name_bn}</p>
+            <p style="font-size: 10px; color: #555; margin: 0;">গ্রন্থাগার ও তথ্য বিজ্ঞান শিক্ষক</p>
+          </div>
+          <div class="sig-card">
+            <p style="font-weight: 700; font-size: 12px; margin: 0;">প্রধান শিক্ষক</p>
+            <p style="font-size: 10px; color: #555; margin: 0;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</p>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 350);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
   };
 
   // CSV Catalog Export
@@ -1524,7 +1860,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
 
               <button
                 type="button"
-                onClick={() => setPrintCatalogMode(true)}
+                onClick={handlePrintCatalog}
                 style={{
                   padding: '8px 14px',
                   borderRadius: '8px',
@@ -3401,7 +3737,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }} className="no-print">
               <button
                 type="button"
-                onClick={triggerBrowserPrint}
+                onClick={handlePrintCatalog}
                 style={{ background: '#059669', color: '#fff', padding: '8px 18px', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
               >
                 🖨️ প্রিন্ট করুন / PDF সেভ
@@ -3717,7 +4053,7 @@ export function LibraryPanel({ sub, setSub, onNavigate }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }} className="no-print">
               <button
                 type="button"
-                onClick={triggerBrowserPrint}
+                onClick={handlePrintReport}
                 style={{ background: '#0369a1', color: '#fff', padding: '8px 18px', borderRadius: '8px', border: 'none', fontWeight: 700, cursor: 'pointer' }}
               >
                 🖨️ প্রিন্ট করুন
