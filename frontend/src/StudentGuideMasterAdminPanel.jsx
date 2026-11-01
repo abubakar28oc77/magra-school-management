@@ -33,7 +33,12 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
     if (['question', 'generator', 'omr', 'bank'].includes(s)) return 'question';
     if (['assignment', 'manage', 'review'].includes(s)) return 'assignment';
     if (['online_exam', 'setup'].includes(s)) return 'online_exam';
-    if (['ai', 'tutor', 'analytics'].includes(s)) return 'ai';
+    if (['ai', 'tutor', 'analytics'].includes(s)) {
+      if (typeof onNavigate === 'function') {
+        onNavigate('ai', 'assistant');
+      }
+      return 'class_routine';
+    }
     return 'class_routine';
   };
 
@@ -511,13 +516,13 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
           <span style={{ fontSize: '38px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>🧭</span>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>শিক্ষার্থীর গাইড ও শিক্ষা প্রযুক্তি ব্যবস্থাপনা</h2>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>শিক্ষার্থীর গাইড ব্যবস্থাপনা</h2>
               <span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
-                Smart Academic Desk
+                Student Guide Desk
               </span>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.9 }}>
-              ক্লাস রুটিন, পরীক্ষার রুটিন, সিলেবাস, ডিজিটাল কনটেন্ট, নোট, প্রশ্নব্যাংক, অ্যাসাইনমেন্ট, অনলাইন পরীক্ষা ও AI সহকারী
+              ক্লাস রুটিন, পরীক্ষার রুটিন, সিলেবাস, ডিজিটাল কনটেন্ট, নোট, প্রশ্নব্যাংক, অ্যাসাইনমেন্ট ও অনলাইন পরীক্ষা
             </p>
           </div>
         </div>
@@ -546,7 +551,7 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
         </div>
       </div>
 
-      {/* 9 Ordered Submenus Tab Bar */}
+      {/* 8 Ordered Submenus Tab Bar */}
       <div style={{
         background: '#ffffff',
         padding: '8px',
@@ -565,8 +570,7 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
           { key: 'notes', label: '৫. নোট/লেকচার', icon: '📝', badge: 'শিক্ষকের হ্যান্ডনোট' },
           { key: 'question', label: '৬. প্রশ্নব্যাংক ও মডেল প্রশ্ন', icon: '❓', badge: 'CQ ও MCQ' },
           { key: 'assignment', label: '৭. অ্যাসাইনমেন্ট ও মক টেস্ট', icon: '📘', badge: 'মূল্যায়ন' },
-          { key: 'online_exam', label: '৮. অনলাইন পরীক্ষা', icon: '🧪', badge: 'লাইভ কুইজ' },
-          { key: 'ai', label: '৯. AI শিক্ষা সহকারী', icon: '✨', badge: 'লেসন প্ল্যান ও শিক্ষক কোপাইলট' }
+          { key: 'online_exam', label: '৮. অনলাইন পরীক্ষা', icon: '🧪', badge: 'লাইভ কুইজ' }
         ].map(item => {
           const isActive = activeTab === item.key;
           return (
@@ -1497,337 +1501,24 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
         </div>
       )}
 
-      {/* ========================================================
-          TAB 9: AI শিক্ষা সহকারী ও শিক্ষক পাওয়ার টুলস (AI Copilot)
-      ======================================================== */}
+      {/* AI Migration Pointer if user accesses sub=ai */}
       {activeTab === 'ai' && (
-        <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-          {/* AI Hero Banner */}
-          <div style={{
-            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #06b6d4 100%)',
-            color: '#ffffff',
-            padding: '20px 24px',
-            borderRadius: '12px',
-            marginBottom: '22px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '14px'
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '32px' }}>🤖</span>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '20px', fontWeight: 800 }}>শিক্ষকদের AI কোপাইলট ও স্মার্ট শিক্ষা সহকারী</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.95 }}>
-                    জাতীয় শিক্ষাক্রমের আলোকে ১-ক্লিকে লেসন প্ল্যান, ডিজিটাল কনটেন্ট স্লাইড আইডিয়া, ক্লাসরুম ম্যানেজমেন্ট ও মূল্যায়ন প্রশ্ন তৈরি করুন
-                  </p>
-                </div>
-              </div>
-            </div>
-            <span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
-              AI Powered Teaching Assistant
-            </span>
-          </div>
-
-          {/* AI Sub-Tabs */}
-          <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #f1f5f9', paddingBottom: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            {[
-              { id: 'lesson_plan', label: '📝 ১-ক্লিকে লেসন প্ল্যান জেনারেটর', icon: '📝' },
-              { id: 'digital_content', label: '💡 ডিজিটাল স্লাইড ও কনটেন্ট আইডিয়া', icon: '💡' },
-              { id: 'classroom_mgmt', label: '🏫 ক্লাসরুম ম্যানেজমেন্ট স্ট্র্যাটেজি', icon: '🏫' },
-              { id: 'ai_chat', label: '💬 লাইভ টিচার AI কনসালট্যান্ট', icon: '💬' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setAiSubTab(tab.id)}
-                style={{
-                  padding: '9px 16px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 800,
-                  fontSize: '13px',
-                  background: aiSubTab === tab.id ? '#4f46e5' : '#f8fafc',
-                  color: aiSubTab === tab.id ? '#ffffff' : '#475569',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* AI SUBTAB 1: LESSON PLAN */}
-          {aiSubTab === 'lesson_plan' && (
-            <div className="module-grid" style={{ gridTemplateColumns: 'minmax(320px, 1fr) minmax(400px, 1.5fr)' }}>
-              {/* Input Form */}
-              <div className="form-card" style={{ border: '1px solid #e0e7ff', background: '#faf5ff' }}>
-                <div className="toolbar">
-                  <div>
-                    <span className="eyebrow" style={{ color: '#6d28d9' }}>LESSON PLAN CONFIG</span>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>লেসন প্ল্যান তৈরির তথ্য</h3>
-                  </div>
-                </div>
-
-                <div className="form-grid">
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>শ্রেণি</label>
-                    <select value={lpForm.class_name} onChange={e => setLpForm({ ...lpForm, class_name: e.target.value })}>
-                      <option value="৬">৬ষ্ঠ শ্রেণি</option>
-                      <option value="৭">৭ম শ্রেণি</option>
-                      <option value="৮">৮ম শ্রেণি</option>
-                      <option value="৯">৯ম শ্রেণি</option>
-                      <option value="১০">১০ম শ্রেণি</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>বিষয়</label>
-                    <input value={lpForm.subject} onChange={e => setLpForm({ ...lpForm, subject: e.target.value })} placeholder="যেমন: পদার্থবিজ্ঞান" />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>আজকের পাঠের শিরোনাম / টপিক *</label>
-                    <input value={lpForm.topic} onChange={e => setLpForm({ ...lpForm, topic: e.target.value })} placeholder="যেমন: গতির সমীকরণ ও ত্বরণ" />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>পিরিয়ড সময়</label>
-                    <select value={lpForm.period_duration} onChange={e => setLpForm({ ...lpForm, period_duration: e.target.value })}>
-                      <option value="৪০ মিনিট">৪০ মিনিট</option>
-                      <option value="৪৫ মিনিট">৪৫ মিনিট</option>
-                      <option value="৫০ মিনিট">৫০ মিনিট</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>শিখন পদ্ধতি</label>
-                    <select value={lpForm.pedagogy_focus} onChange={e => setLpForm({ ...lpForm, pedagogy_focus: e.target.value })}>
-                      <option value="ইন্টারেক্টিভ ও অ্যাক্টিভিটি ভিত্তিক">ইন্টারেক্টিভ ও অ্যাক্টিভিটি ভিত্তিক</option>
-                      <option value="দলগত ও অনুসন্ধানমূলক কাজ">দলগত ও অনুসন্ধানমূলক কাজ</option>
-                      <option value="ব্যবহারিক ও পরীক্ষণমূলক">ব্যবহারিক ও পরীক্ষণমূলক</option>
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="btn full"
-                    onClick={handleGenerateLessonPlan}
-                    disabled={isAiGenerating}
-                    style={{ gridColumn: '1 / -1', background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', color: '#fff', fontWeight: 800, padding: '12px' }}
-                  >
-                    {isAiGenerating ? '⏳ AI লেসন প্ল্যান লিখছে...' : '✨ ১-ক্লিকে জাতীয় কারিকুলাম লেসন প্ল্যান তৈরি করুন'}
-                  </button>
-                </div>
-              </div>
-
-              {/* Generated Result Output */}
-              <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', background: '#ffffff', padding: '16px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-                  <div style={{ fontWeight: 800, color: '#4f46e5', fontSize: '15px' }}>
-                    📋 প্রস্তুতকৃত অফিশিয়াল লেসন প্ল্যান
-                  </div>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <button
-                      type="button"
-                      className="mini"
-                      onClick={() => {
-                        navigator.clipboard.writeText(generatedLessonPlan);
-                        showToast('লেসন প্ল্যান ক্লিপবোর্ডে কপি হয়েছে!');
-                      }}
-                      style={{ background: '#f1f5f9', color: '#1e293b' }}
-                    >
-                      📋 টেক্সট কপি
-                    </button>
-                    <button
-                      type="button"
-                      className="mini"
-                      onClick={() => {
-                        printDoc(
-                          `দৈনিক পাঠ পরিকল্পনা (Lesson Plan) — শ্রেণি: ${lpForm.class_name}ম, বিষয়: ${lpForm.subject}`,
-                          `<span>টপিক: <b>${lpForm.topic}</b></span><span>তারিখ: <b>${new Date().toLocaleDateString('bn-BD')}</b></span>`,
-                          `<div style="white-space: pre-wrap; font-size: 13.5px; line-height: 1.6; border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px;">${generatedLessonPlan}</div>`
-                        );
-                      }}
-                      style={{ background: '#0284c7', color: '#fff' }}
-                    >
-                      🖨️ প্রিন্ট / PDF
-                    </button>
-                  </div>
-                </div>
-
-                <div style={{ flex: 1, maxHeight: '480px', overflowY: 'auto', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <pre style={{ margin: 0, fontFamily: 'inherit', whiteSpace: 'pre-wrap', fontSize: '13.5px', lineHeight: '1.7', color: '#1e293b' }}>
-                    {generatedLessonPlan}
-                  </pre>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* AI SUBTAB 2: DIGITAL CONTENT IDEAS */}
-          {aiSubTab === 'digital_content' && (
-            <div className="module-grid" style={{ gridTemplateColumns: 'minmax(320px, 1fr) minmax(400px, 1.5fr)' }}>
-              <div className="form-card" style={{ border: '1px solid #e0f2fe', background: '#f0f9ff' }}>
-                <div className="toolbar">
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0369a1' }}>ডিজিটাল স্লাইড ও প্রেজেন্টেশন আইডিয়া</h3>
-                </div>
-                <div className="form-grid">
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>শ্রেণি</label>
-                    <select value={dcForm.class_name} onChange={e => setDcForm({ ...dcForm, class_name: e.target.value })}>
-                      <option value="৬">৬ষ্ঠ শ্রেণি</option><option value="৭">৭ম শ্রেণি</option><option value="৮">৮ম শ্রেণি</option><option value="৯">৯ম শ্রেণি</option><option value="১০">১০ম শ্রেণি</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>বিষয়</label>
-                    <input value={dcForm.subject} onChange={e => setDcForm({ ...dcForm, subject: e.target.value })} />
-                  </div>
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700 }}>টপিক / বিষয়বস্তু *</label>
-                    <input value={dcForm.topic} onChange={e => setDcForm({ ...dcForm, topic: e.target.value })} />
-                  </div>
-                  <button
-                    type="button"
-                    className="btn full"
-                    onClick={handleGenerateDigitalSlides}
-                    disabled={isAiGenerating}
-                    style={{ gridColumn: '1 / -1', background: '#0284c7', color: '#fff', fontWeight: 800 }}
-                  >
-                    {isAiGenerating ? '⏳ তৈরি হচ্ছে...' : '💡 স্লাইড আউটলাইন ও অ্যানিমেশন আইডিয়া তৈরি করুন'}
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', background: '#ffffff', padding: '16px' }}>
-                <h4 style={{ margin: '0 0 12px', color: '#0369a1' }}>📺 ক্লাসের জন্য স্মার্টবোর্ড স্লাইড কাঠামো</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {generatedSlides.map((slide, idx) => (
-                    <div key={idx} style={{ background: '#f8fafc', borderLeft: '4px solid #0284c7', padding: '12px 14px', borderRadius: '4px', fontSize: '13.5px' }}>
-                      <b>{slide}</b>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* AI SUBTAB 3: CLASSROOM MANAGEMENT */}
-          {aiSubTab === 'classroom_mgmt' && (
-            <div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                {[
-                  { id: 'noise_control', label: 'কোলাহল ও বিশৃঙ্খলা নিয়ন্ত্রণ' },
-                  { id: 'slow_learners', label: 'পেছিয়ে পড়া শিক্ষার্থীর অংশগ্রহণ' },
-                  { id: 'fast_finishers', label: 'দ্রুত কাজ শেষ করা শিক্ষার্থীদের ব্যস্ত রাখা' },
-                  { id: 'exam_anxiety', label: 'শিক্ষার্থীদের পরীক্ষাভীতি দূরীকরণ' }
-                ].map(sc => (
-                  <button
-                    key={sc.id}
-                    type="button"
-                    className="mini"
-                    onClick={() => setCmScenario(sc.id)}
-                    style={{
-                      background: cmScenario === sc.id ? '#0f766e' : '#f1f5f9',
-                      color: cmScenario === sc.id ? '#ffffff' : '#334155',
-                      fontWeight: 700,
-                      padding: '8px 12px'
-                    }}
-                  >
-                    {sc.label}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '20px', borderRadius: '10px' }}>
-                <h3 style={{ margin: '0 0 10px', color: '#065f46', fontSize: '17px' }}>
-                  💡 শিক্ষকের জন্য প্রমাণিত আধুনিক ক্লাসরুম কৌশল
-                </h3>
-                {cmScenario === 'noise_control' && (
-                  <div style={{ fontSize: '14px', lineHeight: '1.7', color: '#1e293b' }}>
-                    <p><b>কৌশল ১: “ক্ল্যাপ অ্যান্ড পজ (Clap and Pause)”</b><br/> শিক্ষক মুখে চিৎকার করে শান্ত হতে বলবেন না। শুধু দুটি তালি দিয়ে ২ সেকেন্ড থামবেন। শিক্ষার্থীরা সংকেতটি শিখলে পুরো শ্রেণি স্বয়ংক্রিয়ভাবে নিরব হয়ে শিক্ষকের দিকে তাকাবে।</p>
-                    <p><b>কৌশল ২: “দলগত পয়েন্ট গেম (Class Points)”</b><br/> বোর্ডে ৫টি সারির জন্য ১, ২, ৩, ৪, ৫ লিখে রাখুন। যে সারি শান্ত হয়ে শুনবে তারা +১ পয়েন্ট পাবে। বিজয়ী সারির জন্য ক্লাসের শেষে প্রশংসাসূচক তালি দিন।</p>
-                  </div>
-                )}
-                {cmScenario === 'slow_learners' && (
-                  <div style={{ fontSize: '14px', lineHeight: '1.7', color: '#1e293b' }}>
-                    <p><b>কৌশল ১: “থিংক-পেয়ার-শেয়ার (Think-Pair-Share)”</b><br/> দুর্বল শিক্ষার্থীকে সরাসরি প্রশ্ন না করে প্রথমে পাশের সহপাঠীর সাথে ৩০ সেকেন্ড আলোচনা করতে দিন। এরপর তাকে বলার সুযোগ দিন। ভুল হলেও চেষ্টার জন্য ধন্যবাদ দিন।</p>
-                    <p><b>কৌশল ২: “মাইক্রো স্টেপস (Micro Steps)”</b><br/> বড় জটিল সমীকরণকে ছোট ছোট ৩টি ধাপে ভাগ করে বোর্ডের একপাশে লিখে রাখুন যাতে তারা কোনো ধাপে আটকে না যায়।</p>
-                  </div>
-                )}
-                {cmScenario === 'fast_finishers' && (
-                  <div style={{ fontSize: '14px', lineHeight: '1.7', color: '#1e293b' }}>
-                    <p><b>কৌশল ১: “পিয়ার মেন্টর (Buddy Assistant)”</b><br/> যারা কাজ দ্রুত শেষ করে তাদের ক্লাসে বিশৃঙ্খলা করতে না দিয়ে অন্য সহপাঠীকে বুঝিয়ে সাহায্য করার সম্মানজনক দায়িত্ব দিন।</p>
-                    <p><b>কৌশল ২: “বোনাস ব্রেনটিজার (Bonus Brainteaser)”</b><br/> বোর্ডের কোণায় একটি অতিরিক্ত চ্যালেঞ্জিং ধাঁধা বা জটিল প্রশ্ন লিখে রাখুন।</p>
-                  </div>
-                )}
-                {cmScenario === 'exam_anxiety' && (
-                  <div style={{ fontSize: '14px', lineHeight: '1.7', color: '#1e293b' }}>
-                    <p><b>কৌশল ১: “১ মিনিটের মাইন্ডফুলনেস ব্রিদিং”</b><br/> পরীক্ষার শুরুতে বা কঠিন ক্লাসের আগে শিক্ষার্থীদের চোখ বন্ধ করে ৩ বার গভীর শ্বাস নিতে বলুন।</p>
-                    <p><b>কৌশল ২: “ভয় দূরীকরণ মক সেশন”</b><br/> পরীক্ষার প্রশ্নপত্রের ধাঁচে ১০ নম্বরের কুইজ নিয়ে ক্লাসেই সমাধান আলোচনা করুন।</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* AI SUBTAB 4: LIVE AI CHAT CONSULTANT */}
-          {aiSubTab === 'ai_chat' && (
-            <div>
-              <div style={{
-                maxHeight: '380px',
-                overflowY: 'auto',
-                border: '1px solid #cbd5e1',
-                borderRadius: '10px',
-                padding: '16px',
-                background: '#f8fafc',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                marginBottom: '16px'
-              }}>
-                {aiChatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      maxWidth: '85%',
-                      background: msg.role === 'user' ? '#4f46e5' : '#ffffff',
-                      color: msg.role === 'user' ? '#ffffff' : '#1e293b',
-                      padding: '12px 16px',
-                      borderRadius: msg.role === 'user' ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                      border: msg.role === 'user' ? 'none' : '1px solid #e2e8f0',
-                      fontSize: '13.5px',
-                      lineHeight: '1.6',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                  >
-                    <div style={{ fontSize: '11px', fontWeight: 800, marginBottom: '4px', opacity: 0.8 }}>
-                      {msg.role === 'user' ? '👨‍🏫 আপনি (শিক্ষক)' : '🤖 AI সহকারী'}
-                    </div>
-                    {msg.text}
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleSendAiChat} style={{ display: 'flex', gap: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="পড়াশোনা, ক্লাসরুম বা লেসন প্ল্যান নিয়ে আপনার প্রশ্ন লিখুন (যেমন: ১০ম শ্রেণির ত্রিকোণমিতি সহজে কীভাবে পড়াব?)..."
-                  value={aiChatInput}
-                  onChange={e => setAiChatInput(e.target.value)}
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                />
-                <button
-                  type="submit"
-                  className="btn"
-                  style={{ background: '#4f46e5', color: '#fff', fontWeight: 800, padding: '10px 20px', borderRadius: '8px' }}
-                >
-                  পাঠান ➔
-                </button>
-              </form>
-            </div>
-          )}
+        <div style={{ background: '#ffffff', borderRadius: '14px', border: '1px solid #c7d2fe', padding: '36px 24px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '48px', marginBottom: '12px' }}>✨</div>
+          <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 800, color: '#312e81' }}>
+            "AI সহকারী" এখন "AI শিক্ষা ও সহকারী" মেনুর অন্তর্ভুক্ত হয়েছে
+          </h3>
+          <p style={{ margin: '0 0 20px', color: '#64748b', fontSize: '14px', maxWidth: '600px', marginInline: 'auto' }}>
+            শিক্ষক কোপাইলট, ১-ক্লিক লেসন প্ল্যান জেনারেটর, ডিজিটাল স্লাইড আইডিয়া ও ক্লাসরুম পাওয়ার টুলস ব্যবহারের জন্য সরাসরি নতুন মেনুতে প্রবেশ করুন।
+          </p>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => onNavigate ? onNavigate('ai', 'assistant') : setActiveTab('class_routine')}
+            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', color: '#ffffff', fontWeight: 800, padding: '12px 24px', borderRadius: '10px' }}
+          >
+            🚀 "AI শিক্ষা ও সহকারী" ড্যাশবোর্ডে যান ➔
+          </button>
         </div>
       )}
 

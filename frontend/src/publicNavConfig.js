@@ -53,8 +53,7 @@ export const publicNavConfig = [
   ['public.nav.guide.notes','নোট/লেকচার','#notes'],
   ['public.nav.guide.question','প্রশ্নব্যাংক ও মডেল প্রশ্ন','#question-bank'],
   ['public.nav.guide.assignment','অ্যাসাইনমেন্ট ও মক টেস্ট','#assignments'],
-  ['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam'],
-  ['public.nav.guide.ai','AI শিক্ষা সহকারী','#ai']
+  ['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam']
  ]},
  {key:'public.nav.notice',label:'নোটিশ',href:'#notice'},
  {key:'public.nav.gallery',label:'গ্যালারি',href:'#gallery'},
