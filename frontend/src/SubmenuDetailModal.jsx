@@ -3191,26 +3191,18 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
             alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার পপ-আপ অনুমোদন করুন।');
             return;
           }
-          const rows = filteredMerit.map((r, i) => {
-            const photoSrc = getStudentPhoto(r) || r.photo_url || PHOTO_STUDENT_MALE_1;
-            return `
+          const rows = filteredMerit.map((r, i) => `
             <tr>
               <td style="text-align:center;font-weight:700;">${toBn(i + 1)}</td>
-              <td style="text-align:center;padding:3px;">
-                <div style="width:40px;height:40px;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
-                  <img src="${photoSrc}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
-                </div>
-              </td>
               <td><b>${r.name_bn}</b><br><small style="color:#0369a1;font-family:monospace;font-weight:600;">ID: ${r.student_id || '—'}</small></td>
               <td style="text-align:center;font-weight:700;color:#047857;">শ্রেণি ${r.class_name}</td>
               <td style="text-align:center;">${r.section || '—'}</td>
-              <td style="text-align:center;font-weight:800;font-size:12.5px;color:#0f172a;">${toBn(r.roll_no || '—')}</td>
+              <td style="text-align:center;font-weight:800;font-size:12px;color:#0f172a;">${toBn(r.roll_no || '—')}</td>
               <td style="color:#b45309;font-weight:700;">${r.category}</td>
               <td style="font-weight:600;color:#1e293b;">${r.achievement_title}</td>
               <td style="text-align:center;font-weight:600;">${r.academic_year || '২০২৫-২০২৬'}</td>
             </tr>
-          `;
-          }).join('');
+          `).join('');
 
           const todayBn = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
           const yearBn = toBn(new Date().getFullYear());
@@ -3224,14 +3216,14 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               <style>
                 ${SCHOOL_PAD_STYLES}
 
-                @page { size: A4 landscape; margin: 8mm 10mm; }
+                @page { size: A4 portrait; margin: 8mm 10mm; }
                 body {
                   font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif;
                   margin: 0;
-                  padding: 10px 14px;
+                  padding: 4px 8px;
                   color: #0f172a;
                   background: #fff;
-                  font-size: 11.5px;
+                  font-size: 11px;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
@@ -3239,33 +3231,33 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                   display: flex;
                   justify-content: space-between;
                   align-items: center;
-                  margin: 4px 0 8px 0;
-                  font-size: 11.5px;
+                  margin: 2px 0 6px 0;
+                  font-size: 11px;
                   font-weight: 700;
                   color: #1e293b;
                   border-bottom: 1px dashed #cbd5e1;
-                  padding-bottom: 4px;
+                  padding-bottom: 3px;
                 }
                 .cert-ribbon-row {
                   text-align: center;
-                  margin: 6px 0 10px 0;
+                  margin: 4px 0 8px 0;
                 }
                 .cert-type-ribbon {
                   display: inline-block;
                   background: #fef3c7;
                   border: 1.5px solid #b45309;
                   border-radius: 6px;
-                  padding: 4px 20px;
+                  padding: 3px 18px;
                   box-shadow: 0 1px 3px rgba(180,83,9,0.12);
                 }
                 .ribbon-bn {
-                  font-size: 15px;
+                  font-size: 14.5px;
                   font-weight: 900;
                   color: #78350f;
                   letter-spacing: 0.3px;
                 }
                 .ribbon-sub {
-                  font-size: 10.5px;
+                  font-size: 10px;
                   font-weight: 700;
                   color: #92400e;
                   margin-top: 1px;
@@ -3274,24 +3266,24 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                   width: 100%;
                   border-collapse: collapse;
                   margin-top: 4px;
-                  font-size: 11.5px;
+                  font-size: 11px;
                 }
                 th {
                   background: #fef3c7 !important;
                   color: #78350f !important;
                   font-weight: 800 !important;
                   border: 1px solid #cbd5e1;
-                  padding: 6px 5px;
+                  padding: 5px 4px;
                   text-align: center;
-                  font-size: 11px;
+                  font-size: 10.5px;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
                 td {
                   border: 1px solid #cbd5e1;
-                  padding: 5px 6px;
+                  padding: 4px 5px;
                   vertical-align: middle;
-                  font-size: 11px;
+                  font-size: 10.5px;
                 }
                 tr:nth-child(even) {
                   background-color: #fffbeb !important;
@@ -3299,17 +3291,17 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                   print-color-adjust: exact !important;
                 }
                 .cert-footer-signs {
-                  margin-top: 42px;
+                  margin-top: 38px;
                   display: flex;
                   justify-content: space-between;
                   align-items: flex-end;
-                  padding: 0 20px;
+                  padding: 0 40px;
                   page-break-inside: avoid;
                 }
                 .sign-box {
                   text-align: center;
                   border-top: 1.5px solid #0f172a;
-                  width: 160px;
+                  width: 180px;
                   padding-top: 4px;
                 }
                 .sign-title {
@@ -3353,32 +3345,27 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 </div>
               </div>
 
-              <!-- Meritorious Students Table -->
+              <!-- Meritorious Students Table (Without Photo column for 1-page Portrait print) -->
               <table>
                 <thead>
                   <tr>
                     <th style="width:30px;">ক্রম</th>
-                    <th style="width:48px;">ছবি</th>
                     <th>শিক্ষার্থীর নাম ও আইডি</th>
-                    <th style="width:85px;">শ্রেণি</th>
-                    <th style="width:90px;">বিভাগ/শাখা</th>
-                    <th style="width:45px;">রোল</th>
-                    <th style="width:170px;">মেধার ক্যাটাগরি</th>
+                    <th style="width:65px;">শ্রেণি</th>
+                    <th style="width:85px;">বিভাগ/শাখা</th>
+                    <th style="width:38px;">রোল</th>
+                    <th style="width:165px;">মেধার ক্যাটাগরি</th>
                     <th>বিশেষ কৃতিত্ব ও অর্জন</th>
                     <th style="width:75px;">সেশন</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${rows || '<tr><td colspan="9" style="text-align:center;padding:18px;">কোনো কৃতি শিক্ষার্থীর রেকর্ড পাওয়া যায়নি</td></tr>'}
+                  ${rows || '<tr><td colspan="8" style="text-align:center;padding:18px;">কোনো কৃতি শিক্ষার্থীর রেকর্ড পাওয়া যায়নি</td></tr>'}
                 </tbody>
               </table>
 
-              <!-- Three-signature official bottom section as in school pad / certificates -->
+              <!-- Two-signature official bottom section (Class teacher removed as list covers multiple classes) -->
               <div class="cert-footer-signs">
-                <div class="sign-box">
-                  <div class="sign-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
-                  <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
-                </div>
                 <div class="sign-box">
                   <div class="sign-title">সহকারী প্রধান শিক্ষক</div>
                   <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>

@@ -621,7 +621,9 @@ export function StudentMasterAdminPanel({
   };
 
   // Print helper with official school pad header & styles
-  const printContent = (title, tableHtml) => {
+  const printContent = (title, tableHtml, orientation = 'landscape', hideClassTeacherSign = false) => {
+    const isPortrait = orientation === 'portrait' || title?.includes('কৃতি শিক্ষার্থী');
+    const omitClassTeacher = hideClassTeacherSign || title?.includes('কৃতি শিক্ষার্থী') || title?.includes('অ্যালামনাই');
     const w = window.open('', '_blank');
     if (!w) {
       alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার পপ-আপ অনুমোদন করুন।');
@@ -637,14 +639,14 @@ export function StudentMasterAdminPanel({
         <style>
           ${SCHOOL_PAD_STYLES}
 
-          @page { size: A4 landscape; margin: 8mm 10mm; }
+          @page { size: ${isPortrait ? 'A4 portrait' : 'A4 landscape'}; margin: 8mm 10mm; }
           body {
             font-family: 'SolaimanLipi', 'Kalpurush', 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
-            padding: 10px 14px;
+            padding: ${isPortrait ? '4px 8px' : '10px 14px'};
             color: #0f172a;
             background: #fff;
-            font-size: 11.5px;
+            font-size: ${isPortrait ? '11px' : '11.5px'};
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -761,17 +763,19 @@ export function StudentMasterAdminPanel({
 
         ${tableHtml}
 
-        <!-- Three-signature official bottom section as in school pad / certificates -->
-        <div class="cert-footer-signs">
+        <!-- Two or Three signature official bottom section -->
+        <div class="cert-footer-signs" style="${omitClassTeacher ? 'padding: 0 40px; margin-top: 38px;' : ''}">
+          ${!omitClassTeacher ? `
           <div class="sign-box">
             <div class="sign-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
             <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
           </div>
-          <div class="sign-box">
+          ` : ''}
+          <div class="sign-box" style="${omitClassTeacher ? 'width: 180px;' : ''}">
             <div class="sign-title">সহকারী প্রধান শিক্ষক</div>
             <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
           </div>
-          <div class="sign-box">
+          <div class="sign-box" style="${omitClassTeacher ? 'width: 180px;' : ''}">
             <div class="sign-title">প্রধান শিক্ষকের স্বাক্ষর ও সিল</div>
             <div class="sign-sub">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
           </div>
@@ -1891,16 +1895,9 @@ export function StudentMasterAdminPanel({
                 type="button"
                 className="mini"
                 onClick={() => {
-                  const rows = meritoriousList.map((r, i) => {
-                    const photoSrc = getStudentPhoto(r) || r.photo_url || PHOTO_STUDENT_MALE_1;
-                    return `
+                  const rows = meritoriousList.map((r, i) => `
                     <tr>
                       <td style="text-align:center;font-weight:700;">${i + 1}</td>
-                      <td style="text-align:center;padding:3px;">
-                        <div style="width:38px;height:38px;border:1px solid #cbd5e1;border-radius:4px;overflow:hidden;margin:0 auto;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
-                          <img src="${photoSrc}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"/>
-                        </div>
-                      </td>
                       <td><b>${r.name_bn}</b><br><small style="color:#0369a1;font-family:monospace;font-weight:600;">ID: ${r.student_id || '—'}</small></td>
                       <td style="text-align:center;font-weight:700;color:#047857;">শ্রেণি ${r.class_name}</td>
                       <td style="text-align:center;">${r.section || '—'}</td>
@@ -1909,19 +1906,17 @@ export function StudentMasterAdminPanel({
                       <td style="font-weight:600;">${r.achievement_title}</td>
                       <td style="text-align:center;">${r.academic_year || '২০২৫-২০২৬'}</td>
                     </tr>
-                  `;
-                  }).join('');
+                  `).join('');
                   const tableHtml = `
                     <table>
                       <thead>
                         <tr>
                           <th style="width:30px;">ক্রম</th>
-                          <th style="width:48px;">ছবি</th>
                           <th>শিক্ষার্থীর নাম ও আইডি</th>
-                          <th style="width:85px;">শ্রেণি</th>
-                          <th style="width:90px;">বিভাগ/শাখা</th>
-                          <th style="width:45px;">রোল</th>
-                          <th style="width:170px;">মেধার ক্যাটাগরি</th>
+                          <th style="width:65px;">শ্রেণি</th>
+                          <th style="width:85px;">বিভাগ/শাখা</th>
+                          <th style="width:38px;">রোল</th>
+                          <th style="width:165px;">মেধার ক্যাটাগরি</th>
                           <th>বিশেষ কৃতিত্ব ও অর্জন</th>
                           <th style="width:75px;">সেশন</th>
                         </tr>
@@ -1929,7 +1924,7 @@ export function StudentMasterAdminPanel({
                       <tbody>${rows}</tbody>
                     </table>
                   `;
-                  printContent('🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা ও মেধা রেজিস্ট্রি', tableHtml);
+                  printContent('🏆 অধ্যয়নরত কৃতি শিক্ষার্থী সম্মাননা তালিকা ও মেধা রেজিস্ট্রি', tableHtml, 'portrait', true);
                 }}
                 style={{ background: '#b45309', color: '#fff', fontWeight: 700 }}
               >
