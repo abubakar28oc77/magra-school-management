@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { requestApi as api } from './apiClient';
 import { AI_PRESETS } from './studentGuideDataStore';
+import CurriculumLessonSlidePipeline from './CurriculumLessonSlidePipeline';
 
 export default function AIEducationAssistantPanel({ sub, setSub, userRole, onNavigate }) {
   // Active primary tab: 'assistant' (AI সহকারী ও শিক্ষক কোপাইলট) | 'tutor' (AI Tutor) | 'analytics' (AI বিশ্লেষণ)
@@ -31,7 +32,7 @@ export default function AIEducationAssistantPanel({ sub, setSub, userRole, onNav
   // ====================================================
   // 1. AI সহকারী ও শিক্ষক কোপাইলট (Teacher Copilot) STATE
   // ====================================================
-  const [aiSubTab, setAiSubTab] = useState('lesson_plan'); // 'lesson_plan' | 'digital_content' | 'classroom_mgmt' | 'ai_chat'
+  const [aiSubTab, setAiSubTab] = useState('curriculum_pipeline'); // 'curriculum_pipeline' | 'lesson_plan' | 'digital_content' | 'classroom_mgmt' | 'ai_chat'
 
   // Lesson Plan Generator Form
   const [lpForm, setLpForm] = useState({
@@ -441,31 +442,41 @@ export default function AIEducationAssistantPanel({ sub, setSub, userRole, onNav
           {/* Sub-Tabs */}
           <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #f1f5f9', paddingBottom: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
             {[
-              { id: 'lesson_plan', label: '📝 ১-ক্লিকে লেসন প্ল্যান জেনারেটর', icon: '📝' },
-              { id: 'digital_content', label: '💡 ডিজিটাল স্লাইড ও প্রেজেন্টেশন আইডিয়া', icon: '💡' },
+              { id: 'curriculum_pipeline', label: '🚀 কারিকুলাম প্রম্পট, লেসন প্ল্যান ও ১৮-স্লাইড PPTX', icon: '🚀', highlight: true },
+              { id: 'lesson_plan', label: '📝 দ্রুত লেসন প্ল্যান শিট', icon: '📝' },
+              { id: 'digital_content', label: '💡 ডিজিটাল স্লাইড আইডিয়া', icon: '💡' },
               { id: 'classroom_mgmt', label: '🏫 আধুনিক ক্লাসরুম কৌশল', icon: '🏫' },
               { id: 'ai_chat', label: '💬 লাইভ টিচার AI কনসালট্যান্ট', icon: '💬' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setAiSubTab(tab.id)}
-                style={{
-                  padding: '9px 16px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 800,
-                  fontSize: '13px',
-                  background: aiSubTab === tab.id ? '#4f46e5' : '#f8fafc',
-                  color: aiSubTab === tab.id ? '#ffffff' : '#475569',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
+            ].map(tab => {
+              const isActive = aiSubTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setAiSubTab(tab.id)}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: '8px',
+                    border: tab.highlight && !isActive ? '1.5px solid #86efac' : 'none',
+                    cursor: 'pointer',
+                    fontWeight: 800,
+                    fontSize: '13px',
+                    background: isActive ? (tab.highlight ? 'linear-gradient(135deg, #075c3a 0%, #15803d 100%)' : '#4f46e5') : '#f8fafc',
+                    color: isActive ? '#ffffff' : (tab.highlight ? '#065f46' : '#475569'),
+                    boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
+
+          {/* AI SUBTAB 0: CARICULUM PIPELINE (USER REQUESTED WORKFLOW) */}
+          {aiSubTab === 'curriculum_pipeline' && (
+            <CurriculumLessonSlidePipeline userRole={userRole} onNavigate={onNavigate} />
+          )}
 
           {/* AI SUBTAB 1: LESSON PLAN */}
           {aiSubTab === 'lesson_plan' && (
