@@ -153,6 +153,10 @@ export function ResultPanel({ sub, userRole }) {
   const [processedResults, setProcessedResults] = useState([]);
   const [selectedStudentIndex, setSelectedStudentIndex] = useState(0);
   const [analysis, setAnalysis] = useState(null);
+  const [showBatchPrintDrawer, setShowBatchPrintDrawer] = useState(false);
+  const [batchPrintMode, setBatchPrintMode] = useState('all'); // 'all' | 'range' | 'passed' | 'failed'
+  const [batchRollFrom, setBatchRollFrom] = useState('');
+  const [batchRollTo, setBatchRollTo] = useState('');
 
   // Forms
   const [editingYearId, setEditingYearId] = useState(null);
@@ -1160,9 +1164,9 @@ export function ResultPanel({ sub, userRole }) {
     return sub.name_bn || '';
   };
 
-  const transcriptSubjects = useMemo(() => {
-    if (!currentStudentResult?.subjects) return [];
-    let subs = [...currentStudentResult.subjects];
+  const getStudentTranscriptSubjects = (st) => {
+    if (!st?.subjects) return [];
+    let subs = [...st.subjects];
 
     // Ensure only 1 4th subject appears on transcript:
     // For Science: either 126 or 134 (never both)
@@ -1171,8 +1175,8 @@ export function ResultPanel({ sub, userRole }) {
     if (has126 && has134) {
       const sub126 = subs.find(s => String(s.code) === '126');
       const sub134 = subs.find(s => String(s.code) === '134');
-      const st = currentStudentResult.student || currentStudentResult;
-      const explicit = (st.fourth_subject || st.fourth_subject_code || st.optional_subject || '').toString().toLowerCase();
+      const studentObj = st.student || st;
+      const explicit = (studentObj.fourth_subject || studentObj.fourth_subject_code || studentObj.optional_subject || '').toString().toLowerCase();
 
       let keepCode = '126';
       if (explicit.includes('134') || explicit.includes('কৃষি')) {
@@ -1193,7 +1197,7 @@ export function ResultPanel({ sub, userRole }) {
     }
 
     // For Humanities & Business Studies: 4th subject is always 134 (Agriculture Studies). Exclude 151 (Home Science).
-    const stGroup = (currentStudentResult.department || currentStudentResult.student?.department || '').toLowerCase();
+    const stGroup = (st.department || st.student?.department || '').toLowerCase();
     if (stGroup.includes('মানবিক') || stGroup.includes('ব্যবসায়') || stGroup.includes('commerce') || stGroup.includes('business')) {
       subs = subs.filter(s => String(s.code) !== '151');
     }
@@ -1203,6 +1207,10 @@ export function ResultPanel({ sub, userRole }) {
       if (!a.is_optional && b.is_optional) return -1;
       return (Number(a.code) || 999) - (Number(b.code) || 999);
     });
+  };
+
+  const transcriptSubjects = useMemo(() => {
+    return getStudentTranscriptSubjects(currentStudentResult);
   }, [currentStudentResult]);
 
   const hasBanglaPair = isSSC && 
@@ -1221,75 +1229,321 @@ export function ResultPanel({ sub, userRole }) {
   const sub108 = transcriptSubjects.find(s => String(s.code) === '108');
   const englishCombinedTotal = ((sub107 && !sub107.absent) ? Number(sub107.total || 0) : 0) + ((sub108 && !sub108.absent) ? Number(sub108.total || 0) : 0);
 
-  const handlePrintMarksheet = () => {
-    if (!currentStudentResult) {
-      showNotification('প্রিন্ট করার জন্য কোনো শিক্ষার্থী নির্বাচিত নেই।', 'error');
-      return;
-    }
-    const marksheetEl = document.getElementById('official-academic-transcript');
-    if (!marksheetEl) {
-      window.print();
+  // Generate single marksheet HTML document block for any student
+  const generateStudentMarksheetHtml = (st) => {
+    if (!st) return '';
+    const subs = getStudentTranscriptSubjects(st);
+    const hasBp = isSSC && subs.some(s => String(s.code) === '101') && subs.some(s => String(s.code) === '102');
+    const hasEp = isSSC && subs.some(s => String(s.code) === '107') && subs.some(s => String(s.code) === '108');
+
+    const s101 = subs.find(s => String(s.code) === '101');
+    const s102 = subs.find(s => String(s.code) === '102');
+    const bComb = ((s101 && !s101.absent) ? Number(s101.total || 0) : 0) + ((s102 && !s102.absent) ? Number(s102.total || 0) : 0);
+
+    const s107 = subs.find(s => String(s.code) === '107');
+    const s108 = subs.find(s => String(s.code) === '108');
+    const eComb = ((s107 && !s107.absent) ? Number(s107.total || 0) : 0) + ((s108 && !s108.absent) ? Number(s108.total || 0) : 0);
+
+    const rowsHtml = subs.map(sub => {
+      const codeStr = String(sub.code || '');
+
+      if (codeStr === '101') {
+        return `
+          <tr>
+            <td><b>101</b></td>
+            <td class="text-left"><b>BANGLA-I</b></td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
+            <td rowspan="${hasBp ? 2 : 1}">—</td>
+            <td rowspan="${hasBp ? 2 : 1}"><b>${hasBp ? bComb : (sub.absent ? 0 : sub.total)}</b></td>
+            <td rowspan="${hasBp ? 2 : 1}" class="transcript-grade-cell">
+              <div class="grade-letter">${sub.letter_grade || 'F'}</div>
+              <div class="grade-gp">GP ${Number(sub.gp || 0).toFixed(2)}</div>
+            </td>
+          </tr>
+        `;
+      }
+
+      if (codeStr === '102') {
+        return `
+          <tr>
+            <td><b>102</b></td>
+            <td class="text-left"><b>BANGLA-II</b></td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
+            ${!hasBp ? `
+              <td>—</td>
+              <td><b>${sub.absent ? 0 : sub.total}</b></td>
+              <td class="transcript-grade-cell">
+                <div class="grade-letter">${sub.letter_grade || 'F'}</div>
+                <div class="grade-gp">GP ${Number(sub.gp || 0).toFixed(2)}</div>
+              </td>
+            ` : ''}
+          </tr>
+        `;
+      }
+
+      if (codeStr === '107') {
+        return `
+          <tr>
+            <td><b>107</b></td>
+            <td class="text-left"><b>ENGLISH-I</b></td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
+            <td rowspan="${hasEp ? 2 : 1}">—</td>
+            <td rowspan="${hasEp ? 2 : 1}">—</td>
+            <td rowspan="${hasEp ? 2 : 1}"><b>${hasEp ? eComb : (sub.absent ? 0 : sub.total)}</b></td>
+            <td rowspan="${hasEp ? 2 : 1}" class="transcript-grade-cell">
+              <div class="grade-letter">${sub.letter_grade || 'F'}</div>
+              <div class="grade-gp">GP ${Number(sub.gp || 0).toFixed(2)}</div>
+            </td>
+          </tr>
+        `;
+      }
+
+      if (codeStr === '108') {
+        return `
+          <tr>
+            <td><b>108</b></td>
+            <td class="text-left"><b>ENGLISH-II</b></td>
+            <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
+            ${!hasEp ? `
+              <td>—</td>
+              <td>—</td>
+              <td><b>${sub.absent ? 0 : sub.total}</b></td>
+              <td class="transcript-grade-cell">
+                <div class="grade-letter">${sub.letter_grade || 'F'}</div>
+                <div class="grade-gp">GP ${Number(sub.gp || 0).toFixed(2)}</div>
+              </td>
+            ` : ''}
+          </tr>
+        `;
+      }
+
+      const isAb = !!sub.absent;
+      const wVal = isAb ? 'অনুপস্থিত' : (sub.written_max > 0 ? (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0) : '—');
+      const mVal = isAb ? 'অনুপস্থিত' : (sub.mcq_max > 0 ? (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0) : '—');
+      const pVal = isAb ? '—' : (sub.practical_max > 0 ? (sub.practical !== '' && sub.practical !== null && sub.practical !== undefined ? sub.practical : 0) : '—');
+
+      return `
+        <tr>
+          <td><b>${sub.code}</b></td>
+          <td class="text-left"><b>${getSubjectEnName(sub)}</b></td>
+          <td>${wVal}</td>
+          <td>${mVal}</td>
+          <td>${pVal}</td>
+          <td><b>${isAb ? 0 : sub.total}</b></td>
+          <td class="transcript-grade-cell">
+            <div class="grade-letter">${sub.letter_grade || 'F'}</div>
+            <div class="grade-gp">GP ${Number(sub.gp || 0).toFixed(2)}</div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <div class="official-marksheet-wrapper">
+        <div class="transcript-official-header">
+          <h1 class="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+          <div class="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
+          <div class="transcript-school-line">স্থাপিত: ১৯৪৬</div>
+          <div class="transcript-school-eiin">EIIN: 114290</div>
+        </div>
+
+        <div class="marksheet-exam-title-badge">
+          <span>একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} ${toBnDigits(selectedYear)}</span>
+        </div>
+
+        <div class="marksheet-top-info-grid">
+          <div class="marksheet-student-card">
+            <div class="info-row"><b>শিক্ষার্থীর নাম:</b> ${st.name_bn} ${st.name_en ? `(${st.name_en.toUpperCase()})` : ''}</div>
+            <div class="info-row"><b>Student ID:</b> ${st.student_id} | <b>রোল নম্বর:</b> ${toBnDigits(st.roll_no)}</div>
+            <div class="info-row"><b>শ্রেণি:</b> শ্রেণি ${toBnDigits(className)} | <b>শাখা:</b> ${st.section || (isSSC ? 'বিজ্ঞান বিভাগ' : 'A')}</div>
+            <div class="info-row"><b>বিভাগ / গ্রুপ:</b> ${st.department || (isSSC ? 'বিজ্ঞান' : 'সাধারণ')}</div>
+          </div>
+          <div class="marksheet-student-card">
+            <div class="info-row"><b>পিতার নাম:</b> ${st.student?.father_name || st.father_name || 'মুহাম্মদ আবুবকর সিদ্দিক'}</div>
+            <div class="info-row"><b>মাতার নাম:</b> ${st.student?.mother_name || st.mother_name || 'তাহমিনা'}</div>
+            <div class="info-row"><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)} খ্রি.</div>
+            <div class="info-row"><b>পরীক্ষার নাম:</b> ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}</div>
+          </div>
+        </div>
+
+        <table class="marksheet-subjects-table marksheet-board-table">
+          <thead>
+            <tr>
+              <th rowspan="2" style="width: 90px;">Subject Code</th>
+              <th rowspan="2" style="text-align: center;">Subject Name</th>
+              <th colspan="4">Marks</th>
+              <th rowspan="2" style="width: 100px;">Grade</th>
+            </tr>
+            <tr>
+              <th style="width: 85px;">CQ/Theory</th>
+              <th style="width: 75px;">MCQ</th>
+              <th style="width: 75px;">Practical</th>
+              <th style="width: 80px;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div class="transcript-summary-box">
+          <div>
+            <div class="summary-label">সর্বমোট প্রাপ্ত নম্বর</div>
+            <div class="summary-val">${st.total_marks || 0}</div>
+          </div>
+          <div>
+            <div class="summary-label">প্রাপ্ত শতকরা (%)</div>
+            <div class="summary-val">${st.percentage || 0}%</div>
+          </div>
+          <div>
+            <div class="summary-label">গ্রেড পয়েন্ট (GPA)</div>
+            <div class="summary-val green-text">${st.gpa || '0.00'}</div>
+          </div>
+          <div>
+            <div class="summary-label">চূড়ান্ত লেটার গ্রেড</div>
+            <div class="summary-val green-text">${st.final_grade || 'F'}</div>
+          </div>
+          <div>
+            <div class="summary-label">ফলাফল স্ট্যাটাস</div>
+            <div class="summary-val green-text status-text">${st.result_status || 'অকৃতকার্য'}</div>
+          </div>
+          <div>
+            <div class="summary-label">শ্রেণি মেধা স্থান</div>
+            <div class="summary-val">${st.merit ? `${toBnDigits(st.merit)} তম` : '—'}</div>
+          </div>
+        </div>
+
+        <div class="transcript-signatures-zone">
+          <div class="sig-column">
+            <div class="sig-dots">...........................................</div>
+            <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+          </div>
+          <div class="sig-column">
+            <div class="sig-dots">...........................................</div>
+            <div class="sig-title">অভিভাবকের স্বাক্ষর</div>
+          </div>
+          <div class="sig-column">
+            <div class="sig-dots">...........................................</div>
+            <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+          </div>
+        </div>
+
+        <div class="transcript-footer-line">
+          <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
+          <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+        </div>
+      </div>
+    `;
+  };
+
+  // Batch Print Marksheets Handler (Supports 1 to all students with automatic page-break)
+  const handleBatchPrintMarksheet = (studentsToPrint) => {
+    const list = studentsToPrint && studentsToPrint.length ? studentsToPrint : filteredProcessedResults;
+    if (!list || !list.length) {
+      showNotification('প্রিন্ট করার মতো কোনো শিক্ষার্থী পাওয়া যায়নি।', 'error');
       return;
     }
 
     const printWin = window.open('', '_blank', 'width=950,height=900');
     if (!printWin) {
-      window.print();
+      alert('পপ-আপ উইন্ডো ব্লক করা রয়েছে। অনুগ্রহ করে ব্রাউজার পপ-আপ অনুমোদন করুন।');
       return;
     }
 
-    const contentHtml = marksheetEl.outerHTML;
+    const allMarkSheetsHtml = list.map(st => generateStudentMarksheetHtml(st)).join('\n');
 
     printWin.document.write(`<!DOCTYPE html>
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <title>Academic Transcript — ${currentStudentResult.name_bn || currentStudentResult.student_id}</title>
+  <title>একাডেমিক ট্রান্সক্রিপ্ট ও প্রগ্রেস রিপোর্ট (${toBnDigits(list.length)} জন) — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
   <style>
     @page { size: A4 portrait; margin: 8mm 10mm; }
     * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     body { margin: 0; padding: 0; font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; background: #fff; color: #000; }
-    .official-marksheet-wrapper { width: 100%; max-width: 190mm; margin: 0 auto; background: #fff; border: 1.5px solid #000; border-radius: 4px; padding: 8mm 10mm; page-break-inside: avoid; }
-    .transcript-official-header { text-align: center; margin-bottom: 14px; }
-    .transcript-school-name { margin: 0 0 3px 0; font-size: 22px; color: #0b8050; font-weight: 800; letter-spacing: 0.3px; }
-    .transcript-school-line { margin: 2px 0; font-size: 12.5px; color: #1e293b; font-weight: 500; }
-    .transcript-school-eiin { margin: 2px 0 0 0; font-size: 12.5px; color: #1e293b; font-weight: 600; }
-    .marksheet-exam-title-badge { text-align: center; margin: 10px 0 12px 0; }
-    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 5px 24px; border-radius: 9999px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
-    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 12px; margin-bottom: 12px; }
-    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; font-size: 12px; line-height: 1.8; color: #0f172a; }
+    .official-marksheet-wrapper { width: 100%; max-width: 190mm; margin: 0 auto 12mm auto; background: #fff; border: 1.5px solid #000; border-radius: 4px; padding: 7mm 9mm; page-break-inside: avoid; page-break-after: always; break-after: page; }
+    .official-marksheet-wrapper:last-child { page-break-after: auto; break-after: auto; margin-bottom: 0; }
+    .transcript-official-header { text-align: center; margin-bottom: 12px; }
+    .transcript-school-name { margin: 0 0 2px 0; font-size: 21px; color: #0b8050; font-weight: 800; letter-spacing: 0.3px; }
+    .transcript-school-line { margin: 1px 0; font-size: 12px; color: #1e293b; font-weight: 500; }
+    .transcript-school-eiin { margin: 1px 0 0 0; font-size: 12px; color: #1e293b; font-weight: 600; }
+    .marksheet-exam-title-badge { text-align: center; margin: 8px 0 10px 0; }
+    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 4px 22px; border-radius: 9999px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.5px; }
+    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 10px; margin-bottom: 10px; }
+    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; font-size: 11.5px; line-height: 1.7; color: #0f172a; }
     .marksheet-student-card .info-row { margin: 1px 0; }
-    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11.5px; border: 1px solid #000; }
-    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #000; padding: 5px 6px; text-align: center; }
-    .marksheet-subjects-table th { background: #fff; color: #000; font-weight: 700; font-size: 11.5px; }
+    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 11px; border: 1px solid #000; }
+    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #000; padding: 4px 5px; text-align: center; }
+    .marksheet-subjects-table th { background: #fff; color: #000; font-weight: 700; font-size: 11px; }
     .marksheet-subjects-table td.text-left { text-align: left; padding-left: 8px; font-weight: 600; }
     .transcript-grade-cell { vertical-align: middle; text-align: center; background: #fff; }
-    .grade-letter { font-size: 13.5px; font-weight: 800; color: #0b8050; line-height: 1.2; }
-    .grade-gp { font-size: 10.5px; font-weight: 700; color: #000; margin-top: 1px; }
-    .transcript-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 6px; margin-top: 10px; text-align: center; }
-    .transcript-summary-box .summary-label { font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
-    .transcript-summary-box .summary-val { font-size: 15px; font-weight: 800; color: #000; }
+    .grade-letter { font-size: 13px; font-weight: 800; color: #0b8050; line-height: 1.2; }
+    .grade-gp { font-size: 10px; font-weight: 700; color: #000; margin-top: 1px; }
+    .transcript-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 4px; margin-top: 8px; text-align: center; }
+    .transcript-summary-box .summary-label { font-size: 9.5px; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+    .transcript-summary-box .summary-val { font-size: 14px; font-weight: 800; color: #000; }
     .transcript-summary-box .summary-val.green-text { color: #0b8050; }
-    .transcript-summary-box .summary-val.status-text { font-size: 16px; }
-    .transcript-signatures-zone { display: flex; justify-content: space-between; margin-top: 36px; font-size: 11.5px; color: #334155; text-align: center; }
-    .transcript-signatures-zone .sig-column { min-width: 150px; }
-    .transcript-signatures-zone .sig-dots { letter-spacing: 1px; color: #94a3b8; margin-bottom: 5px; }
+    .transcript-summary-box .summary-val.status-text { font-size: 14px; }
+    .transcript-signatures-zone { display: flex; justify-content: space-between; margin-top: 32px; font-size: 11px; color: #334155; text-align: center; }
+    .transcript-signatures-zone .sig-column { min-width: 140px; }
+    .transcript-signatures-zone .sig-dots { letter-spacing: 1px; color: #94a3b8; margin-bottom: 4px; }
     .transcript-signatures-zone .sig-title { font-weight: 600; color: #1e293b; }
-    .transcript-footer-line { margin-top: 14px; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 5px; }
+    .transcript-footer-line { margin-top: 12px; display: flex; justify-content: space-between; font-size: 9px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 4px; }
+    @media print {
+      body { padding: 0; }
+      .official-marksheet-wrapper { page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; }
+      .official-marksheet-wrapper:last-child { page-break-after: auto !important; break-after: auto !important; }
+    }
   </style>
 </head>
 <body>
-  ${contentHtml}
+  ${allMarkSheetsHtml}
   <script>
     window.onload = function() {
       setTimeout(function() {
         window.print();
-      }, 300);
+      }, 400);
     };
   </script>
 </body>
 </html>`);
     printWin.document.close();
+  };
+
+  // Single student print shortcut
+  const handlePrintMarksheet = () => {
+    if (!currentStudentResult) {
+      showNotification('প্রিন্ট করার জন্য কোনো শিক্ষার্থী নির্বাচিত নেই।', 'error');
+      return;
+    }
+    handleBatchPrintMarksheet([currentStudentResult]);
+  };
+
+  // Batch Filter helper
+  const getSelectedBatchStudents = () => {
+    if (batchPrintMode === 'all') return filteredProcessedResults;
+    if (batchPrintMode === 'passed') return filteredProcessedResults.filter(s => s.result_status === 'উত্তীর্ণ' || s.final_grade !== 'F');
+    if (batchPrintMode === 'failed') return filteredProcessedResults.filter(s => s.result_status !== 'উত্তীর্ণ' && s.final_grade === 'F');
+    if (batchPrintMode === 'range') {
+      const from = Number(batchRollFrom) || 0;
+      const to = Number(batchRollTo) || 999999;
+      return filteredProcessedResults.filter(s => {
+        const roll = Number(s.roll_no) || 0;
+        return roll >= from && roll <= to;
+      });
+    }
+    return filteredProcessedResults;
+  };
+
+  const handleExecuteBatchPrint = () => {
+    const list = getSelectedBatchStudents();
+    if (!list.length) {
+      alert('নির্বাচিত শর্তে কোনো শিক্ষার্থী পাওয়া যায়নি।');
+      return;
+    }
+    handleBatchPrintMarksheet(list);
   };
 
   // Reset/Load Dhaka Board Official Subjects
@@ -2721,12 +2975,13 @@ export function ResultPanel({ sub, userRole }) {
       {tab === 'marksheet' && (
         <div className="marksheet-console-wrapper">
           {/* Controls */}
-          <div className="marksheet-nav-toolbar no-print">
-            <div className="student-selector-box">
-              <label>শিক্ষার্থী নির্বাচন:</label>
+          <div className="marksheet-nav-toolbar no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <div className="student-selector-box" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '13px' }}>শিক্ষার্থী নির্বাচন:</label>
               <select
                 value={selectedStudentIndex}
                 onChange={(e) => setSelectedStudentIndex(Number(e.target.value))}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, fontSize: '13px', background: '#fff' }}
               >
                 {filteredProcessedResults.map((st, idx) => (
                   <option key={st.id || idx} value={idx}>
@@ -2736,7 +2991,7 @@ export function ResultPanel({ sub, userRole }) {
               </select>
             </div>
 
-            <div className="nav-buttons-group">
+            <div className="nav-buttons-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
               <button
                 type="button"
                 className="btn-modern-action"
@@ -2753,11 +3008,168 @@ export function ResultPanel({ sub, userRole }) {
               >
                 পরবর্তী ➜
               </button>
-              <button type="button" className="btn-modern-primary" onClick={handlePrintMarksheet}>
-                🖨️ প্রিন্ট / সেভ PDF (A4)
+
+              {/* Single Student Print Button */}
+              <button
+                type="button"
+                className="btn-modern-primary"
+                onClick={handlePrintMarksheet}
+                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট প্রিন্ট করুন"
+                style={{ padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
+              >
+                🖨️ এই প্রগ্রেস রিপোর্ট প্রিন্ট (A4)
+              </button>
+
+              {/* Batch Print All Students in 1-click */}
+              <button
+                type="button"
+                onClick={() => handleBatchPrintMarksheet(filteredProcessedResults)}
+                title="শ্রেণির সকল শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে একের পর এক আলাদা পৃষ্ঠায় প্রিন্ট করুন"
+                style={{
+                  background: '#047857',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '6px 15px',
+                  borderRadius: '6px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
+                }}
+              >
+                📚 সকল প্রগ্রেস রিপোর্ট একসাথে প্রিন্ট ({toBnDigits(filteredProcessedResults.length)} জন)
+              </button>
+
+              {/* Advanced Batch Range Options */}
+              <button
+                type="button"
+                onClick={() => setShowBatchPrintDrawer(!showBatchPrintDrawer)}
+                title="রোল নম্বর রেঞ্জ বা পাস/ফেল অনুসারে একাধিক প্রগ্রেস রিপোর্ট প্রিন্ট"
+                style={{
+                  background: showBatchPrintDrawer ? '#334155' : '#fff',
+                  color: showBatchPrintDrawer ? '#fff' : '#334155',
+                  border: '1px solid #cbd5e1',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontSize: '12.5px'
+                }}
+              >
+                ⚙️ রোল রেঞ্জ / কাস্টম ব্যাচ {showBatchPrintDrawer ? '▲' : '▼'}
               </button>
             </div>
           </div>
+
+          {/* Collapsible Batch Print Drawer */}
+          {showBatchPrintDrawer && (
+            <div style={{
+              background: '#f0fdf4',
+              border: '1.5px solid #059669',
+              borderRadius: '8px',
+              padding: '12px 18px',
+              marginBottom: '16px',
+              animation: 'fadeIn 0.2s ease'
+            }} className="no-print">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px dashed #a7f3d0', paddingBottom: '6px' }}>
+                <b style={{ color: '#065f46', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  📑 একাধিক শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে প্রিন্ট অপশন (ব্যাচ প্রিন্ট)
+                </b>
+                <span style={{ fontSize: '12px', color: '#047857' }}>
+                  * প্রতিটি শিক্ষার্থীর প্রগ্রেস রিপোর্ট স্বয়ংক্রিয়ভাবে আলাদা আলাদা A4 পেজে প্রিন্ট হবে
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'center' }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="radio"
+                    name="batchMode"
+                    value="all"
+                    checked={batchPrintMode === 'all'}
+                    onChange={() => setBatchPrintMode('all')}
+                  />
+                  শ্রেণির সকল শিক্ষার্থী ({toBnDigits(filteredProcessedResults.length)} জন)
+                </label>
+
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="radio"
+                    name="batchMode"
+                    value="range"
+                    checked={batchPrintMode === 'range'}
+                    onChange={() => setBatchPrintMode('range')}
+                  />
+                  রোল নম্বর রেঞ্জ:
+                </label>
+
+                {batchPrintMode === 'range' && (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', padding: '3px 8px', borderRadius: '5px', border: '1px solid #cbd5e1' }}>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>রোল হতে:</span>
+                    <input
+                      type="number"
+                      placeholder="যেমন: ১"
+                      value={batchRollFrom}
+                      onChange={e => setBatchRollFrom(e.target.value)}
+                      style={{ width: '65px', padding: '3px 6px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                    />
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>পর্যন্ত:</span>
+                    <input
+                      type="number"
+                      placeholder="যেমন: ২৫"
+                      value={batchRollTo}
+                      onChange={e => setBatchRollTo(e.target.value)}
+                      style={{ width: '65px', padding: '3px 6px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                    />
+                  </div>
+                )}
+
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="radio"
+                    name="batchMode"
+                    value="passed"
+                    checked={batchPrintMode === 'passed'}
+                    onChange={() => setBatchPrintMode('passed')}
+                  />
+                  শুধুমাত্র উত্তীর্ণ / পাস ({toBnDigits(filteredProcessedResults.filter(s => s.result_status === 'উত্তীর্ণ' || s.final_grade !== 'F').length)} জন)
+                </label>
+
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  <input
+                    type="radio"
+                    name="batchMode"
+                    value="failed"
+                    checked={batchPrintMode === 'failed'}
+                    onChange={() => setBatchPrintMode('failed')}
+                  />
+                  অনুত্তীর্ণ / ফেল ({toBnDigits(filteredProcessedResults.filter(s => s.result_status !== 'উত্তীর্ণ' && s.final_grade === 'F').length)} জন)
+                </label>
+
+                <button
+                  type="button"
+                  onClick={handleExecuteBatchPrint}
+                  style={{
+                    background: '#047857',
+                    color: '#fff',
+                    border: 'none',
+                    padding: '7px 18px',
+                    borderRadius: '6px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    marginLeft: 'auto',
+                    boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
+                  }}
+                >
+                  🚀 নির্বাচিত শিক্ষার্থীদের প্রগ্রেস রিপোর্ট প্রিন্ট ({toBnDigits(getSelectedBatchStudents().length)} জন)
+                </button>
+              </div>
+            </div>
+          )}
 
           {currentStudentResult ? (
             <div className="official-marksheet-wrapper" id="official-academic-transcript">
