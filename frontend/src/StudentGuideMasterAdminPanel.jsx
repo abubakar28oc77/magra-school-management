@@ -139,7 +139,10 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
     date_published: new Date().toISOString().slice(0, 10),
     summary: '',
     download_count: 0,
-    doc_type: 'PDF লেকচার শিট'
+    doc_type: 'PDF লেকচার শিট',
+    pdf_file_data: '',
+    file_name: '',
+    file_size: ''
   });
 
   // 6. QUESTION BANK STATE
@@ -1215,6 +1218,45 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
                 <label style={{ fontSize: '12px', fontWeight: 700 }}>নোটের সারসংক্ষেপ ও গুরুত্বপূর্ণ পয়েন্ট *</label>
                 <textarea rows="3" placeholder="এই শিটে কী কী বিষয় ও প্রশ্ন সমাধান দেওয়া হয়েছে লিখুন..." value={noteForm.summary} onChange={e => setNoteForm({ ...noteForm, summary: e.target.value })} required />
               </div>
+              <div style={{ gridColumn: '1 / -1', background: '#f0f9ff', padding: '12px 14px', borderRadius: '6px', border: '1px solid #bae6fd' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, display: 'block', marginBottom: '6px', color: '#0369a1' }}>
+                  📄 PDF নোট / লেকচার ফাইল আপলোড (সর্বোচ্চ ১৫ মেগাবাইট)
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={e => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    if (!f.name.toLowerCase().endsWith('.pdf') && f.type !== 'application/pdf') {
+                      alert('শুধুমাত্র PDF (.pdf) ফাইল গ্রহণযোগ্য');
+                      return;
+                    }
+                    const sz = f.size / (1024 * 1024);
+                    if (sz > 15) {
+                      alert('ফাইল সাইজ ১৫ মেগাবাইটের বেশি হওয়া যাবে না');
+                      return;
+                    }
+                    const formatted = sz >= 1 ? `${sz.toFixed(1)} MB` : `${Math.round(f.size / 1024)} KB`;
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                      setNoteForm(prev => ({
+                        ...prev,
+                        pdf_file_data: ev.target.result,
+                        file_name: f.name,
+                        file_size: formatted
+                      }));
+                    };
+                    reader.readAsDataURL(f);
+                  }}
+                  style={{ fontSize: '13px' }}
+                />
+                {noteForm.file_name && (
+                  <div style={{ marginTop: '6px', fontSize: '12px', color: '#047857', fontWeight: 700 }}>
+                    ✓ সংযুক্ত PDF: {noteForm.file_name} ({noteForm.file_size})
+                  </div>
+                )}
+              </div>
               <button type="submit" className="btn full" style={{ gridColumn: '1 / -1', background: '#0284c7', color: '#fff', fontWeight: 800 }}>
                 {editingNoteId ? 'নোট আপডেট করুন' : '➕ নতুন লেকচার শিট আপলোড করুন'}
               </button>
@@ -1239,9 +1281,34 @@ export function StudentGuideMasterAdminPanel({ sub, setSub, userRole, onNavigate
                   {notes.map(n => (
                     <tr key={n.id}>
                       <td><b>{n.class_name}ম শ্রেণি</b><br/><span style={{ color: '#0f766e', fontWeight: 700 }}>{n.subject_name}</span></td>
-                      <td><b>{n.title_bn}</b><br/><small style={{ color: '#64748b' }}>{n.summary}</small></td>
+                      <td>
+                        <b>{n.title_bn}</b><br/>
+                        <small style={{ color: '#64748b' }}>{n.summary}</small>
+                        {n.file_name && (
+                          <div style={{ marginTop: '3px' }}>
+                            <span style={{ fontSize: '11px', background: '#dcfce7', color: '#166534', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                              📄 {n.file_name} ({n.file_size})
+                            </span>
+                          </div>
+                        )}
+                      </td>
                       <td>{n.author_teacher}</td>
                       <td style={{ textAlign: 'right' }}>
+                        {n.pdf_file_data && (
+                          <button
+                            type="button"
+                            className="mini"
+                            style={{ background: '#047857', color: '#fff', marginRight: '6px' }}
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = n.pdf_file_data;
+                              link.download = n.file_name || `${n.title_bn}.pdf`;
+                              link.click();
+                            }}
+                          >
+                            📥 PDF
+                          </button>
+                        )}
                         <button type="button" className="mini" onClick={() => { setEditingNoteId(n.id); setNoteForm(n); window.scrollTo({ top: 100, behavior: 'smooth' }); }}>এডিট</button>
                         <button type="button" className="mini danger" onClick={() => { if(confirm('মুছে ফেলবেন?')){ const up = notes.filter(x => x.id !== n.id); setNotes(up); saveStoredNotes(up); } }}>মুছুন</button>
                       </td>

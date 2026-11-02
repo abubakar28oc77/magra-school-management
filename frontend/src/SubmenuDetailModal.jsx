@@ -4,6 +4,7 @@ import {
   getStoredSyllabuses,
   getStoredDigitalLearning,
   getStoredNotes,
+  saveStoredNotes,
   getStoredQuestions,
   getStoredAssignments,
   getStoredOnlineExams,
@@ -324,6 +325,208 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     } catch {
       setTrackingMsg('তথ্য অনুসন্ধানে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     }
+  };
+
+  // Notes & Lectures PDF Upload & Management State
+  const [notesList, setNotesList] = useState(getStoredNotes);
+  const [showNoteUploadDrawer, setShowNoteUploadDrawer] = useState(false);
+  const [noteSearchText, setNoteSearchText] = useState('');
+  const [noteSubjectFilter, setNoteSubjectFilter] = useState('all');
+  const [pdfPreviewModal, setPdfPreviewModal] = useState(null);
+  const [noteUploadForm, setNoteUploadForm] = useState({
+    class_name: '১০',
+    subject_name: 'পদার্থবিজ্ঞান',
+    doc_type: 'PDF লেকচার শিট',
+    chapter: '',
+    title_bn: '',
+    author_teacher: '',
+    summary: '',
+    pdf_file_data: '',
+    file_name: '',
+    file_size: '',
+    date_published: new Date().toISOString().slice(0, 10)
+  });
+
+  const handlePdfUploadSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('অনুগ্রহ করে শুধুমাত্র PDF (.pdf) ফাইল সিলেক্ট করুন।');
+      return;
+    }
+
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > 15) {
+      alert('ফাইল সাইজ ১৫ মেগাবাইট (15 MB)-এর বেশি হওয়া যাবে না।');
+      return;
+    }
+
+    const formattedSize = sizeInMB >= 1 
+      ? `${sizeInMB.toFixed(1)} MB` 
+      : `${Math.round(file.size / 1024)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      setNoteUploadForm(prev => ({
+        ...prev,
+        pdf_file_data: evt.target.result,
+        file_name: file.name,
+        file_size: formattedSize
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveUploadedNote = (e) => {
+    e.preventDefault();
+    if (!noteUploadForm.title_bn.trim()) {
+      alert('নোটের শিরোনাম দিন।');
+      return;
+    }
+    if (!noteUploadForm.subject_name.trim()) {
+      alert('বিষয় উল্লেখ করুন।');
+      return;
+    }
+
+    const newNote = {
+      ...noteUploadForm,
+      id: 'nt-' + Date.now(),
+      download_count: 0,
+      file_size: noteUploadForm.file_size || 'PDF'
+    };
+
+    const updated = [newNote, ...notesList];
+    setNotesList(updated);
+    saveStoredNotes(updated);
+    setShowNoteUploadDrawer(false);
+    setNoteUploadForm({
+      class_name: '১০',
+      subject_name: 'পদার্থবিজ্ঞান',
+      doc_type: 'PDF লেকচার শিট',
+      chapter: '',
+      title_bn: '',
+      author_teacher: '',
+      summary: '',
+      pdf_file_data: '',
+      file_name: '',
+      file_size: '',
+      date_published: new Date().toISOString().slice(0, 10)
+    });
+    alert('নতুন PDF নোট ও লেকচার শিট সফলভাবে আপলোড ও প্রকাশিত হয়েছে!');
+  };
+
+  const handleDeleteNote = (noteId) => {
+    if (confirm('আপনি কি এই নোটটি মুছে ফেলতে চান?')) {
+      const updated = notesList.filter(n => n.id !== noteId);
+      setNotesList(updated);
+      saveStoredNotes(updated);
+    }
+  };
+
+  const handleDownloadNote = (note) => {
+    if (note.pdf_file_data) {
+      const link = document.createElement('a');
+      link.href = note.pdf_file_data;
+      link.download = note.file_name || `Magra_School_Class${note.class_name}_${note.subject_name}_Note.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      printOrDownloadNoteDoc(note, 'download');
+    }
+
+    const updated = notesList.map(n => n.id === note.id ? { ...n, download_count: (Number(n.download_count) || 0) + 1 } : n);
+    setNotesList(updated);
+    saveStoredNotes(updated);
+  };
+
+  const printOrDownloadNoteDoc = (note, action = 'view') => {
+    if (note.pdf_file_data && action === 'view') {
+      setPdfPreviewModal(note);
+      return;
+    }
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      alert('পপআপ উইন্ডো ব্লক করা রয়েছে। ব্রাউজারের পপআপ পারমিশন এলাউ করুন।');
+      return;
+    }
+
+    const htmlDoc = `
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="UTF-8">
+        <title>${note.title_bn || note.title} - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Segoe UI', Arial, sans-serif; padding: 30px; color: #0f172a; background: #fff; line-height: 1.6; }
+          .header { text-align: center; border-bottom: 2.5px solid #0284c7; padding-bottom: 15px; margin-bottom: 25px; }
+          .header h1 { margin: 0; font-size: 24px; color: #0369a1; }
+          .header p { margin: 3px 0; font-size: 13px; color: #475569; }
+          .badge { display: inline-block; background: #e0f2fe; color: #0369a1; font-weight: bold; padding: 4px 12px; border-radius: 6px; font-size: 13px; margin-top: 6px; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13.5px; }
+          .title { font-size: 19px; font-weight: bold; color: #0f172a; margin: 15px 0 10px; border-left: 4px solid #0284c7; padding-left: 12px; }
+          .summary-card { background: #fff; border: 1.5px dashed #0284c7; border-radius: 8px; padding: 18px; font-size: 14px; line-height: 1.8; margin-top: 15px; }
+          .footer-signs { margin-top: 60px; display: flex; justify-content: space-between; padding-top: 20px; }
+          .sign-box { border-top: 1px dashed #64748b; width: 200px; text-align: center; font-size: 12.5px; padding-top: 6px; }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="text-align: right; margin-bottom: 20px;">
+          <button onclick="window.print()" style="background: #0284c7; color: white; border: none; padding: 9px 18px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer;">🖨️ প্রিন্ট / PDF সংরক্ষণ করুন</button>
+          <button onclick="window.close()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 6px; margin-left: 8px; font-size: 13px; cursor: pointer;">বন্ধ করুন</button>
+        </div>
+
+        <div class="header">
+          <h1>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+          <p>স্থাপিত: ১৯৩৯ • EIIN: 114290 • কালিহাতী, টাঙ্গাইল</p>
+          <div class="badge">শিক্ষার্থীর ডিজিটাল গাইড • অফিসিয়াল পাঠ্য ও লেকচার শিট</div>
+        </div>
+
+        <div class="meta-grid">
+          <div><b>শ্রেণি:</b> ${note.class_name}ম শ্রেণি</div>
+          <div><b>বিষয়:</b> ${note.subject_name}</div>
+          <div><b>অধ্যায়/পাঠ:</b> ${note.chapter || 'পূর্ণাঙ্গ অধ্যায়'}</div>
+          <div><b>প্রণয়নকারী শিক্ষক:</b> ${note.author_teacher || 'সংশ্লিষ্ট বিষয় শিক্ষক'}</div>
+          <div><b>প্রকাশের তারিখ:</b> ${note.date_published || '২০২৬'}</div>
+          <div><b>ডকুমেন্ট টাইপ:</b> ${note.doc_type || 'PDF লেকচার শিট'}</div>
+        </div>
+
+        <div class="title">${note.title_bn || note.title}</div>
+
+        <div class="summary-card">
+          <h4 style="margin-top: 0; color: #0284c7;">📌 মূল পাঠ ও গুরুত্বপূর্ণ আলোচনা:</h4>
+          <p style="white-space: pre-wrap;">${note.summary || 'এই লেকচার শিটে সংশ্লিষ্ট বিষয়ের সকল গুরুত্বপূর্ণ থিওরি, গাণিতিক সূত্রাবলী ও বিগত বছরের বোর্ড প্রশ্নসমূহের বিস্তারিত সমাধান সংকলিত রয়েছে।'}</p>
+        </div>
+
+        <div class="footer-signs">
+          <div class="sign-box">
+            <b>${note.author_teacher || 'বিষয় শিক্ষক'}</b><br/>
+            সংশ্লিষ্ট বিষয় শিক্ষক
+          </div>
+          <div class="sign-box">
+            <b>প্রধান শিক্ষক</b><br/>
+            মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            ${action === 'download' ? 'setTimeout(function(){ window.print(); }, 400);' : ''}
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWin.document.open();
+    printWin.document.write(htmlDoc);
+    printWin.document.close();
   };
 
   const renderContent = () => {
@@ -4501,21 +4704,221 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
     }
 
     // 5.5 নোট/লেকচার (Notes/Lectures)
-    if (menuKey === 'public.nav.guide.notes' || title?.includes('নোট/লেকচার')) {
-      const notes = getStoredNotes();
-      const filtered = notes.filter(n => classFilter === 'all' || n.class_name === classFilter);
+    if (menuKey === 'public.nav.guide.notes' || title?.includes('নোট/লেকচার') || title?.includes('নোট ও লেকচার') || title?.includes('নোট')) {
+      const uniqueSubjects = ['all', ...Array.from(new Set(notesList.map(n => n.subject_name).filter(Boolean)))];
+      const filtered = notesList.filter(n => {
+        if (classFilter !== 'all' && String(n.class_name) !== String(classFilter)) return false;
+        if (noteSubjectFilter !== 'all' && n.subject_name !== noteSubjectFilter) return false;
+        if (noteSearchText) {
+          const q = noteSearchText.toLowerCase();
+          const searchBlob = [n.title_bn, n.title, n.subject_name, n.chapter, n.author_teacher, n.summary, n.doc_type].filter(Boolean).join(' ').toLowerCase();
+          if (!searchBlob.includes(q)) return false;
+        }
+        return true;
+      });
 
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge" style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
-            📝 অভিজ্ঞ শিক্ষকবৃন্দের প্রস্তুতকৃত হ্যান্ডনোট ও লেকচার শিট
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}>
+              📝 অভিজ্ঞ শিক্ষকবৃন্দের প্রস্তুতকৃত হ্যান্ডনোট ও PDF লেকচার শিট (মোট: {toBn(notesList.length)} টি)
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowNoteUploadDrawer(!showNoteUploadDrawer)}
+              style={{
+                background: showNoteUploadDrawer ? '#e11d48' : '#0284c7',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontSize: '13px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 5px rgba(2, 132, 199, 0.25)'
+              }}
+            >
+              {showNoteUploadDrawer ? '✕ আপলোড উইন্ডো বন্ধ করুন' : '📤 নতুন PDF নোট আপলোড করুন'}
+            </button>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-            <p style={{ margin: 0, fontSize: '13.5px', color: '#475569' }}>ক্লাস পরীক্ষার প্রস্তুতি এবং বোর্ড পরীক্ষার সাজেশনের জন্য প্রিন্ট উপযোগী লেকচার নোট।</p>
+
+          {/* Upload Drawer Form */}
+          {showNoteUploadDrawer && (
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #0284c7',
+              borderRadius: '10px',
+              padding: '18px 20px',
+              marginBottom: '20px',
+              animation: 'fadeIn 0.25s ease'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                <h3 style={{ margin: 0, color: '#0369a1', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  📤 নতুন PDF নোট বা লেকচার শিট আপলোড
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>যে কোনো শ্রেণি ও বিষয়ের PDF ফাইল আপলোড করা যাবে</span>
+              </div>
+
+              <form onSubmit={handleSaveUploadedNote}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      শ্রেণি নির্বাচন *
+                    </label>
+                    <select
+                      value={noteUploadForm.class_name}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, class_name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    >
+                      <option value="৬">৬ষ্ঠ শ্রেণি</option>
+                      <option value="৭">৭ম শ্রেণি</option>
+                      <option value="৮">৮ম শ্রেণি</option>
+                      <option value="৯">৯ম শ্রেণি</option>
+                      <option value="১০">১০ম শ্রেণি</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      বিষয় *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: পদার্থবিজ্ঞান, বাংলা, উচ্চতর গণিত..."
+                      value={noteUploadForm.subject_name}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, subject_name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      অধ্যায় / পাঠের নাম
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: ৪র্থ অধ্যায় - কাজ, ক্ষমতা ও শক্তি"
+                      value={noteUploadForm.chapter}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, chapter: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      ডকুমেন্ট টাইপ
+                    </label>
+                    <select
+                      value={noteUploadForm.doc_type}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, doc_type: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    >
+                      <option value="PDF লেকচার শিট">PDF লেকচার শিট</option>
+                      <option value="হ্যান্ডনোট">হ্যান্ডনোট</option>
+                      <option value="পরীক্ষার চূড়ান্ত সাজেশন">পরীক্ষার চূড়ান্ত সাজেশন</option>
+                      <option value="গাণিতিক সমস্যা ও সমাধান">গাণিতিক সমস্যা ও সমাধান</option>
+                      <option value="বোর্ড প্রশ্ন সমাধান">বোর্ড প্রশ্ন সমাধান</option>
+                    </select>
+                  </div>
+
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      নোটের পূর্ণাঙ্গ শিরোনাম *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="যেমন: কাজ, ক্ষমতা ও শক্তি সূত্রের প্রমাণ এবং সকল বোর্ড সৃজনশীল সমাধান"
+                      value={noteUploadForm.title_bn}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, title_bn: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      প্রণয়নকারী শিক্ষক *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="শিক্ষকের নাম ও পদবি"
+                      value={noteUploadForm.author_teacher}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, author_teacher: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                      required
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, marginBottom: '4px', color: '#334155' }}>
+                      নোটের বিষয়বস্তু / মূল সারসংক্ষেপ
+                    </label>
+                    <textarea
+                      rows="2"
+                      placeholder="এই নোটটিতে কী কী বিষয় আলোচনা করা হয়েছে এবং শিক্ষার্থীদের কীভাবে সহায়তা করবে..."
+                      value={noteUploadForm.summary}
+                      onChange={e => setNoteUploadForm({ ...noteUploadForm, summary: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+                    />
+                  </div>
+
+                  {/* PDF File Input */}
+                  <div style={{ gridColumn: '1 / -1', background: '#f0f9ff', padding: '14px 16px', borderRadius: '8px', border: '1px solid #bae6fd' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, marginBottom: '6px', color: '#0369a1' }}>
+                      📄 PDF নোট / লেকচার ফাইল নির্বাচন করুন (.pdf ফাইল, সর্বোচ্চ ১৫ মেগাবাইট)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      onChange={handlePdfUploadSelect}
+                      style={{ fontSize: '13px', cursor: 'pointer' }}
+                    />
+                    {noteUploadForm.file_name ? (
+                      <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#047857', fontWeight: 600 }}>
+                        <span>✅ নির্বাচিত ফাইল:</span>
+                        <b>{noteUploadForm.file_name}</b>
+                        <span style={{ background: '#dcfce7', padding: '2px 8px', borderRadius: '4px', color: '#166534', fontSize: '11.5px' }}>
+                          {noteUploadForm.file_size}
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ marginTop: '4px', fontSize: '11.5px', color: '#64748b' }}>
+                        * ফাইল আপলোড না করলে স্বয়ংক্রিয় অফিশিয়াল প্যাড ফরম্যাটে প্রিন্ট/পিডিএফ ডাউনলোড প্রযোজ্য হবে।
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoteUploadDrawer(false)}
+                    style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                  >
+                    বাতিল
+                  </button>
+                  <button
+                    type="submit"
+                    style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '8px 22px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)' }}
+                  >
+                    💾 PDF নোট আপলোড ও প্রকাশ করুন
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Filtering and Search Bar */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
             <select
               value={classFilter}
               onChange={e => setClassFilter(e.target.value)}
-              style={{ padding: '7px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff', fontWeight: 600 }}
             >
               <option value="all">🏫 সকল শ্রেণি</option>
               <option value="৬">৬ষ্ঠ শ্রেণি</option>
@@ -4524,42 +4927,166 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               <option value="৯">৯ম শ্রেণি</option>
               <option value="১০">১০ম শ্রেণি</option>
             </select>
+
+            <select
+              value={noteSubjectFilter}
+              onChange={e => setNoteSubjectFilter(e.target.value)}
+              style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            >
+              <option value="all">📚 সকল বিষয়</option>
+              {uniqueSubjects.filter(s => s !== 'all').map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+
+            <input
+              type="text"
+              placeholder="🔍 বিষয়, অধ্যায়, শিরোনাম বা শিক্ষক খুঁজুন..."
+              value={noteSearchText}
+              onChange={e => setNoteSearchText(e.target.value)}
+              style={{ flex: 1, minWidth: '220px', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#fff' }}
+            />
+
+            {(classFilter !== 'all' || noteSubjectFilter !== 'all' || noteSearchText) && (
+              <button
+                type="button"
+                onClick={() => { setClassFilter('all'); setNoteSubjectFilter('all'); setNoteSearchText(''); }}
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+              >
+                ফিল্টার রিসেট
+              </button>
+            )}
           </div>
 
-          <table className="modal-table">
-            <thead>
-              <tr>
-                <th>শ্রেণি</th>
-                <th>বিষয়</th>
-                <th>নোটের শিরোনাম</th>
-                <th>অধ্যায়</th>
-                <th>প্রণয়নকারী শিক্ষক</th>
-                <th>সাইজ</th>
-                <th>ডাউনলোড</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(n => (
-                <tr key={n.id}>
-                  <td style={{ fontWeight: 800 }}>{n.class_name} শ্রেণি</td>
-                  <td><b>{n.subject_name}</b></td>
-                  <td>{n.title}</td>
-                  <td><span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{n.chapter}</span></td>
-                  <td style={{ color: '#0369a1', fontWeight: 600 }}>{n.author_teacher}</td>
-                  <td>{n.file_size}</td>
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => alert('নোট ডাউনলোড হচ্ছে: ' + n.title)}
-                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      📥 PDF নোট
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Notes Table */}
+          {filtered.length === 0 ? (
+            <div style={{ padding: '36px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+              <p style={{ margin: 0, fontWeight: 700, color: '#334155' }}>কোনো নোট বা লেকচার শিট পাওয়া যায়নি।</p>
+              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>অন্য শ্রেণি বা বিষয় নির্বাচন করে দেখুন অথবা নতুন নোট আপলোড করুন।</p>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="modal-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9' }}>
+                    <th style={{ width: '80px' }}>শ্রেণি</th>
+                    <th style={{ width: '130px' }}>বিষয়</th>
+                    <th>নোটের শিরোনাম ও বিবরণ</th>
+                    <th style={{ width: '120px' }}>অধ্যায়/পাঠ</th>
+                    <th style={{ width: '140px' }}>শিক্ষক</th>
+                    <th style={{ width: '75px', textAlign: 'center' }}>সাইজ</th>
+                    <th style={{ width: '70px', textAlign: 'center' }}>ডাউনলোড</th>
+                    <th style={{ width: '150px', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(n => (
+                    <tr key={n.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ fontWeight: 800, color: '#0f172a' }}>
+                        {n.class_name} শ্রেণি
+                      </td>
+                      <td>
+                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 700 }}>
+                          {n.subject_name}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '13.5px' }}>
+                          {n.title_bn || n.title}
+                        </div>
+                        {n.summary && (
+                          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', lineHeight: 1.4 }}>
+                            {n.summary}
+                          </div>
+                        )}
+                        <div style={{ display: 'inline-flex', gap: '6px', marginTop: '4px' }}>
+                          <span style={{ fontSize: '11px', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '1px 6px', borderRadius: '4px', color: '#475569' }}>
+                            {n.doc_type || 'PDF লেকচার শিট'}
+                          </span>
+                          {n.pdf_file_data && (
+                            <span style={{ fontSize: '11px', background: '#dcfce7', border: '1px solid #86efac', padding: '1px 6px', borderRadius: '4px', color: '#166534', fontWeight: 600 }}>
+                              ✓ আসল PDF সংযুক্ত
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>
+                          {n.chapter || '—'}
+                        </span>
+                      </td>
+                      <td style={{ color: '#0369a1', fontWeight: 600, fontSize: '12.5px' }}>
+                        {n.author_teacher}
+                      </td>
+                      <td style={{ textAlign: 'center', fontSize: '12px', color: '#64748b' }}>
+                        {n.file_size || 'PDF'}
+                      </td>
+                      <td style={{ textAlign: 'center', fontSize: '12px', fontWeight: 700, color: '#047857' }}>
+                        {toBn(n.download_count || 0)} বার
+                      </td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadNote(n)}
+                            title="সরাসরি PDF ডাউনলোড করুন"
+                            style={{
+                              background: '#047857',
+                              color: '#fff',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            📥 ডাউনলোড
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => printOrDownloadNoteDoc(n, 'view')}
+                            title="নোটটি দেখুন বা প্রিন্ট করুন"
+                            style={{
+                              background: '#f1f5f9',
+                              color: '#334155',
+                              border: '1px solid #cbd5e1',
+                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            👁️
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(n.id)}
+                            title="নোট মুছে ফেলুন"
+                            style={{
+                              background: '#fff1f2',
+                              color: '#e11d48',
+                              border: '1px solid #fecdd3',
+                              padding: '5px 8px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       );
     }
@@ -4857,6 +5384,80 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           <button className="btn btn-ghost" onClick={onClose}>বন্ধ করুন</button>
         </div>
       </div>
+
+      {pdfPreviewModal && (
+        <div
+          className="submenu-modal-overlay"
+          style={{ zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(3px)' }}
+          onClick={() => setPdfPreviewModal(null)}
+        >
+          <div
+            className="submenu-modal-card"
+            style={{ maxWidth: '950px', width: '96%', maxHeight: '92vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="modal-header" style={{ background: '#0284c7', color: '#fff', borderBottom: 'none', padding: '14px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '20px' }}>📄</span>
+                <div>
+                  <h3 style={{ margin: 0, color: '#fff', fontSize: '16px', fontWeight: 700 }}>
+                    {pdfPreviewModal.title_bn || pdfPreviewModal.title}
+                  </h3>
+                  <small style={{ color: '#e0f2fe', fontSize: '12px' }}>
+                    {pdfPreviewModal.class_name}ম শ্রেণি • {pdfPreviewModal.subject_name} • শিক্ষক: {pdfPreviewModal.author_teacher}
+                  </small>
+                </div>
+              </div>
+              <button className="modal-close-btn" style={{ color: '#fff', fontSize: '18px' }} onClick={() => setPdfPreviewModal(null)}>✕</button>
+            </div>
+
+            <div style={{ flex: 1, minHeight: '520px', background: '#f8fafc', padding: 0, position: 'relative' }}>
+              {pdfPreviewModal.pdf_file_data ? (
+                <iframe
+                  src={pdfPreviewModal.pdf_file_data}
+                  title="PDF Document Preview"
+                  style={{ width: '100%', height: '560px', border: 'none' }}
+                />
+              ) : (
+                <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>📑</div>
+                  <h3 style={{ color: '#0f172a', marginBottom: '8px' }}>অফিসিয়াল লেকচার নোট</h3>
+                  <p style={{ maxWidth: '500px', margin: '0 auto 20px', color: '#64748b', fontSize: '14px', lineHeight: 1.6 }}>
+                    এই নোটটির সরাসরি প্রিন্ট ও ডাউনলোড ভার্সন প্রস্তুত রয়েছে। ব্রাউজার প্রিন্ট ডায়ের মাধ্যমে সরাসরি PDF হিসেবে সেভ বা প্রিন্ট করা যাবে।
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => printOrDownloadNoteDoc(pdfPreviewModal, 'download')}
+                    style={{ background: '#0284c7', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}
+                  >
+                    🖨️ প্রিন্ট ও PDF সেভ করুন
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f1f5f9', borderTop: '1px solid #e2e8f0', padding: '12px 20px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handleDownloadNote(pdfPreviewModal)}
+                  style={{ background: '#047857', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer', fontSize: '13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  📥 সরাসরি PDF ডাউনলোড
+                </button>
+                <button
+                  type="button"
+                  onClick={() => printOrDownloadNoteDoc(pdfPreviewModal, 'view')}
+                  style={{ background: '#fff', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                >
+                  🖨️ প্রিন্ট মোড
+                </button>
+              </div>
+              <button className="btn btn-ghost" onClick={() => setPdfPreviewModal(null)}>বন্ধ করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
