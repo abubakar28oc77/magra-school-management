@@ -16,6 +16,124 @@ import { SubmenuDetailModal } from './SubmenuDetailModal';
 import { MOCK_STUDENTS, getStudentPhoto, PHOTO_STUDENT_MALE_1 } from './mockData';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
+// --- Pure Utility Functions (Module Scope to prevent TDZ) ---
+export const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
+
+export function toBnDigits(num) {
+  if (num === null || num === undefined || num === '') return '—';
+  const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return String(num).replace(/[0-9]/g, d => bn[Number(d)]);
+}
+
+export function normClass(cls) {
+  if (!cls) return '';
+  const s = String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
+  const map = {
+    '6': '৬ষ্ঠ', '৬': '৬ষ্ঠ', '৬ষ্ঠ': '৬ষ্ঠ',
+    '7': '৭ম', '৭': '৭ম', '৭ম': '৭ম',
+    '8': '৮ম', '৮': '৮ম', '৮ম': '৮ম',
+    '9': '৯ম', '৯': '৯ম', '৯ম': '৯ম',
+    '10': '১০ম', '১০': '১০ম', '১০ম': '১০ম'
+  };
+  return map[s] || s;
+}
+
+export function parseNum(val) {
+  if (!val && val !== 0) return 99999;
+  const str = String(val).trim();
+  const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
+  const m = converted.match(/\d+/);
+  return m ? parseInt(m[0], 10) : 99999;
+}
+
+export function cleanId(val) {
+  if (!val && val !== 0) return '';
+  return String(val).trim().replace(/^stp-/i, '').toLowerCase();
+}
+
+export function resolveDepartment(s) {
+  if (!s) return '';
+  const norm = normClass(s.class_name);
+  if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) return '';
+  const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id]
+    .filter(Boolean)
+    .join(' ')
+    .replace(/য়/g, 'য়')
+    .toLowerCase();
+
+  if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
+  if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
+  if (str.includes('ব্যবসায়') || str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
+  return s.department ? String(s.department).replace(/য়/g, 'য়') : '';
+}
+
+export function getStudentAcademicKey(item) {
+  if (!item) return '';
+  const cls = normClass(item.class_name);
+  const roll = parseNum(item.roll_no);
+  if (!cls || roll === 99999) return '';
+  const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(cls);
+  if (isSSC) {
+    const dept = resolveDepartment(item);
+    return `${cls}_${dept || 'all'}_${roll}`;
+  } else {
+    const sec = (item.section || '').includes('খ') ? 'খ' : ((item.section || '').includes('ক') ? 'ক' : '');
+    return sec ? `${cls}_${sec}_${roll}` : `${cls}_${roll}`;
+  }
+}
+
+export function isSameStudent(a, b) {
+  if (!a || !b) return false;
+
+  const aId = cleanId(a.id);
+  const aSid = cleanId(a.student_id);
+  const bId = cleanId(b.id);
+  const bSid = cleanId(b.student_id);
+
+  if (aId && (aId === bId || aId === bSid)) return true;
+  if (aSid && (aSid === bId || aSid === bSid)) return true;
+
+  const aCls = normClass(a.class_name);
+  const bCls = normClass(b.class_name);
+  if (!aCls || !bCls || aCls !== bCls) return false;
+
+  const aRoll = parseNum(a.roll_no);
+  const bRoll = parseNum(b.roll_no);
+  if (aRoll === 99999 || bRoll === 99999 || aRoll !== bRoll) return false;
+
+  const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(aCls);
+  if (isSSC) {
+    const aDept = resolveDepartment(a);
+    const bDept = resolveDepartment(b);
+    if (aDept && bDept) {
+      return aDept === bDept;
+    }
+  } else {
+    const aSec = (a.section || '').includes('খ') ? 'খ' : ((a.section || '').includes('ক') ? 'ক' : '');
+    const bSec = (b.section || '').includes('খ') ? 'খ' : ((b.section || '').includes('ক') ? 'ক' : '');
+    if (aSec && bSec && aSec !== bSec) return false;
+    return true;
+  }
+
+  if (a.name_bn && b.name_bn && a.name_bn.trim() === b.name_bn.trim()) {
+    return true;
+  }
+
+  return false;
+}
+
+export function getInitialTab(s) {
+  if (!s) return 'enrolled';
+  if (['enrolled', 'list', 'new', 'csv', 'promotion', 'village'].includes(s)) return 'enrolled';
+  if (['govt_scholarship', 'scholarship'].includes(s)) return 'govt_scholarship';
+  if (['stipend'].includes(s)) return 'stipend';
+  if (['meritorious', 'distinguished'].includes(s)) return 'meritorious';
+  if (['former_meritorious', 'formerDistinguished'].includes(s)) return 'former_meritorious';
+  if (['class_seats', 'seats'].includes(s)) return 'class_seats';
+  if (['attendance_records', 'attendance'].includes(s)) return 'attendance_records';
+  return 'enrolled';
+}
+
 export function StudentMasterAdminPanel({ 
   sub, 
   setSub, 
@@ -24,19 +142,6 @@ export function StudentMasterAdminPanel({
   VillageStudentPanelComponent,
   onNavigate 
 }) {
-  // Normalize initial tab
-  const getInitialTab = (s) => {
-    if (!s) return 'enrolled';
-    if (['enrolled', 'list', 'new', 'csv', 'promotion', 'village'].includes(s)) return 'enrolled';
-    if (['govt_scholarship', 'scholarship'].includes(s)) return 'govt_scholarship';
-    if (['stipend'].includes(s)) return 'stipend';
-    if (['meritorious', 'distinguished'].includes(s)) return 'meritorious';
-    if (['former_meritorious', 'formerDistinguished'].includes(s)) return 'former_meritorious';
-    if (['class_seats', 'seats'].includes(s)) return 'class_seats';
-    if (['attendance_records', 'attendance'].includes(s)) return 'attendance_records';
-    return 'enrolled';
-  };
-
   const [activeTab, setActiveTab] = useState(() => getInitialTab(sub));
   const [toastMsg, setToastMsg] = useState('');
   const [previewModal, setPreviewModal] = useState(null);
@@ -160,10 +265,6 @@ export function StudentMasterAdminPanel({
     };
   }, [activeTab]);
 
-  useEffect(() => {
-    setClassSeats(getStoredClassSeats(enrolledStudents));
-  }, [enrolledStudents]);
-
   // Dynamic class-wise attendance statistics computed directly from entered student list
   const attendanceBreakdown = useMemo(() => {
     const todayStr = new Date().toISOString().slice(0, 10);
@@ -268,110 +369,6 @@ export function StudentMasterAdminPanel({
       overallPct: toBnDigits(overallPctNum) + '%'
     };
   }, [enrolledStudents]);
-
-  const normClass = (cls) => {
-    if (!cls) return '';
-    const s = String(cls).replace(/শ্রেণি|শ্রেণী/g, '').trim();
-    const map = {
-      '6': '৬ষ্ঠ', '৬': '৬ষ্ঠ', '৬ষ্ঠ': '৬ষ্ঠ',
-      '7': '৭ম', '৭': '৭ম', '৭ম': '৭ম',
-      '8': '৮ম', '৮': '৮ম', '৮ম': '৮ম',
-      '9': '৯ম', '৯': '৯ম', '৯ম': '৯ম',
-      '10': '১০ম', '১০': '১০ম', '১০ম': '১০ম'
-    };
-    return map[s] || s;
-  };
-
-  const toBnDigits = (num) => {
-    if (num === null || num === undefined || num === '') return '—';
-    const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-    return String(num).replace(/[0-9]/g, d => bn[Number(d)]);
-  };
-
-  const bnDigits = { '০': 0, '১': 1, '২': 2, '৩': 3, '৪': 4, '৫': 5, '৬': 6, '৭': 7, '৮': 8, '৯': 9 };
-  const parseNum = (val) => {
-    if (!val && val !== 0) return 99999;
-    const str = String(val).trim();
-    const converted = str.split('').map(ch => bnDigits[ch] !== undefined ? bnDigits[ch] : ch).join('');
-    const m = converted.match(/\d+/);
-    return m ? parseInt(m[0], 10) : 99999;
-  };
-
-  const cleanId = (val) => {
-    if (!val && val !== 0) return '';
-    return String(val).trim().replace(/^stp-/i, '').toLowerCase();
-  };
-
-  const resolveDepartment = (s) => {
-    if (!s) return '';
-    const norm = normClass(s.class_name);
-    if (['6', '7', '8', '৬', '৭', '৮', '৬ষ্ঠ', '৭ম', '৮ম'].includes(norm)) return '';
-    const str = [s.department, s.group_name, s.group, s.section, s.student_id, s.id]
-      .filter(Boolean)
-      .join(' ')
-      .replace(/য়/g, 'য়')
-      .toLowerCase();
-
-    if (str.includes('বিজ্ঞান') || str.includes('sci')) return 'বিজ্ঞান';
-    if (str.includes('মানবিক') || str.includes('hum') || str.includes('arts')) return 'মানবিক';
-    if (str.includes('ব্যবসায়') || str.includes('ব্যবসা') || str.includes('বাণিজ্য') || str.includes('comm') || str.includes('bus')) return 'ব্যবসায় শিক্ষা';
-    return s.department ? String(s.department).replace(/য়/g, 'য়') : '';
-  };
-
-  const getStudentAcademicKey = (item) => {
-    if (!item) return '';
-    const cls = normClass(item.class_name);
-    const roll = parseNum(item.roll_no);
-    if (!cls || roll === 99999) return '';
-    const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(cls);
-    if (isSSC) {
-      const dept = resolveDepartment(item);
-      return `${cls}_${dept || 'all'}_${roll}`;
-    } else {
-      const sec = (item.section || '').includes('খ') ? 'খ' : ((item.section || '').includes('ক') ? 'ক' : '');
-      return sec ? `${cls}_${sec}_${roll}` : `${cls}_${roll}`;
-    }
-  };
-
-  const isSameStudent = (a, b) => {
-    if (!a || !b) return false;
-
-    const aId = cleanId(a.id);
-    const aSid = cleanId(a.student_id);
-    const bId = cleanId(b.id);
-    const bSid = cleanId(b.student_id);
-
-    if (aId && (aId === bId || aId === bSid)) return true;
-    if (aSid && (aSid === bId || aSid === bSid)) return true;
-
-    const aCls = normClass(a.class_name);
-    const bCls = normClass(b.class_name);
-    if (!aCls || !bCls || aCls !== bCls) return false;
-
-    const aRoll = parseNum(a.roll_no);
-    const bRoll = parseNum(b.roll_no);
-    if (aRoll === 99999 || bRoll === 99999 || aRoll !== bRoll) return false;
-
-    const isSSC = ['9', '10', '৯', '১০', '৯ম', '১০ম'].includes(aCls);
-    if (isSSC) {
-      const aDept = resolveDepartment(a);
-      const bDept = resolveDepartment(b);
-      if (aDept && bDept) {
-        return aDept === bDept;
-      }
-    } else {
-      const aSec = (a.section || '').includes('খ') ? 'খ' : ((a.section || '').includes('ক') ? 'ক' : '');
-      const bSec = (b.section || '').includes('খ') ? 'খ' : ((b.section || '').includes('ক') ? 'ক' : '');
-      if (aSec && bSec && aSec !== bSec) return false;
-      return true;
-    }
-
-    if (a.name_bn && b.name_bn && a.name_bn.trim() === b.name_bn.trim()) {
-      return true;
-    }
-
-    return false;
-  };
 
   // Lookup map for existing stipend students (ID-first, with specific class+dept+roll key)
   const stipendMap = new Map();
@@ -699,6 +696,10 @@ export function StudentMasterAdminPanel({
 
   // 5. Class Seats State & Settings
   const [classSeats, setClassSeats] = useState(() => getStoredClassSeats(enrolledStudents));
+
+  useEffect(() => {
+    setClassSeats(getStoredClassSeats(enrolledStudents));
+  }, [enrolledStudents]);
   const [editingClassId, setEditingClassId] = useState(null);
   const [seatForm, setSeatForm] = useState({
     sections: '',
