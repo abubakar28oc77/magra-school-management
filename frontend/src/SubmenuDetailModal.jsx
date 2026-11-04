@@ -4429,6 +4429,16 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
       );
     }
 
+    // 4.0 পাবলিক পরীক্ষার ফলাফল সরাসরি ম্যাচিং (Direct catch for Public Exam Results)
+    if (
+      menuKey === 'public.nav.results.public_exams' ||
+      menuKey === 'public_exams' ||
+      (typeof menuKey === 'string' && menuKey.includes('public_exam')) ||
+      (typeof title === 'string' && title.includes('পাবলিক পরীক্ষা'))
+    ) {
+      return <PublicExamResultsView />;
+    }
+
     // 4. Results (Strictly mapped to the 6 submenus and class rules)
     if (menuKey.startsWith('public.nav.results')) {
       // 4.1 ভর্তি পরীক্ষার ফলাফল

@@ -797,6 +797,13 @@ export function getStoredPublicExamResults() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length) {
+        const hasDeptData = parsed.some(p => p && p.departments && (p.departments.science || p.departments.humanities));
+        if (!hasDeptData) {
+          try {
+            localStorage.setItem('magra_db_public_exam_results', JSON.stringify(DEFAULT_PUBLIC_EXAM_RESULTS));
+          } catch {}
+          return DEFAULT_PUBLIC_EXAM_RESULTS.map(normalizePublicExamRecord);
+        }
         return parsed.map(normalizePublicExamRecord);
       }
     }
