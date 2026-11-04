@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   getStoredAdmissionResults,
   saveStoredAdmissionResults,
@@ -11,8 +11,14 @@ import {
   getStoredTestResults,
   saveStoredTestResults,
   getStoredPublicExamResults,
-  saveStoredPublicExamResults
+  saveStoredPublicExamResults,
+  PUBLIC_EXAM_DEPARTMENTS,
+  createEmptyDeptStats,
+  normalizePublicExamRecord,
+  calculateDeptStats,
+  calculateRecordTotals
 } from './examResultsDataStore';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
 
 export function ResultMasterAdminPanel({ 
@@ -316,36 +322,178 @@ export function ResultMasterAdminPanel({
     setEditingTestId(null);
   };
 
-  // 6. Public Exams State & CRUD (SSC / JSC)
-  const [publicExams, setPublicExams] = useState(getStoredPublicExamResults);
-  const [editingPubId, setEditingPubId] = useState(null);
-  const [pubForm, setPubForm] = useState({
+  // 6. Public Exams State & CRUD (SSC with Department-wise Breakdowns)
+  const initialPubForm = () => ({
     year: '২০২৬',
     exam_name: 'এসএসসি পরীক্ষা ২০২৬',
-    candidates: 145,
-    passed: 142,
-    gpa5: 42,
-    golden_gpa5: 22,
-    failed: 3,
-    pass_rate: '97.93%',
-    board: 'ঢাকা শিক্ষা বোর্ড',
-    highlights: 'গৌরবোজ্জ্বল ফলাফল'
+    board: 'মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা',
+    departments: {
+      science: { candidates: '', gpa5: '', gpa4: '', gpa3_5: '', gpa3: '', gpa2: '', gpa1: '', failed: '' },
+      humanities: { candidates: '', gpa5: '', gpa4: '', gpa3_5: '', gpa3: '', gpa2: '', gpa1: '', failed: '' },
+      business: { candidates: '', gpa5: '', gpa4: '', gpa3_5: '', gpa3: '', gpa2: '', gpa1: '', failed: '' }
+    }
   });
+
+  const [publicExams, setPublicExams] = useState(() => getStoredPublicExamResults());
+  const [editingPubId, setEditingPubId] = useState(null);
+  const [pubForm, setPubForm] = useState(initialPubForm);
+
+  const updatePubDeptField = (deptKey, field, val) => {
+    setPubForm(prev => ({
+      ...prev,
+      departments: {
+        ...prev.departments,
+        [deptKey]: {
+          ...(prev.departments?.[deptKey] || {}),
+          [field]: val
+        }
+      }
+    }));
+  };
+
+  const formTotals = useMemo(() => calculateRecordTotals(pubForm), [pubForm]);
 
   const savePublicExam = (e) => {
     e.preventDefault();
+    const normalized = normalizePublicExamRecord(pubForm);
     let updated;
     if (editingPubId) {
-      updated = publicExams.map(item => item.id === editingPubId ? { ...item, ...pubForm } : item);
-      showToast('পাবলিক পরীক্ষার ফলাফল পরিসংখ্যান আপডেট হয়েছে!');
+      updated = publicExams.map(item => item.id === editingPubId ? { ...normalized, id: editingPubId } : item);
+      showToast('✓ পাবলিক পরীক্ষার বিভাগভিত্তিক ফলাফল সফলভাবে আপডেট হয়েছে!');
     } else {
-      const newItem = { ...pubForm, id: 'pub-' + Date.now() };
+      const newItem = { ...normalized, id: 'pub-' + Date.now() };
       updated = [newItem, ...publicExams];
-      showToast('নতুন পাবলিক পরীক্ষার ফলাফল রেকর্ড সংরক্ষিত হয়েছে!');
+      showToast('✓ নতুন পাবলিক পরীক্ষার বিভাগভিত্তিক ফলাফল সফলভাবে সংরক্ষিত হয়েছে!');
     }
     setPublicExams(updated);
     saveStoredPublicExamResults(updated);
     setEditingPubId(null);
+    setPubForm(initialPubForm());
+  };
+
+  const handleEditPublicExam = (item) => {
+    const norm = normalizePublicExamRecord(item);
+    setEditingPubId(item.id);
+    setPubForm({
+      year: norm.year || '২০২৬',
+      exam_name: norm.exam_name || 'এসএসসি পরীক্ষা ২০২৬',
+      board: norm.board || 'মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা',
+      departments: {
+        science: { ...norm.departments.science },
+        humanities: { ...norm.departments.humanities },
+        business: { ...norm.departments.business }
+      }
+    });
+  };
+
+  const handlePrintPublicExamPad = (item) => {
+    const norm = normalizePublicExamRecord(item);
+    const totals = calculateRecordTotals(norm);
+
+    const printWindow = window.open('', '_blank', 'width=1000,height=900');
+    if (!printWindow) {
+      alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+      return;
+    }
+
+    const deptRows = [
+      { name: 'বিজ্ঞান বিভাগ', icon: '🔬', stats: totals.science, color: '#047857' },
+      { name: 'মানবিক বিভাগ', icon: '📚', stats: totals.humanities, color: '#0284c7' },
+      { name: 'ব্যবসায় শিক্ষা শাখা', icon: '💼', stats: totals.business, color: '#b45309' }
+    ].map(d => `
+      <tr>
+        <td style="padding:8px 10px;border:1px solid #0f172a;font-weight:700;color:${d.color};">${d.icon} ${d.name}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:700;">${d.stats.candidates}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#0369a1;font-weight:800;">${d.stats.gpa5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa4}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3_5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa2}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa1}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#dc2626;font-weight:700;">${d.stats.failed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#047857;font-weight:800;">${d.stats.passed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:800;">${d.stats.pass_rate}</td>
+      </tr>
+    `).join('');
+
+    const totalRow = `
+      <tr style="background:#f1f5f9;font-weight:900;">
+        <td style="padding:9px 10px;border:1px solid #0f172a;">📊 সর্বমোট (Grand Total)</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.candidates}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0369a1;">${totals.total.gpa5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa4}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3_5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa2}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa1}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#dc2626;">${totals.total.failed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#047857;">${totals.total.passed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0f172a;">${totals.total.pass_rate}</td>
+      </tr>
+    `;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${norm.exam_name} (${norm.year}) — বিভাগভিত্তিক ফলাফল বিবরণী</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 13px; line-height: 1.5; background: #fff; }
+          ${SCHOOL_PAD_STYLES}
+          .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; margin: 12px 0 16px 0; border-bottom: 1px dotted #cbd5e1; padding-bottom: 6px; }
+          .order-title { text-align: center; margin: 10px 0 4px 0; font-size: 18px; font-weight: 900; color: #0f172a; }
+          .order-sub { text-align: center; margin: 0 0 14px 0; font-size: 13px; color: #475569; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f8fafc; font-weight: 800; border: 1px solid #0f172a; padding: 7px 5px; font-size: 12px; }
+          .footer-signs { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 700; }
+          .sign-line { border-top: 1px dashed #0f172a; padding-top: 5px; width: 180px; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div class="meta-row">
+          <span>স্মারক নং: মপাউউবি/এসএসসি/${norm.year}/০১</span>
+          <span>তারিখ: ....................</span>
+        </div>
+        <div class="order-title">পাবলিক পরীক্ষা (এসএসসি) বিভাগভিত্তিক ফলাফল বিবরণী</div>
+        <div class="order-sub">পরীক্ষা: <b>${norm.exam_name}</b> | শিক্ষাবর্ষ: <b>${norm.year}</b> | বোর্ড: <b>${norm.board}</b></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">বিভাগ / শাখা</th>
+              <th>মোট পরীক্ষার্থী</th>
+              <th>GPA 5.00<br>(A+)</th>
+              <th>GPA 4.00-4.99<br>(A)</th>
+              <th>GPA 3.50-3.99<br>(A-)</th>
+              <th>GPA 3.00-3.49<br>(B)</th>
+              <th>GPA 2.00-2.99<br>(C)</th>
+              <th>GPA 1.00-1.99<br>(D)</th>
+              <th style="color:#dc2626;">মোট ফেল<br>(F)</th>
+              <th style="color:#047857;">মোট উত্তীর্ণ</th>
+              <th>পাশের হার (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${deptRows}
+            ${totalRow}
+          </tbody>
+        </table>
+
+        <div class="footer-signs">
+          <div><div class="sign-line">পরীক্ষা নিয়ন্ত্রক / সদস্য সচিব</div></div>
+          <div><div class="sign-line">প্রধান শিক্ষক</div></div>
+          <div><div class="sign-line">সভাপতি (ম্যানেজিং / এডহক কমিটি)</div></div>
+        </div>
+        <script>
+          window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
@@ -1703,171 +1851,351 @@ export function ResultMasterAdminPanel({
         </div>
       )}
 
-      {/* TAB 6: পাবলিক পরীক্ষার ফলাফল (SSC ও JSC) */}
+      {/* TAB 6: পাবলিক পরীক্ষার ফলাফল (বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখা ভিত্তিক) */}
       {activeTab === 'public_exams' && (
-        <div className="module-grid">
+        <div style={{ display: 'grid', gap: '20px' }}>
           {/* Form */}
-          <div className="form-card">
-            <div className="toolbar">
-              <h2>{editingPubId ? 'পাবলিক ফলাফল সম্পাদনা' : 'নতুন পাবলিক পরীক্ষা (SSC) রেকর্ড যোগ'}</h2>
-              {editingPubId && <button type="button" className="mini" onClick={() => setEditingPubId(null)}>বাতিল</button>}
+          <div className="form-card full" style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+            <div className="toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '16.5px', fontWeight: 800, color: '#0f766e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {editingPubId ? '✏️ বিভাগভিত্তিক পাবলিক ফলাফল সম্পাদনা' : '🏛️ নতুন পাবলিক পরীক্ষা (SSC) বিভাগভিত্তিক ফলাফল এন্ট্রি'}
+                </h2>
+                <small style={{ color: '#64748b', fontSize: '12px' }}>বিজ্ঞান বিভাগ, মানবিক বিভাগ ও ব্যবসায় শিক্ষা শাখার সুনির্দিষ্ট ফলাফল ও গ্রেড পয়েন্ট ভিত্তিক এন্ট্রি করুন</small>
+              </div>
+              {editingPubId && (
+                <button
+                  type="button"
+                  className="mini"
+                  onClick={() => {
+                    setEditingPubId(null);
+                    setPubForm(initialPubForm());
+                  }}
+                  style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '5px 12px', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  ✕ সম্পাদনা বাতিল
+                </button>
+              )}
             </div>
 
-            <form onSubmit={savePublicExam} className="form-grid">
-              <input
-                placeholder="শিক্ষাবর্ষ (যেমন: ২০২৬) *"
-                value={pubForm.year}
-                onChange={e => setPubForm({ ...pubForm, year: e.target.value })}
-                required
-              />
-              <input
-                placeholder="পরীক্ষার নাম (যেমন: এসএসসি পরীক্ষা ২০২৬) *"
-                value={pubForm.exam_name}
-                onChange={e => setPubForm({ ...pubForm, exam_name: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                placeholder="মোট পরীক্ষার্থী *"
-                value={pubForm.candidates}
-                onChange={e => setPubForm({ ...pubForm, candidates: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                placeholder="মোট উত্তীর্ণ *"
-                value={pubForm.passed}
-                onChange={e => setPubForm({ ...pubForm, passed: e.target.value })}
-                required
-              />
-              <input
-                type="number"
-                placeholder="GPA 5.00 প্রাপ্ত"
-                value={pubForm.gpa5}
-                onChange={e => setPubForm({ ...pubForm, gpa5: e.target.value })}
-              />
-              <input
-                type="number"
-                placeholder="গোল্ডেন GPA 5.00"
-                value={pubForm.golden_gpa5}
-                onChange={e => setPubForm({ ...pubForm, golden_gpa5: e.target.value })}
-              />
-              <input
-                placeholder="পাশের হার (যেমন: 98.50%)"
-                value={pubForm.pass_rate}
-                onChange={e => setPubForm({ ...pubForm, pass_rate: e.target.value })}
-              />
-              <input
-                placeholder="শিক্ষা বোর্ড (যেমন: ঢাকা শিক্ষা বোর্ড)"
-                value={pubForm.board}
-                onChange={e => setPubForm({ ...pubForm, board: e.target.value })}
-              />
-              <textarea
-                className="full"
-                rows="2"
-                placeholder="বিশেষ অর্জন ও হাইলাইটস"
-                value={pubForm.highlights}
-                onChange={e => setPubForm({ ...pubForm, highlights: e.target.value })}
-              />
+            <form onSubmit={savePublicExam}>
+              {/* Basic Session & Exam Info */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '18px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    শিক্ষাবর্ষ (Session) *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: ২০২৬"
+                    value={pubForm.year}
+                    onChange={e => setPubForm({ ...pubForm, year: e.target.value })}
+                    required
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    পরীক্ষার নাম *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: এসএসসি পরীক্ষা ২০২৬"
+                    value={pubForm.exam_name}
+                    onChange={e => setPubForm({ ...pubForm, exam_name: e.target.value })}
+                    required
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1.5px solid #cbd5e1', fontSize: '13px', fontWeight: 600 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    শিক্ষা বোর্ড
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা"
+                    value={pubForm.board}
+                    onChange={e => setPubForm({ ...pubForm, board: e.target.value })}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
 
-              <button type="submit" className="btn full" style={{ background: '#0f766e' }}>
-                {editingPubId ? '✓ পাবলিক ফলাফল আপডেট' : '🏛️ পাবলিক ফলাফল আর্কাইভ সংরক্ষণ'}
-              </button>
+              {/* Department-wise Entry Table with Exact Fields Requested */}
+              <div style={{ overflowX: 'auto', marginBottom: '16px', border: '1px solid #cbd5e1', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', color: '#1e293b' }}>
+                      <th style={{ padding: '9px 10px', border: '1px solid #cbd5e1', textAlign: 'left', minWidth: '150px' }}>বিভাগ / শাখা</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px', background: '#f1f5f9' }}>মোট পরীক্ষার্থী</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '80px', color: '#0369a1', background: '#eff6ff' }}>GPA 5.00<br/>(A+)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px' }}>GPA 4.00-4.99<br/>(A)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px' }}>GPA 3.50-3.99<br/>(A-)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px' }}>GPA 3.00-3.49<br/>(B)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px' }}>GPA 2.00-2.99<br/>(C)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px' }}>GPA 1.00-1.99<br/>(D)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '80px', color: '#b91c1c', background: '#fef2f2' }}>মোট ফেল<br/>(F)</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '80px', background: '#ecfdf5', color: '#065f46' }}>মোট উত্তীর্ণ</th>
+                      <th style={{ padding: '9px 6px', border: '1px solid #cbd5e1', textAlign: 'center', minWidth: '85px', background: '#ecfdf5', color: '#065f46' }}>পাশের হার</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {PUBLIC_EXAM_DEPARTMENTS.map(dept => {
+                      const dVals = pubForm.departments?.[dept.key] || {};
+                      const dStats = formTotals[dept.key];
+
+                      return (
+                        <tr key={dept.key}>
+                          <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: dept.themeColor }}>
+                            {dept.icon} {dept.name}
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1', background: '#f8fafc' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.candidates}
+                              onChange={e => updatePubDeptField(dept.key, 'candidates', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontWeight: 800, fontSize: '13px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1', background: '#eff6ff' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa5}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa5', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #93c5fd', borderRadius: '4px', fontWeight: 800, color: '#0369a1', fontSize: '13px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa4}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa4', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa3_5}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa3_5', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa3}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa3', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa2}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa2', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.gpa1}
+                              onChange={e => updatePubDeptField(dept.key, 'gpa1', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '4px', border: '1px solid #cbd5e1', background: '#fef2f2' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              placeholder="0"
+                              value={dVals.failed}
+                              onChange={e => updatePubDeptField(dept.key, 'failed', e.target.value)}
+                              style={{ width: '100%', padding: '6px 4px', textAlign: 'center', border: '1px solid #fca5a5', borderRadius: '4px', color: '#b91c1c', fontWeight: 800, fontSize: '12.5px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, color: '#047857', background: '#f0fdf4', fontSize: '13px' }}>
+                            {dStats.passed}
+                          </td>
+                          <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, color: '#0f172a', background: '#f0fdf4', fontSize: '12.5px' }}>
+                            {dStats.pass_rate}
+                          </td>
+                        </tr>
+                      );
+                    })}
+
+                    {/* Grand Total Row */}
+                    <tr style={{ background: '#f1f5f9', fontWeight: 800 }}>
+                      <td style={{ padding: '10px 10px', border: '1px solid #cbd5e1', color: '#0f172a' }}>
+                        📊 সর্বমোট (Grand Total)
+                      </td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 900 }}>{formTotals.total.candidates}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0369a1', fontWeight: 900, background: '#e0f2fe' }}>{formTotals.total.gpa5}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{formTotals.total.gpa4}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{formTotals.total.gpa3_5}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{formTotals.total.gpa3}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{formTotals.total.gpa2}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{formTotals.total.gpa1}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#dc2626', fontWeight: 900, background: '#fee2e2' }}>{formTotals.total.failed}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#047857', fontWeight: 900, background: '#dcfce7' }}>{formTotals.total.passed}</td>
+                      <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0f172a', fontWeight: 900, background: '#dcfce7' }}>{formTotals.total.pass_rate}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Submit Button */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="submit"
+                  className="btn"
+                  style={{ background: '#0f766e', color: '#ffffff', fontWeight: 800, padding: '10px 24px', fontSize: '13.5px', borderRadius: '6px', cursor: 'pointer', boxShadow: '0 2px 4px rgba(15,118,110,0.2)' }}
+                >
+                  {editingPubId ? '✓ বিভাগভিত্তিক ফলাফল আপডেট করুন' : '🏛️ বিভাগভিত্তিক পাবলিক ফলাফল সংরক্ষণ করুন'}
+                </button>
+              </div>
             </form>
           </div>
 
-          {/* Table */}
-          <div className="table-card">
-            <div className="toolbar">
+          {/* Table / List of Historical Records with Department Breakdown */}
+          <div className="table-card full" style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+            <div className="toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '10px' }}>
               <div>
-                <h2>বিগত বছরের পাবলিক পরীক্ষার (SSC) ঐতিহাসিক ফলাফল</h2>
-                <span>মোট সেশন: {publicExams.length} টি</span>
+                <h2 style={{ margin: 0, fontSize: '16.5px', fontWeight: 800, color: '#0f766e' }}>
+                  📜 বিগত বছরের পাবলিক পরীক্ষার (SSC) বিভাগভিত্তিক ঐতিহাসিক ফলাফল
+                </h2>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>মোট সংরক্ষিত সেশন: {publicExams.length} টি</span>
               </div>
-              <button
-                type="button"
-                className="mini"
-                onClick={() => {
-                  const rows = publicExams.map((r, i) => `
-                    <tr>
-                      <td style="text-align:center;font-weight:700;">${r.year}</td>
-                      <td><b>${r.exam_name}</b></td>
-                      <td style="text-align:center;">${r.candidates}</td>
-                      <td style="text-align:center;color:#047857;font-weight:700;">${r.passed}</td>
-                      <td style="text-align:center;color:#0369a1;font-weight:700;">${r.gpa5} (${r.golden_gpa5 || '—'} গোল্ডেন)</td>
-                      <td style="text-align:center;font-weight:700;">${r.pass_rate}</td>
-                      <td>${r.board}</td>
-                    </tr>
-                  `).join('');
-                  const tableHtml = `
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>সাল</th>
-                          <th>পরীক্ষার নাম</th>
-                          <th>পরীক্ষার্থী</th>
-                          <th>উত্তীর্ণ</th>
-                          <th>GPA 5.00</th>
-                          <th>পাশের হার</th>
-                          <th>বোর্ড</th>
-                        </tr>
-                      </thead>
-                      <tbody>${rows}</tbody>
-                    </table>
-                  `;
-                  printExamReport('মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় — এসএসসি পাবলিক পরীক্ষার ঐতিহাসিক সাফল্য ও ফলাফল', '<span><b>বোর্ড:</b> মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা</span>', tableHtml);
-                }}
-                style={{ background: '#0f766e', color: '#fff', fontWeight: 700 }}
-              >
-                🖨️ প্রিন্ট পাবলিক ফলাফল
-              </button>
             </div>
 
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>শিক্ষাবর্ষ</th>
-                    <th>পরীক্ষার নাম</th>
-                    <th>পরীক্ষার্থী</th>
-                    <th>উত্তীর্ণ</th>
-                    <th>GPA 5 (A+)</th>
-                    <th>পাশের হার</th>
-                    <th>অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {publicExams.map(item => (
-                    <tr key={item.id}>
-                      <td style={{ fontWeight: 800 }}>{item.year}</td>
-                      <td><b>{item.exam_name}</b></td>
-                      <td>{item.candidates} জন</td>
-                      <td style={{ color: '#047857', fontWeight: 700 }}>{item.passed} জন</td>
-                      <td>
-                        <b style={{ color: '#0369a1' }}>{item.gpa5} জন</b>
-                        {item.golden_gpa5 && <small style={{ display: 'block', color: '#b45309' }}>গোল্ডেন: {item.golden_gpa5} জন</small>}
-                      </td>
-                      <td><span className="status-green">{item.pass_rate}</span></td>
-                      <td>
-                        <button type="button" className="mini" onClick={() => { setEditingPubId(item.id); setPubForm({ ...item }); }}>সম্পাদনা</button>
+            <div style={{ display: 'grid', gap: '18px' }}>
+              {publicExams.map(item => {
+                const norm = normalizePublicExamRecord(item);
+                const totals = calculateRecordTotals(norm);
+
+                return (
+                  <div key={item.id} style={{ border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', background: '#f8fafc', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                    {/* Header Row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ background: '#0f766e', color: '#fff', padding: '3px 10px', borderRadius: '15px', fontWeight: 800, fontSize: '12px' }}>
+                          {norm.year} শিক্ষাবর্ষ
+                        </span>
+                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                          {norm.exam_name}
+                        </h3>
+                        <span style={{ fontSize: '12px', color: '#64748b' }}>({norm.board || 'ঢাকা শিক্ষা বোর্ড'})</span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
                         <button
                           type="button"
                           className="mini"
-                          style={{ color: '#dc2626' }}
+                          onClick={() => handlePrintPublicExamPad(item)}
+                          style={{ background: '#0284c7', color: '#fff', fontWeight: 700, padding: '5px 12px', borderRadius: '5px', border: 'none', cursor: 'pointer', fontSize: '11.5px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          🖨️ সনদের প্যাডে প্রিন্ট
+                        </button>
+                        <button
+                          type="button"
+                          className="mini"
+                          onClick={() => handleEditPublicExam(item)}
+                          style={{ background: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1', padding: '5px 10px', borderRadius: '5px', fontWeight: 600, cursor: 'pointer', fontSize: '11.5px' }}
+                        >
+                          ✏️ সম্পাদনা
+                        </button>
+                        <button
+                          type="button"
+                          className="mini"
+                          style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '5px 10px', borderRadius: '5px', fontWeight: 600, cursor: 'pointer', fontSize: '11.5px' }}
                           onClick={() => {
-                            if (confirm('মুছতে চান?')) {
+                            if (confirm(`আপনি কি ${norm.year} সালের পাবলিক পরীক্ষার রেকর্ডটি মুছতে চান?`)) {
                               const up = publicExams.filter(x => x.id !== item.id);
                               setPublicExams(up);
                               saveStoredPublicExamResults(up);
+                              showToast('✓ রেকর্ডটি সফলভাবে মুছে ফেলা হয়েছে');
                             }
                           }}
                         >
-                          মুছুন
+                          🗑️ মুছুন
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+
+                    {/* Department Table */}
+                    <div style={{ overflowX: 'auto', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', background: '#ffffff' }}>
+                        <thead>
+                          <tr style={{ background: '#f1f5f9', color: '#334155' }}>
+                            <th style={{ padding: '7px 10px', border: '1px solid #cbd5e1', textAlign: 'left' }}>বিভাগ / শাখা</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', background: '#f8fafc' }}>মোট পরীক্ষার্থী</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0369a1', background: '#eff6ff' }}>GPA 5.00 (A+)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>GPA 4.00-4.99 (A)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>GPA 3.50-3.99 (A-)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>GPA 3.00-3.49 (B)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>GPA 2.00-2.99 (C)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>GPA 1.00-1.99 (D)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#dc2626', background: '#fef2f2' }}>মোট ফেল (F)</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#047857', fontWeight: 800, background: '#f0fdf4' }}>মোট উত্তীর্ণ</th>
+                            <th style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800, background: '#f0fdf4' }}>পাশের হার</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { name: 'বিজ্ঞান বিভাগ', icon: '🔬', stats: totals.science, color: '#047857' },
+                            { name: 'মানবিক বিভাগ', icon: '📚', stats: totals.humanities, color: '#0284c7' },
+                            { name: 'ব্যবসায় শিক্ষা শাখা', icon: '💼', stats: totals.business, color: '#b45309' }
+                          ].map(d => (
+                            <tr key={d.name}>
+                              <td style={{ padding: '7px 10px', border: '1px solid #cbd5e1', fontWeight: 700, color: d.color }}>
+                                {d.icon} {d.name}
+                              </td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 700 }}>{d.stats.candidates}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0369a1', fontWeight: 800 }}>{d.stats.gpa5}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{d.stats.gpa4}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{d.stats.gpa3_5}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{d.stats.gpa3}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{d.stats.gpa2}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{d.stats.gpa1}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{d.stats.failed}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#047857', fontWeight: 800 }}>{d.stats.passed}</td>
+                              <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 800 }}>{d.stats.pass_rate}</td>
+                            </tr>
+                          ))}
+                          <tr style={{ background: '#f8fafc', fontWeight: 900 }}>
+                            <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', color: '#0f172a' }}>📊 সর্বমোট (Grand Total)</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.candidates}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0369a1' }}>{totals.total.gpa5}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.gpa4}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.gpa3_5}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.gpa3}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.gpa2}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{totals.total.gpa1}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#dc2626' }}>{totals.total.failed}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#047857' }}>{totals.total.passed}</td>
+                            <td style={{ padding: '7px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0f172a' }}>{totals.total.pass_rate}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

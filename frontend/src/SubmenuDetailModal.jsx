@@ -115,7 +115,10 @@ import {
   getStoredAnnualResults,
   getStoredPreTestResults,
   getStoredTestResults,
-  getStoredPublicExamResults
+  getStoredPublicExamResults,
+  normalizePublicExamRecord,
+  calculateRecordTotals,
+  PUBLIC_EXAM_DEPARTMENTS
 } from './examResultsDataStore';
 import { getStoredInstitutionData } from './defaultInstitutionData';
 import { getStoredReligiousEventsData } from './religiousEventsData';
@@ -131,6 +134,383 @@ import {
   getStoredFormerMeritorious, 
   getStoredClassSeats 
 } from './studentDataStore';
+
+function PublicExamResultsView() {
+  const [pubList, setPubList] = useState(() => getStoredPublicExamResults());
+  const [selectedYear, setSelectedYear] = useState(() => (pubList[0]?.year || '২০২৫'));
+
+  useEffect(() => {
+    setPubList(getStoredPublicExamResults());
+  }, []);
+
+  const activeRecord = pubList.find(r => r.year === selectedYear) || pubList[0];
+  const norm = activeRecord ? normalizePublicExamRecord(activeRecord) : null;
+  const totals = norm ? calculateRecordTotals(norm) : null;
+
+  const handlePrint = () => {
+    if (!norm || !totals) return;
+    const printWindow = window.open('', '_blank', 'width=1000,height=900');
+    if (!printWindow) {
+      alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+      return;
+    }
+
+    const deptRowsHtml = [
+      { name: 'বিজ্ঞান বিভাগ', icon: '🔬', stats: totals.science, color: '#047857' },
+      { name: 'মানবিক বিভাগ', icon: '📚', stats: totals.humanities, color: '#0284c7' },
+      { name: 'ব্যবসায় শিক্ষা শাখা', icon: '💼', stats: totals.business, color: '#b45309' }
+    ].map(d => `
+      <tr>
+        <td style="padding:8px 10px;border:1px solid #0f172a;font-weight:700;color:${d.color};">${d.icon} ${d.name}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:700;">${d.stats.candidates}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#0369a1;font-weight:800;">${d.stats.gpa5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa4}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3_5}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa3}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa2}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;">${d.stats.gpa1}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#dc2626;font-weight:700;">${d.stats.failed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;color:#047857;font-weight:800;">${d.stats.passed}</td>
+        <td style="padding:8px;border:1px solid #0f172a;text-align:center;font-weight:800;">${d.stats.pass_rate}</td>
+      </tr>
+    `).join('');
+
+    const totalRowHtml = `
+      <tr style="background:#f1f5f9;font-weight:900;">
+        <td style="padding:9px 10px;border:1px solid #0f172a;">📊 সর্বমোট (Grand Total)</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.candidates}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0369a1;">${totals.total.gpa5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa4}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3_5}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa3}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa2}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;">${totals.total.gpa1}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#dc2626;">${totals.total.failed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#047857;">${totals.total.passed}</td>
+        <td style="padding:9px;border:1px solid #0f172a;text-align:center;color:#0f172a;">${totals.total.pass_rate}</td>
+      </tr>
+    `;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${norm.exam_name} (${norm.year}) — বিভাগভিত্তিক ফলাফল বিবরণী</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 13px; line-height: 1.5; background: #fff; }
+          ${SCHOOL_PAD_STYLES}
+          .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; margin: 12px 0 16px 0; border-bottom: 1px dotted #cbd5e1; padding-bottom: 6px; }
+          .order-title { text-align: center; margin: 10px 0 4px 0; font-size: 18px; font-weight: 900; color: #0f172a; }
+          .order-sub { text-align: center; margin: 0 0 14px 0; font-size: 13px; color: #475569; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th { background: #f8fafc; font-weight: 800; border: 1px solid #0f172a; padding: 7px 5px; font-size: 12px; }
+          .footer-signs { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 700; }
+          .sign-line { border-top: 1px dashed #0f172a; padding-top: 5px; width: 180px; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div class="meta-row">
+          <span>স্মারক নং: মপাউউবি/এসএসসি/${norm.year}/০১</span>
+          <span>তারিখ: ....................</span>
+        </div>
+        <div class="order-title">পাবলিক পরীক্ষা (এসএসসি) বিভাগভিত্তিক ফলাফল বিবরণী</div>
+        <div class="order-sub">পরীক্ষা: <b>${norm.exam_name}</b> | শিক্ষাবর্ষ: <b>${norm.year}</b> | শিক্ষা বোর্ড: <b>${norm.board}</b></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left;">বিভাগ / শাখা</th>
+              <th>মোট পরীক্ষার্থী</th>
+              <th>GPA 5.00<br>(A+)</th>
+              <th>GPA 4.00-4.99<br>(A)</th>
+              <th>GPA 3.50-3.99<br>(A-)</th>
+              <th>GPA 3.00-3.49<br>(B)</th>
+              <th>GPA 2.00-2.99<br>(C)</th>
+              <th>GPA 1.00-1.99<br>(D)</th>
+              <th style="color:#dc2626;">মোট ফেল<br>(F)</th>
+              <th style="color:#047857;">মোট উত্তীর্ণ</th>
+              <th>পাশের হার (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${deptRowsHtml}
+            ${totalRowHtml}
+          </tbody>
+        </table>
+
+        <div class="footer-signs">
+          <div><div class="sign-line">পরীক্ষা নিয়ন্ত্রক / সদস্য সচিব</div></div>
+          <div><div class="sign-line">প্রধান শিক্ষক</div></div>
+          <div><div class="sign-line">সভাপতি (ম্যানেজিং / এডহক কমিটি)</div></div>
+        </div>
+        <script>
+          window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  return (
+    <div className="submenu-content">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+        <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
+          🏛️ পাবলিক পরীক্ষার (এসএসসি) বিভাগভিত্তিক ফলাফল ও পরিসংখ্যান
+        </div>
+        {norm && (
+          <button
+            type="button"
+            onClick={handlePrint}
+            style={{
+              background: '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              padding: '7px 16px',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+            }}
+          >
+            🖨️ অফিসিয়াল প্যাডে প্রিন্ট (A4 Portrait)
+          </button>
+        )}
+      </div>
+
+      {/* Year Selection Tabs */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
+        <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>📅 শিক্ষাবর্ষ নির্বাচন করুন:</span>
+        {pubList.map(item => {
+          const isSelected = item.year === selectedYear;
+          return (
+            <button
+              key={item.id || item.year}
+              type="button"
+              onClick={() => setSelectedYear(item.year)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: '20px',
+                border: isSelected ? '2px solid #0f766e' : '1px solid #cbd5e1',
+                background: isSelected ? '#0f766e' : '#ffffff',
+                color: isSelected ? '#ffffff' : '#334155',
+                fontWeight: isSelected ? 800 : 600,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              🎓 {item.year} শিক্ষাবর্ষ ({item.exam_name})
+            </button>
+          );
+        })}
+      </div>
+
+      {norm && totals && (
+        <>
+          {/* Summary Stat Cards */}
+          <div className="info-stats-grid" style={{ marginBottom: '16px' }}>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0284c7' }}>
+              <b>{totals.total.candidates} জন</b>
+              <span>মোট পরীক্ষার্থী ({norm.year})</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #0f766e' }}>
+              <b>{totals.total.gpa5} জন</b>
+              <span>GPA 5.00 (A+) {norm.golden_gpa5 ? `• গোল্ডেন: ${norm.golden_gpa5} জন` : ''}</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #16a34a' }}>
+              <b>{totals.total.passed} জন</b>
+              <span>সর্বমোট উত্তীর্ণ</span>
+            </div>
+            <div className="info-stat-card" style={{ borderLeft: '4px solid #b45309' }}>
+              <b>{totals.total.pass_rate}</b>
+              <span>সামগ্রিক পাশের হার ({norm.board})</span>
+            </div>
+          </div>
+
+          {/* Department Breakdown Table */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              padding: '10px 14px',
+              borderRadius: '8px 8px 0 0',
+              border: '1px solid #cbd5e1',
+              borderBottom: 'none',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '6px'
+            }}>
+              <span style={{ fontWeight: 800, fontSize: '13.5px', color: '#0f172a' }}>
+                📋 {norm.exam_name} ({norm.year}) — বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখা ভিত্তিক পূর্ণাঙ্গ ফলাফল বিবরণী
+              </span>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                বোর্ড: {norm.board}
+              </span>
+            </div>
+            <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '0 0 8px 8px' }}>
+              <table className="modal-table" style={{ margin: 0, minWidth: '850px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ textAlign: 'left', minWidth: '160px' }}>বিভাগ / শাখা</th>
+                    <th style={{ textAlign: 'center' }}>মোট পরীক্ষার্থী</th>
+                    <th style={{ textAlign: 'center', color: '#0369a1' }}>GPA 5.00<br />(A+)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 4.00-4.99<br />(A)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 3.50-3.99<br />(A-)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 3.00-3.49<br />(B)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 2.00-2.99<br />(C)</th>
+                    <th style={{ textAlign: 'center' }}>GPA 1.00-1.99<br />(D)</th>
+                    <th style={{ textAlign: 'center', color: '#dc2626' }}>মোট ফেল<br />(F)</th>
+                    <th style={{ textAlign: 'center', color: '#047857' }}>মোট উত্তীর্ণ</th>
+                    <th style={{ textAlign: 'center' }}>পাশের হার (%)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Science */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>🔬 বিজ্ঞান বিভাগ</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.science.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.science.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.science.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.science.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.science.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.science.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Humanities */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#0284c7' }}>📚 মানবিক বিভাগ</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.humanities.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.humanities.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.humanities.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.humanities.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.humanities.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.humanities.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Business Studies */}
+                  <tr>
+                    <td style={{ fontWeight: 700, color: '#b45309' }}>💼 ব্যবসায় শিক্ষা শাখা</td>
+                    <td style={{ textAlign: 'center', fontWeight: 700 }}>{totals.business.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800, color: '#0369a1' }}>{totals.business.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.business.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 700 }}>{totals.business.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 800 }}>{totals.business.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <span className="status-green">{totals.business.pass_rate}</span>
+                    </td>
+                  </tr>
+
+                  {/* Grand Total */}
+                  <tr style={{ background: '#f8fafc', fontWeight: 900 }}>
+                    <td style={{ fontWeight: 900, color: '#0f172a' }}>📊 সর্বমোট (Grand Total)</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>{totals.total.candidates} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900, color: '#0369a1' }}>{totals.total.gpa5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa4} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa3_5} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa3} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa2} জন</td>
+                    <td style={{ textAlign: 'center' }}>{totals.total.gpa1} জন</td>
+                    <td style={{ textAlign: 'center', color: '#dc2626', fontWeight: 900 }}>{totals.total.failed} জন</td>
+                    <td style={{ textAlign: 'center', color: '#047857', fontWeight: 900 }}>{totals.total.passed} জন</td>
+                    <td style={{ textAlign: 'center', fontWeight: 900 }}>
+                      <span className="status-green" style={{ fontSize: '12.5px', padding: '3px 8px' }}>
+                        {totals.total.pass_rate}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Historical Summary Table for all years */}
+      <div style={{ marginTop: '20px' }}>
+        <div style={{ fontWeight: 800, fontSize: '13px', color: '#334155', marginBottom: '8px' }}>
+          🏛️ বিগত বছরসমূহের পাবলিক পরীক্ষা (এসএসসি) সংক্ষিপ্ত তুলনামূলক চিত্র:
+        </div>
+        <table className="modal-table">
+          <thead>
+            <tr>
+              <th>শিক্ষাবর্ষ</th>
+              <th>পরীক্ষার নাম</th>
+              <th>মোট পরীক্ষার্থী</th>
+              <th>মোট উত্তীর্ণ</th>
+              <th>GPA 5.00 (A+)</th>
+              <th>পাশের হার</th>
+              <th>শিক্ষা বোর্ড</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pubList.map(item => {
+              const itemNorm = normalizePublicExamRecord(item);
+              const itemTotals = calculateRecordTotals(itemNorm);
+              return (
+                <tr key={item.id || item.year} style={{ background: item.year === selectedYear ? '#f0fdfa' : undefined }}>
+                  <td style={{ fontWeight: 800 }}>{item.year}</td>
+                  <td><b>{item.exam_name}</b></td>
+                  <td>{itemTotals.total.candidates} জন</td>
+                  <td style={{ color: '#047857', fontWeight: 700 }}>{itemTotals.total.passed} জন</td>
+                  <td>
+                    <b style={{ color: '#0369a1' }}>{itemTotals.total.gpa5} জন</b>
+                    {item.golden_gpa5 && <small style={{ display: 'block', color: '#b45309' }}>গোল্ডেন: {item.golden_gpa5} জন</small>}
+                  </td>
+                  <td><span className="status-green">{itemTotals.total.pass_rate}</span></td>
+                  <td>{item.board}</td>
+                  <td>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedYear(item.year)}
+                      style={{
+                        padding: '3px 10px',
+                        borderRadius: '4px',
+                        border: '1px solid #0f766e',
+                        background: item.year === selectedYear ? '#0f766e' : '#fff',
+                        color: item.year === selectedYear ? '#fff' : '#0f766e',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {item.year === selectedYear ? '✓ নির্বাচিত' : 'বিস্তারিত দেখুন'}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
@@ -4446,48 +4826,8 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
         );
       }
 
-      // 4.6 পাবলিক পরীক্ষার ফলাফল (SSC ও JSC আর্কাইভ)
-      const pubList = getStoredPublicExamResults();
-
-      return (
-        <div className="submenu-content">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
-            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
-              🏛️ পাবলিক পরীক্ষার (SSC) ফলাফল ও পরিসংখ্যান
-            </div>
-          </div>
-
-          <table className="modal-table">
-            <thead>
-              <tr>
-                <th>শিক্ষাবর্ষ</th>
-                <th>পরীক্ষার নাম</th>
-                <th>পরীক্ষার্থী</th>
-                <th>উত্তীর্ণ</th>
-                <th>GPA 5 (A+)</th>
-                <th>পাশের হার</th>
-                <th>শিক্ষা বোর্ড</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pubList.map(item => (
-                <tr key={item.id}>
-                  <td style={{ fontWeight: 800 }}>{item.year}</td>
-                  <td><b>{item.exam_name}</b></td>
-                  <td>{item.candidates} জন</td>
-                  <td style={{ color: '#047857', fontWeight: 700 }}>{item.passed} জন</td>
-                  <td>
-                    <b style={{ color: '#0369a1' }}>{item.gpa5} জন</b>
-                    {item.golden_gpa5 && <small style={{ display: 'block', color: '#b45309' }}>গোল্ডেন: {item.golden_gpa5} জন</small>}
-                  </td>
-                  <td><span className="status-green">{item.pass_rate}</span></td>
-                  <td>{item.board}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      );
+      // 4.6 পাবলিক পরীক্ষার ফলাফল (SSC ও JSC আর্কাইভ) — বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখা ভিত্তিক
+      return <PublicExamResultsView />;
     }
 
 

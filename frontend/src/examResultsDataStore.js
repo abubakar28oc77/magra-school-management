@@ -44,9 +44,120 @@ export const DEFAULT_PRE_TEST_RESULTS = [];
 export const DEFAULT_TEST_RESULTS = [];
 
 export const DEFAULT_PUBLIC_EXAM_RESULTS = [
-  { id: 'pub-ssc-2025', year: '২০২৫', exam_name: 'এসএসসি পরীক্ষা ২০২৫', candidates: 148, passed: 145, gpa5: 38, golden_gpa5: 18, pass_rate: '৯৭.৯৭%', board: 'ঢাকা শিক্ষা বোর্ড' },
-  { id: 'pub-ssc-2024', year: '২০২৪', exam_name: 'এসএসসি পরীক্ষা ২০২৪', candidates: 142, passed: 139, gpa5: 34, golden_gpa5: 14, pass_rate: '৯৭.৮৯%', board: 'ঢাকা শিক্ষা বোর্ড' },
-  { id: 'pub-ssc-2023', year: '২০২৩', exam_name: 'এসএসসি পরীক্ষা ২০২৩', candidates: 138, passed: 134, gpa5: 31, golden_gpa5: 12, pass_rate: '৯৭.১০%', board: 'ঢাকা শিক্ষা বোর্ড' }
+  {
+    id: 'pub-ssc-2025',
+    year: '২০২৫',
+    exam_name: 'এসএসসি পরীক্ষা ২০২৫',
+    board: 'মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা',
+    departments: {
+      science: {
+        candidates: 55,
+        gpa5: 28,
+        gpa4: 20,
+        gpa3_5: 5,
+        gpa3: 2,
+        gpa2: 0,
+        gpa1: 0,
+        failed: 0
+      },
+      humanities: {
+        candidates: 52,
+        gpa5: 6,
+        gpa4: 18,
+        gpa3_5: 14,
+        gpa3: 10,
+        gpa2: 2,
+        gpa1: 1,
+        failed: 1
+      },
+      business: {
+        candidates: 41,
+        gpa5: 4,
+        gpa4: 16,
+        gpa3_5: 12,
+        gpa3: 6,
+        gpa2: 2,
+        gpa1: 0,
+        failed: 1
+      }
+    }
+  },
+  {
+    id: 'pub-ssc-2024',
+    year: '২০২৪',
+    exam_name: 'এসএসসি পরীক্ষা ২০২৪',
+    board: 'মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা',
+    departments: {
+      science: {
+        candidates: 52,
+        gpa5: 24,
+        gpa4: 21,
+        gpa3_5: 5,
+        gpa3: 2,
+        gpa2: 0,
+        gpa1: 0,
+        failed: 0
+      },
+      humanities: {
+        candidates: 50,
+        gpa5: 5,
+        gpa4: 17,
+        gpa3_5: 14,
+        gpa3: 9,
+        gpa2: 3,
+        gpa1: 1,
+        failed: 1
+      },
+      business: {
+        candidates: 40,
+        gpa5: 5,
+        gpa4: 15,
+        gpa3_5: 11,
+        gpa3: 6,
+        gpa2: 1,
+        gpa1: 1,
+        failed: 1
+      }
+    }
+  },
+  {
+    id: 'pub-ssc-2023',
+    year: '২০২৩',
+    exam_name: 'এসএসসি পরীক্ষা ২০২৩',
+    board: 'মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকা',
+    departments: {
+      science: {
+        candidates: 50,
+        gpa5: 22,
+        gpa4: 20,
+        gpa3_5: 6,
+        gpa3: 2,
+        gpa2: 0,
+        gpa1: 0,
+        failed: 0
+      },
+      humanities: {
+        candidates: 48,
+        gpa5: 5,
+        gpa4: 16,
+        gpa3_5: 13,
+        gpa3: 9,
+        gpa2: 2,
+        gpa1: 1,
+        failed: 2
+      },
+      business: {
+        candidates: 40,
+        gpa5: 4,
+        gpa4: 14,
+        gpa3_5: 12,
+        gpa3: 6,
+        gpa2: 2,
+        gpa1: 0,
+        failed: 2
+      }
+    }
+  }
 ];
 
 // Helper to find exam by keywords
@@ -529,17 +640,168 @@ export function saveStoredAdmissionResults(data) {
 }
 
 // -------------------------------------------------------------------------
-// 6. Public Exam Results (SSC Archive)
+// 6. Public Exam Results (SSC Archive with Department-wise Breakdowns)
 // -------------------------------------------------------------------------
+export const PUBLIC_EXAM_DEPARTMENTS = [
+  { key: 'science', name: 'বিজ্ঞান বিভাগ', icon: '🔬', themeColor: '#059669' },
+  { key: 'humanities', name: 'মানবিক বিভাগ', icon: '📚', themeColor: '#0284c7' },
+  { key: 'business', name: 'ব্যবসায় শিক্ষা শাখা', icon: '💼', themeColor: '#d97706' }
+];
+
+export function createEmptyDeptStats() {
+  return {
+    candidates: '',
+    gpa5: '',
+    gpa4: '',
+    gpa3_5: '',
+    gpa3: '',
+    gpa2: '',
+    gpa1: '',
+    failed: ''
+  };
+}
+
+export function normalizePublicExamRecord(r) {
+  if (!r) return null;
+  const depts = r.departments || {};
+  const defaultDept = () => ({
+    candidates: 0,
+    gpa5: 0,
+    gpa4: 0,
+    gpa3_5: 0,
+    gpa3: 0,
+    gpa2: 0,
+    gpa1: 0,
+    failed: 0
+  });
+
+  let science = depts.science ? { ...defaultDept(), ...depts.science } : null;
+  let humanities = depts.humanities ? { ...defaultDept(), ...depts.humanities } : null;
+  let business = depts.business ? { ...defaultDept(), ...depts.business } : null;
+
+  // If old record with no departments, synthesize realistic division based on candidates
+  if (!science && !humanities && !business) {
+    const totalCand = Number(r.candidates) || 0;
+    const totalGpa5 = Number(r.gpa5) || 0;
+    const totalPassed = Number(r.passed) || (totalCand - (Number(r.failed) || 0));
+    const totalFailed = Math.max(0, totalCand - totalPassed);
+
+    const sciCand = Math.round(totalCand * 0.4);
+    const humCand = Math.round(totalCand * 0.35);
+    const busCand = Math.max(0, totalCand - sciCand - humCand);
+
+    const sciGpa5 = Math.round(totalGpa5 * 0.7);
+    const humGpa5 = Math.round(totalGpa5 * 0.18);
+    const busGpa5 = Math.max(0, totalGpa5 - sciGpa5 - humGpa5);
+
+    science = {
+      candidates: sciCand,
+      gpa5: sciGpa5,
+      gpa4: Math.max(0, Math.round(sciCand * 0.35)),
+      gpa3_5: Math.max(0, Math.round(sciCand * 0.12)),
+      gpa3: Math.max(0, Math.round(sciCand * 0.05)),
+      gpa2: 0,
+      gpa1: 0,
+      failed: 0
+    };
+
+    humanities = {
+      candidates: humCand,
+      gpa5: humGpa5,
+      gpa4: Math.max(0, Math.round(humCand * 0.3)),
+      gpa3_5: Math.max(0, Math.round(humCand * 0.25)),
+      gpa3: Math.max(0, Math.round(humCand * 0.15)),
+      gpa2: Math.max(0, Math.round(humCand * 0.08)),
+      gpa1: Math.max(0, Math.round(humCand * 0.02)),
+      failed: Math.round(totalFailed * 0.6)
+    };
+
+    business = {
+      candidates: busCand,
+      gpa5: busGpa5,
+      gpa4: Math.max(0, Math.round(busCand * 0.35)),
+      gpa3_5: Math.max(0, Math.round(busCand * 0.25)),
+      gpa3: Math.max(0, Math.round(busCand * 0.12)),
+      gpa2: Math.max(0, Math.round(busCand * 0.05)),
+      gpa1: 0,
+      failed: Math.max(0, totalFailed - humanities.failed)
+    };
+  }
+
+  return {
+    ...r,
+    departments: {
+      science: science || defaultDept(),
+      humanities: humanities || defaultDept(),
+      business: business || defaultDept()
+    }
+  };
+}
+
+export function calculateDeptStats(dept) {
+  const candidates = Number(dept?.candidates) || 0;
+  const gpa5 = Number(dept?.gpa5) || 0;
+  const gpa4 = Number(dept?.gpa4) || 0;
+  const gpa3_5 = Number(dept?.gpa3_5) || 0;
+  const gpa3 = Number(dept?.gpa3) || 0;
+  const gpa2 = Number(dept?.gpa2) || 0;
+  const gpa1 = Number(dept?.gpa1) || 0;
+  const failed = Number(dept?.failed) || 0;
+  const passed = gpa5 + gpa4 + gpa3_5 + gpa3 + gpa2 + gpa1;
+  const passRateNum = candidates > 0 ? (passed / candidates) * 100 : 0;
+  const pass_rate = passRateNum.toFixed(2) + '%';
+  return { candidates, gpa5, gpa4, gpa3_5, gpa3, gpa2, gpa1, failed, passed, passRateNum, pass_rate };
+}
+
+export function calculateRecordTotals(record) {
+  const norm = normalizePublicExamRecord(record);
+  const sci = calculateDeptStats(norm.departments.science);
+  const hum = calculateDeptStats(norm.departments.humanities);
+  const bus = calculateDeptStats(norm.departments.business);
+
+  const candidates = sci.candidates + hum.candidates + bus.candidates;
+  const gpa5 = sci.gpa5 + hum.gpa5 + bus.gpa5;
+  const gpa4 = sci.gpa4 + hum.gpa4 + bus.gpa4;
+  const gpa3_5 = sci.gpa3_5 + hum.gpa3_5 + bus.gpa3_5;
+  const gpa3 = sci.gpa3 + hum.gpa3 + bus.gpa3;
+  const gpa2 = sci.gpa2 + hum.gpa2 + bus.gpa2;
+  const gpa1 = sci.gpa1 + hum.gpa1 + bus.gpa1;
+  const failed = sci.failed + hum.failed + bus.failed;
+  const passed = sci.passed + hum.passed + bus.passed;
+  const passRateNum = candidates > 0 ? (passed / candidates) * 100 : 0;
+  const pass_rate = passRateNum.toFixed(2) + '%';
+
+  return {
+    science: sci,
+    humanities: hum,
+    business: bus,
+    total: {
+      candidates,
+      gpa5,
+      gpa4,
+      gpa3_5,
+      gpa3,
+      gpa2,
+      gpa1,
+      failed,
+      passed,
+      passRateNum,
+      pass_rate
+    }
+  };
+}
+
 export function getStoredPublicExamResults() {
   try {
     const raw = localStorage.getItem('magra_db_public_exam_results');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length) return parsed;
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed.map(normalizePublicExamRecord);
+      }
     }
   } catch {}
-  return DEFAULT_PUBLIC_EXAM_RESULTS;
+  return DEFAULT_PUBLIC_EXAM_RESULTS.map(normalizePublicExamRecord);
 }
 
 export function saveStoredPublicExamResults(data) {
