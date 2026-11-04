@@ -22,8 +22,8 @@ const DEFAULT_SESSIONS = [
     },
     judges: [
       { name: 'মোঃ আব্দুল খালেক', role: 'প্রধান বিচারক • সহকারী শিক্ষক (বাংলা)' },
-      { name: 'মোঃ হাবিবুর রহমান', role: 'বিচারক-২ • সিনিয়র শিক্ষক (বিজ্ঞান ও গণিত)' },
-      { name: 'তাপসী সরকার', role: 'বিচারক-৩ • সহকারী প্রধান শিক্ষক' }
+      { name: 'মোঃ হাবিবুর রহমান', role: 'সহকারী বিচারক - ১ • সিনিয়র শিক্ষক (বিজ্ঞান ও গণিত)' },
+      { name: 'তাপসী সরকার', role: 'সহকারী বিচারক - ২ • সহকারী প্রধান শিক্ষক' }
     ],
     propTeam: {
       teamName: 'অগ্রগামী সরকারি দল (৯ম শ্রেণি)',
@@ -67,8 +67,8 @@ const DEFAULT_SESSIONS = [
     },
     judges: [
       { name: 'মোঃ আশরাফুল আলম', role: 'প্রধান বিচারক • সহকারী শিক্ষক (ইংরেজি)' },
-      { name: 'মোঃ আব্দুর রহিম লিটন', role: 'বিচারক-২ • সিনিয়র শিক্ষক (জীববিজ্ঞান)' },
-      { name: 'মোঃ শাহিন মিয়া', role: 'বিচারক-৩ • সহকারী শিক্ষক (গ্রন্থাগার)' }
+      { name: 'মোঃ আব্দুর রহিম লিটন', role: 'সহকারী বিচারক - ১ • সিনিয়র শিক্ষক (জীববিজ্ঞান)' },
+      { name: 'মোঃ শাহিন মিয়া', role: 'সহকারী বিচারক - ২ • সহকারী শিক্ষক (গ্রন্থাগার)' }
     ],
     propTeam: {
       teamName: 'সবুজ বিপ্লব পক্ষ দল (৮ম শ্রেণি)',
@@ -107,8 +107,8 @@ const DEFAULT_SESSIONS = [
     },
     judges: [
       { name: 'মোঃ আশরাফুল আলম', role: 'প্রধান বিচারক • সহকারী শিক্ষক (ইংরেজি)' },
-      { name: 'মোঃ শাহিন মিয়া', role: 'সহযোগী বিচারক • সহকারী শিক্ষক (গ্রন্থাগার)' },
-      { name: 'তাপসী সরকার', role: 'উপদেষ্টা বিচারক • সহকারী প্রধান শিক্ষক' }
+      { name: 'মোঃ শাহিন মিয়া', role: 'সহকারী বিচারক - ১ • সহকারী শিক্ষক (গ্রন্থাগার)' },
+      { name: 'তাপসী সরকার', role: 'সহকারী বিচারক - ২ • সহকারী প্রধান শিক্ষক' }
     ],
     participants: [
       { name: 'সুমাইয়া আক্তার', class_name: '১০ম শ্রেণি', roll_no: '৪', topic: 'আমার স্বপ্নের সোনার বাংলা ও তরুণদের দায়বদ্ধতা', category: 'উপস্থিত বক্তৃতা', contentScore: 29, pronunciationScore: 29, presentationScore: 19, timeScore: 18, total: 95, position: '১ম স্থান (চ্যাম্পিয়ন)' },
@@ -141,8 +141,8 @@ const DEFAULT_SESSIONS = [
     },
     judges: [
       { name: 'মোঃ রফিকুল ইসলাম', role: 'প্রধান বিচারক • সহকারী শিক্ষক (ভৌত বিজ্ঞান)' },
-      { name: 'মোঃ আব্দুর রহিম লিটন', role: 'সহযোগী বিচারক • সিনিয়র শিক্ষক (জীববিজ্ঞান)' },
-      { name: 'মোঃ মোস্তাফিজুর রহমান', role: 'উপদেষ্টা বিচারক • প্রধান শিক্ষক' }
+      { name: 'মোঃ আব্দুর রহিম লিটন', role: 'সহকারী বিচারক - ১ • সিনিয়র শিক্ষক (জীববিজ্ঞান)' },
+      { name: 'মোঃ মোস্তাফিজুর রহমান', role: 'সহকারী বিচারক - ২ • প্রধান শিক্ষক' }
     ],
     participants: [
       { name: 'তানভীর আহমেদ ও রাহাত হাসান', class_name: '১০ম শ্রেণি', roll_no: '১ ও ৫', topic: 'স্বয়ংক্রিয় সৌরচালিত স্মার্ট ড্রিপ ইরিগেশন ও মাটি আর্দ্রতা নির্ণায়ক যন্ত্র', category: 'কৃষি ও নবায়নযোগ্য শক্তি', innovationScore: 30, feasibilityScore: 29, functionScore: 19, presentationScore: 19, total: 97, position: '১ম স্থান (সেরা উদ্ভাবক / গোল্ড মেডেল)' },
@@ -174,9 +174,9 @@ const DEFAULT_SESSIONS = [
       role: 'প্রধান মডারেটর • সহকারী শিক্ষক (আইসিটি) ও সিস্টেম অ্যাডমিন'
     },
     judges: [
-      { name: 'মোঃ শাহিন মিয়া', role: 'বিচারক-১ • সহকারী শিক্ষক (গ্রন্থাগার ও তথ্যবিজ্ঞান)' },
-      { name: 'মোঃ হাবিবুর রহমান', role: 'বিচারক-২ • সিনিয়র শিক্ষক (গণিত ও লজিক)' },
-      { name: 'তাপসী সরকার', role: 'উপদেষ্টা বিচারক • সহকারী প্রধান শিক্ষক' }
+      { name: 'মোঃ শাহিন মিয়া', role: 'প্রধান বিচারক • সহকারী শিক্ষক (গ্রন্থাগার ও তথ্যবিজ্ঞান)' },
+      { name: 'মোঃ হাবিবুর রহমান', role: 'সহকারী বিচারক - ১ • সিনিয়র শিক্ষক (গণিত ও লজিক)' },
+      { name: 'তাপসী সরকার', role: 'সহকারী বিচারক - ২ • সহকারী প্রধান শিক্ষক' }
     ],
     participants: [
       { name: 'ফারজানা মেহজাবীন ও নাফিজা ইসলাম', class_name: '৯ম শ্রেণি', roll_no: '৩ ও ৬', topic: 'মগড়া ডিজিটাল লাইব্রেরি ক্যাটালগ ও স্মার্ট বুক ট্র্যাকার ওয়েব অ্যাপ', category: 'ওয়েব ডেভেলপমেন্ট (HTML/JS)', logicScore: 30, bugFreeScore: 29, uiScore: 20, speedScore: 19, total: 98, position: '১ম স্থান (সেরা কোডার / গোল্ড ট্রফি)' },
@@ -407,29 +407,31 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
             color: #065f46;
           }
           .signatures {
-            margin-top: 45px;
-            display: flex;
-            justify-content: space-between;
+            margin-top: 55px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
             text-align: center;
+          }
+          .sig-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
           }
           .sig-line {
             border-top: 1px dashed #0f172a;
-            width: 175px;
-            padding-top: 4px;
+            width: 100%;
+            max-width: 155px;
+            padding-top: 5px;
             font-size: 11.5px;
-            font-weight: 700;
+            font-weight: 800;
+            color: #0f172a;
           }
-          .seal-box {
-            display: inline-block;
-            border: 1px solid #94a3b8;
-            border-radius: 50%;
-            width: 65px;
-            height: 65px;
-            line-height: 65px;
-            font-size: 10px;
-            color: #64748b;
-            text-align: center;
-            margin-top: -10px;
+          .sig-name {
+            color: #475569;
+            font-size: 11px;
+            margin-top: 3px;
+            display: block;
           }
           @media print {
             .no-print { display: none !important; }
@@ -581,20 +583,21 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
         `}
 
         <div class="signatures">
-          <div>
-            <div class="sig-line">সেশন মডারেটর / স্পিকার</div>
-            <small style="color:#64748b;">${session.moderator?.name || 'মডারেটর'}</small>
+          <div class="sig-col">
+            <div class="sig-line">মডারেটর</div>
+            <small class="sig-name">${session.moderator?.name || 'সেশন মডারেটর'}</small>
           </div>
-          <div>
+          <div class="sig-col">
             <div class="sig-line">প্রধান বিচারক</div>
-            <small style="color:#64748b;">${session.judges?.[0]?.name || 'প্রধান বিচারক'}</small>
+            <small class="sig-name">${session.judges?.[0]?.name || 'প্রধান বিচারক'}</small>
           </div>
-          <div>
-            <div class="seal-box">বিদ্যালয় সিল</div>
+          <div class="sig-col">
+            <div class="sig-line">সহকারী বিচারক - ১</div>
+            <small class="sig-name">${session.judges?.[1]?.name || 'সহকারী বিচারক'}</small>
           </div>
-          <div>
-            <div class="sig-line">প্রধান শিক্ষক ও ক্লাব সভাপতি</div>
-            <small style="color:#64748b;">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</small>
+          <div class="sig-col">
+            <div class="sig-line">সহকারী বিচারক - ২</div>
+            <small class="sig-name">${session.judges?.[2]?.name || 'সহকারী বিচারক'}</small>
           </div>
         </div>
 
@@ -1519,7 +1522,7 @@ function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, on
               {[0, 1, 2].map((jIdx) => (
                 <div key={jIdx} style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#1e40af', marginBottom: '3px' }}>
-                    {jIdx === 0 ? 'প্রধান বিচারক (Judge 1)' : `বিচারক ${jIdx + 1} (Judge ${jIdx + 1})`}
+                    {jIdx === 0 ? 'প্রধান বিচারক (Chief Judge)' : jIdx === 1 ? 'সহকারী বিচারক - ১ (Assistant Judge 1)' : 'সহকারী বিচারক - ২ (Assistant Judge 2)'}
                   </label>
                   <select
                     value={form.judges?.[jIdx]?.name || ''}
@@ -1529,7 +1532,7 @@ function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, on
                       const updatedJudges = [...(form.judges || [])];
                       updatedJudges[jIdx] = {
                         name: selName,
-                        role: jIdx === 0 ? `প্রধান বিচারক • ${foundT?.designation || 'শিক্ষক'}` : `বিচারক-${jIdx + 1} • ${foundT?.designation || 'শিক্ষক'}`
+                        role: jIdx === 0 ? `প্রধান বিচারক • ${foundT?.designation || 'শিক্ষক'}` : `সহকারী বিচারক - ${jIdx} • ${foundT?.designation || 'শিক্ষক'}`
                       };
                       setForm({ ...form, judges: updatedJudges });
                     }}
