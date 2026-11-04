@@ -9,7 +9,7 @@ export const toBn = (n) => {
 };
 
 // --------------------------------------------------------------------------
-// 12 Subcommittees Initial Data Template
+// 12 Subcommittees Initial Data Template (Starts empty with NO default members)
 // --------------------------------------------------------------------------
 export const DEFAULT_SUBCOMMITTEES = [
   {
@@ -17,23 +17,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'finance',
     title: 'অর্থ উপকমিটি',
     icon: '💰',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০১',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'reg_comm_0',
-      name: 'নেয়ামুল হক খান',
-      source: 'regular_committee',
-      roleInSchool: 'ম্যানেজিং কমিটি (সভাপতি)',
-      phone: '01711-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_head', name: 'মুহাম্মদ শফিকুল ইসলাম', roleInSchool: 'প্রধান শিক্ষক', committeeRole: 'সদস্য সচিব', phone: '01712-XXXXXX' },
-      { id: 'reg_comm_2', name: 'আলহাজ্ব মোঃ আব্দুল লতিফ', roleInSchool: 'ম্যানেজিং কমিটি (দাতা সদস্য)', committeeRole: 'সদস্য', phone: '01713-XXXXXX' },
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' },
-      { id: 'teacher_math', name: 'মোঃ হাবিবুর রহমান', roleInSchool: 'সিনিয়র শিক্ষক (বিজ্ঞান ও গণিত)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বিদ্যালয়ের যাবতীয় আয় ও ব্যয়ের হিসাব নিয়মিত তদারকি ও নিরীক্ষা করা।',
       'শিক্ষার্থীদের ফি আদায় এবং ব্যাংকিং লেনদেনের স্বচ্ছতা নিশ্চিত করা।',
@@ -45,23 +34,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'purchase',
     title: 'ক্রয় উপকমিটি',
     icon: '🛒',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০২',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_head',
-      name: 'মুহাম্মদ শফিকুল ইসলাম',
-      source: 'teacher',
-      roleInSchool: 'প্রধান শিক্ষক',
-      phone: '01712-XXXXXX'
-    },
-    members: [
-      { id: 'reg_comm_3', name: 'মোঃ রফিকুল ইসলাম তালুকদার', roleInSchool: 'ম্যানেজিং কমিটি (অভিভাবক প্রতিনিধি)', committeeRole: 'সদস্য সচিব', phone: '01714-XXXXXX' },
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01716-XXXXXX' },
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' },
-      { id: 'teacher_lib', name: 'মোঃ শাহিন মিয়া', roleInSchool: 'সহকারী শিক্ষক (গ্রন্থাগার)', committeeRole: 'সদস্য', phone: '01719-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বিদ্যালয়ের প্রয়োজনীয় শিক্ষা উপকরণ, আসবাবপত্র, ল্যাব ও অফিস সামগ্রী ক্রয়ের দরপত্র/কোটেশন যাচাই করা।',
       'সরকারি আর্থিক বিধিমালা অনুযায়ী সর্বনিম্ন দরদাতা ও গুণগত মানের ভিত্তিতে ক্রয়াদেশ অনুমোদন করা।',
@@ -73,23 +51,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'development',
     title: 'উন্নয়ন উপকমিটি',
     icon: '🏗️',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৩',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'reg_comm_2',
-      name: 'আলহাজ্ব মোঃ আব্দুল লতিফ',
-      source: 'regular_committee',
-      roleInSchool: 'ম্যানেজিং কমিটি (দাতা সদস্য)',
-      phone: '01713-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_head', name: 'মুহাম্মদ শফিকুল ইসলাম', roleInSchool: 'প্রধান শিক্ষক', committeeRole: 'সদস্য সচিব', phone: '01712-XXXXXX' },
-      { id: 'reg_comm_0', name: 'নেয়ামুল হক খান', roleInSchool: 'ম্যানেজিং কমিটি (সভাপতি)', committeeRole: 'সদস্য', phone: '01711-XXXXXX' },
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01716-XXXXXX' },
-      { id: 'reg_comm_7', name: 'ডাঃ আশরাফুল আলম', roleInSchool: 'ম্যানেজিং কমিটি (হিতৈষী সদস্য)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বিদ্যালয়ের একাডেমিক ভবন, সীমানা প্রাচীর, ড্রেনেজ ও স্যানিটেশন ব্যবস্থার ভৌত অবকাঠামোগত উন্নয়ন তদারকি করা।',
       'প্রয়োজনীয় নতুন অবকাঠামো নির্মাণের খসড়া প্রাক্কলন প্রণয়ন ও অনুমোদনের সুপারিশ করা।',
@@ -101,23 +68,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'fee_collection',
     title: 'টিউশন ফি ও সেশন চার্জ আদায় উপকমিটি',
     icon: '💳',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৪',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_asst_head',
-      name: 'তাপসী সরকার',
-      source: 'teacher',
-      roleInSchool: 'সহকারী প্রধান শিক্ষক',
-      phone: '01716-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য সচিব', phone: '01717-XXXXXX' },
-      { id: 'teacher_bio', name: 'মোঃ আব্দুর রহিম লিটন', roleInSchool: 'সিনিয়র শিক্ষক (জীববিজ্ঞান)', committeeRole: 'সদস্য', phone: '01715-XXXXXX' },
-      { id: 'reg_comm_4', name: 'বেগম ফরিদা ইয়াসমিন', roleInSchool: 'ম্যানেজিং কমিটি (সংরক্ষিত মহিলা অভিভাবক)', committeeRole: 'সদস্য', phone: '01715-XXXXXX' },
-      { id: 'teacher_staff', name: 'মোঃ আলমগীর হোসেন', roleInSchool: 'অফিস সহকারী', committeeRole: 'সদস্য', phone: '01714-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'শিক্ষার্থীদের নির্ধারিত মাসিক টিউশন ফি ও সেশন চার্জ যথাসময়ে ডিজিটাল রসিদে আদায় তদারকি করা।',
       'দীর্ঘমেয়াদি বকেয়া ফি পরিশোধে অভিভাবকদের সঙ্গে সৌজন্যমূলক যোগাযোগ ও নোটিশ নিশ্চিত করা।',
@@ -129,25 +85,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'internal_exam',
     title: 'অভ্যন্তরীন পরীক্ষা কার্যক্রম পরিচালনা উপকমিটি',
     icon: '📝',
-    targetSize: 7,
+    targetSize: 5,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৫',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_head',
-      name: 'মুহাম্মদ শফিকুল ইসলাম',
-      source: 'teacher',
-      roleInSchool: 'প্রধান শিক্ষক',
-      phone: '01712-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য সচিব', phone: '01716-XXXXXX' },
-      { id: 'teacher_bangla', name: 'মোঃ আব্দুল খালেক', roleInSchool: 'সহকারী শিক্ষক (বাংলা)', committeeRole: 'সদস্য', phone: '01713-XXXXXX' },
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' },
-      { id: 'teacher_math', name: 'মোঃ হাবিবুর রহমান', roleInSchool: 'সিনিয়র শিক্ষক (গণিত)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' },
-      { id: 'teacher_sci', name: 'মোঃ রফিকুল ইসলাম', roleInSchool: 'সহকারী শিক্ষক (ভৌত বিজ্ঞান)', committeeRole: 'সদস্য', phone: '01715-XXXXXX' },
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বিদ্যালয়ের অভ্যন্তরীণ অর্ধবার্ষিক, বার্ষিক ও নির্বাচনি পরীক্ষার সময়সূচি এবং রুটিন প্রণয়ন।',
       'প্রশ্নপত্র প্রণয়ন, সিলগালাকরণ, মডারেশন ও পরীক্ষা হলের আসন বিন্যাস সুশৃঙ্খল রাখা।',
@@ -163,17 +106,8 @@ export const DEFAULT_SUBCOMMITTEES = [
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৬',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'reg_comm_3',
-      name: 'মোঃ রফিকুল ইসলাম তালুকদার',
-      source: 'regular_committee',
-      roleInSchool: 'ম্যানেজিং কমিটি (অভিভাবক প্রতিনিধি)',
-      phone: '01714-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_bangla', name: 'মোঃ আব্দুল খালেক', roleInSchool: 'সহকারী শিক্ষক (বাংলা)', committeeRole: 'সদস্য সচিব', phone: '01713-XXXXXX' },
-      { id: 'teacher_math', name: 'মোঃ হাবিবুর রহমান', roleInSchool: 'সিনিয়র শিক্ষক (গণিত)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'প্রতি তিন মাস অন্তর বিদ্যালয়ের ক্যাশ বুক, রসিদ বই ও খরচের ভাউচার অভ্যন্তরীণ নিরীক্ষা করা।',
       'ব্যাংক স্টেটমেন্টের সাথে ক্যাশ বইয়ের স্থিতি যাচাই করে কোনো অসঙ্গতি থাকলে তা প্রধান শিক্ষককে অবহিত করা।',
@@ -185,23 +119,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'budget',
     title: 'বাৎসরিক বাজেট প্রণয়ন উপকমিটি',
     icon: '📊',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৭',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'reg_comm_0',
-      name: 'নেয়ামুল হক খান',
-      source: 'regular_committee',
-      roleInSchool: 'ম্যানেজিং কমিটি (সভাপতি)',
-      phone: '01711-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_head', name: 'মুহাম্মদ শফিকুল ইসলাম', roleInSchool: 'প্রধান শিক্ষক', committeeRole: 'সদস্য সচিব', phone: '01712-XXXXXX' },
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01716-XXXXXX' },
-      { id: 'reg_comm_2', name: 'আলহাজ্ব মোঃ আব্দুল লতিফ', roleInSchool: 'ম্যানেজিং কমিটি (দাতা সদস্য)', committeeRole: 'সদস্য', phone: '01713-XXXXXX' },
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'আসন্ন শিক্ষাবর্ষের শিক্ষক-কর্মচারী পারিতোষিক, বিদ্যুৎ, ইন্টারনেট ও প্রশাসনিক ব্যয়ের প্রাক্কলন করা।',
       'টিউশন ফি, সেশন চার্জ, অনুদান ও অন্যান্য সম্ভাব্য আয়ের বাস্তবসম্মত লক্ষ্যমাত্রা নির্ধারণ করা।',
@@ -213,25 +136,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'sports',
     title: 'বার্ষিক ক্রীড়া প্রতিযোগিতা আয়োজন ও পরিচালনা উপকমিটি',
     icon: '🏆',
-    targetSize: 7,
+    targetSize: 5,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৮',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_asst_head',
-      name: 'তাপসী সরকার',
-      source: 'teacher',
-      roleInSchool: 'সহকারী প্রধান শিক্ষক',
-      phone: '01716-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_bio', name: 'মোঃ আব্দুর রহিম লিটন', roleInSchool: 'সিনিয়র শিক্ষক (শারীরিক শিক্ষা ও জীববিজ্ঞান)', committeeRole: 'সদস্য সচিব', phone: '01715-XXXXXX' },
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' },
-      { id: 'teacher_lib', name: 'মোঃ শাহিন মিয়া', roleInSchool: 'সহকারী শিক্ষক (গ্রন্থাগার)', committeeRole: 'সদস্য', phone: '01719-XXXXXX' },
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' },
-      { id: 'reg_comm_3', name: 'মোঃ রফিকুল ইসলাম তালুকদার', roleInSchool: 'ম্যানেজিং কমিটি (অভিভাবক প্রতিনিধি)', committeeRole: 'সদস্য', phone: '01714-XXXXXX' },
-      { id: 'reg_comm_4', name: 'বেগম ফরিদা ইয়াসমিন', roleInSchool: 'ম্যানেজিং কমিটি (সংরক্ষিত মহিলা অভিভাবক)', committeeRole: 'সদস্য', phone: '01715-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বার্ষিক ক্রীড়া সপ্তাহ ও প্রতিযোগিতার ইভেন্ট তালিকা এবং খেলার নিয়মাবলি নির্ধারণ করা।',
       'খেলার মাঠ উপযুক্ত করা, ট্র্যাক তৈরি ও প্রয়োজনীয় ক্রীড়া সরঞ্জাম সংগ্রহ করা।',
@@ -243,23 +153,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'cocurricular',
     title: 'সহঃশিক্ষা কার্যক্রম পরিচালনা উপকমিটি',
     icon: '🎨',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/০৯',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_bangla',
-      name: 'মোঃ আব্দুল খালেক',
-      source: 'teacher',
-      roleInSchool: 'সহকারী শিক্ষক (বাংলা সাহিত্য)',
-      phone: '01713-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য সচিব', phone: '01717-XXXXXX' },
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' },
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01716-XXXXXX' },
-      { id: 'teacher_lib', name: 'মোঃ শাহিন মিয়া', roleInSchool: 'সহকারী শিক্ষক (গ্রন্থাগার)', committeeRole: 'সদস্য', phone: '01719-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       '২১শে ফেব্রুয়ারি, ২৬শে মার্চ, ১৬ই ডিসেম্বর ও জাতীয় দিবসসমূহের ভাবগাম্ভীর্যপূর্ণ উদযাপন।',
       'স্কাউটিং, গার্ল গাইড, কুইজ প্রতিযোগিতা, চিত্রাঙ্কন ও সাংস্কৃতিক অনুষ্ঠানের পরিকল্পনা বাস্তবায়ন।',
@@ -271,23 +170,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'clubs',
     title: 'ক্লাব ও সংগঠন পরিচালনা উপকমিটি',
     icon: '🤝',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/১০',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_ict',
-      name: 'মুহাম্মদ আবুবকর সিদ্দিক',
-      source: 'teacher',
-      roleInSchool: 'সহকারী শিক্ষক (আইসিটি)',
-      phone: '01717-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_eng', name: 'মোঃ আশরাফুল আলম', roleInSchool: 'সহকারী শিক্ষক (ইংরেজি)', committeeRole: 'সদস্য সচিব', phone: '01718-XXXXXX' },
-      { id: 'teacher_math', name: 'মোঃ হাবিবুর রহমান', roleInSchool: 'সিনিয়র শিক্ষক (বিজ্ঞান ও গণিত)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' },
-      { id: 'teacher_bangla', name: 'মোঃ আব্দুল খালেক', roleInSchool: 'সহকারী শিক্ষক (বাংলা)', committeeRole: 'সদস্য', phone: '01713-XXXXXX' },
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01716-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'বিদ্যালয়ের ডিবেটিং, বিজ্ঞান, আইসিটি ও সাহিত্য ক্লাবের সার্বিক কার্যক্রম তদারকি।',
       'শিক্ষার্থীদের বিভিন্ন মেধাভিত্তিক জাতীয় অলিম্পিয়াড ও প্রতিযোগিতায় অংশগ্রহণে উৎসাহিত করা।',
@@ -299,23 +187,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'discipline',
     title: 'বিদ্যালয়ের শৃংখলা উপকমিটি',
     icon: '🛡️',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/১১',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'teacher_asst_head',
-      name: 'তাপসী সরকার',
-      source: 'teacher',
-      roleInSchool: 'সহকারী প্রধান শিক্ষক',
-      phone: '01716-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_bio', name: 'মোঃ আব্দুর রহিম লিটন', roleInSchool: 'সিনিয়র শিক্ষক (জীববিজ্ঞান)', committeeRole: 'সদস্য সচিব', phone: '01715-XXXXXX' },
-      { id: 'teacher_bangla', name: 'মোঃ আব্দুল খালেক', roleInSchool: 'সহকারী শিক্ষক (বাংলা)', committeeRole: 'সদস্য', phone: '01713-XXXXXX' },
-      { id: 'reg_comm_3', name: 'মোঃ রফিকুল ইসলাম তালুকদার', roleInSchool: 'ম্যানেজিং কমিটি (অভিভাবক প্রতিনিধি)', committeeRole: 'সদস্য', phone: '01714-XXXXXX' },
-      { id: 'reg_comm_4', name: 'বেগম ফরিদা ইয়াসমিন', roleInSchool: 'ম্যানেজিং কমিটি (সংরক্ষিত মহিলা অভিভাবক)', committeeRole: 'সদস্য', phone: '01715-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'প্রাত্যহিক সমাবেশ (অ্যাসেম্বলি), জাতীয় সঙ্গীত ও সুশৃঙ্খল সারিবদ্ধতা তদারকি করা।',
       'শিক্ষার্থীদের নির্ধারিত স্কুল পোশাক, পরিচয়পত্র (আইডি কার্ড) পরিধান নিশ্চিত করা।',
@@ -327,23 +204,12 @@ export const DEFAULT_SUBCOMMITTEES = [
     key: 'harassment_prevention',
     title: 'যৌন হয়রানি প্রতিরোধ উপকমিটি',
     icon: '⚖️',
-    targetSize: 5,
+    targetSize: 3,
     session: '২০২৬ শিক্ষাবর্ষ',
     memo_no: 'মপাউউবি/উপকমিটি/২০২৬/১২',
     formation_date: '২০২৬-০১-১০',
-    convenor: {
-      id: 'reg_comm_4',
-      name: 'বেগম ফরিদা ইয়াসমিন',
-      source: 'regular_committee',
-      roleInSchool: 'ম্যানেজিং কমিটি (সংরক্ষিত মহিলা অভিভাবক সদস্য)',
-      phone: '01715-XXXXXX'
-    },
-    members: [
-      { id: 'teacher_asst_head', name: 'তাপসী সরকার', roleInSchool: 'সহকারী প্রধান শিক্ষক', committeeRole: 'সদস্য সচিব', phone: '01716-XXXXXX' },
-      { id: 'reg_comm_7', name: 'ডাঃ আশরাফুল আলম', roleInSchool: 'ম্যানেজিং কমিটি (হিতৈষী সদস্য ও চিকিৎসক)', committeeRole: 'সদস্য', phone: '01718-XXXXXX' },
-      { id: 'teacher_head', name: 'মুহাম্মদ শফিকুল ইসলাম', roleInSchool: 'প্রধান শিক্ষক', committeeRole: 'সদস্য', phone: '01712-XXXXXX' },
-      { id: 'teacher_ict', name: 'মুহাম্মদ আবুবকর সিদ্দিক', roleInSchool: 'সহকারী শিক্ষক (আইসিটি)', committeeRole: 'সদস্য', phone: '01717-XXXXXX' }
-    ],
+    convenor: null,
+    members: [],
     tor: [
       'মহামান্য হাইকোর্টের নির্দেশনা অনুসারে নারী শিক্ষক, ছাত্রী ও কর্মচারীদের নিরাপদ পরিবেশ নিশ্চিত করা।',
       'ক্যাম্পাসে যেকোনো ধরনের অশোভন আচরণ বা যৌন হয়রানি প্রতিরোধে সচেতনতা সৃষ্টি ও অভিযোগ বক্স স্থাপন।',
@@ -351,6 +217,24 @@ export const DEFAULT_SUBCOMMITTEES = [
     ]
   }
 ];
+
+// Helper: Clean any legacy mock members or default convenors with dummy phones
+export function cleanSubcommitteesData(list) {
+  if (!Array.isArray(list) || list.length === 0) return DEFAULT_SUBCOMMITTEES;
+  return list.map(c => {
+    // If convenor has mock phone containing XXXXXX, remove mock convenor
+    const isMockConvenor = c.convenor && String(c.convenor.phone || '').includes('XXXXXX');
+    
+    // Filter out mock members containing XXXXXX
+    const realMembers = (c.members || []).filter(m => !String(m.phone || '').includes('XXXXXX'));
+
+    return {
+      ...c,
+      convenor: isMockConvenor ? null : c.convenor,
+      members: realMembers
+    };
+  });
+}
 
 // --------------------------------------------------------------------------
 // Helper: Candidate Pool Builder (Teachers + Managing Committee + Adhoc Committee)
@@ -417,7 +301,13 @@ export function SubcommitteesAdminPanel({ sub, setSub }) {
       const raw = localStorage.getItem('magra_subcommittees_data');
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const cleaned = cleanSubcommitteesData(parsed);
+          try {
+            localStorage.setItem('magra_subcommittees_data', JSON.stringify(cleaned));
+          } catch (e) {}
+          return cleaned;
+        }
       }
     } catch (e) {}
     return DEFAULT_SUBCOMMITTEES;
@@ -1300,12 +1190,23 @@ export function SubcommitteesAdminPanel({ sub, setSub }) {
                     })}
                   </div>
 
-                  <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #e2e8f0', textAlign: 'right' }}>
+                  <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      className="btn mini"
+                      onClick={() => {
+                        updateCurrentField('members', []);
+                        showToast('✓ সকল সদস্য নির্বাচন তালিকা খালি করা হয়েছে');
+                      }}
+                      style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', fontSize: '11px', padding: '4px 10px', cursor: 'pointer' }}
+                    >
+                      🗑️ সকল সদস্য মুছুন
+                    </button>
                     <button
                       type="button"
                       className="btn mini"
                       onClick={() => setMemberDropdownOpen(false)}
-                      style={{ background: '#0284c7', color: '#fff', fontSize: '11px', padding: '4px 10px' }}
+                      style={{ background: '#0284c7', color: '#fff', fontSize: '11px', padding: '4px 12px', cursor: 'pointer' }}
                     >
                       ✓ নির্বাচন সম্পন্ন
                     </button>
@@ -1398,10 +1299,14 @@ export function SubcommitteesAdminPanel({ sub, setSub }) {
                       <td style={{ padding: '8px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
                         <button
                           type="button"
-                          onClick={() => handleRemoveMember(idx)}
-                          style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: '4px', padding: '3px 8px', fontSize: '11px', cursor: 'pointer' }}
+                          onClick={() => {
+                            handleRemoveMember(idx);
+                            showToast(`"${m.name}"-কে সদস্য তালিকা থেকে বাদ দেওয়া হয়েছে`);
+                          }}
+                          title="সদস্য তালিকা থেকে বাদ দিন"
+                          style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', borderRadius: '4px', padding: '4px 8px', fontSize: '11.5px', fontWeight: 600, cursor: 'pointer' }}
                         >
-                          ✕
+                          ✕ বাদ দিন
                         </button>
                       </td>
                     </tr>
