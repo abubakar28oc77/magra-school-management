@@ -3,6 +3,11 @@ import { getSchoolTeachers } from './mockData';
 import { getStoredInstitutionData } from './defaultInstitutionData';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
+export const toBn = (n) => {
+  if (n === null || n === undefined || n === '') return '';
+  return String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+};
+
 // --------------------------------------------------------------------------
 // 12 Subcommittees Initial Data Template
 // --------------------------------------------------------------------------
@@ -1493,3 +1498,4 @@ export function SubcommitteesAdminPanel({ sub, setSub }) {
 }
 
 export default SubcommitteesAdminPanel;
+
