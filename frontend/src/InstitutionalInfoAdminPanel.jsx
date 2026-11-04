@@ -762,111 +762,572 @@ function SectionHistory({ data, onChange, onSave, onReset, onPreview }) {
 }
 
 // ----------------------------------------------------
-// Section 3: পরিচালনা পর্ষদ
+// Section 3: পরিচালনা পর্ষদ (এডহক কমিটি ও নিয়মিত ম্যানেজিং কমিটি)
 // ----------------------------------------------------
 function SectionCommittee({ data, onChange, onSave, onReset, onPreview }) {
-  const updateTenure = (v) => onChange({ ...data, tenure: v });
-
-  const updateMember = (index, field, value) => {
-    const list = [...(data.members || [])];
-    list[index] = { ...list[index], [field]: value };
-    onChange({ ...data, members: list });
+  // Ensure both regular and adhoc divisions are present
+  const regularComm = data?.regular || {
+    title: 'নিয়মিত ম্যানেজিং কমিটি',
+    tenure: data?.tenure || '২০২৪–২০২৬',
+    approval_memo: 'মাউশি/বোর্ড স্মারক নং: ৩৭.০২.০০০০.১০৬... তারিখ: ১৫-০১-২০২৪',
+    members: Array.isArray(data?.members) && data?.members.length
+      ? data.members
+      : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.regular.members))
   };
 
-  const addMember = () => {
-    const list = [...(data.members || [])];
-    list.push({ name_bn: '', role: 'অভিভাবক প্রতিনিধি', designation: 'সম্মানিত সদস্য', mobile: '', photo: '' });
-    onChange({ ...data, members: list });
+  const adhocComm = data?.adhoc || JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.adhoc));
+  const activeType = data?.active_type || 'regular';
+
+  // Local state for which division the admin is currently editing
+  const [selectedDivision, setSelectedDivision] = useState(activeType);
+
+  const currentComm = selectedDivision === 'adhoc' ? adhocComm : regularComm;
+
+  const updateCommitteeField = (field, value) => {
+    const updatedDivision = { ...currentComm, [field]: value };
+    const updatedData = {
+      ...data,
+      [selectedDivision]: updatedDivision,
+      tenure: (selectedDivision === activeType && field === 'tenure') ? value : data?.tenure
+    };
+    onChange(updatedData);
+  };
+
+  const setActiveType = (type) => {
+    const activeGroup = type === 'adhoc' ? adhocComm : regularComm;
+    const updatedData = {
+      ...data,
+      active_type: type,
+      tenure: activeGroup.tenure || data?.tenure,
+      members: activeGroup.members || []
+    };
+    onChange(updatedData);
+  };
+
+  const updateMember = (index, field, value) => {
+    const list = [...(currentComm.members || [])];
+    list[index] = { ...list[index], [field]: value };
+    const updatedDivision = { ...currentComm, members: list };
+    const updatedData = {
+      ...data,
+      [selectedDivision]: updatedDivision,
+      members: selectedDivision === activeType ? list : data?.members
+    };
+    onChange(updatedData);
+  };
+
+  const addMember = (defaultRole = '', defaultDesignation = '') => {
+    const list = [...(currentComm.members || [])];
+    const role = defaultRole || (selectedDivision === 'adhoc' ? 'অভিভাবক সদস্য' : 'অভিভাবক প্রতিনিধি');
+    const desig = defaultDesignation || (role === 'সভাপতি' ? 'মনোনীত সভাপতি' : role === 'সদস্য সচিব' ? 'প্রধান শিক্ষক' : 'সম্মানিত সদস্য');
+    list.push({ name_bn: '', role, designation: desig, mobile: '', photo: '' });
+    const updatedDivision = { ...currentComm, members: list };
+    const updatedData = {
+      ...data,
+      [selectedDivision]: updatedDivision,
+      members: selectedDivision === activeType ? list : data?.members
+    };
+    onChange(updatedData);
   };
 
   const removeMember = (index) => {
-    const list = [...(data.members || [])];
+    const list = [...(currentComm.members || [])];
     list.splice(index, 1);
-    onChange({ ...data, members: list });
+    const updatedDivision = { ...currentComm, members: list };
+    const updatedData = {
+      ...data,
+      [selectedDivision]: updatedDivision,
+      members: selectedDivision === activeType ? list : data?.members
+    };
+    onChange(updatedData);
   };
+
+  const loadStandardTemplate = () => {
+    const defaultList = selectedDivision === 'adhoc'
+      ? DEFAULT_INSTITUTION_DATA.committee.adhoc.members
+      : DEFAULT_INSTITUTION_DATA.committee.regular.members;
+    if (confirm(`আপনি কি ${selectedDivision === 'adhoc' ? 'এডহক কমিটি' : 'নিয়মিত ম্যানেজিং কমিটি'}-এর আদর্শ ক্যাটাগরি তালিকা লোড করতে চান? এতে বর্তমান তালিকার স্থানে আদর্শ নমুনা তালিকা প্রতিস্থাপিত হবে।`)) {
+      const updatedDivision = { ...currentComm, members: JSON.parse(JSON.stringify(defaultList)) };
+      const updatedData = {
+        ...data,
+        [selectedDivision]: updatedDivision,
+        members: selectedDivision === activeType ? defaultList : data?.members
+      };
+      onChange(updatedData);
+    }
+  };
+
+  // Role suggestions for quick chips
+  const adhocRoleSuggestions = [
+    'সভাপতি',
+    'সদস্য সচিব',
+    'শিক্ষক প্রতিনিধি',
+    'অভিভাবক সদস্য',
+    'বিদ্যোৎসাহী সদস্য'
+  ];
+
+  const regularRoleSuggestions = [
+    'সভাপতি',
+    'সদস্য সচিব',
+    'দাতা সদস্য',
+    'প্রতিষ্ঠাতা সদস্য',
+    'বিদ্যোৎসাহী সদস্য',
+    'অভিভাবক প্রতিনিধি',
+    'সংরক্ষিত মহিলা অভিভাবক প্রতিনিধি',
+    'শিক্ষক প্রতিনিধি',
+    'সংরক্ষিত মহিলা শিক্ষক প্রতিনিধি',
+    'হিতৈষী সদস্য',
+    'কো-অপ্ট সদস্য'
+  ];
+
+  const currentRoleSuggestions = selectedDivision === 'adhoc' ? adhocRoleSuggestions : regularRoleSuggestions;
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px' }}>👥 ৩. পরিচালনা পর্ষদ (Managing Committee) এন্ট্রি</h3>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>👥 ৩. পরিচালনা পর্ষদ (Managing Committee) সদস্য এন্ট্রি</span>
+          </h3>
+          <small style={{ color: '#64748b', fontSize: '12.5px' }}>
+            এডহক কমিটি ও নিয়মিত ম্যানেজিং কমিটি—উভয় ক্যাটাগরির সদস্য আলাদাভাবে এন্ট্রি ও পরিচালনা করুন
+          </small>
+        </div>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ</button>
-          <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569' }}>🔄 রিসেট</button>
-          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সংরক্ষণ</button>
+          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>👁️ প্রিভিউ</button>
+          <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>🔄 রিসেট</button>
+          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>💾 সংরক্ষণ</button>
         </div>
       </div>
 
-      <GuidanceGuideCard
-        title="পরিচালনা পর্ষদ"
-        steps={[
-          '১. কমিটির বর্তমান অনুমোদন সেশন / মেয়াদকাল লিখুন (যেমন: ২০২৪–২০২৬)।',
-          '২. সভাপতি, সদস্য সচিব (প্রধান শিক্ষক), শিক্ষক প্রতিনিধি, অভিভাবক প্রতিনিধি ও দাতা সদস্যদের নাম ও পদবি লিখুন।',
-          '৩. নতুন কোনো সদস্য সংযোজন করতে "+ নতুন সদস্য যোগ" বাটনে ক্লিক করুন।',
-          '৪. সংরক্ষিত তথ্য ভিউ পেজে গর্ভনিং বডির কার্ড আকারে ছবিসহ প্রদর্শিত হবে।'
-        ]}
-        tips="পদবি অনুযায়ী তালিকাভুক্ত করুন। সভাপতিকে সবার উপরে এবং সদস্য সচিবকে দ্বিতীয় স্থানে রাখা বিধেয়।"
-        example="নেয়ামুল হক খান (সভাপতি), মুহাম্মদ শফিকুল ইসলাম (সদস্য সচিব)..."
-      />
-
-      <div style={{ marginBottom: '14px', maxWidth: '300px' }}>
-        <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>বর্তমান কমিটির মেয়াদকাল:</label>
-        <input
-          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          value={data.tenure || ''}
-          onChange={(e) => updateTenure(e.target.value)}
-          placeholder="যেমন: ২০২৪–২০২৬"
-        />
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '14px 0 8px' }}>
-        <h4 style={{ color: '#047857', margin: 0, fontSize: '14px' }}>কমিটি সদস্যদের তালিকা:</h4>
-        <button type="button" className="btn mini" onClick={addMember} style={{ background: '#047857', color: '#fff' }}>+ নতুন সদস্য যোগ</button>
-      </div>
-
-      <div style={{ display: 'grid', gap: '10px' }}>
-        {(data.members || []).map((m, idx) => (
-          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '180px 180px 1fr 130px 60px', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-            <div>
-              <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>কমিটি রোল:</small>
-              <input
-                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 700 }}
-                placeholder="যেমন: সভাপতি"
-                value={m.role || ''}
-                onChange={(e) => updateMember(idx, 'role', e.target.value)}
-              />
-            </div>
-            <div>
-              <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>সদস্যের পুরো নাম:</small>
-              <input
-                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 700 }}
-                placeholder="নাম লিখুন"
-                value={m.name_bn || ''}
-                onChange={(e) => updateMember(idx, 'name_bn', e.target.value)}
-              />
-            </div>
-            <div>
-              <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>পদবি / পরিচিতি:</small>
-              <input
-                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                placeholder="যেমন: বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক"
-                value={m.designation || ''}
-                onChange={(e) => updateMember(idx, 'designation', e.target.value)}
-              />
-            </div>
-            <div>
-              <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>মোবাইল (ঐচ্ছিক):</small>
-              <input
-                style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-                placeholder="017XX-XXXXXX"
-                value={m.mobile || ''}
-                onChange={(e) => updateMember(idx, 'mobile', e.target.value)}
-              />
-            </div>
-            <div style={{ textAlign: 'center', paddingTop: '14px' }}>
-              <button type="button" className="btn mini" onClick={() => removeMember(idx)} style={{ background: '#fee2e2', color: '#b91c1c' }}>✕</button>
+      {/* Two Divisions Switcher Bar (২টি ভাগ) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '12px',
+        marginBottom: '16px',
+        background: '#f1f5f9',
+        padding: '6px',
+        borderRadius: '10px'
+      }}>
+        {/* Tab 1: নিয়মিত ম্যানেজিং কমিটি */}
+        <button
+          type="button"
+          onClick={() => setSelectedDivision('regular')}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            border: selectedDivision === 'regular' ? '2px solid #047857' : '1px solid #cbd5e1',
+            background: selectedDivision === 'regular' ? '#ffffff' : 'transparent',
+            color: selectedDivision === 'regular' ? '#065f46' : '#475569',
+            fontWeight: selectedDivision === 'regular' ? 800 : 600,
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: selectedDivision === 'regular' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🏛️</span>
+            <div style={{ textAlign: 'left' }}>
+              <div>ভাগ ১: নিয়মিত ম্যানেজিং কমিটি</div>
+              <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>পূর্ণাঙ্গ কমিটি • ২-৩ বছর মেয়াদি</small>
             </div>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              background: selectedDivision === 'regular' ? '#ecfdf5' : '#e2e8f0',
+              color: selectedDivision === 'regular' ? '#047857' : '#64748b',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11.5px',
+              fontWeight: 700
+            }}>
+              {(regularComm.members || []).length} জন
+            </span>
+            {activeType === 'regular' && (
+              <span style={{
+                background: '#059669',
+                color: '#fff',
+                padding: '2px 7px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 700
+              }}>
+                সক্রিয়
+              </span>
+            )}
+          </div>
+        </button>
+
+        {/* Tab 2: এডহক কমিটি */}
+        <button
+          type="button"
+          onClick={() => setSelectedDivision('adhoc')}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            border: selectedDivision === 'adhoc' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+            background: selectedDivision === 'adhoc' ? '#ffffff' : 'transparent',
+            color: selectedDivision === 'adhoc' ? '#0369a1' : '#475569',
+            fontWeight: selectedDivision === 'adhoc' ? 800 : 600,
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: selectedDivision === 'adhoc' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>📋</span>
+            <div style={{ textAlign: 'left' }}>
+              <div>ভাগ ২: এডহক কমিটি</div>
+              <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>অস্থায়ী কমিটি • সাধারণত ৬ মাস মেয়াদি</small>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              background: selectedDivision === 'adhoc' ? '#f0f9ff' : '#e2e8f0',
+              color: selectedDivision === 'adhoc' ? '#0369a1' : '#64748b',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontSize: '11.5px',
+              fontWeight: 700
+            }}>
+              {(adhocComm.members || []).length} জন
+            </span>
+            {activeType === 'adhoc' && (
+              <span style={{
+                background: '#0284c7',
+                color: '#fff',
+                padding: '2px 7px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 700
+              }}>
+                সক্রিয়
+              </span>
+            )}
+          </div>
+        </button>
+      </div>
+
+      {/* Active Committee Status Selector Card */}
+      <div style={{
+        background: '#ffffff',
+        border: '1px solid #cbd5e1',
+        borderRadius: '10px',
+        padding: '12px 16px',
+        marginBottom: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+      }}>
+        <div>
+          <strong style={{ fontSize: '13.5px', color: '#1e293b', display: 'block' }}>
+            🔘 বিদ্যালয়ে বর্তমানে কার্যকর পরিচালনা কমিটি কোনটি?
+          </strong>
+          <span style={{ fontSize: '12px', color: '#64748b' }}>
+            যে কমিটি কার্যকর হিসেবে নির্বাচন করবেন, পাবলিক সাইট ও পোর্টালে সেটিই অগ্রাধিকার ভিত্তিতে প্রদর্শিত হবে
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            background: activeType === 'regular' ? '#ecfdf5' : '#f8fafc',
+            border: activeType === 'regular' ? '1.5px solid #047857' : '1px solid #cbd5e1',
+            color: activeType === 'regular' ? '#065f46' : '#64748b'
+          }}>
+            <input
+              type="radio"
+              name="committee_active_type"
+              checked={activeType === 'regular'}
+              onChange={() => setActiveType('regular')}
+            />
+            🏛️ নিয়মিত ম্যানেজিং কমিটি
+          </label>
+
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            background: activeType === 'adhoc' ? '#f0f9ff' : '#f8fafc',
+            border: activeType === 'adhoc' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+            color: activeType === 'adhoc' ? '#0369a1' : '#64748b'
+          }}>
+            <input
+              type="radio"
+              name="committee_active_type"
+              checked={activeType === 'adhoc'}
+              onChange={() => setActiveType('adhoc')}
+            />
+            📋 এডহক কমিটি
+          </label>
+        </div>
+      </div>
+
+      {/* Guidance Card */}
+      <GuidanceGuideCard
+        title={selectedDivision === 'adhoc' ? 'এডহক কমিটি এন্ট্রি নির্দেশিকা' : 'নিয়মিত ম্যানেজিং কমিটি এন্ট্রি নির্দেশিকা'}
+        steps={selectedDivision === 'adhoc' ? [
+          '১. এডহক কমিটির বর্তমান অনুমোদন সেশন / মেয়াদকাল লিখুন (যেমন: ২০২৬ (৬ মাস মেয়াদি) বা নির্দিষ্ট তারিখ)।',
+          '২. শিক্ষা বোর্ড বা জেলা প্রশাসন কর্তৃক প্রদত্ত অনুমোদন স্মারক নং ও তারিখ উল্লেখ করুন।',
+          '৩. সাধারণত ৪ সদস্য বিশিষ্ট কাঠামো: ১. সভাপতি (মনোনীত/প্রশাসনিক), ২. সদস্য সচিব (প্রধান শিক্ষক), ৩. শিক্ষক প্রতিনিধি, ৪. অভিভাবক সদস্য।',
+          '৪. নতুন সদস্য যোগ করতে "+ নতুন সদস্য যোগ" বা নিচের দ্রুত ক্যাটাগরি বোতামগুলোতে ক্লিক করুন।'
+        ] : [
+          '১. নিয়মিত ম্যানেজিং কমিটির মেয়াদকাল লিখুন (যেমন: ২০২৪–২০২৬)।',
+          '২. বোর্ড/মাউশি অনুমোদিত স্মারক নম্বর ও তারিখ নথিভুক্ত করুন।',
+          '৩. বিভিন্ন ক্যাটাগরির সদস্য তালিকাভুক্ত করুন: সভাপতি, সদস্য সচিব (প্রধান শিক্ষক), শিক্ষক প্রতিনিধি, অভিভাবক প্রতিনিধি, দাতা সদস্য, প্রতিষ্ঠাতা সদস্য, বিদ্যোৎসাহী সদস্য, হিতৈষী সদস্য।',
+          '৪. "+ নতুন সদস্য যোগ" বাটনে ক্লিক করে সদস্য সংখ্যা বাড়ানো যাবে।'
+        ]}
+        tips={selectedDivision === 'adhoc'
+          ? 'এডহক কমিটি সাধারণত পূর্ণাঙ্গ কমিটি গঠনের পূর্ববর্তী অন্তর্বর্তীকালীন সময়ে বিদ্যালয়ের প্রশাসনিক ধারাবাহিকতা বজায় রাখতে গঠিত হয়।'
+          : 'নিয়মিত ম্যানেজিং কমিটিতে সভাপতি সবার উপরে এবং সদস্য সচিব (প্রধান শিক্ষক) দ্বিতীয় স্থানে থাকা বাঞ্ছনীয়।'}
+        example={selectedDivision === 'adhoc'
+          ? 'মোঃ খোরশেদ আলম (সভাপতি), মুহাম্মদ শফিকুল ইসলাম (সদস্য সচিব), তাপসী সরকার (শিক্ষক প্রতিনিধি)...'
+          : 'নেয়ামুল হক খান (সভাপতি), মুহাম্মদ শফিকুল ইসলাম (সদস্য সচিব), আলহাজ্ব মোঃ আব্দুল লতিফ (দাতা সদস্য)...'}
+      />
+
+      {/* Division Specific Meta Fields */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '12px',
+        background: '#f8fafc',
+        padding: '14px',
+        borderRadius: '8px',
+        border: '1px solid #cbd5e1',
+        marginBottom: '16px'
+      }}>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px', color: '#1e293b' }}>
+            কমিটির শিরোনাম:
+          </label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+            value={currentComm.title || (selectedDivision === 'adhoc' ? 'এডহক কমিটি' : 'নিয়মিত ম্যানেজিং কমিটি')}
+            onChange={(e) => updateCommitteeField('title', e.target.value)}
+            placeholder="যেমন: নিয়মিত ম্যানেজিং কমিটি / এডহক কমিটি"
+          />
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px', color: '#1e293b' }}>
+            অনুমোদন মেয়াদকাল:
+          </label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+            value={currentComm.tenure || ''}
+            onChange={(e) => updateCommitteeField('tenure', e.target.value)}
+            placeholder={selectedDivision === 'adhoc' ? 'যেমন: ২০২৬ (৬ মাস মেয়াদি)' : 'যেমন: ২০২৪–২০২৬'}
+          />
+        </div>
+
+        <div style={{ gridColumn: 'span 2' }}>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px', color: '#1e293b' }}>
+            বোর্ড/প্রশাসন অনুমোদন স্মারক নং ও তারিখ (ঐচ্ছিক):
+          </label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={currentComm.approval_memo || ''}
+            onChange={(e) => updateCommitteeField('approval_memo', e.target.value)}
+            placeholder="যেমন: মাউশি/ঢাকা শিক্ষা বোর্ড অনুমোদন স্মারক নং: ৩৭.০২.০০০০... তারিখ: ১৫-০১-২০২৪"
+          />
+        </div>
+      </div>
+
+      {/* Quick Role Addition Chips */}
+      <div style={{ marginBottom: '14px', background: '#f1f5f9', padding: '10px 14px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+        <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+          ⚡ এক ক্লিকে ক্যাটাগরি অনুযায়ী সদস্য এন্ট্রি যোগ করুন:
+        </div>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          {currentRoleSuggestions.map((r, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => addMember(r)}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #94a3b8',
+                borderRadius: '16px',
+                padding: '4px 10px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#1e293b',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <span>+</span> {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Member List Header & Action Buttons */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '14px 0 8px', flexWrap: 'wrap', gap: '8px' }}>
+        <h4 style={{ color: selectedDivision === 'adhoc' ? '#0369a1' : '#047857', margin: 0, fontSize: '14.5px', fontWeight: 800 }}>
+          {selectedDivision === 'adhoc' ? '📋 এডহক কমিটির সদস্য তালিকা' : '🏛️ নিয়মিত ম্যানেজিং কমিটির সদস্য তালিকা'}
+          <span style={{ fontSize: '12.5px', fontWeight: 500, color: '#64748b', marginLeft: '6px' }}>
+            ({(currentComm.members || []).length} জন সদস্য নথিভুক্ত)
+          </span>
+        </h4>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={loadStandardTemplate}
+            style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1' }}
+          >
+            📋 আদর্শ কাঠামো লোড
+          </button>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => addMember()}
+            style={{ background: selectedDivision === 'adhoc' ? '#0284c7' : '#047857', color: '#fff', fontWeight: 700 }}
+          >
+            + নতুন সদস্য যোগ
+          </button>
+        </div>
+      </div>
+
+      {/* Datalist for autocomplete committee roles */}
+      <datalist id="committee-roles-list">
+        {currentRoleSuggestions.map((role, idx) => (
+          <option key={idx} value={role} />
         ))}
+      </datalist>
+
+      {/* Members Grid / Rows */}
+      <div style={{ display: 'grid', gap: '10px' }}>
+        {(currentComm.members || []).length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+            <p style={{ margin: 0, fontSize: '14px' }}>এই বিভাগে এখনও কোনো সদস্য যোগ করা হয়নি।</p>
+            <button
+              type="button"
+              className="btn mini"
+              onClick={() => addMember()}
+              style={{ marginTop: '8px', background: '#047857', color: '#fff' }}
+            >
+              + প্রথম সদস্য যোগ করুন
+            </button>
+          </div>
+        ) : (
+          (currentComm.members || []).map((m, idx) => (
+            <div
+              key={idx}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '32px 170px 180px 1fr 130px 60px',
+                gap: '8px',
+                alignItems: 'center',
+                background: '#f8fafc',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1'
+              }}
+            >
+              <div style={{ textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: '12px' }}>
+                {idx + 1}.
+              </div>
+
+              <div>
+                <small style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>কমিটি ক্যাটাগরি / রোল:</small>
+                <input
+                  list="committee-roles-list"
+                  style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 700, color: '#065f46' }}
+                  placeholder="যেমন: সভাপতি"
+                  value={m.role || ''}
+                  onChange={(e) => updateMember(idx, 'role', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <small style={{ fontSize: '11px', color: '#64748b', display: 'block', fontWeight: 600 }}>সদস্যের পুরো নাম:</small>
+                <input
+                  style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+                  placeholder="নাম লিখুন"
+                  value={m.name_bn || ''}
+                  onChange={(e) => updateMember(idx, 'name_bn', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>পদবি / সামাজিক পরিচিতি:</small>
+                <input
+                  style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                  placeholder="যেমন: বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক"
+                  value={m.designation || ''}
+                  onChange={(e) => updateMember(idx, 'designation', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <small style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>মোবাইল (ঐচ্ছিক):</small>
+                <input
+                  style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                  placeholder="017XX-XXXXXX"
+                  value={m.mobile || ''}
+                  onChange={(e) => updateMember(idx, 'mobile', e.target.value)}
+                />
+              </div>
+
+              <div style={{ textAlign: 'center', paddingTop: '14px' }}>
+                <button
+                  type="button"
+                  className="btn mini"
+                  title="এই সদস্যকে তালিকা থেকে বাদ দিন"
+                  onClick={() => removeMember(idx)}
+                  style={{ background: '#fee2e2', color: '#b91c1c', fontWeight: 700, padding: '4px 8px' }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Bottom Save & Actions */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+        <button
+          type="button"
+          className="btn mini"
+          onClick={() => addMember()}
+          style={{ background: selectedDivision === 'adhoc' ? '#0284c7' : '#047857', color: '#fff', fontWeight: 700 }}
+        >
+          + নতুন সদস্য যোগ
+        </button>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ দেখুন</button>
+          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সকল তথ্য সংরক্ষণ করুন</button>
+        </div>
       </div>
     </div>
   );

@@ -85,6 +85,7 @@ import React, { useState, useEffect } from 'react';
 import {
   MOCK_SCHOOL,
   MOCK_COMMITTEE,
+  MOCK_ADHOC_COMMITTEE,
   MOCK_TEACHERS,
   MOCK_STAFF,
   MOCK_STUDENTS,
@@ -145,6 +146,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [libraryCategory, setLibraryCategory] = useState('all');
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
+  const [committeeCategoryTab, setCommitteeCategoryTab] = useState(null);
   const instData = getStoredInstitutionData();
 
   // Bengali helpers
@@ -1641,12 +1643,157 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
 
     if (menuKey === 'public.nav.institution.committee' || title === 'পরিচালনা পর্ষদ' || title === 'পরিচালনা কমিটি') {
       const comm = instData.committee || {};
-      const members = comm.members && comm.members.length ? comm.members : MOCK_COMMITTEE;
-      const tenure = comm.tenure || '২০২৪–২০২৬';
+      const activeType = comm.active_type || 'regular';
+      const effectiveType = committeeCategoryTab || activeType;
+
+      const regularData = comm.regular || {
+        title: 'নিয়মিত ম্যানেজিং কমিটি',
+        tenure: comm.tenure || '২০২৪–২০২৬',
+        approval_memo: 'মাউশি/বোর্ড স্মারক নং: ৩৭.০২.০০০০.১০৬... তারিখ: ১৫-০১-২০২৪',
+        members: (comm.members && comm.members.length) ? comm.members : MOCK_COMMITTEE
+      };
+
+      const adhocData = comm.adhoc || {
+        title: 'এডহক কমিটি',
+        tenure: '২০২৬ (৬ মাস মেয়াদি)',
+        approval_memo: 'শিক্ষা বোর্ড অনুমোদন স্মারক নং: ১৮.০৪.০০০... তারিখ: ১০-০১-২০২৬',
+        members: (MOCK_ADHOC_COMMITTEE && MOCK_ADHOC_COMMITTEE.length) ? MOCK_ADHOC_COMMITTEE : []
+      };
+
+      const selectedComm = effectiveType === 'adhoc' ? adhocData : regularData;
+      const members = (selectedComm.members && selectedComm.members.length)
+        ? selectedComm.members
+        : (effectiveType === 'adhoc' ? (MOCK_ADHOC_COMMITTEE || []) : MOCK_COMMITTEE);
+      const tenure = selectedComm.tenure || comm.tenure || '২০২৪–২০২৬';
+
       return (
         <div className="submenu-content">
-          <div className="modal-hero-badge">👥 পরিচালনা পর্ষদ (Managing Committee) • মেয়াদকাল: {tenure}</div>
-          <p className="lead-text">বিদ্যালয়ের সার্বিক শিক্ষা, প্রশাসনিক ও ভৌত অবকাঠামোগত উন্নয়নের দায়িত্বে নিয়োজিত গভর্নিং বডি:</p>
+          <div className="modal-hero-badge">
+            👥 পরিচালনা পর্ষদ (Managing Committee) • {effectiveType === 'adhoc' ? 'এডহক কমিটি' : 'নিয়মিত ম্যানেজিং কমিটি'}
+          </div>
+
+          {/* Committee 2 Divisions Switcher (২টি ভাগ) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '10px',
+            margin: '14px 0 16px'
+          }}>
+            <button
+              type="button"
+              onClick={() => setCommitteeCategoryTab('regular')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: effectiveType === 'regular' ? '2px solid #047857' : '1px solid #cbd5e1',
+                background: effectiveType === 'regular' ? '#ecfdf5' : '#ffffff',
+                color: effectiveType === 'regular' ? '#065f46' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: effectiveType === 'regular' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🏛️</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ভাগ ১: নিয়মিত ম্যানেজিং কমিটি</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    পূর্ণাঙ্গ কমিটি • {regularData.tenure || '২০২৪–২০২৬'}
+                  </small>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '12px', background: '#e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                  {(regularData.members || []).length} জন
+                </span>
+                {activeType === 'regular' && (
+                  <span style={{ fontSize: '11px', background: '#059669', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                    সক্রিয়
+                  </span>
+                )}
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCommitteeCategoryTab('adhoc')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: effectiveType === 'adhoc' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                background: effectiveType === 'adhoc' ? '#f0f9ff' : '#ffffff',
+                color: effectiveType === 'adhoc' ? '#0369a1' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: effectiveType === 'adhoc' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>📋</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ভাগ ২: এডহক কমিটি</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    অন্তর্বর্তীকালীন কমিটি • {adhocData.tenure || '৬ মাস মেয়াদি'}
+                  </small>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '12px', background: '#e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                  {(adhocData.members || []).length} জন
+                </span>
+                {activeType === 'adhoc' && (
+                  <span style={{ fontSize: '11px', background: '#0284c7', color: '#fff', padding: '2px 7px', borderRadius: '10px', fontWeight: 700 }}>
+                    সক্রিয়
+                  </span>
+                )}
+              </div>
+            </button>
+          </div>
+
+          {/* Committee Info Banner */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '10px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <div>
+              <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>
+                {effectiveType === 'adhoc' ? '📋 এডহক কমিটি (Ad-hoc Committee)' : '🏛️ নিয়মিত ম্যানেজিং কমিটি (Regular Managing Committee)'}
+              </span>
+              <span style={{ marginLeft: '10px', fontSize: '13px', color: '#64748b' }}>
+                মেয়াদকাল: <strong style={{ color: effectiveType === 'adhoc' ? '#0369a1' : '#047857' }}>{tenure}</strong>
+              </span>
+            </div>
+            {selectedComm.approval_memo && (
+              <small style={{ color: '#475569', fontSize: '12px', background: '#ffffff', padding: '3px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                {selectedComm.approval_memo}
+              </small>
+            )}
+          </div>
+
+          <p className="lead-text">
+            {effectiveType === 'adhoc'
+              ? 'শিক্ষা বোর্ড/জেলা প্রশাসন কর্তৃক অনুমোদিত এডহক কমিটির বিভিন্ন ক্যাটাগরির সম্মানিত সদস্যবৃন্দ:'
+              : 'বিদ্যালয়ের সার্বিক শিক্ষা, প্রশাসনিক ও ভৌত অবকাঠামোগত উন্নয়নের দায়িত্বে নিয়োজিত নিয়মিত ম্যানেজিং কমিটির বিভিন্ন ক্যাটাগরির সম্মানিত সদস্যবৃন্দ:'}
+          </p>
+
           <div className="committee-grid">
             {members.map((m, idx) => {
               const ld = getLeadershipData();
@@ -1657,9 +1804,15 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                     <img src={photoSrc} alt={m.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div className="member-info">
-                    <span className="member-role">{m.role}</span>
+                    <span className="member-role" style={{
+                      background: m.role?.includes('সভাপতি') ? '#fef3c7' : m.role?.includes('সদস্য সচিব') ? '#ecfdf5' : '#f1f5f9',
+                      color: m.role?.includes('সভাপতি') ? '#92400e' : m.role?.includes('সদস্য সচিব') ? '#065f46' : '#334155'
+                    }}>
+                      {m.role}
+                    </span>
                     <h4>{m.name_bn}</h4>
                     <p>{m.designation}</p>
+                    {m.mobile && <small style={{ display: 'block', color: '#64748b', marginTop: '2px' }}>📞 {m.mobile}</small>}
                     <small>মেয়াদকাল: {m.tenure || tenure}</small>
                   </div>
                 </div>

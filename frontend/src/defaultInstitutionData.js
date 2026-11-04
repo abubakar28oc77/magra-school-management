@@ -37,7 +37,34 @@ export const DEFAULT_INSTITUTION_DATA = {
     ]
   },
   committee: {
+    active_type: 'regular',
     tenure: '২০২৪–২০২৬',
+    regular: {
+      title: 'নিয়মিত ম্যানেজিং কমিটি',
+      tenure: '২০২৪–২০২৬',
+      approval_memo: 'মাউশি/বোর্ড স্মারক নং: ৩৭.০২.০০০০.১০৬... তারিখ: ১৫-০১-২০২৪',
+      members: [
+        { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', mobile: '01711-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
+        { name_bn: 'আলহাজ্ব মোঃ আব্দুল লতিফ', role: 'দাতা সদস্য', designation: 'ভূমি ও তহবিল দাতা', mobile: '01713-XXXXXX', photo: '' },
+        { name_bn: 'মোঃ রফিকুল ইসলাম তালুকদার', role: 'অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01714-XXXXXX', photo: '' },
+        { name_bn: 'বেগম ফরিদা ইয়াসমিন', role: 'সংরক্ষিত মহিলা অভিভাবক প্রতিনিধি', designation: 'সম্মানিত অভিভাবক', mobile: '01715-XXXXXX', photo: '' },
+        { name_bn: 'তাপসী সরকার', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী প্রধান শিক্ষক', mobile: '01716-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী শিক্ষক (আইসিটি)', mobile: '01717-XXXXXX', photo: '' },
+        { name_bn: 'ডাঃ আশরাফুল আলম', role: 'হিতৈষী সদস্য', designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক', mobile: '01718-XXXXXX', photo: '' }
+      ]
+    },
+    adhoc: {
+      title: 'এডহক কমিটি',
+      tenure: '২০২৬ (৬ মাস মেয়াদি)',
+      approval_memo: 'শিক্ষা বোর্ড অনুমোদন স্মারক নং: ১৮.০৪.০০০... তারিখ: ১০-০১-২০২৬',
+      members: [
+        { name_bn: 'মোঃ খোরশেদ আলম', role: 'সভাপতি', designation: 'উপজেলা নির্বাহী কর্মকর্তা / মনোনীত সভাপতি', mobile: '01710-XXXXXX', photo: '' },
+        { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
+        { name_bn: 'মোঃ মজিবুর রহমান', role: 'অভিভাবক সদস্য', designation: 'মনোনীত অভিভাবক প্রতিনিধি', mobile: '01719-XXXXXX', photo: '' },
+        { name_bn: 'তাপসী সরকার', role: 'শিক্ষক প্রতিনিধি', designation: 'সহকারী প্রধান শিক্ষক', mobile: '01716-XXXXXX', photo: '' }
+      ]
+    },
     members: [
       { name_bn: 'নেয়ামুল হক খান', role: 'সভাপতি', designation: 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক', mobile: '01711-XXXXXX', photo: '' },
       { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', role: 'সদস্য সচিব', designation: 'প্রধান শিক্ষক, মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়', mobile: '01712-XXXXXX', photo: '' },
@@ -154,7 +181,34 @@ export function getStoredInstitutionData() {
     const raw = localStorage.getItem('magra_institution_info');
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...DEFAULT_INSTITUTION_DATA, ...parsed };
+      const merged = { ...DEFAULT_INSTITUTION_DATA, ...parsed };
+
+      // Normalize committee structure to guarantee both ad-hoc and regular divisions exist
+      if (merged.committee) {
+        if (!merged.committee.regular) {
+          merged.committee.regular = {
+            title: 'নিয়মিত ম্যানেজিং কমিটি',
+            tenure: merged.committee.tenure || DEFAULT_INSTITUTION_DATA.committee.regular.tenure,
+            approval_memo: DEFAULT_INSTITUTION_DATA.committee.regular.approval_memo,
+            members: Array.isArray(merged.committee.members) && merged.committee.members.length
+              ? merged.committee.members
+              : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.regular.members))
+          };
+        }
+        if (!merged.committee.adhoc) {
+          merged.committee.adhoc = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.committee.adhoc));
+        }
+        if (!merged.committee.active_type) {
+          merged.committee.active_type = 'regular';
+        }
+
+        // Mirror active members to committee.members and committee.tenure for backward compatibility
+        const activeGroup = merged.committee.active_type === 'adhoc' ? merged.committee.adhoc : merged.committee.regular;
+        merged.committee.members = activeGroup.members || [];
+        merged.committee.tenure = activeGroup.tenure || merged.committee.tenure;
+      }
+
+      return merged;
     }
   } catch (e) {
     console.error('Failed to load institution data from localStorage', e);
@@ -164,6 +218,15 @@ export function getStoredInstitutionData() {
 
 export function saveStoredInstitutionData(data) {
   try {
+    // Keep committee.members and committee.tenure mirrored to active committee
+    if (data && data.committee) {
+      const c = data.committee;
+      const activeGroup = c.active_type === 'adhoc' ? c.adhoc : c.regular;
+      if (activeGroup) {
+        c.members = activeGroup.members || [];
+        c.tenure = activeGroup.tenure || c.tenure;
+      }
+    }
     localStorage.setItem('magra_institution_info', JSON.stringify(data));
     window.dispatchEvent(new CustomEvent('magra_institution_change', { detail: data }));
     return true;
