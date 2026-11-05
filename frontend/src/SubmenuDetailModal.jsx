@@ -2455,7 +2455,6 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
         return (
           (d.name_bn || '').toLowerCase().includes(q) ||
           (d.name_en || '').toLowerCase().includes(q) ||
-          (d.donation_type || '').toLowerCase().includes(q) ||
           (d.donation_amount || '').toLowerCase().includes(q) ||
           (d.address || '').toLowerCase().includes(q) ||
           (d.year || '').toLowerCase().includes(q) ||
@@ -2595,7 +2594,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
             <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
               <input
                 type="text"
-                placeholder="🔍 নাম, গ্রাম, দানের খাত বা সাল দিয়ে খুঁজুন..."
+                placeholder="🔍 নাম, গ্রাম, অনুদানের বিবরণ বা সাল দিয়ে খুঁজুন..."
                 value={donorSearch}
                 onChange={(e) => setDonorSearch(e.target.value)}
                 style={{
@@ -2731,12 +2730,8 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                       padding: '9px 12px',
                       marginBottom: '10px'
                     }}>
-                      <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>দানের খাত ও উদ্দেশ্য:</div>
-                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: '2px 0 6px 0' }}>
-                        🎯 {d.donation_type || 'সার্বিক শিক্ষা উন্নয়ন'}
-                      </div>
                       <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>অনুদানের পরিমাণ ও বিবরণ:</div>
-                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0369a1' }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0369a1', marginTop: '2px' }}>
                         💰 {d.donation_amount || '—'}
                       </div>
                     </div>
@@ -2796,7 +2791,6 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                     <th style={{ padding: '10px 8px', textAlign: 'center', width: '40px' }}>ক্র.</th>
                     <th style={{ padding: '10px 12px', textAlign: 'left' }}>দাতা সদস্যের নাম ও পদবি</th>
                     <th style={{ padding: '10px 12px', textAlign: 'left' }}>ঠিকানা ও যোগাযোগ</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>দানের খাত</th>
                     <th style={{ padding: '10px 12px', textAlign: 'center' }}>অনুদানের বিবরণ/পরিমাণ</th>
                     <th style={{ padding: '10px 10px', textAlign: 'center', width: '70px' }}>সাল</th>
                     <th style={{ padding: '10px 10px', textAlign: 'center', width: '110px' }}>ক্যাটাগরি</th>
@@ -2817,12 +2811,11 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
                         <div>{d.address || '—'}</div>
                         {d.mobile && <div style={{ color: '#64748b' }}>📱 {d.mobile}</div>}
                       </td>
-                      <td style={{ padding: '10px 12px' }}>
-                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{d.donation_type}</div>
-                        {d.remarks && <div style={{ fontSize: '11.5px', color: '#64748b', fontStyle: 'italic' }}>{d.remarks}</div>}
-                      </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0284c7' }}>
-                        {d.donation_amount || '—'}
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <div style={{ fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0284c7' }}>
+                          {d.donation_amount || '—'}
+                        </div>
+                        {d.remarks && <div style={{ fontSize: '11.5px', color: '#64748b', fontStyle: 'italic', marginTop: '2px' }}>{d.remarks}</div>}
                       </td>
                       <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: '#475569' }}>
                         {toBn(d.year || '—')}

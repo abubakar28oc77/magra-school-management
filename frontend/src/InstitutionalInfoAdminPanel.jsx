@@ -1438,7 +1438,6 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       name_bn: '',
       name_en: '',
       designation: selectedFeature === 'life' ? 'বিশিষ্ট দানবীর ও শিক্ষানুরাগী' : 'বিশিষ্ট সমাজসেবক ও শুভানুধ্যায়ী',
-      donation_type: '',
       donation_amount: '',
       year: '২০২৬',
       address: 'মগড়া, টাঙ্গাইল সদর',
@@ -1527,12 +1526,9 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
             ${d.status || (d.id?.startsWith('ld') ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য')}
           </span>
         </td>
-        <td>
-          <b>${d.donation_type || '—'}</b>
-          ${d.remarks ? `<br><small style="color:#64748b;font-style:italic;">${d.remarks}</small>` : ''}
-        </td>
         <td style="font-weight:800;color:#0f172a;text-align:center;">
           ${d.donation_amount || '—'}
+          ${d.remarks ? `<br><small style="color:#64748b;font-style:italic;font-weight:normal;">${d.remarks}</small>` : ''}
         </td>
         <td style="text-align:center;font-weight:700;color:#047857;">
           ${toBn(d.year || '—')}
@@ -1581,8 +1577,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
               <th style="min-width:140px;">দাতা সদস্যের নাম ও পরিচিতি</th>
               <th style="min-width:110px;">ঠিকানা ও যোগাযোগ</th>
               <th style="width:110px; text-align:center;">ক্যাটাগরি</th>
-              <th>দানের খাত ও উদ্দেশ্য</th>
-              <th style="width:120px; text-align:center;">অনুদানের বিবরণ/পরিমাণ</th>
+              <th style="width:140px; text-align:center;">অনুদানের বিবরণ/পরিমাণ</th>
               <th style="width:55px; text-align:center;">সাল</th>
             </tr>
           </thead>
@@ -1627,7 +1622,6 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
     return (
       (item.name_bn || '').toLowerCase().includes(q) ||
       (item.name_en || '').toLowerCase().includes(q) ||
-      (item.donation_type || '').toLowerCase().includes(q) ||
       (item.donation_amount || '').toLowerCase().includes(q) ||
       (item.address || '').toLowerCase().includes(q) ||
       (item.year || '').toLowerCase().includes(q)
@@ -1799,7 +1793,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
         <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
           <input
             type="text"
-            placeholder="🔍 নাম, গ্রাম, দানের খাত বা সাল দিয়ে খুঁজুন..."
+            placeholder="🔍 নাম, গ্রাম, অনুদানের বিবরণ বা সাল দিয়ে খুঁজুন..."
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
             style={{ width: '100%', padding: '7px 10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
@@ -1827,25 +1821,6 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       </div>
 
       {/* Datalists */}
-      <datalist id="donation-types-life-list">
-        <option value="ভূমি ও স্থায়ী তহবিল দান" />
-        <option value="স্থায়ী তহবিল ও ভবন উন্নয়ন" />
-        <option value="ভূমি দান ও ছাত্রী কল্যাণ তহবিল" />
-        <option value="একাডেমিক ভবন নির্মাণ ও জমি দান" />
-        <option value="স্থায়ী আমানত ও শিক্ষাবৃত্তি তহবিল" />
-      </datalist>
-
-      <datalist id="donation-types-onetime-list">
-        <option value="বিজ্ঞানাগার ও মেডিকেল ফার্স্ট এইড কর্নার" />
-        <option value="শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সামগ্রী" />
-        <option value="কেন্দ্রীয় লাইব্রেরির বই ও আসবাবপত্র" />
-        <option value="বিশুদ্ধ খাবার পানির গভীর নলকূপ ও ফিল্টার স্থাপন" />
-        <option value="গরিব ও মেধাবী শিক্ষার্থী কল্যাণ তহবিল" />
-        <option value="একাডেমিক ভবন নির্মাণ ও সংস্কার" />
-        <option value="ক্রীড়া ও সাংস্কৃতিক সামগ্রী অনুদান" />
-        <option value="নগদ অর্থ অনুদান" />
-      </datalist>
-
       <datalist id="donor-status-options">
         <option value="আজীবন দাতা সদস্য" />
         <option value="এককালীন দাতা সদস্য" />
@@ -1945,20 +1920,6 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
                   placeholder="যেমন: বিশিষ্ট দানবীর ও শিক্ষানুরাগী"
                   value={item.designation || ''}
                   onChange={(e) => updateDonorField(idx, 'designation', e.target.value)}
-                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
-                  দানের খাত / উদ্দেশ্য
-                </label>
-                <input
-                  type="text"
-                  list={selectedFeature === 'life' ? 'donation-types-life-list' : 'donation-types-onetime-list'}
-                  placeholder="ইচ্ছামতো লিখুন বা ড্রপডাউন থেকে নির্বাচন করুন"
-                  value={item.donation_type || ''}
-                  onChange={(e) => updateDonorField(idx, 'donation_type', e.target.value)}
                   style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
