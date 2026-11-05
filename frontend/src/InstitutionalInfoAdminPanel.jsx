@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredInstitutionData, saveStoredInstitutionData, DEFAULT_INSTITUTION_DATA } from './defaultInstitutionData';
 import { SubmenuDetailModal } from './SubmenuDetailModal';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
+
+export const toBn = (n) => {
+  if (n === null || n === undefined || n === '') return '';
+  return String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+};
 
 export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
   const [data, setData] = useState(getStoredInstitutionData);
@@ -1384,7 +1390,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       name_bn: '',
       name_en: '',
       designation: selectedFeature === 'life' ? 'বিশিষ্ট দানবীর ও শিক্ষানুরাগী' : 'বিশিষ্ট সমাজসেবক ও শুভানুধ্যায়ী',
-      donation_type: selectedFeature === 'life' ? 'ভূমি ও স্থায়ী তহবিল দান' : 'নগদ অর্থ ও শিক্ষা সামগ্রী অনুদান',
+      donation_type: '',
       donation_amount: '',
       year: '২০২৬',
       address: 'মগড়া, টাঙ্গাইল সদর',
@@ -1427,6 +1433,145 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
     }
   };
 
+  // Official school pad print handler
+  const handlePrintDonorsPad = (typeToPrint = 'current') => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    const actualType = typeToPrint === 'current' ? selectedFeature : typeToPrint;
+    const targetList = actualType === 'life' ? lifeDonors : actualType === 'one_time' ? oneTimeDonors : [...lifeDonors, ...oneTimeDonors];
+    const titleText = actualType === 'life'
+      ? 'আজীবন দাতা সদস্যবৃন্দের অফিসিয়াল তালিকা'
+      : actualType === 'one_time'
+      ? 'এককালীন দাতা সদস্যবৃন্দের অফিসিয়াল তালিকা'
+      : 'বিদ্যালয়ের সম্মানিত দাতা সদস্যবৃন্দের পূর্ণাঙ্গ রেজিস্ট্রি (আজীবন ও এককালীন)';
+
+    // Get signatures: সভাপতি বাম পাশে, প্রধান শিক্ষক ডান পাশে
+    const comm = data?.committee || {};
+    const activeComm = comm.active_type === 'adhoc' ? comm.adhoc : (comm.regular || comm);
+    const members = activeComm?.members || [];
+    const presMember = members.find(m => m.role?.includes('সভাপতি')) || members[0] || {};
+    const headMember = members.find(m => m.role?.includes('সদস্য সচিব') || m.designation?.includes('প্রধান শিক্ষক')) || {};
+
+    const presName = presMember.name_bn || 'নেয়ামুল হক খান';
+    const presRole = presMember.role || 'সভাপতি';
+    const presSub = comm.active_type === 'adhoc' ? 'এডহক কমিটি' : 'বিদ্যালয় পরিচালনা পর্ষদ';
+
+    const headName = headMember.name_bn || 'মুহাম্মদ শফিকুল ইসলাম';
+    const headRole = 'প্রধান শিক্ষক ও সদস্য সচিব';
+    const headSub = 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়';
+
+    const rows = targetList.map((d, i) => `
+      <tr>
+        <td style="text-align:center;font-weight:700;">${toBn(i + 1)}.</td>
+        <td>
+          <b>${d.name_bn || '—'}</b>
+          ${d.name_en ? `<br><small style="color:#64748b;">${d.name_en}</small>` : ''}
+          ${d.designation ? `<br><small style="color:#047857;">${d.designation}</small>` : ''}
+        </td>
+        <td>
+          ${d.address || '—'}
+          ${d.mobile ? `<br><small style="color:#475569;">📱 ${d.mobile}</small>` : ''}
+        </td>
+        <td style="text-align:center;">
+          <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;${d.id?.startsWith('ld') || (d.status && d.status.includes('আজীবন')) ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;' : 'background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;'}">
+            ${d.status || (d.id?.startsWith('ld') ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য')}
+          </span>
+        </td>
+        <td>
+          <b>${d.donation_type || '—'}</b>
+          ${d.remarks ? `<br><small style="color:#64748b;font-style:italic;">${d.remarks}</small>` : ''}
+        </td>
+        <td style="font-weight:800;color:#0f172a;text-align:center;">
+          ${d.donation_amount || '—'}
+        </td>
+        <td style="text-align:center;font-weight:700;color:#047857;">
+          ${toBn(d.year || '—')}
+        </td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${titleText} — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm 15mm 15mm;
+          }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+          .doc-meta { font-size: 12.5px; color: #475569; margin-bottom: 14px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+          th, td { border: 1px solid #94a3b8; padding: 7px 8px; text-align: left; vertical-align: top; }
+          th { background: #f0fdf4; color: #166534; font-weight: 800; }
+          .sig-grid { margin-top: 55px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13.5px; }
+          .sig-box-left { text-align: center; }
+          .sig-box-right { text-align: center; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 15px 0 10px 0;">
+          <span class="doc-badge">🏛️ অফিসিয়াল দাতা সদস্য রেজিস্ট্রি</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:19px;">${titleText}</h2>
+          <div class="doc-meta">
+            প্রতিবেদন প্রস্তুতের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • মোট প্রদর্শিত দাতা সদস্য: ${toBn(targetList.length)} জন
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:38px; text-align:center;">ক্র.</th>
+              <th style="min-width:140px;">দাতা সদস্যের নাম ও পরিচিতি</th>
+              <th style="min-width:110px;">ঠিকানা ও যোগাযোগ</th>
+              <th style="width:110px; text-align:center;">ক্যাটাগরি</th>
+              <th>দানের খাত ও উদ্দেশ্য</th>
+              <th style="width:120px; text-align:center;">অনুদানের বিবরণ/পরিমাণ</th>
+              <th style="width:55px; text-align:center;">সাল</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <!-- স্বাক্ষর সেকশন: সভাপতি বাম পাশে, প্রধান শিক্ষক ডান পাশে -->
+        <div class="sig-grid">
+          <!-- বাম পাশ: সভাপতি -->
+          <div class="sig-box-left">
+            <div class="sig-line"></div>
+            <b style="font-size: 14px; color: #0f172a;">${presName}</b><br>
+            <span style="font-weight: 700; color: #334155;">${presRole}</span><br>
+            <small style="color: #64748b;">${presSub}</small>
+          </div>
+
+          <!-- ডান পাশ: প্রধান শিক্ষক -->
+          <div class="sig-box-right">
+            <div class="sig-line"></div>
+            <b style="font-size: 14px; color: #0f172a;">${headName}</b><br>
+            <span style="font-weight: 700; color: #334155;">${headRole}</span><br>
+            <small style="color: #64748b;">${headSub}</small>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function(){ window.print(); }, 300);
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
   const filteredIndices = currentList.map((item, idx) => ({ item, idx })).filter(({ item }) => {
     if (!searchFilter.trim()) return true;
     const q = searchFilter.toLowerCase();
@@ -1449,10 +1594,28 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
             <span>🤝 বিদ্যালয়ের দাতা সদস্য (Honorable Donor Members)</span>
           </h3>
           <small style={{ color: '#64748b', fontSize: '12.5px' }}>
-            এককালীন দাতা সদস্য ও আজীবন দাতা সদস্য—উভয় ফিচারের সম্মানিত ব্যক্তিবর্গের তথ্য পৃথকভাবে এন্ট্রি ও পরিচালনা করুন
+            এককালীন দাতা সদস্য ও আজীবন দাতা সদস্য—উভয় ফিচারের সম্মানিত ব্যক্তিবর্গের তথ্য পৃথকভাবে এন্ট্রি, এডিট ও অফিসিয়াল প্যাডে প্রিন্ট করুন
           </small>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => handlePrintDonorsPad(selectedFeature)}
+            style={{ background: '#047857', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 2px 6px rgba(4,120,87,0.2)' }}
+            title="বর্তমান নির্বাচিত তালিকা অফিসিয়াল প্যাডে প্রিন্ট করুন"
+          >
+            🖨️ {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} তালিকা প্রিন্ট (A4)
+          </button>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => handlePrintDonorsPad('all')}
+            style={{ background: '#1e293b', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+            title="উভয় (আজীবন ও এককালীন) দাতা সদস্যদের পূর্ণাঙ্গ তালিকা প্রিন্ট করুন"
+          >
+            🖨️ পূর্ণাঙ্গ তালিকা প্রিন্ট
+          </button>
           <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>👁️ প্রিভিউ</button>
           <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>🔄 রিসেট</button>
           <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>💾 সংরক্ষণ</button>
@@ -1566,7 +1729,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
           <span>
             <strong>{selectedFeature === 'life' ? 'আজীবন দাতা সদস্য তালিকা পরিচালনা:' : 'এককালীন দাতা সদস্য তালিকা পরিচালনা:'}</strong>{' '}
             {selectedFeature === 'life'
-              ? 'শিক্ষা বোর্ড ও মাউশি বিধিমতে স্থায়ী অনুদানকারী আজীবন দাতা সদস্যদের তথ্য এন্ট্রি করুন।'
+              ? 'শিক্ষা বোর্ড ও মাউশি বিধিমতে স্থায়ী অনুদানকারী আজীবন দাতা সদস্যদের তথ্য এন্ট্রি ও পরিচালনা করুন।'
               : 'বিদ্যালয়ের উন্নয়ন কর্মকাণ্ড, ডিজিটাল ল্যাব, ভবন ও তহবিলে এককালীন অনুদানকারী সম্মানিত ব্যক্তিবর্গের তথ্য।'}
           </span>
         </div>
@@ -1582,7 +1745,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
         </div>
       </div>
 
-      {/* Search and Quick Add Bar */}
+      {/* Search, Quick Add, and Print Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
           <input
@@ -1593,14 +1756,25 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
             style={{ width: '100%', padding: '7px 10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
           />
         </div>
-        <button
-          type="button"
-          className="btn mini"
-          onClick={addDonor}
-          style={{ background: selectedFeature === 'life' ? '#047857' : '#0284c7', color: '#fff', fontWeight: 700, padding: '7px 14px', borderRadius: '6px' }}
-        >
-          + নতুন {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা যোগ
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => handlePrintDonorsPad(selectedFeature)}
+            style={{ background: '#047857', color: '#fff', fontWeight: 700, padding: '7px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}
+            title="বর্তমান তালিকা অফিসিয়াল প্যাডে প্রিন্ট করুন"
+          >
+            🖨️ প্যাডে প্রিন্ট (A4)
+          </button>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={addDonor}
+            style={{ background: selectedFeature === 'life' ? '#065f46' : '#0284c7', color: '#fff', fontWeight: 700, padding: '7px 14px', borderRadius: '6px' }}
+          >
+            + নতুন {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা যোগ
+          </button>
+        </div>
       </div>
 
       {/* Datalists */}
@@ -1689,7 +1863,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
-                  দাতা সদস্যের নাম (বাংলা) *
+                  দাতা সদস্যের নাম (বাংলা)
                 </label>
                 <input
                   type="text"
@@ -1728,12 +1902,12 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
-                  দানের খাত / উদ্দেশ্য *
+                  দানের খাত / উদ্দেশ্য
                 </label>
                 <input
                   type="text"
                   list={selectedFeature === 'life' ? 'donation-types-life-list' : 'donation-types-onetime-list'}
-                  placeholder="যেমন: ভূমি ও স্থায়ী তহবিল দান"
+                  placeholder="ইচ্ছামতো লিখুন বা ড্রপডাউন থেকে নির্বাচন করুন"
                   value={item.donation_type || ''}
                   onChange={(e) => updateDonorField(idx, 'donation_type', e.target.value)}
                   style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
@@ -1742,7 +1916,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
-                  অনুদানের পরিমাণ ও বিবরণ *
+                  অনুদানের পরিমাণ ও বিবরণ
                 </label>
                 <input
                   type="text"
@@ -1843,7 +2017,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       </div>
 
       {/* Footer Buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '8px' }}>
         <button
           type="button"
           className="btn mini"
@@ -1853,7 +2027,23 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
           + নতুন {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা যোগ
         </button>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => handlePrintDonorsPad(selectedFeature)}
+            style={{ background: '#047857', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            🖨️ {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} প্রিন্ট
+          </button>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={() => handlePrintDonorsPad('all')}
+            style={{ background: '#1e293b', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            🖨️ পূর্ণাঙ্গ প্রিন্ট
+          </button>
           <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ দেখুন</button>
           <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সকল তথ্য সংরক্ষণ করুন</button>
         </div>
