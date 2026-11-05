@@ -30,26 +30,6 @@ export const DEFAULT_ADVISORY_DATA = {
   },
   clubAdvisors: [
     {
-      id: 'adv-deb-1',
-      clubKey: 'debate',
-      clubName: 'মগড়া ডিবেটিং ক্লাব (বিতর্ক)',
-      teacherId: 'T04',
-      teacherName: 'মোঃ আশরাফুল আলম',
-      teacherDesignation: 'সহকারী শিক্ষক (ইংরেজি)',
-      roleTitle: 'প্রধান উপদেষ্টা ও মডারেটর',
-      phone: '01715-112233'
-    },
-    {
-      id: 'adv-deb-2',
-      clubKey: 'debate',
-      clubName: 'মগড়া ডিবেটিং ক্লাব (বিতর্ক)',
-      teacherId: 'T03',
-      teacherName: 'মোঃ আব্দুল খালেক',
-      teacherDesignation: 'সহকারী শিক্ষক (বাংলা)',
-      roleTitle: 'সহ-উপদেষ্টা ও যুক্তি বিচারক',
-      phone: '01716-223344'
-    },
-    {
       id: 'adv-sci-1',
       clubKey: 'science',
       clubName: 'মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)',
@@ -98,8 +78,36 @@ export const DEFAULT_ADVISORY_DATA = {
       teacherDesignation: 'সহকারী শিক্ষক (ইংরেজি)',
       roleTitle: 'সহ-উপদেষ্টা (ভাষা ও সাহিত্যচর্চা)',
       phone: '01715-112233'
+    },
+    {
+      id: 'adv-deb-1',
+      clubKey: 'debate',
+      clubName: 'মগড়া ডিবেটিং ক্লাব (বিতর্ক)',
+      teacherId: 'T04',
+      teacherName: 'মোঃ আশরাফুল আলম',
+      teacherDesignation: 'সহকারী শিক্ষক (ইংরেজি)',
+      roleTitle: 'প্রধান উপদেষ্টা ও মডারেটর',
+      phone: '01715-112233'
+    },
+    {
+      id: 'adv-deb-2',
+      clubKey: 'debate',
+      clubName: 'মগড়া ডিবেটিং ক্লাব (বিতর্ক)',
+      teacherId: 'T03',
+      teacherName: 'মোঃ আব্দুল খালেক',
+      teacherDesignation: 'সহকারী শিক্ষক (বাংলা)',
+      roleTitle: 'সহ-উপদেষ্টা ও যুক্তি বিচারক',
+      phone: '01716-223344'
     }
   ]
+};
+
+export const CLUB_ORDER_PRIORITY = {
+  science: 1,
+  ict: 2,
+  literature: 3,
+  debate: 4,
+  all: 5
 };
 
 export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
@@ -127,14 +135,14 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
   const activeTeachers = teachers && teachers.length ? teachers : MOCK_TEACHERS;
 
   // New advisor form fields
-  const [newAdvClubKey, setNewAdvClubKey] = useState('debate');
+  const [newAdvClubKey, setNewAdvClubKey] = useState('science');
   const [newAdvTeacherId, setNewAdvTeacherId] = useState(activeTeachers[0]?.id || activeTeachers[0]?.employee_id || 'T01');
   const [newAdvRoleTitle, setNewAdvRoleTitle] = useState('উপদেষ্টা ও মডারেটর');
 
   // Edit advisor state
   const [editingAdvisor, setEditingAdvisor] = useState(null);
   const [editForm, setEditForm] = useState({
-    clubKey: 'debate',
+    clubKey: 'science',
     teacherId: '',
     roleTitle: ''
   });
@@ -301,7 +309,11 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
     const chiefPatron = advisoryData.chiefPatron || DEFAULT_ADVISORY_DATA.chiefPatron;
     const committeePatron = advisoryData.managingCommitteePatron || DEFAULT_ADVISORY_DATA.managingCommitteePatron;
     const chiefAdvisor = advisoryData.chiefAdvisor || DEFAULT_ADVISORY_DATA.chiefAdvisor;
-    const clubAdvisors = advisoryData.clubAdvisors || [];
+    const clubAdvisors = [...(advisoryData.clubAdvisors || [])].sort((a, b) => {
+      const pA = CLUB_ORDER_PRIORITY[a.clubKey] || 99;
+      const pB = CLUB_ORDER_PRIORITY[b.clubKey] || 99;
+      return pA - pB;
+    });
 
     const advisorRows = clubAdvisors.map((adv, idx) => `
       <tr>
@@ -1307,10 +1319,10 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                     background: '#ffffff'
                   }}
                 >
-                  <option value="debate">🎤 মগড়া ডিবেটিং ক্লাব (বিতর্ক)</option>
                   <option value="science">🔬 মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)</option>
                   <option value="ict">💻 মগড়া আইসিটি ও কোডিং ক্লাব</option>
                   <option value="literature">📚 মগড়া ভাষা ও সাহিত্য ক্লাব</option>
+                  <option value="debate">🎤 মগড়া ডিবেটিং ক্লাব (বিতর্ক)</option>
                   <option value="all">🏛️ সকল ক্লাব (সার্বিক একাডেমি পরিষদ)</option>
                 </select>
               </div>
@@ -1392,7 +1404,11 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
-              {(advisoryData.clubAdvisors || []).map((adv) => {
+              {[...(advisoryData.clubAdvisors || [])].sort((a, b) => {
+                const pA = CLUB_ORDER_PRIORITY[a.clubKey] || 99;
+                const pB = CLUB_ORDER_PRIORITY[b.clubKey] || 99;
+                return pA - pB;
+              }).map((adv) => {
                 const badgeBg =
                   adv.clubKey === 'debate' ? '#e0e7ff' :
                   adv.clubKey === 'science' ? '#dcfce7' :
@@ -1669,54 +1685,9 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
             </p>
           </div>
 
-          {/* 4 CARDS GRID FROM USER IMAGE */}
+          {/* 4 CARDS GRID FROM USER IMAGE (বিজ্ঞানে প্রথমে, এরপর আইসিটি, এরপর সাহিত্য, এরপর বিতর্ক) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-            {/* CARD 1: DEBATE */}
-            <div style={{
-              background: '#ffffff',
-              border: '2px solid #c7d2fe',
-              borderRadius: '12px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 10px rgba(49, 46, 129, 0.06)'
-            }}>
-              <div>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎤</div>
-                <span style={{ background: '#e0e7ff', color: '#312e81', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
-                  যুক্তি ও বাচনভঙ্গি
-                </span>
-                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
-                  মগড়া ডিবেটিং ক্লাব (বিতর্ক)
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                  “যুক্তির আলোয় কাটুক অন্ধকারের মেঘ, শাণিত হোক সত্যের বিবেক” — সংসদীয় বিতর্কচর্চা, বিচারকমণ্ডলী ও মডারেটর নিয়োগ, স্কোরিং ও প্রিন্ট।
-                </p>
-                <div style={{ fontSize: '11.5px', color: '#312e81', fontWeight: 700, marginBottom: '14px' }}>
-                  👨‍🏫 মডারেটর: মোঃ আশরাফুল আলম ও মোঃ আব্দুল খালেক
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => onSelectClub && onSelectClub('debate', 'competitions')}
-                style={{
-                  background: '#312e81',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                👉 ডিবেটিং ক্লাবের একক কার্যক্রম ও ফলাফল ➔
-              </button>
-            </div>
-
-            {/* CARD 2: SCIENCE */}
+            {/* CARD 1: SCIENCE (বিজ্ঞান) */}
             <div style={{
               background: '#ffffff',
               border: '2px solid #a7f3d0',
@@ -1761,7 +1732,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
               </button>
             </div>
 
-            {/* CARD 3: ICT */}
+            {/* CARD 2: ICT (আইসিটি ও কোডিং) */}
             <div style={{
               background: '#ffffff',
               border: '2px solid #bae6fd',
@@ -1806,7 +1777,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
               </button>
             </div>
 
-            {/* CARD 4: LITERATURE */}
+            {/* CARD 3: LITERATURE (ভাষা ও সাহিত্য) */}
             <div style={{
               background: '#ffffff',
               border: '2px solid #fed7aa',
@@ -1848,6 +1819,51 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                 }}
               >
                 👉 ভাষা ও সাহিত্য ক্লাবের কার্যক্রম ➔
+              </button>
+            </div>
+
+            {/* CARD 4: DEBATE (বিতর্ক) */}
+            <div style={{
+              background: '#ffffff',
+              border: '2px solid #c7d2fe',
+              borderRadius: '12px',
+              padding: '18px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 10px rgba(49, 46, 129, 0.06)'
+            }}>
+              <div>
+                <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎤</div>
+                <span style={{ background: '#e0e7ff', color: '#312e81', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                  যুক্তি ও বাচনভঙ্গি
+                </span>
+                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
+                  মগড়া ডিবেটিং ক্লাব (বিতর্ক)
+                </h3>
+                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
+                  “যুক্তির আলোয় কাটুক অন্ধকারের মেঘ, শাণিত হোক সত্যের বিবেক” — সংসদীয় বিতর্কচর্চা, বিচারকমণ্ডলী ও মডারেটর নিয়োগ, স্কোরিং ও প্রিন্ট।
+                </p>
+                <div style={{ fontSize: '11.5px', color: '#312e81', fontWeight: 700, marginBottom: '14px' }}>
+                  👨‍🏫 মডারেটর: মোঃ আশরাফুল আলম ও মোঃ আব্দুল খালেক
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onSelectClub && onSelectClub('debate', 'competitions')}
+                style={{
+                  background: '#312e81',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '9px 16px',
+                  borderRadius: '6px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                👉 ডিবেটিং ক্লাবের একক কার্যক্রম ও ফলাফল ➔
               </button>
             </div>
           </div>
@@ -1987,10 +2003,10 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                     background: '#ffffff'
                   }}
                 >
-                  <option value="debate">🎤 মগড়া ডিবেটিং ক্লাব (বিতর্ক)</option>
                   <option value="science">🔬 মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)</option>
                   <option value="ict">💻 মগড়া আইসিটি ও কোডিং ক্লাব</option>
                   <option value="literature">📚 মগড়া ভাষা ও সাহিত্য ক্লাব</option>
+                  <option value="debate">🎤 মগড়া ডিবেটিং ক্লাব (বিতর্ক)</option>
                   <option value="all">🏛️ সকল ক্লাব (সার্বিক একাডেমি পরিষদ)</option>
                 </select>
               </div>
