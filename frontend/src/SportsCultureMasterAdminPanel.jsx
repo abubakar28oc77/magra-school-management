@@ -49,11 +49,7 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
   };
 
   const tabsList = [
-    { key: 'debate', label: 'ডিবেটিং ক্লাব', icon: '🎙️' },
-    { key: 'science', label: 'বিজ্ঞান ক্লাব', icon: '🔬' },
-    { key: 'ict', label: 'আইসিটি ক্লাব', icon: '💻' },
-    { key: 'literature', label: 'ভাষা ও সাহিত্য', icon: '📖' },
-    { key: 'clubs', label: 'সকল ক্লাব ডিরেক্টরি', icon: '🏛️' },
+    { key: 'clubs', label: 'ক্লাব ও সংগঠন', icon: '🏛️' },
     { key: 'sports', label: 'বার্ষিক ক্রীড়া', icon: '🏃‍♂️' },
     { key: 'culture', label: 'সাংস্কৃতিক অনুষ্ঠান', icon: '🎭' },
     { key: 'achievements', label: 'অর্জন ও পুরস্কার', icon: '🏆' },
@@ -68,10 +64,6 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
   ];
 
   const navKeyMap = {
-    debate: 'public.nav.sport.debate',
-    science: 'public.nav.sport.science',
-    ict: 'public.nav.sport.ict',
-    literature: 'public.nav.sport.literature',
     clubs: 'public.nav.sport.clubs',
     sports: 'public.nav.sport.sports',
     culture: 'public.nav.sport.culture',
@@ -145,7 +137,7 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
               ক্রীড়া ও সংস্কৃতি সমন্বিত ডাটা ইনপুট ও ব্যবস্থাপনা প্যানেল
             </h2>
             <p style={{ margin: '4px 0 0', fontSize: '13px', opacity: 0.9 }}>
-              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • ভিউ পেজের ১৫টি সহশিক্ষা, ক্লাব, ক্রীড়া ও ধর্মীয় উৎসবের লাইভ তথ্য নিয়ন্ত্রণ
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • ভিউ পেজের ১২টি সহশিক্ষা, ক্লাব, ক্রীড়া ও ধর্মীয় উৎসবের লাইভ তথ্য নিয়ন্ত্রণ
             </p>
           </div>
         </div>
@@ -223,83 +215,10 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
         boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
       }}>
 
-        {/* 1. DEBATE CLUB */}
-        {activeTab === 'debate' && (
-          <div>
-            <GuidanceCard
-              title="ডিবেটিং ক্লাব (বিতর্ক)"
-              steps={[
-                '১. বিতর্কের ধরন (সনাতনী/সংসদীয়) ও প্রস্তাবনা (Motion) নির্ধারণ করুন।',
-                '২. সরকারি দল ও বিরোধী দলের বক্তা শিক্ষার্থীদের নাম ও রোল অন্তর্ভুক্ত করুন।',
-                '৩. বিতর্কের তারিখ, বিচারকমণ্ডলীর ফলাফল ও শ্রেষ্ঠ বক্তা নির্বাচন নথিভুক্ত করুন।'
-              ]}
-              tips="সেশন সম্পন্ন হলে ফলাফল প্রকাশ করুন বাটনে ক্লিক করলে তা সরাসরি ভিউ পেজে যুক্ত হবে।"
-            />
-            <LanguageLiteratureClubSection initialTitle="ডিবেটিং ক্লাব" />
-          </div>
-        )}
-
-        {/* 2. SCIENCE CLUB */}
-        {activeTab === 'science' && (
-          <div>
-            <GuidanceCard
-              title="বিজ্ঞান ক্লাব (মেলা ও উদ্ভাবন)"
-              steps={[
-                '১. বাৎসরিক বিজ্ঞান মেলা ও ইনোভেশন প্রদর্শনীর সময়সূচি নির্ধারণ করুন।',
-                '২. ক্ষুদে বিজ্ঞানীদের প্রজেক্টের নাম (রোবোটিক্স, পরিবেশ, নবায়নযোগ্য জ্বালানি) ও গ্রুপ সদস্যদের নাম এন্ট্রি করুন।',
-                '৩. সেরা উদ্ভাবনী প্রজেক্টের ফলাফল ও পুরস্কার নথিভুক্ত করুন।'
-              ]}
-              tips="শিক্ষার্থীদের দলভিত্তিক প্রজেক্টের ছবি ও বিবরণ যুক্ত করলে আকর্ষণীয় দেখাবে।"
-            />
-            <LanguageLiteratureClubSection initialTitle="বিজ্ঞান ক্লাব" />
-          </div>
-        )}
-
-        {/* 3. ICT CLUB */}
-        {activeTab === 'ict' && (
-          <div>
-            <GuidanceCard
-              title="আইসিটি ও কোডিং ক্লাব"
-              steps={[
-                '১. কম্পিউটার ল্যাবে কোডিং ও প্রোগ্রামিং ওয়ার্কশপের সেশন যুক্ত করুন।',
-                '২. গ্রাফিক্স ডিজাইন, ওয়েব ডেভেলপমেন্ট বা পাইথন ক্লাসে অংশগ্রহণকারী শিক্ষার্থীদের তালিকা করুন।',
-                '৩. সেশনের অর্জন ও প্রজেক্ট প্রদর্শনী নথিভুক্ত করুন।'
-              ]}
-              tips="আইসিটি শিক্ষক মুহাম্মদ আবুবকর সিদ্দিকের তত্ত্বাবধানে কার্যক্রমগুলো পরিচালিত হয়।"
-            />
-            <LanguageLiteratureClubSection initialTitle="আইসিটি ও কোডিং ক্লাব" />
-          </div>
-        )}
-
-        {/* 4. LITERATURE CLUB */}
-        {activeTab === 'literature' && (
-          <div>
-            <GuidanceCard
-              title="ভাষা ও সাহিত্য ক্লাব"
-              steps={[
-                '১. আবৃত্তি, উপস্থিত বক্তৃতা, বিতর্ক ও রচনা প্রতিযোগিতার তারিখ নির্ধারণ করুন।',
-                '২. দেয়াল পত্রিকা ও ত্রৈমাসিক সাহিত্য বুলেটিনে প্রকাশিত শিক্ষার্থীদের লেখা ও ছড়া এন্ট্রি করুন।',
-                '৩. ভাষা দিবসের বিশেষ ক্রোড়পত্র ও বিজয়ীদের তালিকা তৈরি করুন।'
-              ]}
-              tips="শিক্ষার্থীদের স্বহস্তে লেখা সৃজনশীল সাহিত্যকর্ম এখানে সংরক্ষণ করা হয়।"
-            />
-            <LanguageLiteratureClubSection initialTitle="ভাষা ও সাহিত্য ক্লাব" />
-          </div>
-        )}
-
-        {/* 5. ALL CLUBS DIRECTORY */}
+        {/* CLUBS AND ORGANIZATIONS (ক্লাব ও সংগঠন) */}
         {activeTab === 'clubs' && (
           <div>
-            <GuidanceCard
-              title="সকল ক্লাব ও সংগঠন (ডিরেক্টরি)"
-              steps={[
-                '১. বিদ্যালয়ের সকল ক্লাবের কেন্দ্রীয় সমন্বয় ও সেশনের স্থিতি মনিটর করুন।',
-                '২. ক্লাব সভাপতি, সাধারণ সম্পাদক ও মডারেটর শিক্ষকদের তথ্য আপডেট রাখুন।',
-                '৩. নতুন ক্লাব সদস্য নিবন্ধন ও বাৎসরিক কার্যক্রম ক্যালেন্ডার হালনাগাদ করুন।'
-              ]}
-              tips="ক্লাব হাব থেকে সরাসরি যেকোনো ক্লাবের বিস্তারিত পাতা ও কার্যক্রমে প্রবেশ করা যায়।"
-            />
-            <LanguageLiteratureClubSection initialTitle="সকল ক্লাব ও সংগঠন (ডিরেক্টরি)" />
+            <LanguageLiteratureClubSection initialTitle="ক্লাব ও সংগঠন" />
           </div>
         )}
 

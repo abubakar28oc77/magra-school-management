@@ -4,9 +4,11 @@ import {
   MOCK_TEACHERS,
   PHOTO_HEAD_TEACHER,
   PHOTO_ASST_HEAD_TEACHER,
+  PHOTO_PRESIDENT,
   getTeacherPhoto,
   getLeadershipData
 } from './mockData';
+import { ClubAcademyUnifiedHub } from './ClubAcademyUnifiedHub';
 import { requestApi } from './apiClient';
 import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 
@@ -761,210 +763,16 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
         }
       `}</style>
 
-      {/* HUB VIEW (If opened from general clubs directory) */}
+      {/* HUB VIEW (ক্লাব ও সংগঠন সমন্বিত একাডেমি — ৩টি সুবিন্যস্ত ফিচার) */}
       {activeClub === 'hub' && (
-        <div>
-          <div style={{
-            background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-            color: '#ffffff',
-            padding: '20px 24px',
-            borderRadius: '12px',
-            marginBottom: '20px',
-            boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
-          }}>
-            <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 800, marginBottom: '6px' }}>
-              🏛️ সহশিক্ষা ও ক্লাব একাডেমি
-            </div>
-            <h2 style={{ margin: '0 0 6px 0', fontSize: '22px', fontWeight: 900 }}>
-              মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয় — সক্রিয় ৪টি ক্লাব
-            </h2>
-            <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.6' }}>
-              আমাদের বিদ্যালয়ের ৪টি সক্রিয় ক্লাবের একক কার্যক্রম ও সেশন দেখতে যেকোনো একটি ক্লাবে প্রবেশ করুন:
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-            {/* CARD 1: DEBATE */}
-            <div style={{
-              background: '#ffffff',
-              border: '2px solid #c7d2fe',
-              borderRadius: '12px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 10px rgba(49, 46, 129, 0.06)'
-            }}>
-              <div>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>🎤</div>
-                <span style={{ background: '#e0e7ff', color: '#312e81', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
-                  যুক্তি ও বাচনভঙ্গি
-                </span>
-                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
-                  মগড়া ডিবেটিং ক্লাব (বিতর্ক)
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                  “যুক্তির আলোয় কাটুক অন্ধকারের মেঘ, শাণিত হোক সত্যের বিবেক” — সংসদীয় বিতর্কচর্চা, বিচারকমণ্ডলী ও মডারেটর নিয়োগ, স্কোরিং ও প্রিন্ট।
-                </p>
-                <div style={{ fontSize: '11.5px', color: '#312e81', fontWeight: 700, marginBottom: '14px' }}>
-                  👨‍🏫 মডারেটর: মোঃ আশরাফুল আলম ও মোঃ আব্দুল খালেক
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setActiveClub('debate'); setClubTab('competitions'); setIsFromHub(true); }}
-                style={{
-                  background: '#312e81',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                👉 ডিবেটিং ক্লাবের একক কার্যক্রম ও ফলাফল ➔
-              </button>
-            </div>
-
-            {/* CARD 2: SCIENCE */}
-            <div style={{
-              background: '#ffffff',
-              border: '2px solid #a7f3d0',
-              borderRadius: '12px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 10px rgba(4, 120, 87, 0.06)'
-            }}>
-              <div>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔬</div>
-                <span style={{ background: '#dcfce7', color: '#065f46', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
-                  উদ্ভাবন ও গবেষণা
-                </span>
-                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
-                  মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                  “উদ্ভাবনে তাক লাগাবে গ্রাম, বিজ্ঞানেই গড়ব দেশের নাম” — রোবটিক্স, সোলার প্রজেক্ট ও বার্ষিক বিজ্ঞান মেলা উদ্ভাবন প্রতিযোগিতা।
-                </p>
-                <div style={{ fontSize: '11.5px', color: '#047857', fontWeight: 700, marginBottom: '14px' }}>
-                  👨‍🏫 মডারেটর: মোঃ হাবিবুর রহমান ও মোঃ রফিকুল ইসলাম
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setActiveClub('science'); setClubTab('overview'); setIsFromHub(true); }}
-                style={{
-                  background: '#047857',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                👉 বিজ্ঞান ক্লাবের একক কার্যক্রম ও মেলা ➔
-              </button>
-            </div>
-
-            {/* CARD 3: ICT */}
-            <div style={{
-              background: '#ffffff',
-              border: '2px solid #bae6fd',
-              borderRadius: '12px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 10px rgba(2, 132, 199, 0.06)'
-            }}>
-              <div>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>💻</div>
-                <span style={{ background: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
-                  কোডিং ও প্রযুক্তি
-                </span>
-                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
-                  মগড়া আইসিটি ও কোডিং ক্লাব
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                  “কোডের ছন্দে গড়ব ভবিষ্যৎ, প্রযুক্তির আলোয় আলোকিত হোক জগৎ” — শেখ রাসেল ডিজিটাল ল্যাব, পাইথন ও স্ক্র্যাচ কোডিং অলিম্পিয়াড।
-                </p>
-                <div style={{ fontSize: '11.5px', color: '#0284c7', fontWeight: 700, marginBottom: '14px' }}>
-                  👨‍🏫 মডারেটর: মোঃ আবুবকর সিদ্দিক (সহকারী শিক্ষক আইসিটি)
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setActiveClub('ict'); setClubTab('overview'); setIsFromHub(true); }}
-                style={{
-                  background: '#0284c7',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                👉 আইসিটি ও কোডিং ক্লাবের কার্যক্রম ➔
-              </button>
-            </div>
-
-            {/* CARD 4: LITERATURE */}
-            <div style={{
-              background: '#ffffff',
-              border: '2px solid #fed7aa',
-              borderRadius: '12px',
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              boxShadow: '0 4px 10px rgba(180, 83, 9, 0.06)'
-            }}>
-              <div>
-                <div style={{ fontSize: '36px', marginBottom: '8px' }}>📚</div>
-                <span style={{ background: '#ffedd5', color: '#9a3412', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
-                  ভাষা ও সাহিত্যচর্চা
-                </span>
-                <h3 style={{ margin: '8px 0 4px 0', fontSize: '17px', color: '#0f172a', fontWeight: 900 }}>
-                  মগড়া ভাষা ও সাহিত্য ক্লাব
-                </h3>
-                <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.5', margin: '0 0 10px 0' }}>
-                  “শব্দের শক্তিতে বিকশিত মেধা, সাহিত্যের আলোয় আলোকিত চেতনা” — প্রমিত বাচন, দেয়াল পত্রিকা ‘কিশলয়’ ও সাহিত্য প্রতিযোগিতা।
-                </p>
-                <div style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 700, marginBottom: '14px' }}>
-                  👨‍🏫 মডারেটর: মোঃ আব্দুল খালেক ও মোঃ আশরাফুল আলম
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => { setActiveClub('literature'); setClubTab('overview'); setIsFromHub(true); }}
-                style={{
-                  background: '#c2410c',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '9px 16px',
-                  borderRadius: '6px',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  width: '100%'
-                }}
-              >
-                👉 ভাষা ও সাহিত্য ক্লাবের কার্যক্রম ➔
-              </button>
-            </div>
-          </div>
-        </div>
+        <ClubAcademyUnifiedHub
+          teachers={teachers}
+          onSelectClub={(clubKey, tab) => {
+            setActiveClub(clubKey);
+            if (tab) setClubTab(tab);
+            setIsFromHub(true);
+          }}
+        />
       )}
 
       {/* BACK TO ALL CLUBS BUTTON (If came from Hub) */}

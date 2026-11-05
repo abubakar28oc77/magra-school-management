@@ -17,7 +17,18 @@ export const publicNavConfig = [
   ['public.nav.institution.transport','পরিবহণ সুবিধা','#transport']
  ]},
  {key:'public.nav.sport',label:'ক্রীড়া ও সংস্কৃতি',children:[
-  ['public.nav.sport.debate','ডিবেটিং ক্লাব (বিতর্ক)','#debate'],['public.nav.sport.science','বিজ্ঞান ক্লাব (মেলা ও উদ্ভাবন)','#science-club'],['public.nav.sport.ict','আইসিটি ও কোডিং ক্লাব','#ict-club'],['public.nav.sport.literature','ভাষা ও সাহিত্য ক্লাব','#literature-club'],['public.nav.sport.clubs','সকল ক্লাব ও সংগঠন (ডিরেক্টরি)','#clubs'],['public.nav.sport.sports','বার্ষিক ক্রীড়া','#sports'],['public.nav.sport.culture','সাংস্কৃতিক অনুষ্ঠান','#culture'],['public.nav.sport.achievements','অর্জন ও পুরস্কার','#achievements'],['public.nav.sport.tour','শিক্ষা সফর','#tour'],['public.nav.sport.lab','কম্পিউটার ল্যাব','#computer-lab'],['public.nav.sport.multimedia','মাল্টিমিডিয়া ক্লাস','#multimedia'],['public.nav.sport.scouts','স্কাউট/গার্লস গাইড','#scouts'],['public.nav.sport.inter','আন্তঃবিদ্যালয় ক্রীড়া','#inter-school-sports'],['public.nav.sport.milad','মিলাদ-মাহফিল','#milad'],['public.nav.sport.puja','পূজা','#puja'],['public.nav.sport.freshers_farewell','নবীনবরণ ও বিদায় অনুষ্ঠান','#freshers-farewell']
+  ['public.nav.sport.clubs','ক্লাব ও সংগঠন','#clubs'],
+  ['public.nav.sport.sports','বার্ষিক ক্রীড়া','#sports'],
+  ['public.nav.sport.culture','সাংস্কৃতিক অনুষ্ঠান','#culture'],
+  ['public.nav.sport.achievements','অর্জন ও পুরস্কার','#achievements'],
+  ['public.nav.sport.tour','শিক্ষা সফর','#tour'],
+  ['public.nav.sport.lab','কম্পিউটার ল্যাব','#computer-lab'],
+  ['public.nav.sport.multimedia','মাল্টিমিডিয়া ক্লাস','#multimedia'],
+  ['public.nav.sport.scouts','স্কাউট/গার্লস গাইড','#scouts'],
+  ['public.nav.sport.inter','আন্তঃবিদ্যালয় ক্রীড়া','#inter-school-sports'],
+  ['public.nav.sport.milad','মিলাদ-মাহফিল','#milad'],
+  ['public.nav.sport.puja','পূজা','#puja'],
+  ['public.nav.sport.freshers_farewell','নবীনবরণ ও বিদায় অনুষ্ঠান','#freshers-farewell']
  ]},
  {key:'public.nav.staff',label:'শিক্ষক ও কর্মচারীবৃন্দ',children:[
   ['public.nav.staff.head','প্রধান শিক্ষক','#headteacher'],
