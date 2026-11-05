@@ -76,6 +76,111 @@ export const DEFAULT_INSTITUTION_DATA = {
       { name_bn: 'ডাঃ আশরাফুল আলম', role: 'হিতৈষী সদস্য', designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক', mobile: '01718-XXXXXX', photo: '' }
     ]
   },
+  donors: {
+    active_type: 'life',
+    life_donors: [
+      {
+        id: 'ld-1',
+        name_bn: 'আলহাজ্ব মোঃ আব্দুল লতিফ',
+        name_en: 'Alhaj Md. Abdul Latif',
+        designation: 'বিশিষ্ট দানবীর ও শিক্ষানুরাগী',
+        donation_type: 'ভূমি ও স্থায়ী তহবিল দান',
+        donation_amount: '১,০০,০০০/- টাকা ও ৫০ শতক জমি',
+        year: '১৯৮২',
+        address: 'মগড়া, টাঙ্গাইল সদর',
+        mobile: '01713-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'বিদ্যালয় প্রতিষ্ঠার প্রাথমিক পর্যায়ে ক্যাম্পাস সম্প্রসারণে জমি ও স্থায়ী তহবিল অনুদান প্রদান করেন।',
+        photo: ''
+      },
+      {
+        id: 'ld-2',
+        name_bn: 'হাজী মোঃ নুরুল ইসলাম',
+        name_en: 'Haji Md. Nurul Islam',
+        designation: 'বিশিষ্ট সমাজসেবক ও প্রবাসী হিতৈষী',
+        donation_type: 'স্থায়ী তহবিল ও ভবন উন্নয়ন',
+        donation_amount: '২,৫০,০০০/- টাকা',
+        year: '১৯৯৫',
+        address: 'রসুলপুর, মগড়া, টাঙ্গাইল',
+        mobile: '01715-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'বিদ্যালয়ের একাডেমিক ভবন নির্মাণ ও দরিদ্র শিক্ষার্থী তহবিল গঠনে বিশেষ অবদান।',
+        photo: ''
+      },
+      {
+        id: 'ld-3',
+        name_bn: 'বেগম রাবেয়া খাতুন',
+        name_en: 'Begum Rabeya Khatun',
+        designation: 'শিক্ষানুরাগী ও সাবেক শিক্ষিকা',
+        donation_type: 'ভূমি দান ও ছাত্রী কল্যাণ তহবিল',
+        donation_amount: '৩০ শতক জমি ও ১,৫০,০০০/- টাকা',
+        year: '২০০৫',
+        address: 'মগড়া পূর্ব পাড়া, টাঙ্গাইল',
+        mobile: '01718-XXXXXX',
+        status: 'আজীবন দাতা সদস্য',
+        remarks: 'ছাত্রীদের বিজ্ঞান শিক্ষা ও খেলাধুলার মাঠ সম্প্রসারণে জমি দান করেন।',
+        photo: ''
+      }
+    ],
+    one_time_donors: [
+      {
+        id: 'otd-1',
+        name_bn: 'ডাঃ আশরাফুল আলম',
+        name_en: 'Dr. Ashraful Alam',
+        designation: 'বিশিষ্ট চিকিৎসক ও সমাজসেবক',
+        donation_type: 'বিজ্ঞানাগার ও মেডিকেল ফার্স্ট এইড কর্নার',
+        donation_amount: '১,০০,০০০/- টাকা',
+        year: '২০২৩',
+        address: 'টাঙ্গাইল শহর',
+        mobile: '01718-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'বিদ্যালয়ের শিক্ষার্থীদের জন্য বিনামূল্যে স্বাস্থ্য পরীক্ষা ক্যাম্প ও বিজ্ঞান ল্যাবে আধুনিক যন্ত্রপাতি অনুদান।',
+        photo: ''
+      },
+      {
+        id: 'otd-2',
+        name_bn: 'প্রকৌশলী মশিউর রহমান',
+        name_en: 'Engr. Moshiur Rahman',
+        designation: 'উপদেষ্টা প্রকৌশলী ও প্রাক্তন ছাত্র',
+        donation_type: 'শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সামগ্রী',
+        donation_amount: '১,৫০,০০০/- টাকা',
+        year: '২০২৪',
+        address: 'ঢাকা (স্থায়ী: মগড়া)',
+        mobile: '01719-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'আইসিটি ক্লাসরুমে ৫টি উচ্চক্ষমতাসম্পন্ন কম্পিউটার ও ইউপিএস প্রদান করেন।',
+        photo: ''
+      },
+      {
+        id: 'otd-3',
+        name_bn: 'জনাব কাজী আনোয়ার হোসেন',
+        name_en: 'Mr. Kazi Anwar Hossain',
+        designation: 'বিশিষ্ট ব্যবসায়ী ও সমাজসেবক',
+        donation_type: 'কেন্দ্রীয় লাইব্রেরির বই ও আসবাবপত্র',
+        donation_amount: '৭৫,০০০/- টাকা',
+        year: '২০২৫',
+        address: 'মগড়া বাজার, টাঙ্গাইল',
+        mobile: '01720-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'বঙ্গবন্ধু ও মুক্তিযুদ্ধ কর্নার এবং শিক্ষার্থীদের সহপাঠ্য বইয়ের জন্য বিশেষ অনুদান।',
+        photo: ''
+      },
+      {
+        id: 'otd-4',
+        name_bn: 'আলহাজ্ব মোকাররম হোসেন',
+        name_en: 'Alhaj Mokarram Hossain',
+        designation: 'প্রবাসী দানবীর ও সমাজহিতৈষী',
+        donation_type: 'বিশুদ্ধ খাবার পানির গভীর নলকূপ ও ফিল্টার স্থাপন',
+        donation_amount: '৮০,০০০/- টাকা',
+        year: '২০২৫',
+        address: 'কুয়েত প্রবাসী (গ্রাম: মগড়া)',
+        mobile: '01722-XXXXXX',
+        status: 'এককালীন দাতা সদস্য',
+        remarks: 'ক্যাম্পাসে শিক্ষার্থীদের জন্য সার্বক্ষণিক নিরাপদ ও সুপেয় পানির প্ল্যান্ট স্থাপন।',
+        photo: ''
+      }
+    ]
+  },
   regulations: {
     overview: 'মাধ্যমিক ও উচ্চশিক্ষা অধিদপ্তর (মাউশি) এবং মাধ্যমিক ও উচ্চ মাধ্যমিক শিক্ষা বোর্ড, ঢাকার সর্বশেষ বিধিমালা অনুযায়ী পরিচালিত প্রাতিষ্ঠানিক নীতিসমূহ:',
     rules: [
@@ -206,6 +311,19 @@ export function getStoredInstitutionData() {
         const activeGroup = merged.committee.active_type === 'adhoc' ? merged.committee.adhoc : merged.committee.regular;
         merged.committee.members = activeGroup.members || [];
         merged.committee.tenure = activeGroup.tenure || merged.committee.tenure;
+      }
+
+      // Ensure donors structure exists
+      if (!merged.donors || !merged.donors.life_donors || !merged.donors.one_time_donors) {
+        merged.donors = {
+          active_type: merged.donors?.active_type || DEFAULT_INSTITUTION_DATA.donors.active_type,
+          life_donors: (Array.isArray(merged.donors?.life_donors) && merged.donors.life_donors.length)
+            ? merged.donors.life_donors
+            : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors)),
+          one_time_donors: (Array.isArray(merged.donors?.one_time_donors) && merged.donors.one_time_donors.length)
+            ? merged.donors.one_time_donors
+            : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors))
+        };
       }
 
       return merged;

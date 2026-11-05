@@ -120,7 +120,7 @@ import {
   calculateRecordTotals,
   PUBLIC_EXAM_DEPARTMENTS
 } from './examResultsDataStore';
-import { getStoredInstitutionData } from './defaultInstitutionData';
+import { getStoredInstitutionData, DEFAULT_INSTITUTION_DATA } from './defaultInstitutionData';
 import { getStoredReligiousEventsData, DEFAULT_RELIGIOUS_EVENTS } from './religiousEventsData';
 import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
@@ -527,6 +527,9 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [examScore, setExamScore] = useState(null);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [committeeCategoryTab, setCommitteeCategoryTab] = useState(null);
+  const [donorTab, setDonorTab] = useState('life'); // 'life' or 'one_time'
+  const [donorSearch, setDonorSearch] = useState('');
+  const [donorViewMode, setDonorViewMode] = useState('cards'); // 'cards' or 'table'
   const instData = getStoredInstitutionData();
 
   // Bengali helpers
@@ -2414,6 +2417,556 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               );
             })}
           </div>
+        </div>
+      );
+    }
+
+    if (
+      menuKey === 'public.nav.institution.donors' ||
+      title === 'বিদ্যালয়ের দাতা সদস্য' ||
+      title === 'দাতা সদস্য' ||
+      title?.includes('দাতা সদস্য')
+    ) {
+      const donorsData = instData.donors || {};
+      const lifeDonors = Array.isArray(donorsData.life_donors) && donorsData.life_donors.length
+        ? donorsData.life_donors
+        : (DEFAULT_INSTITUTION_DATA?.donors?.life_donors || []);
+      const oneTimeDonors = Array.isArray(donorsData.one_time_donors) && donorsData.one_time_donors.length
+        ? donorsData.one_time_donors
+        : (DEFAULT_INSTITUTION_DATA?.donors?.one_time_donors || []);
+
+      const activeList = donorTab === 'one_time' ? oneTimeDonors : lifeDonors;
+      const filteredDonors = activeList.filter(d => {
+        if (!donorSearch.trim()) return true;
+        const q = donorSearch.toLowerCase();
+        return (
+          (d.name_bn || '').toLowerCase().includes(q) ||
+          (d.name_en || '').toLowerCase().includes(q) ||
+          (d.donation_type || '').toLowerCase().includes(q) ||
+          (d.donation_amount || '').toLowerCase().includes(q) ||
+          (d.address || '').toLowerCase().includes(q) ||
+          (d.year || '').toLowerCase().includes(q) ||
+          (d.designation || '').toLowerCase().includes(q)
+        );
+      });
+
+      const handlePrintDonorsPad = (typeToPrint = 'all') => {
+        const w = window.open('', '_blank');
+        if (!w) return;
+
+        const targetList = typeToPrint === 'life' ? lifeDonors : typeToPrint === 'one_time' ? oneTimeDonors : [...lifeDonors, ...oneTimeDonors];
+        const titleText = typeToPrint === 'life' ? 'আজীবন দাতা সদস্যবৃন্দের অফিসিয়াল তালিকা' : typeToPrint === 'one_time' ? 'এককালীন দাতা সদস্যবৃন্দের অফিসিয়াল তালিকা' : 'বিদ্যালয়ের সম্মানিত দাতা সদস্যবৃন্দের পূর্ণাঙ্গ তালিকা';
+
+        const rows = targetList.map((d, i) => `
+          <tr>
+            <td style="text-align:center;font-weight:700;">${toBn(i + 1)}.</td>
+            <td>
+              <b>${d.name_bn || '—'}</b>
+              ${d.name_en ? `<br><small style="color:#64748b;">${d.name_en}</small>` : ''}
+              ${d.designation ? `<br><small style="color:#047857;">${d.designation}</small>` : ''}
+            </td>
+            <td>
+              ${d.address || '—'}
+              ${d.mobile ? `<br><small style="color:#475569;">📱 ${d.mobile}</small>` : ''}
+            </td>
+            <td style="text-align:center;">
+              <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;${d.id?.startsWith('ld') || (d.status && d.status.includes('আজীবন')) ? 'background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;' : 'background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;'}">
+                ${d.status || (d.id?.startsWith('ld') ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য')}
+              </span>
+            </td>
+            <td>
+              <b>${d.donation_type || '—'}</b>
+              ${d.remarks ? `<br><small style="color:#64748b;font-style:italic;">${d.remarks}</small>` : ''}
+            </td>
+            <td style="font-weight:800;color:#0f172a;text-align:center;">
+              ${d.donation_amount || '—'}
+            </td>
+            <td style="text-align:center;font-weight:700;color:#047857;">
+              ${toBn(d.year || '—')}
+            </td>
+          </tr>
+        `).join('');
+
+        w.document.write(`
+          <!DOCTYPE html>
+          <html lang="bn">
+          <head>
+            <meta charset="utf-8">
+            <title>${titleText} — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+            <style>
+              ${SCHOOL_PAD_STYLES}
+              body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+              .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+              .doc-meta { font-size: 12.5px; color: #475569; margin-bottom: 14px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+              th, td { border: 1px solid #94a3b8; padding: 7px 8px; text-align: left; vertical-align: top; }
+              th { background: #f0fdf4; color: #166534; font-weight: 800; }
+              .sig-grid { margin-top: 45px; display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-size: 13px; }
+              .sig-line { border-top: 1px dashed #475569; width: 60%; margin: 0 auto 5px auto; }
+            </style>
+          </head>
+          <body>
+            ${SCHOOL_PAD_HEADER_HTML}
+            <div style="text-align:center; margin: 15px 0 10px 0;">
+              <span class="doc-badge">🏛️ সম্মানিত দাতা সদস্য রেজিস্ট্রি</span>
+              <h2 style="margin:4px 0; color:#065f46; font-size:19px;">${titleText}</h2>
+              <div class="doc-meta">
+                প্রতিবেদন প্রস্তুতের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • মোট প্রদর্শিত দাতা সদস্য: ${toBn(targetList.length)} জন
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:38px; text-align:center;">ক্র.</th>
+                  <th style="min-width:140px;">দাতা সদস্যের নাম ও পরিচিতি</th>
+                  <th style="min-width:110px;">ঠিকানা ও যোগাযোগ</th>
+                  <th style="width:110px; text-align:center;">ক্যাটাগরি</th>
+                  <th>দানের খাত ও উদ্দেশ্য</th>
+                  <th style="width:120px; text-align:center;">অনুদানের বিবরণ/পরিমাণ</th>
+                  <th style="width:55px; text-align:center;">সাল</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+
+            <div class="sig-grid">
+              <div>
+                <div class="sig-line"></div>
+                <b>প্রধান শিক্ষক / সদস্য সচিব</b><br>
+                <small>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</small>
+              </div>
+              <div>
+                <div class="sig-line"></div>
+                <b>সভাপতি</b><br>
+                <small>বিদ্যালয় পরিচালনা পর্ষদ</small>
+              </div>
+            </div>
+
+            <script>
+              window.onload = function() {
+                setTimeout(function(){ window.print(); }, 300);
+              };
+            </script>
+          </body>
+          </html>
+        `);
+        w.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div className="modal-hero-badge">
+            🤝 বিদ্যালয়ের দাতা সদস্য (Honorable Donor Members) • {donorTab === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য'}
+          </div>
+
+          {/* Donor 2 Features Switcher (২টি ফিচার বা ভাগ) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '12px',
+            margin: '14px 0 16px'
+          }}>
+            {/* Feature 1: আজীবন দাতা সদস্য */}
+            <button
+              type="button"
+              onClick={() => setDonorTab('life')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: donorTab === 'life' ? '2px solid #047857' : '1px solid #cbd5e1',
+                background: donorTab === 'life' ? '#ecfdf5' : '#ffffff',
+                color: donorTab === 'life' ? '#065f46' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: donorTab === 'life' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>💎</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ফিচার ১: আজীবন দাতা সদস্যদের তথ্য</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    স্থায়ী তহবিল ও ভূমি দাতা সদস্যবৃন্দ
+                  </small>
+                </div>
+              </div>
+              <span style={{ fontSize: '12px', background: donorTab === 'life' ? '#059669' : '#e2e8f0', color: donorTab === 'life' ? '#fff' : '#334155', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                {toBn(lifeDonors.length)} জন
+              </span>
+            </button>
+
+            {/* Feature 2: এককালীন দাতা সদস্য */}
+            <button
+              type="button"
+              onClick={() => setDonorTab('one_time')}
+              style={{
+                padding: '12px 14px',
+                borderRadius: '8px',
+                border: donorTab === 'one_time' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                background: donorTab === 'one_time' ? '#f0f9ff' : '#ffffff',
+                color: donorTab === 'one_time' ? '#0369a1' : '#334155',
+                fontWeight: 700,
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: donorTab === 'one_time' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>🤝</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div>ফিচার ২: এককালীন দাতা সদস্যদের তথ্য</div>
+                  <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>
+                    প্রকল্প, ল্যাব, লাইব্রেরি ও নগদ অনুদান
+                  </small>
+                </div>
+              </div>
+              <span style={{ fontSize: '12px', background: donorTab === 'one_time' ? '#0284c7' : '#e2e8f0', color: donorTab === 'one_time' ? '#fff' : '#334155', padding: '2px 8px', borderRadius: '10px', fontWeight: 700 }}>
+                {toBn(oneTimeDonors.length)} জন
+              </span>
+            </button>
+          </div>
+
+          {/* Quick Stats Summary Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '10px',
+            marginBottom: '16px'
+          }}>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>মোট আজীবন দাতা</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#047857', marginTop: '2px' }}>
+                {toBn(lifeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>মোট এককালীন দাতা</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0284c7', marginTop: '2px' }}>
+                {toBn(oneTimeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>সর্বমোট দাতা সদস্য</div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                {toBn(lifeDonors.length + oneTimeDonors.length)} জন
+              </div>
+            </div>
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>অবদান ক্ষেত্র</div>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#d97706', marginTop: '4px' }}>
+                ভূমি, ভবন ও ল্যাব
+              </div>
+            </div>
+          </div>
+
+          {/* Toolbar: Search, View Mode, Print */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px',
+            marginBottom: '16px',
+            background: '#ffffff',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+          }}>
+            <div style={{ position: 'relative', flex: '1', minWidth: '220px' }}>
+              <input
+                type="text"
+                placeholder="🔍 নাম, গ্রাম, দানের খাত বা সাল দিয়ে খুঁজুন..."
+                value={donorSearch}
+                onChange={(e) => setDonorSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '13px'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {/* View Mode Toggle */}
+              <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
+                <button
+                  type="button"
+                  onClick={() => setDonorViewMode('cards')}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: donorViewMode === 'cards' ? '#0f172a' : '#ffffff',
+                    color: donorViewMode === 'cards' ? '#ffffff' : '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  📇 কার্ড ভিউ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDonorViewMode('table')}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: donorViewMode === 'table' ? '#0f172a' : '#ffffff',
+                    color: donorViewMode === 'table' ? '#ffffff' : '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  📋 টেবিল ভিউ
+                </button>
+              </div>
+
+              {/* Print Pad Button */}
+              <button
+                type="button"
+                onClick={() => handlePrintDonorsPad(donorTab)}
+                style={{
+                  background: '#047857',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(4,120,87,0.2)'
+                }}
+              >
+                🖨️ অফিসিয়াল প্যাডে প্রিন্ট (A4)
+              </button>
+            </div>
+          </div>
+
+          <p className="lead-text" style={{ marginBottom: '14px' }}>
+            {donorTab === 'life'
+              ? 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় প্রতিষ্ঠাকালীন ও পরবর্তী সময়ে বিদ্যালয় অবকাঠামো ও ক্যাম্পাস সম্প্রসারণে স্থায়ী অনুদান প্রদানকারী সম্মানিত আজীবন দাতা সদস্যবৃন্দ:'
+              : 'বিদ্যালয়ের শিক্ষা কার্যক্রমের মানোন্নয়ন, ল্যাবরেটরি স্থাপন, লাইব্রেরি সমৃদ্ধকরণ এবং ছাত্র-কল্যাণ তহবিলে এককালীন অনুদানকারী সম্মানিত ব্যক্তিবর্গ:'}
+          </p>
+
+          {/* View 1: Card View */}
+          {donorViewMode === 'cards' && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+              gap: '16px'
+            }}>
+              {filteredDonors.map((d, idx) => (
+                <div
+                  key={d.id || idx}
+                  style={{
+                    background: '#ffffff',
+                    border: `1.5px solid ${donorTab === 'life' ? '#a7f3d0' : '#bae6fd'}`,
+                    borderRadius: '12px',
+                    padding: '16px',
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+                  }}
+                >
+                  <div>
+                    {/* Top Row: Avatar & Status Badge */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '50%',
+                        overflow: 'hidden',
+                        background: donorTab === 'life' ? '#ecfdf5' : '#f0f9ff',
+                        border: `2px solid ${donorTab === 'life' ? '#059669' : '#0284c7'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '24px',
+                        flexShrink: 0
+                      }}>
+                        {d.photo ? (
+                          <img src={d.photo} alt={d.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <span>{donorTab === 'life' ? '💎' : '🤝'}</span>
+                        )}
+                      </div>
+
+                      <span style={{
+                        background: donorTab === 'life' ? '#ecfdf5' : '#e0f2fe',
+                        color: donorTab === 'life' ? '#065f46' : '#0369a1',
+                        border: `1px solid ${donorTab === 'life' ? '#a7f3d0' : '#bae6fd'}`,
+                        padding: '3px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 800
+                      }}>
+                        {d.status || (donorTab === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য')}
+                      </span>
+                    </div>
+
+                    {/* Donor Details */}
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '16px', color: '#0f172a', fontWeight: 800 }}>
+                      {d.name_bn}
+                    </h4>
+                    {d.name_en && (
+                      <small style={{ color: '#64748b', display: 'block', fontSize: '11.5px', marginBottom: '4px' }}>
+                        {d.name_en}
+                      </small>
+                    )}
+                    <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: '#475569', fontWeight: 600 }}>
+                      {d.designation || 'বিশিষ্ট শিক্ষানুরাগী ও সমাজসেবক'}
+                    </p>
+
+                    {/* Contribution Highlight Box */}
+                    <div style={{
+                      background: donorTab === 'life' ? '#f0fdf4' : '#f8fafc',
+                      border: `1px solid ${donorTab === 'life' ? '#bbf7d0' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      padding: '9px 12px',
+                      marginBottom: '10px'
+                    }}>
+                      <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>দানের খাত ও উদ্দেশ্য:</div>
+                      <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: '2px 0 6px 0' }}>
+                        🎯 {d.donation_type || 'সার্বিক শিক্ষা উন্নয়ন'}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>অনুদানের পরিমাণ ও বিবরণ:</div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0369a1' }}>
+                        💰 {d.donation_amount || '—'}
+                      </div>
+                    </div>
+
+                    {/* Remarks / Acknowledgement */}
+                    {d.remarks && (
+                      <div style={{
+                        fontSize: '12px',
+                        color: '#475569',
+                        fontStyle: 'italic',
+                        background: '#f8fafc',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        marginBottom: '10px',
+                        lineHeight: '1.5'
+                      }}>
+                        "{d.remarks}"
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card Footer: Address, Year & Phone */}
+                  <div style={{
+                    borderTop: '1px solid #f1f5f9',
+                    paddingTop: '8px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '11.5px',
+                    color: '#64748b',
+                    flexWrap: 'wrap',
+                    gap: '4px'
+                  }}>
+                    <span>📍 {d.address || 'মগড়া, টাঙ্গাইল'}</span>
+                    <span style={{ fontWeight: 700, color: '#0f172a' }}>📅 সাল: {toBn(d.year || '—')}</span>
+                    {d.mobile && (
+                      <span style={{ width: '100%', color: '#334155', fontWeight: 600 }}>📞 {d.mobile}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* View 2: Table View */}
+          {donorViewMode === 'table' && (
+            <div style={{
+              overflowX: 'auto',
+              background: '#ffffff',
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+            }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: donorTab === 'life' ? '#f0fdf4' : '#f0f9ff', color: donorTab === 'life' ? '#166534' : '#075985', borderBottom: '2px solid #cbd5e1' }}>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', width: '40px' }}>ক্র.</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>দাতা সদস্যের নাম ও পদবি</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>ঠিকানা ও যোগাযোগ</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>দানের খাত</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>অনুদানের বিবরণ/পরিমাণ</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '70px' }}>সাল</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', width: '110px' }}>ক্যাটাগরি</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDonors.map((d, idx) => (
+                    <tr key={d.id || idx} style={{ borderBottom: '1px solid #e2e8f0', background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>
+                        {toBn(idx + 1)}.
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <strong style={{ color: '#0f172a', fontSize: '13.5px' }}>{d.name_bn}</strong>
+                        {d.name_en && <div style={{ fontSize: '11px', color: '#64748b' }}>{d.name_en}</div>}
+                        <div style={{ fontSize: '12px', color: '#047857', fontWeight: 600 }}>{d.designation}</div>
+                      </td>
+                      <td style={{ padding: '10px 12px', fontSize: '12px' }}>
+                        <div>{d.address || '—'}</div>
+                        {d.mobile && <div style={{ color: '#64748b' }}>📱 {d.mobile}</div>}
+                      </td>
+                      <td style={{ padding: '10px 12px' }}>
+                        <div style={{ fontWeight: 700, color: '#1e293b' }}>{d.donation_type}</div>
+                        {d.remarks && <div style={{ fontSize: '11.5px', color: '#64748b', fontStyle: 'italic' }}>{d.remarks}</div>}
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 800, color: donorTab === 'life' ? '#047857' : '#0284c7' }}>
+                        {d.donation_amount || '—'}
+                      </td>
+                      <td style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 700, color: '#475569' }}>
+                        {toBn(d.year || '—')}
+                      </td>
+                      <td style={{ padding: '10px 10px', textAlign: 'center' }}>
+                        <span style={{
+                          background: donorTab === 'life' ? '#ecfdf5' : '#e0f2fe',
+                          color: donorTab === 'life' ? '#065f46' : '#0369a1',
+                          padding: '2px 7px',
+                          borderRadius: '10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          display: 'inline-block'
+                        }}>
+                          {d.status || (donorTab === 'life' ? 'আজীবন' : 'এককালীন')}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!filteredDonors.length && (
+            <div style={{ textAlign: 'center', padding: '36px 16px', background: '#f8fafc', borderRadius: '10px', border: '1px dashed #cbd5e1', color: '#64748b', marginTop: '14px' }}>
+              🔍 আপনার অনুসন্ধানের সাথে কোনো দাতা সদস্যের রেকর্ড মেলেনি।
+            </div>
+          )}
         </div>
       );
     }

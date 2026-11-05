@@ -48,7 +48,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
     if (!confirm('সতর্কতা: আপনি কি সকল ১২টি সেকশনের তথ্য ডিফল্ট অবস্থায় রিসেট করতে চান?')) return;
     setData(DEFAULT_INSTITUTION_DATA);
     saveStoredInstitutionData(DEFAULT_INSTITUTION_DATA);
-    showToast('✓ সকল ১২টি প্রাতিষ্ঠানিক তথ্য ডিফল্ট ডেটায় রিসেট করা হয়েছে!');
+    showToast('✓ সকল ১৩টি প্রাতিষ্ঠানিক তথ্য ডিফল্ট ডেটায় রিসেট করা হয়েছে!');
   };
 
   const getTabTitle = (key) => {
@@ -56,6 +56,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
       about: 'বিদ্যালয় পরিচিতি',
       history: 'বিদ্যালয়ের ইতিহাস',
       committee: 'পরিচালনা পর্ষদ',
+      donors: 'বিদ্যালয়ের দাতা সদস্য',
       regulations: 'বিধি বিধান',
       code_of_conduct: 'আচরন বিধি',
       master_plan: 'মুখ্য পরিকল্পনা',
@@ -73,6 +74,7 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
     about: 'public.nav.institution.about',
     history: 'public.nav.institution.history',
     committee: 'public.nav.institution.committee',
+    donors: 'public.nav.institution.donors',
     regulations: 'public.nav.institution.regulations',
     code_of_conduct: 'public.nav.institution.code_of_conduct',
     master_plan: 'public.nav.institution.master_plan',
@@ -91,11 +93,12 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
     });
   };
 
-  // 12 Tabs metadata
+  // 13 Tabs metadata
   const tabsList = [
     { key: 'about', label: 'বিদ্যালয় পরিচিতি', icon: '🏫' },
     { key: 'history', label: 'বিদ্যালয়ের ইতিহাস', icon: '📜' },
     { key: 'committee', label: 'পরিচালনা পর্ষদ', icon: '👥' },
+    { key: 'donors', label: 'বিদ্যালয়ের দাতা সদস্য', icon: '🤝' },
     { key: 'regulations', label: 'বিধি বিধান', icon: '⚖️' },
     { key: 'code_of_conduct', label: 'আচরন বিধি', icon: '🛡️' },
     { key: 'master_plan', label: 'মুখ্য পরিকল্পনা', icon: '🎯' },
@@ -300,6 +303,16 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
             onSave={handleSaveAll}
             onReset={() => handleResetSection('committee')}
             onPreview={() => openLivePreview('committee')}
+          />
+        )}
+
+        {activeTab === 'donors' && (
+          <SectionDonors
+            data={data.donors}
+            onChange={(val) => setData({ ...data, donors: val })}
+            onSave={handleSaveAll}
+            onReset={() => handleResetSection('donors')}
+            onPreview={() => openLivePreview('donors')}
           />
         )}
 
@@ -1322,6 +1335,522 @@ function SectionCommittee({ data, onChange, onSave, onReset, onPreview }) {
           style={{ background: selectedDivision === 'adhoc' ? '#0284c7' : '#047857', color: '#fff', fontWeight: 700 }}
         >
           + নতুন সদস্য যোগ
+        </button>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ দেখুন</button>
+          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সকল তথ্য সংরক্ষণ করুন</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------
+// Section 3.5: বিদ্যালয়ের দাতা সদস্য (আজীবন ও এককালীন দাতা সদস্য)
+// ----------------------------------------------------
+function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
+  const lifeDonors = Array.isArray(data?.life_donors) && data.life_donors.length
+    ? data.life_donors
+    : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors));
+
+  const oneTimeDonors = Array.isArray(data?.one_time_donors) && data.one_time_donors.length
+    ? data.one_time_donors
+    : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors));
+
+  const activeType = data?.active_type || 'life';
+  const [selectedFeature, setSelectedFeature] = useState(activeType);
+  const [searchFilter, setSearchFilter] = useState('');
+
+  const currentList = selectedFeature === 'life' ? lifeDonors : oneTimeDonors;
+
+  const updateDonorField = (index, field, value) => {
+    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
+    const list = [...currentList];
+    list[index] = { ...list[index], [field]: value };
+    onChange({
+      ...data,
+      active_type: selectedFeature,
+      [listKey]: list
+    });
+  };
+
+  const addDonor = () => {
+    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
+    const list = [...currentList];
+    const newId = (selectedFeature === 'life' ? 'ld-' : 'otd-') + Date.now();
+    const newDonor = {
+      id: newId,
+      name_bn: '',
+      name_en: '',
+      designation: selectedFeature === 'life' ? 'বিশিষ্ট দানবীর ও শিক্ষানুরাগী' : 'বিশিষ্ট সমাজসেবক ও শুভানুধ্যায়ী',
+      donation_type: selectedFeature === 'life' ? 'ভূমি ও স্থায়ী তহবিল দান' : 'নগদ অর্থ ও শিক্ষা সামগ্রী অনুদান',
+      donation_amount: '',
+      year: '২০২৬',
+      address: 'মগড়া, টাঙ্গাইল সদর',
+      mobile: '',
+      status: selectedFeature === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য',
+      remarks: '',
+      photo: ''
+    };
+    list.push(newDonor);
+    onChange({
+      ...data,
+      active_type: selectedFeature,
+      [listKey]: list
+    });
+  };
+
+  const removeDonor = (index) => {
+    if (!confirm('আপনি কি এই দাতা সদস্যের তথ্য তালিকা থেকে মুছে ফেলতে চান?')) return;
+    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
+    const list = [...currentList];
+    list.splice(index, 1);
+    onChange({
+      ...data,
+      active_type: selectedFeature,
+      [listKey]: list
+    });
+  };
+
+  const loadStandardTemplate = () => {
+    const defaultList = selectedFeature === 'life'
+      ? DEFAULT_INSTITUTION_DATA.donors.life_donors
+      : DEFAULT_INSTITUTION_DATA.donors.one_time_donors;
+    if (confirm(`আপনি কি ${selectedFeature === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য'}-এর আদর্শ নমুনা তালিকা লোড করতে চান? এতে বর্তমান তালিকার স্থানে আদর্শ তালিকা প্রতিস্থাপিত হবে।`)) {
+      const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
+      onChange({
+        ...data,
+        active_type: selectedFeature,
+        [listKey]: JSON.parse(JSON.stringify(defaultList))
+      });
+    }
+  };
+
+  const filteredIndices = currentList.map((item, idx) => ({ item, idx })).filter(({ item }) => {
+    if (!searchFilter.trim()) return true;
+    const q = searchFilter.toLowerCase();
+    return (
+      (item.name_bn || '').toLowerCase().includes(q) ||
+      (item.name_en || '').toLowerCase().includes(q) ||
+      (item.donation_type || '').toLowerCase().includes(q) ||
+      (item.donation_amount || '').toLowerCase().includes(q) ||
+      (item.address || '').toLowerCase().includes(q) ||
+      (item.year || '').toLowerCase().includes(q)
+    );
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🤝 বিদ্যালয়ের দাতা সদস্য (Honorable Donor Members)</span>
+          </h3>
+          <small style={{ color: '#64748b', fontSize: '12.5px' }}>
+            এককালীন দাতা সদস্য ও আজীবন দাতা সদস্য—উভয় ফিচারের সম্মানিত ব্যক্তিবর্গের তথ্য পৃথকভাবে এন্ট্রি ও পরিচালনা করুন
+          </small>
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>👁️ প্রিভিউ</button>
+          <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>🔄 রিসেট</button>
+          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>💾 সংরক্ষণ</button>
+        </div>
+      </div>
+
+      {/* Two Features Switcher Bar (২টি ফিচার) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '12px',
+        marginBottom: '16px',
+        background: '#f1f5f9',
+        padding: '6px',
+        borderRadius: '10px'
+      }}>
+        {/* Feature 1: আজীবন দাতা সদস্য */}
+        <button
+          type="button"
+          onClick={() => setSelectedFeature('life')}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            border: selectedFeature === 'life' ? '2px solid #047857' : '1px solid #cbd5e1',
+            background: selectedFeature === 'life' ? '#ffffff' : 'transparent',
+            color: selectedFeature === 'life' ? '#065f46' : '#475569',
+            fontWeight: selectedFeature === 'life' ? 800 : 600,
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: selectedFeature === 'life' ? '0 2px 8px rgba(4,120,87,0.15)' : 'none',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>💎</span>
+            <div style={{ textAlign: 'left' }}>
+              <div>ফিচার ১: আজীবন দাতা সদস্যদের তথ্য</div>
+              <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>স্থায়ী তহবিল ও ভূমি দাতা সদস্যবৃন্দ</small>
+            </div>
+          </div>
+          <span style={{
+            background: selectedFeature === 'life' ? '#ecfdf5' : '#e2e8f0',
+            color: selectedFeature === 'life' ? '#047857' : '#64748b',
+            padding: '2px 9px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: 800
+          }}>
+            {lifeDonors.length} জন
+          </span>
+        </button>
+
+        {/* Feature 2: এককালীন দাতা সদস্য */}
+        <button
+          type="button"
+          onClick={() => setSelectedFeature('one_time')}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            border: selectedFeature === 'one_time' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+            background: selectedFeature === 'one_time' ? '#ffffff' : 'transparent',
+            color: selectedFeature === 'one_time' ? '#0369a1' : '#475569',
+            fontWeight: selectedFeature === 'one_time' ? 800 : 600,
+            fontSize: '14px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: selectedFeature === 'one_time' ? '0 2px 8px rgba(2,132,199,0.15)' : 'none',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🤝</span>
+            <div style={{ textAlign: 'left' }}>
+              <div>ফিচার ২: এককালীন দাতা সদস্যদের তথ্য</div>
+              <small style={{ fontSize: '11px', opacity: 0.85, fontWeight: 500 }}>বিশেষ প্রকল্প, ল্যাব, লাইব্রেরি ও নগদ অনুদান</small>
+            </div>
+          </div>
+          <span style={{
+            background: selectedFeature === 'one_time' ? '#e0f2fe' : '#e2e8f0',
+            color: selectedFeature === 'one_time' ? '#0284c7' : '#64748b',
+            padding: '2px 9px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            fontWeight: 800
+          }}>
+            {oneTimeDonors.length} জন
+          </span>
+        </button>
+      </div>
+
+      {/* Feature Guidance Card */}
+      <div style={{
+        background: selectedFeature === 'life' ? '#f0fdf4' : '#f0f9ff',
+        border: `1px solid ${selectedFeature === 'life' ? '#86efac' : '#7dd3fc'}`,
+        borderRadius: '8px',
+        padding: '10px 14px',
+        marginBottom: '14px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '8px'
+      }}>
+        <div style={{ fontSize: '13px', color: selectedFeature === 'life' ? '#166534' : '#075985', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>{selectedFeature === 'life' ? '💎' : '🤝'}</span>
+          <span>
+            <strong>{selectedFeature === 'life' ? 'আজীবন দাতা সদস্য তালিকা পরিচালনা:' : 'এককালীন দাতা সদস্য তালিকা পরিচালনা:'}</strong>{' '}
+            {selectedFeature === 'life'
+              ? 'শিক্ষা বোর্ড ও মাউশি বিধিমতে স্থায়ী অনুদানকারী আজীবন দাতা সদস্যদের তথ্য এন্ট্রি করুন।'
+              : 'বিদ্যালয়ের উন্নয়ন কর্মকাণ্ড, ডিজিটাল ল্যাব, ভবন ও তহবিলে এককালীন অনুদানকারী সম্মানিত ব্যক্তিবর্গের তথ্য।'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button
+            type="button"
+            className="btn mini"
+            onClick={loadStandardTemplate}
+            style={{ background: '#ffffff', color: '#475569', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+          >
+            📋 আদর্শ নমুনা লোড করুন
+          </button>
+        </div>
+      </div>
+
+      {/* Search and Quick Add Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
+          <input
+            type="text"
+            placeholder="🔍 নাম, গ্রাম, দানের খাত বা সাল দিয়ে খুঁজুন..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            style={{ width: '100%', padding: '7px 10px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          />
+        </div>
+        <button
+          type="button"
+          className="btn mini"
+          onClick={addDonor}
+          style={{ background: selectedFeature === 'life' ? '#047857' : '#0284c7', color: '#fff', fontWeight: 700, padding: '7px 14px', borderRadius: '6px' }}
+        >
+          + নতুন {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা যোগ
+        </button>
+      </div>
+
+      {/* Datalists */}
+      <datalist id="donation-types-life-list">
+        <option value="ভূমি ও স্থায়ী তহবিল দান" />
+        <option value="স্থায়ী তহবিল ও ভবন উন্নয়ন" />
+        <option value="ভূমি দান ও ছাত্রী কল্যাণ তহবিল" />
+        <option value="একাডেমিক ভবন নির্মাণ ও জমি দান" />
+        <option value="স্থায়ী আমানত ও শিক্ষাবৃত্তি তহবিল" />
+      </datalist>
+
+      <datalist id="donation-types-onetime-list">
+        <option value="বিজ্ঞানাগার ও মেডিকেল ফার্স্ট এইড কর্নার" />
+        <option value="শেখ রাসেল ডিজিটাল ল্যাব ও কম্পিউটার সামগ্রী" />
+        <option value="কেন্দ্রীয় লাইব্রেরির বই ও আসবাবপত্র" />
+        <option value="বিশুদ্ধ খাবার পানির গভীর নলকূপ ও ফিল্টার স্থাপন" />
+        <option value="গরিব ও মেধাবী শিক্ষার্থী কল্যাণ তহবিল" />
+        <option value="একাডেমিক ভবন নির্মাণ ও সংস্কার" />
+        <option value="ক্রীড়া ও সাংস্কৃতিক সামগ্রী অনুদান" />
+        <option value="নগদ অর্থ অনুদান" />
+      </datalist>
+
+      <datalist id="donor-status-options">
+        <option value="আজীবন দাতা সদস্য" />
+        <option value="এককালীন দাতা সদস্য" />
+        <option value="মরহুম আজীবন দাতা সদস্য" />
+        <option value="প্রতিষ্ঠাতা দাতা সদস্য" />
+        <option value="সম্মানিত দাতা সদস্য" />
+      </datalist>
+
+      {/* Donor Cards List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {filteredIndices.map(({ item, idx }) => (
+          <div
+            key={item.id || idx}
+            style={{
+              background: '#ffffff',
+              border: `1.5px solid ${selectedFeature === 'life' ? '#a7f3d0' : '#bae6fd'}`,
+              borderRadius: '10px',
+              padding: '14px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+              position: 'relative'
+            }}
+          >
+            {/* Card Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', paddingBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{
+                  background: selectedFeature === 'life' ? '#047857' : '#0284c7',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  padding: '2px 8px',
+                  borderRadius: '12px'
+                }}>
+                  #{idx + 1}
+                </span>
+                <strong style={{ fontSize: '14px', color: '#0f172a' }}>
+                  {item.name_bn || `নতুন ${selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা সদস্য`}
+                </strong>
+                {item.year && (
+                  <span style={{ background: '#f1f5f9', color: '#475569', fontSize: '11px', padding: '1px 7px', borderRadius: '4px' }}>
+                    সাল: {item.year}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => removeDonor(idx)}
+                style={{
+                  background: '#fee2e2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  fontSize: '11.5px',
+                  cursor: 'pointer',
+                  fontWeight: 600
+                }}
+              >
+                ✕ মুছে ফেলুন
+              </button>
+            </div>
+
+            {/* Inputs Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  দাতা সদস্যের নাম (বাংলা) *
+                </label>
+                <input
+                  type="text"
+                  placeholder="যেমন: আলহাজ্ব মোঃ আব্দুল লতিফ"
+                  value={item.name_bn || ''}
+                  onChange={(e) => updateDonorField(idx, 'name_bn', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  দাতা সদস্যের নাম (ইংরেজি)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Alhaj Md. Abdul Latif"
+                  value={item.name_en || ''}
+                  onChange={(e) => updateDonorField(idx, 'name_en', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  পদবি / সামাজিক পরিচিতি
+                </label>
+                <input
+                  type="text"
+                  placeholder="যেমন: বিশিষ্ট দানবীর ও শিক্ষানুরাগী"
+                  value={item.designation || ''}
+                  onChange={(e) => updateDonorField(idx, 'designation', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  দানের খাত / উদ্দেশ্য *
+                </label>
+                <input
+                  type="text"
+                  list={selectedFeature === 'life' ? 'donation-types-life-list' : 'donation-types-onetime-list'}
+                  placeholder="যেমন: ভূমি ও স্থায়ী তহবিল দান"
+                  value={item.donation_type || ''}
+                  onChange={(e) => updateDonorField(idx, 'donation_type', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  অনুদানের পরিমাণ ও বিবরণ *
+                </label>
+                <input
+                  type="text"
+                  placeholder="যেমন: ১,০০,০০০/- টাকা ও ৫০ শতক জমি"
+                  value={item.donation_amount || ''}
+                  onChange={(e) => updateDonorField(idx, 'donation_amount', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  দানের সাল / তারিখ
+                </label>
+                <input
+                  type="text"
+                  placeholder="যেমন: ১৯৮২ বা ২০২৩"
+                  value={item.year || ''}
+                  onChange={(e) => updateDonorField(idx, 'year', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  গ্রাম / স্থায়ী ঠিকানা
+                </label>
+                <input
+                  type="text"
+                  placeholder="যেমন: মগড়া, টাঙ্গাইল সদর"
+                  value={item.address || ''}
+                  onChange={(e) => updateDonorField(idx, 'address', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  মোবাইল নম্বর
+                </label>
+                <input
+                  type="text"
+                  placeholder="017XXXXXXXX"
+                  value={item.mobile || ''}
+                  onChange={(e) => updateDonorField(idx, 'mobile', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  স্বীকৃতি / স্ট্যাটাস
+                </label>
+                <input
+                  type="text"
+                  list="donor-status-options"
+                  placeholder={selectedFeature === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য'}
+                  value={item.status || ''}
+                  onChange={(e) => updateDonorField(idx, 'status', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                  ছবি / ফটো ইউআরএল
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://... অথবা খালি রাখুন"
+                  value={item.photo || ''}
+                  onChange={(e) => updateDonorField(idx, 'photo', e.target.value)}
+                  style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginTop: '10px' }}>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
+                বিশেষ ভূমিকা ও অবদান (মন্তব্য / স্বীকৃতি বিবরণ)
+              </label>
+              <input
+                type="text"
+                placeholder="বিদ্যালয় প্রতিষ্ঠায় অথবা ক্যাম্পাস সম্প্রসারণে বিশেষ অবদানের কথা..."
+                value={item.remarks || ''}
+                onChange={(e) => updateDonorField(idx, 'remarks', e.target.value)}
+                style={{ width: '100%', padding: '6px 8px', fontSize: '13px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+        ))}
+
+        {!filteredIndices.length && (
+          <div style={{ textAlign: 'center', padding: '30px', background: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+            কোনো দাতা সদস্যের তথ্য পাওয়া যায়নি। উপরে <b>+ নতুন দাতা যোগ</b> বাটনে ক্লিক করুন।
+          </div>
+        )}
+      </div>
+
+      {/* Footer Buttons */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+        <button
+          type="button"
+          className="btn mini"
+          onClick={addDonor}
+          style={{ background: selectedFeature === 'life' ? '#047857' : '#0284c7', color: '#fff', fontWeight: 700 }}
+        >
+          + নতুন {selectedFeature === 'life' ? 'আজীবন' : 'এককালীন'} দাতা যোগ
         </button>
 
         <div style={{ display: 'flex', gap: '8px' }}>

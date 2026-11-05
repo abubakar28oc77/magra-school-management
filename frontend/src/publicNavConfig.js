@@ -5,6 +5,7 @@ export const publicNavConfig = [
   ['public.nav.institution.about','বিদ্যালয় পরিচিতি','#school-info'],
   ['public.nav.institution.history','বিদ্যালয়ের ইতিহাস','#school-history'],
   ['public.nav.institution.committee','পরিচালনা পর্ষদ','#committee'],
+  ['public.nav.institution.donors','বিদ্যালয়ের দাতা সদস্য','#donors'],
   ['public.nav.institution.regulations','বিধি বিধান','#regulations'],
   ['public.nav.institution.code_of_conduct','আচরন বিধি','#code-of-conduct'],
   ['public.nav.institution.master_plan','মুখ্য পরিকল্পনা','#master-plan'],
