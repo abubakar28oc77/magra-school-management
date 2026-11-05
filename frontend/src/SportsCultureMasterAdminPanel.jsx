@@ -391,7 +391,7 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
           menuKey={previewModalKey.key}
           title={previewModalKey.title}
           onClose={() => setPreviewModalKey(null)}
-          onNavigateRole={() => {}}
+          onNavigateRole={() => { }}
         />
       )}
     </div>

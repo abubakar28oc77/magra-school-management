@@ -131,6 +131,14 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
   const [newAdvTeacherId, setNewAdvTeacherId] = useState(activeTeachers[0]?.id || activeTeachers[0]?.employee_id || 'T01');
   const [newAdvRoleTitle, setNewAdvRoleTitle] = useState('উপদেষ্টা ও মডারেটর');
 
+  // Edit advisor state
+  const [editingAdvisor, setEditingAdvisor] = useState(null);
+  const [editForm, setEditForm] = useState({
+    clubKey: 'debate',
+    teacherId: '',
+    roleTitle: ''
+  });
+
   useEffect(() => {
     if (activeTeachers.length && !newAdvTeacherId) {
       setNewAdvTeacherId(activeTeachers[0].id || activeTeachers[0].employee_id || 'T01');
@@ -214,6 +222,59 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
     persistAdvisory(updated);
     setAdvisorySaveMsg('উপদেষ্টা সফলভাবে অপসারিত হয়েছে!');
     setTimeout(() => setAdvisorySaveMsg(''), 3000);
+  };
+
+  // Start Edit Advisor
+  const handleStartEditAdvisor = (adv) => {
+    setEditingAdvisor(adv);
+    setEditForm({
+      clubKey: adv.clubKey || 'debate',
+      teacherId: adv.teacherId || activeTeachers[0]?.id || activeTeachers[0]?.employee_id || 'T01',
+      roleTitle: adv.roleTitle || 'উপদেষ্টা'
+    });
+  };
+
+  // Save Updated Advisor
+  const handleUpdateAdvisor = (e) => {
+    e.preventDefault();
+    if (!editingAdvisor) return;
+
+    const foundTeacher = activeTeachers.find(t => (t.id === editForm.teacherId || t.employee_id === editForm.teacherId)) || activeTeachers[0];
+
+    const clubNameMap = {
+      debate: 'মগড়া ডিবেটিং ক্লাব (বিতর্ক)',
+      science: 'মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)',
+      ict: 'মগড়া আইসিটি ও কোডিং ক্লাব',
+      literature: 'মগড়া ভাষা ও সাহিত্য ক্লাব',
+      all: 'সার্বিক একাডেমি পরিষদ'
+    };
+
+    const updatedList = (advisoryData.clubAdvisors || []).map(adv => {
+      if (adv.id === editingAdvisor.id) {
+        return {
+          ...adv,
+          clubKey: editForm.clubKey,
+          clubName: clubNameMap[editForm.clubKey] || adv.clubName || 'স্কুল ক্লাব',
+          teacherId: foundTeacher.id || foundTeacher.employee_id,
+          teacherName: foundTeacher.name_bn || foundTeacher.name_en,
+          teacherDesignation: foundTeacher.designation || 'সহকারী শিক্ষক',
+          roleTitle: (editForm.roleTitle || '').trim() || 'উপদেষ্টা',
+          phone: foundTeacher.phone || adv.phone || '—'
+        };
+      }
+      return adv;
+    });
+
+    const updated = {
+      ...advisoryData,
+      clubAdvisors: updatedList
+    };
+
+    setAdvisoryData(updated);
+    persistAdvisory(updated);
+    setEditingAdvisor(null);
+    setAdvisorySaveMsg('উপদেষ্টার তথ্য সফলভাবে হালনাগাদ ও সংরক্ষিত হয়েছে!');
+    setTimeout(() => setAdvisorySaveMsg(''), 3500);
   };
 
   // Manual Save
@@ -1387,23 +1448,51 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                       )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAdvisor(adv.id)}
-                      style={{
-                        background: '#fee2e2',
-                        color: '#b91c1c',
-                        border: '1px solid #fca5a5',
-                        padding: '5px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: 800,
-                        cursor: 'pointer'
-                      }}
-                      title="উপদেষ্টাকে তালিকা থেকে সরান"
-                    >
-                      🗑️
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditAdvisor(adv)}
+                        style={{
+                          background: '#eff6ff',
+                          color: '#1d4ed8',
+                          border: '1px solid #bfdbfe',
+                          padding: '5px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="উপদেষ্টার তথ্য এডিট করুন"
+                      >
+                        ✏️
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdvisor(adv.id)}
+                        style={{
+                          background: '#fee2e2',
+                          color: '#b91c1c',
+                          border: '1px solid #fca5a5',
+                          padding: '5px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                        title="উপদেষ্টাকে তালিকা থেকে সরান"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1810,6 +1899,193 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
           </div>
         </div>
       )}
+
+      {/* ======================================================== */}
+      {/* EDIT ADVISOR MODAL */}
+      {/* ======================================================== */}
+      {editingAdvisor && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(3px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '520px',
+            width: '100%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.25)',
+            border: '2px solid #312e81',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+              color: '#ffffff',
+              padding: '16px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>✏️</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900 }}>
+                    উপদেষ্টা তথ্য সম্পাদনা
+                  </h3>
+                  <small style={{ color: '#cbd5e1', fontSize: '11.5px' }}>
+                    ক্লাবের নাম, শিক্ষক ও দায়িত্ব পরিবর্তন করে সংরক্ষণ করুন
+                  </small>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingAdvisor(null)}
+                style={{
+                  background: 'rgba(255,255,255,0.15)',
+                  border: 'none',
+                  color: '#ffffff',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body Form */}
+            <form onSubmit={handleUpdateAdvisor} style={{ padding: '20px' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 800, color: '#334155', marginBottom: '5px' }}>
+                  ১. ক্লাব নির্বাচন:
+                </label>
+                <select
+                  value={editForm.clubKey}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, clubKey: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '7px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    background: '#ffffff'
+                  }}
+                >
+                  <option value="debate">🎤 মগড়া ডিবেটিং ক্লাব (বিতর্ক)</option>
+                  <option value="science">🔬 মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান)</option>
+                  <option value="ict">💻 মগড়া আইসিটি ও কোডিং ক্লাব</option>
+                  <option value="literature">📚 মগড়া ভাষা ও সাহিত্য ক্লাব</option>
+                  <option value="all">🏛️ সকল ক্লাব (সার্বিক একাডেমি পরিষদ)</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 800, color: '#334155', marginBottom: '5px' }}>
+                  ২. শিক্ষক নির্বাচন (ড্রপ-ডাউন):
+                </label>
+                <select
+                  value={editForm.teacherId}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, teacherId: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '7px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    background: '#ffffff'
+                  }}
+                >
+                  {activeTeachers.map(t => (
+                    <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                      {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 800, color: '#334155', marginBottom: '5px' }}>
+                  ৩. ক্লাবে অর্পিত দায়িত্ব / পদবী:
+                </label>
+                <input
+                  type="text"
+                  value={editForm.roleTitle}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, roleTitle: e.target.value }))}
+                  placeholder="যেমন: উপদেষ্টা ও মডারেটর / সহ-উপদেষ্টা"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '9px 12px',
+                    borderRadius: '7px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a'
+                  }}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingAdvisor(null)}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '9px 16px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  বাতিল
+                </button>
+
+                <button
+                  type="submit"
+                  style={{
+                    background: '#312e81',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 20px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(49, 46, 129, 0.25)'
+                  }}
+                >
+                  <span>💾</span>
+                  <span>পরিবর্তন সংরক্ষণ করুন</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
