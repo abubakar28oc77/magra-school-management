@@ -121,7 +121,7 @@ import {
   PUBLIC_EXAM_DEPARTMENTS
 } from './examResultsDataStore';
 import { getStoredInstitutionData } from './defaultInstitutionData';
-import { getStoredReligiousEventsData } from './religiousEventsData';
+import { getStoredReligiousEventsData, DEFAULT_RELIGIOUS_EVENTS } from './religiousEventsData';
 import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
@@ -1177,6 +1177,221 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
               <b>পূজা উদযাপন কমিটি:</b> {p.committee}
             </div>
           )}
+        </div>
+      );
+    }
+
+    // 11. Freshers Reception & Farewell Ceremony (নবীনবরণ ও বিদায় অনুষ্ঠান) - Live Synchronized
+    if (
+      menuKey === 'public.nav.sport.freshers_farewell' || 
+      title === 'নবীনবরণ ও বিদায় অনুষ্ঠান' || 
+      title === 'নবীনবরন ও বিদায় অনুষ্ঠান' ||
+      title?.includes('নবীনবরণ') || 
+      title?.includes('নবীনবরন') || 
+      title?.includes('বিদায় অনুষ্ঠান') ||
+      title?.includes('বিদায় অনুষ্ঠান')
+    ) {
+      const relData = getStoredReligiousEventsData();
+      const f = relData.freshers_farewell || DEFAULT_RELIGIOUS_EVENTS.freshers_farewell || {};
+      const schedule = f.schedule || [];
+
+      const handlePrintFarewellPad = () => {
+        const printWindow = window.open('', '_blank', 'width=1000,height=900');
+        if (!printWindow) {
+          alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+          return;
+        }
+
+        const scheduleRowsHtml = schedule.map((it) => `
+          <tr>
+            <td style="padding:7px 10px;border:1px solid #0f172a;text-align:center;font-weight:700;color:#047857;">${it.time}</td>
+            <td style="padding:7px 10px;border:1px solid #0f172a;color:#1e293b;">${it.item}</td>
+          </tr>
+        `).join('');
+
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="bn">
+          <head>
+            <meta charset="utf-8">
+            <title>${f.title || 'নবীনবরণ ও বিদায় অনুষ্ঠান'} — অফিসিয়াল বিবরণী</title>
+            <style>
+              @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+              body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; font-size: 13px; line-height: 1.5; background: #fff; }
+              ${SCHOOL_PAD_STYLES}
+              .meta-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 700; margin: 12px 0 16px 0; border-bottom: 1px dotted #cbd5e1; padding-bottom: 6px; }
+              .order-title { text-align: center; margin: 10px 0 4px 0; font-size: 18px; font-weight: 900; color: #0f172a; }
+              .order-sub { text-align: center; margin: 0 0 14px 0; font-size: 13px; color: #475569; }
+              .info-box { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; background: #f8fafc; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th { background: #f1f5f9; font-weight: 800; border: 1px solid #0f172a; padding: 7px 10px; font-size: 12px; }
+              .footer-signs { margin-top: 50px; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 700; }
+              .sign-line { border-top: 1px dashed #0f172a; padding-top: 5px; width: 180px; }
+            </style>
+          </head>
+          <body>
+            ${SCHOOL_PAD_HEADER_HTML}
+            <div class="meta-row">
+              <span>স্মারক নং: মপাউউবি/সাংস্কৃতিক/নবীন-বিদায়/২০২৬/০১</span>
+              <span>তারিখ: ${f.date || '....................'}</span>
+            </div>
+            <div class="order-title">${f.title || 'নবীনবরণ ও বিদায় সংবর্ধনা অনুষ্ঠান ২০২৬'}</div>
+            <div class="order-sub">${f.occasion || 'নবাগত শিক্ষার্থীদের পুষ্পিত বরণ ও এসএসসি পরীক্ষার্থীদের শুভকামনায় বিদায় সংবর্ধনা'}</div>
+
+            <div class="info-box">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px;">
+                <div><b>📅 তারিখ ও সময়:</b> ${f.date || '—'} (${f.time || '—'})</div>
+                <div><b>📍 স্থান / ভেন্যু:</b> ${f.venue || '—'}</div>
+                <div><b>👑 প্রধান অতিথি:</b> ${f.chief_guest || '—'}</div>
+                <div><b>✨ বিশেষ অতিথি:</b> ${f.special_guest || '—'}</div>
+                <div><b>🎓 সভাপতি:</b> ${f.president || '—'}</div>
+                <div><b>🎙️ আহ্বায়ক / সমন্বয়ক:</b> ${f.convener || '—'}</div>
+              </div>
+            </div>
+
+            <h4 style="color:#047857;margin:12px 0 6px 0;font-size:14px;">📜 অনুষ্ঠানের পর্যায়ক্রমিক কর্মসূচি ও সময়সূচি:</h4>
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:140px;">সময়সূচি</th>
+                  <th style="text-align:left;">কর্মসূচির বিষয় ও বিস্তারিত বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${scheduleRowsHtml}
+              </tbody>
+            </table>
+
+            <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;">
+              <div style="border:1px solid #e2e8f0;padding:8px 10px;border-radius:4px;">
+                <b>🎁 নবীনবরণ উপহার:</b> ${f.freshers_gifts || '—'}
+              </div>
+              <div style="border:1px solid #e2e8f0;padding:8px 10px;border-radius:4px;">
+                <b>🎓 বিদায়ী স্মারক:</b> ${f.farewell_gifts || '—'}
+              </div>
+            </div>
+
+            ${f.message ? `
+              <div style="margin-top:10px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;font-size:12px;border-radius:4px;">
+                <b>💬 শুভকামনা বার্তা:</b> ${f.message}
+              </div>
+            ` : ''}
+
+            <div class="footer-signs">
+              <div><div class="sign-line">আহ্বায়ক (সাংস্কৃতিক উপকমিটি)</div></div>
+              <div><div class="sign-line">প্রধান শিক্ষক</div></div>
+              <div><div class="sign-line">সভাপতি (ম্যানেজিং / এডহক কমিটি)</div></div>
+            </div>
+            <script>
+              window.onload = function() { setTimeout(function(){ window.print(); }, 250); };
+            </script>
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+      };
+
+      return (
+        <div className="submenu-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+            <div className="modal-hero-badge" style={{ margin: 0, background: '#f0fdfa', color: '#0f766e', border: '1px solid #99f6e4' }}>
+              🎓 {f.title || 'নবীনবরণ ও বিদায় অনুষ্ঠান'}
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintFarewellPad}
+              style={{
+                background: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+              }}
+            >
+              🖨️ অফিসিয়াল প্যাডে প্রিন্ট (A4 Portrait)
+            </button>
+          </div>
+
+          <p className="lead-text">
+            {f.occasion || '৬ষ্ঠ শ্রেণির নবাগত শিক্ষার্থীদের বরণ ও ১০ম শ্রেণির এসএসসি পরীক্ষার্থীদের বিদায় সংবর্ধনা ও সাংস্কৃতিক অনুষ্ঠান।'}
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+              <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>📅 তারিখ ও সময়:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>{f.date || '২০২৬-০১-২৮'} • {f.time || 'সকাল ১০:০০'}</div>
+            </div>
+            <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+              <span style={{ fontSize: '12px', color: '#1e40af', fontWeight: 700 }}>📍 স্থান / ভেন্যু:</span>
+              <div style={{ fontSize: '14px', fontWeight: 800, color: '#1e40af', marginTop: '2px' }}>{f.venue || 'বিদ্যালয় কেন্দ্রীয় মিলনায়তন ও মুক্তমঞ্চ'}</div>
+            </div>
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a' }}>
+              <span style={{ fontSize: '12px', color: '#854d0e', fontWeight: 700 }}>👑 প্রধান অতিথি:</span>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#854d0e', marginTop: '2px' }}>{f.chief_guest || 'সভাপতি, পরিচালনা পর্ষদ'}</div>
+            </div>
+            <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '12px', color: '#475569', fontWeight: 700 }}>✨ বিশেষ অতিথি:</span>
+              <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{f.special_guest || 'উপজেলা মাধ্যমিক শিক্ষা অফিসার'}</div>
+            </div>
+          </div>
+
+          {/* Program Schedule Table */}
+          <h4 style={{ color: '#047857', marginBottom: '8px', fontSize: '15px', fontWeight: 800 }}>
+            📜 অনুষ্ঠানের পর্যায়ক্রমিক কর্মসূচি ও সময়সূচি:
+          </h4>
+          <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px', marginBottom: '16px' }}>
+            <table className="modal-table" style={{ margin: 0, width: '100%' }}>
+              <thead style={{ background: '#f1f5f9' }}>
+                <tr>
+                  <th style={{ width: '150px', padding: '8px 12px' }}>সময়সূচি</th>
+                  <th style={{ padding: '8px 12px' }}>কর্মসূচির বিষয় ও বিস্তারিত বিবরণ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schedule.map((it, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 700, color: '#047857' }}>{it.time}</td>
+                    <td style={{ color: '#334155' }}>{it.item}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Freshers & Farewell Gifts Details */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+            {f.freshers_gifts && (
+              <div style={{ background: '#f0fdf4', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                <b style={{ color: '#15803d', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🌸 নবীন শিক্ষার্থীদের পুষ্পিত বরণ:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.6' }}>{f.freshers_gifts}</p>
+              </div>
+            )}
+            {f.farewell_gifts && (
+              <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bfdbfe' }}>
+                <b style={{ color: '#1d4ed8', fontSize: '13px', display: 'block', marginBottom: '4px' }}>🎓 বিদায়ী এসএসসি পরীক্ষার্থীদের সংবর্ধনা ও স্মারক:</b>
+                <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.6' }}>{f.farewell_gifts}</p>
+              </div>
+            )}
+          </div>
+
+          {f.message && (
+            <div style={{ background: '#fefce8', padding: '12px 14px', borderRadius: '8px', border: '1px solid #fef08a', marginBottom: '14px' }}>
+              <b style={{ color: '#854d0e', fontSize: '13px', display: 'block', marginBottom: '4px' }}>💬 শুভকামনা ও আশির্বাদ বার্তা:</b>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6' }}>{f.message}</p>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', fontSize: '12.5px', color: '#475569', border: '1px solid #e2e8f0' }}>
+            <span><b>সভাপতিত্ব:</b> {f.president || 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)'}</span>
+            <span><b>আহ্বায়ক ও সমন্বয়ক:</b> {f.convener || f.committee || 'সাংস্কৃতিক উপকমিটি'}</span>
+          </div>
         </div>
       );
     }

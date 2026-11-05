@@ -28,22 +28,24 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
 
   const handleSaveReligious = (type) => {
     const success = saveStoredReligiousEventsData(religiousData);
+    const typeLabel = type === 'milad' ? 'মিলাদ-মাহফিল' : type === 'puja' ? 'পূজা' : 'নবীনবরণ ও বিদায় অনুষ্ঠান';
     if (success) {
-      showToast(`✓ '${type === 'milad' ? 'মিলাদ-মাহফিল' : 'পূজা'}' এর তথ্য সফলভাবে সংরক্ষিত হয়েছে এবং ভিউ পেজে লাইভ আপডেট হয়েছে!`);
+      showToast(`✓ '${typeLabel}' এর তথ্য সফলভাবে সংরক্ষিত হয়েছে এবং ভিউ পেজে লাইভ আপডেট হয়েছে!`);
     } else {
       showToast('❌ তথ্য সংরক্ষণে ত্রুটি দেখা দিয়েছে।');
     }
   };
 
   const handleResetReligious = (type) => {
-    if (!confirm(`আপনি কি '${type === 'milad' ? 'মিলাদ-মাহফিল' : 'পূজা'}' এর তথ্য ডিফল্ট অবস্থায় ফিরিয়ে নিতে চান?`)) return;
+    const typeLabel = type === 'milad' ? 'মিলাদ-মাহফিল' : type === 'puja' ? 'পূজা' : 'নবীনবরণ ও বিদায় অনুষ্ঠান';
+    if (!confirm(`আপনি কি '${typeLabel}' এর তথ্য ডিফল্ট অবস্থায় ফিরিয়ে নিতে চান?`)) return;
     const updated = {
       ...religiousData,
       [type]: JSON.parse(JSON.stringify(DEFAULT_RELIGIOUS_EVENTS[type]))
     };
     setReligiousData(updated);
     saveStoredReligiousEventsData(updated);
-    showToast(`✓ '${type === 'milad' ? 'মিলাদ-মাহফিল' : 'পূজা'}' ডিফল্ট ডেটায় রিসেট হয়েছে।`);
+    showToast(`✓ '${typeLabel}' ডিফল্ট ডেটায় রিসেট হয়েছে।`);
   };
 
   const tabsList = [
@@ -61,7 +63,8 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
     { key: 'scouts', label: 'স্কাউট ও গাইড', icon: '⚜️' },
     { key: 'inter', label: 'আন্তঃবিদ্যালয় ক্রীড়া', icon: '⚽' },
     { key: 'milad', label: 'মিলাদ-মাহফিল', icon: '🕌' },
-    { key: 'puja', label: 'পূজা', icon: '🪔' }
+    { key: 'puja', label: 'পূজা', icon: '🪔' },
+    { key: 'freshers_farewell', label: 'নবীনবরণ ও বিদায় অনুষ্ঠান', icon: '🎓' }
   ];
 
   const navKeyMap = {
@@ -79,7 +82,8 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
     scouts: 'public.nav.sport.scouts',
     inter: 'public.nav.sport.inter',
     milad: 'public.nav.sport.milad',
-    puja: 'public.nav.sport.puja'
+    puja: 'public.nav.sport.puja',
+    freshers_farewell: 'public.nav.sport.freshers_farewell'
   };
 
   const getTabLabel = (k) => tabsList.find(t => t.key === k)?.label || 'ক্রীড়া ও সংস্কৃতি';
@@ -446,6 +450,17 @@ export function SportsCultureMasterAdminPanel({ sub, setSub }) {
             onSave={() => handleSaveReligious('puja')}
             onReset={() => handleResetReligious('puja')}
             onPreview={() => openPreview('puja')}
+          />
+        )}
+
+        {/* 16. FRESHERS & FAREWELL (নবীনবরণ ও বিদায় অনুষ্ঠান) */}
+        {activeTab === 'freshers_farewell' && (
+          <SectionFreshersFarewellAdmin
+            data={religiousData.freshers_farewell || DEFAULT_RELIGIOUS_EVENTS.freshers_farewell}
+            onChange={(val) => setReligiousData({ ...religiousData, freshers_farewell: val })}
+            onSave={() => handleSaveReligious('freshers_farewell')}
+            onReset={() => handleResetReligious('freshers_farewell')}
+            onPreview={() => openPreview('freshers_farewell')}
           />
         )}
 
@@ -875,6 +890,196 @@ function SectionPujaAdmin({ data, onChange, onSave, onReset, onPreview }) {
             <input
               style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
               placeholder="কর্মসূচি (যেমন: পুষ্পাঞ্জলি প্রদান ও দেবীর বন্দনা)"
+              value={s.item || ''}
+              onChange={(e) => updateScheduleItem(idx, 'item', e.target.value)}
+            />
+            <button type="button" className="btn mini" onClick={() => removeScheduleItem(idx)} style={{ background: '#fee2e2', color: '#b91c1c' }}>মুছুন</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------
+// Section 16: নবীনবরণ ও বিদায় অনুষ্ঠান Data Input Form
+// ----------------------------------------------------
+function SectionFreshersFarewellAdmin({ data = {}, onChange, onSave, onReset, onPreview }) {
+  const updateField = (f, v) => onChange({ ...data, [f]: v });
+
+  const updateScheduleItem = (index, field, value) => {
+    const list = [...(data.schedule || [])];
+    list[index] = { ...list[index], [field]: value };
+    onChange({ ...data, schedule: list });
+  };
+
+  const addScheduleItem = () => {
+    const list = [...(data.schedule || [])];
+    list.push({ time: '১২:০০ - ০১:০০', item: 'নতুন কর্মসূচি বিষয়' });
+    onChange({ ...data, schedule: list });
+  };
+
+  const removeScheduleItem = (index) => {
+    const list = [...(data.schedule || [])];
+    list.splice(index, 1);
+    onChange({ ...data, schedule: list });
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h3 style={{ margin: 0, color: '#065f46', fontSize: '17px' }}>🎓 ১৬. নবীনবরণ ও বিদায় অনুষ্ঠান এন্ট্রি ও ব্যবস্থাপনা</h3>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ</button>
+          <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569' }}>🔄 রিসেট</button>
+          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সংরক্ষণ</button>
+        </div>
+      </div>
+
+      <GuidanceCard
+        title="নবীনবরণ ও বিদায় সংবর্ধনা অনুষ্ঠান"
+        steps={[
+          '১. অনুষ্ঠানের মূল শিরোনাম (যেমন: ৬ষ্ঠ শ্রেণির নবীনবরণ ও এসএসসি পরীক্ষার্থীদের বিদায় সংবর্ধনা ২০২৬) লিখুন।',
+          '২. অনুষ্ঠানের তারিখ, সময়সূচি এবং ভেন্যু (বিদ্যালয় অডিটোরিয়াম ও মুক্তমঞ্চ) নির্ধারণ করুন।',
+          '৩. প্রধান অতিথি, বিশেষ অতিথি, সভাপতি এবং আহ্বায়ক/সমন্বয়ক শিক্ষকের নাম লিখুন।',
+          '৪. নবীন শিক্ষার্থীদের উপহার সামগ্রী ও বিদায়ীদের মানপত্র/ক্রেস্ট স্মারকের বিবরণ নথিভুক্ত করুন।',
+          '৫. অনুষ্ঠানের পর্যায়ক্রমিক সময়সূচি ও বর্ণাঢ্য সাংস্কৃতিক পরিবেশনার তালিকা যুক্ত করুন।'
+        ]}
+        tips="অনুষ্ঠানের সকল তথ্য সংরক্ষণ বাটনে ক্লিক করলে তা সরাসরি ওয়েবসাইট ভিউ পেজে লাইভ আপডেট হবে এবং অফিশিয়াল প্যাডে প্রিন্ট করা যাবে।"
+      />
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>অনুষ্ঠানের পূর্ণ নাম / শিরোনাম:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.title || ''}
+            onChange={(e) => updateField('title', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>বিশেষ উপলক্ষ / বিষয়বস্তু:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.occasion || ''}
+            onChange={(e) => updateField('occasion', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>অনুষ্ঠানের তারিখ:</label>
+          <input
+            type="date"
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.date || ''}
+            onChange={(e) => updateField('date', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>অনুষ্ঠানের সময়সূচি:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.time || ''}
+            onChange={(e) => updateField('time', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>স্থান / ভেন্যু:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.venue || ''}
+            onChange={(e) => updateField('venue', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>প্রধান অতিথি:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.chief_guest || ''}
+            onChange={(e) => updateField('chief_guest', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>বিশেষ অতিথি:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.special_guest || ''}
+            onChange={(e) => updateField('special_guest', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>সভাপতিত্ব করবেন:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.president || ''}
+            onChange={(e) => updateField('president', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>আহ্বায়ক / সমন্বয়ক শিক্ষক:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.convener || ''}
+            onChange={(e) => updateField('convener', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>নবীনবরণ উপহার ও বরণ বিবরণ:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.freshers_gifts || ''}
+            onChange={(e) => updateField('freshers_gifts', e.target.value)}
+          />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>বিদায়ী এসএসসি পরীক্ষার্থীদের মানপত্র ও স্মারক:</label>
+          <input
+            style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            value={data.farewell_gifts || ''}
+            onChange={(e) => updateField('farewell_gifts', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '14px' }}>
+        <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>আশীর্বাদ ও শুভকামনা বার্তা:</label>
+        <textarea
+          rows="2"
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', lineHeight: '1.5' }}
+          value={data.message || ''}
+          onChange={(e) => updateField('message', e.target.value)}
+        />
+      </div>
+
+      <div style={{ marginBottom: '14px' }}>
+        <label style={{ display: 'block', fontWeight: 700, fontSize: '12.5px', marginBottom: '4px' }}>অনুষ্ঠান পরিচালনা ও শৃঙ্খলা উপকমিটি:</label>
+        <input
+          style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+          value={data.committee || ''}
+          onChange={(e) => updateField('committee', e.target.value)}
+        />
+      </div>
+
+      {/* Program Schedule Table */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '14px 0 8px' }}>
+        <h4 style={{ color: '#047857', margin: 0, fontSize: '14px' }}>অনুষ্ঠানের পর্যায়ক্রমিক কর্মসূচি ও সময়সূচি:</h4>
+        <button type="button" className="btn mini" onClick={addScheduleItem} style={{ background: '#047857', color: '#fff' }}>+ কর্মসূচি যোগ</button>
+      </div>
+
+      <div style={{ display: 'grid', gap: '8px' }}>
+        {(data.schedule || []).map((s, idx) => (
+          <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+            <input
+              style={{ width: '160px', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+              placeholder="সময় (যেমন: ১০:২০ - ১১:০০)"
+              value={s.time || ''}
+              onChange={(e) => updateScheduleItem(idx, 'time', e.target.value)}
+            />
+            <input
+              style={{ flex: 1, padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              placeholder="কর্মসূচি বিবরণ (যেমন: নবীন শিক্ষার্থীদের বরণ)"
               value={s.item || ''}
               onChange={(e) => updateScheduleItem(idx, 'item', e.target.value)}
             />
