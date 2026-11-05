@@ -530,7 +530,20 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   const [donorTab, setDonorTab] = useState('life'); // 'life' or 'one_time'
   const [donorSearch, setDonorSearch] = useState('');
   const [donorViewMode, setDonorViewMode] = useState('cards'); // 'cards' or 'table'
-  const instData = getStoredInstitutionData();
+  const [instData, setInstData] = useState(getStoredInstitutionData);
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      if (e?.detail) setInstData(e.detail);
+      else setInstData(getStoredInstitutionData());
+    };
+    window.addEventListener('magra_institution_change', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('magra_institution_change', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   // Bengali helpers
   const toBn = (n) => (n === null || n === undefined || n === '') ? '০' : String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);

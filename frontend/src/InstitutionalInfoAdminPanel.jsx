@@ -30,12 +30,20 @@ export function InstitutionalInfoAdminPanel({ sub, setSub, onNavigate }) {
     setTimeout(() => setToastMsg(''), 4000);
   };
 
-  const handleSaveAll = () => {
-    const success = saveStoredInstitutionData(data);
+  const handleSaveAll = (customSectionPayload) => {
+    let toSave = data;
+    if (customSectionPayload && typeof customSectionPayload === 'object' && !customSectionPayload.nativeEvent && activeTab) {
+      toSave = {
+        ...data,
+        [activeTab]: customSectionPayload
+      };
+      setData(toSave);
+    }
+    const success = saveStoredInstitutionData(toSave);
     if (success) {
       showToast('✓ সকল প্রাতিষ্ঠানিক তথ্য সফলভাবে সংরক্ষিত হয়েছে এবং ভিউ পেজে আপডেট সম্পন্ন হয়েছে!');
     } else {
-      showToast('❌ তথ্য সংরক্ষণে ত্রুটি দেখা দিয়েছে।');
+      showToast('❌ তথ্য সংরক্ষণে ত্রুটি দেখা দিয়েছে। মেমোরি খালি করে পুনরায় চেষ্টা করুন।');
     }
   };
 
@@ -1356,33 +1364,73 @@ function SectionCommittee({ data, onChange, onSave, onReset, onPreview }) {
 // Section 3.5: বিদ্যালয়ের দাতা সদস্য (আজীবন ও এককালীন দাতা সদস্য)
 // ----------------------------------------------------
 function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
-  const lifeDonors = Array.isArray(data?.life_donors) && data.life_donors.length
-    ? data.life_donors
-    : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors));
+  const [lifeDonors, setLifeDonors] = useState(() => (
+    (Array.isArray(data?.life_donors) && data.life_donors.length)
+      ? data.life_donors
+      : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors))
+  ));
 
-  const oneTimeDonors = Array.isArray(data?.one_time_donors) && data.one_time_donors.length
-    ? data.one_time_donors
-    : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors));
+  const [oneTimeDonors, setOneTimeDonors] = useState(() => (
+    (Array.isArray(data?.one_time_donors) && data.one_time_donors.length)
+      ? data.one_time_donors
+      : JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors))
+  ));
 
-  const activeType = data?.active_type || 'life';
-  const [selectedFeature, setSelectedFeature] = useState(activeType);
+  const [selectedFeature, setSelectedFeature] = useState(data?.active_type || 'life');
   const [searchFilter, setSearchFilter] = useState('');
+
+  // Keep local state in sync when parent data changes externally
+  useEffect(() => {
+    if (Array.isArray(data?.life_donors) && data.life_donors.length) {
+      setLifeDonors(data.life_donors);
+    }
+    if (Array.isArray(data?.one_time_donors) && data.one_time_donors.length) {
+      setOneTimeDonors(data.one_time_donors);
+    }
+    if (data?.active_type) {
+      setSelectedFeature(data.active_type);
+    }
+  }, [data]);
 
   const currentList = selectedFeature === 'life' ? lifeDonors : oneTimeDonors;
 
+  // Helper to commit changes safely to local state and parent
+  const commitListChange = (nextList, feature = selectedFeature) => {
+    const nextLife = feature === 'life' ? nextList : lifeDonors;
+    const nextOneTime = feature === 'one_time' ? nextList : oneTimeDonors;
+    if (feature === 'life') setLifeDonors(nextLife);
+    else setOneTimeDonors(nextOneTime);
+
+    const payload = {
+      active_type: feature,
+      life_donors: nextLife,
+      one_time_donors: nextOneTime
+    };
+    if (typeof onChange === 'function') {
+      onChange(payload);
+    }
+    return payload;
+  };
+
+  const handleFeatureSwitch = (feature) => {
+    setSelectedFeature(feature);
+    const payload = {
+      active_type: feature,
+      life_donors: lifeDonors,
+      one_time_donors: oneTimeDonors
+    };
+    if (typeof onChange === 'function') {
+      onChange(payload);
+    }
+  };
+
   const updateDonorField = (index, field, value) => {
-    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
     const list = [...currentList];
     list[index] = { ...list[index], [field]: value };
-    onChange({
-      ...data,
-      active_type: selectedFeature,
-      [listKey]: list
-    });
+    commitListChange(list, selectedFeature);
   };
 
   const addDonor = () => {
-    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
     const list = [...currentList];
     const newId = (selectedFeature === 'life' ? 'ld-' : 'otd-') + Date.now();
     const newDonor = {
@@ -1400,23 +1448,14 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       photo: ''
     };
     list.push(newDonor);
-    onChange({
-      ...data,
-      active_type: selectedFeature,
-      [listKey]: list
-    });
+    commitListChange(list, selectedFeature);
   };
 
   const removeDonor = (index) => {
     if (!confirm('আপনি কি এই দাতা সদস্যের তথ্য তালিকা থেকে মুছে ফেলতে চান?')) return;
-    const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
     const list = [...currentList];
     list.splice(index, 1);
-    onChange({
-      ...data,
-      active_type: selectedFeature,
-      [listKey]: list
-    });
+    commitListChange(list, selectedFeature);
   };
 
   const loadStandardTemplate = () => {
@@ -1424,12 +1463,22 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
       ? DEFAULT_INSTITUTION_DATA.donors.life_donors
       : DEFAULT_INSTITUTION_DATA.donors.one_time_donors;
     if (confirm(`আপনি কি ${selectedFeature === 'life' ? 'আজীবন দাতা সদস্য' : 'এককালীন দাতা সদস্য'}-এর আদর্শ নমুনা তালিকা লোড করতে চান? এতে বর্তমান তালিকার স্থানে আদর্শ তালিকা প্রতিস্থাপিত হবে।`)) {
-      const listKey = selectedFeature === 'life' ? 'life_donors' : 'one_time_donors';
-      onChange({
-        ...data,
-        active_type: selectedFeature,
-        [listKey]: JSON.parse(JSON.stringify(defaultList))
-      });
+      commitListChange(JSON.parse(JSON.stringify(defaultList)), selectedFeature);
+    }
+  };
+
+  // Synchronously deliver the latest donor payload to save handler
+  const handleSaveDonors = () => {
+    const payload = {
+      active_type: selectedFeature,
+      life_donors: lifeDonors,
+      one_time_donors: oneTimeDonors
+    };
+    if (typeof onChange === 'function') {
+      onChange(payload);
+    }
+    if (typeof onSave === 'function') {
+      onSave(payload);
     }
   };
 
@@ -1618,7 +1667,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
           </button>
           <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}>👁️ প্রিভিউ</button>
           <button type="button" className="btn mini" onClick={onReset} style={{ background: '#f1f5f9', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>🔄 রিসেট</button>
-          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>💾 সংরক্ষণ</button>
+          <button type="button" className="btn mini" onClick={handleSaveDonors} style={{ background: '#059669', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>💾 সংরক্ষণ</button>
         </div>
       </div>
 
@@ -1635,7 +1684,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
         {/* Feature 1: আজীবন দাতা সদস্য */}
         <button
           type="button"
-          onClick={() => setSelectedFeature('life')}
+          onClick={() => handleFeatureSwitch('life')}
           style={{
             padding: '12px 16px',
             borderRadius: '8px',
@@ -1674,7 +1723,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
         {/* Feature 2: এককালীন দাতা সদস্য */}
         <button
           type="button"
-          onClick={() => setSelectedFeature('one_time')}
+          onClick={() => handleFeatureSwitch('one_time')}
           style={{
             padding: '12px 16px',
             borderRadius: '8px',
@@ -2045,7 +2094,7 @@ function SectionDonors({ data, onChange, onSave, onReset, onPreview }) {
             🖨️ পূর্ণাঙ্গ প্রিন্ট
           </button>
           <button type="button" className="btn mini" onClick={onPreview} style={{ background: '#0284c7', color: '#fff' }}>👁️ প্রিভিউ দেখুন</button>
-          <button type="button" className="btn mini" onClick={onSave} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সকল তথ্য সংরক্ষণ করুন</button>
+          <button type="button" className="btn mini" onClick={handleSaveDonors} style={{ background: '#059669', color: '#fff', fontWeight: 700 }}>💾 সকল তথ্য সংরক্ষণ করুন</button>
         </div>
       </div>
     </div>

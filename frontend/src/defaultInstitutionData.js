@@ -283,7 +283,16 @@ export const DEFAULT_INSTITUTION_DATA = {
 
 export function getStoredInstitutionData() {
   try {
-    const raw = localStorage.getItem('magra_institution_info');
+    let raw = null;
+    try {
+      raw = localStorage.getItem('magra_institution_info');
+    } catch (_) {}
+    if (!raw) {
+      try {
+        raw = sessionStorage.getItem('magra_institution_info');
+      } catch (_) {}
+    }
+
     if (raw) {
       const parsed = JSON.parse(raw);
       const merged = { ...DEFAULT_INSTITUTION_DATA, ...parsed };
@@ -309,8 +318,8 @@ export function getStoredInstitutionData() {
 
         // Mirror active members to committee.members and committee.tenure for backward compatibility
         const activeGroup = merged.committee.active_type === 'adhoc' ? merged.committee.adhoc : merged.committee.regular;
-        merged.committee.members = activeGroup.members || [];
-        merged.committee.tenure = activeGroup.tenure || merged.committee.tenure;
+        merged.committee.members = activeGroup?.members || [];
+        merged.committee.tenure = activeGroup?.tenure || merged.committee.tenure;
       }
 
       // Ensure donors structure exists
@@ -335,6 +344,9 @@ export function getStoredInstitutionData() {
 }
 
 export function saveStoredInstitutionData(data) {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
   try {
     // Keep committee.members and committee.tenure mirrored to active committee
     if (data && data.committee) {
@@ -345,9 +357,79 @@ export function saveStoredInstitutionData(data) {
         c.tenure = activeGroup.tenure || c.tenure;
       }
     }
-    localStorage.setItem('magra_institution_info', JSON.stringify(data));
-    window.dispatchEvent(new CustomEvent('magra_institution_change', { detail: data }));
-    return true;
+
+    // Ensure donors structure is complete
+    if (data && data.donors) {
+      if (!Array.isArray(data.donors.life_donors)) {
+        data.donors.life_donors = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.life_donors));
+      }
+      if (!Array.isArray(data.donors.one_time_donors)) {
+        data.donors.one_time_donors = JSON.parse(JSON.stringify(DEFAULT_INSTITUTION_DATA.donors.one_time_donors));
+      }
+    }
+
+    const jsonStr = JSON.stringify(data);
+    let savedSuccessfully = false;
+
+    // 1. Direct attempt to localStorage
+    try {
+      localStorage.setItem('magra_institution_info', jsonStr);
+      savedSuccessfully = true;
+    } catch (quotaErr) {
+      console.warn('Direct localStorage save failed (QuotaExceeded). Pruning temporary caches...', quotaErr);
+
+      // Quota Recovery: prune transient student photo caches and temp data
+      try {
+        const keysToPrune = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (
+            k.startsWith('magra_photo_') ||
+            k.startsWith('magra_temp_') ||
+            k.startsWith('magra_cache_') ||
+            k.startsWith('magra_db_results_')
+          )) {
+            keysToPrune.push(k);
+          }
+        }
+        for (const k of keysToPrune) {
+          try { localStorage.removeItem(k); } catch (_) {}
+        }
+
+        // Retry saving after pruning caches
+        localStorage.setItem('magra_institution_info', jsonStr);
+        savedSuccessfully = true;
+      } catch (retryErr) {
+        console.warn('Storage still full. Pruning oversized base64 images from payload...', retryErr);
+
+        // Strip oversized base64 images (>50KB) to ensure all core textual records are preserved
+        try {
+          const stripped = JSON.parse(jsonStr, (key, value) => {
+            if (typeof value === 'string' && value.startsWith('data:image') && value.length > 50000) {
+              return '';
+            }
+            return value;
+          });
+          localStorage.setItem('magra_institution_info', JSON.stringify(stripped));
+          savedSuccessfully = true;
+        } catch (strippedErr) {
+          console.error('localStorage completely exhausted. Using sessionStorage fallback.', strippedErr);
+        }
+      }
+    }
+
+    // Always mirror to sessionStorage as secondary storage
+    try {
+      sessionStorage.setItem('magra_institution_info', jsonStr);
+      savedSuccessfully = true;
+    } catch (_) {}
+
+    // Dispatch custom event to notify all active views/modals
+    try {
+      window.dispatchEvent(new CustomEvent('magra_institution_change', { detail: data }));
+    } catch (_) {}
+
+    return savedSuccessfully;
   } catch (e) {
     console.error('Failed to save institution data', e);
     return false;
