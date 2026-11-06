@@ -3205,57 +3205,69 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
         </div>
       </div>
 
-      {/* 14-FEATURE NAVIGATION TAB BAR */}
+      {/* 14-FEATURE DIRECTORY TAB BAR (MATCHING ICT CLUB DIRECTORY LAYOUT) */}
       <div style={{
         background: '#ffffff',
-        border: '1px solid #bbf7d0',
-        borderRadius: '10px',
-        padding: '6px',
-        marginBottom: '18px',
-        display: 'flex',
-        overflowX: 'auto',
-        gap: '4px',
-        boxShadow: '0 2px 8px rgba(4,120,87,0.06)'
+        border: '1.5px solid #a7f3d0',
+        borderRadius: '12px',
+        padding: '10px 14px',
+        marginBottom: '22px',
+        boxShadow: '0 2px 10px rgba(4, 120, 87, 0.06)'
       }}>
-        {SCIENCE_TABS.map((tab) => {
-          const isActive = sciTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setSciTab(tab.key)}
-              style={{
-                flexShrink: 0,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '7px',
-                fontSize: '12.5px',
-                fontWeight: isActive ? 900 : 700,
-                border: 'none',
-                cursor: 'pointer',
-                background: isActive ? '#047857' : 'transparent',
-                color: isActive ? '#ffffff' : '#334155',
-                transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 2px 6px rgba(4,120,87,0.25)' : 'none'
-              }}
-            >
-              <span style={{ fontSize: '14px' }}>{tab.icon}</span>
-              <span>{tab.label}</span>
-              <span style={{
-                background: isActive ? 'rgba(255,255,255,0.25)' : '#dcfce7',
-                color: isActive ? '#ffffff' : '#166534',
-                padding: '1px 6px',
-                borderRadius: '10px',
-                fontSize: '10.5px',
-                fontWeight: 800
-              }}>
-                {tab.num}
-              </span>
-            </button>
-          );
-        })}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '8px',
+          paddingBottom: '6px',
+          borderBottom: '1px solid #f1f5f9',
+          flexWrap: 'wrap',
+          gap: '6px'
+        }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+            বিজ্ঞান ক্লাবের ১৪টি মূল ফিচার ডিরেক্টরি:
+          </span>
+          <span style={{ fontSize: '11px', color: '#64748b' }}>
+            যেকোনো ফিচারে ক্লিক করে সরাসরি পরিচালনা ও প্রিন্ট করুন
+          </span>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '6px'
+        }}>
+          {SCIENCE_TABS.map((tab) => {
+            const isActive = sciTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setSciTab(tab.key)}
+                style={{
+                  padding: '7px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: isActive ? 800 : 700,
+                  cursor: 'pointer',
+                  border: isActive ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                  background: isActive ? '#dcfce7' : '#ffffff',
+                  color: isActive ? '#065f46' : '#334155',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                  boxShadow: isActive ? '0 2px 6px rgba(4, 120, 87, 0.15)' : 'none'
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#f8fafc'; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = '#ffffff'; }}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.num}. {tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ========================================================================= */}
