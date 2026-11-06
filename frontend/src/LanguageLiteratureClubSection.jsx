@@ -13,6 +13,7 @@ import { requestApi } from './apiClient';
 import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 import { LiteratureClubMasterSection } from './LiteratureClubMasterSection';
 import { IctClubMasterSection } from './IctClubMasterSection';
+import { ScienceClubMasterSection } from './ScienceClubMasterSection';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }) {
@@ -1042,8 +1043,17 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
         />
       )}
 
-      {/* WHEN OTHER SPECIFIC CLUBS ARE ACTIVE (DEBATE, SCIENCE): SHOW ONLY THAT CLUB */}
-      {activeClub !== 'hub' && activeClub !== 'literature' && activeClub !== 'ict' && (
+      {/* WHEN SCIENCE CLUB IS ACTIVE: SHOW COMPLETE 14-FEATURE MASTER SECTION */}
+      {activeClub === 'science' && (
+        <ScienceClubMasterSection
+          teachers={teachers}
+          initialTab={clubTab}
+          onBackToHub={() => setActiveClub('hub')}
+        />
+      )}
+
+      {/* WHEN OTHER SPECIFIC CLUBS ARE ACTIVE (DEBATE): SHOW ONLY THAT CLUB */}
+      {activeClub !== 'hub' && activeClub !== 'literature' && activeClub !== 'ict' && activeClub !== 'science' && (
         <div>
 
       {/* DYNAMIC CLUB HERO BANNER */}
