@@ -12,6 +12,7 @@ import { ClubAcademyUnifiedHub } from './ClubAcademyUnifiedHub';
 import { requestApi } from './apiClient';
 import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 import { LiteratureClubMasterSection } from './LiteratureClubMasterSection';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }) {
   const determineInitialClub = () => {
@@ -233,6 +234,152 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Official Pad Print: Legacy Club Submission Receipt
+  const handlePrintLegacyReceipt = (receipt) => {
+    if (!receipt) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>ক্লাব লেখা জমা রসিদ — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          .receipt-box { border: 1.5px solid #059669; border-radius: 8px; padding: 16px; margin: 14px 0; background: #f8fafc; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+          td { border: 1px solid #cbd5e1; padding: 8px 12px; }
+          .label-col { background: #f0fdf4; font-weight: 700; width: 32%; color: #166534; }
+          .sig-grid { margin-top: 55px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">📜 সহশিক্ষা ও ক্লাব একাডেমি</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ সহশিক্ষা ও ক্লাব একাডেমি — লেখা প্রাপ্তিস্বীকার রসিদ</h2>
+          <div style="font-size:12px; color:#475569;">অফিসিয়াল ট্র্যাকিং আইডি: <b>${receipt.tracking_id || '—'}</b> • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <div class="receipt-box">
+          <table>
+            <tbody>
+              <tr>
+                <td class="label-col">ক্লাবের নাম</td>
+                <td><b style="font-size:14.5px; color:#0f172a;">${receipt.club_name || 'স্কুল ক্লাব'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শিরোনাম / প্রস্তাবনার বিষয়</td>
+                <td><b style="color:#0f172a;">${receipt.title || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">ধরন / ক্যাটাগরি</td>
+                <td><b>${receipt.type_label || receipt.type || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শিক্ষার্থীর নাম</td>
+                <td><b>${receipt.student_name || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শ্রেণি, বিভাগ ও রোল নং</td>
+                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | বিভাগ: <b>${receipt.department || 'সাধারণ'}</b> | রোল: <b>${receipt.roll_no || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">বর্তমান স্থিতি</td>
+                <td><span style="color:#d97706; font-weight:700;">পর্যালোচনায় অপেক্ষমাণ (Pending Review)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>ক্লাব মডারেটর / সমন্বয়ক</b><br>
+            <small>সহশিক্ষা ও ক্লাব একাডেমি</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Legacy Reading Item
+  const handlePrintLegacyReadingItem = (item) => {
+    if (!item) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${item.title} — মগড়া পালস্ ক্লাব একাডেমি</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          .item-box { border: 1.5px solid #059669; border-radius: 8px; padding: 18px; margin: 14px 0; background: #fff; }
+          .sig-grid { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">📖 সহশিক্ষা ও ক্লাব একাডেমি প্রকাশনা</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় — শিক্ষার্থী সৃজনশীল লেখা</h2>
+          <div style="font-size:12px; color:#475569;">আর্কাইভ সংখ্যা: ${item.date || '২০২৬'} খ্রি.</div>
+        </div>
+
+        <div class="item-box">
+          <div style="text-align:center; border-bottom:1px dashed #cbd5e1; padding-bottom:10px; margin-bottom:14px;">
+            <span style="background:#dcfce7; color:#166534; font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px;">${item.type_label || item.type}</span>
+            <h1 style="font-size:22px; color:#0f172a; margin:8px 0 4px 0;">${item.title}</h1>
+            <div style="font-size:13px; color:#047857; font-weight:700;">
+              ✍️ লেখক: ${item.author || item.student_name} (${item.class_name || item.class_info})
+            </div>
+          </div>
+
+          <div style="font-size:14.5px; line-height:2; color:#1e293b; white-space:pre-line; padding:8px 12px;">
+            ${item.content}
+          </div>
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>ক্লাব মডারেটর</b><br>
+            <small>সহশিক্ষা ও ক্লাব একাডেমি</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
   };
 
   // Seeded Kisholoy Wall Magazine Articles
@@ -1945,7 +2092,7 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                   <button
                     type="button"
-                    onClick={() => window.print()}
+                    onClick={() => handlePrintLegacyReceipt(subReceipt)}
                     style={{
                       background: '#065f46',
                       color: '#fff',
@@ -2212,7 +2359,7 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
               <small style={{ color: '#64748b' }}>মগড়া পালস্ সহশিক্ষা ও ক্লাব একাডেমি আর্কাইভ</small>
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={() => handlePrintLegacyReadingItem(readingItem)}
                 style={{
                   background: '#0f172a',
                   color: '#fff',

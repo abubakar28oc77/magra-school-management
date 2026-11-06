@@ -510,8 +510,8 @@ export function LiteratureClubMasterSection({
         <title>সমন্বয়ক ও বিচারক প্যানেল — ভাষা ও সাহিত্য ক্লাব</title>
         <style>
           ${SCHOOL_PAD_STYLES}
-          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
-          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
           .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
           th, td { border: 1px solid #94a3b8; padding: 7px 10px; text-align: left; vertical-align: middle; }
@@ -641,8 +641,8 @@ export function LiteratureClubMasterSection({
         <title>শিক্ষার্থী কার্যনির্বাহী পরিষদ — ভাষা ও সাহিত্য ক্লাব</title>
         <style>
           ${SCHOOL_PAD_STYLES}
-          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
-          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
           .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
           table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
           th, td { border: 1px solid #94a3b8; padding: 6px 9px; text-align: left; vertical-align: middle; }
@@ -706,6 +706,426 @@ export function LiteratureClubMasterSection({
             <div class="sig-line"></div>
             <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
             <span>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Member Registration Receipt
+  const handlePrintMemberReceipt = (receipt) => {
+    if (!receipt) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>সদস্যপদ আবেদন কপি — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          .receipt-box { border: 1.5px solid #059669; border-radius: 8px; padding: 16px; margin: 14px 0; background: #f8fafc; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+          td { border: 1px solid #cbd5e1; padding: 8px 12px; }
+          .label-col { background: #f0fdf4; font-weight: 700; width: 32%; color: #166534; }
+          .sig-grid { margin-top: 55px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">📋 শিক্ষার্থী সদস্যপদ নিবন্ধন স্বীকৃতিপত্র</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব — সদস্যপদ আবেদন ও স্বীকৃতি কপি</h2>
+          <div style="font-size:12px; color:#475569;">নিবন্ধন ট্র্যাকিং আইডি: <b>${receipt.tracking_id || '—'}</b> • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <div class="receipt-box">
+          <table>
+            <tbody>
+              <tr>
+                <td class="label-col">শিক্ষার্থীর পূর্ণ নাম</td>
+                <td><b style="font-size:14.5px; color:#0f172a;">${receipt.student_name || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শ্রেণি ও রোল নং</td>
+                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | রোল: <b>${toBn(receipt.roll_no || '—')}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শাখা / বিভাগ</td>
+                <td><b>${receipt.department || 'সাধারণ'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">যোগাযোগের মোবাইল নম্বর</td>
+                <td>${receipt.mobile || '—'}</td>
+              </tr>
+              <tr>
+                <td class="label-col">সাহিত্য ও সাংস্কৃতিক আগ্রহের ক্ষেত্র</td>
+                <td>${receipt.interests || 'কবিতা, গল্প, আবৃত্তি, দেয়ালিকা প্রকাশ'}</td>
+              </tr>
+              <tr>
+                <td class="label-col">আবেদনের তারিখ ও স্থিতি</td>
+                <td>${receipt.date || toBn(new Date().toLocaleDateString('bn-BD'))} • <span style="color:#059669; font-weight:700;">প্রাথমিক নিবন্ধন সক্রিয় ও নিশ্চিতকৃত</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:6px; padding:10px 14px; font-size:12px; color:#166534; line-height:1.6;">
+          📌 <b>সদস্যদের জ্ঞাতব্য:</b> উক্ত শিক্ষার্থী মগড়া পালস্ ভাষা ও সাহিত্য ক্লাবের একজন নিয়মিত শিক্ষার্থী সদস্য হিসেবে তালিকাভুক্ত হলেন। তিনি প্রতি বৃহস্পতিবারের সাপ্তাহিক পাঠচক্র, সাহিত্য প্রতিযোগিতা ও ত্রৈমাসিক দেয়াল পত্রিকা ‘কিশলয়’-এ নিয়মিত অংশগ্রহণ ও লেখা জমা দেওয়ার সুযোগ পাবেন।
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <small>প্রধান সমন্বয়ক, ভাষা ও সাহিত্য ক্লাব</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Writing Submission Slip
+  const handlePrintWriteReceipt = (receipt) => {
+    if (!receipt) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const typeBn = receipt.type === 'poem' ? 'কবিতা' : receipt.type === 'story' ? 'ছোটগল্প' : receipt.type === 'essay' ? 'প্রবন্ধ' : receipt.type === 'rhyme' ? 'ছড়া' : receipt.type;
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>লেখা জমা রসিদ — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          .receipt-box { border: 1.5px solid #059669; border-radius: 8px; padding: 16px; margin: 14px 0; background: #f8fafc; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+          td { border: 1px solid #cbd5e1; padding: 8px 12px; }
+          .label-col { background: #f0fdf4; font-weight: 700; width: 32%; color: #166534; }
+          .sig-grid { margin-top: 55px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">📜 দেয়াল পত্রিকা ও সাহিত্য সংকলন</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব — লেখা জমা প্রাপ্তিস্বীকার রসিদ</h2>
+          <div style="font-size:12px; color:#475569;">ট্র্যাকিং নম্বর: <b>${receipt.tracking_id || '—'}</b> • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <div class="receipt-box">
+          <table>
+            <tbody>
+              <tr>
+                <td class="label-col">লেখার শিরোনাম</td>
+                <td><b style="font-size:14.5px; color:#0f172a;">${receipt.title || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">সাহিত্য শাখার ধরন</td>
+                <td><b>${typeBn}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">লেখক শিক্ষার্থীর নাম</td>
+                <td><b>${receipt.student_name || '—'}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">শ্রেণি, বিভাগ ও রোল নং</td>
+                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | শাখা/বিভাগ: <b>${receipt.department || 'সাধারণ'}</b> | রোল: <b>${toBn(receipt.roll_no || '—')}</b></td>
+              </tr>
+              <tr>
+                <td class="label-col">জমা দানের তারিখ</td>
+                <td>${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি.</td>
+              </tr>
+              <tr>
+                <td class="label-col">বর্তমান স্থিতি</td>
+                <td><span style="color:#d97706; font-weight:700;">সম্পাদনা ও জুরি পরিষদে অপেক্ষমাণ (দেয়াল পত্রিকা ‘কিশলয়’)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:6px; padding:10px 14px; font-size:12px; color:#166534; line-height:1.6;">
+          📌 <b>বিশেষ দ্রষ্টব্য:</b> জমাকৃত লেখাটি ক্লাব সমন্বয়ক ও শিক্ষার্থী সম্পাদনা পর্ষদ কর্তৃক যাচাই-বাছাই শেষে ত্রৈমাসিক দেয়াল পত্রিকা ‘কিশলয়’-এ প্রকাশ অথবা বাৎসরিক সাহিত্য প্রতিযোগিতায় বিবেচনার জন্য গৃহীত হবে।
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <small>প্রধান সমন্বয়ক, ভাষা ও সাহিত্য ক্লাব</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Yearly Programs & Calendar
+  const handlePrintProgramsPad = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const programsList = [
+      { month: 'জানুয়ারি', title: 'নবীনবরণ ও সাহিত্য আসর', date: '১৫ জানুয়ারি', tag: 'সাহিত্য আসর' },
+      { month: 'ফেব্রুয়ারি', title: 'একুশে ফেব্রুয়ারি সংকলন ও রচনা প্রতিযোগিতা', date: '২১ ফেব্রুয়ারি', tag: 'কিশলয় প্রকাশ' },
+      { month: 'মার্চ', title: 'স্বাধীনতা দিবস কবিতা আবৃত্তি ও বক্তৃতা', date: '২৬ মার্চ', tag: 'জাতীয় উৎসব' },
+      { month: 'এপ্রিল', title: 'বৈশাখী সাহিত্য আড্ডা ও লোকগীতি কর্মশালা', date: '১৪ এপ্রিল', tag: 'লোকসংস্কৃতি' },
+      { month: 'মে', title: 'রবীন্দ্র-নজরুল জন্মজয়ন্তী ও স্মৃতিচারণ', date: '২৫ বৈশাখ / ১১ জ্যৈষ্ঠ', tag: 'জয়ন্তী পালন' },
+      { month: 'জুন', title: 'ত্রৈমাসিক সাহিত্য বুলেটিন প্রকাশ', date: '২০ জুন', tag: 'বুলেটিন' },
+      { month: 'জুলাই', title: 'প্রমিত বানানরীতি ও ব্যাকরণ অলিম্পিয়াড', date: '১০ জুলাই', tag: 'অলিম্পিয়াড' },
+      { month: 'আগস্ট', title: 'জাতীয় শোক দিবসের কবিতা ও শোকগাথা পাঠ', date: '১৫ আগস্ট', tag: 'স্মৃতিচারণ' },
+      { month: 'সেপ্টেম্বর', title: 'Spoken English & Vocabulary Week', date: '১৮-২৪ সেপ্টেম্বর', tag: 'ইংরেজি ভাষা' },
+      { month: 'অক্টোবর', title: 'দেয়াল পত্রিকা ‘কিশলয়’ শারদীয় সংখ্যা', date: '১৫ অক্টোবর', tag: 'দেয়ালিকা' },
+      { month: 'নভেম্বর', title: 'বার্ষিক সাহিত্য সপ্তাহ ও নাট্য প্রদর্শনী', date: '১০-১৫ নভেম্বর', tag: 'সাহিত্য সপ্তাহ' },
+      { month: 'ডিসেম্বর', title: 'বিজয় দিবস ক্রোড়পত্র ও সেরা পাঠক সম্মাননা', date: '১৬ ডিসেম্বর', tag: 'পুরস্কার বিতরণ' }
+    ];
+
+    const rows = programsList.map((p, i) => `
+      <tr>
+        <td style="text-align:center;font-weight:700;">${toBn(i + 1)}.</td>
+        <td style="font-weight:700;color:#065f46;">${p.month}</td>
+        <td style="font-weight:700;color:#0f172a;">${p.title}</td>
+        <td style="text-align:center;">${p.date}</td>
+        <td style="text-align:center;color:#1e40af;font-weight:600;">${p.tag}</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>বাৎসরিক সাহিত্য কর্মসূচি ও ক্যালেন্ডার — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th, td { border: 1px solid #94a3b8; padding: 6px 8px; text-align: left; vertical-align: middle; }
+          th { background: #f0fdf4; color: #166534; font-weight: 800; }
+          .sig-grid { margin-top: 45px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">🗓️ বাৎসরিক সাহিত্য কর্মসূচি</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব — বাৎসরিক ইভেন্ট ক্যালেন্ডার (২০২৬)</h2>
+          <div style="font-size:12px; color:#475569;">অনুমোদনের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:8px 12px; margin-bottom:10px; font-size:12px;">
+          📖 <b>সাপ্তাহিক লাইব্রেরি পাঠচক্র:</b> প্রতি সপ্তাহের <b>বৃহস্পতিবার বিকাল ৩:৩০ মি.</b> বিদ্যালয় লাইব্রেরি কক্ষে নিয়মিত সাহিত্য আড্ডা ও পাঠচক্র অনুষ্ঠিত হয়।
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px; text-align:center;">ক্র.</th>
+              <th style="width:75px;">মাস</th>
+              <th>কর্মসূচি / ইভেন্টের শিরোনাম</th>
+              <th style="width:110px; text-align:center;">নির্ধারিত তারিখ</th>
+              <th style="width:100px; text-align:center;">ধরন</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <small>প্রধান সমন্বয়ক, ভাষা ও সাহিত্য ক্লাব</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Code of Conduct & Student Pledge
+  const handlePrintConductPad = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const rulesList = [
+      { num: '১', rule: 'বাংলা ও ইংরেজি উভয় ভাষার প্রতি সম্মান প্রদর্শন করতে হবে।' },
+      { num: '২', rule: 'ভাষা ব্যবহারে শালীনতা ও শুদ্ধতা বজায় রাখতে হবে।' },
+      { num: '৩', rule: 'অন্যের লেখা অনুমতি ছাড়া নিজের নামে প্রকাশ করা যাবে না।' },
+      { num: '৪', rule: 'সাহিত্যচর্চায় ধর্ম, বর্ণ, লিঙ্গ বা ব্যক্তিগত পরিচয় নিয়ে বিদ্বেষমূলক বক্তব্য দেওয়া যাবে না।' },
+      { num: '৫', rule: 'অন্যের মতামত ও সৃজনশীলতাকে সম্মান করতে হবে।' },
+      { num: '৬', rule: 'নিয়মিত ক্লাব কার্যক্রমে অংশগ্রহণ করতে হবে।' },
+      { num: '৭', rule: 'ক্লাব ও বিদ্যালয়ের নিয়ম-শৃঙ্খলা কঠোরভাবে মেনে চলতে হবে।' }
+    ];
+
+    const ruleRows = rulesList.map(r => `
+      <tr>
+        <td style="text-align:center;font-weight:800;color:#065f46;width:40px;padding:7px 10px;">${r.num}</td>
+        <td style="font-size:13px;font-weight:600;padding:7px 12px;color:#0f172a;">${r.rule}</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>শৃংখলা ও আচরণ বিধি — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; }
+          td { border: 1px solid #94a3b8; }
+          .sig-grid { margin-top: 45px; display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 12.5px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 160px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">⚖️ আচরণ বিধি ও শৃঙ্খলা নীতিমালা</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব — শৃংখলা ও আচরণ বিধি (Code of Conduct)</h2>
+          <div style="font-size:12px; color:#475569;">অনুমোদনের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <p style="font-size:12.5px; line-height:1.6; margin-bottom:8px;">
+          মগড়া পালস্ ভাষা ও সাহিত্য ক্লাবের প্রত্যেক সাধারণ শিক্ষার্থী সদস্য ও কার্যনির্বাহী পরিষদ সদস্যের জন্য নিম্নোক্ত ৭টি শৃঙ্খলা ও আচরণ বিধি অবশ্য পালনীয়:
+        </p>
+
+        <table>
+          <tbody>
+            ${ruleRows}
+          </tbody>
+        </table>
+
+        <div style="margin-top:14px; border:1.5px dashed #059669; border-radius:8px; padding:12px; background:#f0fdf4;">
+          <b style="color:#065f46; font-size:13px;">📜 সদস্যের অঙ্গীকারনামা (Student Pledge):</b>
+          <p style="margin:4px 0 0 0; font-size:12px; color:#166534; line-height:1.6;">
+            “আমি মগড়া পালস্ ভাষা ও সাহিত্য ক্লাবের সদস্য হিসেবে ক্লাবের আদর্শ, লক্ষ্য ও শৃংখলা বিধি পূর্ণাঙ্গভাবে মেনে চলব। মাতৃভাষা বাংলার প্রমিত রূপ ও বৈশ্বিক ভাষা ইংরেজির যথাযথ চর্চায় নিবেদিত থাকব এবং বিদ্যালয়ের সুনাম অক্ষুণ্ণ রাখব।”
+          </p>
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>সদস্য / শিক্ষার্থীর স্বাক্ষর</b><br>
+            <small>ভাষা ও সাহিত্য ক্লাব</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <small>প্রধান সমন্বয়ক</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Wall Magazine Reading Item
+  const handlePrintReadingItem = (item) => {
+    if (!item) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>${item.title} — দেয়াল পত্রিকা ‘কিশলয়’</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          .item-box { border: 1.5px solid #059669; border-radius: 8px; padding: 18px; margin: 14px 0; background: #fff; }
+          .sig-grid { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">📰 ত্রৈমাসিক দেয়াল পত্রিকা ‘কিশলয়’</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব — সাহিত্য শোকেস</h2>
+          <div style="font-size:12px; color:#475569;">সংখ্যা: ${item.issue || '—'} • প্রকাশনার তারিখ: ${item.date || '—'}</div>
+        </div>
+
+        <div class="item-box">
+          <div style="text-align:center; border-bottom:1px dashed #cbd5e1; padding-bottom:10px; margin-bottom:14px;">
+            <span style="background:#dcfce7; color:#166534; font-size:11px; font-weight:800; padding:2px 8px; border-radius:4px;">${item.type}</span>
+            <h1 style="font-size:22px; color:#0f172a; margin:8px 0 4px 0;">${item.title}</h1>
+            <div style="font-size:13px; color:#047857; font-weight:700;">
+              ✍️ লেখক: ${item.author} (${item.class_info})
+            </div>
+          </div>
+
+          <div style="font-size:14.5px; line-height:2; color:#1e293b; white-space:pre-line; padding:8px 12px; font-family:${item.type?.includes('English') ? 'Arial, sans-serif' : "'SolaimanLipi', sans-serif"};">
+            ${item.full_text || item.excerpt}
+          </div>
+        </div>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <small>প্রধান সমন্বয়ক ও সম্পাদক, দেয়াল পত্রিকা ‘কিশলয়’</small>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <small>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</small>
           </div>
         </div>
       </body>
@@ -1842,7 +2262,7 @@ export function LiteratureClubMasterSection({
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => handlePrintMemberReceipt(memberReceipt)}
                   style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
                 >
                   🖨️ আবেদন কপি প্রিন্ট
@@ -1973,16 +2393,26 @@ export function LiteratureClubMasterSection({
           padding: '20px',
           boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
         }}>
-          <div style={{ marginBottom: '16px' }}>
-            <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
-              ফিচার ৬
-            </span>
-            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
-              🗓️ বাৎসরিক সাহিত্য কর্মসূচি ও ইভেন্ট ক্যালেন্ডার (২০২৬)
-            </h3>
-            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
-              ১২ মাসের সুবিন্যস্ত সাহিত্য উৎসব, প্রতিযোগিতা, পাঠচক্র ও দেয়াল পত্রিকা প্রকাশের সময়সূচি
-            </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৬
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                🗓️ বাৎসরিক সাহিত্য কর্মসূচি ও ইভেন্ট ক্যালেন্ডার (২০২৬)
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                ১২ মাসের সুবিন্যস্ত সাহিত্য উৎসব, প্রতিযোগিতা, পাঠচক্র ও দেয়াল পত্রিকা প্রকাশের সময়সূচি
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handlePrintProgramsPad}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span>🖨️</span>
+              <span>অফিসিয়াল প্যাডে ক্যালেন্ডার প্রিন্ট</span>
+            </button>
           </div>
 
           <div style={{
@@ -2114,7 +2544,7 @@ export function LiteratureClubMasterSection({
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => handlePrintWriteReceipt(writeReceipt)}
                   style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
                 >
                   🖨️ জমা রসিদ প্রিন্ট
@@ -2507,7 +2937,7 @@ export function LiteratureClubMasterSection({
             </div>
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={handlePrintConductPad}
               style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <span>🖨️</span>
@@ -2666,13 +3096,22 @@ export function LiteratureClubMasterSection({
 
               <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <small style={{ color: '#64748b' }}>দেয়াল পত্রিকা ‘কিশলয়’ • মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব</small>
-                <button
-                  type="button"
-                  onClick={() => setReadingItem(null)}
-                  style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
-                >
-                  বন্ধ করুন
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handlePrintReadingItem(readingItem)}
+                    style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '7px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    🖨️ অফিসিয়াল প্যাডে প্রিন্ট
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReadingItem(null)}
+                    style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    বন্ধ করুন
+                  </button>
+                </div>
               </div>
             </div>
           </div>

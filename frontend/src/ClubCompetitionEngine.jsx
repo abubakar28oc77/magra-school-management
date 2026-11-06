@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MOCK_TEACHERS, getTeacherPhoto } from './mockData';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 // Storage key
 const STORAGE_KEY = 'magra_club_competitions_v2';
@@ -316,43 +317,26 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
         <meta charset="utf-8">
         <title>ফলাফল বিবরণী — ${session.title}</title>
         <style>
-          @page { size: A4 portrait; margin: 15mm 12mm 15mm 12mm; }
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
           body {
-            font-family: 'Hind Siliguri', 'Nikosh', 'SolaimanLipi', Arial, sans-serif;
+            font-family: 'SolaimanLipi', 'Hind Siliguri', 'Nikosh', Arial, sans-serif;
             color: #0f172a;
             margin: 0;
-            padding: 10px;
+            padding: 6px 12px 15px 12px;
             font-size: 13px;
             line-height: 1.5;
             background: #fff;
           }
-          .header-box {
-            text-align: center;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 8px;
-            margin-bottom: 14px;
-          }
-          .school-title {
-            font-size: 24px;
-            font-weight: 900;
-            margin: 0;
-            color: #0f172a;
-          }
-          .school-sub {
-            font-size: 12.5px;
-            color: #475569;
-            margin: 2px 0;
-          }
           .doc-badge {
             display: inline-block;
-            background: #f1f5f9;
-            border: 1.5px solid #0f172a;
+            background: #ecfdf5;
+            border: 1.5px solid #065f46;
             padding: 4px 14px;
-            border-radius: 6px;
+            border-radius: 20px;
             font-weight: 800;
-            font-size: 14.5px;
-            margin-top: 6px;
-            color: #1e3a8a;
+            font-size: 14px;
+            color: #065f46;
           }
           .info-table {
             width: 100%;
@@ -445,10 +429,9 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
           <button onclick="window.print()" style="background:#0284c7;color:#fff;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;font-weight:800;font-size:13px;">🖨️ প্রিন্ট করুন / Save PDF</button>
         </div>
 
-        <div class="header-box">
-          <h1 class="school-title">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</h1>
-          <p class="school-sub">পোস্ট: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৩৯ • EIIN: 114290</p>
-          <div class="doc-badge">${clubMeta.title} — অফিশিয়াল প্রতিযোগিতা ফলাফল ও মূল্যায়ন বিবরণী</div>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 10px 0 12px 0;">
+          <span class="doc-badge">${clubMeta.title} — অফিশিয়াল প্রতিযোগিতা ফলাফল ও মূল্যায়ন বিবরণী</span>
         </div>
 
         <table class="info-table">

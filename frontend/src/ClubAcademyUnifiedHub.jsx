@@ -338,9 +338,9 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
           ${SCHOOL_PAD_STYLES}
           @page {
             size: A4 portrait;
-            margin: 12mm 15mm 15mm 15mm;
+            margin: 6mm 12mm 12mm 12mm;
           }
-          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
           .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
           .doc-meta { font-size: 12.5px; color: #475569; margin-bottom: 14px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px; }
           .section-box { border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; background: #f8fafc; }

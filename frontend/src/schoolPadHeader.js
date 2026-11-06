@@ -30,6 +30,8 @@ export const SCHOOL_PAD_STYLES = `
     grid-template-columns: 1fr auto 1fr !important;
     align-items: center !important;
     width: 100% !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
     margin-bottom: 2px !important;
     box-sizing: border-box !important;
     font-family: 'SolaimanLipi', 'Kalpurush', 'Noto Sans Bengali', Arial, sans-serif !important;
