@@ -16,6 +16,8 @@ const ICT_EXEC_KEY = 'magra_ict_club_exec_v1';
 const ICT_ACTIVITIES_KEY = 'magra_ict_activities_v1';
 const ICT_QUARTERLY_KEY = 'magra_ict_quarterly_plans_v1';
 const ICT_MONTHLY_KEY = 'magra_ict_monthly_calendar_v1';
+const ICT_SELECTION_RULES_KEY = 'magra_ict_selection_rules_v1';
+const ICT_DISCIPLINE_RULES_KEY = 'magra_ict_discipline_rules_v1';
 const ICT_MEMBERSHIPS_KEY = 'magra_ict_club_memberships_v1';
 const ICT_SUBMISSIONS_KEY = 'magra_ict_club_submissions_v1';
 const ICT_PROJECTS_KEY = 'magra_ict_club_projects_v1';
@@ -263,73 +265,86 @@ const MONTHLY_CALENDAR = [
   { id: 'm-12', month: 'ডিসেম্বর', title: 'বার্ষিক মূল্যায়ন ও ট্রফি বিতরণী উৎসব', date: '০৫ ডিসেম্বর', coordinator: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)' }
 ];
 
-// 6 Selection Rules
+// 6 Selection Rules (Default)
 const SELECTION_RULES = [
   {
+    id: 'sr-1',
     num: '১',
     title: 'শ্রেণিগত যোগ্যতা',
     text: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ষষ্ঠ থেকে দশম শ্রেণির সকল নিয়মিত শিক্ষার্থী সদস্য পদের জন্য আবেদন করতে পারবে।'
   },
   {
+    id: 'sr-2',
     num: '২',
     title: 'আগ্রহ ও প্রযুক্তির প্রতি টান',
     text: 'কম্পিউটার, ইন্টারনেট, কোডিং ও বিজ্ঞানের নিত্যনতুন প্রযুক্তিতে আগ্রহী ও উদ্ভাবনী মনোভাবসম্পন্ন শিক্ষার্থীদের অগ্রাধিকার দেওয়া হবে।'
   },
   {
+    id: 'sr-3',
     num: '৩',
     title: 'পূর্ব অভিজ্ঞতার বাধ্যবাধকতা নেই',
     text: 'আবেদনের জন্য পূর্বে কম্পিউটার জানা বাধ্যতামূলক নয়; ক্লাবের লক্ষ্যই হলো শূন্য থেকে প্রতিটি শিক্ষার্থীকে ব্যবহারিক দক্ষতায় দক্ষ করে তোলা।'
   },
   {
+    id: 'sr-4',
     num: '৪',
     title: 'লিঙ্গ সমতা ও সমান সুযোগ',
     text: 'ছেলে ও মেয়ে উভয় শিক্ষার্থীর ক্লাবের প্রতিটি প্রশিক্ষণ, পদ ও প্রতিযোগিতায় ৫০:৫০ সমান সুযোগ ও সক্রিয় অংশগ্রহণ নিশ্চিত করা হবে।'
   },
   {
+    id: 'sr-5',
     num: '৫',
     title: 'দক্ষতা ও বিভাগভিত্তিক দায়িত্ব',
     text: 'শিক্ষার্থীর নিজস্ব মেধা ও আগ্রহ অনুসারে কোডিং উইং, গ্রাফিক্স উইং, রোবটিক্স উইং, সাইবার নিরাপত্তা উইং বা মিডিয়া উইংয়ে অর্পিত দায়িত্ব দেওয়া হবে।'
   },
   {
+    id: 'sr-6',
     num: '৬',
     title: 'বার্ষিক সদস্যপদ নবায়ন',
     text: 'প্রতি শিক্ষাবর্ষের শুরুতে ক্লাবের শৃঙ্খলা রক্ষা, নিয়মিত প্রশিক্ষণ উপস্থিতি ও ক্লাবের সক্রিয়তায় অবদান সাপেক্ষে সদস্যপদ স্বয়ংক্রিয়ভাবে নবায়নযোগ্য।'
   }
 ];
 
-// 7 Discipline & Lab Safety Rules
+// 7 Discipline & Lab Safety Rules (Default)
 const DISCIPLINE_RULES = [
   {
+    id: 'dr-1',
     num: '১',
     rule: 'অনুমতি ব্যতীত ব্যবহার নিষিদ্ধ',
     desc: 'আইসিটি শিক্ষক বা ক্লাব সমন্বয়কের প্রত্যক্ষ অনুমতি ও তত্ত্বাবধান ছাড়া কোনো কম্পিউটার, প্রজেক্টর, আরডুইনো বা ল্যাব যন্ত্রপাতি স্পর্শ করা বা চালু করা সম্পূর্ণ নিষেধ।'
   },
   {
+    id: 'dr-2',
     num: '২',
     rule: 'অননুমোদিত সফটওয়্যার ও গেম ইনস্টলেশনে নিষেধাজ্ঞা',
     desc: 'বিদ্যালয়ের শেখ রাসেল ল্যাবের কম্পিউটারে কোনো প্রকার অননুমোদিত গেম, ক্ষতিকর ফাইল বা ক্র্যাক সফটওয়্যার ইনস্টল করা যাবে না।'
   },
   {
+    id: 'dr-3',
     num: '৩',
     rule: 'ব্যক্তিগত তথ্য ও অ্যাকাউন্টের গোপনীয়তা',
     desc: 'অন্য কোনো সহপাঠী বা শিক্ষকের ব্যক্তিগত তথ্য, ফাইল, সোশ্যাল মিডিয়া আইডি, ইমেইল বা পাসওয়ার্ড জানার চেষ্টা করা অথবা অনুমতি ছাড়া প্রবেশ করা শাস্তিযোগ্য অপরাধ।'
   },
   {
+    id: 'dr-4',
     num: '৪',
     rule: 'সাইবার বুলিং ও অপপ্রচার শূন্য সহনশীলতা',
     desc: 'অনলাইনে কোনো সহপাঠীকে হেয় করা, ট্রোলিং, সাইবার বুলিং, গুজব ছড়ানো কিংবা ভুয়া তথ্য প্রচারের প্রমাণ পেলে তাৎক্ষণিক সদস্যপদ বাতিল ও বিদ্যালয়ে শাস্তিমূলক ব্যবস্থা গ্রহণ করা হবে।'
   },
   {
+    id: 'dr-5',
     num: '৫',
     rule: 'AI এর সততাপূর্ণ ও দায়িত্বশীল ব্যবহার',
     desc: 'কৃত্রিম বুদ্ধিমত্তা (AI) ব্যবহার করে তৈরি কোনো কোড, লেখা বা ডিজাইনকে নিজের মৌলিক উদ্ভাবন বা মেধা বলে দাবি করা যাবে না; AI সহায়তার উৎস স্পষ্টভাবে উল্লেখ করতে হবে।'
   },
   {
+    id: 'dr-6',
     num: '৬',
     rule: 'নিরাপদ ইন্টারনেট ব্রাউজিং নির্দেশিকা',
     desc: 'ইন্টারনেট ব্যবহারের ক্ষেত্রে শুধুমাত্র নির্ধারিত শিক্ষা, গবেষণা ও প্রোগ্রামিং ওয়েবসাইট ভিজিট করতে হবে। অনুপযুক্ত কোনো কনটেন্টে প্রবেশ নিষিদ্ধ।'
   },
   {
+    id: 'dr-7',
     num: '৭',
     rule: 'ল্যাব সম্পদ ও যন্ত্রপাতির সুরক্ষায় যত্নশীলতা',
     desc: 'কম্পিউটার মাউস, কীবোর্ড, হেডফোন, ইউপিএস ও রোবটিক্স কিট ব্যবহারের পর সুশৃঙ্খলভাবে নির্ধারিত স্থানে গুছিয়ে রাখতে হবে এবং ল্যাবের পরিচ্ছন্নতা রক্ষা করতে হবে।'
@@ -580,6 +595,36 @@ export function IctClubMasterSection({
     } catch {}
   };
 
+  // Selection Rules State
+  const [selectionRules, setSelectionRules] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ICT_SELECTION_RULES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return SELECTION_RULES;
+  });
+
+  const persistSelectionRules = (updated) => {
+    try {
+      localStorage.setItem(ICT_SELECTION_RULES_KEY, JSON.stringify(updated));
+    } catch {}
+  };
+
+  // Discipline & Safety Rules State
+  const [disciplineRules, setDisciplineRules] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ICT_DISCIPLINE_RULES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return DISCIPLINE_RULES;
+  });
+
+  const persistDisciplineRules = (updated) => {
+    try {
+      localStorage.setItem(ICT_DISCIPLINE_RULES_KEY, JSON.stringify(updated));
+    } catch {}
+  };
+
   // Memberships State
   const [memberships, setMemberships] = useState(() => {
     try {
@@ -772,6 +817,24 @@ export function IctClubMasterSection({
     title: '',
     date: '',
     coordinator: ''
+  });
+
+  // EDIT SELECTION RULE MODAL STATE
+  const [editingSelectionRule, setEditingSelectionRule] = useState(null);
+  const [selectionRuleEditForm, setSelectionRuleEditForm] = useState({
+    id: '',
+    num: '',
+    title: '',
+    text: ''
+  });
+
+  // EDIT DISCIPLINE RULE MODAL STATE
+  const [editingDisciplineRule, setEditingDisciplineRule] = useState(null);
+  const [disciplineRuleEditForm, setDisciplineRuleEditForm] = useState({
+    id: '',
+    num: '',
+    rule: '',
+    desc: ''
   });
 
   // Membership Application Form State
@@ -1299,7 +1362,7 @@ export function IctClubMasterSection({
     const w = window.open('', '_blank');
     if (!w) return;
 
-    const rulesHtml = SELECTION_RULES.map(r => `
+    const rulesHtml = (selectionRules || []).map(r => `
       <div style="margin-bottom:12px; padding:10px 14px; border-left:4px solid #0284c7; background:#f0f9ff; border-radius:4px;">
         <b style="color:#0369a1; font-size:13px;">${r.num}. ${r.title}</b>
         <p style="margin:4px 0 0 0; font-size:12px; color:#334155; line-height:1.5;">${r.text}</p>
@@ -1358,7 +1421,7 @@ export function IctClubMasterSection({
     const w = window.open('', '_blank');
     if (!w) return;
 
-    const rulesHtml = DISCIPLINE_RULES.map(r => `
+    const rulesHtml = (disciplineRules || []).map(r => `
       <div style="margin-bottom:10px; padding:8px 12px; border-left:4px solid #ef4444; background:#fef2f2; border-radius:4px;">
         <b style="color:#b91c1c; font-size:13px;">${r.num}. ${r.rule}</b>
         <p style="margin:3px 0 0 0; font-size:12px; color:#334155; line-height:1.5;">${r.desc}</p>
@@ -2199,6 +2262,128 @@ export function IctClubMasterSection({
     persistMonthlyCalendar(updated);
     handleStartEditMonth(newM, monthlyCalendar.length);
     showToast('নতুন মাসের কর্মসূচি যুক্ত হয়েছে!');
+  };
+
+  // =========================================================================
+  // SELECTION RULES CRUD HANDLERS
+  // =========================================================================
+  const handleStartEditSelectionRule = (rule) => {
+    setEditingSelectionRule(rule);
+    setSelectionRuleEditForm({
+      id: rule.id || '',
+      num: rule.num || '',
+      title: rule.title || '',
+      text: rule.text || ''
+    });
+  };
+
+  const handleSaveSelectionRuleEdit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!editingSelectionRule) return;
+    if (!selectionRuleEditForm.title.trim() || !selectionRuleEditForm.text.trim()) {
+      alert('মানদণ্ডের শিরোনাম ও বিবরণ পূরণ করা আবশ্যক।');
+      return;
+    }
+    const updated = (selectionRules || []).map(r => {
+      const isMatch = (r.id && r.id === editingSelectionRule.id) || (!r.id && r.num === editingSelectionRule.num);
+      if (isMatch) {
+        return {
+          ...r,
+          num: selectionRuleEditForm.num || r.num,
+          title: selectionRuleEditForm.title.trim(),
+          text: selectionRuleEditForm.text.trim()
+        };
+      }
+      return r;
+    });
+    setSelectionRules(updated);
+    persistSelectionRules(updated);
+    setEditingSelectionRule(null);
+    showToast('✓ সদস্য নির্বাচনের মানদণ্ড সফলভাবে হালনাগাদ করা হয়েছে!');
+  };
+
+  const handleDeleteSelectionRule = (targetRule) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${targetRule.title}" মানদণ্ডটি মুছে ফেলতে চান?`)) return;
+    const updated = (selectionRules || []).filter(r => (r.id ? r.id !== targetRule.id : r.num !== targetRule.num));
+    setSelectionRules(updated);
+    persistSelectionRules(updated);
+    showToast('মানদণ্ডটি মুছে ফেলা হয়েছে।');
+  };
+
+  const handleAddNewSelectionRule = () => {
+    const nextNum = toBn((selectionRules || []).length + 1);
+    const newRule = {
+      id: `sr-${Date.now()}`,
+      num: nextNum,
+      title: 'নতুন নির্বাচনী মানদণ্ড',
+      text: 'এই মানদণ্ডের বিস্তারিত বিবরণ এখানে লিখুন।'
+    };
+    const updated = [...(selectionRules || []), newRule];
+    setSelectionRules(updated);
+    persistSelectionRules(updated);
+    handleStartEditSelectionRule(newRule);
+    showToast('নতুন মানদণ্ড যুক্ত হয়েছে। অনুগ্রহ করে সম্পাদনা করুন।');
+  };
+
+  // =========================================================================
+  // DISCIPLINE & SAFETY RULES CRUD HANDLERS
+  // =========================================================================
+  const handleStartEditDisciplineRule = (rule) => {
+    setEditingDisciplineRule(rule);
+    setDisciplineRuleEditForm({
+      id: rule.id || '',
+      num: rule.num || '',
+      rule: rule.rule || '',
+      desc: rule.desc || ''
+    });
+  };
+
+  const handleSaveDisciplineRuleEdit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!editingDisciplineRule) return;
+    if (!disciplineRuleEditForm.rule.trim() || !disciplineRuleEditForm.desc.trim()) {
+      alert('নিয়মের শিরোনাম ও বিবরণ পূরণ করা আবশ্যক।');
+      return;
+    }
+    const updated = (disciplineRules || []).map(r => {
+      const isMatch = (r.id && r.id === editingDisciplineRule.id) || (!r.id && r.num === editingDisciplineRule.num);
+      if (isMatch) {
+        return {
+          ...r,
+          num: disciplineRuleEditForm.num || r.num,
+          rule: disciplineRuleEditForm.rule.trim(),
+          desc: disciplineRuleEditForm.desc.trim()
+        };
+      }
+      return r;
+    });
+    setDisciplineRules(updated);
+    persistDisciplineRules(updated);
+    setEditingDisciplineRule(null);
+    showToast('✓ শৃঙ্খলা ও নিরাপত্তাবিধি সফলভাবে হালনাগাদ করা হয়েছে!');
+  };
+
+  const handleDeleteDisciplineRule = (targetRule) => {
+    if (!window.confirm(`আপনি কি নিশ্চিত যে "${targetRule.rule}" নিয়মটি মুছে ফেলতে চান?`)) return;
+    const updated = (disciplineRules || []).filter(r => (r.id ? r.id !== targetRule.id : r.num !== targetRule.num));
+    setDisciplineRules(updated);
+    persistDisciplineRules(updated);
+    showToast('নিয়মটি মুছে ফেলা হয়েছে।');
+  };
+
+  const handleAddNewDisciplineRule = () => {
+    const nextNum = toBn((disciplineRules || []).length + 1);
+    const newRule = {
+      id: `dr-${Date.now()}`,
+      num: nextNum,
+      rule: 'নতুন নিরাপত্তাবিধি',
+      desc: 'এই বিধির বিস্তারিত বিবরণ এখানে লিখুন।'
+    };
+    const updated = [...(disciplineRules || []), newRule];
+    setDisciplineRules(updated);
+    persistDisciplineRules(updated);
+    handleStartEditDisciplineRule(newRule);
+    showToast('নতুন নিরাপত্তাবিধি যুক্ত হয়েছে। অনুগ্রহ করে সম্পাদনা করুন।');
   };
 
   // Submit Membership Application
@@ -3737,10 +3922,31 @@ export function IctClubMasterSection({
                 ফিচার ৭
               </span>
               <h2 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: '#0369a1' }}>
-                📜 সদস্য নির্বাচনের নিয়ম (৬টি সুনির্দিষ্ট মানদণ্ড)
+                📜 সদস্য নির্বাচনের নিয়ম ({toBn(selectionRules.length)}টি সুনির্দিষ্ট মানদণ্ড)
               </h2>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleAddNewSelectionRule}
+                style={{
+                  background: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 15px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(2,132,199,0.25)'
+                }}
+              >
+                <span>➕</span>
+                <span>নতুন মানদণ্ড যুক্ত করুন</span>
+              </button>
               <button
                 type="button"
                 onClick={handlePrintRulesPad}
@@ -3776,23 +3982,70 @@ export function IctClubMasterSection({
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-            {SELECTION_RULES.map(r => (
-              <div key={r.num} style={{
+            {selectionRules.map((r, idx) => (
+              <div key={r.id || idx} style={{
                 border: '1px solid #bae6fd',
                 borderRadius: '10px',
                 padding: '16px',
                 background: '#f0f9ff',
-                borderLeft: '5px solid #0284c7'
+                borderLeft: '5px solid #0284c7',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 6px rgba(2,132,199,0.04)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ background: '#0284c7', color: '#ffffff', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900 }}>
-                    {r.num}
-                  </span>
-                  <b style={{ fontSize: '14.5px', color: '#0369a1' }}>{r.title}</b>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ background: '#0284c7', color: '#ffffff', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 900, flexShrink: 0 }}>
+                        {r.num}
+                      </span>
+                      <b style={{ fontSize: '14.5px', color: '#0369a1' }}>{r.title}</b>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditSelectionRule(r)}
+                        title="মানদণ্ড এডিট করুন"
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #bae6fd',
+                          borderRadius: '5px',
+                          color: '#0284c7',
+                          padding: '3px 8px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        <span>✏️</span>
+                        <span>এডিট</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSelectionRule(r)}
+                        title="মানদণ্ড মুছে ফেলুন"
+                        style={{
+                          background: '#fff1f2',
+                          border: '1px solid #fecdd3',
+                          borderRadius: '5px',
+                          color: '#e11d48',
+                          padding: '3px 7px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
+                    {r.text}
+                  </p>
                 </div>
-                <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
-                  {r.text}
-                </p>
               </div>
             ))}
           </div>
@@ -4126,10 +4379,31 @@ export function IctClubMasterSection({
                 ফিচার ৯
               </span>
               <h2 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: '#b91c1c' }}>
-                🛡️ শৃঙ্খলা ও নিরাপত্তাবিধি (৭টি বাধ্যতামূলক নিয়ম)
+                🛡️ শৃঙ্খলা ও নিরাপত্তাবিধি ({toBn(disciplineRules.length)}টি বাধ্যতামূলক নিয়ম)
               </h2>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleAddNewDisciplineRule}
+                style={{
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 15px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(220,38,38,0.25)'
+                }}
+              >
+                <span>➕</span>
+                <span>নতুন নিরাপত্তাবিধি যুক্ত করুন</span>
+              </button>
               <button
                 type="button"
                 onClick={handlePrintConductPad}
@@ -4161,23 +4435,70 @@ export function IctClubMasterSection({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px', marginBottom: '22px' }}>
-            {DISCIPLINE_RULES.map(r => (
-              <div key={r.num} style={{
+            {disciplineRules.map((r, idx) => (
+              <div key={r.id || idx} style={{
                 border: '1px solid #fecaca',
                 borderRadius: '8px',
                 padding: '14px 16px',
                 background: '#fff5f5',
-                borderLeft: '5px solid #ef4444'
+                borderLeft: '5px solid #ef4444',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 6px rgba(239,68,68,0.04)'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ background: '#ef4444', color: '#ffffff', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 900 }}>
-                    {r.num}
-                  </span>
-                  <b style={{ fontSize: '14px', color: '#991b1b' }}>{r.rule}</b>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ background: '#ef4444', color: '#ffffff', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 900, flexShrink: 0 }}>
+                        {r.num}
+                      </span>
+                      <b style={{ fontSize: '14px', color: '#991b1b' }}>{r.rule}</b>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditDisciplineRule(r)}
+                        title="নিয়ম এডিট করুন"
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #fecaca',
+                          borderRadius: '5px',
+                          color: '#dc2626',
+                          padding: '3px 8px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                      >
+                        <span>✏️</span>
+                        <span>এডিট</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDisciplineRule(r)}
+                        title="নিয়ম মুছে ফেলুন"
+                        style={{
+                          background: '#fee2e2',
+                          border: '1px solid #fca5a5',
+                          borderRadius: '5px',
+                          color: '#991b1b',
+                          padding: '3px 7px',
+                          fontSize: '12px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.5' }}>
+                    {r.desc}
+                  </p>
                 </div>
-                <p style={{ margin: 0, fontSize: '12.5px', color: '#334155', lineHeight: '1.5' }}>
-                  {r.desc}
-                </p>
               </div>
             ))}
           </div>
@@ -5576,6 +5897,198 @@ export function IctClubMasterSection({
                   style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
                 >
                   সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: EDIT SELECTION RULE */}
+      {/* ========================================================================= */}
+      {editingSelectionRule && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '560px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            borderTop: '5px solid #0284c7'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#0369a1', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>📜</span>
+                <span>সদস্য নির্বাচনের মানদণ্ড সম্পাদনা</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingSelectionRule(null)}
+                style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSelectionRuleEdit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>ক্রমিক / নং</label>
+                  <input
+                    type="text"
+                    value={selectionRuleEditForm.num}
+                    onChange={e => setSelectionRuleEditForm(prev => ({ ...prev, num: e.target.value }))}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', textAlign: 'center' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>মানদণ্ডের শিরোনাম *</label>
+                  <input
+                    type="text"
+                    required
+                    value={selectionRuleEditForm.title}
+                    onChange={e => setSelectionRuleEditForm(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="যেমন: শ্রেণিগত যোগ্যতা"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>বিস্তারিত বিবরণ ও নীতিমালা *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={selectionRuleEditForm.text}
+                  onChange={e => setSelectionRuleEditForm(prev => ({ ...prev, text: e.target.value }))}
+                  placeholder="মানদণ্ডের বিস্তারিত বিবরণ লিখুন..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingSelectionRule(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  ✓ পরিবর্তন সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: EDIT DISCIPLINE & LAB SAFETY RULE */}
+      {/* ========================================================================= */}
+      {editingDisciplineRule && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '560px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+            borderTop: '5px solid #dc2626'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', color: '#b91c1c', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🛡️</span>
+                <span>শৃঙ্খলা ও নিরাপত্তাবিধি সম্পাদনা</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingDisciplineRule(null)}
+                style={{ background: 'transparent', border: 'none', fontSize: '18px', cursor: 'pointer', color: '#64748b' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveDisciplineRuleEdit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>ক্রমিক / নং</label>
+                  <input
+                    type="text"
+                    value={disciplineRuleEditForm.num}
+                    onChange={e => setDisciplineRuleEditForm(prev => ({ ...prev, num: e.target.value }))}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', textAlign: 'center' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>নিয়মের শিরোনাম *</label>
+                  <input
+                    type="text"
+                    required
+                    value={disciplineRuleEditForm.rule}
+                    onChange={e => setDisciplineRuleEditForm(prev => ({ ...prev, rule: e.target.value }))}
+                    placeholder="যেমন: অনুমতি ব্যতীত ব্যবহার নিষিদ্ধ"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>বাধ্যতামূলক নির্দেশিকা ও বিবরণ *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={disciplineRuleEditForm.desc}
+                  onChange={e => setDisciplineRuleEditForm(prev => ({ ...prev, desc: e.target.value }))}
+                  placeholder="নিয়মের বিস্তারিত বিবরণ লিখুন..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingDisciplineRule(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#dc2626', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  ✓ পরিবর্তন সংরক্ষণ করুন
                 </button>
               </div>
             </form>
