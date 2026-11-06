@@ -1,0 +1,2441 @@
+import React, { useState, useEffect } from 'react';
+import {
+  MOCK_TEACHERS,
+  PHOTO_HEAD_TEACHER,
+  PHOTO_PRESIDENT,
+  getTeacherPhoto
+} from './mockData';
+import { ClubCompetitionEngine } from './ClubCompetitionEngine';
+import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
+
+const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+
+// LocalStorage Keys
+const LIT_PANEL_KEY = 'magra_lit_club_panel_v2';
+const LIT_EXEC_KEY = 'magra_lit_club_exec_v2';
+const LIT_MEMBERSHIPS_KEY = 'magra_lit_club_memberships_v1';
+const LIT_SUBMISSIONS_KEY = 'magra_lit_club_submissions_v1';
+
+// Default Coordinators & Judges Data
+const DEFAULT_PANEL = {
+  coordinators: [
+    {
+      id: 'coord-1',
+      teacherId: 'T03',
+      name: 'মোঃ আব্দুল খালেক',
+      designation: 'সহকারী শিক্ষক (বাংলা)',
+      role: 'প্রধান সমন্বয়ক (বাংলা সাহিত্য ও প্রমিত বাচন)',
+      phone: '01716-223344'
+    },
+    {
+      id: 'coord-2',
+      teacherId: 'T04',
+      name: 'মোঃ আশরাফুল আলম',
+      designation: 'সহকারী শিক্ষক (ইংরেজি)',
+      role: 'সহকারী সমন্বয়ক (ইংরেজি সাহিত্য ও Spoken English)',
+      phone: '01715-112233'
+    }
+  ],
+  chiefJudge: {
+    teacherId: 'T03',
+    name: 'মোঃ আব্দুল খালেক',
+    designation: 'সহকারী শিক্ষক (বাংলা)',
+    role: 'প্রধান বিচারক (সাহিত্য ও বাচন)'
+  },
+  judge1: {
+    teacherId: 'T04',
+    name: 'মোঃ আশরাফুল আলম',
+    designation: 'সহকারী শিক্ষক (ইংরেজি)',
+    role: 'বিচারক (১ম)'
+  },
+  judge2: {
+    teacherId: 'T10',
+    name: 'মোঃ শাহিনুর রহমান',
+    designation: 'সহকারী শিক্ষক (গ্রন্থাগার)',
+    role: 'বিচারক (২য়)'
+  }
+};
+
+// Default Executive Committee
+const DEFAULT_EXEC = {
+  president: { name: 'তানভীর আহমেদ', class: '১০ম', roll: '১', phone: '01711-001122' },
+  vicePresident: { name: 'রাহাত হাসান', class: '১০ম', roll: '৫', phone: '01711-001123' },
+  generalSecretary: { name: 'ফাতেমা আক্তার', class: '৯ম', roll: '২', phone: '01711-001124' },
+  jointSecretary: { name: 'ফারজানা মেহজাবীন', class: '৯ম', roll: '৩', phone: '01711-001125' },
+  organizingSecretary: { name: 'মাহির ফয়সাল', class: '৮ম', roll: '১', phone: '01711-001126' },
+  publicitySecretary: { name: 'নুসরাত জাহান', class: '৮ম', roll: '৪', phone: '01711-001127' },
+  financeSecretary: { name: 'সাদিয়া ইসলাম', class: '৯ম', roll: '৬', phone: '01711-001128' },
+  members: [
+    { id: 'm-1', name: 'আফরিন সুলতানা', class: '৬ষ্ঠ', roll: '৩', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-2', name: 'শাকিল আহমেদ', class: '৭ম', roll: '২', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-3', name: 'মেহেদী হাসান', class: '৮ম', roll: '৮', note: 'কার্যনির্বাহী সদস্য' }
+  ]
+};
+
+// Default Kishalaya Wall Magazine Items
+const DEFAULT_KISHALAYA_ITEMS = [
+  {
+    id: 'kish-1',
+    issue: '২১শে ফেব্রুয়ারি বিশেষ সংকলন (২০২৬)',
+    title: 'বর্ণমালার রক্তগোলাপ',
+    author: 'ফারজানা মেহজাবীন',
+    class_info: '৯ম শ্রেণি (বিজ্ঞান) • রোল ৩',
+    type: 'কবিতা',
+    date: '২১ ফেব্রুয়ারি, ২০২৬',
+    excerpt: 'রক্তে কেনা বর্ণমালা, মায়ের মুখের বুলি / একুশ মানে মাথা নত না করা ফুলকলি...',
+    full_text: `রক্তে কেনা বর্ণমালা, মায়ের মুখের বুলি
+একুশ মানে মাথা নত না করা ফুলকলি।
+সালাম, বরকত, রফিকের সেই আত্মত্যাগের গান,
+ভাষার জন্য ঢেলে দিল অমূল্য প্রাণ।
+
+বাংলার মাটি, বাংলার জল, বাংলার সবুজ বন,
+মায়ের ভাষায় কথা কয়ে জুড়ায় মোদের মন।
+শহীদ মিনারে পুষ্পার্ঘ্যে জানাই শত প্রণাম,
+বুকের ভেতর অক্ষয় রবে অমর একুশ নাম।`
+  },
+  {
+    id: 'kish-2',
+    issue: 'বসন্ত ও সাহিত্য ক্রোড়পত্র',
+    title: 'একটি শিউলি ঝরা সকালের গল্প',
+    author: 'রাহাত হাসান',
+    class_info: '১০ম শ্রেণি • রোল ৫',
+    type: 'ছোটগল্প',
+    date: '০১ মার্চ, ২০২৬',
+    excerpt: 'পলাশ আর শিমুলের ডালে যখন আগুন লেগেছে, তখন মগড়া স্কুলের লাইব্রেরির কোণে বসে...',
+    full_text: `পলাশ আর শিমুলের ডালে যখন আগুন লেগেছে, তখন মগড়া স্কুলের লাইব্রেরির কোণে বসে আমরা কয়েকজন বন্ধু আলোচনা করছিলাম নতুন দেয়াল পত্রিকার পরিকল্পনা নিয়ে। বইয়ের ঘ্রাণ আর জানালার ফাঁক গলে আসা দক্ষিণা বাতাস আমাদের মনকে এক অদ্ভুত সাহিত্যিক আবেশে ভরিয়ে দিচ্ছিল। 
+
+খালেক স্যার মৃদু হেসে ক্লাসে ঢুকলেন, হাতে একটি নতুন কবিতার বই। বললেন, "শব্দকে ভালোবাসতে শেখো, শব্দই মানুষের আসল পরিচয়।" স্যারের সেই সহজ কথাটি আজও আমাদের লেখার প্রেরণা হয়ে আছে।`
+  },
+  {
+    id: 'kish-3',
+    issue: 'স্বাধীনতা দিবস সংখ্যা',
+    title: 'Whispers of Freedom',
+    author: 'তানভীর আহমেদ',
+    class_info: '১০ম শ্রেণি • রোল ১',
+    type: 'Creative English Writing',
+    date: '২৬ মার্চ, ২০২৬',
+    excerpt: 'The sunrise over the Jamuna river felt different today. It carried the rhythm of liberation...',
+    full_text: `The sunrise over the Jamuna river felt different today. It carried the rhythm of liberation and the eternal sacrifice of three million martyrs. In the classrooms of Magra Palms Union High School, freedom is not just a chapter in our history textbook—it is the spirit that empowers us to speak truthfully, write courageously, and build a brighter tomorrow.`
+  }
+];
+
+export function LiteratureClubMasterSection({
+  teachers = [],
+  dynamicContent = [],
+  onBackToHub,
+  initialTab = 'identity'
+}) {
+  const mapInitialTab = (tab) => {
+    if (!tab) return 'identity';
+    if (tab === 'overview') return 'identity';
+    if (tab === 'advisors') return 'coordinators';
+    if (tab === 'competitions') return 'competitions';
+    if (tab === 'kisholoy') return 'showcase';
+    if (tab === 'calendar') return 'programs';
+    if (tab === 'gallery') return 'achievements';
+    if (tab === 'apply') return 'membership';
+    if (tab === 'write') return 'submission';
+    return tab;
+  };
+
+  // Active feature tab: default 'identity' (ক্লাব পরিচিতি)
+  const [litTab, setLitTab] = useState(() => mapInitialTab(initialTab));
+
+  useEffect(() => {
+    if (initialTab) {
+      setLitTab(mapInitialTab(initialTab));
+    }
+  }, [initialTab]);
+
+  // Teachers Fallback
+  const activeTeachers = teachers && teachers.length ? teachers : MOCK_TEACHERS;
+
+  // Panel State (Coordinators & Judges)
+  const [panelData, setPanelData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(LIT_PANEL_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return DEFAULT_PANEL;
+  });
+
+  // Executive Committee State
+  const [execData, setExecData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(LIT_EXEC_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return DEFAULT_EXEC;
+  });
+
+  // Coordinator Add Form
+  const [newCoordTeacherId, setNewCoordTeacherId] = useState(activeTeachers[0]?.id || activeTeachers[0]?.employee_id || 'T01');
+  const [newCoordRole, setNewCoordRole] = useState('সহকারী সমন্বয়ক (বাংলা সাহিত্য)');
+
+  // Member Add Form (Executive)
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberClass, setNewMemberClass] = useState('৮ম');
+  const [newMemberRoll, setNewMemberRoll] = useState('');
+
+  // Editing Executive Member Modal
+  const [editingExecPost, setEditingExecPost] = useState(null); // 'president' | 'vicePresident' etc.
+  const [execEditForm, setExecEditForm] = useState({ name: '', class: '', roll: '', phone: '' });
+
+  // Membership Application Form State
+  const [memberForm, setMemberForm] = useState({
+    student_name: '',
+    class_name: '৯',
+    roll_no: '',
+    department: 'বিজ্ঞান',
+    mobile: '',
+    interests: 'কবিতা ও দেয়াল পত্রিকা'
+  });
+  const [memberReceipt, setMemberReceipt] = useState(null);
+
+  // Writing Submission Form State
+  const [writeForm, setWriteForm] = useState({
+    student_name: '',
+    class_name: '৯',
+    roll_no: '',
+    mobile: '',
+    type: 'poem',
+    title: '',
+    content: ''
+  });
+  const [writeReceipt, setWriteReceipt] = useState(null);
+
+  // Kishalaya Wall Magazine State
+  const [readingItem, setReadingItem] = useState(null);
+  const [toastMsg, setToastMsg] = useState('');
+
+  // Save Panel Data
+  const persistPanel = (data) => {
+    try {
+      localStorage.setItem(LIT_PANEL_KEY, JSON.stringify(data));
+      setToastMsg('সমন্বয়ক ও বিচারক প্যানেলের তথ্য সফলভাবে সংরক্ষিত হয়েছে!');
+      setTimeout(() => setToastMsg(''), 3500);
+    } catch {}
+  };
+
+  // Save Exec Data
+  const persistExec = (data) => {
+    try {
+      localStorage.setItem(LIT_EXEC_KEY, JSON.stringify(data));
+      setToastMsg('কার্যনির্বাহী পরিষদের তথ্য সফলভাবে সংরক্ষিত হয়েছে!');
+      setTimeout(() => setToastMsg(''), 3500);
+    } catch {}
+  };
+
+  // Add Coordinator
+  const handleAddCoordinator = (e) => {
+    e.preventDefault();
+    const t = activeTeachers.find(x => (x.id === newCoordTeacherId || x.employee_id === newCoordTeacherId)) || activeTeachers[0];
+    const newCoord = {
+      id: 'coord-' + Date.now(),
+      teacherId: t.id || t.employee_id,
+      name: t.name_bn || t.name_en,
+      designation: t.designation || 'সহকারী শিক্ষক',
+      role: newCoordRole.trim() || 'ক্লাব সমন্বয়ক',
+      phone: t.phone || '—'
+    };
+    const updated = {
+      ...panelData,
+      coordinators: [...(panelData.coordinators || []), newCoord]
+    };
+    setPanelData(updated);
+    persistPanel(updated);
+  };
+
+  // Remove Coordinator
+  const handleRemoveCoordinator = (id) => {
+    if (!window.confirm('আপনি কি এই সমন্বয়ককে তালিকা থেকে অপসারণ করতে চান?')) return;
+    const updated = {
+      ...panelData,
+      coordinators: (panelData.coordinators || []).filter(c => c.id !== id)
+    };
+    setPanelData(updated);
+    persistPanel(updated);
+  };
+
+  // Change Judge
+  const handleChangeJudge = (slot, teacherId) => {
+    const t = activeTeachers.find(x => (x.id === teacherId || x.employee_id === teacherId)) || activeTeachers[0];
+    const updated = {
+      ...panelData,
+      [slot]: {
+        teacherId: t.id || t.employee_id,
+        name: t.name_bn || t.name_en,
+        designation: t.designation || 'সহকারী শিক্ষক',
+        role: slot === 'chiefJudge' ? 'প্রধান বিচারক (ভাষা ও সাহিত্য)' : slot === 'judge1' ? 'বিচারক (১ম)' : 'বিচারক (২য়)'
+      }
+    };
+    setPanelData(updated);
+    persistPanel(updated);
+  };
+
+  // Add Executive Member
+  const handleAddExecMember = (e) => {
+    e.preventDefault();
+    if (!newMemberName.trim()) return;
+    const newM = {
+      id: 'm-' + Date.now(),
+      name: newMemberName.trim(),
+      class: newMemberClass,
+      roll: newMemberRoll.trim() || '—',
+      note: 'কার্যনির্বাহী সদস্য'
+    };
+    const updated = {
+      ...execData,
+      members: [...(execData.members || []), newM]
+    };
+    setExecData(updated);
+    persistExec(updated);
+    setNewMemberName('');
+    setNewMemberRoll('');
+  };
+
+  // Remove Exec Member
+  const handleRemoveExecMember = (id) => {
+    if (!window.confirm('আপনি কি এই কার্যনির্বাহী সদস্যকে অপসারণ করতে চান?')) return;
+    const updated = {
+      ...execData,
+      members: (execData.members || []).filter(m => m.id !== id)
+    };
+    setExecData(updated);
+    persistExec(updated);
+  };
+
+  // Start Edit Post
+  const handleStartEditPost = (postKey, current) => {
+    setEditingExecPost(postKey);
+    setExecEditForm({
+      name: current.name || '',
+      class: current.class || '১০ম',
+      roll: current.roll || '',
+      phone: current.phone || ''
+    });
+  };
+
+  // Save Edit Post
+  const handleSavePostEdit = (e) => {
+    e.preventDefault();
+    if (!editingExecPost) return;
+    const updated = {
+      ...execData,
+      [editingExecPost]: {
+        ...execData[editingExecPost],
+        name: execEditForm.name.trim(),
+        class: execEditForm.class.trim(),
+        roll: execEditForm.roll.trim(),
+        phone: execEditForm.phone.trim()
+      }
+    };
+    setExecData(updated);
+    persistExec(updated);
+    setEditingExecPost(null);
+  };
+
+  // Handle Membership Application Submit
+  const handleMemberSubmit = (e) => {
+    e.preventDefault();
+    const receipt = {
+      tracking_id: 'LIT-MEM-' + Math.floor(100000 + Math.random() * 900000),
+      date: new Date().toLocaleDateString('bn-BD'),
+      ...memberForm
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem(LIT_MEMBERSHIPS_KEY) || '[]');
+      existing.unshift(receipt);
+      localStorage.setItem(LIT_MEMBERSHIPS_KEY, JSON.stringify(existing));
+    } catch {}
+    setMemberReceipt(receipt);
+    setToastMsg('সদস্যপদের আবেদন সফলভাবে গৃহীত হয়েছে!');
+    setTimeout(() => setToastMsg(''), 3500);
+  };
+
+  // Handle Writing Submit
+  const handleWriteSubmit = (e) => {
+    e.preventDefault();
+    const receipt = {
+      tracking_id: 'LIT-WRITE-' + Math.floor(100000 + Math.random() * 900000),
+      date: new Date().toLocaleDateString('bn-BD'),
+      ...writeForm
+    };
+    try {
+      const existing = JSON.parse(localStorage.getItem(LIT_SUBMISSIONS_KEY) || '[]');
+      existing.unshift(receipt);
+      localStorage.setItem(LIT_SUBMISSIONS_KEY, JSON.stringify(existing));
+    } catch {}
+    setWriteReceipt(receipt);
+    setToastMsg('লেখা সফলভাবে কিশলয় প্রকাশনা বিভাগে জমা হয়েছে!');
+    setTimeout(() => setToastMsg(''), 3500);
+  };
+
+  // Demo fillers
+  const fillMemberDemo = () => {
+    setMemberForm({
+      student_name: 'ফাতেমা আক্তার',
+      class_name: '৯',
+      roll_no: '২',
+      department: 'বিজ্ঞান',
+      mobile: '01712-998877',
+      interests: 'স্বরচিত কবিতা, প্রমিত বাচন ও দেয়াল পত্রিকা'
+    });
+  };
+
+  const fillWriteDemo = () => {
+    setWriteForm({
+      student_name: 'ফারজানা মেহজাবীন',
+      class_name: '৯',
+      roll_no: '৩',
+      mobile: '01715-443322',
+      type: 'poem',
+      title: 'শব্দের খেয়ায় পদ্মা পার',
+      content: `কুয়াশা ভেজা নদীর চরে রোদ উঠেছে সোনালী,
+মাঠের বুকে দুলছে যেন সবুজ পাতার অঞ্জলি।
+বর্ণমালার হাতটি ধরে হাটছি মোরা বহুদূর,
+বাংলা ভাষার দোলায় বাজে আনন্দেরই সুর।`
+    });
+  };
+
+  // Official Pad Print: Coordinators & Judges
+  const handlePrintPanelPad = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    const coords = (panelData.coordinators || []).map((c, i) => `
+      <tr>
+        <td style="text-align:center;font-weight:700;">${toBn(i + 1)}.</td>
+        <td><b>${c.name}</b><br><small style="color:#64748b;">${c.designation}</small></td>
+        <td style="color:#047857;font-weight:700;">${c.role}</td>
+        <td style="text-align:center;">${c.phone}</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>সমন্বয়ক ও বিচারক প্যানেল — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+          th, td { border: 1px solid #94a3b8; padding: 7px 10px; text-align: left; vertical-align: middle; }
+          th { background: #f0fdf4; color: #166534; font-weight: 800; }
+          .sig-grid { margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 14px 0 10px 0;">
+          <span class="doc-badge">📚 ভাষা ও সাহিত্য ক্লাব</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">সমন্বয়ক পরিষদ ও স্থায়ী বিচারক প্যানেল</h2>
+          <div style="font-size:12px; color:#475569;">অনুমোদনের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <h3 style="font-size:14px; color:#166534; margin:16px 0 6px 0;">👨‍🏫 সম্মানিত সমন্বয়কমণ্ডলী</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px; text-align:center;">ক্র.</th>
+              <th>শিক্ষকের নাম ও মূল পদবী</th>
+              <th>ক্লাবে অর্পিত সমন্বয়ক দায়িত্ব</th>
+              <th style="width:110px; text-align:center;">যোগাযোগ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${coords}
+          </tbody>
+        </table>
+
+        <h3 style="font-size:14px; color:#1e1b4b; margin:20px 0 6px 0;">⚖️ সাহিত্য প্রতিযোগিতা বিচারক প্যানেল (৩ সদস্য)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:100px;">প্যানেল পদবী</th>
+              <th>শিক্ষকের নাম</th>
+              <th>মূল পদবী</th>
+              <th>দায়িত্বের ক্ষেত্র</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:800; color:#1e1b4b;">প্রধান বিচারক</td>
+              <td><b>${panelData.chiefJudge?.name}</b></td>
+              <td>${panelData.chiefJudge?.designation}</td>
+              <td>চূড়ান্ত ফলাফল ও বিচারিক দিকনির্দেশনা</td>
+            </tr>
+            <tr>
+              <td style="font-weight:800; color:#047857;">বিচারক (১ম)</td>
+              <td><b>${panelData.judge1?.name}</b></td>
+              <td>${panelData.judge1?.designation}</td>
+              <td>কবিতা, আবৃত্তি ও ব্যাকরণ মূল্যায়ন</td>
+            </tr>
+            <tr>
+              <td style="font-weight:800; color:#b45309;">বিচারক (২য়)</td>
+              <td><b>${panelData.judge2?.name}</b></td>
+              <td>${panelData.judge2?.designation}</td>
+              <td>রচনাশৈলী, শব্দভাণ্ডার ও উপস্থাপন</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>নেয়ামুল হক খান</b><br>
+            <span>সভাপতি, বিদ্যালয় পরিচালনা পর্ষদ</span>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <span>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // Official Pad Print: Executive Committee
+  const handlePrintExecPad = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    const posts = [
+      { role: 'সভাপতি', ...execData.president },
+      { role: 'সহ-সভাপতি', ...execData.vicePresident },
+      { role: 'সাধারণ সম্পাদক', ...execData.generalSecretary },
+      { role: 'যুগ্ম সম্পাদক', ...execData.jointSecretary },
+      { role: 'সাংগঠনিক সম্পাদক', ...execData.organizingSecretary },
+      { role: 'প্রচার ও প্রকাশনা সম্পাদক', ...execData.publicitySecretary },
+      { role: 'অর্থ সম্পাদক', ...execData.financeSecretary }
+    ];
+
+    const postRows = posts.map((p, i) => `
+      <tr>
+        <td style="text-align:center;font-weight:700;">${toBn(i + 1)}.</td>
+        <td style="font-weight:800;color:#065f46;">${p.role}</td>
+        <td><b>${p.name || '—'}</b></td>
+        <td style="text-align:center;">${p.class || '—'}</td>
+        <td style="text-align:center;">${toBn(p.roll || '—')}</td>
+        <td style="text-align:center;">${p.phone || '—'}</td>
+      </tr>
+    `).join('');
+
+    const memberRows = (execData.members || []).map((m, i) => `
+      <tr>
+        <td style="text-align:center;">${toBn(i + 1)}.</td>
+        <td><b>${m.name}</b></td>
+        <td style="text-align:center;">${m.class}</td>
+        <td style="text-align:center;">${toBn(m.roll)}</td>
+        <td>কার্যনির্বাহী সদস্য</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>শিক্ষার্থী কার্যনির্বাহী পরিষদ — ভাষা ও সাহিত্য ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 12mm 15mm 15mm 15mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 20px; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th, td { border: 1px solid #94a3b8; padding: 6px 9px; text-align: left; vertical-align: middle; }
+          th { background: #f0fdf4; color: #166534; font-weight: 800; }
+          .sig-grid { margin-top: 45px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 14px 0 10px 0;">
+          <span class="doc-badge">👥 শিক্ষার্থী নেতৃত্ব</span>
+          <h2 style="margin:4px 0; color:#065f46; font-size:18px;">ভাষা ও সাহিত্য ক্লাব — কার্যনির্বাহী পরিষদ (২০২৬)</h2>
+          <div style="font-size:12px; color:#475569;">অনুমোদনের তারিখ: ${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি. • শিক্ষাবর্ষ: ২০২৬</div>
+        </div>
+
+        <h3 style="font-size:13.5px; color:#166534; margin:14px 0 4px 0;">🌟 মূল কার্যনির্বাহী পদাধিকারীবৃন্দ (৭ পদ)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px; text-align:center;">ক্র.</th>
+              <th>পদের নাম</th>
+              <th>শিক্ষার্থীর নাম</th>
+              <th style="text-align:center;">শ্রেণি</th>
+              <th style="text-align:center;">রোল</th>
+              <th style="text-align:center;">মোবাইল</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${postRows}
+          </tbody>
+        </table>
+
+        ${memberRows ? `
+          <h3 style="font-size:13.5px; color:#1e1b4b; margin:16px 0 4px 0;">👥 সাধারণ কার্যনির্বাহী সদস্যবৃন্দ</h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px; text-align:center;">ক্র.</th>
+                <th>শিক্ষার্থীর নাম</th>
+                <th style="text-align:center;">শ্রেণি</th>
+                <th style="text-align:center;">রোল</th>
+                <th>দায়িত্ব</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${memberRows}
+            </tbody>
+          </table>
+        ` : ''}
+
+        <div class="sig-grid">
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মোঃ আব্দুল খালেক</b><br>
+            <span>প্রধান সমন্বয়ক, ভাষা ও সাহিত্য ক্লাব</span>
+          </div>
+          <div style="text-align:center;">
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <span>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 450);
+  };
+
+  // 11 Navigation Tabs
+  const NAV_TABS = [
+    { key: 'identity', label: '১. ক্লাব পরিচিতি', icon: '📖' },
+    { key: 'objectives', label: '২. মূল লক্ষ্য ও উদ্দেশ্য', icon: '🎯' },
+    { key: 'coordinators', label: '৩. সমন্বয়ক ও বিচারক প্যানেল', icon: '👨‍🏫' },
+    { key: 'executive', label: '৪. কার্যনির্বাহী পরিষদ', icon: '👥' },
+    { key: 'membership', label: '৫. সদস্যপদের আবেদন', icon: '📋' },
+    { key: 'programs', label: '৬. বাৎসরিক কর্মসূচি ও ক্যালেন্ডার', icon: '🗓️' },
+    { key: 'submission', label: '৭. লেখা জমা', icon: '✍️' },
+    { key: 'competitions', label: '৮. সাহিত্য প্রতিযোগিতা ও ফলাফল', icon: '📜' },
+    { key: 'showcase', label: '৯. দেয়াল পত্রিকা প্রকাশ', icon: '📰' },
+    { key: 'achievements', label: '১০. অর্জন ও ট্রফি গ্যালারি', icon: '🏆' },
+    { key: 'conduct', label: '১১. শৃংখলা ও আচরণ বিধি', icon: '⚖️' }
+  ];
+
+  return (
+    <div style={{ fontFamily: "'Hind Siliguri', 'SolaimanLipi', Arial, sans-serif" }}>
+      {/* Toast Alert */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#065f46',
+          color: '#ffffff',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          zIndex: 99999,
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <span>✅</span>
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* TOP HERO BANNER FROM USER IMAGE */}
+      <div style={{
+        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
+        color: '#ffffff',
+        padding: '22px 24px',
+        borderRadius: '14px',
+        marginBottom: '18px',
+        boxShadow: '0 4px 14px rgba(6, 95, 70, 0.15)'
+      }}>
+        <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', padding: '3px 12px', borderRadius: '20px', fontSize: '11.5px', fontWeight: 800, marginBottom: '6px' }}>
+          ✨ ঐতিহ্যবাহী মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • ভাষা আন্দোলন ও সাহিত্যের আলোয় উদ্ভাসিত
+        </div>
+        <h2 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: 900 }}>
+          মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব
+        </h2>
+        <p style={{ margin: 0, fontSize: '13px', color: '#d1fae5', lineHeight: '1.6' }}>
+          “শব্দের শক্তিতে বিকশিত মেধা, সাহিত্যের আলোয় আলোকিত চেতনা” — মাতৃভাষার শুদ্ধ উচ্চারণ, সৃজনশীল লেখালেখি, কবিতা আবৃত্তি, দেয়াল পত্রিকা ‘কিশলয়’ এবং ইংরেজি কথ্যচর্চায় শিক্ষার্থীদের আত্মবিশ্বাসী করে তোলার নিবেদিত অঙ্গন।
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>🏛️ স্থাপিত: ২০১৯ খ্রি.</span>
+          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>📰 ত্রৈমাসিক দেয়াল পত্রিকা: 'কিশলয়'</span>
+          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>📖 পাঠচক্র: প্রতি বৃহস্পতিবার বিকাল ৩:৩০</span>
+          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>🏆 জেলা ও উপজেলা চ্যাম্পিয়নশিপ জয়ী</span>
+          <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>👥 ১৫০+ সক্রিয় শিক্ষার্থী সদস্য</span>
+        </div>
+        <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          {onBackToHub && (
+            <button
+              type="button"
+              onClick={onBackToHub}
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              ⬅️ সকল ক্লাবের তালিকায় ফিরুন
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setLitTab('competitions')}
+            style={{
+              background: '#ffffff',
+              color: '#065f46',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+            }}
+          >
+            📜 নতুন সাহিত্য প্রতিযোগিতা আয়োজন ও ফলাফল প্রস্তুত ➔
+          </button>
+          <button
+            type="button"
+            onClick={() => setLitTab('submission')}
+            style={{
+              background: '#064e3b',
+              color: '#ffffff',
+              border: '1px solid #34d399',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            ✍️ লেখা জমা দিন (কিশলয়) ➔
+          </button>
+        </div>
+      </div>
+
+      {/* 11 SUB-FEATURES TABS BAR */}
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '6px',
+        marginBottom: '20px',
+        background: '#f8fafc',
+        padding: '10px',
+        borderRadius: '12px',
+        border: '1.5px solid #e2e8f0',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+      }}>
+        {NAV_TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setLitTab(tab.key)}
+            style={{
+              flex: '1 1 auto',
+              minWidth: '150px',
+              padding: '9px 12px',
+              borderRadius: '7px',
+              border: litTab === tab.key ? '2px solid #059669' : '1px solid #cbd5e1',
+              background: litTab === tab.key ? '#ecfdf5' : '#ffffff',
+              color: litTab === tab.key ? '#065f46' : '#334155',
+              fontWeight: 800,
+              fontSize: '12.5px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: litTab === tab.key ? '0 2px 6px rgba(5,150,105,0.15)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FEATURE 1: ক্লাব পরিচিতি */}
+      {/* ========================================================================= */}
+      {litTab === 'identity' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ১
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                📖 ক্লাব পরিচিতি (Profile & Identity)
+              </h3>
+            </div>
+            <div style={{ background: '#f0fdf4', padding: '6px 14px', borderRadius: '6px', border: '1px solid #86efac', fontSize: '12px', color: '#166534', fontWeight: 800 }}>
+              মগড়া পালস্ সহশিক্ষা একাডেমি
+            </div>
+          </div>
+
+          <div style={{
+            background: '#f8fafc',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            marginBottom: '16px'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+              <tbody>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
+                  <td style={{ width: '220px', padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>ক্লাবের নাম</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 900, color: '#065f46', fontSize: '15px' }}>ভাষা ও সাহিত্য ক্লাব</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>ইংরেজি নাম</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#334155' }}>Language & Literature Club</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>প্রতিষ্ঠানের নাম</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#0f172a' }}>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>পরিচালনা</td>
+                  <td style={{ padding: '10px 14px', color: '#334155' }}>পৃষ্ঠপোষক ও কেন্দ্রীয় উপদেষ্টা পরিষদের তত্ত্বাবধানে</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>ক্লাব সমন্বয়ক</td>
+                  <td style={{ padding: '10px 14px', color: '#047857', fontWeight: 700 }}>বাংলা ও ইংরেজি বিষয়ের শিক্ষক</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>সদস্য</td>
+                  <td style={{ padding: '10px 14px', color: '#1e293b', fontWeight: 700 }}>ষষ্ঠ থেকে দশম শ্রেণির শিক্ষার্থী</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 800, color: '#1e293b', background: '#f1f5f9' }}>কার্যক্রম</td>
+                  <td style={{ padding: '10px 14px', color: '#334155', lineHeight: '1.6' }}>
+                    ভাষা শিক্ষা, সাহিত্যচর্চা, লেখালেখি ও সংস্কৃতি, সাপ্তাহিক আড্ডা, দেয়ালিকা প্রকাশ, ইভেন্ট ও প্রতিযীগিতার আয়োজন
+                  </td>
+                </tr>
+                <tr style={{ background: '#ecfdf5' }}>
+                  <td style={{ padding: '10px 14px', fontWeight: 900, color: '#065f46', background: '#dcfce7' }}>মূলনীতি</td>
+                  <td style={{ padding: '10px 14px', fontWeight: 900, color: '#065f46', fontSize: '14.5px' }}>
+                    “শুদ্ধ ভাষা, সুন্দর প্রকাশ, সৃজনশীল মনন”
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* 4 Pillars Summary */}
+          <div style={{ marginTop: '18px' }}>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#0f172a' }}>
+              🌟 ক্লাবের ৪টি মূল স্তম্ভ
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '24px' }}>🗣️</span>
+                <b style={{ display: 'block', margin: '4px 0 2px 0', color: '#166534', fontSize: '13.5px' }}>শুদ্ধ উচ্চারণ ও প্রমিত বাচন</b>
+                <p style={{ margin: 0, fontSize: '11.5px', color: '#475569', lineHeight: '1.5' }}>প্রমিত বাংলা ভাষার নির্ভুল উচ্চারণ, স্বরভঙ্গি ও জড়তা দূরীকরণের নিয়মিত প্রশিক্ষণ।</p>
+              </div>
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '24px' }}>✍️</span>
+                <b style={{ display: 'block', margin: '4px 0 2px 0', color: '#166534', fontSize: '13.5px' }}>সৃজনশীল সাহিত্যচর্চা</b>
+                <p style={{ margin: 0, fontSize: '11.5px', color: '#475569', lineHeight: '1.5' }}>কবিতা, গল্প, ছড়া ও প্রবন্ধ রচনায় শিক্ষার্থীদের মৌলিক কল্পনাশক্তির বিকাশ।</p>
+              </div>
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '24px' }}>🇬🇧</span>
+                <b style={{ display: 'block', margin: '4px 0 2px 0', color: '#166534', fontSize: '13.5px' }}>English & Vocabulary</b>
+                <p style={{ margin: 0, fontSize: '11.5px', color: '#475569', lineHeight: '1.5' }}>Spoken English, শব্দভাণ্ডার বৃদ্ধি ও ইংরেজিতে সাবলীল উপস্থাপনার চর্চা।</p>
+              </div>
+              <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '12px' }}>
+                <span style={{ fontSize: '24px' }}>📖</span>
+                <b style={{ display: 'block', margin: '4px 0 2px 0', color: '#166534', fontSize: '13.5px' }}>বৃহস্পতিবারের পাঠচক্র</b>
+                <p style={{ margin: 0, fontSize: '11.5px', color: '#475569', lineHeight: '1.5' }}>লাইব্রেরিতে প্রতি বৃহস্পতিবার পছন্দের বই পাঠ, বুক রিভিউ ও সাহিত্য আড্ডা।</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('objectives')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: মূল লক্ষ্য ও উদ্দেশ্য ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 2: ক্লাবের মূল লক্ষ্য ও উদ্দেশ্য */}
+      {/* ========================================================================= */}
+      {litTab === 'objectives' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+              ফিচার ২
+            </span>
+            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+              🎯 ক্লাবের মূল লক্ষ্য ও উদ্দেশ্য (১০টি দিকনির্দেশনা)
+            </h3>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+              শিক্ষার্থীদের ভাষা দক্ষতা বৃদ্ধি, সৃজনশীল মনন গঠন এবং সাহিত্যের আলোয় আলোকিত করার মূল অঙ্গীকার
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px' }}>
+            {[
+              { num: '০১', title: 'বাংলা ও ইংরেজি ভাষার দক্ষতা বৃদ্ধি', desc: 'শিক্ষার্থীদের বাংলা ও ইংরেজি উভয় ভাষায় সাবলীল যোগাযোগ ও সার্বিক দক্ষতা বৃদ্ধি করা।' },
+              { num: '০২', title: 'শুদ্ধ উচ্চারণ, বানান ও ব্যাকরণ চর্চা', desc: 'শুদ্ধ উচ্চারণ, প্রমিত বানানরীতি ও ব্যাকরণগত নিয়মাবলি নির্ভুলভাবে প্রয়োগের অভ্যাস গড়ে তোলা।' },
+              { num: '০৩', title: 'ভাষা, সাহিত্য ও সংস্কৃতির প্রতি ভালোবাসা', desc: 'মাতৃভাষা বাংলা, সমৃদ্ধ সাহিত্য ও আবহমান বাঙালি সংস্কৃতির প্রতি গভীর অনুরাগ সৃষ্টি করা।' },
+              { num: '০৪', title: 'ইংরেজি কথ্য ও লিখন দক্ষতা বৃদ্ধি', desc: 'ইংরেজি ভাষায় আত্মবিশ্বাসের সাথে কথা বলা, পড়া ও সৃজনশীল লেখার দক্ষতা বৃদ্ধি করা।' },
+              { num: '০৫', title: 'সৃজনশীল সাহিত্য রচনায় উৎসাহ দান', desc: 'শিক্ষার্থীদের স্বরচিত কবিতা, গল্প, প্রবন্ধ, ছড়া ও নাটক রচনায় সার্বক্ষণিক অনুপ্রেরণা ও প্রশিক্ষণ প্রদান।' },
+              { num: '০৬', title: 'বই পড়ার অভ্যাস ও সমৃদ্ধ পাঠাভ্যাস', desc: 'স্কুল লাইব্রেরিমুখী করে বই পড়ার চিরন্তন অভ্যাস ও নিয়মিত পাঠচক্রের সংস্কৃতি গড়ে তোলা।' },
+              { num: '০৭', title: 'আবৃত্তি, বক্তৃতা ও উপস্থাপনা বিকাশ', desc: 'মঞ্চে কবিতা আবৃত্তি, তাৎক্ষণিক উপস্থিত বক্তৃতা ও প্রাঞ্জল উপস্থাপনার শিল্প আয়ত্ত করানো।' },
+              { num: '০৮', title: 'মাতৃভাষার মর্যাদা ও বৈচিত্র্যের প্রতি শ্রদ্ধা', desc: 'মাতৃভাষার ঐতিহাসিক মর্যাদা রক্ষা এবং বিশ্বের ভাষাগত বৈচিত্র্য ও ক্ষুদ্র নৃগোষ্ঠীর ভাষার প্রতি সম্মান বোধ সৃষ্টি।' },
+              { num: '০৯', title: 'দেশীয় সাহিত্য, লোকসংস্কৃতি ও ঐতিহ্যের পাঠ', desc: 'গ্রামবাংলার লোকগাথা, লোকসাহিত্য, বাউল গান, জারি-সারি ও জাতীয় সাহিত্যের ঐতিহ্যের গভীর পরিচয় দান।' },
+              { num: '১০', title: 'সৃজনশীল চিন্তা ও মুক্ত প্রকাশভঙ্গির উন্নয়ন', desc: 'শিক্ষার্থীদের স্বাধীন ও মুক্ত চিন্তার বিকাশ, কল্পনাশক্তি শাণিত করা এবং শৈল্পিক প্রকাশভঙ্গির উন্মেষ ঘটানো।' }
+            ].map((obj) => (
+              <div
+                key={obj.num}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '9px',
+                  padding: '14px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.02)'
+                }}
+              >
+                <div style={{
+                  background: '#047857',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {obj.num}
+                </div>
+                <div>
+                  <b style={{ display: 'block', fontSize: '13.5px', color: '#0f172a', marginBottom: '2px' }}>
+                    {obj.title}
+                  </b>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: '1.5' }}>
+                    {obj.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('identity')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: ক্লাব পরিচিতি
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('coordinators')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: সমন্বয়ক ও বিচারক প্যানেল ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 3: সমন্বয়ক ও বিচারক প্যানেল */}
+      {/* ========================================================================= */}
+      {litTab === 'coordinators' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৩
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                👨‍🏫 সমন্বয়ক ও বিচারক প্যানেল ব্যবস্থাপনা
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                শিক্ষকদের ড্রপ-ডাউন থেকে এক বা একাধিক সমন্বয়ক এবং ৩ সদস্যের বিচারক প্যানেল (প্রধান বিচারক ১ জন, বিচারক ২ জন) নির্বাচন করুন
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handlePrintPanelPad}
+                style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <span>🖨️</span>
+                <span>অফিসিয়াল প্যাডে প্রিন্ট</span>
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION A: COORDINATORS (এক বা একাধিক যুক্ত করার ব্যবস্থা) */}
+          <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#166534', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>👥</span>
+              <span>ক্লাব সমন্বয়ক পরিষদ (Coordinators)</span>
+            </div>
+
+            {/* Add Coordinator Form */}
+            <form onSubmit={handleAddCoordinator} style={{
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '14px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '10px',
+              alignItems: 'flex-end'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '4px' }}>
+                  শিক্ষক নির্বাচন (ড্রপ-ডাউন):
+                </label>
+                <select
+                  value={newCoordTeacherId}
+                  onChange={e => setNewCoordTeacherId(e.target.value)}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                >
+                  {activeTeachers.map(t => (
+                    <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                      {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '4px' }}>
+                  সমন্বয়ক দায়িত্ব / পদবী:
+                </label>
+                <input
+                  type="text"
+                  value={newCoordRole}
+                  onChange={e => setNewCoordRole(e.target.value)}
+                  placeholder="যেমন: সহকারী সমন্বয়ক (ইংরেজি সাহিত্য)"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  style={{ width: '100%', background: '#047857', color: '#ffffff', border: 'none', padding: '9px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  ➕ সমন্বয়ক যুক্ত করুন
+                </button>
+              </div>
+            </form>
+
+            {/* List of Coordinators */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {(panelData.coordinators || []).map(coord => (
+                <div
+                  key={coord.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #86efac',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#ecfdf5', color: '#047857', border: '2px solid #059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      👨‍🏫
+                    </div>
+                    <div>
+                      <span style={{ background: '#dcfce7', color: '#166534', fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                        {coord.role}
+                      </span>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>
+                        {coord.name}
+                      </div>
+                      <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                        {coord.designation} {coord.phone && coord.phone !== '—' ? `• 📱 ${coord.phone}` : ''}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCoordinator(coord.id)}
+                    style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '5px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                    title="অপসারণ করুন"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION B: JUDGES PANEL (প্রধান বিচারক ১ জন, বিচারক ২ জন) */}
+          <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '10px', padding: '16px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#166534', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>⚖️</span>
+              <span>স্থায়ী বিচারক প্যানেল (প্রধান বিচারক ১ জন ও বিচারক ২ জন)</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+              {/* Chief Judge */}
+              <div style={{ background: '#ffffff', border: '2px solid #312e81', borderRadius: '10px', padding: '14px' }}>
+                <span style={{ background: '#e0e7ff', color: '#3730a3', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                  ⭐ প্রধান বিচারক (১ জন)
+                </span>
+                <div style={{ margin: '8px 0 10px 0' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.chiefJudge?.teacherId || ''}
+                    onChange={e => handleChangeJudge('chiefJudge', e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #312e81', fontSize: '12.5px', fontWeight: 700, color: '#312e81' }}
+                  >
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                        {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <b>বর্তমান প্রধান বিচারক:</b> {panelData.chiefJudge?.name || '—'}
+                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.chiefJudge?.designation}</div>
+                </div>
+              </div>
+
+              {/* Judge 1 */}
+              <div style={{ background: '#ffffff', border: '2px solid #059669', borderRadius: '10px', padding: '14px' }}>
+                <span style={{ background: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                  ⚖️ বিচারক (১ম)
+                </span>
+                <div style={{ margin: '8px 0 10px 0' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.judge1?.teacherId || ''}
+                    onChange={e => handleChangeJudge('judge1', e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #059669', fontSize: '12.5px', fontWeight: 700, color: '#065f46' }}
+                  >
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                        {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <b>বর্তমান বিচারক (১):</b> {panelData.judge1?.name || '—'}
+                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge1?.designation}</div>
+                </div>
+              </div>
+
+              {/* Judge 2 */}
+              <div style={{ background: '#ffffff', border: '2px solid #d97706', borderRadius: '10px', padding: '14px' }}>
+                <span style={{ background: '#fef3c7', color: '#92400e', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                  ⚖️ বিচারক (২য়)
+                </span>
+                <div style={{ margin: '8px 0 10px 0' }}>
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '3px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.judge2?.teacherId || ''}
+                    onChange={e => handleChangeJudge('judge2', e.target.value)}
+                    style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1.5px solid #d97706', fontSize: '12.5px', fontWeight: 700, color: '#92400e' }}
+                  >
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                        {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+                  <b>বর্তমান বিচারক (২):</b> {panelData.judge2?.name || '—'}
+                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge2?.designation}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('objectives')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: মূল লক্ষ্য ও উদ্দেশ্য
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('executive')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: কার্যনির্বাহী পরিষদ ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 4: কার্যনির্বাহী পরিষদ */}
+      {/* ========================================================================= */}
+      {litTab === 'executive' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৪
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                👥 শিক্ষার্থী কার্যনির্বাহী পরিষদ (২০২৬)
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                সভাপতি, সহ-সভাপতি, সাধারণ সম্পাদক, যুগ্ম সম্পাদক, সাংগঠনিক, প্রচার-প্রকাশনা ও অর্থ সম্পাদক এবং কার্যনির্বাহী সদস্যবৃন্দ
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handlePrintExecPad}
+                style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <span>🖨️</span>
+                <span>অফিসিয়াল প্যাডে প্রিন্ট</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 7 OFFICIAL POSTS GRID */}
+          <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1e293b', marginBottom: '10px' }}>
+            🏛️ মূল কার্যনির্বাহী পদাধিকারী (৭টি পদ):
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            {[
+              { key: 'president', label: 'সভাপতি', icon: '👑', data: execData.president, badgeColor: '#312e81', badgeBg: '#e0e7ff' },
+              { key: 'vicePresident', label: 'সহ-সভাপতি', icon: '⭐', data: execData.vicePresident, badgeColor: '#1d4ed8', badgeBg: '#dbeafe' },
+              { key: 'generalSecretary', label: 'সাধারণ সম্পাদক', icon: '📜', data: execData.generalSecretary, badgeColor: '#047857', badgeBg: '#dcfce7' },
+              { key: 'jointSecretary', label: 'যুগ্ম সম্পাদক', icon: '🤝', data: execData.jointSecretary, badgeColor: '#0284c7', badgeBg: '#e0f2fe' },
+              { key: 'organizingSecretary', label: 'সাংগঠনিক সম্পাদক', icon: '🎯', data: execData.organizingSecretary, badgeColor: '#b45309', badgeBg: '#fef3c7' },
+              { key: 'publicitySecretary', label: 'প্রচার ও প্রকাশনা সম্পাদক', icon: '📢', data: execData.publicitySecretary, badgeColor: '#c2410c', badgeBg: '#ffedd5' },
+              { key: 'financeSecretary', label: 'অর্থ সম্পাদক', icon: '💰', data: execData.financeSecretary, badgeColor: '#4f46e5', badgeBg: '#e0e7ff' }
+            ].map(post => (
+              <div
+                key={post.key}
+                style={{
+                  background: '#f8fafc',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                }}
+              >
+                <div>
+                  <span style={{ background: post.badgeBg, color: post.badgeColor, fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                    {post.icon} {post.label}
+                  </span>
+                  <div style={{ fontSize: '15px', fontWeight: 900, color: '#0f172a', margin: '4px 0 2px 0' }}>
+                    {post.data?.name || '—'}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    শ্রেণি: {post.data?.class || '—'} • রোল: {toBn(post.data?.roll || '—')}
+                  </div>
+                  {post.data?.phone && (
+                    <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
+                      📱 {post.data.phone}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleStartEditPost(post.key, post.data)}
+                  style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '5px 8px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 800, cursor: 'pointer' }}
+                  title="তথ্য পরিবর্তন করুন"
+                >
+                  ✏️
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* SECTION B: MULTIPLE EXECUTIVE MEMBERS */}
+          <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '10px', padding: '16px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: '#166534', marginBottom: '10px' }}>
+              👥 কার্যনির্বাহী সদস্যবৃন্দ (একাধিক সদস্য যুক্তকরণ):
+            </div>
+
+            {/* Add Member Form */}
+            <form onSubmit={handleAddExecMember} style={{
+              background: '#ffffff',
+              border: '1px solid #cbd5e1',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '14px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '10px',
+              alignItems: 'flex-end'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '3px' }}>শিক্ষার্থীর নাম:</label>
+                <input
+                  type="text"
+                  required
+                  value={newMemberName}
+                  onChange={e => setNewMemberName(e.target.value)}
+                  placeholder="যেমন: আফরিন সুলতানা"
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '3px' }}>শ্রেণি:</label>
+                <select
+                  value={newMemberClass}
+                  onChange={e => setNewMemberClass(e.target.value)}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                >
+                  <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                  <option value="৭ম">৭ম শ্রেণি</option>
+                  <option value="৮ম">৮ম শ্রেণি</option>
+                  <option value="৯ম">৯ম শ্রেণি</option>
+                  <option value="১০ম">১০ম শ্রেণি</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '3px' }}>রোল নং:</label>
+                <input
+                  type="text"
+                  value={newMemberRoll}
+                  onChange={e => setNewMemberRoll(e.target.value)}
+                  placeholder="যেমন: ৩"
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  style={{ width: '100%', background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  ➕ সদস্য যুক্ত করুন
+                </button>
+              </div>
+            </form>
+
+            {/* Members Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+              {(execData.members || []).map(m => (
+                <div
+                  key={m.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+                  <div>
+                    <b style={{ fontSize: '13.5px', color: '#0f172a' }}>{m.name}</b>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                      শ্রেণি: {m.class} • রোল: {toBn(m.roll)}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveExecMember(m.id)}
+                    style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '4px 7px', borderRadius: '4px', fontSize: '10.5px', cursor: 'pointer' }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('coordinators')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: সমন্বয়ক ও বিচারক প্যানেল
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('membership')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: সদস্যপদের আবেদন ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT EXECUTIVE POST */}
+      {editingExecPost && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(3px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '460px',
+            width: '100%',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)',
+            border: '2px solid #065f46',
+            overflow: 'hidden'
+          }}>
+            <div style={{ background: '#065f46', color: '#ffffff', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <b style={{ fontSize: '15px' }}>✏️ পদাধিকারী তথ্য সম্পাদনা</b>
+              <button
+                type="button"
+                onClick={() => setEditingExecPost(null)}
+                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '16px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSavePostEdit} style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শিক্ষার্থীর নাম:</label>
+                <input
+                  type="text"
+                  required
+                  value={execEditForm.name}
+                  onChange={e => setExecEditForm({ ...execEditForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শ্রেণি:</label>
+                  <input
+                    type="text"
+                    value={execEditForm.class}
+                    onChange={e => setExecEditForm({ ...execEditForm, class: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>রোল:</label>
+                  <input
+                    type="text"
+                    value={execEditForm.roll}
+                    onChange={e => setExecEditForm({ ...execEditForm, roll: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>মোবাইল (ঐচ্ছিক):</label>
+                <input
+                  type="text"
+                  value={execEditForm.phone}
+                  onChange={e => setExecEditForm({ ...execEditForm, phone: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingExecPost(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  💾 সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 5: সদস্যপদের আবেদন */}
+      {/* ========================================================================= */}
+      {litTab === 'membership' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৫
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                📋 ভাষা ও সাহিত্য ক্লাব সদস্যপদের আবেদন ফরম
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                ৬ষ্ঠ থেকে ১০ম শ্রেণির যে কোনো শিক্ষার্থী ক্লাবের নিয়মিত সদস্য হিসেবে অনলাইনে আবেদন করতে পারবে
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={fillMemberDemo}
+              style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              🪄 ডেমো তথ্য পূরণ
+            </button>
+          </div>
+
+          {memberReceipt ? (
+            <div style={{ background: '#ecfdf5', border: '2px solid #059669', borderRadius: '10px', padding: '18px', textAlign: 'center', marginBottom: '16px' }}>
+              <div style={{ fontSize: '38px', marginBottom: '4px' }}>🎉</div>
+              <h4 style={{ margin: '0 0 4px 0', color: '#065f46', fontSize: '17px' }}>সদস্যপদের আবেদন সফলভাবে গৃহীত হয়েছে!</h4>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: '#047857' }}>
+                ট্র্যাকিং আইডি: <b style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #86efac' }}>{memberReceipt.tracking_id}</b>
+              </p>
+              <div style={{ maxWidth: '460px', margin: '0 auto 14px auto', background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #bbf7d0', textAlign: 'left', fontSize: '12.5px' }}>
+                <div><b>নাম:</b> {memberReceipt.student_name} (শ্রেণি {memberReceipt.class_name}, রোল {toBn(memberReceipt.roll_no)})</div>
+                <div><b>বিভাগ:</b> {memberReceipt.department} • <b>মোবাইল:</b> {memberReceipt.mobile}</div>
+                <div><b>আগ্রহের ক্ষেত্র:</b> {memberReceipt.interests}</div>
+                <div><b>তারিখ:</b> {memberReceipt.date}</div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  🖨️ আবেদন কপি প্রিন্ট
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMemberReceipt(null)}
+                  style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 14px', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  নতুন আবেদন
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleMemberSubmit} style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শিক্ষার্থীর পূর্ণ নাম *</label>
+                  <input
+                    type="text"
+                    required
+                    value={memberForm.student_name}
+                    onChange={e => setMemberForm({ ...memberForm, student_name: e.target.value })}
+                    placeholder="যেমন: ফাতেমা আক্তার"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শ্রেণি *</label>
+                  <select
+                    value={memberForm.class_name}
+                    onChange={e => setMemberForm({ ...memberForm, class_name: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  >
+                    <option value="৬">৬ষ্ঠ শ্রেণি</option>
+                    <option value="৭">৭ম শ্রেণি</option>
+                    <option value="৮">৮ম শ্রেণি</option>
+                    <option value="৯">৯ম শ্রেণি</option>
+                    <option value="১০">১০ম শ্রেণি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শ্রেণি রোল নং *</label>
+                  <input
+                    type="text"
+                    required
+                    value={memberForm.roll_no}
+                    onChange={e => setMemberForm({ ...memberForm, roll_no: e.target.value })}
+                    placeholder="যেমন: ২"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শাখা / বিভাগ</label>
+                  <select
+                    value={memberForm.department}
+                    onChange={e => setMemberForm({ ...memberForm, department: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  >
+                    <option value="সাধারণ">সাধারণ (৬ষ্ঠ-৮ম)</option>
+                    <option value="বিজ্ঞান">বিজ্ঞান</option>
+                    <option value="মানবিক">মানবিক</option>
+                    <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>যোগাযোগের মোবাইল নম্বর *</label>
+                  <input
+                    type="text"
+                    required
+                    value={memberForm.mobile}
+                    onChange={e => setMemberForm({ ...memberForm, mobile: e.target.value })}
+                    placeholder="যেমন: 01712-998877"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>আগ্রহের ক্ষেত্র</label>
+                  <input
+                    type="text"
+                    value={memberForm.interests}
+                    onChange={e => setMemberForm({ ...memberForm, interests: e.target.value })}
+                    placeholder="যেমন: কবিতা, গল্প, আবৃত্তি, বাচনভঙ্গি"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: '13.5px', fontWeight: 800, cursor: 'pointer' }}
+              >
+                📝 সদস্যপদ আবেদন জমা দিন
+              </button>
+            </form>
+          )}
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('executive')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: কার্যনির্বাহী পরিষদ
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('programs')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: বাৎসরিক কর্মসূচি ও ক্যালেন্ডার ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 6: বাৎসরিক কর্মসূচি ও ক্যালেন্ডার */}
+      {/* ========================================================================= */}
+      {litTab === 'programs' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+              ফিচার ৬
+            </span>
+            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+              🗓️ বাৎসরিক সাহিত্য কর্মসূচি ও ইভেন্ট ক্যালেন্ডার (২০২৬)
+            </h3>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+              ১২ মাসের সুবিন্যস্ত সাহিত্য উৎসব, প্রতিযোগিতা, পাঠচক্র ও দেয়াল পত্রিকা প্রকাশের সময়সূচি
+            </p>
+          </div>
+
+          <div style={{
+            background: '#ecfdf5',
+            border: '1px solid #86efac',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <span style={{ fontSize: '28px' }}>📖</span>
+            <div>
+              <b style={{ color: '#065f46', fontSize: '14px' }}>সাপ্তাহিক লাইব্রেরি পাঠচক্র ও সাহিত্য আড্ডা</b>
+              <div style={{ fontSize: '12.5px', color: '#166534' }}>
+                প্রতি সপ্তাহের <b>বৃহস্পতিবার বিকাল ৩:৩০ মি.</b> বিদ্যালয় লাইব্রেরি কক্ষে অনুষ্ঠিত হয়।
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+            {[
+              { month: 'জানুয়ারি', title: 'নবীনবরণ ও সাহিত্য আসর', date: '১৫ জানুয়ারি', tag: 'সাহিত্য আসর' },
+              { month: 'ফেব্রুয়ারি', title: 'একুশে ফেব্রুয়ারি সংকলন ও রচনা প্রতিযোগিতা', date: '২১ ফেব্রুয়ারি', tag: 'কিশলয় প্রকাশ' },
+              { month: 'মার্চ', title: 'স্বাধীনতা দিবস কবিতা আবৃত্তি ও বক্তৃতা', date: '২৬ মার্চ', tag: 'জাতীয় উৎসব' },
+              { month: 'এপ্রিল', title: 'বৈশাখী সাহিত্য আড্ডা ও লোকগীতি কর্মশালা', date: '১৪ এপ্রিল', tag: 'লোকসংস্কৃতি' },
+              { month: 'মে', title: 'রবীন্দ্র-নজরুল জন্মজয়ন্তী ও স্মৃতিচারণ', date: '২৫ বৈশাখ / ১১ জ্যৈষ্ঠ', tag: 'জয়ন্তী পালন' },
+              { month: 'জুন', title: 'ত্রৈমাসিক সাহিত্য বুলেটিন প্রকাশ', date: '২০ জুন', tag: 'বুলেটিন' },
+              { month: 'জুলাই', title: 'প্রমিত বানানরীতি ও ব্যাকরণ অলিম্পিয়াড', date: '১০ জুলাই', tag: 'অলিম্পিয়াড' },
+              { month: 'আগস্ট', title: 'জাতীয় শোক দিবসের কবিতা ও শোকগাথা পাঠ', date: '১৫ আগস্ট', tag: 'স্মৃতিচারণ' },
+              { month: 'সেপ্টেম্বর', title: 'Spoken English & Vocabulary Week', date: '১৮-২৪ সেপ্টেম্বর', tag: 'ইংরেজি ভাষা' },
+              { month: 'অক্টোবর', title: 'দেয়াল পত্রিকা ‘কিশলয়’ শারদীয় সংখ্যা', date: '১৫ অক্টোবর', tag: 'দেয়ালিকা' },
+              { month: 'নভেম্বর', title: 'বার্ষিক সাহিত্য সপ্তাহ ও নাট্য প্রদর্শনী', date: '১০-১৫ নভেম্বর', tag: 'সাহিত্য সপ্তাহ' },
+              { month: 'ডিসেম্বর', title: 'বিজয় দিবস ক্রোড়পত্র ও সেরা পাঠক সম্মাননা', date: '১৬ ডিসেম্বর', tag: 'পুরস্কার বিতরণ' }
+            ].map(item => (
+              <div
+                key={item.month}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div>
+                  <span style={{ background: '#dcfce7', color: '#166534', fontSize: '10.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                    {item.month} • {item.tag}
+                  </span>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0f172a', marginTop: '3px' }}>
+                    {item.title}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    তারিখ: {item.date}
+                  </div>
+                </div>
+                <div style={{ fontSize: '20px' }}>🗓️</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('membership')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: সদস্যপদের আবেদন
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('submission')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: লেখা জমা ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 7: লেখা জমা */}
+      {/* ========================================================================= */}
+      {litTab === 'submission' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৭
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                ✍️ স্বরচিত লেখা জমা দিন (দেয়াল পত্রিকা ‘কিশলয়’)
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                কবিতা, ছোটগল্প, ছড়া, প্রবন্ধ, বুক রিভিউ ও ক্রিয়েটিভ ইংলিশ রাইটিং জমা দিলে সম্পাদনা পরিষদ কর্তৃক কিশলয়ে প্রকাশিত হবে
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={fillWriteDemo}
+              style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              🪄 ডেমো লেখা পূরণ
+            </button>
+          </div>
+
+          {writeReceipt ? (
+            <div style={{ background: '#ecfdf5', border: '2px solid #059669', borderRadius: '10px', padding: '18px', textAlign: 'center', marginBottom: '16px' }}>
+              <div style={{ fontSize: '38px', marginBottom: '4px' }}>📜</div>
+              <h4 style={{ margin: '0 0 4px 0', color: '#065f46', fontSize: '17px' }}>তোমার লেখা সফলভাবে জমা হয়েছে!</h4>
+              <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: '#047857' }}>
+                ট্র্যাকিং নম্বর: <b style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #86efac' }}>{writeReceipt.tracking_id}</b>
+              </p>
+              <div style={{ maxWidth: '460px', margin: '0 auto 14px auto', background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #bbf7d0', textAlign: 'left', fontSize: '12.5px' }}>
+                <div><b>শিরোনাম:</b> {writeReceipt.title}</div>
+                <div><b>লেখক:</b> {writeReceipt.student_name} (শ্রেণি {writeReceipt.class_name}, রোল {toBn(writeReceipt.roll_no)})</div>
+                <div><b>ধরন:</b> {writeReceipt.type === 'poem' ? 'কবিতা' : writeReceipt.type === 'story' ? 'ছোটগল্প' : writeReceipt.type}</div>
+                <div><b>স্থিতি:</b> <span style={{ color: '#d97706', fontWeight: 700 }}>সম্পাদনা পরিষদে অপেক্ষমাণ</span></div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  🖨️ জমা রসিদ প্রিন্ট
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWriteReceipt(null)}
+                  style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 14px', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  আরেকটি লেখা জমা দিন
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleWriteSubmit} style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '18px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখকের নাম *</label>
+                  <input
+                    type="text"
+                    required
+                    value={writeForm.student_name}
+                    onChange={e => setWriteForm({ ...writeForm, student_name: e.target.value })}
+                    placeholder="যেমন: ফারজানা মেহজাবীন"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শ্রেণি *</label>
+                  <select
+                    value={writeForm.class_name}
+                    onChange={e => setWriteForm({ ...writeForm, class_name: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  >
+                    <option value="৬">৬ষ্ঠ শ্রেণি</option>
+                    <option value="৭">৭ম শ্রেণি</option>
+                    <option value="৮">৮ম শ্রেণি</option>
+                    <option value="৯">৯ম শ্রেণি</option>
+                    <option value="১০">১০ম শ্রেণি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>রোল নং</label>
+                  <input
+                    type="text"
+                    value={writeForm.roll_no}
+                    onChange={e => setWriteForm({ ...writeForm, roll_no: e.target.value })}
+                    placeholder="যেমন: ৩"
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখার ধরন *</label>
+                  <select
+                    value={writeForm.type}
+                    onChange={e => setWriteForm({ ...writeForm, type: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  >
+                    <option value="poem">📜 স্বরচিত কবিতা</option>
+                    <option value="story">📖 ছোটগল্প</option>
+                    <option value="rhyme">🌸 ছড়া</option>
+                    <option value="essay">💡 প্রবন্ধ / নিবন্ধ</option>
+                    <option value="book_review">📝 বুক রিভিউ</option>
+                    <option value="english">🇬🇧 Creative English Writing</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখার শিরোনাম *</label>
+                <input
+                  type="text"
+                  required
+                  value={writeForm.title}
+                  onChange={e => setWriteForm({ ...writeForm, title: e.target.value })}
+                  placeholder="যেমন: শব্দের খেয়ায় পদ্মা পার"
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখার মূল বিষয়বস্তু (কবিতা/গল্প/প্রবন্ধ) *</label>
+                <textarea
+                  rows="6"
+                  required
+                  value={writeForm.content}
+                  onChange={e => setWriteForm({ ...writeForm, content: e.target.value })}
+                  placeholder="তোমার লেখাটি এখানে নির্ভুল বানানে টাইপ করো..."
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', lineHeight: '1.6' }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '10px 24px', borderRadius: '6px', fontSize: '13.5px', fontWeight: 800, cursor: 'pointer' }}
+              >
+                🚀 লেখা জমা দিন
+              </button>
+            </form>
+          )}
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('programs')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: বাৎসরিক কর্মসূচি
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('competitions')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: সাহিত্য প্রতিযোগিতা ও ফলাফল ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 8: সাহিত্য প্রতিযোগিতা ও ফলাফল */}
+      {/* ========================================================================= */}
+      {litTab === 'competitions' && (
+        <div>
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #bbf7d0',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px'
+          }}>
+            <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+              ফিচার ৮
+            </span>
+            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+              📜 সাহিত্য প্রতিযোগিতা আয়োজন, বিচারকমণ্ডলীর স্কোরিং ও ফলাফল প্রস্তুত
+            </h3>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+              আবৃত্তি, রচনা, উপস্থিত বক্তৃতা ও সুন্দর হাতের লেখা প্রতিযোগিতা নিয়ন্ত্রণ ও চূড়ান্ত মেধা তালিকা প্রকাশ
+            </p>
+          </div>
+
+          <ClubCompetitionEngine activeClub="literature" teachers={teachers} />
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('submission')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: লেখা জমা
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('showcase')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: দেয়াল পত্রিকা প্রকাশ ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 9: দেয়াল পত্রিকা প্রকাশ (কিশলয়) */}
+      {/* ========================================================================= */}
+      {litTab === 'showcase' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ৯
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+                📰 দেয়াল পত্রিকা ‘কিশলয়’ — প্রকাশনা ও সাহিত্য শোকেস
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের শিক্ষার্থীদের স্বহস্তে রচিত কবিতা, গল্প ও চিত্রাঙ্কনের ত্রৈমাসিক সংকলন
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLitTab('submission')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              ➕ নতুন লেখা জমা দিন ➔
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            {DEFAULT_KISHALAYA_ITEMS.map(item => (
+              <div
+                key={item.id}
+                style={{
+                  background: '#f8fafc',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ background: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                      {item.type}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>{item.date}</span>
+                  </div>
+                  <h4 style={{ margin: '4px 0', fontSize: '16.5px', color: '#0f172a', fontWeight: 900 }}>
+                    {item.title}
+                  </h4>
+                  <div style={{ fontSize: '12px', color: '#047857', fontWeight: 700, marginBottom: '8px' }}>
+                    ✍️ {item.author} ({item.class_info})
+                  </div>
+                  <p style={{ margin: 0, fontSize: '12.5px', color: '#475569', lineHeight: '1.6', fontStyle: 'italic' }}>
+                    “{item.excerpt}”
+                  </p>
+                </div>
+
+                <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <small style={{ color: '#64748b', fontSize: '11px' }}>{item.issue}</small>
+                  <button
+                    type="button"
+                    onClick={() => setReadingItem(item)}
+                    style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '5px 12px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    📖 সম্পূর্ণ পড়ুন
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('competitions')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: সাহিত্য প্রতিযোগিতা
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('achievements')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: অর্জন ও ট্রফি গ্যালারি ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 10: অর্জন ও ট্রফি গ্যালারি */}
+      {/* ========================================================================= */}
+      {litTab === 'achievements' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ marginBottom: '16px' }}>
+            <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+              ফিচার ১০
+            </span>
+            <h3 style={{ margin: '4px 0 2px 0', fontSize: '18px', fontWeight: 900, color: '#065f46' }}>
+              🏆 ক্লাবের গৌরবময় অর্জন ও ট্রফি গ্যালারি
+            </h3>
+            <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+              উপজেলা, জেলা ও জাতীয় পর্যায়ে ভাষা ও সাহিত্য ক্লাবের অবিস্মরণীয় সাফল্যগাথা
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+            {[
+              {
+                icon: '🏆',
+                year: '২০২৫',
+                title: 'কালিহাতি উপজেলা সাহিত্য সপ্তাহ — সামগ্রিক চ্যাম্পিয়ন',
+                desc: 'আবৃত্তি ও স্বরচিত গল্প প্রতিযোগিতায় উপজেলার সকল বিদ্যালয়ের মধ্যে সর্বোচ্চ পয়েন্ট অর্জন।',
+                status: 'চ্যাম্পিয়ন ট্রফি'
+              },
+              {
+                icon: '🥇',
+                year: '২০২৫',
+                title: 'টাঙ্গাইল জেলা সৃজনশীল মেধা অন্বেষণ — ১ম স্থান',
+                desc: '‘ভাষা ও সাহিত্য’ বিভাগে ১০ম শ্রেণির শিক্ষার্থী তানভীর আহমেদ জেলা পর্যায়ে প্রথম স্থান অধিকার করেন।',
+                status: 'স্বর্ণপদক ও সনদ'
+              },
+              {
+                icon: '🥈',
+                year: '২০২৪',
+                title: 'জাতীয় রবীন্দ্র-নজরুল জন্মজয়ন্তী কবিতা আবৃত্তি — ২য় স্থান',
+                desc: 'উপজেলা পর্যায়ের চূড়ান্ত পর্বে ৯ম শ্রেণির ছাত্রী ফাতেমা আক্তার নজরুলের ‘বিদ্রোহী’ আবৃত্তি করে রানার্স-আপ হন।',
+                status: 'রৌপ্যপদক'
+              },
+              {
+                icon: '🎖️',
+                year: '২০২৪',
+                title: 'জেলা পর্যায়ে ‘সেরা দেয়াল পত্রিকা’ বিশেষ স্বীকৃতি',
+                desc: 'মগড়া পালস্ স্কুলের ত্রৈমাসিক দেয়াল পত্রিকা ‘কিশলয়’ টাঙ্গাইল জেলার মধ্যে শ্রেষ্ঠ দেয়াল পত্রিকা হিসেবে পুরস্কৃত।',
+                status: 'বিশেষ স্মারক'
+              }
+            ].map((ach, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+                  border: '1.5px solid #86efac',
+                  borderRadius: '10px',
+                  padding: '16px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px'
+                }}
+              >
+                <div style={{ fontSize: '32px' }}>{ach.icon}</div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <span style={{ background: '#dcfce7', color: '#166534', fontSize: '10.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                      {ach.year}
+                    </span>
+                    <span style={{ background: '#fef3c7', color: '#92400e', fontSize: '10.5px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
+                      {ach.status}
+                    </span>
+                  </div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '14.5px', color: '#0f172a', fontWeight: 800 }}>
+                    {ach.title}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: '1.5' }}>
+                    {ach.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('showcase')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: দেয়াল পত্রিকা প্রকাশ
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('conduct')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              পরবর্তী ফিচার: শৃংখলা ও আচরণ বিধি ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* FEATURE 11: শৃংখলা ও আচরণ বিধি */}
+      {/* ========================================================================= */}
+      {litTab === 'conduct' && (
+        <div style={{
+          background: '#ffffff',
+          border: '1.5px solid #bbf7d0',
+          borderRadius: '12px',
+          padding: '22px',
+          boxShadow: '0 3px 10px rgba(4,120,87,0.05)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+            <div>
+              <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #86efac', padding: '2px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ফিচার ১১
+              </span>
+              <h3 style={{ margin: '4px 0 2px 0', fontSize: '19px', fontWeight: 900, color: '#065f46' }}>
+                ⚖️ ভাষা ও সাহিত্য ক্লাব শৃংখলা ও আচরণ বিধি (Code of Conduct)
+              </h3>
+              <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
+                ক্লাবের প্রত্যেক সদস্য ও কার্যনির্বাহী পরিষদ সদস্যের জন্য অবশ্য পালনীয় ৭টি শৃঙ্খলা বিধি
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => window.print()}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <span>🖨️</span>
+              <span>আচরণ বিধি প্রিন্ট</span>
+            </button>
+          </div>
+
+          {/* 7 Rules Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', marginBottom: '20px' }}>
+            {[
+              { num: '১', rule: 'বাংলা ও ইংরেজি উভয় ভাষার প্রতি সম্মান প্রদর্শন করতে হবে।' },
+              { num: '২', rule: 'ভাষা ব্যবহারে শালীনতা ও শুদ্ধতা বজায় রাখতে হবে।' },
+              { num: '৩', rule: 'অন্যের লেখা অনুমতি ছাড়া নিজের নামে প্রকাশ করা যাবে না।' },
+              { num: '৪', rule: 'সাহিত্যচর্চায় ধর্ম, বর্ণ, লিঙ্গ বা ব্যক্তিগত পরিচয় নিয়ে বিদ্বেষমূলক বক্তব্য দেওয়া যাবে না।' },
+              { num: '৫', rule: 'অন্যের মতামত ও সৃজনশীলতাকে সম্মান করতে হবে।' },
+              { num: '৬', rule: 'সাহিত্য ও প্রকাশনার ক্ষেত্রে তথ্যের সত্যতা যাচাই করতে হবে।' },
+              { num: '৭', rule: 'ক্লাবের কার্যক্রমে নিয়মিত অংশগ্রহণ করতে হবে।' }
+            ].map(r => (
+              <div
+                key={r.num}
+                style={{
+                  background: '#f8fafc',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+                }}
+              >
+                <div style={{
+                  background: '#047857',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  {r.num}
+                </div>
+                <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#1e293b', lineHeight: '1.5' }}>
+                  {r.rule}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Member Pledge Box */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
+            border: '2px dashed #059669',
+            borderRadius: '10px',
+            padding: '16px 20px',
+            textAlign: 'center'
+          }}>
+            <b style={{ color: '#065f46', fontSize: '14px', display: 'block', marginBottom: '4px' }}>
+              📜 ক্লাবের সদস্যের নৈতিক অঙ্গীকার (Student Pledge)
+            </b>
+            <p style={{ margin: 0, fontSize: '13px', color: '#166534', lineHeight: '1.7', fontStyle: 'italic' }}>
+              “আমি শপথ করছি যে, আমি ভাষা ও সাহিত্য ক্লাবের প্রতিটি নিয়ম ও শৃংখলা নিষ্ঠার সাথে মেনে চলব। মাতৃভাষার শুদ্ধতা রক্ষা করব, সকল ভাষার প্রতি শ্রদ্ধাশীল হব এবং আমার সৃজনশীল মনন দিয়ে সমাজ ও দেশের কল্যাণে অবদান রাখব।”
+            </p>
+          </div>
+
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setLitTab('achievements')}
+              style={{ background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+            >
+              ⬅️ পূর্ববর্তী: অর্জন ও ট্রফি গ্যালারি
+            </button>
+            <button
+              type="button"
+              onClick={() => setLitTab('identity')}
+              style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+            >
+              ১ম ফিচার: ক্লাব পরিচিতি ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* READING MODAL FOR KISHALAYA ARTICLES */}
+      {readingItem && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(3px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)',
+            border: '2px solid #059669'
+          }}>
+            <div style={{ background: '#065f46', color: '#ffffff', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ background: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
+                  {readingItem.type}
+                </span>
+                <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: 900 }}>
+                  {readingItem.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReadingItem(null)}
+                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '20px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #cbd5e1', paddingBottom: '10px', marginBottom: '14px', fontSize: '12.5px' }}>
+                <div>
+                  <b>লেখক:</b> {readingItem.author} ({readingItem.class_info})
+                </div>
+                <div style={{ color: '#64748b' }}>
+                  📅 {readingItem.date}
+                </div>
+              </div>
+
+              <div style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '16px',
+                fontSize: '14px',
+                lineHeight: '1.8',
+                color: '#1e293b',
+                whiteSpace: 'pre-line',
+                fontFamily: readingItem.type.includes('English') ? 'Arial, sans-serif' : "'SolaimanLipi', sans-serif"
+              }}>
+                {readingItem.full_text}
+              </div>
+
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <small style={{ color: '#64748b' }}>দেয়াল পত্রিকা ‘কিশলয়’ • মগড়া পালস্ ভাষা ও সাহিত্য ক্লাব</small>
+                <button
+                  type="button"
+                  onClick={() => setReadingItem(null)}
+                  style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  বন্ধ করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -11,6 +11,7 @@ import {
 import { ClubAcademyUnifiedHub } from './ClubAcademyUnifiedHub';
 import { requestApi } from './apiClient';
 import { ClubCompetitionEngine } from './ClubCompetitionEngine';
+import { LiteratureClubMasterSection } from './LiteratureClubMasterSection';
 
 export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }) {
   const determineInitialClub = () => {
@@ -800,8 +801,18 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
         </div>
       )}
 
-      {/* WHEN A SPECIFIC CLUB IS ACTIVE: SHOW ONLY THAT CLUB */}
-      {activeClub !== 'hub' && (
+      {/* WHEN LITERATURE CLUB IS ACTIVE: SHOW COMPLETE 11-FEATURE MASTER SECTION */}
+      {activeClub === 'literature' && (
+        <LiteratureClubMasterSection
+          teachers={teachers}
+          dynamicContent={dynamicContent}
+          initialTab={clubTab}
+          onBackToHub={() => setActiveClub('hub')}
+        />
+      )}
+
+      {/* WHEN OTHER SPECIFIC CLUBS ARE ACTIVE (DEBATE, SCIENCE, ICT): SHOW ONLY THAT CLUB */}
+      {activeClub !== 'hub' && activeClub !== 'literature' && (
         <div>
 
       {/* DYNAMIC CLUB HERO BANNER */}

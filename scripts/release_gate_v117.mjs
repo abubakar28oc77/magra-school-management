@@ -21,7 +21,7 @@ check('frontend source exists', exists('frontend/src/main.jsx'));
 
 const nm = exists('frontend/node_modules') && exists('frontend/node_modules/.bin/vite');
 if (nm) {
-  const r = spawnSync('npm',['run','build'],{cwd:path.join(root,'frontend'),stdio:'ignore',shell:false});
+  const r = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { cwd: path.join(root, 'frontend'), stdio: 'ignore', shell: true });
   check('frontend production build', r.status===0, r.status===0?'':'npm run build failed');
 } else {
   check('frontend production build', false, 'BLOCKED: frontend/node_modules is not installed in this environment; run npm ci then npm run build on a machine with package installation access.');
