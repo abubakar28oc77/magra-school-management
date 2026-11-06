@@ -14,6 +14,7 @@ import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 import { LiteratureClubMasterSection } from './LiteratureClubMasterSection';
 import { IctClubMasterSection } from './IctClubMasterSection';
 import { ScienceClubMasterSection } from './ScienceClubMasterSection';
+import { DebateClubMasterSection } from './DebateClubMasterSection';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }) {
@@ -1052,8 +1053,17 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
         />
       )}
 
-      {/* WHEN OTHER SPECIFIC CLUBS ARE ACTIVE (DEBATE): SHOW ONLY THAT CLUB */}
-      {activeClub !== 'hub' && activeClub !== 'literature' && activeClub !== 'ict' && activeClub !== 'science' && (
+      {/* WHEN DEBATE CLUB IS ACTIVE: SHOW COMPLETE 12-FEATURE MASTER SECTION */}
+      {activeClub === 'debate' && (
+        <DebateClubMasterSection
+          teachers={teachers}
+          initialTab={clubTab}
+          onBackToHub={() => setActiveClub('hub')}
+        />
+      )}
+
+      {/* WHEN OTHER SPECIFIC CLUBS ARE ACTIVE: SHOW ONLY THAT CLUB */}
+      {activeClub !== 'hub' && activeClub !== 'literature' && activeClub !== 'ict' && activeClub !== 'science' && activeClub !== 'debate' && (
         <div>
 
       {/* DYNAMIC CLUB HERO BANNER */}

@@ -29,18 +29,18 @@ const DEFAULT_SESSIONS = [
     propTeam: {
       teamName: 'অগ্রগামী সরকারি দল (৯ম শ্রেণি)',
       speakers: [
-        { name: 'মাহফুজ আহমেদ', class_name: '৯ম শ্রেণি', roll_no: '২', role: '১ম বক্তা (প্রধানমন্ত্রী)', logic: 24, delivery: 23, rebut: 23, discipline: 23, total: 93 },
-        { name: 'ফারজানা মেহজাবীন', class_name: '৯ম শ্রেণি', roll_no: '৩', role: '২য় বক্তা (মন্ত্রী)', logic: 24, delivery: 24, rebut: 23, discipline: 24, total: 95 },
-        { name: 'সুমাইয়া আক্তার', class_name: '৯ম শ্রেণি', roll_no: '৪', role: '৩য় বক্তা (দলনেতা ও সরকার দলীয় হুইপ)', logic: 25, delivery: 25, rebut: 24, discipline: 24, total: 98 }
+        { name: 'মাহফুজ আহমেদ', class_name: '৯ম শ্রেণি', roll_no: '২', role: '১ম বক্তা (প্রধানমন্ত্রী)', logicAnalysis: 28, factsEvidence: 19, presentation: 19, rebuttal: 14, languageDecorum: 9, timeManagement: 5, total: 94 },
+        { name: 'ফারজানা মেহজাবীন', class_name: '৯ম শ্রেণি', roll_no: '৩', role: '২য় বক্তা (মন্ত্রী)', logicAnalysis: 29, factsEvidence: 19, presentation: 19, rebuttal: 14, languageDecorum: 10, timeManagement: 5, total: 96 },
+        { name: 'সুমাইয়া আক্তার', class_name: '৯ম শ্রেণি', roll_no: '৪', role: '৩য় বক্তা (দলনেতা ও সরকার দলীয় হুইপ)', logicAnalysis: 30, factsEvidence: 20, presentation: 20, rebuttal: 15, languageDecorum: 10, timeManagement: 5, total: 100 }
       ],
-      totalScore: 286
+      totalScore: 290
     },
     oppTeam: {
       teamName: 'যুক্তিযোদ্ধা বিরোধী দল (১০ম শ্রেণি)',
       speakers: [
-        { name: 'তানভীর আহমেদ', class_name: '১০ম শ্রেণি', roll_no: '১', role: '১ম বক্তা (বিরোধী দলনেতা)', logic: 24, delivery: 23, rebut: 22, discipline: 23, total: 92 },
-        { name: 'রাহাত হাসান', class_name: '১০ম শ্রেণি', roll_no: '৫', role: '২য় বক্তা (উপনেতা)', logic: 23, delivery: 24, rebut: 23, discipline: 23, total: 93 },
-        { name: 'নাফিজা ইসলাম', class_name: '১০ম শ্রেণি', roll_no: '৬', role: '৩য় বক্তা (বিরোধী দলীয় হুইপ)', logic: 23, delivery: 22, rebut: 22, discipline: 22, total: 89 }
+        { name: 'তানভীর আহমেদ', class_name: '১০ম শ্রেণি', roll_no: '১', role: '১ম বক্তা (বিরোধী দলনেতা)', logicAnalysis: 27, factsEvidence: 18, presentation: 19, rebuttal: 14, languageDecorum: 9, timeManagement: 5, total: 92 },
+        { name: 'রাহাত হাসান', class_name: '১০ম শ্রেণি', roll_no: '৫', role: '২য় বক্তা (উপনেতা)', logicAnalysis: 28, factsEvidence: 19, presentation: 18, rebuttal: 14, languageDecorum: 9, timeManagement: 5, total: 93 },
+        { name: 'নাফিজা ইসলাম', class_name: '১০ম শ্রেণি', roll_no: '৬', role: '৩য় বক্তা (বিরোধী দলীয় হুইপ)', logicAnalysis: 26, factsEvidence: 18, presentation: 18, rebuttal: 13, languageDecorum: 9, timeManagement: 5, total: 89 }
       ],
       totalScore: 274
     },
@@ -48,8 +48,8 @@ const DEFAULT_SESSIONS = [
       winner: 'prop', // 'prop' | 'opp'
       winnerName: 'অগ্রগামী সরকারি দল (৯ম শ্রেণি)',
       runnerUpName: 'যুক্তিযোদ্ধা বিরোধী দল (১০ম শ্রেণি)',
-      margin: 12,
-      bestSpeaker: 'সুমাইয়া আক্তার (৯ম শ্রেণি, সরকারি দল — প্রাপ্ত নম্বর: ৯৮/১০০)',
+      margin: 16,
+      bestSpeaker: 'সুমাইয়া আক্তার (৯ম শ্রেণি, সরকারি দল — প্রাপ্ত নম্বর: ১০০/১০০)',
       judgesRemarks: 'উভয় দলই সমসাময়িক বৈশ্বিক প্রেক্ষাপট ও এআই প্রযুক্তির ওপর প্রামাণ্য তথ্য ও যুক্তি উপস্থাপন করেছে। সরকারি দলের ৩য় বক্তা বিপক্ষের তথ্যের অসঙ্গতি যুক্তিপূর্ণভাবে খণ্ডন করে সভার নিয়ন্ত্রণ ধরে রাখেন।'
     }
   },
@@ -460,22 +460,24 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
         </table>
 
         ${isDebate ? `
-          <h4 style="margin:8px 0 4px 0;font-size:13.5px;color:#0f172a;">📊 পক্ষ ও বিপক্ষ দলের বিতার্কিকদের পূর্ণাঙ্গ স্কোরকার্ড</h4>
+          <h4 style="margin:8px 0 4px 0;font-size:13.5px;color:#0f172a;">📊 পক্ষ ও বিপক্ষ দলের বিতার্কিকদের পূর্ণাঙ্গ স্কোরকার্ড (১০০ নম্বরের সুনির্দিষ্ট মানবণ্টন)</h4>
           <table class="score-table">
             <thead>
               <tr>
-                <th style="width:16%;">দল ও পরিচয়</th>
-                <th style="width:24%;">বিতার্কিকের নাম ও শ্রেণি</th>
-                <th>যুক্তি ও তথ্য (২৫)</th>
-                <th>বাচনভঙ্গি (২৫)</th>
-                <th>খণ্ডন শৈলী (২৫)</th>
-                <th>শৃঙ্খলা ও সময় (২৫)</th>
+                <th style="width:14%;">দল ও ভূমিকা</th>
+                <th style="width:20%;">বিতার্কিকের নাম ও শ্রেণি</th>
+                <th>যুক্তি ও বিশ্লেষণ (৩০)</th>
+                <th>তথ্য ও প্রমাণ (২০)</th>
+                <th>বক্তব্য উপস্থাপন (২০)</th>
+                <th>পাল্টা যুক্তি (১৫)</th>
+                <th>ভাষা ও শালীনতা (১০)</th>
+                <th>সময় ব্যবস্থাপনা (৫)</th>
                 <th>মোট স্কোর (১০০)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colspan="7" class="team-header" style="color:#166534;background:#f0fdf4;">
+                <td colspan="9" class="team-header" style="color:#166534;background:#f0fdf4;">
                   🏛️ সরকারি / পক্ষ দল: <b>${session.propTeam?.teamName || 'পক্ষ দল'}</b> (মোট নম্বর: <b>${session.propTeam?.totalScore || 0}/৩০০</b>)
                 </td>
               </tr>
@@ -483,16 +485,18 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
                 <tr>
                   <td>${sp.role || 'বক্তা'}</td>
                   <td style="text-align:left;font-weight:700;">${sp.name} <small style="color:#64748b;">(${sp.class_name}, রোল ${sp.roll_no || '—'})</small></td>
-                  <td>${sp.logic || 0}</td>
-                  <td>${sp.delivery || 0}</td>
-                  <td>${sp.rebut || 0}</td>
-                  <td>${sp.discipline || 0}</td>
-                  <td style="font-weight:800;background:#f8fafc;">${sp.total || 0}</td>
+                  <td>${sp.logicAnalysis ?? sp.logic ?? 0}</td>
+                  <td>${sp.factsEvidence ?? 0}</td>
+                  <td>${sp.presentation ?? sp.delivery ?? 0}</td>
+                  <td>${sp.rebuttal ?? sp.rebut ?? 0}</td>
+                  <td>${sp.languageDecorum ?? 0}</td>
+                  <td>${sp.timeManagement ?? sp.discipline ?? 0}</td>
+                  <td style="font-weight:800;background:#f8fafc;color:#166534;">${sp.total || 0}</td>
                 </tr>
               `).join('')}
 
               <tr>
-                <td colspan="7" class="team-header" style="color:#991b1b;background:#fef2f2;">
+                <td colspan="9" class="team-header" style="color:#991b1b;background:#fef2f2;">
                   ⚖️ বিরোধী / বিপক্ষ দল: <b>${session.oppTeam?.teamName || 'বিপক্ষ দল'}</b> (মোট নম্বর: <b>${session.oppTeam?.totalScore || 0}/৩০০</b>)
                 </td>
               </tr>
@@ -500,11 +504,13 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
                 <tr>
                   <td>${sp.role || 'বক্তা'}</td>
                   <td style="text-align:left;font-weight:700;">${sp.name} <small style="color:#64748b;">(${sp.class_name}, রোল ${sp.roll_no || '—'})</small></td>
-                  <td>${sp.logic || 0}</td>
-                  <td>${sp.delivery || 0}</td>
-                  <td>${sp.rebut || 0}</td>
-                  <td>${sp.discipline || 0}</td>
-                  <td style="font-weight:800;background:#f8fafc;">${sp.total || 0}</td>
+                  <td>${sp.logicAnalysis ?? sp.logic ?? 0}</td>
+                  <td>${sp.factsEvidence ?? 0}</td>
+                  <td>${sp.presentation ?? sp.delivery ?? 0}</td>
+                  <td>${sp.rebuttal ?? sp.rebut ?? 0}</td>
+                  <td>${sp.languageDecorum ?? 0}</td>
+                  <td>${sp.timeManagement ?? sp.discipline ?? 0}</td>
+                  <td style="font-weight:800;background:#f8fafc;color:#991b1b;">${sp.total || 0}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1817,13 +1823,31 @@ function ScoringModal({ session, activeClub, onClose, onSave }) {
   const isDebate = activeClub === 'debate';
   const [form, setForm] = useState(JSON.parse(JSON.stringify(session)));
 
-  // Auto calculate debate scores
+  // Auto calculate debate scores with specific 100-mark distribution
   const handleDebateScoreChange = (teamKey, speakerIdx, field, val) => {
-    const num = Math.min(25, Math.max(0, parseInt(val) || 0));
+    const maxLimits = {
+      logicAnalysis: 30,
+      factsEvidence: 20,
+      presentation: 20,
+      rebuttal: 15,
+      languageDecorum: 10,
+      timeManagement: 5,
+      logic: 25,
+      delivery: 25,
+      rebut: 25,
+      discipline: 25
+    };
+    const maxVal = maxLimits[field] || 30;
+    const num = Math.min(maxVal, Math.max(0, parseInt(val) || 0));
     const updated = JSON.parse(JSON.stringify(form));
     const speaker = updated[teamKey].speakers[speakerIdx];
     speaker[field] = num;
-    speaker.total = (speaker.logic || 0) + (speaker.delivery || 0) + (speaker.rebut || 0) + (speaker.discipline || 0);
+    speaker.total = (speaker.logicAnalysis ?? speaker.logic ?? 0) +
+                    (speaker.factsEvidence ?? 0) +
+                    (speaker.presentation ?? speaker.delivery ?? 0) +
+                    (speaker.rebuttal ?? speaker.rebut ?? 0) +
+                    (speaker.languageDecorum ?? 0) +
+                    (speaker.timeManagement ?? speaker.discipline ?? 0);
 
     // Sum team total
     updated[teamKey].totalScore = updated[teamKey].speakers.reduce((sum, sp) => sum + (sp.total || 0), 0);
@@ -1961,52 +1985,74 @@ function ScoringModal({ session, activeClub, onClose, onSave }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {(form.propTeam?.speakers || []).map((sp, sIdx) => (
-                    <div key={sIdx} style={{ background: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #bbf7d0', display: 'grid', gridTemplateColumns: '2fr repeat(4, 1fr) 1fr', gap: '8px', alignItems: 'center' }}>
+                    <div key={sIdx} style={{ background: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #bbf7d0', display: 'grid', gridTemplateColumns: '1.8fr repeat(6, 1fr) 0.9fr', gap: '6px', alignItems: 'center' }}>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '12.5px', color: '#0f172a' }}>{sp.name}</div>
+                        <div style={{ fontWeight: 800, fontSize: '12px', color: '#0f172a' }}>{sp.name}</div>
                         <small style={{ color: '#64748b' }}>{sp.role} • {sp.class_name}</small>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>যুক্তি (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>যুক্তি (৩০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.logic || 0}
-                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'logic', e.target.value)}
+                          max="30"
+                          value={sp.logicAnalysis ?? sp.logic ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'logicAnalysis', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>বাচনভঙ্গি (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>তথ্য (২০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.delivery || 0}
-                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'delivery', e.target.value)}
+                          max="20"
+                          value={sp.factsEvidence ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'factsEvidence', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>খণ্ডন (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>বক্তব্য (২০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.rebut || 0}
-                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'rebut', e.target.value)}
+                          max="20"
+                          value={sp.presentation ?? sp.delivery ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'presentation', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>শৃঙ্খলা (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>পাল্টা যুক্তি (১৫)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.discipline || 0}
-                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'discipline', e.target.value)}
+                          max="15"
+                          value={sp.rebuttal ?? sp.rebut ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'rebuttal', e.target.value)}
+                          style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>ভাষা/শালীনতা (১০)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={sp.languageDecorum ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'languageDecorum', e.target.value)}
+                          style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>সময় (৫)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="5"
+                          value={sp.timeManagement ?? sp.discipline ?? 0}
+                          onChange={e => handleDebateScoreChange('propTeam', sIdx, 'timeManagement', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
@@ -2031,52 +2077,74 @@ function ScoringModal({ session, activeClub, onClose, onSave }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {(form.oppTeam?.speakers || []).map((sp, sIdx) => (
-                    <div key={sIdx} style={{ background: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #fecaca', display: 'grid', gridTemplateColumns: '2fr repeat(4, 1fr) 1fr', gap: '8px', alignItems: 'center' }}>
+                    <div key={sIdx} style={{ background: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #fecaca', display: 'grid', gridTemplateColumns: '1.8fr repeat(6, 1fr) 0.9fr', gap: '6px', alignItems: 'center' }}>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '12.5px', color: '#0f172a' }}>{sp.name}</div>
+                        <div style={{ fontWeight: 800, fontSize: '12px', color: '#0f172a' }}>{sp.name}</div>
                         <small style={{ color: '#64748b' }}>{sp.role} • {sp.class_name}</small>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>যুক্তি (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>যুক্তি (৩০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.logic || 0}
-                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'logic', e.target.value)}
+                          max="30"
+                          value={sp.logicAnalysis ?? sp.logic ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'logicAnalysis', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>বাচনভঙ্গি (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>তথ্য (২০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.delivery || 0}
-                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'delivery', e.target.value)}
+                          max="20"
+                          value={sp.factsEvidence ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'factsEvidence', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>খণ্ডন (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>বক্তব্য (২০)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.rebut || 0}
-                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'rebut', e.target.value)}
+                          max="20"
+                          value={sp.presentation ?? sp.delivery ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'presentation', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', color: '#475569' }}>শৃঙ্খলা (২৫)</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>পাল্টা যুক্তি (১৫)</label>
                         <input
                           type="number"
                           min="0"
-                          max="25"
-                          value={sp.discipline || 0}
-                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'discipline', e.target.value)}
+                          max="15"
+                          value={sp.rebuttal ?? sp.rebut ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'rebuttal', e.target.value)}
+                          style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>ভাষা/শালীনতা (১০)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="10"
+                          value={sp.languageDecorum ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'languageDecorum', e.target.value)}
+                          style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#475569', whiteSpace: 'nowrap' }}>সময় (৫)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="5"
+                          value={sp.timeManagement ?? sp.discipline ?? 0}
+                          onChange={e => handleDebateScoreChange('oppTeam', sIdx, 'timeManagement', e.target.value)}
                           style={{ width: '100%', padding: '4px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
                         />
                       </div>
