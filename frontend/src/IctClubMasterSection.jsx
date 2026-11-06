@@ -13,6 +13,9 @@ const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭�
 // LocalStorage Keys
 const ICT_PANEL_KEY = 'magra_ict_club_panel_v1';
 const ICT_EXEC_KEY = 'magra_ict_club_exec_v1';
+const ICT_ACTIVITIES_KEY = 'magra_ict_activities_v1';
+const ICT_QUARTERLY_KEY = 'magra_ict_quarterly_plans_v1';
+const ICT_MONTHLY_KEY = 'magra_ict_monthly_calendar_v1';
 const ICT_MEMBERSHIPS_KEY = 'magra_ict_club_memberships_v1';
 const ICT_SUBMISSIONS_KEY = 'magra_ict_club_submissions_v1';
 const ICT_PROJECTS_KEY = 'magra_ict_club_projects_v1';
@@ -94,7 +97,7 @@ const DEFAULT_EXEC = {
   ]
 };
 
-// 10 Regular Activities
+// 10 Regular Activities Defaults
 const REGULAR_ACTIVITIES = [
   {
     id: 'act-1',
@@ -188,9 +191,10 @@ const REGULAR_ACTIVITIES = [
   }
 ];
 
-// Quarterly Plans
+// Quarterly Plans Defaults
 const QUARTERLY_PLANS = [
   {
+    id: 'q-1',
     quarter: 'জানুয়ারি–মার্চ',
     title: 'সদস্য সংগ্রহ, ভিত্তি প্রশিক্ষণ ও কুইজ',
     color: '#0284c7',
@@ -203,6 +207,7 @@ const QUARTERLY_PLANS = [
     ]
   },
   {
+    id: 'q-2',
     quarter: 'এপ্রিল–জুন',
     title: 'দক্ষতা উন্নয়ন, ডিজিটাল ডিজাইন ও বিতর্ক',
     color: '#0369a1',
@@ -215,6 +220,7 @@ const QUARTERLY_PLANS = [
     ]
   },
   {
+    id: 'q-3',
     quarter: 'জুলাই–সেপ্টেম্বর',
     title: 'সাইবার নিরাপত্তা, পাইথন কোডিং ও রোবটিক্স',
     color: '#0d9488',
@@ -227,6 +233,7 @@ const QUARTERLY_PLANS = [
     ]
   },
   {
+    id: 'q-4',
     quarter: 'অক্টোবর–ডিসেম্বর',
     title: 'আইসিটি মেলা, প্রজেক্ট শোকেস ও বার্ষিক মূল্যায়ন',
     color: '#4f46e5',
@@ -240,20 +247,20 @@ const QUARTERLY_PLANS = [
   }
 ];
 
-// 12 Months Calendar
+// 12 Months Calendar Defaults
 const MONTHLY_CALENDAR = [
-  { month: 'জানুয়ারি', title: 'সদস্যপদ আহ্বান ও ওরিয়েন্টেশন', date: '১৫ জানুয়ারি', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
-  { month: 'ফেব্রুয়ারি', title: 'ডিজিটাল একুশ পোস্টার প্রতিযোগিতা', date: '২০ ফেব্রুয়ারি', coordinator: 'মোঃ আশরাফুল আলম' },
-  { month: 'মার্চ', title: 'কম্পিউটার ফান্ডামেন্টালস প্রশিক্ষণ', date: '১২ মার্চ', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
-  { month: 'এপ্রিল', title: 'বাংলা ও ইংরেজি টাইপিং অলিম্পিয়াড', date: '১৮ এপ্রিল', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
-  { month: 'মে', title: 'গ্রাফিক্স ডিজাইন ও ডিজিটাল ব্যানার কর্মশালা', date: '১৪ মে', coordinator: 'মোঃ রফিকুল ইসলাম' },
-  { month: 'জুন', title: 'আইসিটি বিতর্ক প্রতিযোগিতা (AI বিতর্ক)', date: '১০ জুন', coordinator: 'মোঃ আশরাফুল আলম' },
-  { month: 'জুলাই', title: 'পাইথন কোডিং বুটক্যাম্প (পর্ব ১)', date: '১৬ জুলাই', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
-  { month: 'আগস্ট', title: 'সাইবার নিরাপত্তা ও নিরাপদ ইন্টারনেট ক্যাম্প', date: '২২ আগস্ট', coordinator: 'মোঃ হাবিবুর রহমান' },
-  { month: 'সেপ্টেম্বর', title: 'আরডুইনো রোবটিক্স হ্যান্ডস-অন কর্মশালা', date: '১৯ সেপ্টেম্বর', coordinator: 'মোঃ রফিকুল ইসলাম' },
-  { month: 'অক্টোবর', title: 'বার্ষিক প্রযুক্তি মেলা ও প্রজেক্ট প্রদর্শনী', date: '২৪ অক্টোবর', coordinator: 'মোঃ আবুবকর সিদ্দিক ও কমিটি' },
-  { month: 'নভেম্বর', title: 'কোডিং অলিম্পিয়াড ও কুইজ ফাইনাল', date: '১৫ নভেম্বর', coordinator: 'মোঃ হাবিবুর রহমান' },
-  { month: 'ডিসেম্বর', title: 'বার্ষিক মূল্যায়ন ও ট্রফি বিতরণী উৎসব', date: '০৫ ডিসেম্বর', coordinator: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)' }
+  { id: 'm-1', month: 'জানুয়ারি', title: 'সদস্যপদ আহ্বান ও ওরিয়েন্টেশন', date: '১৫ জানুয়ারি', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
+  { id: 'm-2', month: 'ফেব্রুয়ারি', title: 'ডিজিটাল একুশ পোস্টার প্রতিযোগিতা', date: '২০ ফেব্রুয়ারি', coordinator: 'মোঃ আশরাফুল আলম' },
+  { id: 'm-3', month: 'মার্চ', title: 'কম্পিউটার ফান্ডামেন্টালস প্রশিক্ষণ', date: '১২ মার্চ', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
+  { id: 'm-4', month: 'এপ্রিল', title: 'বাংলা ও ইংরেজি টাইপিং অলিম্পিয়াড', date: '১৮ এপ্রিল', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
+  { id: 'm-5', month: 'মে', title: 'গ্রাফিক্স ডিজাইন ও ডিজিটাল ব্যানার কর্মশালা', date: '১৪ মে', coordinator: 'মোঃ রফিকুল ইসলাম' },
+  { id: 'm-6', month: 'জুন', title: 'আইসিটি বিতর্ক প্রতিযোগিতা (AI বিতর্ক)', date: '১০ জুন', coordinator: 'মোঃ আশরাফুল আলম' },
+  { id: 'm-7', month: 'জুলাই', title: 'পাইথন কোডিং বুটক্যাম্প (পর্ব ১)', date: '১৬ জুলাই', coordinator: 'মোঃ আবুবকর সিদ্দিক' },
+  { id: 'm-8', month: 'আগস্ট', title: 'সাইবার নিরাপত্তা ও নিরাপদ ইন্টারনেট ক্যাম্প', date: '২২ আগস্ট', coordinator: 'মোঃ হাবিবুর রহমান' },
+  { id: 'm-9', month: 'সেপ্টেম্বর', title: 'আরডুইনো রোবটিক্স হ্যান্ডস-অন কর্মশালা', date: '১৯ সেপ্টেম্বর', coordinator: 'মোঃ রফিকুল ইসলাম' },
+  { id: 'm-10', month: 'অক্টোবর', title: 'বার্ষিক প্রযুক্তি মেলা ও প্রজেক্ট প্রদর্শনী', date: '২৪ অক্টোবর', coordinator: 'মোঃ আবুবকর সিদ্দিক ও কমিটি' },
+  { id: 'm-11', month: 'নভেম্বর', title: 'কোডিং অলিম্পিয়াড ও কুইজ ফাইনাল', date: '১৫ নভেম্বর', coordinator: 'মোঃ হাবিবুর রহমান' },
+  { id: 'm-12', month: 'ডিসেম্বর', title: 'বার্ষিক মূল্যায়ন ও ট্রফি বিতরণী উৎসব', date: '০৫ ডিসেম্বর', coordinator: 'মুহাম্মদ শফিকুল ইসলাম (প্রধান শিক্ষক)' }
 ];
 
 // 6 Selection Rules
@@ -528,6 +535,51 @@ export function IctClubMasterSection({
     } catch {}
   };
 
+  // Regular Activities State
+  const [activities, setActivities] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ICT_ACTIVITIES_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return REGULAR_ACTIVITIES;
+  });
+
+  const persistActivities = (updated) => {
+    try {
+      localStorage.setItem(ICT_ACTIVITIES_KEY, JSON.stringify(updated));
+    } catch {}
+  };
+
+  // Quarterly Plans State
+  const [quarterlyPlans, setQuarterlyPlans] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ICT_QUARTERLY_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return QUARTERLY_PLANS;
+  });
+
+  const persistQuarterlyPlans = (updated) => {
+    try {
+      localStorage.setItem(ICT_QUARTERLY_KEY, JSON.stringify(updated));
+    } catch {}
+  };
+
+  // Monthly Calendar State
+  const [monthlyCalendar, setMonthlyCalendar] = useState(() => {
+    try {
+      const raw = localStorage.getItem(ICT_MONTHLY_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return MONTHLY_CALENDAR;
+  });
+
+  const persistMonthlyCalendar = (updated) => {
+    try {
+      localStorage.setItem(ICT_MONTHLY_KEY, JSON.stringify(updated));
+    } catch {}
+  };
+
   // Memberships State
   const [memberships, setMemberships] = useState(() => {
     try {
@@ -689,6 +741,38 @@ export function IctClubMasterSection({
   // Edit Executive Post Modal
   const [editingExecPost, setEditingExecPost] = useState(null);
   const [execEditForm, setExecEditForm] = useState({ name: '', class: '১০ম', section: 'বিজ্ঞান', roll: '', phone: '' });
+
+  // EDIT REGULAR ACTIVITY MODAL STATE
+  const [editingActivity, setEditingActivity] = useState(null);
+  const [activityEditForm, setActivityEditForm] = useState({
+    id: '',
+    num: '',
+    title: '',
+    focus: '',
+    time: '',
+    venue: '',
+    details: ''
+  });
+
+  // EDIT QUARTERLY ROADMAP MODAL STATE
+  const [editingQuarter, setEditingQuarter] = useState(null);
+  const [quarterEditForm, setQuarterEditForm] = useState({
+    id: '',
+    quarter: '',
+    title: '',
+    color: '#0284c7',
+    itemsText: ''
+  });
+
+  // EDIT MONTHLY CALENDAR MODAL STATE
+  const [editingMonth, setEditingMonth] = useState(null);
+  const [monthEditForm, setMonthEditForm] = useState({
+    id: '',
+    month: '',
+    title: '',
+    date: '',
+    coordinator: ''
+  });
 
   // Membership Application Form State
   const [memberForm, setMemberForm] = useState({
@@ -1045,21 +1129,97 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 3. Print Yearly Calendar & Plans
+  // 3. Print Regular Activities
+  const handlePrintActivitiesPad = () => {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    const rows = activities.map((act, i) => `
+      <tr>
+        <td style="text-align:center; font-weight:700;">${toBn(i + 1)}.</td>
+        <td style="font-weight:700; color:#0369a1;">${act.title}<br><small style="color:#047857;">(${act.focus})</small></td>
+        <td style="font-size:12px;">${act.details}</td>
+        <td style="text-align:center; font-size:11.5px;">${act.time}</td>
+        <td style="font-size:11.5px;">${act.venue}</td>
+      </tr>
+    `).join('');
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>নিয়মিত কার্যক্রম বিবরণী — আইসিটি ও কোডিং ক্লাব</title>
+        <style>
+          ${SCHOOL_PAD_STYLES}
+          @page { size: A4 portrait; margin: 6mm 12mm 12mm 12mm; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; padding: 6px 12px 15px 12px; margin: 0; color: #0f172a; }
+          .doc-badge { display: inline-block; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 800; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th, td { border: 1px solid #94a3b8; padding: 6px 8px; text-align: left; vertical-align: top; }
+          th { background: #f0f9ff; color: #0369a1; font-weight: 800; }
+          .sig-grid { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; font-size: 13px; text-align:center; }
+          .sig-line { border-top: 1.5px dashed #334155; width: 190px; margin: 0 auto 6px auto; }
+        </style>
+      </head>
+      <body>
+        ${SCHOOL_PAD_HEADER_HTML}
+        <div style="text-align:center; margin: 12px 0 10px 0;">
+          <span class="doc-badge">⚡ আইসিটি ক্লাব নিয়মিত কার্যক্রম</span>
+          <h2 style="margin:4px 0; color:#0369a1; font-size:18px;">আইসিটি ও কোডিং ক্লাব — নিয়মিত কার্যক্রম সূচি (২০২৬)</h2>
+          <div style="font-size:12px; color:#475569;">ভেন্যু: শেখ রাসেল ডিজিটাল ল্যাব • মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px; text-align:center;">ক্র.</th>
+              <th style="width:140px;">কার্যক্রম ও বিষয়</th>
+              <th>কার্যক্রমের বিস্তারিত বিবরণ</th>
+              <th style="width:110px; text-align:center;">ধার্যকৃত সময়</th>
+              <th style="width:120px;">ভেন্যু</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+
+        <div class="sig-grid">
+          <div>
+            <div class="sig-line"></div>
+            <b>মোঃ আবুবকর সিদ্দিক</b><br>
+            <span style="font-size:12px;color:#475569;">প্রধান সমন্বয়ক, আইসিটি ও কোডিং ক্লাব</span>
+          </div>
+          <div>
+            <div class="sig-line"></div>
+            <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+            <span style="font-size:12px;color:#475569;">প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</span>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); }, 400);
+  };
+
+  // 4. Print Yearly Calendar & Plans (USES LIVE STATE quarterlyPlans & monthlyCalendar)
   const handlePrintProgramsPad = () => {
     const w = window.open('', '_blank');
     if (!w) return;
 
-    const quarterHtml = QUARTERLY_PLANS.map(q => `
+    const quarterHtml = quarterlyPlans.map(q => `
       <div style="margin-bottom:12px; padding:10px; border:1px solid #bae6fd; border-radius:6px; background:#f0f9ff;">
         <b style="color:#0369a1; font-size:13px;">${q.quarter}: ${q.title}</b>
         <ul style="margin:6px 0 0 18px; padding:0; font-size:11.5px; color:#334155;">
-          ${q.items.map(it => `<li>${it}</li>`).join('')}
+          ${(q.items || []).map(it => `<li>${it}</li>`).join('')}
         </ul>
       </div>
     `).join('');
 
-    const monthRows = MONTHLY_CALENDAR.map((m, i) => `
+    const monthRows = monthlyCalendar.map((m, i) => `
       <tr>
         <td style="text-align:center; font-weight:700;">${toBn(i + 1)}.</td>
         <td style="font-weight:700; color:#0369a1;">${m.month}</td>
@@ -1134,7 +1294,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 4. Print Membership Rules
+  // 5. Print Membership Rules
   const handlePrintRulesPad = () => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1193,7 +1353,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 5. Print Discipline & Lab Safety Rules
+  // 6. Print Discipline & Lab Safety Rules
   const handlePrintConductPad = () => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1261,7 +1421,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 6. Print Member Receipt
+  // 7. Print Member Receipt
   const handlePrintMemberReceipt = (receipt) => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1349,7 +1509,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 7. Print Members Directory
+  // 8. Print Members Directory
   const handlePrintMembersDirectory = () => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1433,7 +1593,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 8. Print Submission / Showcase Item
+  // 9. Print Submission / Showcase Item
   const handlePrintSubmission = (item) => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1497,7 +1657,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 9. Print ICT Fair Projects
+  // 10. Print ICT Fair Projects
   const handlePrintProjectsPad = () => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1573,7 +1733,7 @@ export function IctClubMasterSection({
     setTimeout(() => { w.print(); }, 400);
   };
 
-  // 10. Print Achievements
+  // 11. Print Achievements
   const handlePrintAchievementsPad = () => {
     const w = window.open('', '_blank');
     if (!w) return;
@@ -1652,7 +1812,7 @@ export function IctClubMasterSection({
   };
 
   // =========================================================================
-  // CRUD HANDLERS (COORDINATORS, JUDGES, EXEC, MEMBERS, SUBMISSIONS, PROJECTS)
+  // CRUD HANDLERS (COORDINATORS, JUDGES, EXEC, ACTIVITIES, QUARTERS, MONTHS)
   // =========================================================================
 
   // Add Coordinator
@@ -1850,6 +2010,195 @@ export function IctClubMasterSection({
     persistExec(updated);
     setEditingExecPost(null);
     showToast('পদাধিকারীর তথ্য সফলভাবে সংরক্ষিত হয়েছে!');
+  };
+
+  // ==========================================
+  // REGULAR ACTIVITIES: EDIT & DELETE HANDLERS
+  // ==========================================
+
+  const handleStartEditActivity = (act) => {
+    setEditingActivity(act);
+    setActivityEditForm({
+      id: act.id,
+      num: act.num || '',
+      title: act.title || '',
+      focus: act.focus || '',
+      time: act.time || '',
+      venue: act.venue || '',
+      details: act.details || ''
+    });
+  };
+
+  const handleSaveActivityEdit = (e) => {
+    e.preventDefault();
+    if (!editingActivity) return;
+    const updated = activities.map(act => {
+      if (act.id === editingActivity.id) {
+        return {
+          ...act,
+          title: activityEditForm.title.trim(),
+          focus: activityEditForm.focus.trim(),
+          time: activityEditForm.time.trim(),
+          venue: activityEditForm.venue.trim(),
+          details: activityEditForm.details.trim()
+        };
+      }
+      return act;
+    });
+    setActivities(updated);
+    persistActivities(updated);
+    setEditingActivity(null);
+    showToast(`কার্যক্রম "${activityEditForm.title.trim()}" সফলভাবে হালনাগাদ হয়েছে!`);
+  };
+
+  const handleDeleteActivity = (id) => {
+    if (!window.confirm('আপনি কি এই নিয়মিত কার্যক্রমটি মুছে ফেলতে চান?')) return;
+    const updated = activities.filter(act => act.id !== id);
+    setActivities(updated);
+    persistActivities(updated);
+    showToast('নিয়মিত কার্যক্রম মুছে ফেলা হয়েছে!');
+  };
+
+  const handleAddNewActivity = () => {
+    const newAct = {
+      id: 'act-' + Date.now(),
+      num: toBn(activities.length + 1),
+      title: 'নতুন আইসিটি কার্যক্রম ' + toBn(activities.length + 1),
+      focus: 'প্রযুক্তি প্রশিক্ষণ',
+      time: 'প্রতি বুধবার বিকাল ৩:৩০ মি.',
+      venue: 'শেখ রাসেল ডিজিটাল ল্যাব',
+      details: 'কার্যক্রমের বিস্তারিত বিবরণ এখানে লিখুন...'
+    };
+    const updated = [...activities, newAct];
+    setActivities(updated);
+    persistActivities(updated);
+    handleStartEditActivity(newAct);
+    showToast('নতুন কার্যক্রম যুক্ত হয়েছে, তথ্য সম্পাদনা করুন!');
+  };
+
+  // ==========================================
+  // QUARTERLY ROADMAP: EDIT & DELETE HANDLERS
+  // ==========================================
+
+  const handleStartEditQuarter = (q, idx) => {
+    setEditingQuarter({ ...q, _index: idx });
+    setQuarterEditForm({
+      id: q.id || 'q-' + idx,
+      quarter: q.quarter || '',
+      title: q.title || '',
+      color: q.color || '#0284c7',
+      itemsText: (q.items || []).join('\n')
+    });
+  };
+
+  const handleSaveQuarterEdit = (e) => {
+    e.preventDefault();
+    if (!editingQuarter) return;
+    const items = quarterEditForm.itemsText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const updated = quarterlyPlans.map((q, idx) => {
+      const match = q.id ? q.id === editingQuarter.id : idx === editingQuarter._index;
+      if (match) {
+        return {
+          ...q,
+          quarter: quarterEditForm.quarter.trim(),
+          title: quarterEditForm.title.trim(),
+          color: quarterEditForm.color,
+          items
+        };
+      }
+      return q;
+    });
+    setQuarterlyPlans(updated);
+    persistQuarterlyPlans(updated);
+    setEditingQuarter(null);
+    showToast(`ত্রৈমাসিক রোডমাপ "${quarterEditForm.quarter.trim()}" সংরক্ষিত হয়েছে!`);
+  };
+
+  const handleDeleteQuarter = (idOrIdx) => {
+    if (!window.confirm('আপনি কি এই ত্রৈমাসিক রোডম্যাপটি মুছে ফেলতে চান?')) return;
+    const updated = quarterlyPlans.filter((q, idx) => (q.id ? q.id !== idOrIdx : idx !== idOrIdx));
+    setQuarterlyPlans(updated);
+    persistQuarterlyPlans(updated);
+    showToast('ত্রৈমাসিক রোডম্যাপ অপসারিত হয়েছে!');
+  };
+
+  const handleAddNewQuarter = () => {
+    const newQ = {
+      id: 'q-' + Date.now(),
+      quarter: 'নতুন ত্রৈমাসিক',
+      title: 'নতুন কর্মপরিকল্পনা ও প্রজেক্ট',
+      color: '#0284c7',
+      items: ['প্রথম কর্মসূচি', 'দ্বিতীয় কর্মসূচি', 'তৃতীয় কর্মসূচি']
+    };
+    const updated = [...quarterlyPlans, newQ];
+    setQuarterlyPlans(updated);
+    persistQuarterlyPlans(updated);
+    handleStartEditQuarter(newQ, quarterlyPlans.length);
+    showToast('নতুন ত্রৈমাসিক রোডম্যাপ যুক্ত হয়েছে!');
+  };
+
+  // ==========================================
+  // MONTHLY CALENDAR: EDIT & DELETE HANDLERS
+  // ==========================================
+
+  const handleStartEditMonth = (m, idx) => {
+    setEditingMonth({ ...m, _index: idx });
+    setMonthEditForm({
+      id: m.id || 'm-' + idx,
+      month: m.month || '',
+      title: m.title || '',
+      date: m.date || '',
+      coordinator: m.coordinator || ''
+    });
+  };
+
+  const handleSaveMonthEdit = (e) => {
+    e.preventDefault();
+    if (!editingMonth) return;
+    const updated = monthlyCalendar.map((m, idx) => {
+      const match = m.id ? m.id === editingMonth.id : idx === editingMonth._index;
+      if (match) {
+        return {
+          ...m,
+          month: monthEditForm.month.trim(),
+          title: monthEditForm.title.trim(),
+          date: monthEditForm.date.trim(),
+          coordinator: monthEditForm.coordinator.trim()
+        };
+      }
+      return m;
+    });
+    setMonthlyCalendar(updated);
+    persistMonthlyCalendar(updated);
+    setEditingMonth(null);
+    showToast(`মাসের কর্মসূচি "${monthEditForm.month.trim()}" সংরক্ষিত হয়েছে!`);
+  };
+
+  const handleDeleteMonth = (idOrIdx) => {
+    if (!window.confirm('আপনি কি এই মাসের কর্মসূচিটি মুছে ফেলতে চান?')) return;
+    const updated = monthlyCalendar.filter((m, idx) => (m.id ? m.id !== idOrIdx : idx !== idOrIdx));
+    setMonthlyCalendar(updated);
+    persistMonthlyCalendar(updated);
+    showToast('মাসের কর্মসূচি অপসারিত হয়েছে!');
+  };
+
+  const handleAddNewMonth = () => {
+    const newM = {
+      id: 'm-' + Date.now(),
+      month: 'বিশেষ মাস',
+      title: 'প্রযুক্তি কর্মশালা ও প্রতিযোগিতা',
+      date: 'নির্ধারিত তারিখ',
+      coordinator: 'মোঃ আবুবকর সিদ্দিক'
+    };
+    const updated = [...monthlyCalendar, newM];
+    setMonthlyCalendar(updated);
+    persistMonthlyCalendar(updated);
+    handleStartEditMonth(newM, monthlyCalendar.length);
+    showToast('নতুন মাসের কর্মসূচি যুক্ত হয়েছে!');
   };
 
   // Submit Membership Application
@@ -2998,43 +3347,135 @@ export function IctClubMasterSection({
                 ফিচার ৫
               </span>
               <h2 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: '#0369a1' }}>
-                ⚡ আইসিটি ক্লাবের নিয়মিত কার্যক্রম (১০টি নিয়মিত কার্যক্রম)
+                ⚡ আইসিটি ক্লাবের নিয়মিত কার্যক্রম (মোট: {toBn(activities.length)}টি কার্যক্রম — এডিট ও ডিলিট সুবিধা)
               </h2>
             </div>
-            <button
-              type="button"
-              onClick={() => setIctTab('yearly_calendar')}
-              style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
-            >
-              পরবর্তী ফিচার: বার্ষিক কর্মপরিকল্পনা ও ক্যালেন্ডার ➔
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleAddNewActivity}
+                style={{
+                  background: '#0284c7',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>➕</span>
+                <span>নতুন কার্যক্রম যুক্ত করুন</span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintActivitiesPad}
+                style={{
+                  background: '#f0f9ff',
+                  color: '#0369a1',
+                  border: '1.5px solid #7dd3fc',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>🖨️</span>
+                <span>প্যাডে প্রিন্ট</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIctTab('yearly_calendar')}
+                style={{ background: '#0369a1', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+              >
+                পরবর্তী ফিচার: বার্ষিক কর্মপরিকল্পনা ও ক্যালেন্ডার ➔
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
-            {REGULAR_ACTIVITIES.map(act => (
-              <div key={act.id} style={{
+            {activities.map((act, idx) => (
+              <div key={act.id || idx} style={{
                 border: '1px solid #bae6fd',
                 borderRadius: '10px',
                 padding: '16px',
                 background: '#f8fafc',
-                boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+                boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ background: '#0284c7', color: '#ffffff', borderRadius: '12px', padding: '2px 9px', fontSize: '11px', fontWeight: 800 }}>
-                    কার্যক্রম {act.num}
-                  </span>
-                  <span style={{ fontSize: '11px', color: '#0369a1', fontWeight: 700, background: '#e0f2fe', padding: '2px 8px', borderRadius: '4px' }}>
-                    {act.focus}
-                  </span>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ background: '#0284c7', color: '#ffffff', borderRadius: '12px', padding: '2px 9px', fontSize: '11px', fontWeight: 800 }}>
+                        কার্যক্রম {toBn(act.num || idx + 1)}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#0369a1', fontWeight: 700, background: '#e0f2fe', padding: '2px 8px', borderRadius: '4px' }}>
+                        {act.focus}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditActivity(act)}
+                        style={{
+                          background: '#f0fdf4',
+                          color: '#166534',
+                          border: '1px solid #86efac',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                        title="সম্পাদনা করুন"
+                      >
+                        ✏️ এডিট
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteActivity(act.id)}
+                        style={{
+                          background: '#fef2f2',
+                          color: '#b91c1c',
+                          border: '1px solid #fca5a5',
+                          padding: '3px 8px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px'
+                        }}
+                        title="মুছে ফেলুন"
+                      >
+                        🗑️ ডিলিট
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#0c4a6e', fontWeight: 800 }}>
+                    {act.title}
+                  </h3>
+
+                  <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: '#334155', lineHeight: '1.5' }}>
+                    {act.details}
+                  </p>
                 </div>
-
-                <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#0c4a6e', fontWeight: 800 }}>
-                  {act.title}
-                </h3>
-
-                <p style={{ margin: '0 0 10px 0', fontSize: '12.5px', color: '#334155', lineHeight: '1.5' }}>
-                  {act.details}
-                </p>
 
                 <div style={{ fontSize: '11.5px', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
                   <div>⏰ <b>সময়:</b> {act.time}</div>
@@ -3063,7 +3504,7 @@ export function IctClubMasterSection({
                 ফিচার ৬
               </span>
               <h2 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: '#0369a1' }}>
-                📅 বার্ষিক কর্মপরিকল্পনা ও ক্যালেন্ডার
+                📅 বার্ষিক কর্মপরিকল্পনা ও ক্যালেন্ডার (এডিট ও ডিলিট সুবিধা)
               </h2>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -3097,51 +3538,182 @@ export function IctClubMasterSection({
             </div>
           </div>
 
-          {/* 4 Quarterly Roadmap Cards */}
-          <h3 style={{ fontSize: '15px', color: '#0369a1', margin: '0 0 12px 0' }}>
-            🎯 ত্রৈমাসিক কর্মপরিকল্পনা রোডম্যাপ (Quarterly Roadmap):
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px', marginBottom: '24px' }}>
-            {QUARTERLY_PLANS.map(q => (
-              <div key={q.quarter} style={{
-                border: '1.5px solid ' + q.color,
+          {/* 4 Quarterly Roadmap Cards with Edit & Delete */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ fontSize: '15px', color: '#0369a1', margin: 0, fontWeight: 800 }}>
+              🎯 ত্রৈমাসিক কর্মপরিকল্পনা রোডম্যাপ (Quarterly Roadmap — প্রতিটি কার্ডে এডিট ও ডিলিট):
+            </h3>
+            <button
+              type="button"
+              onClick={handleAddNewQuarter}
+              style={{
+                background: '#f0fdf4',
+                color: '#166534',
+                border: '1px solid #86efac',
+                padding: '5px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              ➕ নতুন ত্রৈমাসিক রোডম্যাপ যুক্ত করুন
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '14px', marginBottom: '26px' }}>
+            {quarterlyPlans.map((q, idx) => (
+              <div key={q.id || idx} style={{
+                border: '1.5px solid ' + (q.color || '#0284c7'),
                 borderRadius: '10px',
                 padding: '16px',
-                background: '#f8fafc'
+                background: '#f8fafc',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <span style={{ background: q.color, color: '#ffffff', padding: '3px 10px', borderRadius: '20px', fontSize: '11.5px', fontWeight: 800 }}>
-                  {q.quarter}
-                </span>
-                <h4 style={{ margin: '8px 0 8px 0', fontSize: '14px', color: q.color, fontWeight: 900 }}>
-                  {q.title}
-                </h4>
-                <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: '1.6' }}>
-                  {q.items.map((it, idx) => (
-                    <li key={idx} style={{ marginBottom: '4px' }}>{it}</li>
-                  ))}
-                </ul>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ background: q.color || '#0284c7', color: '#ffffff', padding: '3px 10px', borderRadius: '20px', fontSize: '11.5px', fontWeight: 800 }}>
+                      {q.quarter}
+                    </span>
+
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditQuarter(q, idx)}
+                        style={{
+                          background: '#f0fdf4',
+                          color: '#166534',
+                          border: '1px solid #86efac',
+                          padding: '3px 7px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="রোডম্যাপ সম্পাদনা করুন"
+                      >
+                        ✏️ এডিট
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteQuarter(q.id || idx)}
+                        style={{
+                          background: '#fef2f2',
+                          color: '#b91c1c',
+                          border: '1px solid #fca5a5',
+                          padding: '3px 7px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="রোডম্যাপ মুছে ফেলুন"
+                      >
+                        🗑️ ডিলিট
+                      </button>
+                    </div>
+                  </div>
+
+                  <h4 style={{ margin: '8px 0 8px 0', fontSize: '14px', color: q.color || '#0284c7', fontWeight: 900 }}>
+                    {q.title}
+                  </h4>
+                  <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#334155', lineHeight: '1.6' }}>
+                    {(q.items || []).map((it, iIdx) => (
+                      <li key={iIdx} style={{ marginBottom: '4px' }}>{it}</li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* 12 Months Timeline */}
-          <h3 style={{ fontSize: '15px', color: '#0c4a6e', margin: '0 0 12px 0' }}>
-            🗓️ ১২ মাসের ধারাবাহিক অ্যাক্টিভিটি ক্যালেন্ডার:
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px' }}>
-            {MONTHLY_CALENDAR.map((m, i) => (
-              <div key={m.month} style={{
+          {/* 12 Months Timeline with Edit & Delete */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <h3 style={{ fontSize: '15px', color: '#0c4a6e', margin: 0, fontWeight: 800 }}>
+              🗓️ ১২ মাসের ধারাবাহিক অ্যাক্টিভিটি ক্যালেন্ডার (প্রতিটি মাসে এডিট ও ডিলিট অপশন):
+            </h3>
+            <button
+              type="button"
+              onClick={handleAddNewMonth}
+              style={{
+                background: '#f0f9ff',
+                color: '#0369a1',
+                border: '1px solid #7dd3fc',
+                padding: '5px 12px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              ➕ নতুন মাসের কর্মসূচি যুক্ত করুন
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+            {monthlyCalendar.map((m, i) => (
+              <div key={m.id || i} style={{
                 border: '1px solid #bae6fd',
                 borderRadius: '8px',
                 padding: '12px 14px',
-                background: '#ffffff'
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <b style={{ fontSize: '13.5px', color: '#0369a1' }}>{m.month}</b>
-                  <span style={{ fontSize: '11px', color: '#64748b' }}>{m.date}</span>
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <b style={{ fontSize: '13.5px', color: '#0369a1' }}>{m.month}</b>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>({m.date})</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '3px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditMonth(m, i)}
+                        style={{
+                          background: '#f0fdf4',
+                          color: '#166534',
+                          border: '1px solid #86efac',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="সম্পাদনা করুন"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMonth(m.id || i)}
+                        style={{
+                          background: '#fef2f2',
+                          color: '#b91c1c',
+                          border: '1px solid #fca5a5',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                        title="মুছে ফেলুন"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>{m.title}</div>
                 </div>
-                <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0f172a' }}>{m.title}</div>
-                <div style={{ fontSize: '11px', color: '#047857', marginTop: '4px' }}>👨‍🏫 সমন্বয়ক: {m.coordinator}</div>
+
+                <div style={{ fontSize: '11px', color: '#047857', marginTop: '6px', borderTop: '1px solid #f1f5f9', paddingTop: '4px' }}>
+                  👨‍🏫 সমন্বয়ক: {m.coordinator}
+                </div>
               </div>
             ))}
           </div>
@@ -3790,7 +4362,7 @@ export function IctClubMasterSection({
                   value={writeForm.class_name}
                   onChange={e => {
                     const cls = e.target.value;
-                    const defaultSec = (cls === '৯ম' || cls === '১০ম') ? 'বিজ্ঞান' : ' শাখা ক';
+                    const defaultSec = (cls === '৯ম' || cls === '১০ম') ? 'বিজ্ঞান' : 'শাখা ক';
                     setWriteForm({ ...writeForm, class_name: cls, section: defaultSec });
                   }}
                   style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -4714,7 +5286,305 @@ export function IctClubMasterSection({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 4: SUBMITTED RECEIPT MODAL */}
+      {/* MODAL 4: EDIT REGULAR ACTIVITY */}
+      {/* ========================================================================= */}
+      {editingActivity && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100000,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '520px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#0369a1', fontWeight: 800 }}>
+              ✏️ নিয়মিত কার্যক্রম সম্পাদনা করুন
+            </h3>
+            <form onSubmit={handleSaveActivityEdit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>কার্যক্রমের নাম / শিরোনাম *</label>
+                  <input
+                    type="text"
+                    required
+                    value={activityEditForm.title}
+                    onChange={e => setActivityEditForm({ ...activityEditForm, title: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>বিষয়ের ক্ষেত্র / ফোকাস ট্যাগ *</label>
+                  <input
+                    type="text"
+                    required
+                    value={activityEditForm.focus}
+                    onChange={e => setActivityEditForm({ ...activityEditForm, focus: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>ধার্যকৃত সময়:</label>
+                  <input
+                    type="text"
+                    value={activityEditForm.time}
+                    onChange={e => setActivityEditForm({ ...activityEditForm, time: e.target.value })}
+                    placeholder="যেমন: প্রতি মঙ্গলবার বিকাল ৩:৩০ মি."
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>ভেন্যু / ল্যাব:</label>
+                  <input
+                    type="text"
+                    value={activityEditForm.venue}
+                    onChange={e => setActivityEditForm({ ...activityEditForm, venue: e.target.value })}
+                    placeholder="যেমন: শেখ রাসেল ডিজিটাল কম্পিউটার ল্যাব"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>কার্যক্রমের বিস্তারিত বিবরণ:</label>
+                <textarea
+                  rows="3"
+                  value={activityEditForm.details}
+                  onChange={e => setActivityEditForm({ ...activityEditForm, details: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingActivity(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: EDIT QUARTERLY ROADMAP */}
+      {/* ========================================================================= */}
+      {editingQuarter && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100000,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '540px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#0369a1', fontWeight: 800 }}>
+              ✏️ ত্রৈমাসিক কর্মপরিকল্পনা রোডম্যাপ সম্পাদনা
+            </h3>
+            <form onSubmit={handleSaveQuarterEdit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>ত্রৈমাসিক সময়কাল (e.g. জানুয়ারি–মার্চ):</label>
+                  <input
+                    type="text"
+                    required
+                    value={quarterEditForm.quarter}
+                    onChange={e => setQuarterEditForm({ ...quarterEditForm, quarter: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>কার্ডের থিম রঙ (Hex code):</label>
+                  <input
+                    type="text"
+                    value={quarterEditForm.color}
+                    onChange={e => setQuarterEditForm({ ...quarterEditForm, color: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>মূল প্রতিপাদ্য / শিরোনাম *</label>
+                <input
+                  type="text"
+                  required
+                  value={quarterEditForm.title}
+                  onChange={e => setQuarterEditForm({ ...quarterEditForm, title: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                  কর্মসূচিসমূহ (প্রতি লাইনে একটি কর্মসূচি লিখুন):
+                </label>
+                <textarea
+                  rows="5"
+                  value={quarterEditForm.itemsText}
+                  onChange={e => setQuarterEditForm({ ...quarterEditForm, itemsText: e.target.value })}
+                  placeholder="প্রতি লাইনে একটি কর্মসূচি লিখুন..."
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', lineHeight: '1.6' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingQuarter(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 6: EDIT MONTHLY CALENDAR */}
+      {/* ========================================================================= */}
+      {editingMonth && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100000,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '480px',
+            width: '100%',
+            padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#0369a1', fontWeight: 800 }}>
+              ✏️ মাসের কর্মসূচি সম্পাদনা ({editingMonth.month})
+            </h3>
+            <form onSubmit={handleSaveMonthEdit}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>মাসের নাম:</label>
+                  <input
+                    type="text"
+                    required
+                    value={monthEditForm.month}
+                    onChange={e => setMonthEditForm({ ...monthEditForm, month: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>সম্ভাব্য তারিখ:</label>
+                  <input
+                    type="text"
+                    value={monthEditForm.date}
+                    onChange={e => setMonthEditForm({ ...monthEditForm, date: e.target.value })}
+                    placeholder="যেমন: ১৫ জানুয়ারি"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>কর্মসূচি বা ইভেন্টের নাম *</label>
+                <input
+                  type="text"
+                  required
+                  value={monthEditForm.title}
+                  onChange={e => setMonthEditForm({ ...monthEditForm, title: e.target.value })}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '18px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>দায়িত্বপ্রাপ্ত সমন্বয়ক শিক্ষক:</label>
+                <input
+                  type="text"
+                  value={monthEditForm.coordinator}
+                  onChange={e => setMonthEditForm({ ...monthEditForm, coordinator: e.target.value })}
+                  placeholder="যেমন: মোঃ আবুবকর সিদ্দিক"
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingMonth(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#0284c7', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 7: SUBMITTED RECEIPT MODAL */}
       {/* ========================================================================= */}
       {submittedReceipt && (
         <div style={{
@@ -4802,7 +5672,7 @@ export function IctClubMasterSection({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 5: SUBMISSION READER / VIEWER MODAL */}
+      {/* MODAL 8: SUBMISSION READER / VIEWER MODAL */}
       {/* ========================================================================= */}
       {readingItem && (
         <div style={{
