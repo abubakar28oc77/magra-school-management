@@ -521,7 +521,11 @@ const DEFAULT_DEBATE_COMPETITIONS = [
     propScore: 268,
     oppScore: 254,
     status: 'সম্পন্ন',
-    judgesNote: 'উভয় দলের বক্তব্য ছিল তথ্যবহুল। সরকারি দলের প্রধানমন্ত্রী আহনাফ সিদ্দিকের পাল্টা যুক্তি ও সময় ব্যবস্থাপনা বিশেষ প্রশংসনীয়।'
+    judgesNote: 'উভয় দলের বক্তব্য ছিল তথ্যবহুল। সরকারি দলের প্রধানমন্ত্রী আহনাফ সিদ্দিকের পাল্টা যুক্তি ও সময় ব্যবস্থাপনা বিশেষ প্রশংসনীয়।',
+    moderator: { name: 'মো: হাবিবুর রহমান', designation: 'সিনিয়র শিক্ষক (বাংলা)', teacherId: '' },
+    chiefJudge: { name: 'মুহাম্মদ শফিকুল ইসলাম', designation: 'প্রধান শিক্ষক ও সভাপতি', teacherId: '' },
+    judge1: { name: 'মো: আবদুল খালেক', designation: 'সহকারী প্রধান শিক্ষক', teacherId: '' },
+    judge2: { name: 'মো: আবু বকর সিদ্দিক', designation: 'সহকারী শিক্ষক (আইসিটি)', teacherId: '' }
   },
   {
     id: 'comp-deb-2',
@@ -537,7 +541,11 @@ const DEFAULT_DEBATE_COMPETITIONS = [
     propScore: 261,
     oppScore: 247,
     status: 'সম্পন্ন',
-    judgesNote: 'বাংলা ভাষার চমৎকার প্রয়োগ ও দেশপ্রেমমূলক যুক্তি উপস্থাপনায় পক্ষ দল বিজয়ী।'
+    judgesNote: 'বাংলা ভাষার চমৎকার প্রয়োগ ও দেশপ্রেমমূলক যুক্তি উপস্থাপনায় পক্ষ দল বিজয়ী।',
+    moderator: { name: 'মোছা: নাছরিন আক্তার', designation: 'সহকারী শিক্ষক (ইংরেজি)', teacherId: '' },
+    chiefJudge: { name: 'মুহাম্মদ শফিকুল ইসলাম', designation: 'প্রধান শিক্ষক ও সভাপতি', teacherId: '' },
+    judge1: { name: 'মো: হাবিবুর রহমান', designation: 'সিনিয়র শিক্ষক (বাংলা)', teacherId: '' },
+    judge2: { name: 'মো: আশরাফুল আলম', designation: 'সহকারী শিক্ষক (ইংরেজি)', teacherId: '' }
   }
 ];
 
@@ -920,6 +928,10 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
     venue: 'বিদ্যালয় কেন্দ্রীয় ডিবেট কর্নার',
     propTeamName: 'সরকারি দল',
     oppTeamName: 'বিরোধী দল',
+    moderator: { name: 'মো: হাবিবুর রহমান', designation: 'সিনিয়র শিক্ষক (বাংলা)', teacherId: '' },
+    chiefJudge: { name: 'মুহাম্মদ শফিকুল ইসলাম', designation: 'প্রধান শিক্ষক ও সভাপতি', teacherId: '' },
+    judge1: { name: 'মো: আবদুল খালেক', designation: 'সহকারী প্রধান শিক্ষক', teacherId: '' },
+    judge2: { name: 'মো: আবু বকর সিদ্দিক', designation: 'সহকারী শিক্ষক (আইসিটি)', teacherId: '' },
     propSpeakers: [
       { role: '১ম বক্তা (প্রধানমন্ত্রী)', name: 'আহনাফ সিদ্দিক', logic: 27, facts: 18, delivery: 18, rebuttal: 13, ethics: 9, time: 5 },
       { role: '২য় বক্তা (মন্ত্রী)', name: 'ফাহিম ফয়সাল', logic: 25, facts: 17, delivery: 17, rebuttal: 13, ethics: 9, time: 4 },
@@ -975,11 +987,126 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
       status: 'সম্পন্ন',
       judgesNote: newScorecard.judgesNote,
       propSpeakers: newScorecard.propSpeakers,
-      oppSpeakers: newScorecard.oppSpeakers
+      oppSpeakers: newScorecard.oppSpeakers,
+      moderator: newScorecard.moderator,
+      chiefJudge: newScorecard.chiefJudge,
+      judge1: newScorecard.judge1,
+      judge2: newScorecard.judge2
     };
 
     setCompetitionsList(prev => [compItem, ...prev]);
     alert('✓ বির্তক প্রতিযোগিতা স্কোরশিট ও ফলাফল সফলভাবে সংরক্ষণ করা হয়েছে!\nবিজয়ী: ' + winner + '\nশ্রেষ্ঠ বক্তা: ' + bestSpkName);
+  };
+
+  // ORGANIZE NEW DEBATE STATE (User Requirement: নতুন বিতর্ক আয়োজন করুন)
+  const [showOrganizeModal, setShowOrganizeModal] = useState(false);
+  const [organizeForm, setOrganizeForm] = useState({
+    title: 'আন্তঃশ্রেণি বিতর্ক প্রতিযোগিতা ২০২৬ (ম্যাচ-১)',
+    motion: 'এই সংসদ বিশ্বাস করে যে, কৃত্রিম বুদ্ধিমত্তা ও তথ্যপ্রযুক্তির নৈতিক প্রয়োগই আগামীর সমৃদ্ধ বাংলাদেশের চাবিকাঠি।',
+    format: 'সংসদীয় বিতর্ক',
+    date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+    venue: 'বিদ্যালয় কেন্দ্রীয় মিলনায়তন',
+    propTeamName: 'সরকারি দল',
+    oppTeamName: 'বিরোধী দল',
+    moderator: { name: 'মো: হাবিবুর রহমান', designation: 'সিনিয়র শিক্ষক (বাংলা)', teacherId: '' },
+    chiefJudge: { name: 'মুহাম্মদ শফিকুল ইসলাম', designation: 'প্রধান শিক্ষক ও সভাপতি', teacherId: '' },
+    judge1: { name: 'মো: আবদুল খালেক', designation: 'সহকারী প্রধান শিক্ষক', teacherId: '' },
+    judge2: { name: 'মো: আবু বকর সিদ্দিক', designation: 'সহকারী শিক্ষক (আইসিটি)', teacherId: '' }
+  });
+
+  // CHANGE MODERATOR & JUDGES STATE (User Requirement: মডারেটর এবং বিচারক মন্ডলী চেঞ্জ করার ব্যবস্থা)
+  const [editingDebateJudges, setEditingDebateJudges] = useState(null);
+
+  const handleOpenOrganizeModal = () => {
+    setOrganizeForm(prev => ({
+      ...prev,
+      title: 'আন্তঃশ্রেণি বিতর্ক প্রতিযোগিতা ২০২৬',
+      motion: 'এই সংসদ বিশ্বাস করে যে, যুক্তিনির্ভর বিজ্ঞানমনস্ক শিক্ষাই তরুণ প্রজন্মকে বিভ্রান্তি থেকে মুক্ত রাখতে পারে।',
+      format: 'সংসদীয় বিতর্ক',
+      date: new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }),
+      venue: 'বিদ্যালয় কেন্দ্রীয় মিলনায়তন',
+      propTeamName: 'সরকারি দল',
+      oppTeamName: 'বিরোধী দল',
+      moderator: {
+        name: panelData?.coordinators?.[0]?.name || 'মো: হাবিবুর রহমান',
+        designation: panelData?.coordinators?.[0]?.designation || 'সিনিয়র শিক্ষক (বাংলা)',
+        teacherId: panelData?.coordinators?.[0]?.teacherId || ''
+      },
+      chiefJudge: {
+        name: panelData?.judges?.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম',
+        designation: panelData?.judges?.chiefJudge?.designation || 'প্রধান শিক্ষক ও সভাপতি',
+        teacherId: ''
+      },
+      judge1: {
+        name: panelData?.judges?.judge1?.name || 'মো: আবদুল খালেক',
+        designation: panelData?.judges?.judge1?.designation || 'সহকারী প্রধান শিক্ষক',
+        teacherId: ''
+      },
+      judge2: {
+        name: panelData?.judges?.judge2?.name || 'মো: আবু বকর সিদ্দিক',
+        designation: panelData?.judges?.judge2?.designation || 'সহকারী শিক্ষক (আইসিটি)',
+        teacherId: ''
+      }
+    }));
+    setShowOrganizeModal(true);
+  };
+
+  const handleConfirmOrganize = (e) => {
+    e.preventDefault();
+    if (!organizeForm.title.trim() || !organizeForm.motion.trim()) {
+      alert('অনুগ্রহ করে বিতর্কের শিরোনাম ও প্রস্তাবনা (Motion) লিখুন।');
+      return;
+    }
+    setNewScorecard(prev => ({
+      ...prev,
+      title: organizeForm.title,
+      motion: organizeForm.motion,
+      format: organizeForm.format,
+      date: organizeForm.date,
+      venue: organizeForm.venue,
+      propTeamName: organizeForm.propTeamName || 'সরকারি দল',
+      oppTeamName: organizeForm.oppTeamName || 'বিরোধী দল',
+      moderator: { ...organizeForm.moderator },
+      chiefJudge: { ...organizeForm.chiefJudge },
+      judge1: { ...organizeForm.judge1 },
+      judge2: { ...organizeForm.judge2 }
+    }));
+    setShowOrganizeModal(false);
+    setDebTab('competitions');
+    setTimeout(() => {
+      const el = document.getElementById('live-debate-engine-card');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+    alert('✓ নতুন বিতর্ক প্রতিযোগিতা সফলভাবে আয়োজন করা হয়েছে!\n\n🎙️ মডারেটর: ' + (organizeForm.moderator.name || 'নির্ধারিত') + '\n⚖️ প্রধান বিচারক: ' + (organizeForm.chiefJudge.name || 'নির্ধারিত') + '\n⚖️ বিচারক-১: ' + (organizeForm.judge1.name || 'নির্ধারিত') + '\n⚖️ বিচারক-২: ' + (organizeForm.judge2.name || 'নির্ধারিত') + '\n\nএখন সরাসরি স্কোরশিটে নম্বর এন্ট্রি করে ফলাফল ঘোষণা করুন।');
+  };
+
+  const handleSaveJudgesChange = (e) => {
+    e.preventDefault();
+    if (!editingDebateJudges) return;
+    if (editingDebateJudges.target === 'current') {
+      setNewScorecard(prev => ({
+        ...prev,
+        moderator: { ...editingDebateJudges.moderator },
+        chiefJudge: { ...editingDebateJudges.chiefJudge },
+        judge1: { ...editingDebateJudges.judge1 },
+        judge2: { ...editingDebateJudges.judge2 }
+      }));
+    } else if (editingDebateJudges.target === 'competition' && editingDebateJudges.compId) {
+      setCompetitionsList(prev => prev.map(c => {
+        if (c.id === editingDebateJudges.compId) {
+          return {
+            ...c,
+            moderator: { ...editingDebateJudges.moderator },
+            chiefJudge: { ...editingDebateJudges.chiefJudge },
+            judge1: { ...editingDebateJudges.judge1 },
+            judge2: { ...editingDebateJudges.judge2 }
+          };
+        }
+        return c;
+      }));
+    }
+    setEditingDebateJudges(null);
+    alert('✓ মডারেটর ও বিচারকমণ্ডলী সফলভাবে পরিবর্তন করা হয়েছে!');
   };
 
   // EDIT MODAL STATES
@@ -1104,12 +1231,32 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
         <div style={{ marginTop: '14px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
             type="button"
+            onClick={handleOpenOrganizeModal}
+            style={{
+              background: '#f59e0b',
+              color: '#1e1b4b',
+              border: 'none',
+              padding: '8px 18px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 3px 10px rgba(0,0,0,0.2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            🎙️ নতুন বিতর্ক আয়োজন করুন ➔
+          </button>
+          <button
+            type="button"
             onClick={() => setDebTab('competitions')}
             style={{
               background: '#ffffff',
               color: '#312e81',
               border: 'none',
-              padding: '8px 18px',
+              padding: '8px 16px',
               borderRadius: '6px',
               fontSize: '12.5px',
               fontWeight: 800,
@@ -1117,7 +1264,7 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
               boxShadow: '0 3px 8px rgba(0,0,0,0.15)'
             }}
           >
-            🎙️ নতুন বিতর্ক আয়োজন ও ফলাফল প্রস্তুত করুন ➔
+            🏆 লাইভ স্কোরশিট ও ফলাফল
           </button>
           <button
             type="button"
@@ -3457,49 +3604,71 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                 🏆 বিতর্ক প্রতিযোগিতা ও ফলাফল (লাইভ স্কোরশিট ইঞ্জিন)
               </h3>
               <p style={{ margin: 0, fontSize: '12.5px', color: '#64748b' }}>
-                ৬টি মানদণ্ডে ১০০ নম্বরের অফিশিয়াল স্কোরিং ও স্বয়ংক্রিয় ফলাফল প্রস্তুতকরণ
+                ৬টি মানদণ্ডে ১০০ নম্বরের অফিশিয়াল স্কোরিং, মডারেটর ও বিচারকমণ্ডলী প্যানেল এবং স্বয়ংক্রিয় ফলাফল প্রস্তুতকরণ
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                const html = `
-                  <div class="card-box">
-                    <h3 style="margin:0 0 10px 0; color:#312e81;">বিতর্ক প্রতিযোগিতা ও ফলাফল বিবরণী (২০২৬)</h3>
-                    <table>
-                      <thead>
-                        <tr><th>তারিখ</th><th>বিতর্কের বিষয় / প্রস্তাবনা</th><th>ফরম্যাট</th><th>বিজয়ী দল</th><th>শ্রেষ্ঠ বক্তা</th><th>ফলাফল স্কোর</th></tr>
-                      </thead>
-                      <tbody>
-                        ${competitionsList.map(c => `
-                          <tr>
-                            <td>${c.date}</td>
-                            <td><b>${c.title}</b><br><span style="font-size:12px; color:#475569;">"${c.motion}"</span></td>
-                            <td>${c.format}</td>
-                            <td><b style="color:#047857;">${c.winner}</b></td>
-                            <td><b style="color:#312e81;">${c.bestSpeaker}</b></td>
-                            <td><b>${toBn(c.propScore)}</b> বনাম <b>${toBn(c.oppScore)}</b></td>
-                          </tr>
-                        `).join('')}
-                      </tbody>
-                    </table>
-                  </div>
-                `;
-                printWithPad('ডিবেটিং ক্লাব বিতর্ক ফলাফল বিবরণী', '🏆 ফলাফল ও স্কোরশিট', html);
-              }}
-              style={{
-                background: '#ffffff',
-                border: '1.5px solid #312e81',
-                color: '#312e81',
-                padding: '6px 14px',
-                borderRadius: '6px',
-                fontSize: '12px',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
-            >
-              🖨️ বিদ্যালয়ে প্যাডে প্রিন্ট করুন
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleOpenOrganizeModal}
+                style={{
+                  background: '#312e81',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '7px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(49, 46, 129, 0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                ➕ নতুন বিতর্ক আয়োজন করুন
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const html = `
+                    <div class="card-box">
+                      <h3 style="margin:0 0 10px 0; color:#312e81;">বিতর্ক প্রতিযোগিতা ও ফলাফল বিবরণী (২০২৬)</h3>
+                      <table>
+                        <thead>
+                          <tr><th>তারিখ</th><th>বিতর্কের বিষয় / প্রস্তাবনা</th><th>ফরম্যাট</th><th>বিজয়ী দল</th><th>শ্রেষ্ঠ বক্তা</th><th>ফলাফল স্কোর</th></tr>
+                        </thead>
+                        <tbody>
+                          ${competitionsList.map(c => `
+                            <tr>
+                              <td>${c.date}</td>
+                              <td><b>${c.title}</b><br><span style="font-size:12px; color:#475569;">"${c.motion}"</span></td>
+                              <td>${c.format}</td>
+                              <td><b style="color:#047857;">${c.winner}</b></td>
+                              <td><b style="color:#312e81;">${c.bestSpeaker}</b></td>
+                              <td><b>${toBn(c.propScore)}</b> বনাম <b>${toBn(c.oppScore)}</b></td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+                    </div>
+                  `;
+                  printWithPad('ডিবেটিং ক্লাব বিতর্ক ফলাফল বিবরণী', '🏆 ফলাফল ও স্কোরশিট', html);
+                }}
+                style={{
+                  background: '#ffffff',
+                  border: '1.5px solid #312e81',
+                  color: '#312e81',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                🖨️ বিদ্যালয়ে প্যাডে প্রিন্ট করুন
+              </button>
+            </div>
           </div>
 
           {/* OFFICIAL MARKING RUBRIC HIGHLIGHT BANNER */}
@@ -3530,10 +3699,34 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
           </div>
 
           {/* LIVE COMPETITION SCORING ENGINE CARD */}
-          <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '18px', marginBottom: '24px' }}>
-            <h4 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#1e1b4b', fontWeight: 900 }}>
-              🎙️ নতুন বিতর্ক স্কোরশিট তৈরি ও ফলাফল গণনা:
-            </h4>
+          <div id="live-debate-engine-card" style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '18px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', color: '#1e1b4b', fontWeight: 900 }}>
+                  🎙️ চলমান বিতর্ক প্রতিযোগিতা ও স্কোরশিট:
+                </h4>
+                <span style={{ fontSize: '12px', color: '#475569' }}>
+                  বিতর্ক পরিচালনা, মডারেটর ও ৩ বিচারকের প্যানেল এবং ৬টি সুনির্দিষ্ট মানদণ্ডে ১০০ নম্বরের মূল্যায়ন
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleOpenOrganizeModal}
+                style={{
+                  background: '#f59e0b',
+                  color: '#1e1b4b',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.12)'
+                }}
+              >
+                ➕ নতুন বিতর্ক আয়োজন করুন
+              </button>
+            </div>
 
             <form onSubmit={handleSaveDebateResult}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '10px', marginBottom: '14px' }}>
@@ -3583,6 +3776,74 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                     onChange={e => setNewScorecard({ ...newScorecard, motion: e.target.value })}
                     style={{ width: '100%', padding: '7px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box' }}
                   />
+                </div>
+              </div>
+
+              {/* MODERATOR & JUDGES PANEL DISPLAY & IN-PLACE SWITCH */}
+              <div style={{
+                background: 'linear-gradient(135deg, #eef2ff 0%, #ede9fe 100%)',
+                border: '1.5px solid #c7d2fe',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '16px' }}>⚖️</span>
+                    <b style={{ color: '#312e81', fontSize: '13px' }}>
+                      বিতর্ক ম্যাচ দায়িত্বপ্রাপ্ত মডারেটর ও বিচারকমণ্ডলী:
+                    </b>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingDebateJudges({
+                      target: 'current',
+                      title: newScorecard.title,
+                      moderator: newScorecard.moderator ? { ...newScorecard.moderator } : { name: '', designation: '', teacherId: '' },
+                      chiefJudge: newScorecard.chiefJudge ? { ...newScorecard.chiefJudge } : { name: '', designation: '', teacherId: '' },
+                      judge1: newScorecard.judge1 ? { ...newScorecard.judge1 } : { name: '', designation: '', teacherId: '' },
+                      judge2: newScorecard.judge2 ? { ...newScorecard.judge2 } : { name: '', designation: '', teacherId: '' }
+                    })}
+                    style={{
+                      background: '#4338ca',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '5px 12px',
+                      borderRadius: '5px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      boxShadow: '0 2px 5px rgba(67, 56, 202, 0.25)'
+                    }}
+                  >
+                    🔄 মডারেটর ও বিচারকমণ্ডলী চেঞ্জ করুন
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#4338ca', display: 'block' }}>🎙️ মডারেটর / স্পিকার</span>
+                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.moderator?.name || 'অনির্ধারিত'}</b>
+                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.moderator?.designation || 'সঞ্চালক'}</small>
+                  </div>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#7c3aed', display: 'block' }}>⚖️ প্রধান বিচারক</span>
+                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.chiefJudge?.name || 'অনির্ধারিত'}</b>
+                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.chiefJudge?.designation || 'প্রধান বিচারক'}</small>
+                  </div>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#2563eb', display: 'block' }}>⚖️ বিচারক - ১</span>
+                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.judge1?.name || 'অনির্ধারিত'}</b>
+                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge1?.designation || 'বিচারক'}</small>
+                  </div>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0891b2', display: 'block' }}>⚖️ বিচারক - ২</span>
+                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.judge2?.name || 'অনির্ধারিত'}</b>
+                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge2?.designation || 'বিচারক'}</small>
+                  </div>
                 </div>
               </div>
 
@@ -3884,37 +4145,101 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                       {comp.judgesNote && (
                         <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>📝 {comp.judgesNote}</div>
                       )}
+                      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #cbd5e1', fontSize: '11px', color: '#334155' }}>
+                        <div><b>🎙️ মডারেটর:</b> {comp.moderator?.name || 'মো: হাবিবুর রহমান'} {comp.moderator?.designation ? `(${comp.moderator.designation})` : ''}</div>
+                        <div><b>⚖️ প্রধান বিচারক:</b> {comp.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম'} {comp.chiefJudge?.designation ? `(${comp.chiefJudge.designation})` : ''}</div>
+                        <div><b>⚖️ বিচারকমণ্ডলী:</b> {comp.judge1?.name || 'মো: আবদুল খালেক'} ও {comp.judge2?.name || 'মো: আবু বকর সিদ্দিক'}</div>
+                      </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const html = `
-                          <div class="card-box" style="border:2px solid #312e81;">
-                            <h3 style="margin:0 0 6px 0; color:#312e81;">${comp.title} — ফলাফল ও অফিসিয়াল স্কোরশিট</h3>
-                            <div style="font-size:12.5px; color:#475569; margin-bottom:10px;">
-                              ফরম্যাট: <b>${comp.format}</b> • তারিখ: ${comp.date} • ভেন্যু: ${comp.venue || 'বিদ্যালয়'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed #cbd5e1', paddingTop: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const html = `
+                            <div class="card-box" style="border:2px solid #312e81;">
+                              <h3 style="margin:0 0 6px 0; color:#312e81;">${comp.title} — ফলাফল ও অফিসিয়াল স্কোরশিট</h3>
+                              <div style="font-size:12.5px; color:#475569; margin-bottom:10px;">
+                                ফরম্যাট: <b>${comp.format}</b> • তারিখ: ${comp.date} • ভেন্যু: ${comp.venue || 'বিদ্যালয়'}
+                              </div>
+                              <blockquote style="margin:0 0 12px 0; background:#f5f3ff; border-left:4px solid #312e81; padding:8px 12px; font-style:italic;">
+                                "${comp.motion}"
+                              </blockquote>
+                              <table>
+                                <tbody>
+                                  <tr><td style="font-weight:700; width:30%;">বিজয়ী দল</td><td><b style="color:#047857; font-size:15px;">${comp.winner}</b></td></tr>
+                                  <tr><td style="font-weight:700;">দলগত স্কোর</td><td>${comp.propTeamName} (<b>${toBn(comp.propScore)}</b>) বনাম ${comp.oppTeamName} (<b>${toBn(comp.oppScore)}</b>)</td></tr>
+                                  <tr><td style="font-weight:700;">শ্রেষ্ঠ বক্তা</td><td><b style="color:#312e81; font-size:14.5px;">${comp.bestSpeaker}</b></td></tr>
+                                  <tr><td style="font-weight:700;">বিচারকের মন্তব্য</td><td>${comp.judgesNote || '—'}</td></tr>
+                                </tbody>
+                              </table>
+
+                              <div style="margin-top:16px; border:1px solid #cbd5e1; border-radius:6px; padding:10px; background:#f8fafc;">
+                                <b style="color:#312e81; font-size:12px; display:block; margin-bottom:6px;">⚖️ ম্যাচ পরিচালনা ও বিচারকমণ্ডলী প্যানেল:</b>
+                                <table style="font-size:11.5px; margin:0;">
+                                  <tbody>
+                                    <tr>
+                                      <td style="width:25%;"><b>🎙️ সেশন মডারেটর:</b><br>${comp.moderator?.name || 'মো: হাবিবুর রহমান'}<br><span style="font-size:10px; color:#64748b;">${comp.moderator?.designation || ''}</span></td>
+                                      <td style="width:25%;"><b>⚖️ প্রধান বিচারক:</b><br>${comp.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম'}<br><span style="font-size:10px; color:#64748b;">${comp.chiefJudge?.designation || ''}</span></td>
+                                      <td style="width:25%;"><b>⚖️ বিচারক - ১:</b><br>${comp.judge1?.name || 'মো: আবদুল খালেক'}<br><span style="font-size:10px; color:#64748b;">${comp.judge1?.designation || ''}</span></td>
+                                      <td style="width:25%;"><b>⚖️ বিচারক - ২:</b><br>${comp.judge2?.name || 'মো: আবু বকর সিদ্দিক'}<br><span style="font-size:10px; color:#64748b;">${comp.judge2?.designation || ''}</span></td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              <div style="display:flex; justify-content:space-between; margin-top:45px; text-align:center; font-size:11px;">
+                                <div style="width:18%;">
+                                  <br>--------------------------<br>
+                                  <b>${comp.moderator?.name || 'মডারেটর'}</b><br>
+                                  <span style="font-size:10px; color:#475569;">মডারেটর / স্পিকার</span>
+                                </div>
+                                <div style="width:18%;">
+                                  <br>--------------------------<br>
+                                  <b>${comp.judge1?.name || 'বিচারক-১'}</b><br>
+                                  <span style="font-size:10px; color:#475569;">বিচারক - ১</span>
+                                </div>
+                                <div style="width:18%;">
+                                  <br>--------------------------<br>
+                                  <b>${comp.judge2?.name || 'বিচারক-২'}</b><br>
+                                  <span style="font-size:10px; color:#475569;">বিচারক - ২</span>
+                                </div>
+                                <div style="width:18%;">
+                                  <br>--------------------------<br>
+                                  <b>${comp.chiefJudge?.name || 'প্রধান বিচারক'}</b><br>
+                                  <span style="font-size:10px; color:#475569;">প্রধান বিচারক</span>
+                                </div>
+                                <div style="width:22%;">
+                                  <br>--------------------------<br>
+                                  <b>মুহাম্মদ শফিকুল ইসলাম</b><br>
+                                  <span style="font-size:10px; color:#475569;">প্রধান শিক্ষক ও সভাপতি</span>
+                                </div>
+                              </div>
                             </div>
-                            <blockquote style="margin:0 0 12px 0; background:#f5f3ff; border-left:4px solid #312e81; padding:8px 12px; font-style:italic;">
-                              "${comp.motion}"
-                            </blockquote>
-                            <table>
-                              <tbody>
-                                <tr><td style="font-weight:700; width:30%;">বিজয়ী দল</td><td><b style="color:#047857; font-size:15px;">${comp.winner}</b></td></tr>
-                                <tr><td style="font-weight:700;">দলগত স্কোর</td><td>${comp.propTeamName} (<b>${toBn(comp.propScore)}</b>) বনাম ${comp.oppTeamName} (<b>${toBn(comp.oppScore)}</b>)</td></tr>
-                                <tr><td style="font-weight:700;">শ্রেষ্ঠ বক্তা</td><td><b style="color:#312e81; font-size:14.5px;">${comp.bestSpeaker}</b></td></tr>
-                                <tr><td style="font-weight:700;">বিচারকের মন্তব্য</td><td>${comp.judgesNote || '—'}</td></tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        `;
-                        printWithPad(comp.title + ' — স্কোরশিট', '🏆 বিতর্ক ফলাফল', html);
-                      }}
-                      style={{ background: '#312e81', color: '#ffffff', border: 'none', padding: '4px 10px', borderRadius: '5px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      🖨️ স্কোরশিট প্রিন্ট
-                    </button>
+                          `;
+                          printWithPad(comp.title + ' — স্কোরশিট', '🏆 বিতর্ক ফলাফল', html);
+                        }}
+                        style={{ background: '#312e81', color: '#ffffff', border: 'none', padding: '5px 10px', borderRadius: '5px', fontSize: '11.5px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        🖨️ প্রিন্ট
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingDebateJudges({
+                          target: 'competition',
+                          compId: comp.id,
+                          title: comp.title,
+                          moderator: comp.moderator ? { ...comp.moderator } : { name: '', designation: '', teacherId: '' },
+                          chiefJudge: comp.chiefJudge ? { ...comp.chiefJudge } : { name: '', designation: '', teacherId: '' },
+                          judge1: comp.judge1 ? { ...comp.judge1 } : { name: '', designation: '', teacherId: '' },
+                          judge2: comp.judge2 ? { ...comp.judge2 } : { name: '', designation: '', teacherId: '' }
+                        })}
+                        style={{ background: '#e0e7ff', border: '1px solid #c7d2fe', color: '#312e81', padding: '5px 10px', borderRadius: '5px', fontSize: '11.5px', cursor: 'pointer', fontWeight: 700 }}
+                      >
+                        🔄 বিচারকমণ্ডলী চেঞ্জ
+                      </button>
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
@@ -3922,7 +4247,7 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                           setCompetitionsList(prev => prev.filter(c => c.id !== comp.id));
                         }
                       }}
-                      style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', padding: '4px 8px', borderRadius: '5px', fontSize: '11.5px', cursor: 'pointer', fontWeight: 700 }}
+                      style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', padding: '5px 8px', borderRadius: '5px', fontSize: '11.5px', cursor: 'pointer', fontWeight: 700 }}
                     >
                       🗑️ মুছুন
                     </button>
@@ -5213,6 +5538,744 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                 সংরক্ষণ করুন
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: নতুন বিতর্ক প্রতিযোগিতা আয়োজন ও বিচারকমণ্ডলী প্যানেল গঠন */}
+      {/* ========================================================================= */}
+      {showOrganizeModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '820px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 45px rgba(0,0,0,0.3)',
+            border: '2px solid #818cf8'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '10px' }}>
+              <div>
+                <span style={{ background: '#e0e7ff', color: '#312e81', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                  বিতর্ক ইভেন্ট শিডিউলার ও প্যানেল
+                </span>
+                <h3 style={{ margin: '6px 0 2px 0', fontSize: '18px', color: '#1e1b4b', fontWeight: 900 }}>
+                  🎙️ নতুন বিতর্ক প্রতিযোগিতা আয়োজন ও বিচারকমণ্ডলী নির্ধারণ
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                  বিতর্কের বিষয়/প্রস্তাবনা, তারিখ, ফরম্যাট ও ম্যাচ পরিচালনায় মডারেটর, প্রধান বিচারক, বিচারক-১ ও বিচারক-২ নির্বাচন করুন
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowOrganizeModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', fontSize: '14px', fontWeight: 900, color: '#475569' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmOrganize}>
+              {/* SECTION A: GENERAL DEBATE MATCH DETAILS */}
+              <div style={{ marginBottom: '16px' }}>
+                <b style={{ color: '#312e81', fontSize: '13px', display: 'block', marginBottom: '8px' }}>
+                  ১. বিতর্কের প্রাথমিক তথ্যাদি:
+                </b>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px' }}>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '3px' }}>
+                      বিতর্কের শিরোনাম / ইভেন্টের নাম *
+                    </label>
+                    <input
+                      required
+                      value={organizeForm.title}
+                      onChange={e => setOrganizeForm({ ...organizeForm, title: e.target.value })}
+                      placeholder="যেমন: আন্তঃশ্রেণি বিতর্ক চ্যাম্পিয়নশিপ ২০২৬"
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '3px' }}>
+                      বিতর্কের ধরন / ফরম্যাট *
+                    </label>
+                    <select
+                      value={organizeForm.format}
+                      onChange={e => setOrganizeForm({ ...organizeForm, format: e.target.value })}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    >
+                      <option value="সংসদীয় বিতর্ক">সংসদীয় বিতর্ক (Parliamentary Debate)</option>
+                      <option value="সনাতনী বিতর্ক">সনাতনী বিতর্ক (Traditional Debate)</option>
+                      <option value="বারোয়ারি বিতর্ক">বারোয়ারি বিতর্ক (Open Theme Debate)</option>
+                      <option value="উপস্থিত বক্তৃতা">উপস্থিত বক্তৃতা (Extempore Speech)</option>
+                      <option value="ইংরেজি বিতর্ক">ইংরেজি বিতর্ক (English Debate)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '3px' }}>
+                      তারিখ
+                    </label>
+                    <input
+                      value={organizeForm.date}
+                      onChange={e => setOrganizeForm({ ...organizeForm, date: e.target.value })}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '3px' }}>
+                      ভেন্যু / স্থান
+                    </label>
+                    <input
+                      value={organizeForm.venue}
+                      onChange={e => setOrganizeForm({ ...organizeForm, venue: e.target.value })}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#166534', marginBottom: '3px' }}>
+                      🟢 পক্ষ / সরকারি দলের নাম
+                    </label>
+                    <input
+                      value={organizeForm.propTeamName}
+                      onChange={e => setOrganizeForm({ ...organizeForm, propTeamName: e.target.value })}
+                      placeholder="যেমন: সরকারি দল (১০ম শ্রেণি)"
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #86efac', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#991b1b', marginBottom: '3px' }}>
+                      🔴 বিপক্ষ / বিরোধী দলের নাম
+                    </label>
+                    <input
+                      value={organizeForm.oppTeamName}
+                      onChange={e => setOrganizeForm({ ...organizeForm, oppTeamName: e.target.value })}
+                      placeholder="যেমন: বিরোধী দল (৯ম শ্রেণি)"
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #fca5a5', fontSize: '12.5px', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, color: '#334155', marginBottom: '3px' }}>
+                      বিতর্কের প্রস্তাবনা (Motion) *
+                    </label>
+                    <textarea
+                      required
+                      rows="2"
+                      value={organizeForm.motion}
+                      onChange={e => setOrganizeForm({ ...organizeForm, motion: e.target.value })}
+                      placeholder="যেমন: এই সংসদ বিশ্বাস করে যে, কৃত্রিম বুদ্ধিমত্তা শিক্ষার্থীদের মানবিক মূল্যবোধের পরিপূরক, বিকল্প নয়।"
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px', boxSizing: 'border-box', lineHeight: 1.5 }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION B: MODERATOR & 3 JUDGES SELECTION */}
+              <div style={{
+                background: '#faf5ff',
+                border: '1.5px solid #d8b4fe',
+                borderRadius: '10px',
+                padding: '16px',
+                marginBottom: '18px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <b style={{ color: '#6b21a8', fontSize: '13.5px' }}>
+                      ২. মডারেটর ও বিচারকমণ্ডলী নির্বাচন (৪টি পদ):
+                    </b>
+                    <small style={{ display: 'block', color: '#64748b', fontSize: '11.5px' }}>
+                      বিদ্যালয়ের শিক্ষকদের ড্রপডাউন থেকে নির্বাচন করুন অথবা সরাসরি নাম ও প্রাতিষ্ঠানিক পদবি লিখুন
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrganizeForm(prev => ({
+                        ...prev,
+                        moderator: {
+                          name: panelData?.coordinators?.[0]?.name || 'মো: হাবিবুর রহমান',
+                          designation: panelData?.coordinators?.[0]?.designation || 'সিনিয়র শিক্ষক (বাংলা)',
+                          teacherId: panelData?.coordinators?.[0]?.teacherId || ''
+                        },
+                        chiefJudge: {
+                          name: panelData?.judges?.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম',
+                          designation: panelData?.judges?.chiefJudge?.designation || 'প্রধান শিক্ষক ও সভাপতি',
+                          teacherId: ''
+                        },
+                        judge1: {
+                          name: panelData?.judges?.judge1?.name || 'মো: আবদুল খালেক',
+                          designation: panelData?.judges?.judge1?.designation || 'সহকারী প্রধান শিক্ষক',
+                          teacherId: ''
+                        },
+                        judge2: {
+                          name: panelData?.judges?.judge2?.name || 'মো: আবু বকর সিদ্দিক',
+                          designation: panelData?.judges?.judge2?.designation || 'সহকারী শিক্ষক (আইসিটি)',
+                          teacherId: ''
+                        }
+                      }));
+                    }}
+                    style={{
+                      background: '#ede9fe',
+                      color: '#6b21a8',
+                      border: '1px solid #c084fc',
+                      padding: '4px 10px',
+                      borderRadius: '5px',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✨ ক্লাবের স্থায়ী প্যানেল থেকে লোড করুন
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '12px' }}>
+                  {/* MODERATOR */}
+                  <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>🎙️</span>
+                      <b style={{ color: '#4338ca', fontSize: '12px' }}>মডারেটর / স্পিকার / সঞ্চালক:</b>
+                    </div>
+                    <select
+                      value={organizeForm.moderator.teacherId || ''}
+                      onChange={e => {
+                        const tId = e.target.value;
+                        const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                        if (tObj) {
+                          setOrganizeForm({
+                            ...organizeForm,
+                            moderator: {
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'শিক্ষক',
+                              teacherId: tId
+                            }
+                          });
+                        }
+                      }}
+                      style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                    >
+                      <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                      {activeTeachers.map(t => (
+                        <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                          {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                      <input
+                        placeholder="মডারেটরের নাম"
+                        value={organizeForm.moderator.name}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          moderator: { ...organizeForm.moderator, name: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                      <input
+                        placeholder="পদবি / পরিচয়"
+                        value={organizeForm.moderator.designation}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          moderator: { ...organizeForm.moderator, designation: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* CHIEF JUDGE */}
+                  <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>⚖️</span>
+                      <b style={{ color: '#7c3aed', fontSize: '12px' }}>প্রধান বিচারক (Chief Judge):</b>
+                    </div>
+                    <select
+                      value={organizeForm.chiefJudge.teacherId || ''}
+                      onChange={e => {
+                        const tId = e.target.value;
+                        const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                        if (tObj) {
+                          setOrganizeForm({
+                            ...organizeForm,
+                            chiefJudge: {
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'প্রধান বিচারক',
+                              teacherId: tId
+                            }
+                          });
+                        }
+                      }}
+                      style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                    >
+                      <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                      {activeTeachers.map(t => (
+                        <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                          {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                      <input
+                        placeholder="প্রধান বিচারকের নাম"
+                        value={organizeForm.chiefJudge.name}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          chiefJudge: { ...organizeForm.chiefJudge, name: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                      <input
+                        placeholder="পদবি / পরিচয়"
+                        value={organizeForm.chiefJudge.designation}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          chiefJudge: { ...organizeForm.chiefJudge, designation: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* JUDGE 1 */}
+                  <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>⚖️</span>
+                      <b style={{ color: '#2563eb', fontSize: '12px' }}>বিচারক - ১ (সহকারী বিচারক):</b>
+                    </div>
+                    <select
+                      value={organizeForm.judge1.teacherId || ''}
+                      onChange={e => {
+                        const tId = e.target.value;
+                        const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                        if (tObj) {
+                          setOrganizeForm({
+                            ...organizeForm,
+                            judge1: {
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'বিচারক',
+                              teacherId: tId
+                            }
+                          });
+                        }
+                      }}
+                      style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                    >
+                      <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                      {activeTeachers.map(t => (
+                        <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                          {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                      <input
+                        placeholder="বিচারক-১ এর নাম"
+                        value={organizeForm.judge1.name}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          judge1: { ...organizeForm.judge1, name: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                      <input
+                        placeholder="পদবি / পরিচয়"
+                        value={organizeForm.judge1.designation}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          judge1: { ...organizeForm.judge1, designation: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* JUDGE 2 */}
+                  <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px' }}>⚖️</span>
+                      <b style={{ color: '#0891b2', fontSize: '12px' }}>বিচারক - ২ (সহকারী বিচারক):</b>
+                    </div>
+                    <select
+                      value={organizeForm.judge2.teacherId || ''}
+                      onChange={e => {
+                        const tId = e.target.value;
+                        const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                        if (tObj) {
+                          setOrganizeForm({
+                            ...organizeForm,
+                            judge2: {
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'বিচারক',
+                              teacherId: tId
+                            }
+                          });
+                        }
+                      }}
+                      style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                    >
+                      <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                      {activeTeachers.map(t => (
+                        <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                          {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                      <input
+                        placeholder="বিচারক-২ এর নাম"
+                        value={organizeForm.judge2.name}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          judge2: { ...organizeForm.judge2, name: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                      <input
+                        placeholder="পদবি / পরিচয়"
+                        value={organizeForm.judge2.designation}
+                        onChange={e => setOrganizeForm({
+                          ...organizeForm,
+                          judge2: { ...organizeForm.judge2, designation: e.target.value }
+                        })}
+                        style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ACTION BUTTONS */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowOrganizeModal(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    color: '#475569',
+                    padding: '8px 18px',
+                    borderRadius: '6px',
+                    fontSize: '12.5px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#312e81',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 24px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 3px 10px rgba(49, 46, 129, 0.25)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  🚀 বিতর্ক আয়োজন নিশ্চিত করুন ও সরাসরি স্কোরশিট প্রস্তুত করুন ➔
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: মডারেটর এবং বিচারকমণ্ডলী চেঞ্জ / পরিবর্তন করার মোডাল */}
+      {/* ========================================================================= */}
+      {editingDebateJudges && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '740px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: '0 20px 45px rgba(0,0,0,0.3)',
+            border: '2px solid #818cf8'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '10px' }}>
+              <div>
+                <span style={{ background: '#ede9fe', color: '#6b21a8', padding: '2px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
+                  প্যানেল পরিবর্তন ও আপডেট
+                </span>
+                <h3 style={{ margin: '6px 0 2px 0', fontSize: '18px', color: '#1e1b4b', fontWeight: 900 }}>
+                  🔄 মডারেটর ও বিচারকমণ্ডলী চেঞ্জ করুন
+                </h3>
+                <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                  {editingDebateJudges.title ? `বিতর্ক: "${editingDebateJudges.title}"` : 'চলমান বিতর্ক ম্যাচ'} — নতুন মডারেটর, প্রধান বিচারক, বিচারক-১ এবং বিচারক-২ নির্বাচন করুন
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingDebateJudges(null)}
+                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', fontSize: '14px', fontWeight: 900, color: '#475569' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveJudgesChange}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px', marginBottom: '18px' }}>
+                {/* 1. MODERATOR */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #c7d2fe', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '15px' }}>🎙️</span>
+                    <b style={{ color: '#4338ca', fontSize: '12.5px' }}>মডারেটর / স্পিকার নির্বাচন:</b>
+                  </div>
+                  <select
+                    value={editingDebateJudges.moderator?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setEditingDebateJudges({
+                          ...editingDebateJudges,
+                          moderator: {
+                            name: tObj.name_bn || tObj.name,
+                            designation: tObj.designation || 'শিক্ষক',
+                            teacherId: tId
+                          }
+                        });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <input
+                      placeholder="মডারেটরের নাম"
+                      value={editingDebateJudges.moderator?.name || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        moderator: { ...editingDebateJudges.moderator, name: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                    <input
+                      placeholder="পদবি / পরিচয়"
+                      value={editingDebateJudges.moderator?.designation || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        moderator: { ...editingDebateJudges.moderator, designation: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* 2. CHIEF JUDGE */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #d8b4fe', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '15px' }}>⚖️</span>
+                    <b style={{ color: '#7c3aed', fontSize: '12.5px' }}>প্রধান বিচারক নির্বাচন:</b>
+                  </div>
+                  <select
+                    value={editingDebateJudges.chiefJudge?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setEditingDebateJudges({
+                          ...editingDebateJudges,
+                          chiefJudge: {
+                            name: tObj.name_bn || tObj.name,
+                            designation: tObj.designation || 'প্রধান বিচারক',
+                            teacherId: tId
+                          }
+                        });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <input
+                      placeholder="প্রধান বিচারকের নাম"
+                      value={editingDebateJudges.chiefJudge?.name || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        chiefJudge: { ...editingDebateJudges.chiefJudge, name: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                    <input
+                      placeholder="পদবি / পরিচয়"
+                      value={editingDebateJudges.chiefJudge?.designation || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        chiefJudge: { ...editingDebateJudges.chiefJudge, designation: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* 3. JUDGE 1 */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #bfdbfe', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '15px' }}>⚖️</span>
+                    <b style={{ color: '#2563eb', fontSize: '12.5px' }}>বিচারক - ১ নির্বাচন:</b>
+                  </div>
+                  <select
+                    value={editingDebateJudges.judge1?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setEditingDebateJudges({
+                          ...editingDebateJudges,
+                          judge1: {
+                            name: tObj.name_bn || tObj.name,
+                            designation: tObj.designation || 'বিচারক',
+                            teacherId: tId
+                          }
+                        });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <input
+                      placeholder="বিচারক-১ এর নাম"
+                      value={editingDebateJudges.judge1?.name || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        judge1: { ...editingDebateJudges.judge1, name: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                    <input
+                      placeholder="পদবি / পরিচয়"
+                      value={editingDebateJudges.judge1?.designation || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        judge1: { ...editingDebateJudges.judge1, designation: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                  </div>
+                </div>
+
+                {/* 4. JUDGE 2 */}
+                <div style={{ background: '#f8fafc', border: '1.5px solid #a5f3fc', borderRadius: '8px', padding: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '15px' }}>⚖️</span>
+                    <b style={{ color: '#0891b2', fontSize: '12.5px' }}>বিচারক - ২ নির্বাচন:</b>
+                  </div>
+                  <select
+                    value={editingDebateJudges.judge2?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setEditingDebateJudges({
+                          ...editingDebateJudges,
+                          judge2: {
+                            name: tObj.name_bn || tObj.name,
+                            designation: tObj.designation || 'বিচারক',
+                            teacherId: tId
+                          }
+                        });
+                      }
+                    }}
+                    style={{ width: '100%', padding: '6px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', marginBottom: '6px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপডাউন থেকে নির্বাচন করুন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} ({t.designation || 'শিক্ষক'})
+                      </option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                    <input
+                      placeholder="বিচারক-২ এর নাম"
+                      value={editingDebateJudges.judge2?.name || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        judge2: { ...editingDebateJudges.judge2, name: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                    <input
+                      placeholder="পদবি / পরিচয়"
+                      value={editingDebateJudges.judge2?.designation || ''}
+                      onChange={e => setEditingDebateJudges({
+                        ...editingDebateJudges,
+                        judge2: { ...editingDebateJudges.judge2, designation: e.target.value }
+                      })}
+                      style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingDebateJudges(null)}
+                  style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', padding: '7px 16px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#312e81', color: '#ffffff', border: 'none', padding: '8px 20px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  💾 পরিবর্তন সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
