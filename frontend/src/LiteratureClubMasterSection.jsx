@@ -58,17 +58,20 @@ const DEFAULT_PANEL = {
 
 // Default Executive Committee
 const DEFAULT_EXEC = {
-  president: { name: 'তানভীর আহমেদ', class: '১০ম', roll: '১', phone: '01711-001122' },
-  vicePresident: { name: 'রাহাত হাসান', class: '১০ম', roll: '৫', phone: '01711-001123' },
-  generalSecretary: { name: 'ফাতেমা আক্তার', class: '৯ম', roll: '২', phone: '01711-001124' },
-  jointSecretary: { name: 'ফারজানা মেহজাবীন', class: '৯ম', roll: '৩', phone: '01711-001125' },
-  organizingSecretary: { name: 'মাহির ফয়সাল', class: '৮ম', roll: '১', phone: '01711-001126' },
-  publicitySecretary: { name: 'নুসরাত জাহান', class: '৮ম', roll: '৪', phone: '01711-001127' },
-  financeSecretary: { name: 'সাদিয়া ইসলাম', class: '৯ম', roll: '৬', phone: '01711-001128' },
+  president: { name: 'তানভীর আহমেদ', class: '১০ম', section: 'বিজ্ঞান', roll: '১', phone: '01711-001122' },
+  vicePresident: { name: 'রাহাত হাসান', class: '১০ম', section: 'মানবিক', roll: '৫', phone: '01711-001123' },
+  generalSecretary: { name: 'ফাতেমা আক্তার', class: '৯ম', section: 'বিজ্ঞান', roll: '২', phone: '01711-001124' },
+  jointSecretary: { name: 'ফারজানা মেহজাবীন', class: '৯ম', section: 'বিজ্ঞান', roll: '৩', phone: '01711-001125' },
+  organizingSecretary: { name: 'মাহির ফয়সাল', class: '৮ম', section: 'শাখা ক', roll: '১', phone: '01711-001126' },
+  publicitySecretary: { name: 'নুসরাত জাহান', class: '৮ম', section: 'শাখা খ', roll: '৪', phone: '01711-001127' },
+  financeSecretary: { name: 'সাদিয়া ইসলাম', class: '৯ম', section: 'ব্যবসায় শিক্ষা', roll: '৬', phone: '01711-001128' },
   members: [
-    { id: 'm-1', name: 'আফরিন সুলতানা', class: '৬ষ্ঠ', roll: '৩', note: 'কার্যনির্বাহী সদস্য' },
-    { id: 'm-2', name: 'শাকিল আহমেদ', class: '৭ম', roll: '২', note: 'কার্যনির্বাহী সদস্য' },
-    { id: 'm-3', name: 'মেহেদী হাসান', class: '৮ম', roll: '৮', note: 'কার্যনির্বাহী সদস্য' }
+    { id: 'm-1', name: 'মোনায়েম', class: '১০ম', section: 'বিজ্ঞান', roll: '৩', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-2', name: 'হাসান', class: '৯ম', section: 'মানবিক', roll: '—', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-3', name: 'মোসাঃ তানহা আক্তার', class: '৯ম', section: 'বিজ্ঞান', roll: '—', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-4', name: 'আদর্শ পাল', class: '৮ম', section: 'শাখা ক', roll: '২', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-5', name: 'অরূপ কর্মকার', class: '৮ম', section: 'শাখা খ', roll: '৬', note: 'কার্যনির্বাহী সদস্য' },
+    { id: 'm-6', name: 'সুপ্ত ঘোষ', class: '৭ম', section: 'শাখা ক', roll: '১', note: 'কার্যনির্বাহী সদস্য' }
   ]
 };
 
@@ -175,11 +178,46 @@ export function LiteratureClubMasterSection({
   // Member Add Form (Executive)
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberClass, setNewMemberClass] = useState('৮ম');
+  const [newMemberSection, setNewMemberSection] = useState('শাখা ক');
   const [newMemberRoll, setNewMemberRoll] = useState('');
 
-  // Editing Executive Member Modal
+  // Editing Executive Post Modal
   const [editingExecPost, setEditingExecPost] = useState(null); // 'president' | 'vicePresident' etc.
-  const [execEditForm, setExecEditForm] = useState({ name: '', class: '', roll: '', phone: '' });
+  const [execEditForm, setExecEditForm] = useState({ name: '', class: '', section: '', roll: '', phone: '' });
+
+  // Editing General Executive Member Modal
+  const [editingExecMember, setEditingExecMember] = useState(null);
+  const [memberEditForm, setMemberEditForm] = useState({ id: '', name: '', class: '', section: '', roll: '' });
+
+  const getSectionOptionsForClass = (cls) => {
+    if (cls === '৯ম' || cls === '১০ম') {
+      return [
+        { value: 'বিজ্ঞান', label: 'বিজ্ঞান (Science)' },
+        { value: 'মানবিক', label: 'মানবিক (Humanities)' },
+        { value: 'ব্যবসায় শিক্ষা', label: 'ব্যবসায় শিক্ষা (Business Studies)' },
+        { value: 'শাখা ক', label: 'শাখা ক' },
+        { value: 'শাখা খ', label: 'শাখা খ' }
+      ];
+    }
+    return [
+      { value: 'শাখা ক', label: 'শাখা ‘ক’' },
+      { value: 'শাখা খ', label: 'শাখা ‘খ’' },
+      { value: 'সাধারণ', label: 'সাধারণ / প্রযোজ্য নয়' }
+    ];
+  };
+
+  const handleMemberClassChange = (cls) => {
+    setNewMemberClass(cls);
+    if (cls === '৯ম' || cls === '১০ম') {
+      if (!['বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা'].includes(newMemberSection)) {
+        setNewMemberSection('বিজ্ঞান');
+      }
+    } else {
+      if (!['শাখা ক', 'শাখা খ', 'সাধারণ'].includes(newMemberSection)) {
+        setNewMemberSection('শাখা ক');
+      }
+    }
+  };
 
   // Membership Application Form State
   const [memberForm, setMemberForm] = useState({
@@ -281,6 +319,7 @@ export function LiteratureClubMasterSection({
       id: 'm-' + Date.now(),
       name: newMemberName.trim(),
       class: newMemberClass,
+      section: newMemberSection,
       roll: newMemberRoll.trim() || '—',
       note: 'কার্যনির্বাহী সদস্য'
     };
@@ -292,6 +331,8 @@ export function LiteratureClubMasterSection({
     persistExec(updated);
     setNewMemberName('');
     setNewMemberRoll('');
+    setToastMsg(`সদস্য "${newM.name}" সফলভাবে যুক্ত হয়েছে!`);
+    setTimeout(() => setToastMsg(''), 3000);
   };
 
   // Remove Exec Member
@@ -303,14 +344,60 @@ export function LiteratureClubMasterSection({
     };
     setExecData(updated);
     persistExec(updated);
+    setToastMsg('কার্যনির্বাহী সদস্য অপসারিত হয়েছে!');
+    setTimeout(() => setToastMsg(''), 3000);
+  };
+
+  // Start Edit Member
+  const handleStartEditMember = (m) => {
+    setEditingExecMember(m);
+    const mClass = m.class || '৮ম';
+    const defaultSec = (mClass === '৯ম' || mClass === '১০ম') ? 'বিজ্ঞান' : 'শাখা ক';
+    setMemberEditForm({
+      id: m.id,
+      name: m.name || '',
+      class: mClass,
+      section: m.section || defaultSec,
+      roll: m.roll || ''
+    });
+  };
+
+  // Save Edit Member
+  const handleSaveMemberEdit = (e) => {
+    e.preventDefault();
+    if (!editingExecMember) return;
+    const updatedMembers = (execData.members || []).map(m => {
+      if (m.id === editingExecMember.id) {
+        return {
+          ...m,
+          name: memberEditForm.name.trim(),
+          class: memberEditForm.class,
+          section: memberEditForm.section,
+          roll: memberEditForm.roll.trim() || '—'
+        };
+      }
+      return m;
+    });
+    const updated = {
+      ...execData,
+      members: updatedMembers
+    };
+    setExecData(updated);
+    persistExec(updated);
+    setEditingExecMember(null);
+    setToastMsg(`সদস্য "${memberEditForm.name.trim()}"-এর তথ্য সফলভাবে আপডেট হয়েছে!`);
+    setTimeout(() => setToastMsg(''), 3000);
   };
 
   // Start Edit Post
   const handleStartEditPost = (postKey, current) => {
     setEditingExecPost(postKey);
+    const postClass = current.class || '১০ম';
+    const defaultSec = (postClass === '৯ম' || postClass === '১০ম') ? 'বিজ্ঞান' : 'শাখা ক';
     setExecEditForm({
       name: current.name || '',
-      class: current.class || '১০ম',
+      class: postClass,
+      section: current.section || defaultSec,
       roll: current.roll || '',
       phone: current.phone || ''
     });
@@ -326,6 +413,7 @@ export function LiteratureClubMasterSection({
         ...execData[editingExecPost],
         name: execEditForm.name.trim(),
         class: execEditForm.class.trim(),
+        section: execEditForm.section.trim(),
         roll: execEditForm.roll.trim(),
         phone: execEditForm.phone.trim()
       }
@@ -333,6 +421,8 @@ export function LiteratureClubMasterSection({
     setExecData(updated);
     persistExec(updated);
     setEditingExecPost(null);
+    setToastMsg('পদাধিকারীর তথ্য সফলভাবে আপডেট করা হয়েছে!');
+    setTimeout(() => setToastMsg(''), 3000);
   };
 
   // Handle Membership Application Submit
@@ -526,6 +616,7 @@ export function LiteratureClubMasterSection({
         <td style="font-weight:800;color:#065f46;">${p.role}</td>
         <td><b>${p.name || '—'}</b></td>
         <td style="text-align:center;">${p.class || '—'}</td>
+        <td style="text-align:center;">${p.section || '—'}</td>
         <td style="text-align:center;">${toBn(p.roll || '—')}</td>
         <td style="text-align:center;">${p.phone || '—'}</td>
       </tr>
@@ -535,8 +626,9 @@ export function LiteratureClubMasterSection({
       <tr>
         <td style="text-align:center;">${toBn(i + 1)}.</td>
         <td><b>${m.name}</b></td>
-        <td style="text-align:center;">${m.class}</td>
-        <td style="text-align:center;">${toBn(m.roll)}</td>
+        <td style="text-align:center;">${m.class || '—'}</td>
+        <td style="text-align:center;">${m.section || '—'}</td>
+        <td style="text-align:center;">${toBn(m.roll || '—')}</td>
         <td>কার্যনির্বাহী সদস্য</td>
       </tr>
     `).join('');
@@ -575,6 +667,7 @@ export function LiteratureClubMasterSection({
               <th>পদের নাম</th>
               <th>শিক্ষার্থীর নাম</th>
               <th style="text-align:center;">শ্রেণি</th>
+              <th style="text-align:center;">শাখা/বিভাগ</th>
               <th style="text-align:center;">রোল</th>
               <th style="text-align:center;">মোবাইল</th>
             </tr>
@@ -592,6 +685,7 @@ export function LiteratureClubMasterSection({
                 <th style="width:30px; text-align:center;">ক্র.</th>
                 <th>শিক্ষার্থীর নাম</th>
                 <th style="text-align:center;">শ্রেণি</th>
+                <th style="text-align:center;">শাখা/বিভাগ</th>
                 <th style="text-align:center;">রোল</th>
                 <th>দায়িত্ব</th>
               </tr>
@@ -688,27 +782,6 @@ export function LiteratureClubMasterSection({
           <span style={{ background: 'rgba(255,255,255,0.15)', padding: '3px 10px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>👥 ১৫০+ সক্রিয় শিক্ষার্থী সদস্য</span>
         </div>
         <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-          {onBackToHub && (
-            <button
-              type="button"
-              onClick={onBackToHub}
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                border: '1px solid rgba(255, 255, 255, 0.35)',
-                padding: '8px 16px',
-                borderRadius: '6px',
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              ⬅️ সকল ক্লাবের তালিকায় ফিরুন
-            </button>
-          )}
           <button
             type="button"
             onClick={() => setLitTab('competitions')}
@@ -1318,7 +1391,7 @@ export function LiteratureClubMasterSection({
                     {post.data?.name || '—'}
                   </div>
                   <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    শ্রেণি: {post.data?.class || '—'} • রোল: {toBn(post.data?.roll || '—')}
+                    শ্রেণি: {post.data?.class || '—'} {post.data?.section ? `• ${post.data.section}` : ''} • রোল: {toBn(post.data?.roll || '—')}
                   </div>
                   {post.data?.phone && (
                     <div style={{ fontSize: '11px', color: '#047857', marginTop: '2px' }}>
@@ -1353,7 +1426,7 @@ export function LiteratureClubMasterSection({
               padding: '12px',
               marginBottom: '14px',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
               gap: '10px',
               alignItems: 'flex-end'
             }}>
@@ -1373,7 +1446,7 @@ export function LiteratureClubMasterSection({
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '3px' }}>শ্রেণি:</label>
                 <select
                   value={newMemberClass}
-                  onChange={e => setNewMemberClass(e.target.value)}
+                  onChange={e => handleMemberClassChange(e.target.value)}
                   style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
                 >
                   <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
@@ -1381,6 +1454,19 @@ export function LiteratureClubMasterSection({
                   <option value="৮ম">৮ম শ্রেণি</option>
                   <option value="৯ম">৯ম শ্রেণি</option>
                   <option value="১০ম">১০ম শ্রেণি</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '3px' }}>শাখা / বিভাগ:</label>
+                <select
+                  value={newMemberSection}
+                  onChange={e => setNewMemberSection(e.target.value)}
+                  style={{ width: '100%', padding: '7px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                >
+                  {getSectionOptionsForClass(newMemberClass).map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
                 </select>
               </div>
 
@@ -1398,15 +1484,16 @@ export function LiteratureClubMasterSection({
               <div>
                 <button
                   type="submit"
-                  style={{ width: '100%', background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                  style={{ width: '100%', background: '#047857', color: '#ffffff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                 >
-                  ➕ সদস্য যুক্ত করুন
+                  <span>➕</span>
+                  <span>সদস্য যুক্ত করুন</span>
                 </button>
               </div>
             </form>
 
             {/* Members Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '10px' }}>
               {(execData.members || []).map(m => (
                 <div
                   key={m.id}
@@ -1417,22 +1504,55 @@ export function LiteratureClubMasterSection({
                     padding: '10px 12px',
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    gap: '8px'
                   }}
                 >
                   <div>
                     <b style={{ fontSize: '13.5px', color: '#0f172a' }}>{m.name}</b>
                     <div style={{ fontSize: '11.5px', color: '#64748b' }}>
-                      শ্রেণি: {m.class} • রোল: {toBn(m.roll)}
+                      শ্রেণি: {m.class} {m.section ? `• ${m.section}` : ''} • রোল: {toBn(m.roll)}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveExecMember(m.id)}
-                    style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fca5a5', padding: '4px 7px', borderRadius: '4px', fontSize: '10.5px', cursor: 'pointer' }}
-                  >
-                    🗑️
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleStartEditMember(m)}
+                      style={{
+                        background: '#eff6ff',
+                        color: '#1d4ed8',
+                        border: '1px solid #bfdbfe',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="সদস্য তথ্য এডিট করুন"
+                    >
+                      <span>✏️</span>
+                      <span>এডিট</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveExecMember(m.id)}
+                      style={{
+                        background: '#fee2e2',
+                        color: '#b91c1c',
+                        border: '1px solid #fca5a5',
+                        padding: '4px 7px',
+                        borderRadius: '4px',
+                        fontSize: '10.5px',
+                        cursor: 'pointer'
+                      }}
+                      title="অপসারণ করুন"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1503,13 +1623,23 @@ export function LiteratureClubMasterSection({
                   style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শ্রেণি:</label>
                   <input
                     type="text"
                     value={execEditForm.class}
                     onChange={e => setExecEditForm({ ...execEditForm, class: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শাখা/বিভাগ:</label>
+                  <input
+                    type="text"
+                    value={execEditForm.section}
+                    placeholder="যেমন: বিজ্ঞান"
+                    onChange={e => setExecEditForm({ ...execEditForm, section: e.target.value })}
                     style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                   />
                 </div>
@@ -1545,6 +1675,118 @@ export function LiteratureClubMasterSection({
                   style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
                 >
                   💾 সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT GENERAL EXECUTIVE MEMBER */}
+      {editingExecMember && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(3px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99999,
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            maxWidth: '460px',
+            width: '100%',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)',
+            border: '2px solid #065f46',
+            overflow: 'hidden'
+          }}>
+            <div style={{ background: '#065f46', color: '#ffffff', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <b style={{ fontSize: '15px' }}>✏️ কার্যনির্বাহী সদস্য তথ্য এডিট</b>
+              <button
+                type="button"
+                onClick={() => setEditingExecMember(null)}
+                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '16px', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleSaveMemberEdit} style={{ padding: '16px' }}>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শিক্ষার্থীর নাম:</label>
+                <input
+                  type="text"
+                  required
+                  value={memberEditForm.name}
+                  onChange={e => setMemberEditForm({ ...memberEditForm, name: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শ্রেণি:</label>
+                  <select
+                    value={memberEditForm.class}
+                    onChange={e => {
+                      const c = e.target.value;
+                      let sec = memberEditForm.section;
+                      if ((c === '৯ম' || c === '১০ম') && !['বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা'].includes(sec)) {
+                        sec = 'বিজ্ঞান';
+                      } else if (c !== '৯ম' && c !== '১০ম' && !['শাখা ক', 'শাখা খ', 'সাধারণ'].includes(sec)) {
+                        sec = 'শাখা ক';
+                      }
+                      setMemberEditForm({ ...memberEditForm, class: c, section: sec });
+                    }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  >
+                    <option value="৬ষ্ঠ">৬ষ্ঠ শ্রেণি</option>
+                    <option value="৭ম">৭ম শ্রেণি</option>
+                    <option value="৮ম">৮ম শ্রেণি</option>
+                    <option value="৯ম">৯ম শ্রেণি</option>
+                    <option value="১০ম">১০ম শ্রেণি</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>শাখা / বিভাগ:</label>
+                  <select
+                    value={memberEditForm.section}
+                    onChange={e => setMemberEditForm({ ...memberEditForm, section: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12.5px' }}
+                  >
+                    {getSectionOptionsForClass(memberEditForm.class).map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '3px' }}>রোল নং:</label>
+                <input
+                  type="text"
+                  value={memberEditForm.roll}
+                  onChange={e => setMemberEditForm({ ...memberEditForm, roll: e.target.value })}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingExecMember(null)}
+                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer' }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{ background: '#065f46', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
+                >
+                  💾 আপডেট সংরক্ষণ করুন
                 </button>
               </div>
             </form>
@@ -2439,3 +2681,4 @@ export function LiteratureClubMasterSection({
     </div>
   );
 }
+
