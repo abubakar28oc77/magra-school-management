@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MOCK_TEACHERS,
   PHOTO_HEAD_TEACHER,
@@ -190,7 +190,8 @@ export function LiteratureClubMasterSection({
   const [memberEditForm, setMemberEditForm] = useState({ id: '', name: '', class: '', section: '', roll: '' });
 
   const getSectionOptionsForClass = (cls) => {
-    if (cls === '৯ম' || cls === '১০ম') {
+    const isNineOrTen = cls === '৯' || cls === '১০' || cls === '৯ম' || cls === '১০ম';
+    if (isNineOrTen) {
       return [
         { value: 'বিজ্ঞান', label: 'বিজ্ঞান (Science)' },
         { value: 'মানবিক', label: 'মানবিক (Humanities)' },
@@ -234,13 +235,21 @@ export function LiteratureClubMasterSection({
   const [writeForm, setWriteForm] = useState({
     student_name: '',
     class_name: '৯',
+    section: 'বিজ্ঞান',
+    department: 'বিজ্ঞান',
     roll_no: '',
     mobile: '',
     type: 'poem',
     title: '',
-    content: ''
+    content: '',
+    file_name: '',
+    file_size: '',
+    file_type: '',
+    file_data: ''
   });
   const [writeReceipt, setWriteReceipt] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const writeFileInputRef = useRef(null);
 
   // Kishalaya Wall Magazine State
   const [readingItem, setReadingItem] = useState(null);
@@ -443,13 +452,99 @@ export function LiteratureClubMasterSection({
     setTimeout(() => setToastMsg(''), 3500);
   };
 
+  const handleWriteClassChange = (cls) => {
+    const isNineOrTen = cls === '৯' || cls === '১০' || cls === '৯ম' || cls === '১০ম';
+    let newSec = writeForm.section;
+    if (isNineOrTen) {
+      if (!['বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা', 'শাখা ক', 'শাখা খ'].includes(newSec)) {
+        newSec = 'বিজ্ঞান';
+      }
+    } else {
+      if (!['শাখা ক', 'শাখা খ', 'সাধারণ'].includes(newSec)) {
+        newSec = 'শাখা ক';
+      }
+    }
+    setWriteForm(prev => ({
+      ...prev,
+      class_name: cls,
+      section: newSec,
+      department: newSec
+    }));
+  };
+
+  const handleFileProcess = (file) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('ফাইলের সাইজ ১০ মেগাবাইটের বেশি হতে পারবে না।');
+      return;
+    }
+    const formattedSize = file.size > 1024 * 1024
+      ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+      : (file.size / 1024).toFixed(1) + ' KB';
+
+    if (file.name.endsWith('.txt') || file.type === 'text/plain') {
+      const textReader = new FileReader();
+      textReader.onload = (ev) => {
+        const textContent = ev.target?.result;
+        if (typeof textContent === 'string' && !writeForm.content.trim()) {
+          setWriteForm(prev => ({
+            ...prev,
+            content: textContent,
+            file_name: file.name,
+            file_size: formattedSize,
+            file_type: file.type || 'text/plain',
+            file_data: textContent
+          }));
+          setToastMsg(`✓ "${file.name}" টেক্সট ফাইল আপলোড ও মূল লেখায় যুক্ত হয়েছে!`);
+          setTimeout(() => setToastMsg(''), 3500);
+          return;
+        }
+      };
+      textReader.readAsText(file);
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      setWriteForm(prev => ({
+        ...prev,
+        file_name: file.name,
+        file_size: formattedSize,
+        file_type: file.type || 'document',
+        file_data: typeof result === 'string' ? result : ''
+      }));
+      setToastMsg(`✓ "${file.name}" ফাইলটি সফলভাবে সংযুক্ত হয়েছে!`);
+      setTimeout(() => setToastMsg(''), 3500);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveFile = () => {
+    setWriteForm(prev => ({
+      ...prev,
+      file_name: '',
+      file_size: '',
+      file_type: '',
+      file_data: ''
+    }));
+    if (writeFileInputRef.current) {
+      writeFileInputRef.current.value = '';
+    }
+  };
+
   // Handle Writing Submit
   const handleWriteSubmit = (e) => {
     e.preventDefault();
+    if (!writeForm.content.trim() && !writeForm.file_name) {
+      alert('অনুগ্রহ করে লেখার মূল বিষয়বস্তু টাইপ করুন অথবা ফাইল/ছবি আপলোড করুন।');
+      return;
+    }
     const receipt = {
       tracking_id: 'LIT-WRITE-' + Math.floor(100000 + Math.random() * 900000),
       date: new Date().toLocaleDateString('bn-BD'),
-      ...writeForm
+      ...writeForm,
+      section: writeForm.section || 'বিজ্ঞান',
+      department: writeForm.section || 'বিজ্ঞান'
     };
     try {
       const existing = JSON.parse(localStorage.getItem(LIT_SUBMISSIONS_KEY) || '[]');
@@ -477,6 +572,8 @@ export function LiteratureClubMasterSection({
     setWriteForm({
       student_name: 'ফারজানা মেহজাবীন',
       class_name: '৯',
+      section: 'বিজ্ঞান',
+      department: 'বিজ্ঞান',
       roll_no: '৩',
       mobile: '01715-443322',
       type: 'poem',
@@ -484,7 +581,11 @@ export function LiteratureClubMasterSection({
       content: `কুয়াশা ভেজা নদীর চরে রোদ উঠেছে সোনালী,
 মাঠের বুকে দুলছে যেন সবুজ পাতার অঞ্জলি।
 বর্ণমালার হাতটি ধরে হাটছি মোরা বহুদূর,
-বাংলা ভাষার দোলায় বাজে আনন্দেরই সুর।`
+বাংলা ভাষার দোলায় বাজে আনন্দেরই সুর।`,
+      file_name: 'shobder_kheyay_podma_par.docx',
+      file_size: '28.4 KB',
+      file_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      file_data: ''
     });
   };
 
@@ -853,8 +954,14 @@ export function LiteratureClubMasterSection({
               </tr>
               <tr>
                 <td class="label-col">শ্রেণি, বিভাগ ও রোল নং</td>
-                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | শাখা/বিভাগ: <b>${receipt.department || 'সাধারণ'}</b> | রোল: <b>${toBn(receipt.roll_no || '—')}</b></td>
+                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | শাখা/বিভাগ: <b>${receipt.section || receipt.department || 'সাধারণ'}</b> | রোল: <b>${toBn(receipt.roll_no || '—')}</b></td>
               </tr>
+              ${receipt.file_name ? `
+              <tr>
+                <td class="label-col">সংযুক্ত ফাইল / পান্ডুলিপি</td>
+                <td><b>📎 ${receipt.file_name}</b> <small style="color:#64748b;">(${receipt.file_size || 'সংযুক্ত'})</small></td>
+              </tr>
+              ` : ''}
               <tr>
                 <td class="label-col">জমা দানের তারিখ</td>
                 <td>${toBn(new Date().toLocaleDateString('bn-BD'))} খ্রি.</td>
@@ -2535,10 +2642,15 @@ export function LiteratureClubMasterSection({
               <p style={{ margin: '0 0 12px 0', fontSize: '12.5px', color: '#047857' }}>
                 ট্র্যাকিং নম্বর: <b style={{ background: '#ffffff', padding: '2px 8px', borderRadius: '4px', border: '1px solid #86efac' }}>{writeReceipt.tracking_id}</b>
               </p>
-              <div style={{ maxWidth: '460px', margin: '0 auto 14px auto', background: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #bbf7d0', textAlign: 'left', fontSize: '12.5px' }}>
+              <div style={{ maxWidth: '480px', margin: '0 auto 14px auto', background: '#ffffff', padding: '14px', borderRadius: '8px', border: '1px solid #bbf7d0', textAlign: 'left', fontSize: '12.5px', lineHeight: '1.6' }}>
                 <div><b>শিরোনাম:</b> {writeReceipt.title}</div>
-                <div><b>লেখক:</b> {writeReceipt.student_name} (শ্রেণি {writeReceipt.class_name}, রোল {toBn(writeReceipt.roll_no)})</div>
-                <div><b>ধরন:</b> {writeReceipt.type === 'poem' ? 'কবিতা' : writeReceipt.type === 'story' ? 'ছোটগল্প' : writeReceipt.type}</div>
+                <div><b>লেখক:</b> {writeReceipt.student_name} (শ্রেণি {writeReceipt.class_name}, শাখা/বিভাগ: <b>{writeReceipt.section || writeReceipt.department || 'সাধারণ'}</b>, রোল {toBn(writeReceipt.roll_no)})</div>
+                <div><b>ধরন:</b> {writeReceipt.type === 'poem' ? 'স্বরচিত কবিতা' : writeReceipt.type === 'story' ? 'ছোটগল্প' : writeReceipt.type === 'essay' ? 'প্রবন্ধ' : writeReceipt.type === 'rhyme' ? 'ছড়া' : writeReceipt.type}</div>
+                {writeReceipt.file_name && (
+                  <div style={{ marginTop: '4px', color: '#065f46', fontWeight: 700 }}>
+                    <b>সংযুক্ত ফাইল:</b> 📎 {writeReceipt.file_name} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({writeReceipt.file_size})</span>
+                  </div>
+                )}
                 <div><b>স্থিতি:</b> <span style={{ color: '#d97706', fontWeight: 700 }}>সম্পাদনা পরিষদে অপেক্ষমাণ</span></div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
@@ -2560,7 +2672,7 @@ export function LiteratureClubMasterSection({
             </div>
           ) : (
             <form onSubmit={handleWriteSubmit} style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '18px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখকের নাম *</label>
                   <input
@@ -2569,15 +2681,15 @@ export function LiteratureClubMasterSection({
                     value={writeForm.student_name}
                     onChange={e => setWriteForm({ ...writeForm, student_name: e.target.value })}
                     placeholder="যেমন: ফারজানা মেহজাবীন"
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শ্রেণি *</label>
                   <select
                     value={writeForm.class_name}
-                    onChange={e => setWriteForm({ ...writeForm, class_name: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    onChange={e => handleWriteClassChange(e.target.value)}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="৬">৬ষ্ঠ শ্রেণি</option>
                     <option value="৭">৭ম শ্রেণি</option>
@@ -2587,13 +2699,25 @@ export function LiteratureClubMasterSection({
                   </select>
                 </div>
                 <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>শাখা / বিভাগ *</label>
+                  <select
+                    value={writeForm.section}
+                    onChange={e => setWriteForm({ ...writeForm, section: e.target.value, department: e.target.value })}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  >
+                    {getSectionOptionsForClass(writeForm.class_name).map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>রোল নং</label>
                   <input
                     type="text"
                     value={writeForm.roll_no}
                     onChange={e => setWriteForm({ ...writeForm, roll_no: e.target.value })}
                     placeholder="যেমন: ৩"
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -2601,7 +2725,7 @@ export function LiteratureClubMasterSection({
                   <select
                     value={writeForm.type}
                     onChange={e => setWriteForm({ ...writeForm, type: e.target.value })}
-                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                   >
                     <option value="poem">📜 স্বরচিত কবিতা</option>
                     <option value="story">📖 ছোটগল্প</option>
@@ -2621,20 +2745,114 @@ export function LiteratureClubMasterSection({
                   value={writeForm.title}
                   onChange={e => setWriteForm({ ...writeForm, title: e.target.value })}
                   placeholder="যেমন: শব্দের খেয়ায় পদ্মা পার"
-                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                 />
               </div>
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>লেখার মূল বিষয়বস্তু (কবিতা/গল্প/প্রবন্ধ) *</label>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 800, marginBottom: '4px' }}>
+                  <span>লেখার মূল বিষয়বস্তু (কবিতা/গল্প/প্রবন্ধ)</span>
+                  <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal' }}>সরাসরি টাইপ করুন অথবা নিচে ফাইল আপলোড করুন</span>
+                </label>
                 <textarea
                   rows="6"
-                  required
                   value={writeForm.content}
                   onChange={e => setWriteForm({ ...writeForm, content: e.target.value })}
-                  placeholder="তোমার লেখাটি এখানে নির্ভুল বানানে টাইপ করো..."
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', lineHeight: '1.6' }}
+                  placeholder="তোমার লেখাটি এখানে নির্ভুল বানানে টাইপ করো (অথবা সরাসরি খাতার ছবি / ওয়ার্ড / পিডিএফ ফাইল নিচে আপলোড করুন)..."
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', lineHeight: '1.6', boxSizing: 'border-box' }}
                 />
+              </div>
+
+              {/* FILE UPLOAD ATTACHMENT AREA */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 800, marginBottom: '6px' }}>
+                  <span style={{ color: '#065f46', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📎 স্বরচিত লেখার ফাইল আপলোড (File Upload)</span>
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>[হাতে লেখার ছবি / ওয়ার্ড / পিডিএফ]</span>
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#047857', fontWeight: 600 }}>
+                    সমর্থিত: PDF, Word (docx/doc), Text (txt), ছবি (jpg/png) • সর্বোচ্চ ১০MB
+                  </span>
+                </label>
+
+                {!writeForm.file_name ? (
+                  <div
+                    onClick={() => writeFileInputRef.current?.click()}
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files?.[0]) handleFileProcess(e.dataTransfer.files[0]);
+                    }}
+                    style={{
+                      border: isDragging ? '2px dashed #059669' : '2px dashed #94a3b8',
+                      background: isDragging ? '#ecfdf5' : '#ffffff',
+                      borderRadius: '8px',
+                      padding: '16px 14px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <input
+                      type="file"
+                      ref={writeFileInputRef}
+                      onChange={e => { if (e.target.files?.[0]) handleFileProcess(e.target.files[0]); }}
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
+                      style={{ display: 'none' }}
+                    />
+                    <div style={{ fontSize: '26px', marginBottom: '4px' }}>📄 📤</div>
+                    <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1e293b' }}>
+                      ফাইল নির্বাচন করতে এখানে ক্লিক করুন অথবা ফাইলটি ড্র্যাগ করে ছেড়ে দিন
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '3px' }}>
+                      খাতায় স্বহস্তে লেখা কবিতা/গল্পের ছবি (.jpg, .png), মাইক্রোসফট ওয়ার্ড (.docx), অথবা পিডিএফ (.pdf)
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    background: '#ecfdf5',
+                    border: '1.5px solid #059669',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '26px' }}>
+                        {writeForm.file_type?.includes('image') ? '🖼️' : writeForm.file_name.endsWith('.pdf') ? '📕' : '📝'}
+                      </span>
+                      <div>
+                        <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#065f46' }}>
+                          {writeForm.file_name}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#047857' }}>
+                          সাইজ: {writeForm.file_size} • ফাইল সফলভাবে সংযুক্ত হয়েছে
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {writeForm.file_data && writeForm.file_type?.includes('image') && (
+                        <img
+                          src={writeForm.file_data}
+                          alt="সংযুক্ত প্রিভিউ"
+                          style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #86efac' }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleRemoveFile}
+                        style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        ✕ ফাইল বাতিল
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button

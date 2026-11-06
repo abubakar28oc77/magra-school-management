@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   MOCK_SCHOOL,
   MOCK_TEACHERS,
@@ -76,17 +76,24 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
   const emptySubmission = {
     student_name: '',
     class_name: '৯',
-    roll_no: '',
+    section: 'বিজ্ঞান',
     department: 'বিজ্ঞান',
+    roll_no: '',
     mobile: '',
     type: activeClub === 'debate' ? 'motion' : activeClub === 'science' ? 'project' : activeClub === 'ict' ? 'software' : 'poem',
     title: '',
-    content: ''
+    content: '',
+    file_name: '',
+    file_size: '',
+    file_type: '',
+    file_data: ''
   };
   const [subForm, setSubForm] = useState(emptySubmission);
   const [subReceipt, setSubReceipt] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [subMsg, setSubMsg] = useState('');
+  const [isSubDragging, setIsSubDragging] = useState(false);
+  const subFileInputRef = useRef(null);
 
   // Auto-adapt form type when activeClub changes
   useEffect(() => {
@@ -185,10 +192,69 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
     setTimeout(() => setSubMsg(''), 3000);
   };
 
+  const handleSubClassChange = (cls) => {
+    const isNineOrTen = cls === '৯' || cls === '১০' || cls === '৯ম' || cls === '১০ম';
+    let newSec = subForm.section;
+    if (isNineOrTen) {
+      if (!['বিজ্ঞান', 'মানবিক', 'ব্যবসায় শিক্ষা', 'শাখা ক', 'শাখা খ'].includes(newSec)) {
+        newSec = 'বিজ্ঞান';
+      }
+    } else {
+      if (!['শাখা ক', 'শাখা খ', 'সাধারণ'].includes(newSec)) {
+        newSec = 'শাখা ক';
+      }
+    }
+    setSubForm(prev => ({
+      ...prev,
+      class_name: cls,
+      section: newSec,
+      department: newSec
+    }));
+  };
+
+  const handleSubFileProcess = (file) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert('ফাইলের সাইজ ১০ মেগাবাইটের বেশি হতে পারবে না।');
+      return;
+    }
+    const formattedSize = file.size > 1024 * 1024
+      ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+      : (file.size / 1024).toFixed(1) + ' KB';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      setSubForm(prev => ({
+        ...prev,
+        file_name: file.name,
+        file_size: formattedSize,
+        file_type: file.type || 'document',
+        file_data: typeof result === 'string' ? result : ''
+      }));
+      setSubMsg(`✓ "${file.name}" ফাইলটি সফলভাবে সংযুক্ত হয়েছে!`);
+      setTimeout(() => setSubMsg(''), 3000);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubRemoveFile = () => {
+    setSubForm(prev => ({
+      ...prev,
+      file_name: '',
+      file_size: '',
+      file_type: '',
+      file_data: ''
+    }));
+    if (subFileInputRef.current) {
+      subFileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!subForm.student_name.trim() || !subForm.title.trim() || !subForm.content.trim()) {
-      setSubMsg('অনুগ্রহ করে শিক্ষার্থীর নাম, শিরোনাম ও মূল বক্তব্য পূরণ করুন।');
+    if (!subForm.student_name.trim() || !subForm.title.trim() || (!subForm.content.trim() && !subForm.file_name)) {
+      setSubMsg('অনুগ্রহ করে শিক্ষার্থীর নাম, শিরোনাম ও মূল বক্তব্য (অথবা ফাইল) পূরণ করুন।');
       return;
     }
     setSubmitting(true);
@@ -219,6 +285,8 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
         method: 'POST',
         body: JSON.stringify({
           ...subForm,
+          section: subForm.section || 'বিজ্ঞান',
+          department: subForm.section || 'বিজ্ঞান',
           club_id: activeClub,
           club_name: clubNames[activeClub] || 'স্কুল ক্লাব',
           type_label: typeLabels[subForm.type] || 'ক্লাব প্রজেক্ট/লেখা'
@@ -289,8 +357,14 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
               </tr>
               <tr>
                 <td class="label-col">শ্রেণি, বিভাগ ও রোল নং</td>
-                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | বিভাগ: <b>${receipt.department || 'সাধারণ'}</b> | রোল: <b>${receipt.roll_no || '—'}</b></td>
+                <td>শ্রেণি: <b>${receipt.class_name || '—'}</b> | শাখা/বিভাগ: <b>${receipt.section || receipt.department || 'সাধারণ'}</b> | রোল: <b>${receipt.roll_no || '—'}</b></td>
               </tr>
+              ${receipt.file_name ? `
+              <tr>
+                <td class="label-col">সংযুক্ত ফাইল / পান্ডুলিপি</td>
+                <td><b>📎 ${receipt.file_name}</b> <small style="color:#64748b;">(${receipt.file_size || 'সংযুক্ত'})</small></td>
+              </tr>
+              ` : ''}
               <tr>
                 <td class="label-col">বর্তমান স্থিতি</td>
                 <td><span style="color:#d97706; font-weight:700;">পর্যালোচনায় অপেক্ষমাণ (Pending Review)</span></td>
@@ -2084,9 +2158,14 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
                 </p>
                 <div style={{ maxWidth: '500px', margin: '0 auto 16px auto', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #a7f3d0', textAlign: 'left', fontSize: '12.5px' }}>
                   <div><b>ক্লাবের নাম:</b> {subReceipt.club_name || 'স্কুল ক্লাব'}</div>
-                  <div><b>শিক্ষার্থীর নাম:</b> {subReceipt.student_name} (শ্রেণি {subReceipt.class_name}, রোল {subReceipt.roll_no || '—'})</div>
+                  <div><b>শিক্ষার্থীর নাম:</b> {subReceipt.student_name} (শ্রেণি {subReceipt.class_name}, শাখা/বিভাগ: <b>{subReceipt.section || subReceipt.department || 'সাধারণ'}</b>, রোল {subReceipt.roll_no || '—'})</div>
                   <div><b>শিরোনাম/বিষয়:</b> {subReceipt.title}</div>
                   <div><b>ধরন:</b> {subReceipt.type_label}</div>
+                  {subReceipt.file_name && (
+                    <div style={{ marginTop: '3px', color: '#065f46', fontWeight: 700 }}>
+                      <b>সংযুক্ত ফাইল:</b> 📎 {subReceipt.file_name} ({subReceipt.file_size})
+                    </div>
+                  )}
                   <div><b>স্থিতি:</b> <span style={{ color: '#d97706', fontWeight: 700 }}>পর্যালোচনায় অপেক্ষমাণ (Pending Review)</span></div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
@@ -2126,7 +2205,7 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '10px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '3px' }}>শিক্ষার্থীর নাম *</label>
                     <input
@@ -2142,7 +2221,7 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '3px' }}>শ্রেণি *</label>
                     <select
                       value={subForm.class_name}
-                      onChange={e => setSubForm({ ...subForm, class_name: e.target.value })}
+                      onChange={e => handleSubClassChange(e.target.value)}
                       style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
                     >
                       <option value="৬">৬ষ্ঠ শ্রেণি</option>
@@ -2150,6 +2229,30 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
                       <option value="৮">৮ম শ্রেণি</option>
                       <option value="৯">৯ম শ্রেণি</option>
                       <option value="১০">১০ম শ্রেণি</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '3px' }}>শাখা / বিভাগ *</label>
+                    <select
+                      value={subForm.section}
+                      onChange={e => setSubForm({ ...subForm, section: e.target.value, department: e.target.value })}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    >
+                      {subForm.class_name === '৯' || subForm.class_name === '১০' || subForm.class_name === '৯ম' || subForm.class_name === '১০ম' ? (
+                        <>
+                          <option value="বিজ্ঞান">বিজ্ঞান (Science)</option>
+                          <option value="মানবিক">মানবিক (Humanities)</option>
+                          <option value="ব্যবসায় শিক্ষা">ব্যবসায় শিক্ষা (Business Studies)</option>
+                          <option value="শাখা ক">শাখা ক</option>
+                          <option value="শাখা খ">শাখা খ</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="শাখা ক">শাখা ‘ক’</option>
+                          <option value="শাখা খ">শাখা ‘খ’</option>
+                          <option value="সাধারণ">সাধারণ</option>
+                        </>
+                      )}
                     </select>
                   </div>
                   <div>
@@ -2240,12 +2343,72 @@ export function LanguageLiteratureClubSection({ initialTitle, menuKey, onClose }
                   </label>
                   <textarea
                     rows="6"
-                    required
                     value={subForm.content}
                     onChange={e => setSubForm({ ...subForm, content: e.target.value })}
-                    placeholder="এখানে তোমার বিস্তারিত বক্তব্য, যুক্তি বা প্রজেক্ট বিবরণ সুন্দরভাবে লেখো..."
+                    placeholder="এখানে তোমার বিস্তারিত বক্তব্য, যুক্তি বা প্রজেক্ট বিবরণ সুন্দরভাবে লেখো (অথবা নিচে ফাইল আপলোড করুন)..."
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13.5px', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   />
+                </div>
+
+                {/* File upload box */}
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>
+                    <span style={{ color: '#065f46' }}>📎 ফাইল আপলোড (ঐচ্ছিক / টাইপের বিকল্প)</span>
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>PDF, Docx, Text বা ছবি (সর্বোচ্চ ১০MB)</span>
+                  </label>
+                  {!subForm.file_name ? (
+                    <div
+                      onClick={() => subFileInputRef.current?.click()}
+                      onDragOver={e => { e.preventDefault(); setIsSubDragging(true); }}
+                      onDragLeave={() => setIsSubDragging(false)}
+                      onDrop={e => {
+                        e.preventDefault();
+                        setIsSubDragging(false);
+                        if (e.dataTransfer.files?.[0]) handleSubFileProcess(e.dataTransfer.files[0]);
+                      }}
+                      style={{
+                        border: isSubDragging ? '2px dashed #059669' : '2px dashed #94a3b8',
+                        background: isSubDragging ? '#ecfdf5' : '#ffffff',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        textAlign: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <input
+                        type="file"
+                        ref={subFileInputRef}
+                        onChange={e => { if (e.target.files?.[0]) handleSubFileProcess(e.target.files[0]); }}
+                        accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.webp"
+                        style={{ display: 'none' }}
+                      />
+                      <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#334155' }}>
+                        📤 ফাইল আপলোড করতে এখানে ক্লিক করুন (Word, PDF বা খাতার ছবি)
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{
+                      background: '#ecfdf5',
+                      border: '1px solid #059669',
+                      borderRadius: '6px',
+                      padding: '8px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px'
+                    }}>
+                      <div style={{ fontSize: '12.5px', color: '#065f46', fontWeight: 700 }}>
+                        📎 {subForm.file_name} <span style={{ color: '#64748b', fontWeight: 'normal' }}>({subForm.file_size})</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSubRemoveFile}
+                        style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        ✕ বাতিল
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {subMsg && <p style={{ color: '#047857', fontWeight: 700, fontSize: '12.5px', margin: '0 0 10px 0' }}>{subMsg}</p>}
