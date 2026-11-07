@@ -126,6 +126,8 @@ import { SEED_BOOKS, BOOK_CATEGORIES, LIBRARIAN_TEACHER } from './libraryData';
 import { PublicAttendancePortal } from './PublicAttendancePortal';
 import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 import { SportsCultureModernSection } from './SportsCultureModernSection';
+import NoticeMasterModalSection from './NoticeMasterModalSection';
+import GalleryMasterModalSection from './GalleryMasterModalSection';
 import { getStoredFormerPersonnelData } from './formerPersonnelData';
 import { 
   getStoredGovtScholarships, 
@@ -928,6 +930,29 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
   };
 
   const renderContent = () => {
+    // ================= NOTICE MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.notice') ||
+      title?.includes('নোটিশ') ||
+      title?.includes('ঘোষণা') ||
+      title?.includes('বিজ্ঞপ্তি')
+    ) {
+      return <NoticeMasterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // ================= GALLERY MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.gallery') ||
+      title?.includes('গ্যালারি') ||
+      title?.includes('অ্যালবাম') ||
+      title?.includes('ফটো') ||
+      title?.includes('ভিডিও গ্যালারি') ||
+      title?.includes('টিউটোরিয়াল') ||
+      title?.includes('অনলাইন ক্লাস')
+    ) {
+      return <GalleryMasterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
     // Co-curricular & 4 Major Clubs (Literature, Debate, Science, ICT)
     if (
       menuKey === 'public.nav.sport.clubs' || 

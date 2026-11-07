@@ -67,8 +67,22 @@ export const publicNavConfig = [
   ['public.nav.guide.assignment','অ্যাসাইনমেন্ট ও মক টেস্ট','#assignments'],
   ['public.nav.guide.online','অনলাইন পরীক্ষা','#online-exam']
  ]},
- {key:'public.nav.notice',label:'নোটিশ',href:'#notice'},
- {key:'public.nav.gallery',label:'গ্যালারি',href:'#gallery'},
+ {key:'public.nav.notice',label:'নোটিশ',children:[
+  ['public.nav.notice.all','সকল নোটিশ','#notice-all'],
+  ['public.nav.notice.announcements','গুরুত্বপূর্ণ ঘোষণা','#notice-announcements'],
+  ['public.nav.notice.tenders','টেন্ডার ও নিয়োগ বিজ্ঞপ্তি','#notice-tenders'],
+  ['public.nav.notice.academic','একাডেমিক ও পরীক্ষা নোটিশ','#notice-academic'],
+  ['public.nav.notice.holidays','ছুটির তালিকা ও নোটিশ','#notice-holidays'],
+  ['public.nav.notice.board','ডিজিটাল নোটিশবোর্ড ও ই-আর্কাইভ','#notice-board']
+ ]},
+ {key:'public.nav.gallery',label:'গ্যালারি',children:[
+  ['public.nav.gallery.photos','ফটো গ্যালারি (নতুন অ্যালবাম তৈরির সুবিধা সহ)','#gallery-photos'],
+  ['public.nav.gallery.videos','ভিডিও গ্যালারি (নতুন অ্যালবাম তৈরির সুবিধা সহ)','#gallery-videos'],
+  ['public.nav.gallery.tutorials','টিউটোরিয়াল','#gallery-tutorials'],
+  ['public.nav.gallery.classes','অনলাইন ক্লাস','#gallery-classes'],
+  ['public.nav.gallery.campus','ক্যাম্পাস ও ঐতিহাসিক স্মৃতি','#gallery-campus'],
+  ['public.nav.gallery.audio','অডিও ও সাংস্কৃতিক পরিবেশনা','#gallery-audio']
+ ]},
  {key:'public.nav.contact',label:'যোগাযোগ',children:[
   ['public.nav.contact.head','প্রধান শিক্ষক','#contact-head'],['public.nav.contact.assistant','সহকারী প্রধান শিক্ষক','#contact-assistant'],['public.nav.contact.ict','আইসিটি শিক্ষক','#contact-ict'],['public.nav.contact.office','অফিস সহকারী','#contact-office'],['public.nav.contact.all','যোগাযোগ ও ঠিকানা','#contact']
  ]}

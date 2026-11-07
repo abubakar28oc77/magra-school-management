@@ -1184,7 +1184,7 @@ function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta
   const isEdit = !!session;
 
   const [form, setForm] = useState(session || {
-    id: `${(currentClub || 'sci').slice(0, 3)}-${Date.now()}`,
+    id: `${String(currentClub || 'sci').slice(0, 3)}-${Date.now()}`,
     club: currentClub,
     title: '',
     format: isDebate ? 'আন্তঃশ্রেণি সংসদীয় বিতর্ক (Parliamentary)' : currentClub === 'science' ? 'বিজ্ঞান প্রজেক্ট প্রদর্শনী ও মডেল পরীক্ষণ' : currentClub === 'ict' ? 'কোডিং অলিম্পিয়াড' : 'বার্ষিক ক্লাব প্রতিযোগিতা',
