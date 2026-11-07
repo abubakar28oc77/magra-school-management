@@ -3,7 +3,8 @@ import {
   MOCK_TEACHERS,
   PHOTO_HEAD_TEACHER,
   PHOTO_PRESIDENT,
-  getTeacherPhoto
+  getTeacherPhoto,
+  getLeadershipData
 } from './mockData';
 import { ClubCompetitionEngine } from './ClubCompetitionEngine';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
@@ -152,6 +153,38 @@ export function LiteratureClubMasterSection({
 
   // Teachers Fallback
   const activeTeachers = teachers && teachers.length ? teachers : MOCK_TEACHERS;
+
+  // Teacher Photo Resolver (pulls direct raster photo from teacher entry form or IDB custom vault)
+  const getResolvedTeacherPhoto = (teacherId, teacherName) => {
+    if (!activeTeachers || !activeTeachers.length) return getTeacherPhoto(null);
+    let found = null;
+    if (teacherId) {
+      found = activeTeachers.find(t =>
+        t && (
+          String(t.id) === String(teacherId) ||
+          String(t.teacher_id) === String(teacherId) ||
+          String(t.employee_id) === String(teacherId)
+        )
+      );
+    }
+    if (!found && teacherName) {
+      const cleanName = String(teacherName).trim().toLowerCase();
+      found = activeTeachers.find(t => {
+        if (!t) return false;
+        const bn = (t.name_bn || '').trim().toLowerCase();
+        const en = (t.name_en || t.name || '').trim().toLowerCase();
+        return bn === cleanName || en === cleanName || cleanName.includes(bn) || (bn && bn.includes(cleanName));
+      });
+    }
+    if (!found && typeof teacherId === 'object' && teacherId !== null) {
+      found = teacherId;
+    }
+    return getTeacherPhoto(found);
+  };
+
+  const leadershipInfo = getLeadershipData(undefined, activeTeachers);
+  const resolvedPresidentPhoto = leadershipInfo.president?.photo || PHOTO_PRESIDENT;
+  const resolvedHeadPhoto = leadershipInfo.head?.photo || PHOTO_HEAD_TEACHER;
 
   // Panel State (Coordinators & Judges)
   const [panelData, setPanelData] = useState(() => {
@@ -1496,6 +1529,57 @@ export function LiteratureClubMasterSection({
             </div>
           </div>
 
+          {/* শীর্ষ পৃষ্ঠপোষক ও সমন্বয়ক পরিষদ */}
+          <div style={{ marginTop: '18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+            <div style={{ border: '1px solid #86efac', borderRadius: '10px', padding: '14px', background: '#f0fdf4' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>প্রধান পৃষ্ঠপোষক</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={resolvedHeadPhoto}
+                  alt="প্রধান শিক্ষক"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #059669' }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{leadershipInfo.head?.name || 'মুহাম্মদ শফিকুল ইসলাম'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #86efac', borderRadius: '10px', padding: '14px', background: '#f0fdf4' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>সার্বিক পৃষ্ঠপোষকতা</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={resolvedPresidentPhoto}
+                  alt="ম্যানেজিং কমিটি সভাপতি"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #b45309' }}
+                  onError={(e) => { e.target.src = PHOTO_PRESIDENT; }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{leadershipInfo.president?.name || 'নেয়ামুল হক খান'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>সভাপতি, বিদ্যালয় পরিচালনা পর্ষদ</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ border: '1px solid #86efac', borderRadius: '10px', padding: '14px', background: '#f0fdf4' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#047857', textTransform: 'uppercase' }}>প্রধান সমন্বয়ক</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={getResolvedTeacherPhoto(panelData.coordinators[0]?.teacherId, panelData.coordinators[0]?.name)}
+                  alt="প্রধান সমন্বয়ক"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #059669' }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{panelData.coordinators[0]?.name || 'মোঃ আব্দুল খালেক'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{panelData.coordinators[0]?.designation || 'সহকারী শিক্ষক (বাংলা)'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="button"
@@ -1661,17 +1745,25 @@ export function LiteratureClubMasterSection({
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '4px' }}>
                   শিক্ষক নির্বাচন (ড্রপ-ডাউন):
                 </label>
-                <select
-                  value={newCoordTeacherId}
-                  onChange={e => setNewCoordTeacherId(e.target.value)}
-                  style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
-                >
-                  {activeTeachers.map(t => (
-                    <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
-                      {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(newCoordTeacherId)}
+                    alt="নির্বাচিত শিক্ষক"
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #059669', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <select
+                    value={newCoordTeacherId}
+                    onChange={e => setNewCoordTeacherId(e.target.value)}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #94a3b8', fontSize: '12.5px' }}
+                  >
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.employee_id} value={t.id || t.employee_id}>
+                        {t.name_bn || t.name_en} — {t.designation || 'শিক্ষক'} {t.subject ? `(${t.subject})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -1714,9 +1806,12 @@ export function LiteratureClubMasterSection({
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#ecfdf5', color: '#047857', border: '2px solid #059669', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-                      👨‍🏫
-                    </div>
+                    <img
+                      src={getResolvedTeacherPhoto(coord.teacherId, coord.name)}
+                      alt={coord.name}
+                      style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #059669', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
                     <div>
                       <span style={{ background: '#dcfce7', color: '#166534', fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '4px' }}>
                         {coord.role}
@@ -1770,9 +1865,17 @@ export function LiteratureClubMasterSection({
                     ))}
                   </select>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-                  <b>বর্তমান প্রধান বিচারক:</b> {panelData.chiefJudge?.name || '—'}
-                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.chiefJudge?.designation}</div>
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.chiefJudge?.teacherId, panelData.chiefJudge?.name)}
+                    alt={panelData.chiefJudge?.name || 'প্রধান বিচারক'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #312e81', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b>বর্তমান প্রধান বিচারক:</b> {panelData.chiefJudge?.name || '—'}
+                    <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.chiefJudge?.designation}</div>
+                  </div>
                 </div>
               </div>
 
@@ -1795,9 +1898,17 @@ export function LiteratureClubMasterSection({
                     ))}
                   </select>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-                  <b>বর্তমান বিচারক (১):</b> {panelData.judge1?.name || '—'}
-                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge1?.designation}</div>
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.judge1?.teacherId, panelData.judge1?.name)}
+                    alt={panelData.judge1?.name || 'বিচারক (১)'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #059669', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b>বর্তমান বিচারক (১):</b> {panelData.judge1?.name || '—'}
+                    <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge1?.designation}</div>
+                  </div>
                 </div>
               </div>
 
@@ -1820,9 +1931,17 @@ export function LiteratureClubMasterSection({
                     ))}
                   </select>
                 </div>
-                <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-                  <b>বর্তমান বিচারক (২):</b> {panelData.judge2?.name || '—'}
-                  <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge2?.designation}</div>
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.judge2?.teacherId, panelData.judge2?.name)}
+                    alt={panelData.judge2?.name || 'বিচারক (২)'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #d97706', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b>বর্তমান বিচারক (২):</b> {panelData.judge2?.name || '—'}
+                    <div style={{ color: '#64748b', fontSize: '11px' }}>{panelData.judge2?.designation}</div>
+                  </div>
                 </div>
               </div>
             </div>

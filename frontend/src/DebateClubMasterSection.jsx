@@ -3,7 +3,8 @@ import {
   MOCK_TEACHERS,
   PHOTO_HEAD_TEACHER,
   PHOTO_PRESIDENT,
-  getTeacherPhoto
+  getTeacherPhoto,
+  getLeadershipData
 } from './mockData';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
@@ -676,6 +677,38 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
   }, [initialTab]);
 
   const activeTeachers = teachers && teachers.length ? teachers : MOCK_TEACHERS;
+
+  // Teacher Photo Resolver (pulls direct raster photo from teacher entry form or IDB custom vault)
+  const getResolvedTeacherPhoto = (teacherId, teacherName) => {
+    if (!activeTeachers || !activeTeachers.length) return getTeacherPhoto(null);
+    let found = null;
+    if (teacherId) {
+      found = activeTeachers.find(t =>
+        t && (
+          String(t.id) === String(teacherId) ||
+          String(t.teacher_id) === String(teacherId) ||
+          String(t.employee_id) === String(teacherId)
+        )
+      );
+    }
+    if (!found && teacherName) {
+      const cleanName = String(teacherName).trim().toLowerCase();
+      found = activeTeachers.find(t => {
+        if (!t) return false;
+        const bn = (t.name_bn || '').trim().toLowerCase();
+        const en = (t.name_en || t.name || '').trim().toLowerCase();
+        return bn === cleanName || en === cleanName || cleanName.includes(bn) || (bn && bn.includes(cleanName));
+      });
+    }
+    if (!found && typeof teacherId === 'object' && teacherId !== null) {
+      found = teacherId;
+    }
+    return getTeacherPhoto(found);
+  };
+
+  const leadershipInfo = getLeadershipData(undefined, activeTeachers);
+  const resolvedPresidentPhoto = leadershipInfo.president?.photo || PHOTO_PRESIDENT;
+  const resolvedHeadPhoto = leadershipInfo.head?.photo || PHOTO_HEAD_TEACHER;
 
   // PANEL STATE (COORDINATORS & JUDGES)
   const [panelData, setPanelData] = useState(() => {
@@ -1516,6 +1549,57 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
               </p>
             </div>
           </div>
+
+          {/* শীর্ষ পৃষ্ঠপোষক ও সমন্বয়ক পরিষদ */}
+          <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+            <div style={{ border: '1.5px solid #c7d2fe', borderRadius: '10px', padding: '14px', background: '#f5f3ff' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#312e81', textTransform: 'uppercase' }}>প্রধান পৃষ্ঠপোষক</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={resolvedHeadPhoto}
+                  alt="প্রধান শিক্ষক"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #312e81' }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{leadershipInfo.head?.name || 'মুহাম্মদ শফিকুল ইসলাম'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>প্রধান শিক্ষক ও প্রধান পৃষ্ঠপোষক</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ border: '1.5px solid #c7d2fe', borderRadius: '10px', padding: '14px', background: '#f5f3ff' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase' }}>সার্বিক পৃষ্ঠপোষকতা</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={resolvedPresidentPhoto}
+                  alt="ম্যানেজিং কমিটি সভাপতি"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #b45309' }}
+                  onError={(e) => { e.target.src = PHOTO_PRESIDENT; }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{leadershipInfo.president?.name || 'নেয়ামুল হক খান'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>সভাপতি, বিদ্যালয় পরিচালনা পর্ষদ</p>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ border: '1.5px solid #c7d2fe', borderRadius: '10px', padding: '14px', background: '#f5f3ff' }}>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase' }}>প্রধান সমন্বয়ক</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                <img
+                  src={getResolvedTeacherPhoto(panelData.coordinators?.[0]?.teacherId, panelData.coordinators?.[0]?.name || 'মোঃ আব্দুল খালেক')}
+                  alt="প্রধান সমন্বয়ক"
+                  style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #4338ca' }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: '#0f172a' }}>{panelData.coordinators?.[0]?.name || 'মোঃ আব্দুল খালেক'}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{panelData.coordinators?.[0]?.designation || 'সহকারী শিক্ষক (বাংলা)'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1816,22 +1900,19 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                     gap: '12px'
                   }}
                 >
-                  <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: '#e0e7ff',
-                    border: '1.5px solid #818cf8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '18px',
-                    fontWeight: 900,
-                    color: '#312e81',
-                    flexShrink: 0
-                  }}>
-                    👨‍🏫
-                  </div>
+                  <img
+                    src={getResolvedTeacherPhoto(coord.teacherId, coord.name)}
+                    alt={coord.name}
+                    style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '2px solid #818cf8',
+                      flexShrink: 0
+                    }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <b style={{ color: '#1e1b4b', fontSize: '13.5px', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {coord.name}
@@ -1974,15 +2055,57 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                     ✏️ এডিট
                   </button>
                 </div>
-                <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
-                  {panelData.judges.chiefJudge.name}
-                </b>
-                <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
-                  {panelData.judges.chiefJudge.designation}
-                </span>
-                <span style={{ fontSize: '11.5px', color: '#6b21a8', fontWeight: 700, marginTop: '4px', display: 'block' }}>
-                  দায়িত্ব: {panelData.judges.chiefJudge.role}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', marginBottom: '8px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.judges.chiefJudge?.teacherId, panelData.judges.chiefJudge?.name)}
+                    alt={panelData.judges.chiefJudge?.name || 'প্রধান বিচারক'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #a855f7', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
+                      {panelData.judges.chiefJudge.name}
+                    </b>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
+                      {panelData.judges.chiefJudge.designation}
+                    </span>
+                    <span style={{ fontSize: '11.5px', color: '#6b21a8', fontWeight: 700, display: 'block' }}>
+                      দায়িত্ব: {panelData.judges.chiefJudge.role}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#475569', marginBottom: '2px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.judges.chiefJudge?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setPanelData(prev => ({
+                          ...prev,
+                          judges: {
+                            ...prev.judges,
+                            chiefJudge: {
+                              ...prev.judges.chiefJudge,
+                              teacherId: tId,
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'প্রধান শিক্ষক ও সভাপতি'
+                            }
+                          }
+                        }));
+                      }
+                    }}
+                    style={{ width: '100%', padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপ-ডাউন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} — {t.designation || 'শিক্ষক'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* JUDGE 1 */}
@@ -2010,15 +2133,57 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                     ✏️ এডিট
                   </button>
                 </div>
-                <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
-                  {panelData.judges.judge1.name}
-                </b>
-                <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
-                  {panelData.judges.judge1.designation}
-                </span>
-                <span style={{ fontSize: '11.5px', color: '#4338ca', fontWeight: 700, marginTop: '4px', display: 'block' }}>
-                  দায়িত্ব: {panelData.judges.judge1.role}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', marginBottom: '8px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.judges.judge1?.teacherId, panelData.judges.judge1?.name)}
+                    alt={panelData.judges.judge1?.name || 'বিচারক ১'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #4338ca', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
+                      {panelData.judges.judge1.name}
+                    </b>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
+                      {panelData.judges.judge1.designation}
+                    </span>
+                    <span style={{ fontSize: '11.5px', color: '#4338ca', fontWeight: 700, display: 'block' }}>
+                      দায়িত্ব: {panelData.judges.judge1.role}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#475569', marginBottom: '2px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.judges.judge1?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setPanelData(prev => ({
+                          ...prev,
+                          judges: {
+                            ...prev.judges,
+                            judge1: {
+                              ...prev.judges.judge1,
+                              teacherId: tId,
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'সহকারী প্রধান শিক্ষক'
+                            }
+                          }
+                        }));
+                      }
+                    }}
+                    style={{ width: '100%', padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপ-ডাউন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} — {t.designation || 'শিক্ষক'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {/* JUDGE 2 */}
@@ -2046,15 +2211,57 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                     ✏️ এডিট
                   </button>
                 </div>
-                <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
-                  {panelData.judges.judge2.name}
-                </b>
-                <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
-                  {panelData.judges.judge2.designation}
-                </span>
-                <span style={{ fontSize: '11.5px', color: '#312e81', fontWeight: 700, marginTop: '4px', display: 'block' }}>
-                  দায়িত্ব: {panelData.judges.judge2.role}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', marginBottom: '8px' }}>
+                  <img
+                    src={getResolvedTeacherPhoto(panelData.judges.judge2?.teacherId, panelData.judges.judge2?.name)}
+                    alt={panelData.judges.judge2?.name || 'বিচারক ২'}
+                    style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #312e81', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                  <div>
+                    <b style={{ fontSize: '14.5px', color: '#1e1b4b', display: 'block' }}>
+                      {panelData.judges.judge2.name}
+                    </b>
+                    <span style={{ fontSize: '12px', color: '#64748b', display: 'block' }}>
+                      {panelData.judges.judge2.designation}
+                    </span>
+                    <span style={{ fontSize: '11.5px', color: '#312e81', fontWeight: 700, display: 'block' }}>
+                      দায়িত্ব: {panelData.judges.judge2.role}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: '#475569', marginBottom: '2px' }}>শিক্ষক ড্রপ-ডাউন থেকে নির্বাচন:</label>
+                  <select
+                    value={panelData.judges.judge2?.teacherId || ''}
+                    onChange={e => {
+                      const tId = e.target.value;
+                      const tObj = activeTeachers.find(t => (t.id || t.teacher_id) === tId);
+                      if (tObj) {
+                        setPanelData(prev => ({
+                          ...prev,
+                          judges: {
+                            ...prev.judges,
+                            judge2: {
+                              ...prev.judges.judge2,
+                              teacherId: tId,
+                              name: tObj.name_bn || tObj.name,
+                              designation: tObj.designation || 'সিনিয়র শিক্ষক'
+                            }
+                          }
+                        }));
+                      }
+                    }}
+                    style={{ width: '100%', padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  >
+                    <option value="">— শিক্ষক ড্রপ-ডাউন —</option>
+                    {activeTeachers.map(t => (
+                      <option key={t.id || t.teacher_id} value={t.id || t.teacher_id}>
+                        {t.name_bn || t.name} — {t.designation || 'শিক্ষক'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -3823,26 +4030,58 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#4338ca', display: 'block' }}>🎙️ মডারেটর / স্পিকার</span>
-                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.moderator?.name || 'অনির্ধারিত'}</b>
-                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.moderator?.designation || 'সঞ্চালক'}</small>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '8px' }}>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={getResolvedTeacherPhoto(newScorecard.moderator?.teacherId, newScorecard.moderator?.name)}
+                      alt={newScorecard.moderator?.name || 'মডারেটর'}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #4338ca', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#4338ca', display: 'block' }}>🎙️ মডারেটর / স্পিকার</span>
+                      <b style={{ fontSize: '12.5px', color: '#1e1b4b', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{newScorecard.moderator?.name || 'অনির্ধারিত'}</b>
+                      <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.moderator?.designation || 'সঞ্চালক'}</small>
+                    </div>
                   </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#7c3aed', display: 'block' }}>⚖️ প্রধান বিচারক</span>
-                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.chiefJudge?.name || 'অনির্ধারিত'}</b>
-                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.chiefJudge?.designation || 'প্রধান বিচারক'}</small>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={getResolvedTeacherPhoto(newScorecard.chiefJudge?.teacherId, newScorecard.chiefJudge?.name)}
+                      alt={newScorecard.chiefJudge?.name || 'প্রধান বিচারক'}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #7c3aed', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#7c3aed', display: 'block' }}>⚖️ প্রধান বিচারক</span>
+                      <b style={{ fontSize: '12.5px', color: '#1e1b4b', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{newScorecard.chiefJudge?.name || 'অনির্ধারিত'}</b>
+                      <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.chiefJudge?.designation || 'প্রধান বিচারক'}</small>
+                    </div>
                   </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#2563eb', display: 'block' }}>⚖️ বিচারক - ১</span>
-                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.judge1?.name || 'অনির্ধারিত'}</b>
-                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge1?.designation || 'বিচারক'}</small>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={getResolvedTeacherPhoto(newScorecard.judge1?.teacherId, newScorecard.judge1?.name)}
+                      alt={newScorecard.judge1?.name || 'বিচারক - ১'}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #2563eb', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#2563eb', display: 'block' }}>⚖️ বিচারক - ১</span>
+                      <b style={{ fontSize: '12.5px', color: '#1e1b4b', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{newScorecard.judge1?.name || 'অনির্ধারিত'}</b>
+                      <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge1?.designation || 'বিচারক'}</small>
+                    </div>
                   </div>
-                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px' }}>
-                    <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0891b2', display: 'block' }}>⚖️ বিচারক - ২</span>
-                    <b style={{ fontSize: '12.5px', color: '#1e1b4b' }}>{newScorecard.judge2?.name || 'অনির্ধারিত'}</b>
-                    <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge2?.designation || 'বিচারক'}</small>
+                  <div style={{ background: '#ffffff', border: '1px solid #c7d2fe', borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={getResolvedTeacherPhoto(newScorecard.judge2?.teacherId, newScorecard.judge2?.name)}
+                      alt={newScorecard.judge2?.name || 'বিচারক - ২'}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #0891b2', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '10.5px', fontWeight: 800, color: '#0891b2', display: 'block' }}>⚖️ বিচারক - ২</span>
+                      <b style={{ fontSize: '12.5px', color: '#1e1b4b', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{newScorecard.judge2?.name || 'অনির্ধারিত'}</b>
+                      <small style={{ display: 'block', fontSize: '11px', color: '#64748b' }}>{newScorecard.judge2?.designation || 'বিচারক'}</small>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4145,10 +4384,51 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                       {comp.judgesNote && (
                         <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>📝 {comp.judgesNote}</div>
                       )}
-                      <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed #cbd5e1', fontSize: '11px', color: '#334155' }}>
-                        <div><b>🎙️ মডারেটর:</b> {comp.moderator?.name || 'মো: হাবিবুর রহমান'} {comp.moderator?.designation ? `(${comp.moderator.designation})` : ''}</div>
-                        <div><b>⚖️ প্রধান বিচারক:</b> {comp.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম'} {comp.chiefJudge?.designation ? `(${comp.chiefJudge.designation})` : ''}</div>
-                        <div><b>⚖️ বিচারকমণ্ডলী:</b> {comp.judge1?.name || 'মো: আবদুল খালেক'} ও {comp.judge2?.name || 'মো: আবু বকর সিদ্দিক'}</div>
+                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #cbd5e1', fontSize: '11px', color: '#334155', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <img
+                            src={getResolvedTeacherPhoto(comp.moderator?.teacherId, comp.moderator?.name || 'মো: হাবিবুর রহমান')}
+                            alt={comp.moderator?.name || 'মডারেটর'}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #4338ca', flexShrink: 0 }}
+                            onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <b>🎙️ মডারেটর:</b> {comp.moderator?.name || 'মো: হাবিবুর রহমান'} {comp.moderator?.designation ? `(${comp.moderator.designation})` : ''}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <img
+                            src={getResolvedTeacherPhoto(comp.chiefJudge?.teacherId, comp.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম')}
+                            alt={comp.chiefJudge?.name || 'প্রধান বিচারক'}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #7c3aed', flexShrink: 0 }}
+                            onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <b>⚖️ প্রধান বিচারক:</b> {comp.chiefJudge?.name || 'মুহাম্মদ শফিকুল ইসলাম'} {comp.chiefJudge?.designation ? `(${comp.chiefJudge.designation})` : ''}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <img
+                            src={getResolvedTeacherPhoto(comp.judge1?.teacherId, comp.judge1?.name || 'মো: আবদুল খালেক')}
+                            alt={comp.judge1?.name || 'বিচারক ১'}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #2563eb', flexShrink: 0 }}
+                            onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <b>⚖️ বিচারক ১:</b> {comp.judge1?.name || 'মো: আবদুল খালেক'}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <img
+                            src={getResolvedTeacherPhoto(comp.judge2?.teacherId, comp.judge2?.name || 'মো: আবু বকর সিদ্দিক')}
+                            alt={comp.judge2?.name || 'বিচারক ২'}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #0891b2', flexShrink: 0 }}
+                            onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <b>⚖️ বিচারক ২:</b> {comp.judge2?.name || 'মো: আবু বকর সিদ্দিক'}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -5744,9 +6024,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '12px' }}>
                   {/* MODERATOR */}
                   <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>🎙️</span>
-                      <b style={{ color: '#4338ca', fontSize: '12px' }}>মডারেটর / স্পিকার / সঞ্চালক:</b>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>🎙️</span>
+                        <b style={{ color: '#4338ca', fontSize: '12px' }}>মডারেটর / স্পিকার / সঞ্চালক:</b>
+                      </div>
+                      <img
+                        src={getResolvedTeacherPhoto(organizeForm.moderator.teacherId, organizeForm.moderator.name)}
+                        alt={organizeForm.moderator.name || 'মডারেটর'}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #4338ca', flexShrink: 0 }}
+                        onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                      />
                     </div>
                     <select
                       value={organizeForm.moderator.teacherId || ''}
@@ -5797,9 +6085,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                   {/* CHIEF JUDGE */}
                   <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>⚖️</span>
-                      <b style={{ color: '#7c3aed', fontSize: '12px' }}>প্রধান বিচারক (Chief Judge):</b>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>⚖️</span>
+                        <b style={{ color: '#7c3aed', fontSize: '12px' }}>প্রধান বিচারক (Chief Judge):</b>
+                      </div>
+                      <img
+                        src={getResolvedTeacherPhoto(organizeForm.chiefJudge.teacherId, organizeForm.chiefJudge.name)}
+                        alt={organizeForm.chiefJudge.name || 'প্রধান বিচারক'}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #7c3aed', flexShrink: 0 }}
+                        onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                      />
                     </div>
                     <select
                       value={organizeForm.chiefJudge.teacherId || ''}
@@ -5850,9 +6146,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                   {/* JUDGE 1 */}
                   <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>⚖️</span>
-                      <b style={{ color: '#2563eb', fontSize: '12px' }}>বিচারক - ১ (সহকারী বিচারক):</b>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>⚖️</span>
+                        <b style={{ color: '#2563eb', fontSize: '12px' }}>বিচারক - ১ (সহকারী বিচারক):</b>
+                      </div>
+                      <img
+                        src={getResolvedTeacherPhoto(organizeForm.judge1.teacherId, organizeForm.judge1.name)}
+                        alt={organizeForm.judge1.name || 'বিচারক ১'}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #2563eb', flexShrink: 0 }}
+                        onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                      />
                     </div>
                     <select
                       value={organizeForm.judge1.teacherId || ''}
@@ -5903,9 +6207,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                   {/* JUDGE 2 */}
                   <div style={{ background: '#ffffff', border: '1px solid #c4b5fd', borderRadius: '8px', padding: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '14px' }}>⚖️</span>
-                      <b style={{ color: '#0891b2', fontSize: '12px' }}>বিচারক - ২ (সহকারী বিচারক):</b>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '14px' }}>⚖️</span>
+                        <b style={{ color: '#0891b2', fontSize: '12px' }}>বিচারক - ২ (সহকারী বিচারক):</b>
+                      </div>
+                      <img
+                        src={getResolvedTeacherPhoto(organizeForm.judge2.teacherId, organizeForm.judge2.name)}
+                        alt={organizeForm.judge2.name || 'বিচারক ২'}
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #0891b2', flexShrink: 0 }}
+                        onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                      />
                     </div>
                     <select
                       value={organizeForm.judge2.teacherId || ''}
@@ -6049,9 +6361,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '12px', marginBottom: '18px' }}>
                 {/* 1. MODERATOR */}
                 <div style={{ background: '#f8fafc', border: '1.5px solid #c7d2fe', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '15px' }}>🎙️</span>
-                    <b style={{ color: '#4338ca', fontSize: '12.5px' }}>মডারেটর / স্পিকার নির্বাচন:</b>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '15px' }}>🎙️</span>
+                      <b style={{ color: '#4338ca', fontSize: '12.5px' }}>মডারেটর / স্পিকার নির্বাচন:</b>
+                    </div>
+                    <img
+                      src={getResolvedTeacherPhoto(editingDebateJudges.moderator?.teacherId, editingDebateJudges.moderator?.name)}
+                      alt={editingDebateJudges.moderator?.name || 'মডারেটর'}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #4338ca', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
                   </div>
                   <select
                     value={editingDebateJudges.moderator?.teacherId || ''}
@@ -6102,9 +6422,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                 {/* 2. CHIEF JUDGE */}
                 <div style={{ background: '#f8fafc', border: '1.5px solid #d8b4fe', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '15px' }}>⚖️</span>
-                    <b style={{ color: '#7c3aed', fontSize: '12.5px' }}>প্রধান বিচারক নির্বাচন:</b>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '15px' }}>⚖️</span>
+                      <b style={{ color: '#7c3aed', fontSize: '12.5px' }}>প্রধান বিচারক নির্বাচন:</b>
+                    </div>
+                    <img
+                      src={getResolvedTeacherPhoto(editingDebateJudges.chiefJudge?.teacherId, editingDebateJudges.chiefJudge?.name)}
+                      alt={editingDebateJudges.chiefJudge?.name || 'প্রধান বিচারক'}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #7c3aed', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
                   </div>
                   <select
                     value={editingDebateJudges.chiefJudge?.teacherId || ''}
@@ -6155,9 +6483,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                 {/* 3. JUDGE 1 */}
                 <div style={{ background: '#f8fafc', border: '1.5px solid #bfdbfe', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '15px' }}>⚖️</span>
-                    <b style={{ color: '#2563eb', fontSize: '12.5px' }}>বিচারক - ১ নির্বাচন:</b>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '15px' }}>⚖️</span>
+                      <b style={{ color: '#2563eb', fontSize: '12.5px' }}>বিচারক - ১ নির্বাচন:</b>
+                    </div>
+                    <img
+                      src={getResolvedTeacherPhoto(editingDebateJudges.judge1?.teacherId, editingDebateJudges.judge1?.name)}
+                      alt={editingDebateJudges.judge1?.name || 'বিচারক ১'}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #2563eb', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
                   </div>
                   <select
                     value={editingDebateJudges.judge1?.teacherId || ''}
@@ -6208,9 +6544,17 @@ export function DebateClubMasterSection({ teachers = [], initialTab = 'overview'
 
                 {/* 4. JUDGE 2 */}
                 <div style={{ background: '#f8fafc', border: '1.5px solid #a5f3fc', borderRadius: '8px', padding: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '15px' }}>⚖️</span>
-                    <b style={{ color: '#0891b2', fontSize: '12.5px' }}>বিচারক - ২ নির্বাচন:</b>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '15px' }}>⚖️</span>
+                      <b style={{ color: '#0891b2', fontSize: '12.5px' }}>বিচারক - ২ নির্বাচন:</b>
+                    </div>
+                    <img
+                      src={getResolvedTeacherPhoto(editingDebateJudges.judge2?.teacherId, editingDebateJudges.judge2?.name)}
+                      alt={editingDebateJudges.judge2?.name || 'বিচারক ২'}
+                      style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #0891b2', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
                   </div>
                   <select
                     value={editingDebateJudges.judge2?.teacherId || ''}

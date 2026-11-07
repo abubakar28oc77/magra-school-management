@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PHOTO_HEAD_TEACHER, PHOTO_PRESIDENT, MOCK_TEACHERS } from './mockData';
+import { PHOTO_HEAD_TEACHER, PHOTO_PRESIDENT, MOCK_TEACHERS, getTeacherPhoto, getLeadershipData } from './mockData';
 import { SCHOOL_PAD_HEADER_HTML, SCHOOL_PAD_STYLES } from './schoolPadHeader';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
@@ -133,6 +133,37 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
 
   // Effective teachers list
   const activeTeachers = teachers && teachers.length ? teachers : MOCK_TEACHERS;
+
+  const leadership = getLeadershipData(undefined, activeTeachers);
+  const resolvedHeadPhoto = leadership?.headTeacher?.photo || PHOTO_HEAD_TEACHER;
+  const resolvedPresidentPhoto = leadership?.president?.photo || PHOTO_PRESIDENT;
+
+  const getResolvedTeacherPhoto = (teacherId, teacherName) => {
+    if (!activeTeachers || !activeTeachers.length) return getTeacherPhoto(null);
+    let found = null;
+    if (teacherId) {
+      found = activeTeachers.find(t =>
+        t && (
+          String(t.id) === String(teacherId) ||
+          String(t.teacher_id) === String(teacherId) ||
+          String(t.employee_id) === String(teacherId)
+        )
+      );
+    }
+    if (!found && teacherName) {
+      const cleanName = String(teacherName).trim().toLowerCase();
+      found = activeTeachers.find(t => {
+        if (!t) return false;
+        const bn = (t.name_bn || '').trim().toLowerCase();
+        const en = (t.name_en || t.name || '').trim().toLowerCase();
+        return bn === cleanName || en === cleanName || cleanName.includes(bn) || (bn && bn.includes(cleanName));
+      });
+    }
+    if (!found && typeof teacherId === 'object' && teacherId !== null) {
+      found = teacherId;
+    }
+    return getTeacherPhoto(found);
+  };
 
   // New advisor form fields
   const [newAdvClubKey, setNewAdvClubKey] = useState('science');
@@ -1085,7 +1116,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                 boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
               }}>
                 <img
-                  src={PHOTO_HEAD_TEACHER}
+                  src={resolvedHeadPhoto}
                   alt="প্রধান শিক্ষক"
                   style={{
                     width: '74px',
@@ -1095,7 +1126,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                     border: '3px solid #312e81',
                     flexShrink: 0
                   }}
-                  onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=Head+Teacher&background=312e81&color=fff'; }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
                 />
                 <div style={{ flex: 1 }}>
                   <span style={{
@@ -1134,7 +1165,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                 boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
               }}>
                 <img
-                  src={PHOTO_PRESIDENT}
+                  src={resolvedPresidentPhoto}
                   alt="সভাপতি"
                   style={{
                     width: '74px',
@@ -1144,7 +1175,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                     border: '3px solid #b45309',
                     flexShrink: 0
                   }}
-                  onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=Managing+Committee&background=b45309&color=fff'; }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
                 />
                 <div style={{ flex: 1 }}>
                   <span style={{
@@ -1218,6 +1249,12 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                     </option>
                   ))}
                 </select>
+                <img
+                  src={getResolvedTeacherPhoto(advisoryData.chiefAdvisor?.teacherId, advisoryData.chiefAdvisor?.name)}
+                  alt={advisoryData.chiefAdvisor?.name || 'প্রধান উপদেষ্টা'}
+                  style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #059669', flexShrink: 0 }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
               </div>
             </div>
 
@@ -1234,19 +1271,19 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
               gap: '10px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '50%',
-                  background: '#ecfdf5',
-                  border: '2px solid #059669',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '20px'
-                }}>
-                  👨‍🏫
-                </div>
+                <img
+                  src={getResolvedTeacherPhoto(advisoryData.chiefAdvisor?.teacherId, advisoryData.chiefAdvisor?.name)}
+                  alt={advisoryData.chiefAdvisor?.name || 'প্রধান উপদেষ্টা'}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '2.5px solid #059669',
+                    flexShrink: 0
+                  }}
+                  onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                />
                 <div>
                   <span style={{ background: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px' }}>
                     {advisoryData.chiefAdvisor?.role || 'প্রধান উপদেষ্টা'}
@@ -1329,9 +1366,17 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
 
               {/* Select Teacher */}
               <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '4px' }}>
-                  ২. শিক্ষক নির্বাচন (ড্রপ-ডাউন):
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '12px', fontWeight: 800, color: '#334155' }}>
+                    ২. শিক্ষক নির্বাচন (ড্রপ-ডাউন):
+                  </label>
+                  <img
+                    src={getResolvedTeacherPhoto(newAdvTeacherId)}
+                    alt="শিক্ষকের ছবি"
+                    style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #312e81' }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                </div>
                 <select
                   value={newAdvTeacherId}
                   onChange={(e) => setNewAdvTeacherId(e.target.value)}
@@ -1403,7 +1448,7 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
               📋 বর্তমান নিয়োজিত উপদেষ্টাবৃন্দ (মোট: {toBn(advisoryData.clubAdvisors?.length || 0)} জন):
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '12px' }}>
               {[...(advisoryData.clubAdvisors || [])].sort((a, b) => {
                 const pA = CLUB_ORDER_PRIORITY[a.clubKey] || 99;
                 const pB = CLUB_ORDER_PRIORITY[b.clubKey] || 99;
@@ -1429,13 +1474,25 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
                       borderRadius: '8px',
                       padding: '12px',
                       display: 'flex',
-                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      gap: '10px',
+                      gap: '12px',
                       boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                     }}
                   >
-                    <div style={{ flex: 1 }}>
+                    <img
+                      src={getResolvedTeacherPhoto(adv.teacherId, adv.teacherName)}
+                      alt={adv.teacherName}
+                      style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '2px solid #cbd5e1',
+                        flexShrink: 0
+                      }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <span style={{
                         background: badgeBg,
                         color: badgeColor,
@@ -2012,9 +2069,17 @@ export function ClubAcademyUnifiedHub({ teachers = [], onSelectClub }) {
               </div>
 
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 800, color: '#334155', marginBottom: '5px' }}>
-                  ২. শিক্ষক নির্বাচন (ড্রপ-ডাউন):
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                  <label style={{ fontSize: '12.5px', fontWeight: 800, color: '#334155' }}>
+                    ২. শিক্ষক নির্বাচন (ড্রপ-ডাউন):
+                  </label>
+                  <img
+                    src={getResolvedTeacherPhoto(editForm.teacherId)}
+                    alt="শিক্ষকের ছবি"
+                    style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #312e81' }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                </div>
                 <select
                   value={editForm.teacherId}
                   onChange={(e) => setEditForm(prev => ({ ...prev, teacherId: e.target.value }))}

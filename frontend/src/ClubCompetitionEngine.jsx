@@ -195,6 +195,33 @@ const DEFAULT_SESSIONS = [
   }
 ];
 
+export const resolveTeacherPhotoHelper = (teacherId, teacherName, teachersList = []) => {
+  if (!teachersList || !teachersList.length) return getTeacherPhoto(null);
+  let found = null;
+  if (teacherId) {
+    found = teachersList.find(t =>
+      t && (
+        String(t.id) === String(teacherId) ||
+        String(t.teacher_id) === String(teacherId) ||
+        String(t.employee_id) === String(teacherId)
+      )
+    );
+  }
+  if (!found && teacherName) {
+    const cleanName = String(teacherName).trim().toLowerCase();
+    found = teachersList.find(t => {
+      if (!t) return false;
+      const bn = (t.name_bn || '').trim().toLowerCase();
+      const en = (t.name_en || t.name || '').trim().toLowerCase();
+      return bn === cleanName || en === cleanName || cleanName.includes(bn) || (bn && bn.includes(cleanName));
+    });
+  }
+  if (!found && typeof teacherId === 'object' && teacherId !== null) {
+    found = teacherId;
+  }
+  return getTeacherPhoto(found);
+};
+
 export function ClubCompetitionEngine({ activeClub, clubId, teachers = MOCK_TEACHERS }) {
   const currentClub = activeClub || clubId || 'science';
   const [sessions, setSessions] = useState([]);
@@ -841,31 +868,48 @@ export function ClubCompetitionEngine({ activeClub, clubId, teachers = MOCK_TEAC
                   padding: '10px 14px',
                   marginBottom: '12px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                  gap: '8px'
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '12px',
+                  alignItems: 'center'
                 }}>
-                  <div>
-                    <span style={{ fontSize: '11px', color: '#047857', fontWeight: 800, display: 'block' }}>
-                      🎙️ সেশন মডারেটর / স্পিকার
-                    </span>
-                    <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
-                      {session.moderator?.name || 'মডারেটর নিযুক্ত হয়নি'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={resolveTeacherPhotoHelper(session.moderator?.teacherId, session.moderator?.name, teachers)}
+                      alt={session.moderator?.name || 'মডারেটর'}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #047857', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 800, display: 'block' }}>
+                        🎙️ সেশন মডারেটর / স্পিকার
+                      </span>
+                      <div style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b' }}>
+                        {session.moderator?.name || 'মডারেটর নিযুক্ত হয়নি'}
+                      </div>
+                      <small style={{ color: '#64748b', fontSize: '11.5px' }}>{session.moderator?.role || 'পরিচালক'}</small>
                     </div>
-                    <small style={{ color: '#64748b', fontSize: '11.5px' }}>{session.moderator?.role || 'পরিচালক'}</small>
                   </div>
 
                   <div>
-                    <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 800, display: 'block' }}>
+                    <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: 800, display: 'block', marginBottom: '4px' }}>
                       👨‍⚖️ বিচারকমণ্ডলী (Judges Panel)
                     </span>
-                    <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.5' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                       {(session.judges && session.judges.length > 0) ? (
                         session.judges.map((j, idx) => (
-                          <span key={idx} style={{ display: 'inline-block', marginRight: '8px' }}>
-                            <b>({idx + 1})</b> {j.name}
-                          </span>
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '3px 8px' }}>
+                            <img
+                              src={resolveTeacherPhotoHelper(j.teacherId, j.name, teachers)}
+                              alt={j.name}
+                              style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #2563eb', flexShrink: 0 }}
+                              onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                            />
+                            <span style={{ fontSize: '11.5px', color: '#1e293b' }}>
+                              <b>({idx + 1})</b> {j.name}
+                            </span>
+                          </div>
                         ))
-                      ) : 'বিচারক প্যানেল এখনও চূড়ান্ত হয়নি'}
+                      ) : <span style={{ fontSize: '12px', color: '#64748b' }}>বিচারক প্যানেল এখনও চূড়ান্ত হয়নি</span>}
                     </div>
                   </div>
                 </div>
@@ -1473,9 +1517,17 @@ function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta
             {/* Moderator */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '12px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, marginBottom: '3px', color: '#047857' }}>
-                  সেশন মডারেটর / স্পিকার নির্বাচন
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#047857' }}>
+                    সেশন মডারেটর / স্পিকার নির্বাচন
+                  </label>
+                  <img
+                    src={resolveTeacherPhotoHelper(form.moderator?.teacherId, form.moderator?.name, teachers)}
+                    alt={form.moderator?.name || 'মডারেটর'}
+                    style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #047857', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                  />
+                </div>
                 <select
                   value={form.moderator?.name || ''}
                   onChange={e => {
@@ -1485,6 +1537,7 @@ function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta
                       ...form,
                       moderator: {
                         name: selName,
+                        teacherId: foundT?.id || foundT?.employee_id || '',
                         role: foundT ? `${foundT.designation || 'শিক্ষক'} (${foundT.subject || ''})` : (form.moderator?.role || 'সেশন পরিচালক')
                       }
                     });
@@ -1516,9 +1569,17 @@ function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
               {[0, 1, 2].map((jIdx) => (
                 <div key={jIdx} style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#1e40af', marginBottom: '3px' }}>
-                    {jIdx === 0 ? 'প্রধান বিচারক (Chief Judge)' : jIdx === 1 ? 'সহকারী বিচারক - ১ (Assistant Judge 1)' : 'সহকারী বিচারক - ২ (Assistant Judge 2)'}
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '3px' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 800, color: '#1e40af' }}>
+                      {jIdx === 0 ? 'প্রধান বিচারক (Chief Judge)' : jIdx === 1 ? 'সহকারী বিচারক - ১' : 'সহকারী বিচারক - ২'}
+                    </label>
+                    <img
+                      src={resolveTeacherPhotoHelper(form.judges?.[jIdx]?.teacherId, form.judges?.[jIdx]?.name, teachers)}
+                      alt={form.judges?.[jIdx]?.name || 'বিচারক'}
+                      style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #1e40af', flexShrink: 0 }}
+                      onError={(e) => { e.target.src = getTeacherPhoto(null); }}
+                    />
+                  </div>
                   <select
                     value={form.judges?.[jIdx]?.name || ''}
                     onChange={e => {
@@ -1527,6 +1588,7 @@ function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta
                       const updatedJudges = [...(form.judges || [])];
                       updatedJudges[jIdx] = {
                         name: selName,
+                        teacherId: foundT?.id || foundT?.employee_id || '',
                         role: jIdx === 0 ? `প্রধান বিচারক • ${foundT?.designation || 'শিক্ষক'}` : `সহকারী বিচারক - ${jIdx} • ${foundT?.designation || 'শিক্ষক'}`
                       };
                       setForm({ ...form, judges: updatedJudges });
