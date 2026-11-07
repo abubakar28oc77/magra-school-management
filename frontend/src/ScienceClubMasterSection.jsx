@@ -5309,6 +5309,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
           </p>
 
           <ClubCompetitionEngine
+            activeClub="science"
             clubId="science"
             clubName="মগড়া ইয়ুথ সায়েন্স ক্লাব (বিজ্ঞান ক্লাব)"
             teachers={teachers}

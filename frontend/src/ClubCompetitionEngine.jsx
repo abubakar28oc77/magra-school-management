@@ -195,7 +195,8 @@ const DEFAULT_SESSIONS = [
   }
 ];
 
-export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) {
+export function ClubCompetitionEngine({ activeClub, clubId, teachers = MOCK_TEACHERS }) {
+  const currentClub = activeClub || clubId || 'science';
   const [sessions, setSessions] = useState([]);
   const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'completed', 'scheduled'
   const [showNewModal, setShowNewModal] = useState(false);
@@ -268,7 +269,7 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
       borderColor: '#bae6fd',
       formatPlaceholder: 'যেমন: পাইথন হ্যাকাথন / ওয়েব ডিজাইন প্রতিযোগিতা / স্ক্র্যাচ গেম কনটেস্ট'
     }
-  }[activeClub] || {
+  }[currentClub] || {
     title: 'সহশিক্ষা ক্লাব',
     badge: '🏆 ক্লাব প্রতিযোগিতা',
     actionBtn: '+ নতুন প্রতিযোগিতা আয়োজন করুন',
@@ -279,7 +280,7 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
   };
 
   // Filter current club sessions
-  const currentClubSessions = sessions.filter(s => s.club === activeClub);
+  const currentClubSessions = sessions.filter(s => s.club === currentClub);
   const filteredSessions = currentClubSessions.filter(s => {
     if (filterStatus === 'completed') return s.status === 'completed';
     if (filterStatus === 'scheduled') return s.status === 'scheduled';
@@ -636,13 +637,15 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
             <span style={{ fontSize: '12px', color: '#64748b' }}>শিক্ষাবর্ষ ২০২৬</span>
           </div>
           <h3 style={{ margin: '6px 0 2px 0', fontSize: '18px', color: '#0f172a', fontWeight: 900 }}>
-            {activeClub === 'debate' ? '⚔️ বিতর্ক অধিবেশন ও ফলাফল প্রস্তুত ব্যবস্থাপনা' :
-             activeClub === 'science' ? '🔬 বিজ্ঞান মেলা ও উদ্ভাবন ফলাফল ব্যবস্থাপনা' :
-             activeClub === 'ict' ? '💻 কোডিং অলিম্পিয়াড ও আইসিটি ফলাফল ব্যবস্থাপনা' :
+            {currentClub === 'debate' ? '⚔️ বিতর্ক অধিবেশন ও ফলাফল প্রস্তুত ব্যবস্থাপনা' :
+             currentClub === 'science' ? '🔬 বিজ্ঞান মেলা ও উদ্ভাবন ফলাফল ব্যবস্থাপনা' :
+             currentClub === 'ict' ? '💻 কোডিং অলিম্পিয়াড ও আইসিটি ফলাফল ব্যবস্থাপনা' :
              '📜 সাহিত্য প্রতিযোগিতা ও ফলাফল ব্যবস্থাপনা'}
           </h3>
           <p style={{ margin: 0, fontSize: '12.5px', color: '#475569' }}>
-            {activeClub === 'debate' ? 'প্রতিবার নতুন করে মডারেটর, বিচারকমণ্ডলী, পক্ষ ও বিপক্ষ দলের বিতার্কিক নিযুক্ত করুন, পয়েন্ট এন্ট্রি করুন এবং অফিশিয়াল রেজাল্ট শিট প্রিন্ট করুন।' :
+            {currentClub === 'debate' ? 'প্রতিবার নতুন করে মডারেটর, বিচারকমণ্ডলী, পক্ষ ও বিপক্ষ দলের বিতার্কিক নিযুক্ত করুন, পয়েন্ট এন্ট্রি করুন এবং অফিশিয়াল রেজাল্ট শিট প্রিন্ট করুন।' :
+             currentClub === 'science' ? 'বিজ্ঞান প্রজেক্ট, মডেল পরীক্ষণ ও অলিম্পিয়াডের নতুন প্রতিযোগিতা আয়োজন, বিচারক ও প্রতিযোগী নিযুক্তকরণ এবং ফলাফল প্রিন্ট।' :
+             currentClub === 'ict' ? 'কোডিং কনটেস্ট, হ্যাকাথন ও ওয়েব প্রজেক্টের প্রতিযোগিতা আয়োজন, বিচারক নির্ধারণ ও অফিশিয়াল রেজাল্ট প্রিন্ট।' :
              'নতুন প্রতিযোগিতা আয়োজন, বিচারকমণ্ডলী ও প্রতিযোগী নিযুক্তকরণ, ফলাফল নির্ধারণ ও অফিশিয়াল সার্টিফিকেট/রেজাল্ট প্রিন্ট।'}
           </p>
         </div>
@@ -1091,7 +1094,8 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
       {(showNewModal || editingSession) && (
         <SessionEditModal
           session={editingSession}
-          activeClub={activeClub}
+          activeClub={currentClub}
+          clubId={currentClub}
           teachers={teachers}
           clubMeta={clubMeta}
           onClose={() => {
@@ -1115,7 +1119,8 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
       {scoringSession && (
         <ScoringModal
           session={scoringSession}
-          activeClub={activeClub}
+          activeClub={currentClub}
+          clubId={currentClub}
           onClose={() => setScoringSession(null)}
           onSave={(scoredSession) => {
             const updated = sessions.map(s => s.id === scoredSession.id ? scoredSession : s);
@@ -1129,18 +1134,19 @@ export function ClubCompetitionEngine({ activeClub, teachers = MOCK_TEACHERS }) 
 }
 
 // ================= MODAL COMPONENT 1: SESSION EDIT / CREATION =================
-function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, onSave }) {
-  const isDebate = activeClub === 'debate';
+function SessionEditModal({ session, activeClub, clubId, teachers = [], clubMeta = {}, onClose, onSave }) {
+  const currentClub = activeClub || clubId || session?.club || 'science';
+  const isDebate = currentClub === 'debate';
   const isEdit = !!session;
 
   const [form, setForm] = useState(session || {
-    id: `${activeClub.slice(0, 3)}-${Date.now()}`,
-    club: activeClub,
+    id: `${(currentClub || 'sci').slice(0, 3)}-${Date.now()}`,
+    club: currentClub,
     title: '',
-    format: isDebate ? 'আন্তঃশ্রেণি সংসদীয় বিতর্ক (Parliamentary)' : 'বার্ষিক ক্লাব প্রতিযোগিতা',
+    format: isDebate ? 'আন্তঃশ্রেণি সংসদীয় বিতর্ক (Parliamentary)' : currentClub === 'science' ? 'বিজ্ঞান প্রজেক্ট প্রদর্শনী ও মডেল পরীক্ষণ' : currentClub === 'ict' ? 'কোডিং অলিম্পিয়াড' : 'বার্ষিক ক্লাব প্রতিযোগিতা',
     date: '২০২৬-১০-২৫',
     time: 'বেলা ১১:০০ ঘটিকা',
-    venue: isDebate ? 'বিদ্যালয় কেন্দ্রীয় অডিটোরিয়াম' : activeClub === 'science' ? 'বিজ্ঞান ল্যাবরেটরি' : activeClub === 'ict' ? 'শেখ রাসেল ডিজিটাল ল্যাব' : 'লাইব্রেরি মিলনায়তন',
+    venue: isDebate ? 'বিদ্যালয় কেন্দ্রীয় অডিটোরিয়াম' : currentClub === 'science' ? 'বিজ্ঞান ল্যাবরেটরি' : currentClub === 'ict' ? 'শেখ রাসেল ডিজিটাল ল্যাব' : 'লাইব্রেরি মিলনায়তন',
     status: 'scheduled',
     moderator: {
       name: teachers[0]?.name_bn || 'মোঃ আশরাফুল আলম',
@@ -1217,7 +1223,7 @@ function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, on
           totalScore: 0
         }
       }));
-    } else if (activeClub === 'science') {
+    } else if (currentClub === 'science') {
       setForm(prev => ({
         ...prev,
         title: 'বিজ্ঞান ও গণিত অলিম্পিয়াড এবং রোবটিক্স উদ্ভাবন কনটেস্ট ২০২৬',
@@ -1240,7 +1246,7 @@ function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, on
           { name: 'ফারজানা মেহজাবীন', class_name: '৯ম শ্রেণি', roll_no: '৩', topic: 'স্মার্ট ক্লাসরুম লাইট ও ফ্যান অটোমেশন সেন্সর', category: 'শক্তি সংরক্ষণ', total: 0, position: '' }
         ]
       }));
-    } else if (activeClub === 'ict') {
+    } else if (currentClub === 'ict') {
       setForm(prev => ({
         ...prev,
         title: 'শেখ রাসেল আন্তঃশ্রেণি কোডিং স্প্রিন্ট ও ওয়েব ডেভেলপমেন্ট কনটেস্ট ২০২৬',
@@ -1819,8 +1825,9 @@ function SessionEditModal({ session, activeClub, teachers, clubMeta, onClose, on
 }
 
 // ================= MODAL COMPONENT 2: SCORING & RESULTS MODAL =================
-function ScoringModal({ session, activeClub, onClose, onSave }) {
-  const isDebate = activeClub === 'debate';
+function ScoringModal({ session, activeClub, clubId, onClose, onSave }) {
+  const currentClub = activeClub || clubId || session?.club || 'science';
+  const isDebate = currentClub === 'debate';
   const [form, setForm] = useState(JSON.parse(JSON.stringify(session)));
 
   // Auto calculate debate scores with specific 100-mark distribution
