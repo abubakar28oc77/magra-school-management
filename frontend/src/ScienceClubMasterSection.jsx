@@ -621,7 +621,7 @@ const SCIENCE_TABS = [
   { key: 'membership', num: '৯', label: 'আবেদন গ্রহণ ও সদস্য নির্বাচন', icon: '📝' },
   { key: 'discipline_safety', num: '১০', label: 'শৃঙ্খলা ও নিরাপত্তাবিধি', icon: '🛡️' },
   { key: 'competitions', num: '১১', label: 'কুইজ/বিতর্ক প্রতিযোগিতা ও ফলাফল', icon: '🏆' },
-  { key: 'submissions', num: '১২', label: 'ডিজিটাল ব্যানার ও পোষ্টার প্রকাশ', icon: '📁' },
+  { key: 'submissions', num: '১২', label: 'প্রজেক্ট প্রকাশ', icon: '📁' },
   { key: 'science_fair', num: '১৩', label: 'বিজ্ঞান মেলার আয়োজন', icon: '🚀' },
   { key: 'achievements', num: '১৪', label: 'অর্জন ও ট্রফি গ্যালারি', icon: '🥇' }
 ];
@@ -5300,7 +5300,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
               onClick={() => setSciTab('submissions')}
               style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '7px 16px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 800, cursor: 'pointer' }}
             >
-              পরবর্তী ফিচার: প্রজেক্ট ও ব্যানার প্রকাশ ➔
+              পরবর্তী ফিচার: প্রজেক্ট প্রকাশ ➔
             </button>
           </div>
 
@@ -5319,7 +5319,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
       )}
 
       {/* ========================================================================= */}
-      {/* FEATURE 12: ডিজিটাল ব্যানার ও পোষ্টার প্রকাশ (বিভিন্ন প্রজেক্ট প্রকাশ) */}
+      {/* FEATURE 12: প্রজেক্ট প্রকাশ (বিজ্ঞান প্রজেক্ট, ব্যানার ও মডেল প্রকাশ) */}
       {/* ========================================================================= */}
       {sciTab === 'submissions' && (
         <div style={{
@@ -5335,7 +5335,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
                 ফিচার ১২
               </span>
               <h2 style={{ margin: '4px 0 0 0', fontSize: '20px', fontWeight: 900, color: '#047857' }}>
-                📁 ডিজিটাল ব্যানার, পোষ্টার ও বিজ্ঞান প্রজেক্ট প্রকাশ
+                📁 প্রজেক্ট প্রকাশ
               </h2>
             </div>
             <button
@@ -5356,7 +5356,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
             marginBottom: '22px'
           }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: '#047857', fontWeight: 800 }}>
-              📤 নতুন বিজ্ঞান প্রজেক্ট / ডিজিটাল ব্যানার / পোস্টার জমা দিন:
+              📤 নতুন বিজ্ঞান প্রজেক্ট প্রকাশ ও জমা দিন:
             </h3>
 
             <form onSubmit={handleSubmitWriting}>
@@ -5535,7 +5535,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
               <h3 style={{ margin: 0, fontSize: '16px', color: '#047857', fontWeight: 800 }}>
-                🖼️ প্রকাশিত বিজ্ঞান প্রজেক্ট ও পোস্টার গ্যালারি ({toBn(submissions.length)}টি):
+                🖼️ প্রকাশিত বিজ্ঞান প্রজেক্ট গ্যালারি ({toBn(submissions.length)}টি):
               </h3>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <input
