@@ -2829,7 +2829,7 @@ export function IctClubMasterSection({
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '6px'
+          gap: '8px'
         }}>
           {ICT_FEATURES.map((tab) => {
             const isActive = ictTab === tab.key;
@@ -2839,16 +2839,19 @@ export function IctClubMasterSection({
                 type="button"
                 onClick={() => setIctTab(tab.key)}
                 style={{
-                  padding: '7px 12px',
+                  flex: '1 1 auto',
+                  minWidth: '170px',
+                  padding: '9px 14px',
                   borderRadius: '8px',
-                  fontSize: '12px',
+                  fontSize: '12.5px',
                   fontWeight: isActive ? 800 : 700,
                   cursor: 'pointer',
                   border: isActive ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
                   background: isActive ? '#e0f2fe' : '#ffffff',
                   color: isActive ? '#0369a1' : '#334155',
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
                   transition: 'all 0.15s ease',
                   boxShadow: isActive ? '0 2px 6px rgba(2, 132, 199, 0.15)' : 'none'

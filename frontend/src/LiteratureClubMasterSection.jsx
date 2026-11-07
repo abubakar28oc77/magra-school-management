@@ -1384,46 +1384,72 @@ export function LiteratureClubMasterSection({
         </div>
       </div>
 
-      {/* 11 SUB-FEATURES TABS BAR */}
+      {/* 11-FEATURE WRAPPED DIRECTORY TAB BAR (MATCHING APPROVED UX) */}
       <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '6px',
+        background: '#ffffff',
+        border: '1.5px solid #cbd5e1',
+        borderRadius: '10px',
+        padding: '12px 14px',
         marginBottom: '20px',
-        background: '#f8fafc',
-        padding: '10px',
-        borderRadius: '12px',
-        border: '1.5px solid #e2e8f0',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+        boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
       }}>
-        {NAV_TABS.map(tab => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setLitTab(tab.key)}
-            style={{
-              flex: '1 1 auto',
-              minWidth: '150px',
-              padding: '9px 12px',
-              borderRadius: '7px',
-              border: litTab === tab.key ? '2px solid #059669' : '1px solid #cbd5e1',
-              background: litTab === tab.key ? '#ecfdf5' : '#ffffff',
-              color: litTab === tab.key ? '#065f46' : '#334155',
-              fontWeight: 800,
-              fontSize: '12.5px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              boxShadow: litTab === tab.key ? '0 2px 6px rgba(5,150,105,0.15)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '8px',
+          marginBottom: '10px',
+          paddingBottom: '8px',
+          borderBottom: '1px solid #e2e8f0'
+        }}>
+          <span style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
+            ভাষা ও সাহিত্য ক্লাবের ১১টি মূল ফিচার ডিরেক্টরি:
+          </span>
+          <span style={{ fontSize: '11px', color: '#64748b' }}>
+            যেকোনো ফিচারে ক্লিক করে সরাসরি পরিচালনা ও প্রিন্ট করুন
+          </span>
+        </div>
+
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          {NAV_TABS.map(tab => {
+            const isActive = litTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setLitTab(tab.key)}
+                style={{
+                  flex: '1 1 auto',
+                  minWidth: '170px',
+                  padding: '9px 14px',
+                  borderRadius: '8px',
+                  border: isActive ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                  background: isActive ? '#ecfdf5' : '#ffffff',
+                  color: isActive ? '#065f46' : '#334155',
+                  fontWeight: isActive ? 800 : 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: isActive ? '0 2px 6px rgba(5,150,105,0.15)' : 'none',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#f8fafc'; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = '#ffffff'; }}
+              >
+                <span>{tab.icon}</span>
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ========================================================================= */}

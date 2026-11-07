@@ -3286,7 +3286,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '6px'
+          gap: '8px'
         }}>
           {SCIENCE_TABS.map((tab) => {
             const isActive = sciTab === tab.key;
@@ -3296,16 +3296,19 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
                 type="button"
                 onClick={() => setSciTab(tab.key)}
                 style={{
-                  padding: '7px 12px',
+                  flex: '1 1 auto',
+                  minWidth: '170px',
+                  padding: '9px 14px',
                   borderRadius: '8px',
-                  fontSize: '12px',
+                  fontSize: '12.5px',
                   fontWeight: isActive ? 800 : 700,
                   cursor: 'pointer',
                   border: isActive ? '1.5px solid #059669' : '1px solid #cbd5e1',
                   background: isActive ? '#dcfce7' : '#ffffff',
                   color: isActive ? '#065f46' : '#334155',
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '6px',
                   transition: 'all 0.15s ease',
                   boxShadow: isActive ? '0 2px 6px rgba(4, 120, 87, 0.15)' : 'none'
