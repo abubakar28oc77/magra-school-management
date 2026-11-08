@@ -1686,8 +1686,15 @@ function Home(){
        const phone=p?.phone||'';
        const email=p?.email||'';
        const photo=getTeacherPhoto(p);
+       const modalKeyMap = {
+        head: { key: 'public.nav.contact.head', title: 'প্রধান শিক্ষক' },
+        assistant: { key: 'public.nav.contact.assistant', title: 'সহকারী প্রধান শিক্ষক' },
+        ict: { key: 'public.nav.contact.ict', title: 'আইসিটি শিক্ষক' },
+        office: { key: 'public.nav.contact.office', title: 'অফিস সহকারী' },
+       };
+       const targetModal = modalKeyMap[c.key] || { key: 'public.nav.contact.all', title: 'যোগাযোগ ও ঠিকানা' };
        return (
-        <article className="contact-card" id={'contact-'+c.key} key={c.key} onClick={()=>setActiveModal({key:'public.nav.staff.active',title:'শিক্ষক ও কর্মচারীবৃন্দ'})} title={`${name} — ${desig}`}>
+        <article className="contact-card" id={'contact-'+c.key} key={c.key} onClick={()=>setActiveModal(targetModal)} title={`${name} — ${desig} (বিস্তারিত দেখতে ক্লিক করুন)`} style={{cursor:'pointer'}}>
          <div className="contact-avatar-wrap">
           <img src={photo} alt={name} className="contact-avatar-img"/>
          </div>

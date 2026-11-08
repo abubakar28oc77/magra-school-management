@@ -341,19 +341,6 @@ export function EServiceCenterModalSection({ initialSubmenuKey, initialTitle, on
     const memoNo = `মপা/সংশোধন/${new Date().getFullYear()}-${toBn(Math.floor(100 + Math.random() * 900))}`;
     const dateToday = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    try {
-      const newApp = {
-        id: `app-${Date.now()}`,
-        memoNo,
-        dateToday,
-        ...correctionForm,
-        status: 'সুপারিশপত্র ইস্যুকৃত (Certificate Issued)',
-        hearingDate: 'প্রক্রিয়াধীন'
-      };
-      const stored = JSON.parse(localStorage.getItem(ESERVICE_APPLICATIONS_KEY) || '[]');
-      localStorage.setItem(ESERVICE_APPLICATIONS_KEY, JSON.stringify([newApp, ...stored]));
-    } catch {}
-
     const html = `
       <!DOCTYPE html>
       <html lang="bn">
@@ -1231,3 +1218,4 @@ export function EServiceCenterModalSection({ initialSubmenuKey, initialTitle, on
 }
 
 export default EServiceCenterModalSection;
+

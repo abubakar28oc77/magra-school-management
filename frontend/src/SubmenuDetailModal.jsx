@@ -3576,12 +3576,24 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
   );
 }
 
-    // 2. Staff / Teachers submenus (8 distinct modules)
-    if (menuKey.startsWith('public.nav.staff') || title?.includes('শিক্ষক') || title?.includes('কর্মচারী')) {
+    // 2. Staff / Teachers & Contact submenus
+    if (
+      menuKey.startsWith('public.nav.staff') || 
+      menuKey.startsWith('public.nav.contact') || 
+      title?.includes('শিক্ষক') || 
+      title?.includes('কর্মচারী') || 
+      title?.includes('অফিস সহকারী') || 
+      title?.includes('যোগাযোগ')
+    ) {
       const formerPersonnel = getStoredFormerPersonnelData();
       
       // A. Head Teacher (প্রধান শিক্ষক)
-      if (menuKey === 'public.nav.staff.head' || title === 'প্রধান শিক্ষক' || title?.includes('প্রধান শিক্ষক পরিচিতি')) {
+      if (
+        menuKey === 'public.nav.staff.head' || 
+        menuKey === 'public.nav.contact.head' || 
+        title === 'প্রধান শিক্ষক' || 
+        title?.includes('প্রধান শিক্ষক পরিচিতি')
+      ) {
         let liveTeachers = [];
         try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
         const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
@@ -3648,7 +3660,12 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
       }
 
       // B. Assistant Head Teacher (সহকারী প্রধান শিক্ষক)
-      if (menuKey === 'public.nav.staff.assistant' || title === 'সহকারী প্রধান শিক্ষক' || title?.includes('সহকারী প্রধান শিক্ষক পরিচিতি')) {
+      if (
+        menuKey === 'public.nav.staff.assistant' || 
+        menuKey === 'public.nav.contact.assistant' || 
+        title === 'সহকারী প্রধান শিক্ষক' || 
+        title?.includes('সহকারী প্রধান শিক্ষক পরিচিতি')
+      ) {
         let liveTeachers = [];
         try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
         const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
@@ -3708,6 +3725,259 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
               </h4>
               {speechParas.map((para, i) => (
                 <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.1. ICT Teacher (আইসিটি শিক্ষক)
+      if (
+        menuKey === 'public.nav.contact.ict' || 
+        menuKey === 'public.nav.staff.ict' || 
+        title === 'আইসিটি শিক্ষক' || 
+        title?.includes('আইসিটি শিক্ষক')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawList = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+        const ict = rawList.find(t => 
+          t && (
+            t.public_contact_role === 'ict_teacher' || 
+            (t.designation && t.designation.includes('আইসিটি')) ||
+            (t.subject && t.subject.includes('আইসিটি')) ||
+            t.employee_id === 'EMP-006' ||
+            (t.name_bn && t.name_bn.includes('আবুবকর'))
+          )
+        ) || rawList.find(t => t && t.employee_id === 'EMP-006') || {};
+
+        const ictPhoto = getTeacherPhoto(ict) || PHOTO_ICT_TEACHER;
+        const speechParas = [
+          'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়কে একটি তথ্যপ্রযুক্তি-সমৃদ্ধ আদর্শ ডিজিটাল শিক্ষা প্রতিষ্ঠান হিসেবে গড়ে তুলতে আমরা নিরবচ্ছিন্নভাবে কাজ করে যাচ্ছি। আধুনিক শেখ রাসেল ডিজিটাল ল্যাব ও স্মার্ট মাল্টিমিডিয়া ক্লাসরুমের সর্বোত্তম ব্যবহার নিশ্চিত করে শিক্ষার্থীদের বাস্তবমুখী কম্পিউটার জ্ঞান ও প্রোগ্রামিংয়ে পারদর্শী করে তোলা হচ্ছে।',
+          'আমাদের লক্ষ্য প্রতিটি শিক্ষার্থীকে একবিংশ শতাব্দীর বৈশ্বিক চ্যালেঞ্জ মোকাবিলার উপযোগী আইসিটি দক্ষতা ও সাইবার নিরাপত্তায় দক্ষ নাগরিক হিসেবে গড়ে তোলা। অনলাইন পোর্টাল, ই-সেবা এবং শিক্ষা বাতায়নের সাথে শিক্ষার্থীদের সম্পৃক্ততায় বিদ্যালয় সর্বদা একধাপ এগিয়ে।'
+        ];
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }}>
+              <span>💻 তথ্য ও যোগাযোগ প্রযুক্তি (ICT) শিক্ষক পরিচিতি</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #bae6fd', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(2,132,199,0.25)', border: '3px solid #0284c7', background: '#e0f2fe' }}>
+                <img src={ictPhoto} alt={ict.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#0284c7', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {ict.employee_id || 'EMP-006'}
+                  </span>
+                  {ict.mpo_index_no && (
+                    <span style={{ background: '#0369a1', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      MPO Index: {ict.mpo_index_no}
+                    </span>
+                  )}
+                  <span style={{ background: '#e0f2fe', color: '#0369a1', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+                    💻 আইসিটি ফোকাল পয়েন্ট ও ল্যাব ইনচার্জ
+                  </span>
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{ict.name_bn || 'মুহাম্মদ আবুবকর সিদ্দিক'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{ict.name_en || 'MUHAMMAD ABUBOKOR SIDDIQUE'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#0284c7', fontWeight: 700, fontSize: '15px' }}>{ict.designation || 'সিনিয়র শিক্ষক'} • বিষয়: {ict.subject || 'তথ্য ও যোগাযোগ প্রযুক্তি (আইসিটি)'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {ict.phone && <span>📱 {ict.phone}</span>}
+                  {ict.email && <span>✉️ {ict.email}</span>}
+                  {ict.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {ict.current_post_joining_date}</span>}
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(ict, '#0284c7', '#f0f9ff', '#bae6fd')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #bae6fd', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#0284c7', fontSize: '16px', fontWeight: 800 }}>
+                💬 আইসিটি শিক্ষকের ডিজিটাল বার্তা ও প্রযুক্তি রূপকল্প:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.2. Office Assistant (অফিস সহকারী)
+      if (
+        menuKey === 'public.nav.contact.office' || 
+        menuKey === 'public.nav.staff.office' || 
+        title === 'অফিস সহকারী' || 
+        title?.includes('অফিস সহকারী')
+      ) {
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const rawStaff = liveStaff.length ? liveStaff : MOCK_STAFF;
+        let officeAsst = rawStaff.find(s => 
+          s && (
+            s.public_contact_role === 'office_assistant' || 
+            (s.designation && s.designation.includes('অফিস সহকারী')) ||
+            s.employee_id === 'STF-001' ||
+            (s.name_bn && s.name_bn.includes('আলমগীর'))
+          )
+        ) || rawStaff[0] || {};
+
+        // Ensure educational qualifications are available
+        const officeAsstWithEdu = {
+          ...officeAsst,
+          educational_qualifications: officeAsst.educational_qualifications || "এসএসসি/সমমান - মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় - ঢাকা বোর্ড - বিজ্ঞান - ২০১০ - জিপিএ ৪.৫০ ; এইচএসসি/সমমান - সরকারি এম এম আলী কলেজ, টাঙ্গাইল - ঢাকা বোর্ড - মানবিক - ২০১২ - জিপিএ ৪.২৫ ; স্নাতক (পাস) / ডিগ্রি - সরকারি সা’দত কলেজ - জাতীয় বিশ্ববিদ্যালয় - বি.এ - ২০১৫ - ২য় বিভাগ",
+          professional_degrees: officeAsst.professional_degrees || "ডিপ্লোমা ইন কম্পিউটার - জাতীয় যুব উন্নয়ন অধিদপ্তর, টাঙ্গাইল - যুব ও ক্রীড়া মন্ত্রণালয় - কম্পিউটার অ্যাপ্লিকেশন ও ডাটাবেজ ম্যানেজমেন্ট - ২০১৬ - গ্রেড: এ+"
+        };
+
+        const officePhoto = officeAsst.photo_url || PHOTO_OFFICE_ASSISTANT;
+        const speechParas = [
+          'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের প্রশাসনিক দপ্তর শিক্ষার্থী, অভিভাবক ও সেবাগ্রহীতাদের আন্তরিক সেবা প্রদানে সর্বদা নিয়োজিত। আমাদের অফিস থেকে শিক্ষার্থী ভর্তি কার্যক্রম, বোর্ড পরীক্ষার ফরম পূরণ (eFF), প্রশংসাপত্র ও প্রত্যয়ন পত্র প্রদান, ক্যাশ কাউন্টার ফি আদায় এবং উপবৃত্তি সংক্রান্ত যাবতীয় তথ্য ও প্রাতিষ্ঠানিক সহায়তা দ্রুততার সাথে প্রদান করা হয়।',
+          'যেকোনো প্রাতিষ্ঠানিক তথ্য, সনদ ও সেবা সংক্রান্ত অনুসন্ধানে অফিস চলাকালীন (সকাল ৯:০০ টা হতে বিকাল ৪:০০ টা পর্যন্ত) সরাসরি প্রশাসনিক ভবনে অথবা উল্লেখিত মোবাইল নম্বরে যোগাযোগের জন্য বিনীত অনুরোধ জানানো হচ্ছে।'
+        ];
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)' }}>
+              <span>🏢 প্রশাসনিক কর্মকর্তা ও অফিস সহকারী পরিচিতি</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            <div className="leader-modal-profile" style={{ display: 'flex', gap: '20px', alignItems: 'center', margin: '16px 0', padding: '18px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #bfdbfe', flexWrap: 'wrap' }}>
+              <div style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 12px rgba(29,78,216,0.25)', border: '3px solid #2563eb', background: '#eff6ff' }}>
+                <img src={officePhoto} alt={officeAsst.name_bn || 'মোঃ আলমগীর হোসেন'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: '220px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                  <span style={{ background: '#2563eb', color: '#fff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                    Employee ID: {officeAsst.employee_id || 'STF-001'}
+                  </span>
+                  <span style={{ background: '#eff6ff', color: '#1d4ed8', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #bfdbfe' }}>
+                    🏢 অফিস সহকারী ও কম্পিউটার অপারেটর
+                  </span>
+                  <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                    📋 ছাত্র ও একাডেমিক সেবা ডেস্ক
+                  </span>
+                </div>
+                <h3 style={{ margin: '0 0 2px 0', color: '#0f172a', fontSize: '20px', fontWeight: 800 }}>{officeAsst.name_bn || 'মোঃ আলমগীর হোসেন'}</h3>
+                <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{officeAsst.name_en || 'MD ALAMGIR HOSSAIN'}</p>
+                <p style={{ margin: '0 0 4px 0', color: '#2563eb', fontWeight: 700, fontSize: '15px' }}>{officeAsst.designation || 'অফিস সহকারী কাম কম্পিউটার অপারেটর'}</p>
+                <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
+                  {officeAsst.phone && <span>📱 {officeAsst.phone}</span>}
+                  {officeAsst.email && <span>✉️ {officeAsst.email}</span>}
+                  {(officeAsst.joining_date || officeAsst.current_post_joining_date) && (
+                    <span>📅 যোগদান: {officeAsst.joining_date || officeAsst.current_post_joining_date}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {renderTeacherEducationTable(officeAsstWithEdu, '#2563eb', '#eff6ff', '#bfdbfe')}
+
+            <div className="leader-speech" style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '10px', border: '1px solid #bfdbfe', lineHeight: 1.8, color: '#334155', fontSize: '14.5px' }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#1d4ed8', fontSize: '16px', fontWeight: 800 }}>
+                💬 অফিস সহকারী ও প্রশাসনিক সেবা ডেস্ক বার্তা:
+              </h4>
+              {speechParas.map((para, i) => (
+                <p key={i} style={{ marginBottom: '10px' }}>{para}</p>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // B.3. Contact & Address (যোগাযোগ ও ঠিকানা)
+      if (
+        menuKey === 'public.nav.contact.all' || 
+        menuKey === 'public.nav.contact' || 
+        title === 'যোগাযোগ ও ঠিকানা' || 
+        title === 'যোগাযোগ' ||
+        title?.includes('যোগাযোগ ও ঠিকানা')
+      ) {
+        let liveTeachers = [];
+        try { liveTeachers = JSON.parse(localStorage.getItem('magra_db_teachers') || '[]'); } catch {}
+        const rawTeachers = liveTeachers.length ? liveTeachers : MOCK_TEACHERS;
+
+        let liveStaff = [];
+        try { liveStaff = JSON.parse(localStorage.getItem('magra_db_staff') || '[]'); } catch {}
+        const rawStaff = liveStaff.length ? liveStaff : MOCK_STAFF;
+
+        const head = rawTeachers.find(t => t && (t.public_contact_role === 'head_teacher' || (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী')) || t.employee_id === 'EMP-001')) || rawTeachers[0] || {};
+        const asst = rawTeachers.find(t => t && (t.public_contact_role === 'assistant_head_teacher' || (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক')) || t.employee_id === 'EMP-002')) || rawTeachers[1] || {};
+        const ict = rawTeachers.find(t => t && (t.public_contact_role === 'ict_teacher' || (t.designation && t.designation.includes('আইসিটি')) || (t.subject && t.subject.includes('আইসিটি')) || t.employee_id === 'EMP-006' || (t.name_bn && t.name_bn.includes('আবুবকর')))) || rawTeachers.find(t => t && t.employee_id === 'EMP-006') || {};
+        const officeAsst = rawStaff.find(s => s && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস সহকারী')) || s.employee_id === 'STF-001' || (s.name_bn && s.name_bn.includes('আলমগীর')))) || rawStaff[0] || {};
+
+        const contacts = [
+          { role: 'প্রতিষ্ঠান প্রধান', person: head, photo: getTeacherPhoto(head), badgeColor: '#047857', bg: '#ecfdf5', border: '#a7f3d0' },
+          { role: 'সহকারী প্রতিষ্ঠান প্রধান', person: asst, photo: getTeacherPhoto(asst), badgeColor: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+          { role: 'আইসিটি শিক্ষক ও ল্যাব ইনচার্জ', person: ict, photo: getTeacherPhoto(ict) || PHOTO_ICT_TEACHER, badgeColor: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+          { role: 'অফিস সহকারী কাম কম্পিউটার অপারেটর', person: officeAsst, photo: officeAsst.photo_url || PHOTO_OFFICE_ASSISTANT, badgeColor: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+        ];
+
+        return (
+          <div className="submenu-content">
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
+              <span>📞 যোগাযোগ ও প্রাতিষ্ঠানিক ঠিকানা</span>
+              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
+              </span>
+            </div>
+
+            {/* Institutional Campus Address Card */}
+            <div style={{ background: '#f8fafc', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', margin: '16px 0', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>🏫 ক্যাম্পাসের ঠিকানা ও অবস্থান</h4>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                    📍 গ্রাম: মগড়া, ডাকঘর: মগড়া (পোস্ট কোড: ১৯৬১)<br />
+                    উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল, ঢাকা বিভাগ, বাংলাদেশ।
+                  </p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '12.5px', color: '#64748b' }}>
+                    📌 EIIN: <b>114290</b> • বিদ্যালয় কোড: <b>4814</b> • কেন্দ্র কোড: <b>203</b>
+                  </p>
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>🕒 অফিস সময় ও হেল্পলাইন</h4>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '13.5px', color: '#334155', lineHeight: 1.6 }}>
+                    ⏰ রবিবার হতে বৃহস্পতিবার: সকাল ৯:০০ ঘটিকা — বিকাল ৪:০০ ঘটিকা<br />
+                    (শুক্রবার ও শনিবার এবং সরকারি ছুটির দিনে অফিস বন্ধ থাকে)
+                  </p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#0369a1', fontWeight: 600 }}>
+                    ✉️ ইমেইল: magrapuhs.46@gmail.com
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4-Person Contact Grid */}
+            <h4 style={{ margin: '20px 0 12px 0', color: '#0f172a', fontSize: '16px', fontWeight: 800 }}>
+              👥 দায়িত্বপ্রাপ্ত গুরুত্বপূর্ণ কর্মকর্তাবৃন্দের সাথে যোগাযোগ
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+              {contacts.map((c, idx) => (
+                <div key={idx} style={{ background: '#ffffff', borderRadius: '10px', border: `1px solid ${c.border}`, padding: '14px', display: 'flex', gap: '12px', alignItems: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.03)' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: `2px solid ${c.badgeColor}`, background: c.bg }}>
+                    <img src={c.photo} alt={c.person.name_bn} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '10.5px', fontWeight: 700, color: c.badgeColor, background: c.bg, padding: '1px 6px', borderRadius: '3px', display: 'inline-block', marginBottom: '2px' }}>
+                      {c.role}
+                    </span>
+                    <h5 style={{ margin: '0 0 2px 0', fontSize: '14.5px', color: '#0f172a', fontWeight: 800 }}>{c.person.name_bn || c.person.name_en}</h5>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#64748b' }}>{c.person.designation}</p>
+                    <div style={{ fontSize: '12px', color: '#334155' }}>
+                      {c.person.phone && <div style={{ fontWeight: 700, color: c.badgeColor }}>📱 {c.person.phone}</div>}
+                      {c.person.email && <div style={{ fontSize: '11px', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>✉️ {c.person.email}</div>}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
