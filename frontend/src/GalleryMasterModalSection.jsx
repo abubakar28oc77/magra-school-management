@@ -14,97 +14,19 @@ const ONLINE_CLASSES_KEY = 'magra_gallery_online_classes_v2';
 // -------------------------------------------------------------
 // DEFAULT PHOTO ALBUMS
 // -------------------------------------------------------------
+// Lightweight User Photo Albums (Default mock albums removed to keep software fast and lightweight)
 const DEFAULT_PHOTO_ALBUMS = [
   {
-    id: 'alb-photo-1',
-    title: 'বার্ষিক ক্রীড়া প্রতিযোগিতা ও সাংস্কৃতিক সপ্তাহ ২০২৬',
+    id: 'alb-sports-2026',
+    title: 'বার্ষিক ক্রীড়াপ্রতিযোগিতা-২০২৬',
     category: 'sports',
-    categoryLabel: '🏆 ক্রীড়া ও সংস্কৃতি',
-    eventDate: '২০২৬-০২-১৫',
-    photoCount: 8,
-    cover: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+    categoryLabel: '🏆 ক্রীড়া ও উৎসব',
+    eventDate: '২০২৬-০১-৩১',
+    photoCount: 4,
+    cover: SPORTS_PRESET_PHOTOS[0].url,
     description: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সুবিশাল খেলার মাঠে ৪ দিনব্যাপী অনুষ্ঠিত বার্ষিক ক্রীড়া প্রতিযোগিতা, মনোজ্ঞ ডিসপ্লে ও সমাপনী ট্রফি বিতরণ অনুষ্ঠান।',
-    photos: [
-      { id: 'p1-1', title: 'উদ্বোধনী মার্চপাস্ট ও জাতীয় পতাকা উত্তোলন', url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p1-2', title: '১০০ মিটার স্প্রিন্ট দৌড় প্রতিযোগিতা', url: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p1-3', title: 'হাইজাম্প ও লংজাম্প প্রতিযোগিতা', url: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p1-4', title: 'যেমন খুশি তেমন সাজো ইভেন্ট', url: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p1-5', title: 'বিজয়ীদের মাঝে চ্যাম্পিয়ন ট্রফি বিতরণ', url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80' }
-    ]
-  },
-  {
-    id: 'alb-photo-2',
-    title: 'আন্তঃস্কুল বিজ্ঞান মেলা ও রোবটিক্স উদ্ভাবন প্রদর্শনী ২০২৬',
-    category: 'science',
-    categoryLabel: '🔬 বিজ্ঞান ও প্রযুক্তি',
-    eventDate: '২০২৬-০১-২৮',
-    photoCount: 6,
-    cover: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-    description: 'খুদে বিজ্ঞানীদের স্বয়ংক্রিয় অগ্নিনির্বাপক রোবট, পরিবেশবান্ধব সৌরবিদ্যুৎ মডেল, আর্ডুইনো ক্লাসরুম অটোমেশন এবং বৈজ্ঞানিক পরীক্ষা প্রদর্শনী।',
-    photos: [
-      { id: 'p2-1', title: 'বিজ্ঞান মেলার প্রধান ফটক ও স্টল পরিদর্শন', url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p2-2', title: 'আর্ডুইনো রোবট প্রদর্শন করছেন দশম শ্রেণির শিক্ষার্থীরা', url: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p2-3', title: 'সৌর শক্তি ও গ্রিন সিটি মডেল পরীক্ষণ', url: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p2-4', title: 'বিচারকমণ্ডলীর সামনে প্রজেক্ট উপস্থাপন', url: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80' }
-    ]
-  },
-  {
-    id: 'alb-photo-3',
-    title: 'আন্তর্জাতিক মাতৃভাষা দিবস ও মহান শহীদ দিবস ২০২৬',
-    category: 'national',
-    categoryLabel: '🇧🇩 জাতীয় দিবস',
-    eventDate: '২০২৬-০২-২১',
-    photoCount: 5,
-    cover: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
-    description: 'একুশের প্রথম প্রহরে বিদ্যালয়ের কেন্দ্রীয় শহীদ মিনারে পুষ্পস্তবক অর্পণ, খালি পায়ে প্রভাতফেরি, আলোচনা সভা ও স্বরচিত কবিতা পাঠ।',
-    photos: [
-      { id: 'p3-1', title: 'শহীদ বেদীতে শ্রদ্ধার্ঘ্য অর্পণ', url: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p3-2', title: 'শিক্ষক-শিক্ষার্থীদের যৌথ প্রভাতফেরি', url: 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p3-3', title: 'মাতৃভাষা দিবসের বিশেষ দেয়ালিকা উন্মোচন', url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80' }
-    ]
-  },
-  {
-    id: 'alb-photo-4',
-    title: 'নবীনবরণ ও এসএসসি পরীক্ষার্থীদের বিদায় সংবর্ধনা ২০২৬',
-    category: 'academic',
-    categoryLabel: '🎓 একাডেমিক ও সংবর্ধনা',
-    eventDate: '২০২৬-০১-১৫',
-    photoCount: 7,
-    cover: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
-    description: '৬ষ্ঠ শ্রেণির নবীন শিক্ষার্থীদের ফুলেল শুভেচ্ছা প্রদান এবং ২০২৬ সালের এসএসসি পরীক্ষার্থীদের বিদায় দোয়া মাহফিল ও স্মারক উপহার বিতরণ।',
-    photos: [
-      { id: 'p4-1', title: 'নবীন শিক্ষার্থীদের লাল গোলাপ দিয়ে শুভেচ্ছা', url: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p4-2', title: 'প্রধান শিক্ষকের দোয়া ও দিকনির্দেশনামূলক বক্তব্য', url: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p4-3', title: 'বিদায়ী পরীক্ষার্থীদের মাঝে কলম ও ফাইল উপহার প্রদান', url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80' }
-    ]
-  },
-  {
-    id: 'alb-photo-5',
-    title: 'শেখ রাসেল ডিজিটাল ল্যাব ও কোডিং কর্মশালা',
-    category: 'ict',
-    categoryLabel: '💻 আইসিটি ল্যাব',
-    eventDate: '২০২৬-০১-১০',
-    photoCount: 5,
-    cover: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
-    description: 'কম্পিউটার ল্যাবে মাল্টিমিডিয়া প্রজেক্টরের মাধ্যমে কম্পিউটার প্রোগ্রামিং, গ্রাফিক্স ডিজাইন এবং সাইবার সচেতনতা সেশন পরিচালনা।',
-    photos: [
-      { id: 'p5-1', title: 'ডিজিটাল ল্যাবে শিক্ষার্থীদের প্রোগ্রামিং ক্লাস', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p5-2', title: 'পাইথন দিয়ে কোডিং অনুশীলন', url: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=800&q=80' }
-    ]
-  },
-  {
-    id: 'alb-photo-6',
-    title: 'সবুজ ক্যাম্পাস ও পরিবেশ পরিচ্ছন্নতা অভিযান',
-    category: 'campus',
-    categoryLabel: '🌿 ক্যাম্পাস ও পরিবেশ',
-    eventDate: '২০২৫-১২-১৮',
-    photoCount: 6,
-    cover: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80',
-    description: 'স্কাউট ও শিক্ষার্থীদের সমন্বয়ে বিদ্যালয় প্রাঙ্গণে বৃক্ষরোপণ, ঔষধি বাগান পরিচর্যা এবং প্লাস্টিকমুক্ত পরিচ্ছন্ন ক্যাম্পাস অভিযান।',
-    photos: [
-      { id: 'p6-1', title: 'স্কুল মাঠে ফলদ ও ঔষধি চারা রোপণ', url: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80' },
-      { id: 'p6-2', title: 'পরিচ্ছন্নতা অভিযানে স্কাউট দল', url: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80' }
-    ]
+    photos: SPORTS_PRESET_PHOTOS,
+    isCustom: true
   }
 ];
 
@@ -440,7 +362,28 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
     try {
       const storedPhotos = localStorage.getItem(PHOTO_ALBUMS_KEY);
       if (storedPhotos) {
-        setPhotoAlbums(JSON.parse(storedPhotos));
+        const parsed = JSON.parse(storedPhotos);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Remove default mock albums (alb-photo-1 to alb-photo-6) to make software lightweight
+          const userOnly = parsed.filter(a => a && !String(a.id || '').startsWith('alb-photo-'));
+          const listToUse = (userOnly.length > 0 ? userOnly : DEFAULT_PHOTO_ALBUMS).map(a => {
+            const hasBrokenPhotos = !a.photos || !a.photos.length || a.photos.some(p => !p.url || p.url.length < 15 || (!p.url.startsWith('http') && !p.url.startsWith('data:')));
+            if (hasBrokenPhotos && (a.category === 'sports' || (a.title && a.title.includes('ক্রীড়া')))) {
+              return {
+                ...a,
+                cover: (a.cover && (a.cover.startsWith('http') || a.cover.startsWith('data:'))) ? a.cover : SPORTS_PRESET_PHOTOS[0].url,
+                photos: SPORTS_PRESET_PHOTOS,
+                photoCount: SPORTS_PRESET_PHOTOS.length
+              };
+            }
+            return a;
+          });
+          setPhotoAlbums(listToUse);
+          localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(listToUse));
+        } else {
+          setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);
+          localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(DEFAULT_PHOTO_ALBUMS));
+        }
       } else {
         localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(DEFAULT_PHOTO_ALBUMS));
         setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);

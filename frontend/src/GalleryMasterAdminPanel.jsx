@@ -91,7 +91,40 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   useEffect(() => {
     try {
       const storedPhotos = localStorage.getItem(PHOTO_ALBUMS_KEY);
-      if (storedPhotos) setPhotoAlbums(JSON.parse(storedPhotos));
+      if (storedPhotos) {
+        const parsed = JSON.parse(storedPhotos);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Remove default mock albums (alb-photo-1 to alb-photo-6)
+          const userOnly = parsed.filter(a => a && !String(a.id || '').startsWith('alb-photo-'));
+          const listToUse = (userOnly.length > 0 ? userOnly : [
+            {
+              id: 'alb-sports-2026',
+              title: 'বার্ষিক ক্রীড়াপ্রতিযোগিতা-২০২৬',
+              category: 'sports',
+              categoryLabel: '🏆 ক্রীড়া ও উৎসব',
+              eventDate: '২০২৬-০১-৩১',
+              photoCount: 4,
+              cover: SPORTS_PRESET_PHOTOS[0].url,
+              description: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের সুবিশাল খেলার মাঠে ৪ দিনব্যাপী অনুষ্ঠিত বার্ষিক ক্রীড়া প্রতিযোগিতা, মনোজ্ঞ ডিসপ্লে ও সমাপনী ট্রফি বিতরণ অনুষ্ঠান।',
+              photos: SPORTS_PRESET_PHOTOS,
+              isCustom: true
+            }
+          ]).map(a => {
+            const hasBrokenPhotos = !a.photos || !a.photos.length || a.photos.some(p => !p.url || p.url.length < 15 || (!p.url.startsWith('http') && !p.url.startsWith('data:')));
+            if (hasBrokenPhotos && (a.category === 'sports' || (a.title && a.title.includes('ক্রীড়া')))) {
+              return {
+                ...a,
+                cover: (a.cover && (a.cover.startsWith('http') || a.cover.startsWith('data:'))) ? a.cover : SPORTS_PRESET_PHOTOS[0].url,
+                photos: SPORTS_PRESET_PHOTOS,
+                photoCount: SPORTS_PRESET_PHOTOS.length
+              };
+            }
+            return a;
+          });
+          setPhotoAlbums(listToUse);
+          localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(listToUse));
+        }
+      }
 
       const storedVideos = localStorage.getItem(VIDEO_ALBUMS_KEY);
       if (storedVideos) setVideoAlbums(JSON.parse(storedVideos));
