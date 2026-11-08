@@ -108,9 +108,10 @@ export function getDirectWatchUrl(raw) {
 }
 
 // LocalStorage Keys
-const PHOTO_ALBUMS_KEY = 'magra_gallery_photo_albums_v2';
-const VIDEO_ALBUMS_KEY = 'magra_gallery_video_albums_v2';
-const ONLINE_CLASSES_KEY = 'magra_gallery_online_classes_v2';
+export const PHOTO_ALBUMS_KEY = 'magra_gallery_photo_albums_v2';
+export const VIDEO_ALBUMS_KEY = 'magra_gallery_video_albums_v2';
+export const ONLINE_CLASSES_KEY = 'magra_gallery_online_classes_v2';
+export const TUTORIALS_KEY = 'magra_gallery_tutorials_v2';
 
 // -------------------------------------------------------------
 // DEFAULT PHOTO ALBUMS
@@ -139,14 +140,17 @@ const DEFAULT_VIDEO_ALBUMS = [];
 // -------------------------------------------------------------
 // TUTORIALS DATA
 // -------------------------------------------------------------
-const TUTORIALS_DATA = [
+export const DEFAULT_TUTORIALS = [
   {
     id: 'tut-01',
     category: 'ict',
+    categoryLabel: '💻 আইসিটি ও কম্পিউটার',
     badge: '💻 আইসিটি বেসিক',
     title: 'কম্পিউটার হার্ডওয়্যার পরিচিতি ও নিরাপদ সংযোগ স্থাপন',
     duration: '২৫ মিনিট',
     level: 'প্রাথমিক ও মাধ্যমিক',
+    instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+    date: '২০২৬-০১-১৫',
     desc: 'মাদারবোর্ড, র‍্যাম, হার্ডডিস্ক, পাওয়ার সাপ্লাই ও ক্যাবল সংযোগের সহজ পরিচিতি। কম্পিউটার চালুকরণ ও প্রাথমিক ট্রাবলশুটিং কৌশল।',
     steps: [
       'সিপিইউ (CPU), ক্যাসিং ও মনিটর সংযোগ ও পাওয়ার ক্যাবল চেক',
@@ -158,11 +162,14 @@ const TUTORIALS_DATA = [
   },
   {
     id: 'tut-02',
-    category: 'ict',
+    category: 'language',
+    categoryLabel: '📝 ভাষা ও টাইপিং',
     badge: '📝 বাংলা টাইপিং',
     title: 'বিজয় বায়ান্ন ও অভ্র দিয়ে দ্রুত ও নির্ভুল বাংলা টাইপিং কৌশল',
     duration: '৩৫ মিনিট',
     level: 'সকল শ্রেণি',
+    instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+    date: '২০২৬-০১-২০',
     desc: 'কীবোর্ড ফিঙ্গার পজিশন, য-ফলা, র-ফলা, যুক্তাক্ষর গঠন এবং ইউনিকোড বাংলা ফন্টে মসৃণ টাইপিংয়ের সহজ গাইডলাইন।',
     steps: [
       'হোম রো (ASDF - JKL;) তে আঙুল বসানোর আন্তর্জাতিক নিয়ম',
@@ -175,10 +182,13 @@ const TUTORIALS_DATA = [
   {
     id: 'tut-03',
     category: 'science',
+    categoryLabel: '🔬 বিজ্ঞান ল্যাব',
     badge: '🔬 বিজ্ঞান ল্যাব',
     title: 'যৌগিক অণুবীক্ষণ যন্ত্রের সাহায্যে পেঁয়াজের কোষ পর্যবেক্ষণ',
     duration: '২০ মিনিট',
     level: '৮ম–১০ম শ্রেণি',
+    instructor: 'মোঃ আব্দুর রহিম লিটন (সিনিয়র শিক্ষক, বিজ্ঞান)',
+    date: '২০২৬-০১-২৫',
     desc: 'ল্যাবরেটরিতে স্লাইড তৈরি, মিথিলিন ব্লু রঞ্জক ব্যবহার, কভার স্লিপ স্থাপন এবং লেন্স অ্যাডজাস্ট করে উদ্ভিদ কোষের সাইটোপ্লাজম ও নিউক্লিয়াস দর্শন।',
     steps: [
       'পেঁয়াজের শল্কপত্রের ভেতরের পাতলা ত্বক সাবধানে আলাদা করা',
@@ -191,10 +201,13 @@ const TUTORIALS_DATA = [
   {
     id: 'tut-04',
     category: 'coding',
+    categoryLabel: '🐍 কোডিং ও প্রোগ্রামিং',
     badge: '🐍 কোডিং পাঠ',
     title: 'পাইথন দিয়ে শুরু হোক তোমার প্রথম প্রোগ্রামিং যাত্রা',
     duration: '৪৫ মিনিট',
     level: '৭ম–১০ম শ্রেণি',
+    instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+    date: '২০২৬-০২-০১',
     desc: 'ভেরিয়েবল, ইনপুট, প্রিন্ট স্টেটমেন্ট এবং ইফ-এলস কন্ডিশন ব্যবহার করে সহজ ক্যালকুলেটর প্রোগ্রাম তৈরি।',
     steps: [
       'Python IDLE অথবা VS Code ইনস্টলেশন ও রান',
@@ -207,10 +220,13 @@ const TUTORIALS_DATA = [
   {
     id: 'tut-05',
     category: 'art',
+    categoryLabel: '🎨 শিল্প ও ক্যালিগ্রাফি',
     badge: '🎨 শিল্প ও ক্যালিগ্রাফি',
     title: 'সুন্দর হাতের লেখা ও আরবি/বাংলা ক্যালিগ্রাফির সহজ পাঠ',
     duration: '৩০ মিনিট',
     level: '৬ষ্ঠ–১০ম শ্রেণি',
+    instructor: 'মোঃ আব্দুল খালেক (সহকারী শিক্ষক, বাংলা)',
+    date: '২০২৬-০২-০৫',
     desc: 'কলম ধরার সঠিক কোণ, অক্ষরের অনুপাত ও ভারসাম্য বজায় রেখে আকর্ষণীয় হ্যান্ডরাইটিং ও আর্ট পোস্টার তৈরির নিয়ম।',
     steps: [
       'কাট নিব (Chisel Tip) মার্কার পেন ধরার ৪৫ ডিগ্রি কোণ',
@@ -221,6 +237,306 @@ const TUTORIALS_DATA = [
     pdf: 'calligraphy_and_handwriting_guide.pdf'
   }
 ];
+
+export const TUTORIALS_DATA = DEFAULT_TUTORIALS;
+
+// -------------------------------------------------------------
+// OFFICIAL TUTORIAL PDF GENERATOR & PRINTER
+// -------------------------------------------------------------
+export function generateTutorialPDF(tut) {
+  if (!tut) return;
+  const printWindow = window.open('', '_blank', 'width=950,height=900');
+  if (!printWindow) {
+    alert('পপআপ উইন্ডোটি ব্রাউজার দ্বারা ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ পারমিশন এলাউ করুন।');
+    return;
+  }
+
+  const stepsList = Array.isArray(tut.steps) 
+    ? tut.steps 
+    : (typeof tut.steps === 'string' ? tut.steps.split('\n').filter(s => s && s.trim()) : []);
+
+  const html = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>${tut.title} - অফিশিয়াল টিউটোরিয়াল গাইড শিট</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700;800&display=swap');
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Hind Siliguri', 'Segoe UI', Tahoma, sans-serif;
+      margin: 0;
+      padding: 24px;
+      color: #0f172a;
+      background: #f8fafc;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page-container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 36px 40px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    }
+    .no-print-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 12px 18px;
+      background: #064e3b;
+      color: #ffffff;
+      border-radius: 8px;
+    }
+    .btn-action {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .btn-action:hover { background: #059669; }
+    .btn-close {
+      background: rgba(255,255,255,0.2);
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .header-table {
+      width: 100%;
+      border-bottom: 3px double #065f46;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .school-name {
+      font-size: 24px;
+      font-weight: 800;
+      color: #064e3b;
+      margin: 0 0 4px 0;
+    }
+    .school-sub {
+      font-size: 13px;
+      color: #475569;
+      margin: 0 0 6px 0;
+    }
+    .doc-badge {
+      display: inline-block;
+      background: #047857;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      font-size: 13px;
+    }
+    .meta-item { display: flex; gap: 8px; }
+    .meta-label { font-weight: 700; color: #166534; min-width: 90px; }
+    .meta-value { color: #0f172a; font-weight: 600; }
+    .section-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #065f46;
+      border-left: 4px solid #047857;
+      padding-left: 10px;
+      margin: 20px 0 10px 0;
+    }
+    .desc-box {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #334155;
+      background: #f8fafc;
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .step-card {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .step-num {
+      background: #047857;
+      color: #ffffff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-text {
+      font-size: 13.5px;
+      color: #1e293b;
+      line-height: 1.5;
+      padding-top: 2px;
+    }
+    .safety-note {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #92400e;
+      line-height: 1.5;
+      margin-bottom: 36px;
+    }
+    .sig-table {
+      width: 100%;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px dashed #cbd5e1;
+    }
+    .sig-col {
+      text-align: center;
+      width: 33.33%;
+      vertical-align: bottom;
+    }
+    .sig-line {
+      border-top: 1px solid #64748b;
+      width: 75%;
+      margin: 40px auto 4px auto;
+    }
+    .sig-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+    }
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      .page-container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+      .no-print-bar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <div class="no-print-bar">
+      <div>
+        <b>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • টিউটোরিয়াল ল্যাব শিট</b>
+        <div style="font-size: 12px; opacity: 0.9;">পিডিএফ হিসেবে সেভ করতে প্রিন্ট উইন্ডোতে Destination "Save as PDF" নির্বাচন করুন।</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-action" onclick="window.print()">🖨️ প্রিন্ট / Save as PDF</button>
+        <button class="btn-close" onclick="window.close()">✕ বন্ধ করুন</button>
+      </div>
+    </div>
+
+    <div class="header-table">
+      <h1 class="school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+      <p class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • EIIN: 114290 • স্থাপিত: ১৯৪৬ খ্রি.</p>
+      <span class="doc-badge">অফিশিয়াল টিউটোরিয়াল ও প্র্যাকটিক্যাল গাইড শিট</span>
+    </div>
+
+    <h2 style="font-size: 19px; font-weight: 800; color: #0f172a; margin: 0 0 14px 0; text-align: center;">
+      ${tut.title}
+    </h2>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">বিষয় / ক্যাটাগরি:</span>
+        <span class="meta-value">${tut.badge || tut.categoryLabel || tut.category}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">প্রযোজ্য স্তর:</span>
+        <span class="meta-value">${tut.level || 'সকল শ্রেণি'}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">সময়সীমা:</span>
+        <span class="meta-value">⏱️ ${toBn(tut.duration)}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">প্রশিক্ষক/বিভাগ:</span>
+        <span class="meta-value">${tut.instructor || 'আইসিটি ও বিজ্ঞান বিভাগ'}</span>
+      </div>
+    </div>
+
+    <div class="section-title">১. শিখনফল ও সারসংক্ষেপ</div>
+    <div class="desc-box">
+      ${tut.desc || 'বিদ্যালয়ের শিক্ষার্থীদের ব্যবহারিক দক্ষতা বৃদ্ধি ও স্ব-শিক্ষণের উদ্দেশ্যে প্রণীত গাইডলাইন।'}
+    </div>
+
+    <div class="section-title">২. অনুশীলনের ধারাবাহিক মূল ধাপসমূহ</div>
+    <div class="steps-list">
+      ${stepsList.map((step, idx) => `
+        <div class="step-card">
+          <div class="step-num">${toBn(idx + 1)}</div>
+          <div class="step-text">${step}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="safety-note">
+      ⚠️ <b>বিশেষ পরামর্শ ও সতর্কতা:</b> ল্যাবরেটরির সরঞ্জাম বা কম্পিউটার ব্যবহারের সময় শিক্ষকের নির্দেশ মেনে চলুন। কোনো অসুবিধা হলে তাৎক্ষণিক সংশ্লিষ্ট বিষয় শিক্ষক বা আইসিটি ল্যাব ইনচার্জের সহায়তা নিন।
+    </div>
+
+    <table class="sig-table">
+      <tr>
+        <td class="sig-col">
+          <div class="sig-line"></div>
+          <div class="sig-title">প্রস্তুতকারী / সংশ্লিষ্ট শিক্ষক</div>
+        </td>
+        <td class="sig-col">
+          <div class="sig-line"></div>
+          <div class="sig-title">আইসিটি ও ল্যাব ফোকাল পারসন</div>
+        </td>
+        <td class="sig-col">
+          <div class="sig-line"></div>
+          <div class="sig-title">প্রধান শিক্ষক<br><span style="font-size:10.5px;font-weight:normal;color:#64748b;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</span></div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 400);
+    };
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
 
 // -------------------------------------------------------------
 // ONLINE CLASSES DATA (DEFAULT EMPTY FOR LEAN PERFORMANCE)
@@ -278,6 +594,7 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
   const [photoAlbums, setPhotoAlbums] = useState([]);
   const [videoAlbums, setVideoAlbums] = useState([]);
   const [onlineClasses, setOnlineClasses] = useState([]);
+  const [tutorials, setTutorials] = useState(DEFAULT_TUTORIALS);
 
   // Modals & Active Viewers
   const [selectedPhotoAlbum, setSelectedPhotoAlbum] = useState(null);
@@ -289,6 +606,21 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
   const [showNewPhotoAlbumModal, setShowNewPhotoAlbumModal] = useState(false);
   const [showNewVideoModal, setShowNewVideoModal] = useState(false);
   const [showNewClassModal, setShowNewClassModal] = useState(false);
+  const [showNewTutorialModal, setShowNewTutorialModal] = useState(false);
+
+  // Tutorial Form State
+  const [newTutorialForm, setNewTutorialForm] = useState({
+    title: '',
+    category: 'ict',
+    categoryLabel: '💻 আইসিটি ও কম্পিউটার',
+    badge: '💻 আইসিটি পাঠ',
+    duration: '৩০ মিনিট',
+    level: 'সকল শ্রেণি',
+    instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+    desc: '',
+    stepsText: '',
+    videoUrl: ''
+  });
 
   // Filters & Search
   const [photoSearch, setPhotoSearch] = useState('');
@@ -403,10 +735,28 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
         localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify([]));
         setOnlineClasses([]);
       }
+
+      const storedTutorials = localStorage.getItem(TUTORIALS_KEY);
+      if (storedTutorials !== null) {
+        try {
+          const parsed = JSON.parse(storedTutorials);
+          if (Array.isArray(parsed)) {
+            setTutorials(parsed);
+          } else {
+            setTutorials(DEFAULT_TUTORIALS);
+          }
+        } catch {
+          setTutorials(DEFAULT_TUTORIALS);
+        }
+      } else {
+        setTutorials(DEFAULT_TUTORIALS);
+        try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(DEFAULT_TUTORIALS)); } catch {}
+      }
     } catch {
       setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);
       setVideoAlbums([]);
       setOnlineClasses([]);
+      setTutorials(DEFAULT_TUTORIALS);
     }
   }, []);
 
@@ -423,6 +773,61 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
   const saveOnlineClasses = (data) => {
     setOnlineClasses(data);
     try { localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveTutorials = (data) => {
+    setTutorials(data);
+    try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const handleCreateTutorial = (e) => {
+    e.preventDefault();
+    if (!newTutorialForm.title.trim()) {
+      alert('অনুগ্রহ করে টিউটোরিয়ালের শিরোনাম লিখুন!');
+      return;
+    }
+    const steps = newTutorialForm.stepsText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (steps.length === 0) {
+      alert('অনুগ্রহ করে অন্তত ১টি অনুশীলনের ধাপ লিখুন!');
+      return;
+    }
+
+    const newTut = {
+      id: `tut-${Date.now()}`,
+      title: newTutorialForm.title.trim(),
+      category: newTutorialForm.category,
+      categoryLabel: newTutorialForm.categoryLabel,
+      badge: newTutorialForm.badge.trim() || '💡 ব্যবহারিক পাঠ',
+      duration: newTutorialForm.duration.trim() || '৩০ মিনিট',
+      level: newTutorialForm.level.trim() || 'সকল শ্রেণি',
+      instructor: newTutorialForm.instructor.trim() || 'আইসিটি ও বিজ্ঞান বিভাগ',
+      date: new Date().toISOString().slice(0, 10),
+      desc: newTutorialForm.desc.trim() || 'ব্যবহারিক ল্যাব শিট ও অনুশীলনী গাইড।',
+      steps: steps,
+      videoUrl: newTutorialForm.videoUrl.trim(),
+      isCustom: true
+    };
+
+    const updated = [newTut, ...tutorials];
+    saveTutorials(updated);
+    setShowNewTutorialModal(false);
+    setNewTutorialForm({
+      title: '',
+      category: 'ict',
+      categoryLabel: '💻 আইসিটি ও কম্পিউটার',
+      badge: '💻 আইসিটি পাঠ',
+      duration: '৩০ মিনিট',
+      level: 'সকল শ্রেণি',
+      instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+      desc: '',
+      stepsText: '',
+      videoUrl: ''
+    });
+    alert('✓ চমৎকার! নতুন টিউটোরিয়াল ও ল্যাব গাইডটি সফলভাবে যুক্ত হয়েছে।');
   };
 
   // New Photo Album Form State
@@ -1187,88 +1592,192 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
             gap: '14px'
           }}>
-            <span style={{ fontSize: '28px' }}>💡</span>
-            <div>
-              <h4 style={{ margin: 0, fontSize: '15px', color: '#166534', fontWeight: 800 }}>
-                আইসিটি, বিজ্ঞান ল্যাব ও স্কিল ডেভেলপমেন্ট টিউটোরিয়াল একাডেমি
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '260px' }}>
+              <span style={{ fontSize: '28px' }}>💡</span>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '15px', color: '#166534', fontWeight: 800 }}>
+                  আইসিটি, বিজ্ঞান ল্যাব ও স্কিল ডেভেলপমেন্ট টিউটোরিয়াল একাডেমি
+                </h4>
+                <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#15803d' }}>
+                  শিক্ষার্থীদের ব্যবহারিক দক্ষতা অর্জনের জন্য ধাপে ধাপে তৈরি ব্যবহারিক গাইড ও ল্যাব ম্যানুয়াল।
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowNewTutorialModal(true)}
+              style={{
+                background: '#047857',
+                color: '#ffffff',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+              }}
+            >
+              <span>💡</span> + নতুন টিউটোরিয়াল যুক্ত করুন
+            </button>
+          </div>
+
+          {tutorials.length === 0 ? (
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #cbd5e1',
+              borderRadius: '12px',
+              padding: '40px 20px',
+              textAlign: 'center',
+              color: '#64748b'
+            }}>
+              <div style={{ fontSize: '38px', marginBottom: '10px' }}>💡</div>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#334155' }}>
+                কোনো টিউটোরিয়াল পাওয়া যায়নি
               </h4>
-              <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#15803d' }}>
-                শিক্ষার্থীদের ব্যবহারিক দক্ষতা অর্জনের জন্য ধাপে ধাপে তৈরি ব্যবহারিক গাইড ও ল্যাব ম্যানুয়াল।
+              <p style={{ margin: 0, fontSize: '13px' }}>
+                নতুন টিউটোরিয়াল বা ব্যবহারিক ল্যাব শিট তৈরি করতে উপরের "+ নতুন টিউটোরিয়াল যুক্ত করুন" বাটনে ক্লিক করুন।
               </p>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {TUTORIALS_DATA.map((tut, idx) => (
-              <div
-                key={tut.id}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <div style={{ display: 'inline-block', background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '15px', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
-                      {tut.badge} • ⏱️ {toBn(tut.duration)} • স্তর: {tut.level}
-                    </div>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
-                      {toBn(idx + 1)}. {tut.title}
-                    </h3>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      alert(`✓ "${tut.title}" এর অফিশিয়াল টিউটোরিয়াল গাইড শিট ডাউনলোড সম্পন্ন হয়েছে।`);
-                    }}
-                    style={{
-                      background: '#047857',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '7px 15px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <span>📥</span> গাইড ডাউনলোড (PDF)
-                  </button>
-                </div>
-
-                <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>
-                  {tut.desc}
-                </p>
-
-                {/* Steps List */}
-                <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
-                    📌 অনুশীলনের মূল ধাপসমূহ:
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '8px' }}>
-                    {tut.steps.map((step, sIdx) => (
-                      <div key={sIdx} style={{ display: 'flex', gap: '8px', fontSize: '12.5px', color: '#1e293b' }}>
-                        <span style={{ color: '#059669', fontWeight: 800 }}>✓ {toBn(sIdx + 1)}.</span>
-                        <span>{step}</span>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {tutorials.map((tut, idx) => (
+                <div
+                  key={tut.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '20px',
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <div style={{ display: 'inline-block', background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '15px', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
+                        {tut.badge || tut.categoryLabel || tut.category} • ⏱️ {toBn(tut.duration)} • স্তর: {tut.level || 'সকল শ্রেণি'}
                       </div>
-                    ))}
+                      <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                        {toBn(idx + 1)}. {tut.title}
+                      </h3>
+                      {tut.instructor && (
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px' }}>
+                          👨‍🏫 প্রশিক্ষক: <b>{tut.instructor}</b>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      {tut.videoUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveVideoPlayer({
+                            title: tut.title,
+                            videoUrl: tut.videoUrl,
+                            host: tut.instructor || 'টিউটোরিয়াল ইনস্ট্রাক্টর',
+                            description: tut.desc
+                          })}
+                          style={{
+                            background: '#dc2626',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '7px 14px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span>▶</span> ভিডিও ক্লাস
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => generateTutorialPDF(tut)}
+                        style={{
+                          background: '#047857',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '7px 16px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+                        }}
+                        title="অফিশিয়াল ল্যাব শিট পিডিএফ হিসেবে ডাউনলোড বা প্রিন্ট করুন"
+                      >
+                        <span>📥</span> গাইড ডাউনলোড (PDF)
+                      </button>
+
+                      {tut.isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`আপনি কি "${tut.title}" টিউটোরিয়ালটি মুছে ফেলতে চান?`)) {
+                              saveTutorials(tutorials.filter(t => t.id !== tut.id));
+                            }
+                          }}
+                          style={{
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: 'none',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          মুছুন
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>
+                    {tut.desc}
+                  </p>
+
+                  {/* Steps List */}
+                  {Array.isArray(tut.steps) && tut.steps.length > 0 && (
+                    <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px' }}>
+                        📌 অনুশীলনের মূল ধাপসমূহ:
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '8px' }}>
+                        {tut.steps.map((step, sIdx) => (
+                          <div key={sIdx} style={{ display: 'flex', gap: '8px', fontSize: '12.5px', color: '#1e293b' }}>
+                            <span style={{ color: '#059669', fontWeight: 800 }}>✓ {toBn(sIdx + 1)}.</span>
+                            <span>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -2600,6 +3109,229 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                   }}
                 >
                   🎥 ভিডিও সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: CREATE NEW TUTORIAL ================= */}
+      {showNewTutorialModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          zIndex: 9999,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px',
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '680px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '26px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>💡</span> + নতুন টিউটোরিয়াল ও ব্যবহারিক ল্যাব গাইড তৈরি করুন
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowNewTutorialModal(false)}
+                style={{
+                  background: '#f1f5f9',
+                  color: '#64748b',
+                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '15px',
+                  display: 'grid',
+                  placeItems: 'center'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTutorial} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  টিউটোরিয়াল / গাইডের শিরোনাম <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="যেমন: মাইক্রোস্কোপ ল্যাব প্র্যাকটিক্যাল গাইড"
+                  value={newTutorialForm.title}
+                  onChange={e => setNewTutorialForm({ ...newTutorialForm, title: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    ক্যাটাগরি:
+                  </label>
+                  <select
+                    value={newTutorialForm.category}
+                    onChange={e => {
+                      const cat = e.target.value;
+                      const catMap = {
+                        ict: '💻 আইসিটি ও কম্পিউটার',
+                        science: '🔬 বিজ্ঞান ল্যাব',
+                        coding: '🐍 কোডিং ও প্রোগ্রামিং',
+                        art: '🎨 শিল্প ও ক্যালিগ্রাফি',
+                        language: '📝 ভাষা ও টাইপিং',
+                        academic: '📚 বিষয়ভিত্তিক একাডেমি',
+                        general: '🌟 সাধারণ দক্ষতা'
+                      };
+                      setNewTutorialForm({
+                        ...newTutorialForm,
+                        category: cat,
+                        categoryLabel: catMap[cat] || '💡 সাধারণ শিক্ষা',
+                        badge: catMap[cat] || '💡 পাঠ'
+                      });
+                    }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', background: '#fff', outline: 'none' }}
+                  >
+                    <option value="ict">💻 আইসিটি ও কম্পিউটার</option>
+                    <option value="science">🔬 বিজ্ঞান ল্যাব</option>
+                    <option value="coding">🐍 কোডিং ও প্রোগ্রামিং</option>
+                    <option value="art">🎨 শিল্প ও ক্যালিগ্রাফি</option>
+                    <option value="language">📝 ভাষা ও টাইপিং</option>
+                    <option value="academic">📚 বিষয়ভিত্তিক একাডেমি</option>
+                    <option value="general">🌟 সাধারণ দক্ষতা</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    প্রযোজ্য শ্রেণি / স্তর:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: ৬ষ্ঠ–১০ম শ্রেণি / সকল শ্রেণি"
+                    value={newTutorialForm.level}
+                    onChange={e => setNewTutorialForm({ ...newTutorialForm, level: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    অনুশীলন সময়সীমা:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: ২৫ মিনিট"
+                    value={newTutorialForm.duration}
+                    onChange={e => setNewTutorialForm({ ...newTutorialForm, duration: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    প্রশিক্ষক / শিক্ষকের নাম:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক)"
+                    value={newTutorialForm.instructor}
+                    onChange={e => setNewTutorialForm({ ...newTutorialForm, instructor: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  সহায়ক ভিডিও লিঙ্ক (ঐচ্ছিক YouTube URL):
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={newTutorialForm.videoUrl}
+                  onChange={e => setNewTutorialForm({ ...newTutorialForm, videoUrl: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  সারসংক্ষেপ ও শিখনফল <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <textarea
+                  rows="2"
+                  required
+                  placeholder="এই টিউটোরিয়াল বা ব্যবহারিক পাঠটি সম্পন্ন করলে শিক্ষার্থীরা কী শিখতে পারবে তার সংক্ষিপ্ত বিবরণ লিখুন..."
+                  value={newTutorialForm.desc}
+                  onChange={e => setNewTutorialForm({ ...newTutorialForm, desc: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none', resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  অনুশীলনের মূল ধাপসমূহ (প্রতি লাইনে একটি করে ধাপ লিখুন) <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <textarea
+                  rows="4"
+                  required
+                  placeholder="ধাপ ১: প্রয়োজনীয় উপকরণ সাজিয়ে নেওয়া&#10;ধাপ ২: পরীক্ষণের প্রথম ধাপ সম্পন্ন করা&#10;ধাপ ৩: ফলাফল পর্যবেক্ষণ ও নোটে লিপিবদ্ধ করা"
+                  value={newTutorialForm.stepsText}
+                  onChange={e => setNewTutorialForm({ ...newTutorialForm, stepsText: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', outline: 'none', lineHeight: '1.6', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowNewTutorialModal(false)}
+                  style={{
+                    background: '#e2e8f0',
+                    color: '#475569',
+                    border: 'none',
+                    padding: '9px 16px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#047857',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '9px 20px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  💡 টিউটোরিয়াল সংরক্ষণ করুন
                 </button>
               </div>
             </form>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { compressImageToDataUrl } from './photoStorage';
-import { extractYouTubeId } from './GalleryMasterModalSection';
+import { extractYouTubeId, generateTutorialPDF, TUTORIALS_KEY, DEFAULT_TUTORIALS } from './GalleryMasterModalSection';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -26,13 +26,27 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const [photoAlbums, setPhotoAlbums] = useState([]);
   const [videoAlbums, setVideoAlbums] = useState([]);
   const [onlineClasses, setOnlineClasses] = useState([]);
+  const [tutorials, setTutorials] = useState(DEFAULT_TUTORIALS);
 
   // Active modal/editor states
   const [editingPhotoAlbum, setEditingPhotoAlbum] = useState(null);
   const [editingVideo, setEditingVideo] = useState(null);
   const [editingClass, setEditingClass] = useState(null);
+  const [editingTutorial, setEditingTutorial] = useState(null);
 
   // Form States
+  const [tutorialForm, setTutorialForm] = useState({
+    title: '',
+    category: 'ict',
+    categoryLabel: '💻 আইসিটি ও কম্পিউটার',
+    badge: '💻 আইসিটি পাঠ',
+    duration: '৩০ মিনিট',
+    level: 'সকল শ্রেণি',
+    instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+    desc: '',
+    stepsText: '',
+    videoUrl: ''
+  });
   const [photoForm, setPhotoForm] = useState({
     title: '',
     category: 'sports',
@@ -188,7 +202,26 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
           setOnlineClasses([]);
         }
       }
-    } catch {}
+
+      const storedTutorials = localStorage.getItem(TUTORIALS_KEY);
+      if (storedTutorials !== null) {
+        try {
+          const parsed = JSON.parse(storedTutorials);
+          if (Array.isArray(parsed)) {
+            setTutorials(parsed);
+          } else {
+            setTutorials(DEFAULT_TUTORIALS);
+          }
+        } catch {
+          setTutorials(DEFAULT_TUTORIALS);
+        }
+      } else {
+        setTutorials(DEFAULT_TUTORIALS);
+        try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(DEFAULT_TUTORIALS)); } catch {}
+      }
+    } catch {
+      setTutorials(DEFAULT_TUTORIALS);
+    }
   }, []);
 
   const savePhotoAlbums = (data) => {
@@ -204,6 +237,78 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const saveOnlineClasses = (data) => {
     setOnlineClasses(data);
     try { localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveTutorials = (data) => {
+    setTutorials(data);
+    try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const handleSubmitTutorial = (e) => {
+    e.preventDefault();
+    if (!tutorialForm.title.trim()) {
+      alert('অনুগ্রহ করে টিউটোরিয়ালের শিরোনাম লিখুন!');
+      return;
+    }
+    const steps = tutorialForm.stepsText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    if (steps.length === 0) {
+      alert('অনুগ্রহ করে অন্তত ১টি অনুশীলনের ধাপ লিখুন!');
+      return;
+    }
+
+    if (editingTutorial) {
+      const updated = tutorials.map(t => t.id === editingTutorial.id ? {
+        ...t,
+        title: tutorialForm.title.trim(),
+        category: tutorialForm.category,
+        categoryLabel: tutorialForm.categoryLabel,
+        badge: tutorialForm.badge.trim() || '💡 ব্যবহারিক পাঠ',
+        duration: tutorialForm.duration.trim() || '৩০ মিনিট',
+        level: tutorialForm.level.trim() || 'সকল শ্রেণি',
+        instructor: tutorialForm.instructor.trim() || 'আইসিটি ও বিজ্ঞান বিভাগ',
+        desc: tutorialForm.desc.trim() || 'ব্যবহারিক ল্যাব শিট ও অনুশীলনী গাইড।',
+        steps: steps,
+        videoUrl: tutorialForm.videoUrl.trim()
+      } : t);
+      saveTutorials(updated);
+      showToast('✓ টিউটোরিয়াল তথ্য সফলভাবে আপডেট হয়েছে!');
+      setEditingTutorial(null);
+    } else {
+      const newTut = {
+        id: `tut-${Date.now()}`,
+        title: tutorialForm.title.trim(),
+        category: tutorialForm.category,
+        categoryLabel: tutorialForm.categoryLabel,
+        badge: tutorialForm.badge.trim() || '💡 ব্যবহারিক পাঠ',
+        duration: tutorialForm.duration.trim() || '৩০ মিনিট',
+        level: tutorialForm.level.trim() || 'সকল শ্রেণি',
+        instructor: tutorialForm.instructor.trim() || 'আইসিটি ও বিজ্ঞান বিভাগ',
+        date: new Date().toISOString().slice(0, 10),
+        desc: tutorialForm.desc.trim() || 'ব্যবহারিক ল্যাব শিট ও অনুশীলনী গাইড।',
+        steps: steps,
+        videoUrl: tutorialForm.videoUrl.trim(),
+        isCustom: true
+      };
+      saveTutorials([newTut, ...tutorials]);
+      showToast('✓ চমৎকার! নতুন টিউটোরিয়ালটি সফলভাবে প্রকাশিত হয়েছে!');
+    }
+
+    setTutorialForm({
+      title: '',
+      category: 'ict',
+      categoryLabel: '💻 আইসিটি ও কম্পিউটার',
+      badge: '💻 আইসিটি পাঠ',
+      duration: '৩০ মিনিট',
+      level: 'সকল শ্রেণি',
+      instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+      desc: '',
+      stepsText: '',
+      videoUrl: ''
+    });
   };
 
   // Handle Cover File Upload
@@ -544,7 +649,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
           { key: 'photos', label: '📸 ফটো গ্যালারি ও অ্যালবাম এন্ট্রি', count: photoAlbums.length },
           { key: 'videos', label: '🎥 ভিডিও গ্যালারি ও ভিডিও যোগ', count: videoAlbums.length },
           { key: 'classes', label: '🎓 অনলাইন ক্লাস আপলোড', count: onlineClasses.length },
-          { key: 'tutorials', label: '💡 টিউটোরিয়াল একাডেমি' },
+          { key: 'tutorials', label: '💡 টিউটোরিয়াল একাডেমি', count: tutorials.length },
           { key: 'campus', label: '🏛️ ক্যাম্পাস ও স্মৃতি মাইলফলক' },
           { key: 'audio', label: '🎵 অডিও ও সাংস্কৃতিক গান' }
         ].map(tab => {
@@ -1423,8 +1528,393 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         </div>
       )}
 
-      {/* ================= TAB 4: TUTORIALS / CAMPUS / AUDIO ================= */}
-      {(activeTab === 'tutorials' || activeTab === 'campus' || activeTab === 'audio') && (
+      {/* ================= TAB 4: TUTORIALS ACADEMY ================= */}
+      {activeTab === 'tutorials' && (
+        <div>
+          {/* New / Edit Tutorial Form Card */}
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '22px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900, color: '#0f172a' }}>
+                  {editingTutorial ? '✏️ টিউটোরিয়াল ও ব্যবহারিক পাঠ সম্পাদনা' : '💡 + নতুন টিউটোরিয়াল ও ব্যবহারিক গাইড যোগ করুন'}
+                </h3>
+                <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                  এখানে আপলোড করা সকল টিউটোরিয়াল ল্যাব শিট ভিউপেজে এবং এখান থেকে স্বয়ংক্রিয়ভাবে অফিশিয়াল PDF আকারে ডাউনলোড করা যাবে।
+                </p>
+              </div>
+              {editingTutorial && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTutorial(null);
+                    setTutorialForm({
+                      title: '',
+                      category: 'ict',
+                      categoryLabel: '💻 আইসিটি ও কম্পিউটার ল্যাব',
+                      badge: '💻 আইসিটি পাঠ',
+                      duration: '৩০ মিনিট',
+                      level: 'সকল শ্রেণি',
+                      instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+                      desc: '',
+                      stepsText: '',
+                      videoUrl: ''
+                    });
+                  }}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕ সম্পাদন বাতিল করুন
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmitTutorial} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    ক্যাটাগরি / বিভাগ:
+                  </label>
+                  <select
+                    value={tutorialForm.category}
+                    onChange={e => {
+                      const val = e.target.value;
+                      let label = '💡 সহশিক্ষা ও ল্যাব গাইড';
+                      let badge = '💡 ব্যবহারিক পাঠ';
+                      if (val === 'ict') { label = '💻 আইসিটি ও কম্পিউটার ল্যাব'; badge = '💻 আইসিটি পাঠ'; }
+                      else if (val === 'science') { label = '🔬 বিজ্ঞান ও বিজ্ঞানাগার প্র্যাকটিক্যাল'; badge = '🔬 বিজ্ঞান ল্যাব'; }
+                      else if (val === 'math') { label = '📐 ব্যবহারিক গণিত ও জ্যামিতি'; badge = '📐 গণিত ল্যাব'; }
+                      else if (val === 'language') { label = '📝 ভাষা ও ডিজিটাল টাইপিং'; badge = '📝 ভাষা দক্ষতা'; }
+                      else if (val === 'coding') { label = '🐍 কোডিং ও সফটওয়্যার স্কিল'; badge = '🐍 কোডিং ল্যাব'; }
+                      setTutorialForm(prev => ({
+                        ...prev,
+                        category: val,
+                        categoryLabel: label,
+                        badge: badge
+                      }));
+                    }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', background: '#fff' }}
+                  >
+                    <option value="ict">💻 আইসিটি ও কম্পিউটার ল্যাব</option>
+                    <option value="science">🔬 বিজ্ঞান ও বিজ্ঞানাগার প্র্যাকটিক্যাল</option>
+                    <option value="math">📐 ব্যবহারিক গণিত ও জ্যামিতি</option>
+                    <option value="language">📝 ভাষা ও ডিজিটাল টাইপিং</option>
+                    <option value="coding">🐍 কোডিং ও সফটওয়্যার স্কিল</option>
+                    <option value="other">💡 অন্যান্য সহশিক্ষা ও ল্যাব গাইড</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    শ্রেণি / স্তর:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: সকল শ্রেণি / ৬ষ্ঠ-৮ম শ্রেণি / ৯ম-১০ম শ্রেণি"
+                    value={tutorialForm.level}
+                    onChange={e => setTutorialForm({ ...tutorialForm, level: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    অনুশীলন সময়কাল:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: ২৫ মিনিট / ৪৫ মিনিট"
+                    value={tutorialForm.duration}
+                    onChange={e => setTutorialForm({ ...tutorialForm, duration: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    শিক্ষক / প্রশিক্ষক / সমন্বয়ক:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="যেমন: মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)"
+                    value={tutorialForm.instructor}
+                    onChange={e => setTutorialForm({ ...tutorialForm, instructor: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  টিউটোরিয়াল বা ব্যবহারিক পাঠের শিরোনাম: *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="যেমন: বিজয় বায়ান্ন ও অভ্র দিয়ে বাংলা টাইপিং কৌশল"
+                  value={tutorialForm.title}
+                  onChange={e => setTutorialForm({ ...tutorialForm, title: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  সহায়ক ভিডিও লিঙ্ক (ঐচ্ছিক YouTube URL):
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  value={tutorialForm.videoUrl}
+                  onChange={e => setTutorialForm({ ...tutorialForm, videoUrl: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  সংক্ষিপ্ত সারসংক্ষেপ ও শিখনফল: *
+                </label>
+                <textarea
+                  rows="2"
+                  required
+                  placeholder="এই টিউটোরিয়াল বা ব্যবহারিক পাঠটি অনুশীলন করলে শিক্ষার্থীরা কী কী শিখতে পারবে তার বিবরণ..."
+                  value={tutorialForm.desc}
+                  onChange={e => setTutorialForm({ ...tutorialForm, desc: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  অনুশীলনের মূল ধাপসমূহ (প্রতি লাইনে একটি করে ধাপ লিখুন): *
+                </label>
+                <textarea
+                  rows="4"
+                  required
+                  placeholder="ধাপ ১: কম্পিউটার চালু করে প্রয়োজনীয় সফটওয়্যার ওপেন করুন।&#10;ধাপ ২: প্র্যাকটিক্যাল ডাটা ইনপুট দিয়ে অনুশীলন করুন।&#10;ধাপ ৩: কাজ সম্পন্ন করে শিক্ষকের কাছে ফাইল সেভ ও জমা দিন।"
+                  value={tutorialForm.stepsText}
+                  onChange={e => setTutorialForm({ ...tutorialForm, stepsText: e.target.value })}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px', lineHeight: '1.6', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#047857',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 22px',
+                    borderRadius: '7px',
+                    fontSize: '13.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {editingTutorial ? '💾 আপডেট সংরক্ষণ করুন' : '💡 নতুন টিউটোরিয়াল প্রকাশ করুন'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Tutorials Table Card */}
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '22px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.05)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900, color: '#0f172a' }}>
+                💡 সংরক্ষিত টিউটোরিয়াল ও ব্যবহারিক গাইড তালিকা ({toBn(tutorials.length)} টি)
+              </h3>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('আপনি কি ডিফল্ট টিউটোরিয়াল তালিকা পুনরুদ্ধার করতে চান?')) {
+                      saveTutorials(DEFAULT_TUTORIALS);
+                      showToast('✓ ডিফল্ট টিউটোরিয়াল তালিকা পুনরুদ্ধার করা হয়েছে।');
+                    }
+                  }}
+                  style={{
+                    background: '#f8fafc',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔄 ডিফল্ট তালিকা রিস্টোর
+                </button>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#f1f5f9', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155', width: '50px' }}>#</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155' }}>ক্যাটাগরি</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155' }}>টিউটোরিয়াল শিরোনাম ও শিক্ষক</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155' }}>শ্রেণি / সময়কাল</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155', textAlign: 'center' }}>ধাপ সংখ্যা</th>
+                    <th style={{ padding: '10px 14px', fontWeight: 800, color: '#334155', textAlign: 'right' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tutorials.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" style={{ padding: '28px', textAlign: 'center', color: '#64748b' }}>
+                        কোনো টিউটোরিয়াল সংরক্ষিত নেই। উপরের ফর্ম পূরণ করে নতুন টিউটোরিয়াল যোগ করুন।
+                      </td>
+                    </tr>
+                  ) : (
+                    tutorials.map((tut, idx) => (
+                      <tr key={tut.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '10px 14px', fontWeight: 700, color: '#64748b' }}>
+                          {toBn(idx + 1)}
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{
+                            display: 'inline-block',
+                            background: '#ecfdf5',
+                            color: '#047857',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            fontSize: '11.5px',
+                            border: '1px solid #a7f3d0'
+                          }}>
+                            {tut.badge || tut.categoryLabel || '💡 টিউটোরিয়াল'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '2px' }}>
+                            {tut.title}
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                            👨‍🏫 {tut.instructor || 'আইসিটি ও বিজ্ঞান বিভাগ'}
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 14px', color: '#475569' }}>
+                          <div>{tut.level || 'সকল শ্রেণি'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b' }}>⏱️ {tut.duration || '৩০ মিনিট'}</div>
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                          <span style={{ background: '#f1f5f9', color: '#334155', padding: '3px 8px', borderRadius: '12px', fontWeight: 700, fontSize: '12px' }}>
+                            {toBn(tut.steps?.length || 0)} টি ধাপ
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => generateTutorialPDF(tut)}
+                              style={{
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                padding: '4px 10px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                              title="অফিশিয়াল ল্যাব শিট ও PDF গাইড ডাউনলোড করুন"
+                            >
+                              📥 PDF
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingTutorial(tut);
+                                setTutorialForm({
+                                  title: tut.title || '',
+                                  category: tut.category || 'ict',
+                                  categoryLabel: tut.categoryLabel || '💻 আইসিটি ও কম্পিউটার ল্যাব',
+                                  badge: tut.badge || '💡 ব্যবহারিক পাঠ',
+                                  duration: tut.duration || '৩০ মিনিট',
+                                  level: tut.level || 'সকল শ্রেণি',
+                                  instructor: tut.instructor || 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
+                                  desc: tut.desc || '',
+                                  stepsText: Array.isArray(tut.steps) ? tut.steps.join('\n') : '',
+                                  videoUrl: tut.videoUrl || ''
+                                });
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              style={{
+                                background: '#eff6ff',
+                                color: '#2563eb',
+                                border: '1px solid #bfdbfe',
+                                padding: '4px 8px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                              }}
+                              title="টিউটোরিয়াল সম্পাদনা করুন"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`আপনি কি "${tut.title}" টিউটোরিয়ালটি মুছে ফেলতে চান?`)) {
+                                  const updated = tutorials.filter(x => x.id !== tut.id);
+                                  saveTutorials(updated);
+                                  if (editingTutorial?.id === tut.id) {
+                                    setEditingTutorial(null);
+                                  }
+                                  showToast('✓ টিউটোরিয়াল সফলভাবে মুছে ফেলা হয়েছে।');
+                                }
+                              }}
+                              style={{
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: '1px solid #fecaca',
+                                padding: '4px 8px',
+                                borderRadius: '5px',
+                                fontSize: '12px',
+                                cursor: 'pointer'
+                              }}
+                              title="টিউটোরিয়াল মুছে ফেলুন"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= TAB 5: CAMPUS & AUDIO ================= */}
+      {(activeTab === 'campus' || activeTab === 'audio') && (
         <div style={{
           background: '#ffffff',
           borderRadius: '12px',
@@ -1434,9 +1924,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         }}>
           <span style={{ fontSize: '36px' }}>✨</span>
           <h3 style={{ margin: '8px 0', fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
-            {activeTab === 'tutorials' ? '💡 টিউটোরিয়াল একাডেমি কনটেন্ট হাব' :
-             activeTab === 'campus' ? '🏛️ ক্যাম্পাস ও স্মৃতি আর্কাইভ' :
-             '🎵 অডিও ও সাংস্কৃতিক গান হাব'}
+            {activeTab === 'campus' ? '🏛️ ক্যাম্পাস ও স্মৃতি আর্কাইভ' : '🎵 অডিও ও সাংস্কৃতিক গান হাব'}
           </h3>
           <p style={{ margin: '0 auto 16px auto', maxWidth: '580px', fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
             এই সেকশনের কনটেন্টগুলো ভিউ পেজের সাথে সরাসরি সিঙ্ক করা আছে। শিক্ষক ও অ্যাডমিনরা এখান থেকে অনায়াসে হ্যান্ডআউট এবং অডিও ট্র্যাক পরিচালনা করতে পারবেন।
