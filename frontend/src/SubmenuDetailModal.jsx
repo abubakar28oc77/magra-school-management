@@ -516,6 +516,10 @@ function PublicExamResultsView() {
 }
 
 export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) {
+  const cleanTitle = (title || '')
+    .replace(/\s*\((?:নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরির\s*সুবিধা\s*সহ|নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরি\s*সহ)\)/gi, '')
+    .trim() || title;
+
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
     return <PublicAttendancePortal isOpen={true} onClose={onClose} />;
   }
@@ -951,7 +955,7 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       title?.includes('টিউটোরিয়াল') ||
       title?.includes('অনলাইন ক্লাস')
     ) {
-      return <GalleryMasterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+      return <GalleryMasterModalSection initialSubmenuKey={menuKey} initialTitle={cleanTitle} onClose={onClose} />;
     }
 
     // ================= E-SERVICE MASTER MODULE =================
@@ -6863,7 +6867,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
     <div className="submenu-modal-overlay" onClick={onClose}>
       <div className="submenu-modal-card" style={isWideModal ? { maxWidth: '1100px', width: '96%' } : undefined} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{title}</h2>
+          <h2>{cleanTitle}</h2>
           <button className="modal-close-btn" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <div className="modal-body">

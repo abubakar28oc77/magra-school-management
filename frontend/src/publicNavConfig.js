@@ -76,8 +76,8 @@ export const publicNavConfig = [
   ['public.nav.notice.board','ডিজিটাল নোটিশবোর্ড ও ই-আর্কাইভ','#notice-board']
  ]},
  {key:'public.nav.gallery',label:'গ্যালারি',children:[
-  ['public.nav.gallery.photos','ফটো গ্যালারি (নতুন অ্যালবাম তৈরির সুবিধা সহ)','#gallery-photos'],
-  ['public.nav.gallery.videos','ভিডিও গ্যালারি (নতুন অ্যালবাম তৈরির সুবিধা সহ)','#gallery-videos'],
+  ['public.nav.gallery.photos','ফটো গ্যালারি','#gallery-photos'],
+  ['public.nav.gallery.videos','ভিডিও গ্যালারি','#gallery-videos'],
   ['public.nav.gallery.tutorials','টিউটোরিয়াল','#gallery-tutorials'],
   ['public.nav.gallery.classes','অনলাইন ক্লাস','#gallery-classes'],
   ['public.nav.gallery.campus','ক্যাম্পাস ও ঐতিহাসিক স্মৃতি','#gallery-campus'],
