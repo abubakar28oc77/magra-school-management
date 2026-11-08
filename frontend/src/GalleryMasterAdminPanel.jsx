@@ -1069,8 +1069,8 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                     ইউটিউব ভিডিও লিঙ্ক (YouTube URL):
                   </label>
                   <input
-                    type="url"
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    type="text"
+                    placeholder="https://www.youtube.com/watch?v=... বা ভিডিও লিংক"
                     value={videoForm.videoUrl}
                     onChange={e => setVideoForm({ ...videoForm, videoUrl: e.target.value })}
                     style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
@@ -1263,8 +1263,8 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                     ক্লাস ভিডিও লিঙ্ক (YouTube URL):
                   </label>
                   <input
-                    type="url"
-                    placeholder="https://www.youtube.com/watch?v=..."
+                    type="text"
+                    placeholder="https://www.youtube.com/watch?v=... বা ভিডিও লিংক"
                     value={classForm.videoUrl}
                     onChange={e => setClassForm({ ...classForm, videoUrl: e.target.value })}
                     style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}

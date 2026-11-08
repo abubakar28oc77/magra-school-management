@@ -6,6 +6,74 @@ import { compressImageToDataUrl } from './photoStorage';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
+// Universal YouTube / Video URL Embedder and Direct Link Converter
+export function getEmbedUrl(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let str = raw.trim();
+
+  // If user pasted an iframe embed code, extract the src URL
+  if (str.includes('<iframe') && str.includes('src=')) {
+    const srcMatch = str.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) str = srcMatch[1];
+  }
+
+  // If already an embed url
+  if (str.includes('/embed/')) {
+    const sep = str.includes('?') ? '&' : '?';
+    return str.includes('autoplay') ? str : `${str}${sep}autoplay=1`;
+  }
+
+  // youtu.be/<id>
+  const youtuMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuMatch && youtuMatch[1]) {
+    return `https://www.youtube.com/embed/${youtuMatch[1]}?autoplay=1`;
+  }
+
+  // youtube.com/watch?v=<id> or youtube.com/watch/?v=<id>
+  const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (watchMatch && watchMatch[1]) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1`;
+  }
+
+  // youtube.com/shorts/<id> or youtube.com/live/<id>
+  const pathMatch = str.match(/youtube\.com\/(?:shorts|live)\/([a-zA-Z0-9_-]{11})/i);
+  if (pathMatch && pathMatch[1]) {
+    return `https://www.youtube.com/embed/${pathMatch[1]}?autoplay=1`;
+  }
+
+  // Bare 11-char ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+    return `https://www.youtube.com/embed/${str}?autoplay=1`;
+  }
+
+  // If URL doesn't have protocol but starts with youtube.com or youtu.be
+  if (/^(www\.)?(youtube\.com|youtu\.be)/i.test(str)) {
+    return getEmbedUrl(`https://${str}`);
+  }
+
+  // Fallback: return as-is
+  return str;
+}
+
+export function getDirectWatchUrl(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let str = raw.trim();
+  if (str.includes('<iframe') && str.includes('src=')) {
+    const srcMatch = str.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) str = srcMatch[1];
+  }
+  const youtuMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuMatch && youtuMatch[1]) return `https://www.youtube.com/watch?v=${youtuMatch[1]}`;
+  const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (watchMatch && watchMatch[1]) return `https://www.youtube.com/watch?v=${watchMatch[1]}`;
+  const embedMatch = str.match(/\/embed\/([a-zA-Z0-9_-]{11})/i);
+  if (embedMatch && embedMatch[1]) return `https://www.youtube.com/watch?v=${embedMatch[1]}`;
+  const shortsMatch = str.match(/\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  if (shortsMatch && shortsMatch[1]) return `https://www.youtube.com/watch?v=${shortsMatch[1]}`;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return `https://www.youtube.com/watch?v=${str}`;
+  return str.startsWith('http') ? str : `https://${str}`;
+}
+
 // LocalStorage Keys
 const PHOTO_ALBUMS_KEY = 'magra_gallery_photo_albums_v2';
 const VIDEO_ALBUMS_KEY = 'magra_gallery_video_albums_v2';
@@ -1324,7 +1392,16 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                 }}
               >
                 {/* Thumbnail with Class Overlay */}
-                <div style={{ position: 'relative', height: '160px', background: '#0f172a' }}>
+                <div 
+                  style={{ position: 'relative', height: '160px', background: '#0f172a', cursor: 'pointer' }}
+                  onClick={() => setActiveVideoPlayer({
+                    title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
+                    videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
+                    host: cls.teacher,
+                    description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
+                  })}
+                  title="ক্লাস ভিডিও দেখতে ক্লিক করুন"
+                >
                   <img
                     src={cls.thumbnail}
                     alt={cls.topic}
@@ -1375,9 +1452,9 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                       type="button"
                       onClick={() => setActiveVideoPlayer({
                         title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
-                        videoUrl: cls.videoUrl,
+                        videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
                         host: cls.teacher,
-                        description: `শিক্ষক: ${cls.teacher} (${cls.designation})। তারিখ: ${toBn(cls.date)} খ্রি.`
+                        description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
                       })}
                       style={{
                         flex: 1,
@@ -1865,73 +1942,123 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
       )}
 
       {/* ================= MODAL: VIDEO PLAYER ================= */}
-      {activeVideoPlayer && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(15, 23, 42, 0.9)',
-          zIndex: 9999,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '20px',
-          backdropFilter: 'blur(5px)'
-        }}>
+      {activeVideoPlayer && (() => {
+        const targetUrl = (activeVideoPlayer.videoUrl || activeVideoPlayer.url || activeVideoPlayer.video_url || '').trim();
+        const embedUrl = getEmbedUrl(targetUrl);
+        const watchUrl = getDirectWatchUrl(targetUrl);
+        const isDirectVideo = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(targetUrl);
+
+        return (
           <div style={{
-            background: '#ffffff',
-            borderRadius: '14px',
-            maxWidth: '850px',
-            width: '100%',
-            overflow: 'hidden',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.92)',
+            zIndex: 9999,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px',
+            backdropFilter: 'blur(5px)'
           }}>
-            <div style={{ background: '#0f172a', color: '#ffffff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>
-                🎥 {activeVideoPlayer.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveVideoPlayer(null)}
-                style={{
-                  background: 'rgba(255,255,255,0.2)',
-                  color: '#ffffff',
-                  border: 'none',
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  fontSize: '15px'
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Video Player Frame */}
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000000' }}>
-              <iframe
-                title={activeVideoPlayer.title}
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-
-            <div style={{ padding: '16px 20px', background: '#f8fafc' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>
-                🎙️ {activeVideoPlayer.host}
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '14px',
+              maxWidth: '880px',
+              width: '100%',
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              <div style={{ background: '#0f172a', color: '#ffffff', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🎥 {activeVideoPlayer.title}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setActiveVideoPlayer(null)}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    color: '#ffffff',
+                    border: 'none',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                  title="বন্ধ করুন"
+                >
+                  ✕
+                </button>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
-                {activeVideoPlayer.description}
-              </p>
+
+              {/* Video Player Frame */}
+              <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000000' }}>
+                {isDirectVideo ? (
+                  <video
+                    controls
+                    autoPlay
+                    src={targetUrl}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                ) : (
+                  <iframe
+                    title={activeVideoPlayer.title}
+                    src={embedUrl}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                )}
+              </div>
+
+              <div style={{ padding: '16px 20px', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ flex: 1, minWidth: '240px' }}>
+                  {activeVideoPlayer.host && (
+                    <div style={{ fontSize: '12.5px', color: '#047857', marginBottom: '4px', fontWeight: 800 }}>
+                      👨‍🏫 {activeVideoPlayer.host}
+                    </div>
+                  )}
+                  {activeVideoPlayer.description && (
+                    <p style={{ margin: 0, fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
+                      {activeVideoPlayer.description}
+                    </p>
+                  )}
+                </div>
+                {watchUrl && (
+                  <a
+                    href={watchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      padding: '8px 14px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(220,38,38,0.2)'
+                    }}
+                    title="ইউটিউব সাইটে আলাদা উইন্ডোতে দেখতে ক্লিক করুন"
+                  >
+                    ▶ ইউটিউবে সরাসরি দেখুন ↗
+                  </a>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ================= MODAL: CREATE NEW PHOTO ALBUM (User Requested) ================= */}
       {showNewPhotoAlbumModal && (
