@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { compressImageToDataUrl } from './photoStorage';
-import { extractYouTubeId, generateTutorialPDF, TUTORIALS_KEY, DEFAULT_TUTORIALS } from './GalleryMasterModalSection';
+import { extractYouTubeId, generateTutorialPDF, downloadTutorialFile, TUTORIALS_KEY, DEFAULT_TUTORIALS } from './GalleryMasterModalSection';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -33,6 +33,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const [editingVideo, setEditingVideo] = useState(null);
   const [editingClass, setEditingClass] = useState(null);
   const [editingTutorial, setEditingTutorial] = useState(null);
+  const [activePdfPreview, setActivePdfPreview] = useState(null);
 
   // Form States
   const [tutorialForm, setTutorialForm] = useState({
@@ -45,7 +46,10 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
     instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
     desc: '',
     stepsText: '',
-    videoUrl: ''
+    videoUrl: '',
+    pdf_file_data: '',
+    file_name: '',
+    file_size: ''
   });
   const [photoForm, setPhotoForm] = useState({
     title: '',
@@ -244,6 +248,44 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
     try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(data)); } catch {}
   };
 
+  const handleTutorialPdfSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+      alert('অনুগ্রহ করে শুধুমাত্র PDF (.pdf) ফাইল নির্বাচন করুন!');
+      return;
+    }
+    const szMB = file.size / (1024 * 1024);
+    if (szMB > 10) {
+      alert('ফাইল সাইজ সর্বোচ্চ ১০ মেগাবাইট পর্যন্ত হতে পারে।');
+      return;
+    }
+    const formatted = szMB >= 1 ? `${szMB.toFixed(1)} MB` : `${Math.round(file.size / 1024)} KB`;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setTutorialForm(prev => ({
+        ...prev,
+        pdf_file_data: ev.target.result,
+        file_name: file.name,
+        file_size: formatted
+      }));
+      showToast(`✓ PDF ফাইল "${file.name}" যুক্ত হয়েছে (${formatted})`);
+    };
+    reader.onerror = () => {
+      alert('ফাইলটি পড়তে সমস্যা হয়েছে। অন্য কোনো ফাইল নির্বাচন করুন।');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearTutorialPdf = () => {
+    setTutorialForm(prev => ({
+      ...prev,
+      pdf_file_data: '',
+      file_name: '',
+      file_size: ''
+    }));
+  };
+
   const handleSubmitTutorial = (e) => {
     e.preventDefault();
     if (!tutorialForm.title.trim()) {
@@ -255,10 +297,13 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       .map(s => s.trim())
       .filter(Boolean);
 
-    if (steps.length === 0) {
-      alert('অনুগ্রহ করে অন্তত ১টি অনুশীলনের ধাপ লিখুন!');
+    if (steps.length === 0 && !tutorialForm.pdf_file_data) {
+      alert('অনুগ্রহ করে অন্তত ১টি অনুশীলনের ধাপ লিখুন অথবা একটি PDF গাইড ফাইল আপলোড করুন!');
       return;
     }
+    const finalSteps = steps.length > 0 
+      ? steps 
+      : ['সংযুক্ত অফিশিয়াল PDF হ্যান্ডআউট ও ল্যাব শিট অনুসরণ করে ধাপগুলো অনুশীলন করুন।'];
 
     if (editingTutorial) {
       const updated = tutorials.map(t => t.id === editingTutorial.id ? {
@@ -271,8 +316,11 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         level: tutorialForm.level.trim() || 'সকল শ্রেণি',
         instructor: tutorialForm.instructor.trim() || 'আইসিটি ও বিজ্ঞান বিভাগ',
         desc: tutorialForm.desc.trim() || 'ব্যবহারিক ল্যাব শিট ও অনুশীলনী গাইড।',
-        steps: steps,
-        videoUrl: tutorialForm.videoUrl.trim()
+        steps: finalSteps,
+        videoUrl: tutorialForm.videoUrl.trim(),
+        pdf_file_data: tutorialForm.pdf_file_data || '',
+        file_name: tutorialForm.file_name || '',
+        file_size: tutorialForm.file_size || ''
       } : t);
       saveTutorials(updated);
       showToast('✓ টিউটোরিয়াল তথ্য সফলভাবে আপডেট হয়েছে!');
@@ -289,12 +337,15 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         instructor: tutorialForm.instructor.trim() || 'আইসিটি ও বিজ্ঞান বিভাগ',
         date: new Date().toISOString().slice(0, 10),
         desc: tutorialForm.desc.trim() || 'ব্যবহারিক ল্যাব শিট ও অনুশীলনী গাইড।',
-        steps: steps,
+        steps: finalSteps,
         videoUrl: tutorialForm.videoUrl.trim(),
+        pdf_file_data: tutorialForm.pdf_file_data || '',
+        file_name: tutorialForm.file_name || '',
+        file_size: tutorialForm.file_size || '',
         isCustom: true
       };
       saveTutorials([newTut, ...tutorials]);
-      showToast('✓ চমৎকার! নতুন টিউটোরিয়ালটি সফলভাবে প্রকাশিত হয়েছে!');
+      showToast('✓ চমৎকার! নতুন টিউটোরিয়াল ও PDF গাইড সফলভাবে প্রকাশিত হয়েছে!');
     }
 
     setTutorialForm({
@@ -307,7 +358,10 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
       desc: '',
       stepsText: '',
-      videoUrl: ''
+      videoUrl: '',
+      pdf_file_data: '',
+      file_name: '',
+      file_size: ''
     });
   };
 
@@ -1564,7 +1618,10 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                       instructor: 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
                       desc: '',
                       stepsText: '',
-                      videoUrl: ''
+                      videoUrl: '',
+                      pdf_file_data: '',
+                      file_name: '',
+                      file_size: ''
                     });
                   }}
                   style={{
@@ -1683,6 +1740,80 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                   onChange={e => setTutorialForm({ ...tutorialForm, videoUrl: e.target.value })}
                   style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
                 />
+              </div>
+
+              {/* PDF Upload Box */}
+              <div style={{
+                background: '#f0fdf4',
+                border: '1.5px dashed #059669',
+                borderRadius: '8px',
+                padding: '14px 16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#065f46', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>📄</span> টিউটোরিয়াল ও ব্যবহারিক ল্যাব শিট PDF ফাইল আপলোড (ঐচ্ছিক):
+                  </label>
+                  {tutorialForm.pdf_file_data && (
+                    <button
+                      type="button"
+                      onClick={handleClearTutorialPdf}
+                      style={{
+                        background: '#fee2e2',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✕ PDF বাতিল করুন
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleTutorialPdfSelect}
+                  style={{ fontSize: '13px', cursor: 'pointer', width: '100%' }}
+                />
+
+                {tutorialForm.pdf_file_data ? (
+                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#047857', fontWeight: 700, flexWrap: 'wrap' }}>
+                    <span>✓ সংযুক্ত PDF:</span>
+                    <span style={{ textDecoration: 'underline' }}>{tutorialForm.file_name}</span>
+                    <span style={{ background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', color: '#166534' }}>
+                      {tutorialForm.file_size}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setActivePdfPreview({
+                        pdf_file_data: tutorialForm.pdf_file_data,
+                        file_name: tutorialForm.file_name,
+                        title: tutorialForm.title || 'টিউটোরিয়াল গাইড',
+                        instructor: tutorialForm.instructor
+                      })}
+                      style={{
+                        background: '#047857',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '3px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      👁️ প্রিভিউ দেখুন
+                    </button>
+                  </div>
+                ) : (
+                  <p style={{ margin: '6px 0 0 0', fontSize: '11.5px', color: '#64748b' }}>
+                    * কম্পিউটারে থাকা যেকোনো প্র্যাকটিক্যাল বা লেকচার শিটের .pdf ফাইল এখানে আপলোড করতে পারেন (সর্বোচ্চ ১০ মেগাবাইট)।
+                  </p>
+                )}
               </div>
 
               <div>
@@ -1816,6 +1947,24 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                           <div style={{ fontSize: '11.5px', color: '#64748b' }}>
                             👨‍🏫 {tut.instructor || 'আইসিটি ও বিজ্ঞান বিভাগ'}
                           </div>
+                          {tut.pdf_file_data && (
+                            <div style={{ marginTop: '3px' }}>
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                background: '#eff6ff',
+                                color: '#1d4ed8',
+                                border: '1px solid #bfdbfe',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700
+                              }}>
+                                <span>📄</span> আসল PDF সংযুক্ত {tut.file_size ? `(${tut.file_size})` : ''}
+                              </span>
+                            </div>
+                          )}
                         </td>
                         <td style={{ padding: '10px 14px', color: '#475569' }}>
                           <div>{tut.level || 'সকল শ্রেণি'}</div>
@@ -1828,9 +1977,28 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                         </td>
                         <td style={{ padding: '10px 14px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                            {tut.pdf_file_data && (
+                              <button
+                                type="button"
+                                onClick={() => setActivePdfPreview(tut)}
+                                style={{
+                                  background: '#eff6ff',
+                                  color: '#2563eb',
+                                  border: '1px solid #bfdbfe',
+                                  padding: '4px 8px',
+                                  borderRadius: '5px',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: 'pointer'
+                                }}
+                                title="সংযুক্ত আসল PDF গাইডটি প্রিভিউ দেখুন"
+                              >
+                                👁️ প্রিভিউ
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => generateTutorialPDF(tut)}
+                              onClick={() => downloadTutorialFile(tut)}
                               style={{
                                 background: '#ecfdf5',
                                 color: '#047857',
@@ -1841,9 +2009,9 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                                 fontWeight: 700,
                                 cursor: 'pointer'
                               }}
-                              title="অফিশিয়াল ল্যাব শিট ও PDF গাইড ডাউনলোড করুন"
+                              title={tut.pdf_file_data ? "সংযুক্ত আসল PDF ফাইলটি ডাউনলোড করুন" : "অফিশিয়াল ল্যাব শিট ও PDF গাইড ডাউনলোড করুন"}
                             >
-                              📥 PDF
+                              📥 {tut.pdf_file_data ? 'PDF' : 'PDF গাইড'}
                             </button>
                             <button
                               type="button"
@@ -1859,7 +2027,10 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                                   instructor: tut.instructor || 'মুহাম্মদ আবুবকর সিদ্দিক (সিনিয়র শিক্ষক, আইসিটি)',
                                   desc: tut.desc || '',
                                   stepsText: Array.isArray(tut.steps) ? tut.steps.join('\n') : '',
-                                  videoUrl: tut.videoUrl || ''
+                                  videoUrl: tut.videoUrl || '',
+                                  pdf_file_data: tut.pdf_file_data || '',
+                                  file_name: tut.file_name || '',
+                                  file_size: tut.file_size || ''
                                 });
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                               }}
@@ -1937,6 +2108,107 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
             >
               ✓ ভিউ পেজে স্ট্যাটাস চেক করুন
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* PDF PREVIEW MODAL */}
+      {activePdfPreview && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.85)',
+          zIndex: 999999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            width: '100%',
+            maxWidth: '920px',
+            height: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{
+              background: '#064e3b',
+              color: '#ffffff',
+              padding: '12px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>📄</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '14.5px' }}>
+                    {activePdfPreview.file_name || activePdfPreview.title}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#a7f3d0' }}>
+                    {activePdfPreview.instructor || 'টিউটোরিয়াল গাইড'} • {activePdfPreview.file_size || ''}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => downloadTutorialFile(activePdfPreview)}
+                  style={{
+                    background: '#10b981',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  📥 ডাউনলোড করুন
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePdfPreview(null)}
+                  style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    color: '#ffffff',
+                    border: 'none',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    fontSize: '16px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div style={{ flex: 1, background: '#334155', position: 'relative' }}>
+              {activePdfPreview.pdf_file_data ? (
+                <iframe
+                  src={activePdfPreview.pdf_file_data}
+                  title="PDF Document Preview"
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                />
+              ) : (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>
+                  পিডিএফ ডকুমেন্ট প্রিভিউ উপলব্ধ নেই।
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
