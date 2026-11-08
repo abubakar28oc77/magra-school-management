@@ -3634,12 +3634,15 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
         const leaderData = getLeadershipData(rawList);
         const headLeader = leaderData.map['public.nav.leadership.head'] || {};
         const speechParas = Array.isArray(headLeader.speech) ? headLeader.speech : [headLeader.speech || 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ে আপনাকে স্বাগতম। মানসম্মত শিক্ষা ও নৈতিক চরিত্র গঠনে আমাদের প্রচেষ্টা সর্বদা অব্যাহত।'];
+        const headJoiningDate = head.current_post_joining_date || head.first_joining_date || '2014-06-26';
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <span>🎓 প্রতিষ্ঠান প্রধান পরিচিতি</span>
-              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #047857 0%, #065f46 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(4,120,87,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🎓 প্রতিষ্ঠান প্রধান পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
                 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
@@ -3665,7 +3668,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
                   {head.phone && <span>📱 {head.phone}</span>}
                   {head.email && <span>✉️ {head.email}</span>}
-                  {head.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {head.current_post_joining_date}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {headJoiningDate}</span>
                 </div>
               </div>
             </div>
@@ -3706,12 +3709,15 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
         const leaderData = getLeadershipData(rawList);
         const asstLeader = leaderData.map['public.nav.leadership.asst_head'] || {};
         const speechParas = Array.isArray(asstLeader.speech) ? asstLeader.speech : [asstLeader.speech || 'শিক্ষার্থীদের মেধা বিকাশ ও পাঠদানের গুণগত মান বজায় রাখতে আমরা প্রতিটি ক্ষেত্রে যত্নশীল।'];
+        const asstJoiningDate = asst.current_post_joining_date || asst.first_joining_date || '2012-12-13';
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <span>📖 সহকারী প্রতিষ্ঠান প্রধান পরিচিতি</span>
-              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(13,148,136,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                📖 সহকারী প্রতিষ্ঠান প্রধান পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
                 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
@@ -3737,7 +3743,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
                   {asst.phone && <span>📱 {asst.phone}</span>}
                   {asst.email && <span>✉️ {asst.email}</span>}
-                  {asst.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {asst.current_post_joining_date}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {asstJoiningDate}</span>
                 </div>
               </div>
             </div>
@@ -3781,12 +3787,16 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়কে একটি তথ্যপ্রযুক্তি-সমৃদ্ধ আদর্শ ডিজিটাল শিক্ষা প্রতিষ্ঠান হিসেবে গড়ে তুলতে আমরা নিরবচ্ছিন্নভাবে কাজ করে যাচ্ছি। আধুনিক শেখ রাসেল ডিজিটাল ল্যাব ও স্মার্ট মাল্টিমিডিয়া ক্লাসরুমের সর্বোত্তম ব্যবহার নিশ্চিত করে শিক্ষার্থীদের বাস্তবমুখী কম্পিউটার জ্ঞান ও প্রোগ্রামিংয়ে পারদর্শী করে তোলা হচ্ছে।',
           'আমাদের লক্ষ্য প্রতিটি শিক্ষার্থীকে একবিংশ শতাব্দীর বৈশ্বিক চ্যালেঞ্জ মোকাবিলার উপযোগী আইসিটি দক্ষতা ও সাইবার নিরাপত্তায় দক্ষ নাগরিক হিসেবে গড়ে তোলা। অনলাইন পোর্টাল, ই-সেবা এবং শিক্ষা বাতায়নের সাথে শিক্ষার্থীদের সম্পৃক্ততায় বিদ্যালয় সর্বদা একধাপ এগিয়ে।'
         ];
+        const ictJoiningDate = ict.current_post_joining_date || ict.first_joining_date || ict.joining_date || '2005-01-01';
+        const formattedIctPhone = ict.phone ? (ict.phone.length === 11 && !ict.phone.includes('-') ? `${ict.phone.slice(0, 5)}-${ict.phone.slice(5)}` : ict.phone) : '01710-689846';
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }}>
-              <span>💻 তথ্য ও যোগাযোগ প্রযুক্তি (ICT) শিক্ষক পরিচিতি</span>
-              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(2,132,199,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                💻 তথ্য ও যোগাযোগ প্রযুক্তি (ICT) শিক্ষক পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
                 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
@@ -3813,9 +3823,9 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 <p style={{ margin: '0 0 2px 0', color: '#64748b', fontSize: '13px', fontWeight: 600 }}>{ict.name_en || 'MUHAMMAD ABUBOKOR SIDDIQUE'}</p>
                 <p style={{ margin: '0 0 4px 0', color: '#0284c7', fontWeight: 700, fontSize: '15px' }}>{ict.designation || 'সিনিয়র শিক্ষক'} • বিষয়: {ict.subject || 'তথ্য ও যোগাযোগ প্রযুক্তি (আইসিটি)'}</p>
                 <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
-                  {ict.phone && <span>📱 {ict.phone}</span>}
+                  <span>📱 {formattedIctPhone}</span>
                   {ict.email && <span>✉️ {ict.email}</span>}
-                  {ict.current_post_joining_date && <span>📅 বর্তমান পদে যোগদান: {ict.current_post_joining_date}</span>}
+                  <span>📅 বর্তমান পদে যোগদান: {ictJoiningDate}</span>
                 </div>
               </div>
             </div>
@@ -3865,12 +3875,15 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
           'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের প্রশাসনিক দপ্তর শিক্ষার্থী, অভিভাবক ও সেবাগ্রহীতাদের আন্তরিক সেবা প্রদানে সর্বদা নিয়োজিত। আমাদের অফিস থেকে শিক্ষার্থী ভর্তি কার্যক্রম, বোর্ড পরীক্ষার ফরম পূরণ (eFF), প্রশংসাপত্র ও প্রত্যয়ন পত্র প্রদান, ক্যাশ কাউন্টার ফি আদায় এবং উপবৃত্তি সংক্রান্ত যাবতীয় তথ্য ও প্রাতিষ্ঠানিক সহায়তা দ্রুততার সাথে প্রদান করা হয়।',
           'যেকোনো প্রাতিষ্ঠানিক তথ্য, সনদ ও সেবা সংক্রান্ত অনুসন্ধানে অফিস চলাকালীন (সকাল ৯:০০ টা হতে বিকাল ৪:০০ টা পর্যন্ত) সরাসরি প্রশাসনিক ভবনে অথবা উল্লেখিত মোবাইল নম্বরে যোগাযোগের জন্য বিনীত অনুরোধ জানানো হচ্ছে।'
         ];
+        const officeJoiningDate = officeAsst.current_post_joining_date || officeAsst.joining_date || officeAsst.first_joining_date || '2016-02-15';
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)' }}>
-              <span>🏢 প্রশাসনিক কর্মকর্তা ও অফিস সহকারী পরিচিতি</span>
-              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(29,78,216,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🏢 প্রশাসনিক কর্মকর্তা ও অফিস সহকারী পরিচিতি
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
                 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
@@ -3897,9 +3910,7 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
                 <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', fontSize: '12.5px', color: '#475569', marginTop: '6px' }}>
                   {officeAsst.phone && <span>📱 {officeAsst.phone}</span>}
                   {officeAsst.email && <span>✉️ {officeAsst.email}</span>}
-                  {(officeAsst.joining_date || officeAsst.current_post_joining_date) && (
-                    <span>📅 যোগদান: {officeAsst.joining_date || officeAsst.current_post_joining_date}</span>
-                  )}
+                  <span>📅 বর্তমান পদে যোগদান: {officeJoiningDate}</span>
                 </div>
               </div>
             </div>
@@ -3948,9 +3959,11 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
 
         return (
           <div className="submenu-content">
-            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-              <span>📞 যোগাযোগ ও প্রাতিষ্ঠানিক ঠিকানা</span>
-              <span style={{ fontSize: '11.5px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '4px' }}>
+            <div className="modal-hero-badge" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#ffffff', padding: '10px 16px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(15,23,42,0.25)', border: 'none', margin: '0 0 16px 0' }}>
+              <span style={{ color: '#ffffff', fontWeight: 800, fontSize: '13.5px', textShadow: '0 1px 2px rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                📞 যোগাযোগ ও প্রাতিষ্ঠানিক ঠিকানা
+              </span>
+              <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.22)', color: '#ffffff', fontWeight: 800, padding: '3px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.45)', textShadow: '0 1px 2px rgba(0,0,0,0.25)' }}>
                 মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয় • EIIN 114290
               </span>
             </div>
