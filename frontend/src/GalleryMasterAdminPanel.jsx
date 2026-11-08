@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { compressImageToDataUrl } from './photoStorage';
+import { extractYouTubeId } from './GalleryMasterModalSection';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -127,15 +128,50 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       }
 
       const storedVideos = localStorage.getItem(VIDEO_ALBUMS_KEY);
-      if (storedVideos) setVideoAlbums(JSON.parse(storedVideos));
+      if (storedVideos) {
+        try {
+          const parsed = JSON.parse(storedVideos);
+          if (Array.isArray(parsed)) {
+            const normalized = parsed.map(v => {
+              const ytId = extractYouTubeId(v.videoUrl);
+              let updated = { ...v };
+              if (ytId) {
+                if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
+                  updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                }
+                if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
+                  updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                }
+              }
+              return updated;
+            });
+            setVideoAlbums(normalized);
+            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(normalized));
+          }
+        } catch {}
+      }
 
       const storedClasses = localStorage.getItem(ONLINE_CLASSES_KEY);
       if (storedClasses) {
         try {
           const parsed = JSON.parse(storedClasses);
           if (Array.isArray(parsed)) {
-            // Filter out default mock classes (cls-01 to cls-06)
-            const userOnly = parsed.filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id));
+            // Filter out default mock classes (cls-01 to cls-06) and normalize
+            const userOnly = parsed
+              .filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id))
+              .map(c => {
+                const ytId = extractYouTubeId(c.videoUrl);
+                let updated = { ...c };
+                if (ytId) {
+                  if (c.videoUrl && c.videoUrl.includes('studio.youtube.com')) {
+                    updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                  }
+                  if (!updated.thumbnail || updated.thumbnail.includes('photo-1497633762265-9d179a990aa6')) {
+                    updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                  }
+                }
+                return updated;
+              });
             setOnlineClasses(userOnly);
             localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(userOnly));
           } else {
@@ -319,7 +355,11 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       return;
     }
 
-    const defaultThumb = 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
+    const ytId = extractYouTubeId(videoForm.videoUrl);
+    const cleanUrl = ytId ? `https://www.youtube.com/watch?v=${ytId}` : (videoForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    const defaultThumb = ytId 
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
     const finalThumb = videoForm.thumbnail.trim() || defaultThumb;
 
     if (editingVideo) {
@@ -330,7 +370,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         categoryLabel: videoForm.categoryLabel,
         eventDate: videoForm.eventDate,
         duration: videoForm.duration || '১৫:০০ মি.',
-        videoUrl: videoForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        videoUrl: cleanUrl,
         thumbnail: finalThumb,
         host: videoForm.host.trim() || 'বিদ্যালয় উপস্থাপক',
         description: videoForm.description.trim()
@@ -347,7 +387,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         eventDate: videoForm.eventDate,
         duration: videoForm.duration || '১৫:০০ মি.',
         videoType: 'youtube',
-        videoUrl: videoForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        videoUrl: cleanUrl,
         thumbnail: finalThumb,
         host: videoForm.host.trim() || 'বিদ্যালয় কর্তৃপক্ষ',
         description: videoForm.description.trim() || 'বিদ্যালয় ভিডিও রেকর্ড।',
@@ -378,7 +418,11 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       return;
     }
 
-    const defaultThumb = 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80';
+    const ytId = extractYouTubeId(classForm.videoUrl);
+    const cleanUrl = ytId ? `https://www.youtube.com/watch?v=${ytId}` : (classForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    const defaultThumb = ytId 
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80';
     const finalThumb = classForm.thumbnail.trim() || defaultThumb;
 
     if (editingClass) {
@@ -391,7 +435,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         designation: classForm.designation.trim(),
         duration: classForm.duration,
         date: classForm.date,
-        videoUrl: classForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        videoUrl: cleanUrl,
         thumbnail: finalThumb,
         lectureNotes: classForm.lectureNotes.trim() || 'lecture_handout.pdf'
       } : c);
@@ -408,7 +452,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         designation: classForm.designation.trim() || 'সহকারী শিক্ষক',
         duration: classForm.duration || '৪০ মিনিট',
         date: classForm.date || new Date().toISOString().slice(0, 10),
-        videoUrl: classForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        videoUrl: cleanUrl,
         thumbnail: finalThumb,
         lectureNotes: classForm.lectureNotes.trim() || 'lecture_handout.pdf',
         isCustom: true
@@ -1145,7 +1189,13 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 {videoAlbums.map(v => (
                   <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '10px 14px' }}>
-                      <img src={v.thumbnail} alt={v.title} style={{ width: '56px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} />
+                      <img 
+                        src={v.thumbnail && !v.thumbnail.includes('photo-1461896836934-ffe607ba8211')
+                          ? v.thumbnail
+                          : (extractYouTubeId(v.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(v.videoUrl)}/hqdefault.jpg` : v.thumbnail)} 
+                        alt={v.title} 
+                        style={{ width: '56px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} 
+                      />
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ fontWeight: 800, color: '#0f172a' }}>{v.title}</div>

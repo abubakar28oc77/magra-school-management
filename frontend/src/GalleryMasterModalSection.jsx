@@ -6,6 +6,49 @@ import { compressImageToDataUrl } from './photoStorage';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
+// Universal YouTube ID extractor supporting Watch, Shorts, Live, Embed, youtu.be, and YouTube Studio URLs
+export function extractYouTubeId(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  let str = raw.trim();
+
+  // If user pasted an iframe embed code, extract the src URL
+  if (str.includes('<iframe') && str.includes('src=')) {
+    const srcMatch = str.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) str = srcMatch[1];
+  }
+
+  // 1. YouTube Studio URL: studio.youtube.com/video/<id>(/edit)?
+  const studioMatch = str.match(/studio\.youtube\.com\/video\/([a-zA-Z0-9_-]{11})/i);
+  if (studioMatch && studioMatch[1]) return studioMatch[1];
+
+  // 2. youtu.be/<id>
+  const youtuMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuMatch && youtuMatch[1]) return youtuMatch[1];
+
+  // 3. watch?v=<id> or ?v=<id> or &v=<id>
+  const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (watchMatch && watchMatch[1]) return watchMatch[1];
+
+  // 4. /embed/<id>, /shorts/<id>, /live/<id>, /v/<id>
+  const pathIdMatch = str.match(/(?:embed|shorts|live|v)\/([a-zA-Z0-9_-]{11})/i);
+  if (pathIdMatch && pathIdMatch[1]) return pathIdMatch[1];
+
+  // 5. Bare 11-char ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
+    return str;
+  }
+
+  // 6. Generic pattern: any youtube domain containing an 11-char ID in path
+  if (/youtube\.com/i.test(str)) {
+    const genericMatch = str.match(/\/([a-zA-Z0-9_-]{11})(?:[/?&#]|$)/i);
+    if (genericMatch && genericMatch[1] && !['watch', 'embed', 'shorts', 'videos', 'channel'].includes(genericMatch[1].toLowerCase())) {
+      return genericMatch[1];
+    }
+  }
+
+  return null;
+}
+
 // Universal YouTube / Video URL Embedder and Direct Link Converter
 export function getEmbedUrl(raw) {
   if (!raw || typeof raw !== 'string') return '';
@@ -17,37 +60,32 @@ export function getEmbedUrl(raw) {
     if (srcMatch && srcMatch[1]) str = srcMatch[1];
   }
 
+  // Extract YouTube ID using comprehensive extractor
+  const ytId = extractYouTubeId(str);
+  if (ytId) {
+    return `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+  }
+
+  // Vimeo
+  const vimeoMatch = str.match(/vimeo\.com\/(\d+)/i);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+  }
+
+  // Google Drive
+  const driveMatch = str.match(/drive\.google\.com\/file\/d\/([^/?]+)/i);
+  if (driveMatch && driveMatch[1]) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  }
+
   // If already an embed url
-  if (str.includes('/embed/')) {
+  if (str.includes('/embed/') || str.includes('/preview')) {
     const sep = str.includes('?') ? '&' : '?';
     return str.includes('autoplay') ? str : `${str}${sep}autoplay=1`;
   }
 
-  // youtu.be/<id>
-  const youtuMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
-  if (youtuMatch && youtuMatch[1]) {
-    return `https://www.youtube.com/embed/${youtuMatch[1]}?autoplay=1`;
-  }
-
-  // youtube.com/watch?v=<id> or youtube.com/watch/?v=<id>
-  const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
-  if (watchMatch && watchMatch[1]) {
-    return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1`;
-  }
-
-  // youtube.com/shorts/<id> or youtube.com/live/<id>
-  const pathMatch = str.match(/youtube\.com\/(?:shorts|live)\/([a-zA-Z0-9_-]{11})/i);
-  if (pathMatch && pathMatch[1]) {
-    return `https://www.youtube.com/embed/${pathMatch[1]}?autoplay=1`;
-  }
-
-  // Bare 11-char ID
-  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
-    return `https://www.youtube.com/embed/${str}?autoplay=1`;
-  }
-
   // If URL doesn't have protocol but starts with youtube.com or youtu.be
-  if (/^(www\.)?(youtube\.com|youtu\.be)/i.test(str)) {
+  if (/^(www\.)?(youtube\.com|youtu\.be|studio\.youtube\.com)/i.test(str)) {
     return getEmbedUrl(`https://${str}`);
   }
 
@@ -62,15 +100,10 @@ export function getDirectWatchUrl(raw) {
     const srcMatch = str.match(/src=["']([^"']+)["']/i);
     if (srcMatch && srcMatch[1]) str = srcMatch[1];
   }
-  const youtuMatch = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
-  if (youtuMatch && youtuMatch[1]) return `https://www.youtube.com/watch?v=${youtuMatch[1]}`;
-  const watchMatch = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
-  if (watchMatch && watchMatch[1]) return `https://www.youtube.com/watch?v=${watchMatch[1]}`;
-  const embedMatch = str.match(/\/embed\/([a-zA-Z0-9_-]{11})/i);
-  if (embedMatch && embedMatch[1]) return `https://www.youtube.com/watch?v=${embedMatch[1]}`;
-  const shortsMatch = str.match(/\/shorts\/([a-zA-Z0-9_-]{11})/i);
-  if (shortsMatch && shortsMatch[1]) return `https://www.youtube.com/watch?v=${shortsMatch[1]}`;
-  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return `https://www.youtube.com/watch?v=${str}`;
+  const ytId = extractYouTubeId(str);
+  if (ytId) return `https://www.youtube.com/watch?v=${ytId}`;
+  const driveMatch = str.match(/drive\.google\.com\/file\/d\/([^/?]+)/i);
+  if (driveMatch && driveMatch[1]) return `https://drive.google.com/file/d/${driveMatch[1]}/view`;
   return str.startsWith('http') ? str : `https://${str}`;
 }
 
@@ -380,7 +413,32 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
 
       const storedVideos = localStorage.getItem(VIDEO_ALBUMS_KEY);
       if (storedVideos) {
-        setVideoAlbums(JSON.parse(storedVideos));
+        try {
+          const parsed = JSON.parse(storedVideos);
+          if (Array.isArray(parsed)) {
+            const normalized = parsed.map(v => {
+              const ytId = extractYouTubeId(v.videoUrl);
+              let updated = { ...v };
+              if (ytId) {
+                // If the user's URL was a YouTube studio URL, normalize it
+                if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
+                  updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                }
+                // If thumbnail is missing or default runner, upgrade to YouTube thumbnail
+                if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
+                  updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                }
+              }
+              return updated;
+            });
+            setVideoAlbums(normalized);
+            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(normalized));
+          } else {
+            setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+          }
+        } catch {
+          setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+        }
       } else {
         localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(DEFAULT_VIDEO_ALBUMS));
         setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
@@ -391,8 +449,22 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
         try {
           const parsed = JSON.parse(storedClasses);
           if (Array.isArray(parsed)) {
-            // Filter out default mock classes (cls-01 to cls-06)
-            const userOnly = parsed.filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id));
+            // Filter out default mock classes (cls-01 to cls-06) and normalize YouTube links
+            const userOnly = parsed
+              .filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id))
+              .map(c => {
+                const ytId = extractYouTubeId(c.videoUrl);
+                let updated = { ...c };
+                if (ytId) {
+                  if (c.videoUrl && c.videoUrl.includes('studio.youtube.com')) {
+                    updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                  }
+                  if (!updated.thumbnail || updated.thumbnail.includes('photo-1497633762265-9d179a990aa6')) {
+                    updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                  }
+                }
+                return updated;
+              });
             setOnlineClasses(userOnly);
             localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(userOnly));
           } else {
@@ -597,7 +669,11 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
       return;
     }
 
-    const defaultThumb = 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
+    const ytId = extractYouTubeId(newVideoForm.videoUrl);
+    const cleanUrl = ytId ? `https://www.youtube.com/watch?v=${ytId}` : (newVideoForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    const defaultThumb = ytId
+      ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`
+      : 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
     const finalThumb = newVideoForm.thumbnail.trim() || defaultThumb;
 
     const newVid = {
@@ -608,7 +684,7 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
       eventDate: newVideoForm.eventDate,
       duration: newVideoForm.duration || '১০:০০ মি.',
       videoType: 'youtube',
-      videoUrl: newVideoForm.videoUrl.trim() || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      videoUrl: cleanUrl,
       thumbnail: finalThumb,
       host: newVideoForm.host.trim() || 'বিদ্যালয় উপস্থাপক',
       description: newVideoForm.description.trim() || 'বিদ্যালয়ের ভিডিও ডকুমেন্টারি ও অনুষ্ঠান রেকর্ড।',
@@ -1038,7 +1114,9 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                   onClick={() => setActiveVideoPlayer(vid)}
                 >
                   <img
-                    src={vid.thumbnail}
+                    src={vid.thumbnail && !vid.thumbnail.includes('photo-1461896836934-ffe607ba8211')
+                      ? vid.thumbnail
+                      : (extractYouTubeId(vid.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(vid.videoUrl)}/hqdefault.jpg` : vid.thumbnail)}
                     alt={vid.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
                     onError={(e) => {
@@ -1355,7 +1433,9 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                     title="ক্লাস ভিডিও দেখতে ক্লিক করুন"
                   >
                     <img
-                      src={cls.thumbnail}
+                      src={cls.thumbnail && !cls.thumbnail.includes('photo-1497633762265-9d179a990aa6')
+                        ? cls.thumbnail
+                        : (extractYouTubeId(cls.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(cls.videoUrl)}/hqdefault.jpg` : cls.thumbnail)}
                       alt={cls.topic}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => {
@@ -1968,6 +2048,36 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
+                )}
+              </div>
+
+              {/* YouTube tips / fallback notice */}
+              <div style={{
+                padding: '9px 18px',
+                background: '#fef3c7',
+                borderTop: '1px solid #fde68a',
+                borderBottom: '1px solid #fde68a',
+                fontSize: '12px',
+                color: '#92400e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>💡</span>
+                  <span><b>টিপস:</b> ইউটিউবে ভিডিওটির ভিজিবিলিটি "Public" (প্রকাশ্য) বা "Unlisted" রাখা প্রয়োজন। ভিডিও লোড না হলে পাশের বাটনে সরাসরি দেখতে পারেন।</span>
+                </div>
+                {watchUrl && (
+                  <a
+                    href={watchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: '#b45309', fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}
+                  >
+                    সরাসরি লিঙ্ক ↗
+                  </a>
                 )}
               </div>
 
