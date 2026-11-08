@@ -120,7 +120,7 @@ export const AUDIO_TRACKS_KEY = 'magra_gallery_audio_tracks_v2';
 // DEFAULT PHOTO ALBUMS
 // -------------------------------------------------------------
 // Lightweight User Photo Albums (Default mock albums removed to keep software fast and lightweight)
-const DEFAULT_PHOTO_ALBUMS = [
+export const DEFAULT_PHOTO_ALBUMS = [
   {
     id: 'alb-sports-2026',
     title: 'বার্ষিক ক্রীড়াপ্রতিযোগিতা-২০২৬',
@@ -979,12 +979,18 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
 
   const savePhotoAlbums = (data) => {
     setPhotoAlbums(data);
-    try { localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('magra_gallery_change'));
+    } catch {}
   };
 
   const saveVideoAlbums = (data) => {
     setVideoAlbums(data);
-    try { localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('magra_gallery_change'));
+    } catch {}
   };
 
   const saveOnlineClasses = (data) => {

@@ -58,6 +58,7 @@ import {NoticeMasterAdminPanel} from './NoticeMasterAdminPanel';
 import {GalleryMasterAdminPanel} from './GalleryMasterAdminPanel';
 import {EServiceCenterAdminPanel} from './EServiceCenterAdminPanel';
 import { DEFAULT_NOTICES } from './NoticeMasterModalSection';
+import { extractYouTubeId, PHOTO_ALBUMS_KEY, VIDEO_ALBUMS_KEY, DEFAULT_PHOTO_ALBUMS } from './GalleryMasterModalSection';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
@@ -838,7 +839,141 @@ function Home(){
     return clean && clean.length ? clean.filter(x => x.count > 0).slice(0, 3).map(x => `${x.label} ${toBn(x.count)}`).join(' | ') || 'এন্ট্রি অনুযায়ী হালনাগাদ হবে' : 'এন্ট্রি অনুযায়ী হালনাগাদ হবে';
   };
  
- const [lightbox,setLightbox]=useState(null); const gallery=items.filter(x=>x.content_type==='gallery'&&x.image_url).slice(0,8);
+  const [lightbox, setLightbox] = useState(null);
+  const [activeHomeVideo, setActiveHomeVideo] = useState(null);
+  const [galleryTab, setGalleryTab] = useState('all'); // 'all' | 'photo' | 'video'
+
+  const [photoAlbumsData, setPhotoAlbumsData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(PHOTO_ALBUMS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_PHOTO_ALBUMS || [];
+  });
+
+  const [videoAlbumsData, setVideoAlbumsData] = useState(() => {
+    try {
+      const raw = localStorage.getItem(VIDEO_ALBUMS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {}
+    return [];
+  });
+
+  const loadHomeGalleryData = () => {
+    try {
+      const pRaw = localStorage.getItem(PHOTO_ALBUMS_KEY);
+      if (pRaw) {
+        const parsed = JSON.parse(pRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPhotoAlbumsData(parsed);
+        } else {
+          setPhotoAlbumsData(DEFAULT_PHOTO_ALBUMS || []);
+        }
+      } else {
+        setPhotoAlbumsData(DEFAULT_PHOTO_ALBUMS || []);
+      }
+    } catch {
+      setPhotoAlbumsData(DEFAULT_PHOTO_ALBUMS || []);
+    }
+
+    try {
+      const vRaw = localStorage.getItem(VIDEO_ALBUMS_KEY);
+      if (vRaw) {
+        const parsed = JSON.parse(vRaw);
+        if (Array.isArray(parsed)) setVideoAlbumsData(parsed);
+      } else {
+        setVideoAlbumsData([]);
+      }
+    } catch {
+      setVideoAlbumsData([]);
+    }
+  };
+
+  useEffect(() => {
+    loadHomeGalleryData();
+    window.addEventListener('storage', loadHomeGalleryData);
+    window.addEventListener('magra_gallery_change', loadHomeGalleryData);
+    return () => {
+      window.removeEventListener('storage', loadHomeGalleryData);
+      window.removeEventListener('magra_gallery_change', loadHomeGalleryData);
+    };
+  }, []);
+
+  const allHomePhotos = useMemo(() => {
+    const list = [];
+    (photoAlbumsData || []).forEach(alb => {
+      if (Array.isArray(alb.photos) && alb.photos.length > 0) {
+        alb.photos.forEach((p, pIdx) => {
+          if (p && p.url) {
+            list.push({
+              id: p.id || `${alb.id}-${pIdx}`,
+              title: p.title || alb.title,
+              albumTitle: alb.title,
+              category: alb.categoryLabel || 'ফটো',
+              image_url: p.url,
+              type: 'photo'
+            });
+          }
+        });
+      } else if (alb.cover) {
+        list.push({
+          id: alb.id,
+          title: alb.title,
+          albumTitle: alb.title,
+          category: alb.categoryLabel || 'ফটো',
+          image_url: alb.cover,
+          type: 'photo'
+        });
+      }
+    });
+
+    (items || []).filter(x => x.content_type === 'gallery' && x.image_url).forEach(x => {
+      list.push({
+        id: x.id,
+        title: x.title_bn || x.title || 'বিদ্যালয়ের আলোকচিত্র',
+        albumTitle: 'ফটো গ্যালারি',
+        category: 'গ্যালারি',
+        image_url: x.image_url,
+        type: 'photo'
+      });
+    });
+
+    return list;
+  }, [photoAlbumsData, items]);
+
+  const allHomeVideos = useMemo(() => {
+    const list = [];
+    (videoAlbumsData || []).forEach(v => {
+      if (v) {
+        const ytId = extractYouTubeId(v.videoUrl);
+        const thumb = v.thumbnail || (ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : '');
+        list.push({
+          id: v.id,
+          title: v.title,
+          category: v.categoryLabel || 'ভিডিও',
+          image_url: thumb,
+          videoUrl: v.videoUrl,
+          ytId,
+          duration: v.duration,
+          host: v.host,
+          type: 'video'
+        });
+      }
+    });
+    return list;
+  }, [videoAlbumsData]);
+
+  const visibleGalleryItems = useMemo(() => {
+    if (galleryTab === 'photo') return allHomePhotos;
+    if (galleryTab === 'video') return allHomeVideos;
+    return [...allHomePhotos, ...allHomeVideos];
+  }, [galleryTab, allHomePhotos, allHomeVideos]);
  const services=[
   ['🎓','অনলাইন ভর্তি','ভর্তি আবেদন, তথ্য ও প্রক্রিয়া'],['📊','অনলাইন ফলাফল','ফলাফল, GPA ও মার্কশিট'],['📚','ডিজিটাল শিক্ষা','সিলেবাস, নোট, MCQ ও CQ'],['🕘','স্মার্ট উপস্থিতি','দৈনিক উপস্থিতি ও অভিভাবক সতর্কতা'],
   ['🗓️','ডিজিটাল রুটিন','ক্লাস, পরীক্ষা ও শিক্ষক রুটিন'],['📢','নোটিশ ও যোগাযোগ','নোটিশ, ঘোষণা ও জরুরি তথ্য'],['📝','অনলাইন পরীক্ষা','কুইজ, মডেল টেস্ট ও অনলাইন পরীক্ষা'],['🏆','বৃত্তি ও অর্জন','বৃত্তি, পুরস্কার ও সাফল্যের তথ্য'],
@@ -1404,7 +1539,292 @@ function Home(){
      </div>
     </section>
 
-    <section id="gallery" className="ref-section"><div className="ref-title"><h2>ফটো ও ভিডিও গ্যালারি</h2><span></span></div><div className="gallery-tabs"><b>All</b><span>Photo</span><span>Video</span></div>{gallery.length?<div className="ref-gallery">{gallery.map(x=><button key={x.id} className="ref-gallery-item" onClick={()=>setLightbox(x)} aria-label={`${x.title_bn} বড় করে দেখুন`}><img src={x.image_url} alt={x.title_bn}/></button>)}</div>:<div className="gallery-placeholder"><span>🖼️</span><p>বিদ্যালয়ের ছবি ও ভিডিও এখানে প্রকাশিত হবে।</p></div>}</section>{lightbox&&<div className="ref-lightbox" role="dialog" aria-modal="true" aria-label="ছবির পূর্বরূপ" onClick={()=>setLightbox(null)}><div className="ref-lightbox-card" onClick={e=>e.stopPropagation()}><button className="ref-lightbox-close" onClick={()=>setLightbox(null)} aria-label="বন্ধ করুন">×</button><img src={lightbox.image_url} alt={lightbox.title_bn}/><h3>{lightbox.title_bn}</h3></div></div>}
+    <section id="gallery" className="ref-section">
+      <div className="ref-title">
+        <h2>ফটো ও ভিডিও গ্যালারি</h2>
+        <span></span>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '10px',
+        borderBottom: '1px solid #dfe5eb',
+        marginBottom: '14px',
+        paddingBottom: '4px'
+      }}>
+        {/* Media filter tabs */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setGalleryTab('all')}
+            style={{
+              background: galleryTab === 'all' ? '#1e40af' : '#f1f5f9',
+              color: galleryTab === 'all' ? '#ffffff' : '#475569',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            সকল মিডিয়া ({toBn(allHomePhotos.length + allHomeVideos.length)})
+          </button>
+          <button
+            type="button"
+            onClick={() => setGalleryTab('photo')}
+            style={{
+              background: galleryTab === 'photo' ? '#047857' : '#f1f5f9',
+              color: galleryTab === 'photo' ? '#ffffff' : '#475569',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            📸 ফটো ({toBn(allHomePhotos.length)})
+          </button>
+          <button
+            type="button"
+            onClick={() => setGalleryTab('video')}
+            style={{
+              background: galleryTab === 'video' ? '#dc2626' : '#f1f5f9',
+              color: galleryTab === 'video' ? '#ffffff' : '#475569',
+              border: 'none',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              fontSize: '12.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            🎥 ভিডিও ({toBn(allHomeVideos.length)})
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setActiveModal({ key: 'public.nav.gallery', title: 'ফটো গ্যালারি' })}
+          style={{
+            background: '#f0fdf4',
+            color: '#047857',
+            border: '1px solid #a7f3d0',
+            padding: '5px 12px',
+            borderRadius: '6px',
+            fontSize: '12px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          <span>✨ সম্পূর্ণ গ্যালারি ও অ্যালবাম ব্রাউজ করুন</span>
+          <span>➔</span>
+        </button>
+      </div>
+
+      {visibleGalleryItems.length ? (
+        <div className="ref-gallery">
+          {visibleGalleryItems.slice(0, 8).map(x => (
+            <button
+              key={x.id}
+              type="button"
+              className="ref-gallery-item"
+              onClick={() => {
+                if (x.type === 'video') {
+                  setActiveHomeVideo(x);
+                } else {
+                  setLightbox({ image_url: x.image_url, title_bn: x.title, album: x.albumTitle });
+                }
+              }}
+              style={{
+                position: 'relative',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.08)'
+              }}
+              aria-label={`${x.title} দেখুন`}
+            >
+              <img
+                src={x.image_url}
+                alt={x.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+
+              {/* Video Overlay Badge */}
+              {x.type === 'video' && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'rgba(15, 23, 42, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '14px',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.4)'
+                  }}>
+                    ▶
+                  </div>
+                  {x.duration && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '28px',
+                      right: '6px',
+                      background: 'rgba(0,0,0,0.8)',
+                      color: '#ffffff',
+                      fontSize: '10px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      fontWeight: 700
+                    }}>
+                      ⏱ {x.duration}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Title Overlay */}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                background: 'linear-gradient(transparent, rgba(15,23,42,0.9))',
+                color: '#ffffff',
+                padding: '14px 8px 6px 8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                textAlign: 'left',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {x.title}
+              </div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="gallery-placeholder">
+          <span>🖼️</span>
+          <p>বিদ্যালয়ের ছবি ও ভিডিও এখানে প্রকাশিত হবে।</p>
+        </div>
+      )}
+    </section>
+
+    {/* Video Player Modal */}
+    {activeHomeVideo && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.85)',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          backdropFilter: 'blur(3px)'
+        }}
+        onClick={() => setActiveHomeVideo(null)}
+      >
+        <div
+          style={{
+            background: '#0f172a',
+            borderRadius: '12px',
+            maxWidth: '820px',
+            width: '100%',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)'
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{
+            padding: '14px 20px',
+            background: '#1e293b',
+            color: '#ffffff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{ fontWeight: 800, fontSize: '15px' }}>
+              🎥 {activeHomeVideo.title}
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveHomeVideo(null)}
+              style={{
+                background: '#334155',
+                border: 'none',
+                color: '#ffffff',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                fontSize: '16px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, background: '#000000' }}>
+            {activeHomeVideo.ytId ? (
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${activeHomeVideo.ytId}?autoplay=1&rel=0`}
+                title={activeHomeVideo.title}
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#fff', gap: '12px' }}>
+                <span style={{ fontSize: '32px' }}>🎬</span>
+                <a
+                  href={activeHomeVideo.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ background: '#dc2626', color: '#ffffff', padding: '10px 20px', borderRadius: '8px', textDecoration: 'none', fontWeight: 800, fontSize: '14px' }}
+                >
+                  ▶ ইউটিউবে ভিডিওটি সরাসরি দেখুন
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Lightbox for Photos */}
+    {lightbox && (
+      <div className="ref-lightbox" role="dialog" aria-modal="true" aria-label="ছবির পূর্বরূপ" onClick={() => setLightbox(null)}>
+        <div className="ref-lightbox-card" onClick={e => e.stopPropagation()}>
+          <button className="ref-lightbox-close" onClick={() => setLightbox(null)} aria-label="বন্ধ করুন">×</button>
+          <img src={lightbox.image_url} alt={lightbox.title_bn || lightbox.title} />
+          <h3>{lightbox.title_bn || lightbox.title}</h3>
+          {lightbox.album && <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0' }}>{lightbox.album}</p>}
+        </div>
+      </div>
+    )}
    </div></section>
 
    <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'সকল নোটিশ'})}}>নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}><span>© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</span><button type="button" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',padding:'5px 12px',borderRadius:'6px',fontSize:'11px',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',fontWeight:600}}>☁️ ক্লাউড ডেটাবেস সিঙ্ক (Supabase)</button></div></div></section>

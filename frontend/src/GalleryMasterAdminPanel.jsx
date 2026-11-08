@@ -339,12 +339,18 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
 
   const savePhotoAlbums = (data) => {
     setPhotoAlbums(data);
-    try { localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem(PHOTO_ALBUMS_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('magra_gallery_change'));
+    } catch {}
   };
 
   const saveVideoAlbums = (data) => {
     setVideoAlbums(data);
-    try { localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(data)); } catch {}
+    try {
+      localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(data));
+      window.dispatchEvent(new Event('magra_gallery_change'));
+    } catch {}
   };
 
   const saveOnlineClasses = (data) => {
