@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { compressImageToDataUrl } from './photoStorage';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -6,6 +7,15 @@ const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭�
 const PHOTO_ALBUMS_KEY = 'magra_gallery_photo_albums_v2';
 const VIDEO_ALBUMS_KEY = 'magra_gallery_video_albums_v2';
 const ONLINE_CLASSES_KEY = 'magra_gallery_online_classes_v2';
+
+export const DEFAULT_GALLERY_PLACEHOLDER = `data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23064e3b'/%3E%3Crect x='20' y='20' width='560' height='360' rx='12' fill='%23065f46' stroke='%2334d399' stroke-width='2' stroke-dasharray='6,6'/%3E%3Ccircle cx='300' cy='160' r='50' fill='%2310b981' opacity='0.35'/%3E%3Ctext x='300' y='175' font-family='sans-serif' font-size='44' text-anchor='middle' fill='%23ffffff'%3E%F0%9F%93%B8%3C/text%3E%3Ctext x='300' y='240' font-family='sans-serif' font-size='20' font-weight='bold' text-anchor='middle' fill='%23ffffff'%3E%E0%A6%AE%E0%A6%97%E0%A7%9Call%E0%A6%BE %E0%A6%AA%E0%A6%BE%E0%A6%B2%E0%A6%B8%E0%A7%8D %E0%A6%89%E0%A6%9A%E0%A7%8D%E0%A6%9A %E0%A6%AC%E0%A6%BF%E0%A6%A6%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%B2%E0%A6%AF%E0%A6%BC%3C/text%3E%3Ctext x='300' y='270' font-family='sans-serif' font-size='14' text-anchor='middle' fill='%23a7f3d0'%3E%E0%A6%A1%E0%A6%BF%E0%A6%9C%E0%A6%BF%E0%A6%9F%E0%A6%BE%E0%A6%B2 %E0%A6%AB%E0%A6%9F%E0%A7%8B %E0%A6%97%E0%A7%8D%E0%A6%AF%E0%A6%BE%E0%A6%B2%E0%A6%BE%E0%A6%B0%E0%A6%BF%3C/text%3E%3C/svg%3E`;
+
+export const SPORTS_PRESET_PHOTOS = [
+  { id: 'sp-1', title: 'উদ্বোধনী মার্চপাস্ট ও জাতীয় পতাকা উত্তোলন', url: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80' },
+  { id: 'sp-2', title: '১০০ মিটার স্প্রিন্ট দৌড় প্রতিযোগিতা', url: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=800&q=80' },
+  { id: 'sp-3', title: 'হাইজাম্প ও লংজাম্প প্রতিযোগিতা', url: 'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=800&q=80' },
+  { id: 'sp-4', title: 'বিজয়ীদের মাঝে চ্যাম্পিয়ন ট্রফি বিতরণ', url: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80' }
+];
 
 export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const [activeTab, setActiveTab] = useState(sub || 'photos');
@@ -31,6 +41,9 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
     description: '',
     photosInput: ''
   });
+
+  const [uploadedPhotos, setUploadedPhotos] = useState([]);
+  const [isProcessingPhotos, setIsProcessingPhotos] = useState(false);
 
   const [videoForm, setVideoForm] = useState({
     title: '',
@@ -103,6 +116,73 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
     try { localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(data)); } catch {}
   };
 
+  // Handle Cover File Upload
+  const handleCoverFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsProcessingPhotos(true);
+      const dataUrl = await compressImageToDataUrl(file, 900, 0.8);
+      if (dataUrl) {
+        setPhotoForm(prev => ({ ...prev, cover: dataUrl }));
+        showToast('✓ কভার ছবি সফলভাবে নির্বাচন ও প্রসেস হয়েছে!');
+      }
+    } catch {
+      alert('কভার ছবি প্রসেসিংয়ে সমস্যা হয়েছে।');
+    } finally {
+      setIsProcessingPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  // Handle Multiple Photos Upload from Device
+  const handleMultiplePhotosChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    try {
+      setIsProcessingPhotos(true);
+      const newItems = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const dataUrl = await compressImageToDataUrl(file, 900, 0.78);
+        if (dataUrl) {
+          const serial = uploadedPhotos.length + newItems.length + 1;
+          const cleanName = file.name.replace(/\.[^/.]+$/, '');
+          newItems.push({
+            id: `p-${Date.now()}-${i}-${Math.random().toString(36).slice(2, 6)}`,
+            title: photoForm.title ? `${photoForm.title} - ছবি ${toBn(serial)}` : cleanName,
+            url: dataUrl
+          });
+        }
+      }
+      if (newItems.length > 0) {
+        setUploadedPhotos(prev => [...prev, ...newItems]);
+        setPhotoForm(prev => prev.cover ? prev : { ...prev, cover: newItems[0].url });
+        showToast(`✓ ${toBn(newItems.length)}টি ছবি সফলভাবে যুক্ত হয়েছে!`);
+      }
+    } catch (err) {
+      alert('ছবি আপলোডে সমস্যা হয়েছে: ' + (err.message || 'অজানা ত্রুটি'));
+    } finally {
+      setIsProcessingPhotos(false);
+      e.target.value = '';
+    }
+  };
+
+  // Remove photo from uploaded list
+  const handleRemovePhoto = (indexToRemove) => {
+    setUploadedPhotos(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  // Load 4 authentic Sports Demo photos for 1-click fix
+  const handleLoadSportsDemoPhotos = () => {
+    setUploadedPhotos(SPORTS_PRESET_PHOTOS);
+    setPhotoForm(prev => ({
+      ...prev,
+      cover: SPORTS_PRESET_PHOTOS[0].url
+    }));
+    showToast('✓ ৪টি স্পোর্টস আলোকচিত্র সফলভাবে যুক্ত হয়েছে!');
+  };
+
   // Submit Photo Album Form
   const handleSubmitPhotoAlbum = (e) => {
     e.preventDefault();
@@ -111,18 +191,30 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       return;
     }
 
-    const defaultCover = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80';
-    const finalCover = photoForm.cover.trim() || defaultCover;
+    const defaultCover = SPORTS_PRESET_PHOTOS[0].url;
+    let finalCover = photoForm.cover.trim();
 
-    let parsedPhotos = [];
-    if (photoForm.photosInput.trim()) {
+    let parsedPhotos = [...uploadedPhotos];
+    if (photoForm.photosInput && photoForm.photosInput.trim()) {
       const urls = photoForm.photosInput.split('\n').map(u => u.trim()).filter(Boolean);
-      parsedPhotos = urls.map((url, idx) => ({
-        id: `p-${Date.now()}-${idx}`,
-        title: `${photoForm.title} - ছবি ${toBn(idx + 1)}`,
-        url
-      }));
-    } else {
+      urls.forEach((url, idx) => {
+        parsedPhotos.push({
+          id: `p-${Date.now()}-${idx}`,
+          title: `${photoForm.title} - ছবি ${toBn(parsedPhotos.length + 1)}`,
+          url
+        });
+      });
+    }
+
+    if (!finalCover) {
+      if (parsedPhotos.length > 0 && parsedPhotos[0].url) {
+        finalCover = parsedPhotos[0].url;
+      } else {
+        finalCover = defaultCover;
+      }
+    }
+
+    if (!parsedPhotos.length) {
       parsedPhotos = [
         { id: `p-${Date.now()}-1`, title: `${photoForm.title} - কভার আলোকচিত্র`, url: finalCover }
       ];
@@ -169,6 +261,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       description: '',
       photosInput: ''
     });
+    setUploadedPhotos([]);
   };
 
   // Submit Video Form
@@ -474,15 +567,59 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                    কভার ছবির লিঙ্ক (Image URL):
+                    কভার ছবি (Cover Photo):
                   </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/cover.jpg"
-                    value={photoForm.cover}
-                    onChange={e => setPhotoForm({ ...photoForm, cover: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '13px' }}
-                  />
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label style={{
+                      background: '#047857',
+                      color: '#ffffff',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px'
+                    }}>
+                      <span>📷 ফাইল বাছুন</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleCoverFileChange}
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="অথবা ইমেজ URL দিন..."
+                      value={photoForm.cover.startsWith('data:') ? '✓ ডিভাইস থেকে কভার ছবি নির্বাচিত' : photoForm.cover}
+                      onChange={e => setPhotoForm({ ...photoForm, cover: e.target.value })}
+                      style={{ flex: 1, minWidth: '150px', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #cbd5e1', fontSize: '12px' }}
+                    />
+                  </div>
+                  {photoForm.cover && (
+                    <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img
+                        src={photoForm.cover}
+                        alt="কভার প্রিভিউ"
+                        style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #10b981' }}
+                        onError={(e) => {
+                          if (e.target.getAttribute('data-err')) return;
+                          e.target.setAttribute('data-err', '1');
+                          e.target.src = DEFAULT_GALLERY_PLACEHOLDER;
+                        }}
+                      />
+                      <span style={{ fontSize: '11px', color: '#047857', fontWeight: 700 }}>✓ কভার প্রিভিউ</span>
+                      <button
+                        type="button"
+                        onClick={() => setPhotoForm({ ...photoForm, cover: '' })}
+                        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '11px', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        রিমুভ
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -499,17 +636,182 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 />
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
-                  অ্যালবামের ছবি লিঙ্কসমূহ (প্রতি লাইনে একটি করে ছবির URL):
-                </label>
-                <textarea
-                  rows="3"
-                  placeholder="https://images.unsplash.com/...&#10;https://images.unsplash.com/...&#10;(ফাঁকা রাখলে স্বয়ংক্রিয় প্রিসেট ছবি সংরক্ষিত হবে)"
-                  value={photoForm.photosInput}
-                  onChange={e => setPhotoForm({ ...photoForm, photosInput: e.target.value })}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1.5px solid #cbd5e1', fontSize: '12.5px' }}
-                />
+              {/* Multiple Photos Upload Section */}
+              <div style={{
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '10px',
+                padding: '16px',
+                background: '#f8fafc'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🖼️</span> অ্যালবামের ছবিসমূহ ({toBn(uploadedPhotos.length)}টি ছবি যুক্ত আছে):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleLoadSportsDemoPhotos}
+                    style={{
+                      background: '#ecfdf5',
+                      color: '#065f46',
+                      border: '1.5px solid #10b981',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                    title="স্পোর্টস প্রতিযোগিতার ৪টি আসল ডেমো ছবি দিয়ে স্বয়ংক্রিয় ঠিক করুন"
+                  >
+                    ⚡ ৪টি ডেমো স্পোর্টস ছবি দিয়ে স্বয়ংক্রিয় ঠিক করুন
+                  </button>
+                </div>
+
+                {/* Device File Picker Dropzone */}
+                <div style={{
+                  border: '2px dashed #059669',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  background: '#f0fdf4',
+                  textAlign: 'center',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ fontSize: '28px', marginBottom: '4px' }}>📂</div>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#065f46', marginBottom: '3px' }}>
+                    আপনার কম্পিউটার বা ফোন থেকে ছবি নির্বাচন করুন
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginBottom: '10px' }}>
+                    JPG, PNG বা WEBP ছবি নির্বাচন করুন (একাধিক ছবি একসাথে নির্বাচন করা যাবে)
+                  </div>
+                  <label style={{
+                    background: '#047857',
+                    color: '#ffffff',
+                    padding: '8px 20px',
+                    borderRadius: '7px',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(4,120,87,0.25)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <span>📁 ডিভাইস থেকে ছবি ফাইল বাছুন</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={handleMultiplePhotosChange}
+                    />
+                  </label>
+                  {isProcessingPhotos && (
+                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#047857', fontWeight: 700 }}>
+                      ⏳ ছবি প্রসেসিং ও কম্প্রেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Photos Thumbnails Strip */}
+                {uploadedPhotos.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+                      নির্বাচিত ছবিসমূহ (কভার করতে ⭐ বাটনে ক্লিক করুন অথবা বাদ দিতে ✕ এ ক্লিক করুন):
+                    </div>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                      gap: '8px',
+                      maxHeight: '250px',
+                      overflowY: 'auto',
+                      padding: '4px'
+                    }}>
+                      {uploadedPhotos.map((p, idx) => (
+                        <div
+                          key={p.id || idx}
+                          style={{
+                            position: 'relative',
+                            background: '#ffffff',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            border: photoForm.cover === p.url ? '2px solid #059669' : '1px solid #cbd5e1',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+                          }}
+                        >
+                          <img
+                            src={p.url}
+                            alt={p.title}
+                            style={{ width: '100%', height: '80px', objectFit: 'cover' }}
+                            onError={(e) => {
+                              if (e.target.getAttribute('data-err')) return;
+                              e.target.setAttribute('data-err', '1');
+                              e.target.src = DEFAULT_GALLERY_PLACEHOLDER;
+                            }}
+                          />
+                          <div style={{ padding: '3px 5px', fontSize: '10.5px', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {toBn(idx + 1)}. {p.title || `ছবি ${toBn(idx + 1)}`}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePhoto(idx)}
+                            style={{
+                              position: 'absolute',
+                              top: '3px',
+                              right: '3px',
+                              background: 'rgba(239, 68, 68, 0.9)',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '18px',
+                              height: '18px',
+                              display: 'grid',
+                              placeItems: 'center',
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                            title="ছবিটি বাদ দিন"
+                          >
+                            ✕
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPhotoForm({ ...photoForm, cover: p.url })}
+                            style={{
+                              position: 'absolute',
+                              bottom: '22px',
+                              left: '3px',
+                              background: photoForm.cover === p.url ? '#059669' : 'rgba(0,0,0,0.65)',
+                              color: photoForm.cover === p.url ? '#ffffff' : '#ffd34f',
+                              border: 'none',
+                              borderRadius: '3px',
+                              padding: '1px 4px',
+                              fontSize: '9px',
+                              cursor: 'pointer',
+                              fontWeight: 'bold'
+                            }}
+                            title="এই ছবিটিকে অ্যালবামের কভার বানান"
+                          >
+                            {photoForm.cover === p.url ? '✓ কভার' : '⭐ কভার'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Optional Online URL input */}
+                <details style={{ marginTop: '10px', fontSize: '11.5px', color: '#64748b' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                    🔗 অনলাইন ওয়েব ইমেজ লিঙ্ক (URL) দিয়ে যুক্ত করতে চাইলে এখানে ক্লিক করুন
+                  </summary>
+                  <textarea
+                    rows="2"
+                    placeholder="https://images.unsplash.com/...&#10;https://... (প্রতি লাইনে একটি করে ছবির URL)"
+                    value={photoForm.photosInput}
+                    onChange={e => setPhotoForm({ ...photoForm, photosInput: e.target.value })}
+                    style={{ width: '100%', marginTop: '6px', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                  />
+                </details>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
@@ -527,6 +829,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                         description: '',
                         photosInput: ''
                       });
+                      setUploadedPhotos([]);
                     }}
                     style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '9px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}
                   >
@@ -535,6 +838,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 )}
                 <button
                   type="submit"
+                  disabled={isProcessingPhotos}
                   style={{ background: '#047857', color: '#ffffff', border: 'none', padding: '9px 22px', borderRadius: '6px', fontSize: '13px', fontWeight: 800, cursor: 'pointer' }}
                 >
                   {editingPhotoAlbum ? '✓ অ্যালবাম আপডেট করুন' : '✨ অ্যালবাম তৈরি ও সেভ করুন'}
@@ -564,11 +868,20 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 {photoAlbums.map((alb) => (
                   <tr key={alb.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '10px 14px' }}>
-                      <img src={alb.cover} alt={alb.title} style={{ width: '56px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                      <img
+                        src={alb.cover}
+                        alt={alb.title}
+                        style={{ width: '56px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
+                        onError={(e) => {
+                          if (e.target.getAttribute('data-err')) return;
+                          e.target.setAttribute('data-err', '1');
+                          e.target.src = DEFAULT_GALLERY_PLACEHOLDER;
+                        }}
+                      />
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ fontWeight: 800, color: '#0f172a' }}>{alb.title}</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748b' }}>{alb.description.slice(0, 70)}...</div>
+                      <div style={{ fontSize: '11.5px', color: '#64748b' }}>{alb.description ? alb.description.slice(0, 70) : '—'}...</div>
                     </td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>
@@ -592,12 +905,15 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                               category: alb.category,
                               categoryLabel: alb.categoryLabel,
                               eventDate: alb.eventDate,
-                              cover: alb.cover,
-                              description: alb.description,
-                              photosInput: (alb.photos || []).map(p => p.url).join('\n')
+                              cover: alb.cover || '',
+                              description: alb.description || '',
+                              photosInput: ''
                             });
+                            setUploadedPhotos(Array.isArray(alb.photos) ? alb.photos : []);
+                            window.scrollTo({ top: 350, behavior: 'smooth' });
                           }}
                           style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                          title="অ্যালবাম সম্পাদনা ও ছবি পরিবর্তন করুন"
                         >
                           ✏️
                         </button>
@@ -610,6 +926,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                             }
                           }}
                           style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                          title="অ্যালবাম মুছে ফেলুন"
                         >
                           🗑️
                         </button>
