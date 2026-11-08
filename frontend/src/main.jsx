@@ -644,6 +644,27 @@ function Home(){
  const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 
  const [photoUpdateVersion, setPhotoUpdateVersion] = useState(0);
+ const [isTickerPaused, setIsTickerPaused] = useState(false);
+
+ const allTickerNotices = useMemo(() => {
+   let list = [];
+   try {
+     const stored = localStorage.getItem('magra_notices_master_v2');
+     if (stored) {
+       const parsed = JSON.parse(stored);
+       if (Array.isArray(parsed) && parsed.length > 0) {
+         list = parsed;
+       }
+     }
+   } catch {}
+   if (!list.length && Array.isArray(notices) && notices.length > 0) {
+     list = notices;
+   }
+   if (!list.length && Array.isArray(MOCK_NOTICES)) {
+     list = MOCK_NOTICES;
+   }
+   return list;
+ }, [notices, photoUpdateVersion]);
 
  const resolvedDistinguished = useMemo(() => {
    let rawList = [];
@@ -1005,7 +1026,58 @@ function Home(){
   <a className="skip-link" href="#main-content">মূল কনটেন্টে যান</a>
   <Header onOpenSubmenu={(key, title) => setActiveModal({ key, title })} />
   <main id="main-content">
-   <section id="home" className="ref-hero-wrap"><div className="ref-container"><div className="ref-hero"><img src={building} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের ভবন"/><div className="ref-hero-caption"><h2>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h2><p>মগড়া, কালিহাতি, টাংগাইল • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</p></div></div><div className="ref-ticker"><b>সর্বশেষ:</b><div>{notices[0]?.title_bn||'বিদ্যালয়ের সর্বশেষ নোটিশ ও গুরুত্বপূর্ণ ঘোষণা এখানে প্রদর্শিত হবে।'}</div></div></div></section>
+    <section id="home" className="ref-hero-wrap">
+      <div className="ref-container">
+        <div className="ref-hero">
+          <img src={building} alt="মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়ের ভবন"/>
+          <div className="ref-hero-caption">
+            <h2>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয়</h2>
+            <p>মগড়া, কালিহাতি, টাংগাইল • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</p>
+          </div>
+        </div>
+        <div className="ref-ticker" role="region" aria-label="সর্বশেষ নোটিশ স্ক্রোলিং">
+          <b>সর্বশেষ:</b>
+          <div
+            className="ref-ticker-track-wrap"
+            onMouseEnter={() => setIsTickerPaused(true)}
+            onMouseLeave={() => setIsTickerPaused(false)}
+            onTouchStart={() => setIsTickerPaused(true)}
+            onTouchEnd={() => setIsTickerPaused(false)}
+          >
+            <div className={`ref-ticker-track ${isTickerPaused ? 'paused' : ''}`}>
+              {(allTickerNotices.length > 0 ? [...allTickerNotices, ...allTickerNotices] : []).map((n, idx) => (
+                <span
+                  key={idx}
+                  className="ref-ticker-item"
+                  onClick={() => setActiveModal({ key: 'public.nav.notice', title: n.title || n.title_bn })}
+                  title="সম্পূর্ণ নোটিশ পড়তে ক্লিক করুন"
+                >
+                  {n.urgent && <span className="ticker-urgent-tag">🚨 জরুরি</span>}
+                  <span className="ticker-text">{n.title || n.title_bn}</span>
+                  {(n.date || n.notice_date) && (
+                    <span className="ticker-date">[{toBn(n.date || n.notice_date)}]</span>
+                  )}
+                  <span className="ticker-bullet">✦</span>
+                </span>
+              ))}
+              {allTickerNotices.length === 0 && (
+                <span className="ref-ticker-item">
+                  বিদ্যালয়ের সর্বশেষ নোটিশ ও গুরুত্বপূর্ণ ঘোষণা এখানে প্রদর্শিত হবে।
+                </span>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveModal({ key: 'public.nav.notice', title: 'সকল নোটিশ' })}
+            className="ref-ticker-all-btn"
+            title="সকল নোটিশ দেখুন"
+          >
+            সকল নোটিশ ➔
+          </button>
+        </div>
+      </div>
+    </section>
 
    <section className="ref-stats ref-container" aria-label="বিদ্যালয়ের পরিসংখ্যান">
     <div className="ref-stat"><strong>{toBn(stats?.total??0)}</strong><span>শিক্ষার্থী</span></div>
