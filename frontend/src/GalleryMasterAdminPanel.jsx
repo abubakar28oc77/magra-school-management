@@ -902,7 +902,7 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                   <tr key={alb.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={{ padding: '10px 14px' }}>
                       <img
-                        src={alb.cover}
+                        src={alb.cover || DEFAULT_GALLERY_PLACEHOLDER}
                         alt={alb.title}
                         style={{ width: '56px', height: '40px', objectFit: 'cover', borderRadius: '4px' }}
                         onError={(e) => {

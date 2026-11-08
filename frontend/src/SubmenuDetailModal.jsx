@@ -128,6 +128,7 @@ import { LanguageLiteratureClubSection } from './LanguageLiteratureClubSection';
 import { SportsCultureModernSection } from './SportsCultureModernSection';
 import NoticeMasterModalSection from './NoticeMasterModalSection';
 import GalleryMasterModalSection from './GalleryMasterModalSection';
+import EServiceCenterModalSection from './EServiceCenterModalSection';
 import { getStoredFormerPersonnelData } from './formerPersonnelData';
 import { 
   getStoredGovtScholarships, 
@@ -951,6 +952,25 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       title?.includes('অনলাইন ক্লাস')
     ) {
       return <GalleryMasterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
+    }
+
+    // ================= E-SERVICE MASTER MODULE =================
+    if (
+      menuKey?.startsWith('public.nav.eservice') ||
+      title?.includes('ই-সেবা') ||
+      title?.includes('eSIF') ||
+      title?.includes('eFF') ||
+      title?.includes('eTIF') ||
+      title?.includes('সংশোধন') ||
+      title?.includes('অভিযোগ') ||
+      title?.includes('ই-ফাইলিং') ||
+      title?.includes('ডি-নথি') ||
+      title?.includes('সোনালী সেবা') ||
+      title?.includes('ইউনিক আইডি') ||
+      title?.includes('উপবৃত্তি পোর্টাল') ||
+      title?.includes('মাউশি EMIS')
+    ) {
+      return <EServiceCenterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // Co-curricular & 4 Major Clubs (Literature, Debate, Science, ICT)

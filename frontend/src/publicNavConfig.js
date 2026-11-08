@@ -83,6 +83,21 @@ export const publicNavConfig = [
   ['public.nav.gallery.campus','ক্যাম্পাস ও ঐতিহাসিক স্মৃতি','#gallery-campus'],
   ['public.nav.gallery.audio','অডিও ও সাংস্কৃতিক পরিবেশনা','#gallery-audio']
  ]},
+ {key:'public.nav.eservice',label:'ই-সেবা কেন্দ্র',children:[
+  ['public.nav.eservice.esif_six','eSIF- Class Six','#esif-six'],
+  ['public.nav.eservice.esif_eight','eSIF- Class Eight','#esif-eight'],
+  ['public.nav.eservice.esif_nine','eSIF- Class Nine','#esif-nine'],
+  ['public.nav.eservice.eff','Form Fillup (eFF)','#eff'],
+  ['public.nav.eservice.etif','eTIF (Teacher)','#etif'],
+  ['public.nav.eservice.correction','নাম ও বয়স সংশোধন','#correction'],
+  ['public.nav.eservice.grs','অভিযোগ প্রতিকার','#grs'],
+  ['public.nav.eservice.efiling','ই-ফাইলিং পোর্টাল','#efiling'],
+  ['public.nav.eservice.sonali_seba','সোনালী সেবা','#sonali-seba'],
+  ['public.nav.eservice.crvs_uid','ইউনিক আইডি (CRVS / UID)','#crvs-uid'],
+  ['public.nav.eservice.stipend_hsp','সমন্বিত উপবৃত্তি পোর্টাল (HSP)','#stipend-hsp'],
+  ['public.nav.eservice.emis_mpo','মাউশি EMIS ও এমপিও','#emis-mpo'],
+  ['public.nav.eservice.testimonial_verify','অনলাইন প্রশংসাপত্র ও প্রত্যয়ন যাচাই','#testimonial-verify']
+ ]},
  {key:'public.nav.contact',label:'যোগাযোগ',children:[
   ['public.nav.contact.head','প্রধান শিক্ষক','#contact-head'],['public.nav.contact.assistant','সহকারী প্রধান শিক্ষক','#contact-assistant'],['public.nav.contact.ict','আইসিটি শিক্ষক','#contact-ict'],['public.nav.contact.office','অফিস সহকারী','#contact-office'],['public.nav.contact.all','যোগাযোগ ও ঠিকানা','#contact']
  ]}

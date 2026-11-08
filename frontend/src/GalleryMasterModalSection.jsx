@@ -854,7 +854,7 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                 {/* Cover Image Container */}
                 <div style={{ position: 'relative', height: '190px', background: '#0f172a', overflow: 'hidden' }}>
                   <img
-                    src={alb.cover}
+                    src={alb.cover || DEFAULT_GALLERY_PLACEHOLDER}
                     alt={alb.title}
                     style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
                     onError={(e) => {
@@ -1776,7 +1776,7 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                     onClick={() => setLightboxPhoto(ph)}
                   >
                     <img
-                      src={ph.url}
+                      src={ph.url || DEFAULT_GALLERY_PLACEHOLDER}
                       alt={ph.title}
                       style={{ width: '100%', height: '140px', objectFit: 'cover' }}
                       onError={(e) => {
