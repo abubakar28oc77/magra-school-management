@@ -5,10 +5,10 @@ import { PHOTO_HEAD_TEACHER } from './mockData';
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
 // LocalStorage Key
-const NOTICE_STORAGE_KEY = 'magra_notices_master_v2';
+export const NOTICE_STORAGE_KEY = 'magra_notices_master_v2';
 
 // Initial Authentic Notices Data for Magra Palms Union High School
-const DEFAULT_NOTICES = [
+export const DEFAULT_NOTICES = [
   {
     id: 'not-01',
     title: 'বার্ষিক ক্রীড়া প্রতিযোগিতা ও সাংস্কৃতিক সপ্তাহ ২০২৬ এর চূড়ান্ত সময়সূচি ও দিকনির্দেশনা',
@@ -148,6 +148,106 @@ const DEFAULT_NOTICES = [
   }
 ];
 
+// Print Official Notice on School Pad Helper
+export function handlePrintOfficialNotice(notice) {
+  if (!notice) return;
+  const printWindow = window.open('', '_blank', 'width=950,height=900');
+  if (!printWindow) {
+    alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
+    return;
+  }
+
+  const title = notice.title || notice.title_bn || 'বিদ্যালয়ের বিজ্ঞপ্তি';
+  const memo = notice.memo || `মপা/বিজ্ঞপ্তি/২০২৬-${toBn(Math.floor(10 + Math.random() * 90))}`;
+  const date = notice.date || notice.notice_date || new Date().toISOString().slice(0, 10);
+  const author = notice.author || 'মুহাম্মদ শফিকুল ইসলাম';
+  const designation = notice.designation || 'প্রধান শিক্ষক';
+  const body = notice.body || '';
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="bn">
+    <head>
+      <meta charset="utf-8">
+      <title>অফিসিয়াল বিজ্ঞপ্তি — ${title}</title>
+      <style>
+        ${SCHOOL_PAD_STYLES}
+        @page { size: A4 portrait; margin: 10mm 15mm 15mm 15mm; }
+        body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', sans-serif; color: #0f172a; margin: 0; padding: 15px; }
+        .pad-container { border: 2px solid #047857; padding: 25px 35px; border-radius: 8px; position: relative; }
+        .memo-date-bar { display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding: 8px 0; margin-top: 15px; font-size: 13.5px; font-weight: bold; }
+        .notice-badge { text-align: center; margin: 25px 0 15px; }
+        .notice-badge span { background: #047857; color: #fff; padding: 6px 30px; font-size: 18px; font-weight: 900; border-radius: 4px; letter-spacing: 1px; display: inline-block; }
+        .notice-subject { font-size: 17px; font-weight: 900; color: #0f172a; margin-bottom: 20px; line-height: 1.6; border-left: 4px solid #047857; padding-left: 12px; }
+        .notice-body { font-size: 14.5px; line-height: 2.0; color: #1e293b; text-align: justify; white-space: pre-wrap; margin-bottom: 40px; }
+        .signature-section { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 20px; }
+        .signature-box { text-align: center; min-width: 200px; }
+        .signature-line { border-top: 1.5px dashed #0f172a; margin-bottom: 6px; }
+        .seal-box { border: 1.5px dashed #047857; color: #047857; padding: 10px 18px; font-size: 11px; font-weight: bold; border-radius: 50%; transform: rotate(-8deg); display: inline-block; }
+        .pad-footer { border-top: 1px solid #cbd5e1; margin-top: 30px; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11px; color: #64748b; }
+      </style>
+    </head>
+    <body>
+      <div class="pad-container">
+        ${SCHOOL_PAD_HEADER_HTML}
+
+        <div class="memo-date-bar">
+          <div>স্মারক নং: <b>${memo}</b></div>
+          <div>তারিখ: <b>${date} খ্রি.</b></div>
+        </div>
+
+        <div class="notice-badge">
+          <span>অফিসিয়াল বিজ্ঞপ্তি</span>
+        </div>
+
+        <div class="notice-subject">
+          বিষয়: ${title}
+        </div>
+
+        <div class="notice-body">${body}</div>
+
+        ${notice.deadline ? `
+          <div style="background: #fef2f2; border: 1.5px solid #f87171; padding: 10px 16px; border-radius: 6px; font-size: 13.5px; color: #991b1b; margin-bottom: 25px;">
+            ⏰ <b>আবেদন/দরপত্র জমাদানের চূড়ান্ত সময়সীমা:</b> ${notice.deadline}
+          </div>
+        ` : ''}
+
+        <div class="signature-section">
+          <div class="signature-box">
+            <div class="seal-box">
+              মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
+              স্থাপিত: ১৯৪৬ খ্রি.<br>
+              কালিহাতী, টাঙ্গাইল
+            </div>
+          </div>
+
+          <div class="signature-box">
+            <div class="signature-line"></div>
+            <div style="font-size: 14.5px; font-weight: 800;">(${author})</div>
+            <div style="font-size: 12.5px; color: #475569;">${designation}</div>
+            <div style="font-size: 12px; color: #64748b;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+          </div>
+        </div>
+
+        <div class="pad-footer">
+          <div>অনুলিপি অবগতির জন্য প্রেরিত হলো: ১. সভাপতি, গভর্নিং বডি ২. নোটিউটবোর্ড ৩. সংশ্লিষ্ট সকল নথি।</div>
+          <div>স্মার্ট স্কুল ম্যানেজমেন্ট সিস্টেম ও ডিজিটাল আর্কাইভ</div>
+        </div>
+      </div>
+
+      <script>
+        window.onload = function() {
+          setTimeout(function() { window.print(); }, 400);
+        }
+      </script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
 export function NoticeMasterModalSection({ initialTab = 'all', initialTitle, onClose }) {
   // Map incoming key to tab
   const getTabFromKey = (key, title) => {
@@ -225,97 +325,23 @@ export function NoticeMasterModalSection({ initialTab = 'all', initialTitle, onC
     return true;
   });
 
-  // Print Official Notice on School Pad
-  const handlePrintOfficialNotice = (notice) => {
-    const printWindow = window.open('', '_blank', 'width=950,height=900');
-    if (!printWindow) {
-      alert('পপআপ উইন্ডো ব্লক হয়েছে। অনুগ্রহ করে ব্রাউজারে পপআপ অনুমোদন করুন।');
-      return;
+  // Auto-select notice if initialTitle matches
+  useEffect(() => {
+    if (initialTitle && notices.length > 0) {
+      const q = initialTitle.trim().toLowerCase();
+      const match = notices.find(n => {
+        const t = (n.title || n.title_bn || '').toLowerCase();
+        const m = (n.memo || '').toLowerCase();
+        return t === q || t.includes(q) || q.includes(t) || m === q || n.id === initialTitle;
+      });
+      if (match) {
+        setSelectedNotice(match);
+      }
     }
+  }, [initialTitle, notices]);
 
-    const html = `
-      <!DOCTYPE html>
-      <html lang="bn">
-      <head>
-        <meta charset="utf-8">
-        <title>অফিসিয়াল বিজ্ঞপ্তি — ${notice.title}</title>
-        <style>
-          ${SCHOOL_PAD_STYLES}
-          @page { size: A4 portrait; margin: 10mm 15mm 15mm 15mm; }
-          body { font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', sans-serif; color: #0f172a; margin: 0; padding: 15px; }
-          .pad-container { border: 2px solid #047857; padding: 25px 35px; border-radius: 8px; position: relative; }
-          .memo-date-bar { display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding: 8px 0; margin-top: 15px; font-size: 13.5px; font-weight: bold; }
-          .notice-badge { text-align: center; margin: 25px 0 15px; }
-          .notice-badge span { background: #047857; color: #fff; padding: 6px 30px; font-size: 18px; font-weight: 900; border-radius: 4px; letter-spacing: 1px; display: inline-block; }
-          .notice-subject { font-size: 17px; font-weight: 900; color: #0f172a; margin-bottom: 20px; line-height: 1.6; border-left: 4px solid #047857; padding-left: 12px; }
-          .notice-body { font-size: 14.5px; line-height: 2.0; color: #1e293b; text-align: justify; white-space: pre-wrap; margin-bottom: 40px; }
-          .signature-section { display: flex; justify-content: space-between; margin-top: 60px; padding-top: 20px; }
-          .signature-box { text-align: center; min-width: 200px; }
-          .signature-line { border-top: 1.5px dashed #0f172a; margin-bottom: 6px; }
-          .seal-box { border: 1.5px dashed #047857; color: #047857; padding: 10px 18px; font-size: 11px; font-weight: bold; border-radius: 50%; transform: rotate(-8deg); display: inline-block; }
-          .pad-footer { border-top: 1px solid #cbd5e1; margin-top: 30px; padding-top: 10px; display: flex; justify-content: space-between; font-size: 11px; color: #64748b; }
-        </style>
-      </head>
-      <body>
-        <div class="pad-container">
-          ${SCHOOL_PAD_HEADER_HTML}
-
-          <div class="memo-date-bar">
-            <div>স্মারক নং: <b>${notice.memo || 'মপা/বিজ্ঞপ্তি/২০২৬-০৮'}</b></div>
-            <div>তারিখ: <b>${notice.date} খ্রি.</b></div>
-          </div>
-
-          <div class="notice-badge">
-            <span>অফিসিয়াল বিজ্ঞপ্তি</span>
-          </div>
-
-          <div class="notice-subject">
-            বিষয়: ${notice.title}
-          </div>
-
-          <div class="notice-body">${notice.body}</div>
-
-          ${notice.deadline ? `
-            <div style="background: #fef2f2; border: 1.5px solid #f87171; padding: 10px 16px; border-radius: 6px; font-size: 13.5px; color: #991b1b; margin-bottom: 25px;">
-              ⏰ <b>আবেদন/দরপত্র জমাদানের চূড়ান্ত সময়সীমা:</b> ${notice.deadline}
-            </div>
-          ` : ''}
-
-          <div class="signature-section">
-            <div class="signature-box">
-              <div class="seal-box">
-                মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়<br>
-                স্থাপিত: ১৯৪৬ খ্রি.<br>
-                কালিহাতী, টাঙ্গাইল
-              </div>
-            </div>
-
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div style="font-size: 14.5px; font-weight: 800;">(${notice.author || 'মুহাম্মদ শফিকুল ইসলাম'})</div>
-              <div style="font-size: 12.5px; color: #475569;">${notice.designation || 'প্রধান শিক্ষক'}</div>
-              <div style="font-size: 12px; color: #64748b;">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
-            </div>
-          </div>
-
-          <div class="pad-footer">
-            <div>অনুলিপি অবগতির জন্য প্রেরিত হলো: ১. সভাপতি, গভর্নিং বডি ২. নোটিশবোর্ড ৩. সংশ্লিষ্ট সকল নথি।</div>
-            <div>স্মার্ট স্কুল ম্যানেজমেন্ট সিস্টেম ও ডিজিটাল আর্কাইভ</div>
-          </div>
-        </div>
-
-        <script>
-          window.onload = function() {
-            setTimeout(function() { window.print(); }, 400);
-          }
-        </script>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(html);
-    printWindow.document.close();
-  };
+  // Print Official Notice on School Pad
+  const handlePrint = (notice) => handlePrintOfficialNotice(notice);
 
   // Handle Publish New Notice
   const handlePublishSubmit = (e) => {

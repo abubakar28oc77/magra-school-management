@@ -56,6 +56,7 @@ import {LanguageLiteratureClubSection} from './LanguageLiteratureClubSection';
 import {SportsCultureAdminEngine} from './SportsCultureAdminEngine';
 import {NoticeMasterAdminPanel} from './NoticeMasterAdminPanel';
 import {GalleryMasterAdminPanel} from './GalleryMasterAdminPanel';
+import { DEFAULT_NOTICES, handlePrintOfficialNotice } from './NoticeMasterModalSection';
 import SupabaseSyncModal from './SupabaseSyncModal';
 import {calculateStudentAge, matchesAgeFilter, parseNum} from './StudentAgeQueryModal';
 import {StudentTotListModal} from './StudentTotListModal';
@@ -657,6 +658,9 @@ function Home(){
        }
      }
    } catch {}
+   if (!list.length && Array.isArray(DEFAULT_NOTICES) && DEFAULT_NOTICES.length > 0) {
+     list = DEFAULT_NOTICES;
+   }
    if (!list.length && Array.isArray(notices) && notices.length > 0) {
      list = notices;
    }
@@ -665,6 +669,43 @@ function Home(){
    }
    return list;
  }, [notices, photoUpdateVersion]);
+
+ // Urgent and important notices exclusively for top scrolling ticker
+ const urgentTickerNotices = useMemo(() => {
+   const list = allTickerNotices.filter(n => Boolean(n.urgent) || n.category === 'announcements');
+   return list.length > 0 ? list : allTickerNotices.slice(0, 5);
+ }, [allTickerNotices]);
+
+ // Noticeboard filter and search states
+ const [noticeboardCategory, setNoticeboardCategory] = useState('all');
+ const [noticeboardSearch, setNoticeboardSearch] = useState('');
+
+ const filteredNoticeboardNotices = useMemo(() => {
+   return allTickerNotices.filter(n => {
+     if (noticeboardCategory === 'announcements' && !n.urgent && n.category !== 'announcements') return false;
+     if (noticeboardCategory === 'tenders' && n.category !== 'tenders') return false;
+     if (noticeboardCategory === 'academic' && n.category !== 'academic') return false;
+     if (noticeboardCategory === 'holidays' && n.category !== 'holidays') return false;
+     if (noticeboardSearch.trim()) {
+       const q = noticeboardSearch.toLowerCase();
+       const t = (n.title || n.title_bn || '').toLowerCase();
+       const m = (n.memo || '').toLowerCase();
+       const b = (n.body || '').toLowerCase();
+       return t.includes(q) || m.includes(q) || b.includes(q);
+     }
+     return true;
+   });
+ }, [allTickerNotices, noticeboardCategory, noticeboardSearch]);
+
+ const noticeCategoryCounts = useMemo(() => {
+   return {
+     all: allTickerNotices.length,
+     announcements: allTickerNotices.filter(n => Boolean(n.urgent) || n.category === 'announcements').length,
+     tenders: allTickerNotices.filter(n => n.category === 'tenders').length,
+     academic: allTickerNotices.filter(n => n.category === 'academic').length,
+     holidays: allTickerNotices.filter(n => n.category === 'holidays').length,
+   };
+ }, [allTickerNotices]);
 
  const resolvedDistinguished = useMemo(() => {
    let rawList = [];
@@ -1035,8 +1076,10 @@ function Home(){
             <p>মগড়া, কালিহাতি, টাংগাইল • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</p>
           </div>
         </div>
-        <div className="ref-ticker" role="region" aria-label="সর্বশেষ নোটিশ স্ক্রোলিং">
-          <b>সর্বশেষ:</b>
+        <div className="ref-ticker" role="region" aria-label="সর্বশেষ গুরুত্বপূর্ণ নোটিশ স্ক্রোলিং">
+          <b style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <span style={{ fontSize: '13px' }}>🚨</span> সর্বশেষ:
+          </b>
           <div
             className="ref-ticker-track-wrap"
             onMouseEnter={() => setIsTickerPaused(true)}
@@ -1045,14 +1088,14 @@ function Home(){
             onTouchEnd={() => setIsTickerPaused(false)}
           >
             <div className={`ref-ticker-track ${isTickerPaused ? 'paused' : ''}`}>
-              {(allTickerNotices.length > 0 ? [...allTickerNotices, ...allTickerNotices] : []).map((n, idx) => (
+              {(urgentTickerNotices.length > 0 ? [...urgentTickerNotices, ...urgentTickerNotices] : []).map((n, idx) => (
                 <span
                   key={idx}
                   className="ref-ticker-item"
                   onClick={() => setActiveModal({ key: 'public.nav.notice', title: n.title || n.title_bn })}
-                  title="সম্পূর্ণ নোটিশ পড়তে ক্লিক করুন"
+                  title="গুরুত্বপূর্ণ নোটিশটি সম্পূর্ণ পড়তে ক্লিক করুন"
                 >
-                  {n.urgent && <span className="ticker-urgent-tag">🚨 জরুরি</span>}
+                  <span className="ticker-urgent-tag">🚨 জরুরি বিজ্ঞপ্তি</span>
                   <span className="ticker-text">{n.title || n.title_bn}</span>
                   {(n.date || n.notice_date) && (
                     <span className="ticker-date">[{toBn(n.date || n.notice_date)}]</span>
@@ -1060,9 +1103,9 @@ function Home(){
                   <span className="ticker-bullet">✦</span>
                 </span>
               ))}
-              {allTickerNotices.length === 0 && (
+              {urgentTickerNotices.length === 0 && (
                 <span className="ref-ticker-item">
-                  বিদ্যালয়ের সর্বশেষ নোটিশ ও গুরুত্বপূর্ণ ঘোষণা এখানে প্রদর্শিত হবে।
+                  বিদ্যালয়ের সর্বশেষ গুরুত্বপূর্ণ নোটিশ ও জরুরি ঘোষণা এখানে প্রদর্শিত হবে।
                 </span>
               )}
             </div>
@@ -1131,7 +1174,364 @@ function Home(){
 
     <section id="services" className="ref-section"><div className="ref-title"><h2>আমাদের বিভিন্ন শিক্ষা কার্যক্রম</h2><span></span></div><div className="service-grid">{services.map(([icon,title,desc])=><a className="service-card" href="#school-info" onClick={(e)=>handleServiceClick(e,title)} key={title}><div className="service-icon">{icon}</div><h3>{title}</h3><p>{desc}</p></a>)}</div></section>
 
-    <section id="notice" className="ref-section"><div className="ref-panel"><div className="panel-head"><h2>নোটিশবোর্ড</h2><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'বিদ্যালয়ের সকল নোটিশবোর্ড'});}}>🔗 সকল নোটিশ দেখুন</a></div><div className="notice-table"><div className="notice-row notice-head"><span>আইডি</span><span>টাইটেল</span><span>তারিখ</span><span>প্রকাশ</span></div>{notices.length?notices.slice(0,6).map((n,i)=><div className="notice-row" key={n.id}><span>{n.id?.toString().slice(-3)||i+1}</span><span>{n.title_bn}</span><span>{n.notice_date||'—'}</span><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:n.title_bn});}}>View</a></div>):<div className="notice-empty-row">এখনও কোনো নোটিশ প্রকাশিত হয়নি।</div>}</div></div></section>
+    <section id="notice" className="ref-section">
+      <div className="ref-panel" style={{ borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+        {/* Panel Head */}
+        <div className="panel-head" style={{
+          background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
+          color: '#ffffff',
+          padding: '16px 20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '24px' }}>📋</span>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#ffffff' }}>
+                বিদ্যালয়ের সকল নোটিশবোর্ড
+              </h2>
+              <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#a7f3d0' }}>
+                প্রশাসনিক, একাডেমিক, পরীক্ষা, ছুটির নোটিশ ও দরপত্র বিজ্ঞপ্তি সংক্রান্ত সরকারি ও প্রাতিষ্ঠানিক তথ্য
+              </p>
+            </div>
+            <span style={{
+              background: '#fbbf24',
+              color: '#1f2937',
+              fontWeight: 800,
+              fontSize: '11.5px',
+              padding: '3px 9px',
+              borderRadius: '20px',
+              marginLeft: '6px'
+            }}>
+              মোট {toBn(allTickerNotices.length)}টি
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setActiveModal({ key: 'public.nav.notice', title: 'বিদ্যালয়ের সকল নোটিশবোর্ড' })}
+            style={{
+              background: '#ffffff',
+              color: '#065f46',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontWeight: 800,
+              fontSize: '12.5px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>ডিজিটাল নোটিশ আর্কাইভ</span>
+            <span>➔</span>
+          </button>
+        </div>
+
+        {/* Filter Tabs and Search Bar */}
+        <div style={{
+          background: '#f8fafc',
+          padding: '14px 20px',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}>
+          {/* Category Tabs */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {[
+              { id: 'all', label: 'সব নোটিশ', icon: '📁', count: noticeCategoryCounts.all },
+              { id: 'announcements', label: 'গুরুত্বপূর্ণ ঘোষণা', icon: '🚨', count: noticeCategoryCounts.announcements },
+              { id: 'tenders', label: 'টেন্ডার ও নিয়োগ', icon: '💼', count: noticeCategoryCounts.tenders },
+              { id: 'academic', label: 'একাডেমিক ও পরীক্ষা', icon: '📚', count: noticeCategoryCounts.academic },
+              { id: 'holidays', label: 'ছুটির নোটিশ', icon: '🏖️', count: noticeCategoryCounts.holidays }
+            ].map(tab => {
+              const active = noticeboardCategory === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setNoticeboardCategory(tab.id)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: active ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                    background: active ? '#059669' : '#ffffff',
+                    color: active ? '#ffffff' : '#334155',
+                    fontSize: '12.5px',
+                    fontWeight: active ? 800 : 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <span>{tab.icon}</span>
+                  <span>{tab.label}</span>
+                  <span style={{
+                    fontSize: '10.5px',
+                    background: active ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                    color: active ? '#ffffff' : '#475569',
+                    padding: '1px 6px',
+                    borderRadius: '10px',
+                    marginLeft: '2px'
+                  }}>
+                    {toBn(tab.count)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Box */}
+          <div style={{ position: 'relative', minWidth: '240px', flex: '1 1 auto', maxWidth: '360px' }}>
+            <input
+              type="text"
+              value={noticeboardSearch}
+              onChange={e => setNoticeboardSearch(e.target.value)}
+              placeholder="🔍 নোটিশের শিরোনাম বা স্মারক নম্বর খুঁজুন..."
+              style={{
+                width: '100%',
+                padding: '7px 12px',
+                fontSize: '12.5px',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                outline: 'none',
+                background: '#ffffff'
+              }}
+            />
+            {noticeboardSearch && (
+              <button
+                type="button"
+                onClick={() => setNoticeboardSearch('')}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 'bold'
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Notice Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f1f5f9', color: '#1e293b', borderBottom: '2px solid #cbd5e1' }}>
+                <th style={{ padding: '10px 12px', width: '50px', textAlign: 'center' }}>ক্রমিক</th>
+                <th style={{ padding: '10px 12px', width: '140px' }}>স্মারক নম্বর</th>
+                <th style={{ padding: '10px 12px' }}>নোটিশের শিরোনাম ও বিষয়</th>
+                <th style={{ padding: '10px 12px', width: '120px', textAlign: 'center' }}>প্রকাশের তারিখ</th>
+                <th style={{ padding: '10px 12px', width: '160px', textAlign: 'center' }}>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredNoticeboardNotices.length > 0 ? (
+                filteredNoticeboardNotices.map((n, idx) => {
+                  const title = n.title || n.title_bn;
+                  const date = n.date || n.notice_date;
+                  const memo = n.memo || `মপা/প্রশা/২০২৬-${toBn(idx + 1)}`;
+                  const isUrgent = Boolean(n.urgent);
+                  const catLabel = n.categoryLabel || (
+                    n.category === 'tenders' ? '💼 টেন্ডার' :
+                    n.category === 'academic' ? '📚 একাডেমি' :
+                    n.category === 'holidays' ? '🏖️ ছুটি' :
+                    (isUrgent || n.category === 'announcements') ? '🚨 জরুরি' : '📢 সাধারণ'
+                  );
+
+                  return (
+                    <tr
+                      key={n.id || idx}
+                      style={{
+                        borderBottom: '1px solid #e2e8f0',
+                        background: idx % 2 === 0 ? '#ffffff' : '#fafafa',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f0fdf4'}
+                      onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? '#ffffff' : '#fafafa'}
+                    >
+                      {/* Serial */}
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontWeight: 'bold', color: '#64748b' }}>
+                        {toBn(idx + 1)}
+                      </td>
+
+                      {/* Memo */}
+                      <td style={{ padding: '11px 12px', fontSize: '12px', color: '#0369a1', fontFamily: 'monospace', fontWeight: 600 }}>
+                        {memo}
+                      </td>
+
+                      {/* Title & Badges */}
+                      <td style={{ padding: '11px 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          {isUrgent && (
+                            <span style={{
+                              background: '#ef4444',
+                              color: '#ffffff',
+                              fontSize: '10.5px',
+                              fontWeight: 800,
+                              padding: '2px 7px',
+                              borderRadius: '4px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}>
+                              🚨 জরুরি
+                            </span>
+                          )}
+                          <span style={{
+                            background: '#e0f2fe',
+                            color: '#0369a1',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            padding: '2px 7px',
+                            borderRadius: '4px'
+                          }}>
+                            {catLabel}
+                          </span>
+                          <span
+                            onClick={() => setActiveModal({ key: 'public.nav.notice', title })}
+                            style={{
+                              fontWeight: 700,
+                              color: '#0f172a',
+                              cursor: 'pointer',
+                              textDecoration: 'none'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#047857'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#0f172a'}
+                            title="সম্পূর্ণ নোটিশ পড়তে ক্লিক করুন"
+                          >
+                            {title}
+                          </span>
+                        </div>
+                        {n.body && (
+                          <div style={{
+                            fontSize: '11.5px',
+                            color: '#64748b',
+                            marginTop: '3px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '550px'
+                          }}>
+                            {n.body.slice(0, 110)}...
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Date */}
+                      <td style={{ padding: '11px 12px', textAlign: 'center', fontSize: '12px', color: '#475569', whiteSpace: 'nowrap' }}>
+                        📅 {toBn(date || '—')}
+                      </td>
+
+                      {/* Actions: View & School Pad Print */}
+                      <td style={{ padding: '11px 12px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setActiveModal({ key: 'public.nav.notice', title })}
+                            style={{
+                              background: '#047857',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}
+                            title="সম্পূর্ণ নোটিশ পড়ুন"
+                          >
+                            👁️ দেখুন
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePrintOfficialNotice(n)}
+                            style={{
+                              background: '#f8fafc',
+                              color: '#065f46',
+                              border: '1px solid #cbd5e1',
+                              padding: '5px 10px',
+                              borderRadius: '5px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px'
+                            }}
+                            title="বিদ্যালয়ের অফিসিয়াল প্যাডে প্রিন্ট করুন"
+                          >
+                            🖨️ প্রিন্ট
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '6px' }}>📭</div>
+                    <div>এই ক্যাটাগরিতে বর্তমানে কোনো নোটিশ পাওয়া যায়নি।</div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Panel Footer */}
+        <div style={{
+          background: '#f8fafc',
+          padding: '10px 20px',
+          borderTop: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '12px',
+          color: '#64748b'
+        }}>
+          <div>
+            প্রদর্শিত হচ্ছে: <b>{toBn(filteredNoticeboardNotices.length)}</b> / <b>{toBn(allTickerNotices.length)}</b>টি নোটিশ
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveModal({ key: 'public.nav.notice', title: 'সকল নোটিশ' })}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#047857',
+              fontWeight: 800,
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            সম্পূর্ণ নোটিশবোর্ড ও আর্কাইভ উইন্ডো খুলুন ➔
+          </button>
+        </div>
+      </div>
+    </section>
 
     <section className="ref-section link-panels">
      <div className="link-panel">

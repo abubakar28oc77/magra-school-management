@@ -2371,8 +2371,8 @@ export function IctClubMasterSection({
         </div>
 
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '8px'
         }}>
           {ICT_FEATURES.map((tab) => {
@@ -2383,9 +2383,9 @@ export function IctClubMasterSection({
                 type="button"
                 onClick={() => setIctTab(tab.key)}
                 style={{
-                  flex: '1 1 auto',
-                  minWidth: '170px',
-                  padding: '9px 14px',
+                  width: '100%',
+                  minHeight: '44px',
+                  padding: '9px 12px',
                   borderRadius: '8px',
                   fontSize: '12.5px',
                   fontWeight: isActive ? 800 : 700,
@@ -2397,6 +2397,7 @@ export function IctClubMasterSection({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
+                  boxSizing: 'border-box',
                   transition: 'all 0.15s ease',
                   boxShadow: isActive ? '0 2px 6px rgba(2, 132, 199, 0.15)' : 'none'
                 }}

@@ -2696,8 +2696,8 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
         </div>
 
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '8px'
         }}>
           {SCIENCE_TABS.map((tab) => {
@@ -2708,9 +2708,9 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
                 type="button"
                 onClick={() => setSciTab(tab.key)}
                 style={{
-                  flex: '1 1 auto',
-                  minWidth: '170px',
-                  padding: '9px 14px',
+                  width: '100%',
+                  minHeight: '44px',
+                  padding: '9px 12px',
                   borderRadius: '8px',
                   fontSize: '12.5px',
                   fontWeight: isActive ? 800 : 700,
@@ -2722,6 +2722,7 @@ export function ScienceClubMasterSection({ teachers = [], initialTab = 'overview
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '6px',
+                  boxSizing: 'border-box',
                   transition: 'all 0.15s ease',
                   boxShadow: isActive ? '0 2px 6px rgba(4, 120, 87, 0.15)' : 'none'
                 }}

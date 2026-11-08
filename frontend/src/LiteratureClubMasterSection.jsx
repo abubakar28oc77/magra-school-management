@@ -1310,8 +1310,8 @@ export function LiteratureClubMasterSection({
         </div>
 
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '8px'
         }}>
           {NAV_TABS.map(tab => {
@@ -1322,9 +1322,9 @@ export function LiteratureClubMasterSection({
                 type="button"
                 onClick={() => setLitTab(tab.key)}
                 style={{
-                  flex: '1 1 auto',
-                  minWidth: '170px',
-                  padding: '9px 14px',
+                  width: '100%',
+                  minHeight: '44px',
+                  padding: '9px 12px',
                   borderRadius: '8px',
                   border: isActive ? '1.5px solid #059669' : '1px solid #cbd5e1',
                   background: isActive ? '#ecfdf5' : '#ffffff',
