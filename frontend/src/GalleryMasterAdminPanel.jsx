@@ -1,6 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { compressImageToDataUrl } from './photoStorage';
-import { extractYouTubeId, generateTutorialPDF, downloadTutorialFile, TUTORIALS_KEY, DEFAULT_TUTORIALS } from './GalleryMasterModalSection';
+import {
+  extractYouTubeId,
+  generateTutorialPDF,
+  downloadTutorialFile,
+  playMockAudioTone,
+  TUTORIALS_KEY,
+  DEFAULT_TUTORIALS,
+  CAMPUS_MILESTONES_KEY,
+  CAMPUS_PHOTOS_KEY,
+  AUDIO_TRACKS_KEY,
+  DEFAULT_CAMPUS_MILESTONES,
+  DEFAULT_CAMPUS_PHOTOS,
+  DEFAULT_AUDIO_TRACKS
+} from './GalleryMasterModalSection';
 
 const toBn = n => String(n ?? '').replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
@@ -34,6 +47,48 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const [editingClass, setEditingClass] = useState(null);
   const [editingTutorial, setEditingTutorial] = useState(null);
   const [activePdfPreview, setActivePdfPreview] = useState(null);
+
+  // Campus & Audio states
+  const [campusMilestones, setCampusMilestones] = useState(DEFAULT_CAMPUS_MILESTONES);
+  const [campusPhotos, setCampusPhotos] = useState(DEFAULT_CAMPUS_PHOTOS);
+  const [audioTracks, setAudioTracks] = useState(DEFAULT_AUDIO_TRACKS);
+  const [campusSubTab, setCampusSubTab] = useState('milestones'); // 'milestones' | 'photos'
+
+  const [editingMilestone, setEditingMilestone] = useState(null);
+  const [editingCampusPhoto, setEditingCampusPhoto] = useState(null);
+  const [editingAudioTrack, setEditingAudioTrack] = useState(null);
+  const [activeLyricsModal, setActiveLyricsModal] = useState(null);
+  const [adminPlayingAudioId, setAdminPlayingAudioId] = useState(null);
+  const adminAudioRef = useRef(null);
+
+  const [milestoneForm, setMilestoneForm] = useState({
+    year: '',
+    title: '',
+    desc: '',
+    category: 'প্রতিষ্ঠা ও সূচনা',
+    badge: '🏛️ সূচনা',
+    image: '',
+    date: ''
+  });
+
+  const [campusPhotoForm, setCampusPhotoForm] = useState({
+    title: '',
+    category: 'একাডেমিক ভবন',
+    desc: '',
+    url: ''
+  });
+
+  const [audioForm, setAudioForm] = useState({
+    title: '',
+    artist: '',
+    category: 'বিদ্যালয় সংগীত',
+    duration: '০৩:১৫ মিনিট',
+    lyrics: '',
+    audio_data: '',
+    file_name: '',
+    file_size: '',
+    date: new Date().toISOString().slice(0, 10)
+  });
 
   // Form States
   const [tutorialForm, setTutorialForm] = useState({
@@ -223,6 +278,60 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         setTutorials(DEFAULT_TUTORIALS);
         try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(DEFAULT_TUTORIALS)); } catch {}
       }
+
+      // Campus Milestones
+      const storedMilestones = localStorage.getItem(CAMPUS_MILESTONES_KEY);
+      if (storedMilestones !== null) {
+        try {
+          const parsed = JSON.parse(storedMilestones);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCampusMilestones(parsed);
+          } else {
+            setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+          }
+        } catch {
+          setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+        }
+      } else {
+        setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+        try { localStorage.setItem(CAMPUS_MILESTONES_KEY, JSON.stringify(DEFAULT_CAMPUS_MILESTONES)); } catch {}
+      }
+
+      // Campus Photos
+      const storedCampusPhotos = localStorage.getItem(CAMPUS_PHOTOS_KEY);
+      if (storedCampusPhotos !== null) {
+        try {
+          const parsed = JSON.parse(storedCampusPhotos);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCampusPhotos(parsed);
+          } else {
+            setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+          }
+        } catch {
+          setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+        }
+      } else {
+        setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+        try { localStorage.setItem(CAMPUS_PHOTOS_KEY, JSON.stringify(DEFAULT_CAMPUS_PHOTOS)); } catch {}
+      }
+
+      // Audio Tracks
+      const storedAudio = localStorage.getItem(AUDIO_TRACKS_KEY);
+      if (storedAudio !== null) {
+        try {
+          const parsed = JSON.parse(storedAudio);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setAudioTracks(parsed);
+          } else {
+            setAudioTracks(DEFAULT_AUDIO_TRACKS);
+          }
+        } catch {
+          setAudioTracks(DEFAULT_AUDIO_TRACKS);
+        }
+      } else {
+        setAudioTracks(DEFAULT_AUDIO_TRACKS);
+        try { localStorage.setItem(AUDIO_TRACKS_KEY, JSON.stringify(DEFAULT_AUDIO_TRACKS)); } catch {}
+      }
     } catch {
       setTutorials(DEFAULT_TUTORIALS);
     }
@@ -246,6 +355,317 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
   const saveTutorials = (data) => {
     setTutorials(data);
     try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveCampusMilestones = (data) => {
+    setCampusMilestones(data);
+    try { localStorage.setItem(CAMPUS_MILESTONES_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveCampusPhotos = (data) => {
+    setCampusPhotos(data);
+    try { localStorage.setItem(CAMPUS_PHOTOS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveAudioTracks = (data) => {
+    setAudioTracks(data);
+    try { localStorage.setItem(AUDIO_TRACKS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const handleMilestoneImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageToDataUrl(file, 900, 0.8);
+      setMilestoneForm(prev => ({ ...prev, image: dataUrl }));
+      showToast('✓ মাইলফলকের ছবি প্রস্তুত হয়েছে!');
+    } catch {
+      alert('ছবি আপলোডে সমস্যা হয়েছে।');
+    }
+  };
+
+  const handleCampusPhotoImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageToDataUrl(file, 900, 0.8);
+      setCampusPhotoForm(prev => ({ ...prev, url: dataUrl }));
+      showToast('✓ অবকাঠামো ছবি প্রস্তুত হয়েছে!');
+    } catch {
+      alert('ছবি আপলোডে সমস্যা হয়েছে।');
+    }
+  };
+
+  const handleAudioFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/ogg', 'audio/x-m4a'];
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!allowed.includes(file.type) && !['mp3', 'wav', 'm4a', 'ogg', 'aac'].includes(ext)) {
+      alert('অনুগ্রহ করে শুধুমাত্র অডিও ফাইল (MP3, WAV, M4A, OGG) নির্বাচন করুন!');
+      return;
+    }
+    const szMB = file.size / (1024 * 1024);
+    if (szMB > 15) {
+      alert('অডিও ফাইল সর্বোচ্চ ১৫ মেগাবাইট পর্যন্ত হতে পারে।');
+      return;
+    }
+    const formatted = szMB >= 1 ? `${szMB.toFixed(1)} মেগাবাইট` : `${Math.round(file.size / 1024)} কিলোবাইট`;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setAudioForm(prev => ({
+        ...prev,
+        audio_data: ev.target.result,
+        file_name: file.name,
+        file_size: formatted
+      }));
+      showToast(`✓ অডিও ফাইল "${file.name}" যুক্ত হয়েছে!`);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleToggleAdminPlayAudio = (track) => {
+    if (adminPlayingAudioId === track.id) {
+      if (adminAudioRef.current) {
+        adminAudioRef.current.pause();
+      }
+      setAdminPlayingAudioId(null);
+      return;
+    }
+
+    if (adminAudioRef.current) {
+      adminAudioRef.current.pause();
+      adminAudioRef.current = null;
+    }
+
+    if (track.audio_data && track.audio_data.startsWith('data:audio')) {
+      try {
+        const aud = new Audio(track.audio_data);
+        adminAudioRef.current = aud;
+        aud.onended = () => setAdminPlayingAudioId(null);
+        aud.onerror = () => {
+          playMockAudioTone();
+          setAdminPlayingAudioId(null);
+        };
+        aud.play().catch(() => {
+          playMockAudioTone();
+        });
+        setAdminPlayingAudioId(track.id);
+      } catch {
+        playMockAudioTone();
+        setAdminPlayingAudioId(track.id);
+        setTimeout(() => setAdminPlayingAudioId(null), 1200);
+      }
+    } else {
+      playMockAudioTone();
+      setAdminPlayingAudioId(track.id);
+      setTimeout(() => setAdminPlayingAudioId(null), 1200);
+      showToast(`▶ "${track.title}" সিমুলেটেড টোন অডিও প্লে হচ্ছে...`);
+    }
+  };
+
+  const handleDownloadAudioTrack = (track) => {
+    if (track.audio_data && track.audio_data.startsWith('data:audio')) {
+      const a = document.createElement('a');
+      a.href = track.audio_data;
+      a.download = track.file_name || `${track.title.replace(/\s+/g, '_')}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast(`✓ "${track.title}" ডাউনলোড শুরু হয়েছে।`);
+    } else {
+      alert(`"${track.title}" ট্র্যাকে এখনও আসল এমপি৩ অডিও ফাইল আপলোড করা হয়নি। আপনি 'সম্পাদনা' বোতামে ক্লিক করে আসল অডিও ফাইল আপলোড করে নিতে পারেন।`);
+    }
+  };
+
+  const handleSubmitMilestone = (e) => {
+    e.preventDefault();
+    if (!milestoneForm.year.trim()) {
+      alert('অনুগ্রহ করে মাইলফলকের সাল বা সন উল্লেখ করুন!');
+      return;
+    }
+    if (!milestoneForm.title.trim()) {
+      alert('অনুগ্রহ করে মাইলফলকের শিরোনাম লিখুন!');
+      return;
+    }
+    if (!milestoneForm.desc.trim()) {
+      alert('অনুগ্রহ করে মাইলফলকের বিবরণ লিখুন!');
+      return;
+    }
+
+    if (editingMilestone) {
+      const updated = campusMilestones.map(m => {
+        if (m.id === editingMilestone.id) {
+          return {
+            ...m,
+            year: milestoneForm.year.trim(),
+            title: milestoneForm.title.trim(),
+            desc: milestoneForm.desc.trim(),
+            category: milestoneForm.category || 'প্রতিষ্ঠা ও সূচনা',
+            badge: milestoneForm.badge || `🏛️ ${milestoneForm.year.trim()}`,
+            image: milestoneForm.image || '',
+            date: milestoneForm.date || milestoneForm.year.trim()
+          };
+        }
+        return m;
+      });
+      saveCampusMilestones(updated);
+      setEditingMilestone(null);
+      showToast('✓ ঐতিহাসিক মাইলফলক সফলভাবে হালনাগাদ করা হয়েছে!');
+    } else {
+      const newM = {
+        id: `mls-${Date.now()}`,
+        year: milestoneForm.year.trim(),
+        title: milestoneForm.title.trim(),
+        desc: milestoneForm.desc.trim(),
+        category: milestoneForm.category || 'প্রতিষ্ঠা ও সূচনা',
+        badge: milestoneForm.badge || `🏛️ ${milestoneForm.year.trim()}`,
+        image: milestoneForm.image || '',
+        date: milestoneForm.date || milestoneForm.year.trim()
+      };
+      saveCampusMilestones([newM, ...campusMilestones]);
+      showToast('✓ নতুন মাইলফলক সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    setMilestoneForm({
+      year: '',
+      title: '',
+      desc: '',
+      category: 'প্রতিষ্ঠা ও সূচনা',
+      badge: '🏛️ সূচনা',
+      image: '',
+      date: ''
+    });
+  };
+
+  const handleSubmitCampusPhoto = (e) => {
+    e.preventDefault();
+    if (!campusPhotoForm.title.trim()) {
+      alert('অনুগ্রহ করে আলোকচিত্রের শিরোনাম লিখুন!');
+      return;
+    }
+    if (!campusPhotoForm.url.trim()) {
+      alert('অনুগ্রহ করে ছবি নির্বাচন বা ছবির URL প্রদান করুন!');
+      return;
+    }
+
+    if (editingCampusPhoto) {
+      const updated = campusPhotos.map(p => {
+        if (p.id === editingCampusPhoto.id) {
+          return {
+            ...p,
+            title: campusPhotoForm.title.trim(),
+            category: campusPhotoForm.category || 'একাডেমিক ভবন',
+            desc: campusPhotoForm.desc.trim(),
+            url: campusPhotoForm.url.trim()
+          };
+        }
+        return p;
+      });
+      saveCampusPhotos(updated);
+      setEditingCampusPhoto(null);
+      showToast('✓ ক্যাম্পাস অবকাঠামো আলোকচিত্র হালনাগাদ করা হয়েছে!');
+    } else {
+      const newP = {
+        id: `cp-${Date.now()}`,
+        title: campusPhotoForm.title.trim(),
+        category: campusPhotoForm.category || 'একাডেমিক ভবন',
+        desc: campusPhotoForm.desc.trim(),
+        url: campusPhotoForm.url.trim()
+      };
+      saveCampusPhotos([newP, ...campusPhotos]);
+      showToast('✓ নতুন ক্যাম্পাস আলোকচিত্র যোগ করা হয়েছে!');
+    }
+
+    setCampusPhotoForm({
+      title: '',
+      category: 'একাডেমিক ভবন',
+      desc: '',
+      url: ''
+    });
+  };
+
+  const handleSubmitAudioTrack = (e) => {
+    e.preventDefault();
+    if (!audioForm.title.trim()) {
+      alert('অনুগ্রহ করে অডিও / গানের শিরোনাম লিখুন!');
+      return;
+    }
+    if (!audioForm.artist.trim()) {
+      alert('অনুগ্রহ করে শিল্পী / পরিবেশকের নাম লিখুন!');
+      return;
+    }
+
+    if (editingAudioTrack) {
+      const updated = audioTracks.map(a => {
+        if (a.id === editingAudioTrack.id) {
+          return {
+            ...a,
+            title: audioForm.title.trim(),
+            artist: audioForm.artist.trim(),
+            category: audioForm.category || 'বিদ্যালয় সংগীত',
+            duration: audioForm.duration.trim() || '০৩:১৫ মিনিট',
+            lyrics: audioForm.lyrics.trim(),
+            audio_data: audioForm.audio_data || a.audio_data,
+            file_name: audioForm.file_name || a.file_name,
+            file_size: audioForm.file_size || a.file_size,
+            date: audioForm.date || a.date
+          };
+        }
+        return a;
+      });
+      saveAudioTracks(updated);
+      setEditingAudioTrack(null);
+      showToast('✓ অডিও ট্র্যাক সফলভাবে হালনাগাদ করা হয়েছে!');
+    } else {
+      const newA = {
+        id: `aud-${Date.now()}`,
+        title: audioForm.title.trim(),
+        artist: audioForm.artist.trim(),
+        category: audioForm.category || 'বিদ্যালয় সংগীত',
+        duration: audioForm.duration.trim() || '০৩:১৫ মিনিট',
+        lyrics: audioForm.lyrics.trim(),
+        audio_data: audioForm.audio_data || '',
+        file_name: audioForm.file_name || `${audioForm.title.trim().replace(/\s+/g, '_')}.mp3`,
+        file_size: audioForm.file_size || (audioForm.audio_data ? '৩.৫ মেগাবাইট' : '৩.০ মেগাবাইট'),
+        date: audioForm.date || new Date().toISOString().slice(0, 10)
+      };
+      saveAudioTracks([newA, ...audioTracks]);
+      showToast('✓ নতুন অডিও ট্র্যাক সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    setAudioForm({
+      title: '',
+      artist: '',
+      category: 'বিদ্যালয় সংগীত',
+      duration: '০৩:১৫ মিনিট',
+      lyrics: '',
+      audio_data: '',
+      file_name: '',
+      file_size: '',
+      date: new Date().toISOString().slice(0, 10)
+    });
+  };
+
+  const handleRestoreDefaultMilestones = () => {
+    if (window.confirm('আপনি কি ডিফল্ট ৫টি ঐতিহাসিক মাইলফলক তালিকায় পুনরুদ্ধার করতে চান?')) {
+      saveCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+      showToast('✓ ডিফল্ট ঐতিহাসিক মাইলফলক পুনরুদ্ধার করা হয়েছে।');
+    }
+  };
+
+  const handleRestoreDefaultCampusPhotos = () => {
+    if (window.confirm('আপনি কি ডিফল্ট ৪টি ক্যাম্পাস অবকাঠামো ছবি পুনরুদ্ধার করতে চান?')) {
+      saveCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+      showToast('✓ ডিফল্ট ক্যাম্পাস আলোকচিত্র পুনরুদ্ধার করা হয়েছে।');
+    }
+  };
+
+  const handleRestoreDefaultAudioTracks = () => {
+    if (window.confirm('আপনি কি ডিফল্ট সাংস্কৃতিক অডিও গানের তালিকা পুনরুদ্ধার করতে চান?')) {
+      saveAudioTracks(DEFAULT_AUDIO_TRACKS);
+      showToast('✓ ডিফল্ট সাংস্কৃতিক গান ও অডিও তালিকা পুনরুদ্ধার করা হয়েছে।');
+    }
   };
 
   const handleTutorialPdfSelect = (e) => {
@@ -704,8 +1124,8 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
           { key: 'videos', label: '🎥 ভিডিও গ্যালারি ও ভিডিও যোগ', count: videoAlbums.length },
           { key: 'classes', label: '🎓 অনলাইন ক্লাস আপলোড', count: onlineClasses.length },
           { key: 'tutorials', label: '💡 টিউটোরিয়াল একাডেমি', count: tutorials.length },
-          { key: 'campus', label: '🏛️ ক্যাম্পাস ও স্মৃতি মাইলফলক' },
-          { key: 'audio', label: '🎵 অডিও ও সাংস্কৃতিক গান' }
+          { key: 'campus', label: '🏛️ ক্যাম্পাস ও স্মৃতি মাইলফলক', count: campusMilestones.length + campusPhotos.length },
+          { key: 'audio', label: '🎵 অডিও ও সাংস্কৃতিক গান', count: audioTracks.length }
         ].map(tab => {
           const isActive = activeTab === tab.key;
           return (
@@ -2084,30 +2504,1196 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         </div>
       )}
 
-      {/* ================= TAB 5: CAMPUS & AUDIO ================= */}
-      {(activeTab === 'campus' || activeTab === 'audio') && (
-        <div style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid #e2e8f0',
-          padding: '24px',
-          textAlign: 'center'
-        }}>
-          <span style={{ fontSize: '36px' }}>✨</span>
-          <h3 style={{ margin: '8px 0', fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
-            {activeTab === 'campus' ? '🏛️ ক্যাম্পাস ও স্মৃতি আর্কাইভ' : '🎵 অডিও ও সাংস্কৃতিক গান হাব'}
-          </h3>
-          <p style={{ margin: '0 auto 16px auto', maxWidth: '580px', fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
-            এই সেকশনের কনটেন্টগুলো ভিউ পেজের সাথে সরাসরি সিঙ্ক করা আছে। শিক্ষক ও অ্যাডমিনরা এখান থেকে অনায়াসে হ্যান্ডআউট এবং অডিও ট্র্যাক পরিচালনা করতে পারবেন।
-          </p>
-          <div style={{ display: 'inline-flex', gap: '10px' }}>
+      {/* ================= TAB 5: CAMPUS & MILESTONES ================= */}
+      {activeTab === 'campus' && (
+        <div>
+          {/* Header & Sub-tab Switcher */}
+          <div style={{
+            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
+            borderRadius: '12px',
+            padding: '18px 22px',
+            color: '#ffffff',
+            marginBottom: '18px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            boxShadow: '0 4px 12px rgba(6,78,59,0.15)'
+          }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🏛️</span> ক্যাম্পাস ঐতিহ্য ও স্মৃতি মাইলফলক ব্যবস্থাপনা
+              </div>
+              <div style={{ fontSize: '12.5px', color: '#a7f3d0', marginTop: '3px' }}>
+                বিদ্যালয়ের গৌরবময় ঐতিহাসিক কালপঞ্জি ও ক্যাম্পাসের চোখজুড়ানো অবকাঠামো আলোকচিত্র পরিচালনা করুন
+              </div>
+            </div>
+
+            {/* Sub-tab pills */}
+            <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.15)', padding: '4px', borderRadius: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setCampusSubTab('milestones')}
+                style={{
+                  background: campusSubTab === 'milestones' ? '#ffffff' : 'transparent',
+                  color: campusSubTab === 'milestones' ? '#064e3b' : '#ffffff',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span>🏛️</span> ঐতিহাসিক মাইলফলক ({toBn(campusMilestones.length)})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCampusSubTab('photos')}
+                style={{
+                  background: campusSubTab === 'photos' ? '#ffffff' : 'transparent',
+                  color: campusSubTab === 'photos' ? '#064e3b' : '#ffffff',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <span>📸</span> ক্যাম্পাস অবকাঠামো ({toBn(campusPhotos.length)})
+              </button>
+            </div>
+          </div>
+
+          {/* SUB-TAB 1: HISTORIC MILESTONES */}
+          {campusSubTab === 'milestones' && (
+            <div>
+              {/* Form Card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '22px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+                marginBottom: '24px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900, color: '#0f172a' }}>
+                      {editingMilestone ? '✏️ ঐতিহাসিক মাইলফলক সম্পাদনা' : '🏛️ + নতুন ঐতিহাসিক মাইলফলক যোগ করুন'}
+                    </h3>
+                    <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                      বিদ্যালয়ের প্রতিষ্ঠা, মুক্তিযুদ্ধ, অবকাঠামোগত বা ডিজিটাল অর্জনের তথ্য লিপিবদ্ধ করুন
+                    </p>
+                  </div>
+                  {editingMilestone && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingMilestone(null);
+                        setMilestoneForm({
+                          year: '',
+                          title: '',
+                          desc: '',
+                          category: 'প্রতিষ্ঠা ও সূচনা',
+                          badge: '🏛️ সূচনা',
+                          image: '',
+                          date: ''
+                        });
+                      }}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        padding: '5px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✕ সম্পাদন বাতিল করুন
+                    </button>
+                  )}
+                </div>
+
+                <form onSubmit={handleSubmitMilestone} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        সাল / সন (যেমন: ১৯৪৬, ১৯৭১, ২০২৬)*:
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={milestoneForm.year}
+                        onChange={(e) => setMilestoneForm({ ...milestoneForm, year: e.target.value })}
+                        placeholder="উদা: ১৯৭১"
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        মাইলফলকের শিরোনাম*:
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={milestoneForm.title}
+                        onChange={(e) => setMilestoneForm({ ...milestoneForm, title: e.target.value })}
+                        placeholder="উদা: মহান মুক্তিযুদ্ধে গৌরবোজ্জ্বল ভূমিকা"
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        ক্যাটাগরি / বিভাগ:
+                      </label>
+                      <select
+                        value={milestoneForm.category}
+                        onChange={(e) => {
+                          const cat = e.target.value;
+                          let defaultBadge = '🏛️ মাইলফলক';
+                          if (cat === 'প্রতিষ্ঠা ও সূচনা') defaultBadge = '🏛️ সূচনা';
+                          else if (cat === 'মুক্তিযুদ্ধ ও গৌরব') defaultBadge = '🇧🇩 মুক্তিযুদ্ধ';
+                          else if (cat === 'অবকাঠামো উন্নয়ন') defaultBadge = '🏢 অবকাঠামো';
+                          else if (cat === 'ডিজিটাল রূপান্তর') defaultBadge = '💻 ডিজিটাল ল্যাব';
+                          else if (cat === 'স্মার্ট ক্যাম্পাস') defaultBadge = '✨ স্মার্ট ক্যাম্পাস';
+                          else if (cat === 'সাংস্কৃতিক অর্জন') defaultBadge = '🏆 সাংস্কৃতিক জয়';
+                          setMilestoneForm({ ...milestoneForm, category: cat, badge: defaultBadge });
+                        }}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', background: '#fff' }}
+                      >
+                        <option value="প্রতিষ্ঠা ও সূচনা">🏛️ প্রতিষ্ঠা ও সূচনা</option>
+                        <option value="মুক্তিযুদ্ধ ও গৌরব">🇧🇩 মুক্তিযুদ্ধ ও গৌরব</option>
+                        <option value="অবকাঠামো উন্নয়ন">🏢 অবকাঠামো উন্নয়ন</option>
+                        <option value="ডিজিটাল রূপান্তর">💻 ডিজিটাল রূপান্তর</option>
+                        <option value="স্মার্ট ক্যাম্পাস">✨ স্মার্ট ক্যাম্পাস</option>
+                        <option value="সাংস্কৃতিক অর্জন">🏆 সাংস্কৃতিক অর্জন</option>
+                        <option value="অন্যান্য">📌 অন্যান্য অর্জন</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        ব্যাজ লেবেল:
+                      </label>
+                      <input
+                        type="text"
+                        value={milestoneForm.badge}
+                        onChange={(e) => setMilestoneForm({ ...milestoneForm, badge: e.target.value })}
+                        placeholder="উদা: 🇧🇩 মুক্তিযুদ্ধ"
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                      ঐতিহাসিক পটভূমি ও বিস্তারিত বিবরণ*:
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={milestoneForm.desc}
+                      onChange={(e) => setMilestoneForm({ ...milestoneForm, desc: e.target.value })}
+                      placeholder="এই মাইলফলক বা ঐতিহাসিক মুহূর্তের স্মরণীয় বিবরণ এখানে লিখুন..."
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  {/* Optional Image */}
+                  <div style={{
+                    background: '#f8fafc',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        📷 স্মারক আলোকচিত্র (ঐচ্ছিক):
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleMilestoneImageChange}
+                        style={{ fontSize: '12px', color: '#475569' }}
+                      />
+                      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>
+                        মাইলফলকের প্রাসঙ্গিক বা ঐতিহাসিক ছবি আপলোড করতে পারেন (স্বয়ংক্রিয়ভাবে কম্প্রেস হবে)
+                      </div>
+                    </div>
+
+                    {milestoneForm.image && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={milestoneForm.image}
+                          alt="মাইলফলক প্রিভিউ"
+                          style={{ width: '64px', height: '50px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMilestoneForm({ ...milestoneForm, image: '' })}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          ✕ ছবি সরান
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button
+                      type="submit"
+                      style={{
+                        background: '#047857',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '10px 22px',
+                        borderRadius: '7px',
+                        fontSize: '13.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+                      }}
+                    >
+                      {editingMilestone ? '✓ পরিবর্তন সংরক্ষণ করুন' : '✓ নতুন মাইলফলক সংরক্ষণ করুন'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Table Card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    📋 সংরক্ষিত ঐতিহাসিক মাইলফলক তালিকা ({toBn(campusMilestones.length)} টি)
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleRestoreDefaultMilestones}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      border: '1px solid #cbd5e1',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                    title="বিদ্যালয়ের সূচনা থেকে ৫টি মূল মাইলফলক তালিকায় পুনরুদ্ধার করুন"
+                  >
+                    🔄 ডিফল্ট মাইলফলক পুনরুদ্ধার
+                  </button>
+                </div>
+
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                        <th style={{ padding: '10px', width: '50px', textAlign: 'center' }}>ক্রম</th>
+                        <th style={{ padding: '10px', width: '80px', textAlign: 'center' }}>সাল/সন</th>
+                        <th style={{ padding: '10px', width: '220px' }}>শিরোনাম ও ক্যাটাগরি</th>
+                        <th style={{ padding: '10px', width: '70px', textAlign: 'center' }}>ছবি</th>
+                        <th style={{ padding: '10px' }}>ঐতিহাসিক বিবরণ</th>
+                        <th style={{ padding: '10px', width: '90px', textAlign: 'center' }}>অ্যাকশন</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {campusMilestones.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                            কোনো ঐতিহাসিক মাইলফলক সংরক্ষিত নেই। উপরের ফর্ম ব্যবহার করে নতুন মাইলফলক যুক্ত করুন।
+                          </td>
+                        </tr>
+                      ) : (
+                        campusMilestones.map((m, idx) => (
+                          <tr key={m.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '10px', textAlign: 'center', color: '#64748b' }}>
+                              {toBn(idx + 1)}
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              <span style={{
+                                background: '#047857',
+                                color: '#ffffff',
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                fontSize: '11.5px',
+                                fontWeight: 800
+                              }}>
+                                {m.year}
+                              </span>
+                            </td>
+                            <td style={{ padding: '10px' }}>
+                              <div style={{ fontWeight: 800, color: '#0f172a' }}>{m.title}</div>
+                              <span style={{
+                                display: 'inline-block',
+                                marginTop: '3px',
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                padding: '1px 6px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700
+                              }}>
+                                {m.badge || m.category}
+                              </span>
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              {m.image ? (
+                                <img
+                                  src={m.image}
+                                  alt={m.title}
+                                  style={{ width: '42px', height: '32px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }}
+                                />
+                              ) : (
+                                <span style={{ color: '#cbd5e1', fontSize: '11px' }}>নেই</span>
+                              )}
+                            </td>
+                            <td style={{ padding: '10px', color: '#475569', lineHeight: '1.5' }}>
+                              {m.desc}
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingMilestone(m);
+                                    setMilestoneForm({
+                                      year: m.year || '',
+                                      title: m.title || '',
+                                      desc: m.desc || '',
+                                      category: m.category || 'প্রতিষ্ঠা ও সূচনা',
+                                      badge: m.badge || '🏛️ সূচনা',
+                                      image: m.image || '',
+                                      date: m.date || m.year || ''
+                                    });
+                                    window.scrollTo({ top: 100, behavior: 'smooth' });
+                                  }}
+                                  style={{
+                                    background: '#eff6ff',
+                                    color: '#2563eb',
+                                    border: '1px solid #bfdbfe',
+                                    padding: '4px 8px',
+                                    borderRadius: '5px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="মাইলফলক সম্পাদনা করুন"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (window.confirm(`আপনি কি "${m.title}" মাইলফলকটি মুছে ফেলতে চান?`)) {
+                                      const updated = campusMilestones.filter(x => x.id !== m.id);
+                                      saveCampusMilestones(updated);
+                                      if (editingMilestone?.id === m.id) setEditingMilestone(null);
+                                      showToast('✓ মাইলফলক সফলভাবে মুছে ফেলা হয়েছে।');
+                                    }
+                                  }}
+                                  style={{
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    border: '1px solid #fecaca',
+                                    padding: '4px 8px',
+                                    borderRadius: '5px',
+                                    fontSize: '12px',
+                                    cursor: 'pointer'
+                                  }}
+                                  title="মাইলফলক মুছে ফেলুন"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUB-TAB 2: CAMPUS INFRASTRUCTURE PHOTOS */}
+          {campusSubTab === 'photos' && (
+            <div>
+              {/* Form Card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '22px',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+                marginBottom: '24px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900, color: '#0f172a' }}>
+                      {editingCampusPhoto ? '✏️ ক্যাম্পাস অবকাঠামো আলোকচিত্র সম্পাদনা' : '📸 + নতুন ক্যাম্পাস অবকাঠামো আলোকচিত্র যোগ করুন'}
+                    </h3>
+                    <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                      একাডেমিক ভবন, খেলার মাঠ, শহীদ মিনার, কম্পিউটার ল্যাব ও ক্যাম্পাসের ছবি আপলোড করুন
+                    </p>
+                  </div>
+                  {editingCampusPhoto && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCampusPhoto(null);
+                        setCampusPhotoForm({
+                          title: '',
+                          category: 'একাডেমিক ভবন',
+                          desc: '',
+                          url: ''
+                        });
+                      }}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#475569',
+                        border: '1px solid #cbd5e1',
+                        padding: '5px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✕ সম্পাদন বাতিল করুন
+                    </button>
+                  )}
+                </div>
+
+                <form onSubmit={handleSubmitCampusPhoto} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        আলোকচিত্রের শিরোনাম*:
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={campusPhotoForm.title}
+                        onChange={(e) => setCampusPhotoForm({ ...campusPhotoForm, title: e.target.value })}
+                        placeholder="উদা: সুবিশাল ৩-তলা একাডেমিক ভবন"
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        ক্যাটাগরি / বিভাগ:
+                      </label>
+                      <select
+                        value={campusPhotoForm.category}
+                        onChange={(e) => setCampusPhotoForm({ ...campusPhotoForm, category: e.target.value })}
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', background: '#fff' }}
+                      >
+                        <option value="একাডেমিক ভবন">🏢 একাডেমিক ভবন</option>
+                        <option value="খেলার মাঠ ও প্রকৃতি">🌳 খেলার মাঠ ও প্রকৃতি</option>
+                        <option value="শহীদ মিনার ও মুক্তমঞ্চ">🏛️ শহীদ মিনার ও মুক্তমঞ্চ</option>
+                        <option value="ল্যাব ও লাইব্রেরি">💻 ল্যাব ও লাইব্রেরি</option>
+                        <option value="প্রশাসনিক ভবন">🏛️ প্রশাসনিক ভবন</option>
+                        <option value="সাধারণ ক্যাম্পাস">🌿 সাধারণ ক্যাম্পাস</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                        সংক্ষিপ্ত ক্যাপশন / বিবরণ:
+                      </label>
+                      <input
+                        type="text"
+                        value={campusPhotoForm.desc}
+                        onChange={(e) => setCampusPhotoForm({ ...campusPhotoForm, desc: e.target.value })}
+                        placeholder="উদা: আধুনিক শ্রেণিকক্ষ ও ল্যাব সংবলিত মূল একাডেমিক ভবন"
+                        style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Photo File / URL */}
+                  <div style={{
+                    background: '#f8fafc',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '16px',
+                    flexWrap: 'wrap'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        📁 অবকাঠামো ছবি নির্বাচন করুন*:
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCampusPhotoImageChange}
+                        style={{ fontSize: '12px', color: '#475569' }}
+                      />
+                      <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                        অথবা সরাসরি ছবির ওয়েব লিঙ্ক (URL) পেস্ট করুন:
+                      </div>
+                      <input
+                        type="url"
+                        value={campusPhotoForm.url.startsWith('data:') ? '' : campusPhotoForm.url}
+                        onChange={(e) => setCampusPhotoForm({ ...campusPhotoForm, url: e.target.value })}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        style={{ width: '100%', padding: '6px 10px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', marginTop: '4px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+
+                    {campusPhotoForm.url && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={campusPhotoForm.url}
+                          alt="ক্যাম্পাস ফটো প্রিভিউ"
+                          style={{ width: '84px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCampusPhotoForm({ ...campusPhotoForm, url: '' })}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                        >
+                          ✕ ছবি সরান
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                    <button
+                      type="submit"
+                      style={{
+                        background: '#047857',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '10px 22px',
+                        borderRadius: '7px',
+                        fontSize: '13.5px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+                      }}
+                    >
+                      {editingCampusPhoto ? '✓ ছবি পরিবর্তন সংরক্ষণ করুন' : '✓ নতুন অবকাঠামো ছবি সংরক্ষণ করুন'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Photos Grid Card */}
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                  <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+                    📸 ক্যাম্পাসের সংরক্ষিত অবকাঠামো আলোকচিত্র ({toBn(campusPhotos.length)} টি)
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleRestoreDefaultCampusPhotos}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      border: '1px solid #cbd5e1',
+                      padding: '5px 12px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                    title="ক্যাম্পাস অবকাঠামোর মূল ৪টি ছবি পুনরুদ্ধার করুন"
+                  >
+                    🔄 ডিফল্ট অবকাঠামো ছবি পুনরুদ্ধার
+                  </button>
+                </div>
+
+                {campusPhotos.length === 0 ? (
+                  <div style={{ padding: '36px', textAlign: 'center', color: '#94a3b8' }}>
+                    কোনো অবকাঠামো ছবি সংরক্ষিত নেই। উপরের ফর্ম ব্যবহার করে ছবি যোগ করুন।
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+                    {campusPhotos.map((p) => (
+                      <div
+                        key={p.id}
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.03)'
+                        }}
+                      >
+                        <div style={{ position: 'relative', height: '150px', background: '#0f172a' }}>
+                          <img
+                            src={p.url}
+                            alt={p.title}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                          <span style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            background: 'rgba(15,23,42,0.85)',
+                            color: '#ffffff',
+                            padding: '3px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700
+                          }}>
+                            {p.category}
+                          </span>
+                        </div>
+                        <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <h5 style={{ margin: '0 0 4px 0', fontSize: '13.5px', fontWeight: 800, color: '#0f172a' }}>
+                            {p.title}
+                          </h5>
+                          {p.desc && (
+                            <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#64748b', lineHeight: '1.4', flex: 1 }}>
+                              {p.desc}
+                            </p>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', borderTop: '1px solid #e2e8f0', paddingTop: '8px', marginTop: 'auto' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCampusPhoto(p);
+                                setCampusPhotoForm({
+                                  title: p.title || '',
+                                  category: p.category || 'একাডেমিক ভবন',
+                                  desc: p.desc || '',
+                                  url: p.url || ''
+                                });
+                                window.scrollTo({ top: 100, behavior: 'smooth' });
+                              }}
+                              style={{
+                                background: '#eff6ff',
+                                color: '#2563eb',
+                                border: '1px solid #bfdbfe',
+                                padding: '4px 10px',
+                                borderRadius: '5px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              ✏️ সম্পাদন
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`আপনি কি "${p.title}" আলোকচিত্রটি মুছে ফেলতে চান?`)) {
+                                  const updated = campusPhotos.filter(x => x.id !== p.id);
+                                  saveCampusPhotos(updated);
+                                  if (editingCampusPhoto?.id === p.id) setEditingCampusPhoto(null);
+                                  showToast('✓ আলোকচিত্র সফলভাবে মুছে ফেলা হয়েছে।');
+                                }
+                              }}
+                              style={{
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: '1px solid #fecaca',
+                                padding: '4px 10px',
+                                borderRadius: '5px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              🗑️ মুছুন
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ================= TAB 6: AUDIO & CULTURAL SONGS ================= */}
+      {activeTab === 'audio' && (
+        <div>
+          {/* Header Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+            borderRadius: '12px',
+            padding: '18px 22px',
+            color: '#ffffff',
+            marginBottom: '18px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '12px',
+            boxShadow: '0 4px 12px rgba(30,27,75,0.18)'
+          }}>
+            <div>
+              <div style={{ fontSize: '18px', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🎵</span> অডিও, সঙ্গীত ও আবৃত্তি হাব ব্যবস্থাপনা
+              </div>
+              <div style={{ fontSize: '12.5px', color: '#c7d2fe', marginTop: '3px' }}>
+                জাতীয় সংগীত, বিদ্যালয়ের থিম সং, দেশাত্মবোধক গান, কবিতা আবৃত্তি ও ঐতিহাসিক ভাষণের অডিও ট্র্যাক আপলোড ও নিয়ন্ত্রণ করুন
+              </div>
+            </div>
+
             <button
               type="button"
-              onClick={() => showToast('✓ কনটেন্ট স্ট্যাটাস সক্রিয় আছে এবং ভিউ পেজে প্রদর্শিত হচ্ছে।')}
-              style={{ background: '#047857', color: '#fff', border: 'none', padding: '8px 18px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer' }}
+              onClick={handleRestoreDefaultAudioTracks}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.3)',
+                padding: '6px 14px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              title="ডিফল্ট ৪টি মূল অডিও ট্র্যাক তালিকায় পুনরুদ্ধার করুন"
             >
-              ✓ ভিউ পেজে স্ট্যাটাস চেক করুন
+              🔄 ডিফল্ট অডিও ট্র্যাক পুনরুদ্ধার
             </button>
+          </div>
+
+          {/* Form Card */}
+          <div style={{
+            background: '#ffffff',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '22px',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.05)',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16.5px', fontWeight: 900, color: '#0f172a' }}>
+                  {editingAudioTrack ? '✏️ অডিও ট্র্যাক ও সঙ্গীত সম্পাদনা' : '🎵 + নতুন অডিও ট্র্যাক / সঙ্গীত যোগ করুন'}
+                </h3>
+                <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                  সরাসরি .mp3 বা অডিও ফাইল আপলোড করুন, লিরিক্স এবং সময়কাল যুক্ত করুন
+                </p>
+              </div>
+              {editingAudioTrack && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingAudioTrack(null);
+                    setAudioForm({
+                      title: '',
+                      artist: '',
+                      category: 'বিদ্যালয় সংগীত',
+                      duration: '০৩:১৫ মিনিট',
+                      lyrics: '',
+                      audio_data: '',
+                      file_name: '',
+                      file_size: '',
+                      date: new Date().toISOString().slice(0, 10)
+                    });
+                  }}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '5px 12px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕ সম্পাদন বাতিল করুন
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmitAudioTrack} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    অডিও বা গানের শিরোনাম*:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={audioForm.title}
+                    onChange={(e) => setAudioForm({ ...audioForm, title: e.target.value })}
+                    placeholder="উদা: গণপ্রজাতন্ত্রী বাংলাদেশের জাতীয় সংগীত"
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    শিল্পী / পরিবেশক / আবৃত্তিশিল্পী*:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={audioForm.artist}
+                    onChange={(e) => setAudioForm({ ...audioForm, artist: e.target.value })}
+                    placeholder="উদা: বিদ্যালয়ের শিক্ষার্থীদের সম্মিলিত কণ্ঠ"
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    ধরন / ক্যাটাগরি:
+                  </label>
+                  <select
+                    value={audioForm.category}
+                    onChange={(e) => setAudioForm({ ...audioForm, category: e.target.value })}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', background: '#fff' }}
+                  >
+                    <option value="জাতীয় সংগীত">🇧🇩 জাতীয় সংগীত</option>
+                    <option value="বিদ্যালয় সংগীত">🏫 বিদ্যালয় সংগীত / থিম সং</option>
+                    <option value="দেশাত্মবোধক গান">🎶 দেশাত্মবোধক গান</option>
+                    <option value="কবিতা আবৃত্তি">📜 কবিতা আবৃত্তি</option>
+                    <option value="ঐতিহাসিক ভাষণ">🎙️ ঐতিহাসিক ভাষণ</option>
+                    <option value="সাংস্কৃতিক উৎসব">🎭 সাংস্কৃতিক উৎসব</option>
+                    <option value="অন্যান্য">✨ অন্যান্য অডিও</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                    সময়কাল (যেমন: ০৩:১৫ মিনিট):
+                  </label>
+                  <input
+                    type="text"
+                    value={audioForm.duration}
+                    onChange={(e) => setAudioForm({ ...audioForm, duration: e.target.value })}
+                    placeholder="উদা: ০৩:১৫ মিনিট"
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </div>
+
+              {/* Audio File Upload Box */}
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px dashed #cbd5e1',
+                borderRadius: '8px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#1e293b' }}>
+                      🎙️ অডিও ফাইল আপলোড করুন (.mp3, .wav, .m4a):
+                    </label>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                      (সর্বোচ্চ ১৫ মেগাবাইট। অডিও ফাইল ছাড়াও শুধু লিরিক্স দিয়ে সেভ করা যাবে)
+                    </div>
+                  </div>
+                  {audioForm.file_name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>
+                        🎵 {audioForm.file_name} ({audioForm.file_size})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAudioForm({ ...audioForm, audio_data: '', file_name: '', file_size: '' })}
+                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' }}
+                      >
+                        ✕ সরান
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <input
+                    type="file"
+                    accept="audio/*,.mp3,.wav,.m4a,.ogg"
+                    onChange={handleAudioFileChange}
+                    style={{ fontSize: '12.5px', color: '#475569' }}
+                  />
+
+                  {audioForm.audio_data && (
+                    <audio
+                      controls
+                      src={audioForm.audio_data}
+                      style={{ height: '36px', maxWidth: '300px' }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Lyrics Field */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '5px' }}>
+                  📜 গানের কথা / কবিতার পঙ্‌ক্তিমালা / কথিকা (লিরিক্স):
+                </label>
+                <textarea
+                  rows={4}
+                  value={audioForm.lyrics}
+                  onChange={(e) => setAudioForm({ ...audioForm, lyrics: e.target.value })}
+                  placeholder="এখানে সম্পূর্ণ গানের কথা বা কবিতার লাইনগুলো টাইপ করুন..."
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="submit"
+                  style={{
+                    background: '#312e81',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 22px',
+                    borderRadius: '7px',
+                    fontSize: '13.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(49,46,129,0.25)'
+                  }}
+                >
+                  {editingAudioTrack ? '✓ অডিও ট্র্যাক পরিবর্তন সংরক্ষণ করুন' : '✓ নতুন অডিও ট্র্যাক সংরক্ষণ করুন'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Audio Tracks Table Card */}
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}>
+            <h4 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
+              🎶 সংরক্ষিত অডিও ও সাংস্কৃতিক গান তালিকা ({toBn(audioTracks.length)} টি)
+            </h4>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569' }}>
+                    <th style={{ padding: '10px', width: '45px', textAlign: 'center' }}>ক্রম</th>
+                    <th style={{ padding: '10px', width: '60px', textAlign: 'center' }}>প্লে</th>
+                    <th style={{ padding: '10px' }}>গানের শিরোনাম ও বিভাগ</th>
+                    <th style={{ padding: '10px', width: '200px' }}>শিল্পী / পরিবেশক</th>
+                    <th style={{ padding: '10px', width: '90px', textAlign: 'center' }}>সময়কাল</th>
+                    <th style={{ padding: '10px', width: '85px', textAlign: 'center' }}>লিরিক্স</th>
+                    <th style={{ padding: '10px', width: '95px', textAlign: 'center' }}>ডাউনলোড</th>
+                    <th style={{ padding: '10px', width: '90px', textAlign: 'center' }}>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {audioTracks.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                        কোনো অডিও ট্র্যাক সংরক্ষিত নেই। উপরের ফর্ম ব্যবহার করে নতুন গান যুক্ত করুন।
+                      </td>
+                    </tr>
+                  ) : (
+                    audioTracks.map((tr, idx) => {
+                      const isPlayingThis = adminPlayingAudioId === tr.id;
+                      return (
+                        <tr key={tr.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '10px', textAlign: 'center', color: '#64748b' }}>
+                            {toBn(idx + 1)}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAdminPlayAudio(tr)}
+                              style={{
+                                background: isPlayingThis ? '#dc2626' : '#047857',
+                                color: '#ffffff',
+                                border: 'none',
+                                width: '30px',
+                                height: '30px',
+                                borderRadius: '50%',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              title={isPlayingThis ? 'থামান' : 'প্লে করুন'}
+                            >
+                              {isPlayingThis ? '⏸' : '▶'}
+                            </button>
+                          </td>
+                          <td style={{ padding: '10px' }}>
+                            <div style={{ fontWeight: 800, color: '#0f172a' }}>{tr.title}</div>
+                            <span style={{
+                              display: 'inline-block',
+                              marginTop: '3px',
+                              background: '#e0e7ff',
+                              color: '#3730a3',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 700
+                            }}>
+                              {tr.category}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px', color: '#475569' }}>
+                            {tr.artist}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center', color: '#64748b' }}>
+                            {tr.duration}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            {tr.lyrics ? (
+                              <button
+                                type="button"
+                                onClick={() => setActiveLyricsModal(tr)}
+                                style={{
+                                  background: '#f1f5f9',
+                                  color: '#334155',
+                                  border: '1px solid #cbd5e1',
+                                  padding: '3px 8px',
+                                  borderRadius: '5px',
+                                  fontSize: '11.5px',
+                                  cursor: 'pointer',
+                                  fontWeight: 700
+                                }}
+                              >
+                                📜 দেখুন
+                              </button>
+                            ) : (
+                              <span style={{ color: '#cbd5e1', fontSize: '11px' }}>নেই</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleDownloadAudioTrack(tr)}
+                              style={{
+                                background: tr.audio_data ? '#ecfdf5' : '#f8fafc',
+                                color: tr.audio_data ? '#047857' : '#94a3b8',
+                                border: '1px solid #cbd5e1',
+                                padding: '3px 8px',
+                                borderRadius: '5px',
+                                fontSize: '11.5px',
+                                cursor: 'pointer',
+                                fontWeight: 700
+                              }}
+                              title={tr.audio_data ? 'এমপি৩ অডিও ফাইল ডাউনলোড করুন' : 'অডিও ফাইল সংযুক্ত নেই'}
+                            >
+                              📥 MP3
+                            </button>
+                          </td>
+                          <td style={{ padding: '10px', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingAudioTrack(tr);
+                                  setAudioForm({
+                                    title: tr.title || '',
+                                    artist: tr.artist || '',
+                                    category: tr.category || 'বিদ্যালয় সংগীত',
+                                    duration: tr.duration || '০৩:১৫ মিনিট',
+                                    lyrics: tr.lyrics || '',
+                                    audio_data: tr.audio_data || '',
+                                    file_name: tr.file_name || '',
+                                    file_size: tr.file_size || '',
+                                    date: tr.date || new Date().toISOString().slice(0, 10)
+                                  });
+                                  window.scrollTo({ top: 100, behavior: 'smooth' });
+                                }}
+                                style={{
+                                  background: '#eff6ff',
+                                  color: '#2563eb',
+                                  border: '1px solid #bfdbfe',
+                                  padding: '4px 8px',
+                                  borderRadius: '5px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                title="অডিও সম্পাদনা করুন"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`আপনি কি "${tr.title}" অডিও ট্র্যাকটি মুছে ফেলতে চান?`)) {
+                                    const updated = audioTracks.filter(x => x.id !== tr.id);
+                                    saveAudioTracks(updated);
+                                    if (editingAudioTrack?.id === tr.id) setEditingAudioTrack(null);
+                                    if (adminPlayingAudioId === tr.id) {
+                                      if (adminAudioRef.current) adminAudioRef.current.pause();
+                                      setAdminPlayingAudioId(null);
+                                    }
+                                    showToast('✓ অডিও ট্র্যাক সফলভাবে মুছে ফেলা হয়েছে।');
+                                  }
+                                }}
+                                style={{
+                                  background: '#fee2e2',
+                                  color: '#dc2626',
+                                  border: '1px solid #fecaca',
+                                  padding: '4px 8px',
+                                  borderRadius: '5px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer'
+                                }}
+                                title="অডিও মুছে ফেলুন"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -2208,6 +3794,109 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                   পিডিএফ ডকুমেন্ট প্রিভিউ উপলব্ধ নেই।
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LYRICS PREVIEW MODAL */}
+      {activeLyricsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          zIndex: 999999,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px',
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '560px',
+            width: '100%',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            padding: '26px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#312e81' }}>
+                  📜 {activeLyricsModal.title}
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  🎙️ শিল্পী / পরিবেশক: {activeLyricsModal.artist}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveLyricsModal(null)}
+                style={{
+                  background: '#f1f5f9',
+                  color: '#64748b',
+                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '15px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              fontSize: '14px',
+              lineHeight: '1.8',
+              color: '#1e293b',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'inherit'
+            }}>
+              {activeLyricsModal.lyrics}
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => handleToggleAdminPlayAudio(activeLyricsModal)}
+                style={{
+                  background: (adminPlayingAudioId === activeLyricsModal.id) ? '#dc2626' : '#047857',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {(adminPlayingAudioId === activeLyricsModal.id) ? '⏸ অডিও থামান' : '▶ অডিও শুনুন'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLyricsModal(null)}
+                style={{
+                  background: '#e2e8f0',
+                  color: '#475569',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>

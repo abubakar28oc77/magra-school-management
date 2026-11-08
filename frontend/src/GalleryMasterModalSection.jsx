@@ -112,6 +112,9 @@ export const PHOTO_ALBUMS_KEY = 'magra_gallery_photo_albums_v2';
 export const VIDEO_ALBUMS_KEY = 'magra_gallery_video_albums_v2';
 export const ONLINE_CLASSES_KEY = 'magra_gallery_online_classes_v2';
 export const TUTORIALS_KEY = 'magra_gallery_tutorials_v2';
+export const CAMPUS_MILESTONES_KEY = 'magra_gallery_campus_milestones_v2';
+export const CAMPUS_PHOTOS_KEY = 'magra_gallery_campus_photos_v2';
+export const AUDIO_TRACKS_KEY = 'magra_gallery_audio_tracks_v2';
 
 // -------------------------------------------------------------
 // DEFAULT PHOTO ALBUMS
@@ -565,35 +568,141 @@ export function generateTutorialPDF(tut) {
 const DEFAULT_ONLINE_CLASSES = [];
 
 // -------------------------------------------------------------
-// HISTORIC CAMPUS MILESTONES
+// HISTORIC CAMPUS MILESTONES DATA
 // -------------------------------------------------------------
-const CAMPUS_MILESTONES = [
+export const DEFAULT_CAMPUS_MILESTONES = [
   {
+    id: 'mls-1946',
     year: '১৯৪৬',
     title: 'বিদ্যালয় প্রতিষ্ঠা ও শুভ সূচনা',
-    desc: 'টাঙ্গাইল জেলার কালিহাতী উপজেলার মগড়া অঞ্চলে শিক্ষার আলো ছড়াতে স্থানীয় সমাজসেবক ও বিদ্যানুরাগীদের উদ্যোগে প্রতিষ্ঠিত হয় মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়।'
+    desc: 'টাঙ্গাইল জেলার কালিহাতী উপজেলার মগড়া অঞ্চলে শিক্ষার আলো ছড়াতে স্থানীয় সমাজসেবক ও বিদ্যানুরাগীদের উদ্যোগে প্রতিষ্ঠিত হয় মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়।',
+    category: 'প্রতিষ্ঠা ও সূচনা',
+    badge: '🏛️ সূচনা',
+    image: '',
+    date: '১৯৪৬'
   },
   {
+    id: 'mls-1971',
     year: '১৯৭১',
     title: 'মহান মুক্তিযুদ্ধে গৌরবোজ্জ্বল ভূমিকা',
-    desc: 'মুক্তিযুদ্ধের সময় বিদ্যালয়ের শিক্ষক ও শিক্ষার্থীরা বীরত্বের সাথে মুক্তিযুদ্ধে অংশগ্রহণ করেন। বিদ্যালয় প্রাঙ্গণ ব্যবহৃত হয়েছিল মুক্তিযোদ্ধাদের গোপন আশ্রয় ও যোগাযোগ কেন্দ্র হিসেবে।'
+    desc: 'মুক্তিযুদ্ধের সময় বিদ্যালয়ের শিক্ষক ও শিক্ষার্থীরা বীরত্বের সাথে মুক্তিযুদ্ধে অংশগ্রহণ করেন। বিদ্যালয় প্রাঙ্গণ ব্যবহৃত হয়েছিল মুক্তিযোদ্ধাদের গোপন আশ্রয় ও যোগাযোগ কেন্দ্র হিসেবে।',
+    category: 'মুক্তিযুদ্ধ ও গৌরব',
+    badge: '🇧🇩 মুক্তিযুদ্ধ',
+    image: '',
+    date: '১৯৭১'
   },
   {
+    id: 'mls-1998',
     year: '১৯৯৮',
     title: 'আধুনিক একাডেমিক ভবন ও খেলার মাঠ সম্প্রসারণ',
-    desc: 'বিদ্যালয়ের ৩ তলা বিশিষ্ট পাকা একাডেমিক ভবন নির্মাণ এবং ক্রীড়া ও শরীরচর্চাকে উৎসাহিত করতে সুবিশাল মাঠ সংস্কার।'
+    desc: 'বিদ্যালয়ের ৩ তলা বিশিষ্ট পাকা একাডেমিক ভবন নির্মাণ এবং ক্রীড়া ও শরীরচর্চাকে উৎসাহিত করতে সুবিশাল মাঠ সংস্কার।',
+    category: 'অবকাঠামো উন্নয়ন',
+    badge: '🏢 অবকাঠামো',
+    image: '',
+    date: '১৯৯৮'
   },
   {
+    id: 'mls-2016',
     year: '২০১৬',
     title: 'শেখ রাসেল ডিজিটাল ল্যাব স্থাপন',
-    desc: 'শিক্ষার্থীদের আধুনিক তথ্যপ্রযুক্তির যুগে গড়ে তুলতে স্থাপিত হয় অত্যাধুনিক কম্পিউটার ল্যাব ও উচ্চগতির ইন্টারনেট সংযোগ।'
+    desc: 'শিক্ষার্থীদের আধুনিক তথ্যপ্রযুক্তির যুগে গড়ে তুলতে স্থাপিত হয় অত্যাধুনিক কম্পিউটার ল্যাব ও উচ্চগতির ইন্টারনেট সংযোগ।',
+    category: 'ডিজিটাল রূপান্তর',
+    badge: '💻 ডিজিটাল ল্যাব',
+    image: '',
+    date: '২০১৬'
   },
   {
+    id: 'mls-2026',
     year: '২০২৬',
     title: 'ডিজিটাল স্মার্ট ক্যাম্পাস ও ৮০ বছর পূর্তি',
-    desc: '৮০ বছরের সমৃদ্ধ ঐতিহ্য নিয়ে সম্পূর্ণ কম্পিউটারাইজড স্কুল ম্যানেজমেন্ট সফটওয়্যার ও স্মার্ট শ্রেণিকক্ষের পদার্পণ।'
+    desc: '৮০ বছরের সমৃদ্ধ ঐতিহ্য নিয়ে সম্পূর্ণ কম্পিউটারাইজড স্কুল ম্যানেজমেন্ট সফটওয়্যার ও স্মার্ট শ্রেণিকক্ষের পদার্পণ।',
+    category: 'স্মার্ট ক্যাম্পাস',
+    badge: '✨ ৮০ বছর পূর্তি',
+    image: '',
+    date: '২০২৬'
   }
 ];
+
+export const DEFAULT_CAMPUS_PHOTOS = [
+  { id: 'cp-1', title: 'সুবিশাল ৩-তলা একাডেমিক ভবন', url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80', desc: 'আধুনিক শ্রেণিকক্ষ ও ল্যাব সংবলিত মূল একাডেমিক ভবন', category: 'একাডেমিক ভবন' },
+  { id: 'cp-2', title: 'কেন্দ্রীয় সবুজ খেলার মাঠ ও বৃক্ষরাজি', url: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80', desc: 'বার্ষিক ক্রীড়া ও সমাবেশের মনোরম সবুজ প্রাঙ্গণ', category: 'খেলার মাঠ ও প্রকৃতি' },
+  { id: 'cp-3', title: 'শহীদ মিনার ও মুক্তমঞ্চ প্রাঙ্গণ', url: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80', desc: 'সাংস্কৃতিক উৎসব ও জাতীয় দিবস উদযাপনের উন্মুক্ত চত্বর', category: 'শহীদ মিনার ও মুক্তমঞ্চ' },
+  { id: 'cp-4', title: 'শেখ রাসেল ডিজিটাল ল্যাব ও লাইব্রেরি', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80', desc: 'আধুনিক কম্পিউটার প্রশিক্ষণ ও জ্ঞানের বাতিঘর', category: 'ল্যাব ও লাইব্রেরি' }
+];
+
+export const DEFAULT_AUDIO_TRACKS = [
+  {
+    id: 'aud-1',
+    title: 'গণপ্রজাতন্ত্রী বাংলাদেশের জাতীয় সংগীত (আমার সোনার বাংলা)',
+    artist: 'বিদ্যালয়ের শিক্ষার্থীদের সম্মিলিত কণ্ঠ ও অর্কেস্ট্রা',
+    category: 'জাতীয় সংগীত',
+    duration: '০২:৪০ মিনিট',
+    audio_data: '',
+    file_name: 'amar_sonar_bangla.mp3',
+    file_size: '২.৫ মেগাবাইট',
+    lyrics: 'আমার সোনার বাংলা, আমি তোমায় ভালোবাসি। চিরদিন তোমার আকাশ, তোমার বাতাস, আমার প্রাণে বাজায় বাঁশি...',
+    date: '২০২৬-০১-০১'
+  },
+  {
+    id: 'aud-2',
+    title: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের থিম সং',
+    artist: 'বিদ্যালয় সাংস্কৃতিক পরিষদ ও শিক্ষকবৃন্দ',
+    category: 'বিদ্যালয় সংগীত',
+    duration: '০৩:১৫ মিনিট',
+    audio_data: '',
+    file_name: 'magra_school_theme_song.mp3',
+    file_size: '৩.১ মেগাবাইট',
+    lyrics: 'মগড়া পালসের আঙিনায় জ্ঞানের আলো জ্বলে, সত্য সুন্দরের পথে চলি সবাই মিলে...',
+    date: '২০২৬-০১-১০'
+  },
+  {
+    id: 'aud-3',
+    title: 'বিদ্রোহী কবিতা আবৃত্তি (কাজী নজরুল ইসলাম)',
+    artist: 'তানভীর আহমেদ (১০ম শ্রেণি - ১ম স্থান)',
+    category: 'কবিতা আবৃত্তি',
+    duration: '০৪:১০ মিনিট',
+    audio_data: '',
+    file_name: 'bidrohi_kobita_recitation.mp3',
+    file_size: '৩.৮ মেগাবাইট',
+    lyrics: 'বল বীর— বল উন্নত মম শির! শির নেহারি’ আমারি নতশির ওই শিখর হিমাদ্রির!...',
+    date: '২০২৬-০১-২০'
+  },
+  {
+    id: 'aud-4',
+    title: 'ঐতিহাসিক ৭ই মার্চের কালজয়ী ভাষণ (পুনঃপাঠ)',
+    artist: 'মাহফুজ আহমেদ (৯ম শ্রেণি)',
+    category: 'ঐতিহাসিক ভাষণ',
+    duration: '০৫:০৫ মিনিট',
+    audio_data: '',
+    file_name: '7th_march_speech_recitation.mp3',
+    file_size: '৪.৬ মেগাবাইট',
+    lyrics: 'ভায়েরা আমার, আজ দুঃখ-ভারাক্রান্ত মন নিয়ে আপনাদের সামনে হাজির হয়েছি...',
+    date: '২০২৬-০২-০১'
+  }
+];
+
+export const CAMPUS_MILESTONES = DEFAULT_CAMPUS_MILESTONES;
+
+export function playMockAudioTone() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const notes = [261.63, 329.63, 392.00, 523.25];
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.18);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime + idx * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.18 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + idx * 0.18);
+      osc.stop(ctx.currentTime + idx * 0.18 + 0.4);
+    });
+  } catch {}
+}
 
 // -------------------------------------------------------------
 // MAIN COMPONENT
@@ -616,6 +725,9 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
   const [videoAlbums, setVideoAlbums] = useState([]);
   const [onlineClasses, setOnlineClasses] = useState([]);
   const [tutorials, setTutorials] = useState(DEFAULT_TUTORIALS);
+  const [campusMilestones, setCampusMilestones] = useState(DEFAULT_CAMPUS_MILESTONES);
+  const [campusPhotos, setCampusPhotos] = useState(DEFAULT_CAMPUS_PHOTOS);
+  const [audioTracks, setAudioTracks] = useState(DEFAULT_AUDIO_TRACKS);
 
   // Modals & Active Viewers
   const [selectedPhotoAlbum, setSelectedPhotoAlbum] = useState(null);
@@ -623,6 +735,8 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
   const [activeVideoPlayer, setActiveVideoPlayer] = useState(null);
   const [activeLectureModal, setActiveLectureModal] = useState(null);
   const [activePdfPreview, setActivePdfPreview] = useState(null);
+  const [activeLyricsModal, setActiveLyricsModal] = useState(null);
+  const audioPlayerRef = React.useRef(null);
 
   // Creation Modals
   const [showNewPhotoAlbumModal, setShowNewPhotoAlbumModal] = useState(false);
@@ -759,13 +873,109 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
         setTutorials(DEFAULT_TUTORIALS);
         try { localStorage.setItem(TUTORIALS_KEY, JSON.stringify(DEFAULT_TUTORIALS)); } catch {}
       }
+
+      const storedMilestones = localStorage.getItem(CAMPUS_MILESTONES_KEY);
+      if (storedMilestones !== null) {
+        try {
+          const parsed = JSON.parse(storedMilestones);
+          setCampusMilestones(Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CAMPUS_MILESTONES);
+        } catch {
+          setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+        }
+      } else {
+        setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+        try { localStorage.setItem(CAMPUS_MILESTONES_KEY, JSON.stringify(DEFAULT_CAMPUS_MILESTONES)); } catch {}
+      }
+
+      const storedCampusPhotos = localStorage.getItem(CAMPUS_PHOTOS_KEY);
+      if (storedCampusPhotos !== null) {
+        try {
+          const parsed = JSON.parse(storedCampusPhotos);
+          setCampusPhotos(Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_CAMPUS_PHOTOS);
+        } catch {
+          setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+        }
+      } else {
+        setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+        try { localStorage.setItem(CAMPUS_PHOTOS_KEY, JSON.stringify(DEFAULT_CAMPUS_PHOTOS)); } catch {}
+      }
+
+      const storedAudio = localStorage.getItem(AUDIO_TRACKS_KEY);
+      if (storedAudio !== null) {
+        try {
+          const parsed = JSON.parse(storedAudio);
+          setAudioTracks(Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_AUDIO_TRACKS);
+        } catch {
+          setAudioTracks(DEFAULT_AUDIO_TRACKS);
+        }
+      } else {
+        setAudioTracks(DEFAULT_AUDIO_TRACKS);
+        try { localStorage.setItem(AUDIO_TRACKS_KEY, JSON.stringify(DEFAULT_AUDIO_TRACKS)); } catch {}
+      }
     } catch {
       setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);
       setVideoAlbums([]);
       setOnlineClasses([]);
       setTutorials(DEFAULT_TUTORIALS);
+      setCampusMilestones(DEFAULT_CAMPUS_MILESTONES);
+      setCampusPhotos(DEFAULT_CAMPUS_PHOTOS);
+      setAudioTracks(DEFAULT_AUDIO_TRACKS);
     }
   }, []);
+
+  const saveCampusMilestones = (data) => {
+    setCampusMilestones(data);
+    try { localStorage.setItem(CAMPUS_MILESTONES_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveCampusPhotos = (data) => {
+    setCampusPhotos(data);
+    try { localStorage.setItem(CAMPUS_PHOTOS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const saveAudioTracks = (data) => {
+    setAudioTracks(data);
+    try { localStorage.setItem(AUDIO_TRACKS_KEY, JSON.stringify(data)); } catch {}
+  };
+
+  const handleTogglePlayAudio = (track) => {
+    if (currentPlayingAudio === track.id && isPlayingAudio) {
+      if (audioPlayerRef.current) {
+        audioPlayerRef.current.pause();
+      }
+      setIsPlayingAudio(false);
+      setCurrentPlayingAudio(null);
+    } else {
+      setCurrentPlayingAudio(track.id);
+      setIsPlayingAudio(true);
+      if (track.audio_data) {
+        if (!audioPlayerRef.current) {
+          audioPlayerRef.current = new Audio();
+        }
+        audioPlayerRef.current.src = track.audio_data;
+        audioPlayerRef.current.play().catch(() => {});
+        audioPlayerRef.current.onended = () => {
+          setIsPlayingAudio(false);
+          setCurrentPlayingAudio(null);
+        };
+      } else {
+        playMockAudioTone();
+      }
+    }
+  };
+
+  const handleDownloadAudioTrack = (track) => {
+    if (track.audio_data) {
+      const link = document.createElement('a');
+      link.href = track.audio_data;
+      link.download = track.file_name || `${(track.title || 'Audio_Song').replace(/[^\w\u0980-\u09FF]/g, '_')}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      alert(`✓ "${track.title}" এর প্রাতিষ্ঠানিক অডিও স্ট্যাটাস সক্রিয় রয়েছে। সম্পূর্ণ অডিও ফাইলটি অ্যাডমিন ড্যাশবোর্ড থেকে আপলোড করতে পারেন।`);
+    }
+  };
 
   const savePhotoAlbums = (data) => {
     setPhotoAlbums(data);
@@ -1100,10 +1310,10 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
         {[
           { key: 'photos', label: '📸 ফটো গ্যালারি', badge: toBn(photoAlbums.length) + ' অ্যালবাম' },
           { key: 'videos', label: '🎥 ভিডিও গ্যালারি', badge: toBn(videoAlbums.length) + ' ভিডিও' },
-          { key: 'tutorials', label: '💡 টিউটোরিয়াল', badge: '৫টি পাঠ্যধারা' },
+          { key: 'tutorials', label: '💡 টিউটোরিয়াল', badge: toBn(tutorials.length) + ' পাঠ্যধারা' },
           { key: 'classes', label: '🎓 অনলাইন ক্লাস', badge: toBn(onlineClasses.length) + ' ক্লাস' },
-          { key: 'campus', label: '🏛️ ক্যাম্পাস ও স্মৃতি', badge: '১৯৪৬–২০২৬' },
-          { key: 'audio', label: '🎵 অডিও ও সাংস্কৃতিক', badge: 'জাতীয় সংগীত' }
+          { key: 'campus', label: '🏛️ ক্যাম্পাস ও স্মৃতি', badge: toBn(campusMilestones.length) + ' মাইলফলক' },
+          { key: 'audio', label: '🎵 অডিও ও সাংস্কৃতিক', badge: toBn(audioTracks.length) + ' গান' }
         ].map(tab => {
           const isActive = activeTab === tab.key;
           return (
@@ -1974,9 +2184,14 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
             padding: '22px 26px',
             marginBottom: '24px'
           }}>
-            <span style={{ background: '#047857', color: '#fff', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
-              ঐতিহাসিক মাইলফলক
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <span style={{ background: '#047857', color: '#fff', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800 }}>
+                ঐতিহাসিক মাইলফলক ({toBn(campusMilestones.length)} টি)
+              </span>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                প্রতিষ্ঠাকাল: ১৯৪৬ খ্রি. • বর্তমান গৌরবোজ্জ্বল ৮০ বছর
+              </span>
+            </div>
             <h2 style={{ margin: '8px 0 6px 0', fontSize: '20px', fontWeight: 900 }}>
               মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের গৌরবোজ্জ্বল ৮০ বছরের পরিক্রমা
             </h2>
@@ -1987,58 +2202,102 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
 
           {/* Timeline of Milestones */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '28px' }}>
-            {CAMPUS_MILESTONES.map((m, idx) => (
-              <div
-                key={idx}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '10px',
-                  padding: '16px 20px',
-                  display: 'flex',
-                  gap: '16px',
-                  alignItems: 'flex-start',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                }}
-              >
-                <div style={{
-                  background: '#047857',
-                  color: '#ffffff',
-                  fontWeight: 900,
-                  fontSize: '14px',
-                  padding: '6px 14px',
-                  borderRadius: '8px',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {m.year}
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>
-                    {m.title}
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>
-                    {m.desc}
-                  </p>
-                </div>
+            {campusMilestones.length === 0 ? (
+              <div style={{ padding: '30px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
+                কোনো মাইলফলক তথ্য পাওয়া যায়নি।
               </div>
-            ))}
+            ) : (
+              campusMilestones.map((m, idx) => (
+                <div
+                  key={m.id || idx}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    padding: '18px 20px',
+                    display: 'flex',
+                    gap: '16px',
+                    alignItems: 'flex-start',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <div style={{
+                    background: '#047857',
+                    color: '#ffffff',
+                    fontWeight: 900,
+                    fontSize: '15px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    boxShadow: '0 2px 6px rgba(4,120,87,0.2)'
+                  }}>
+                    {toBn(m.year)}
+                    <div style={{ fontSize: '10.5px', fontWeight: 600, color: '#a7f3d0', marginTop: '2px' }}>
+                      {m.badge || '🏛️ মাইলফলক'}
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: '240px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                        {m.title}
+                      </h4>
+                      {m.category && (
+                        <span style={{ background: '#f1f5f9', color: '#475569', fontSize: '11px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          {m.category}
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#475569', lineHeight: '1.6' }}>
+                      {m.desc}
+                    </p>
+                  </div>
+
+                  {m.image && (
+                    <div 
+                      style={{ cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', flexShrink: 0, border: '1px solid #cbd5e1' }}
+                      onClick={() => setLightboxPhoto({ url: m.image, title: `${m.year} - ${m.title}`, description: m.desc })}
+                      title="বড় করে দেখতে ক্লিক করুন"
+                    >
+                      <img src={m.image} alt={m.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Campus Virtual Photos */}
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '14px' }}>
-            🏛️ ক্যাম্পাসের ঐতিহাসিক ও আধুনিক অবকাঠামো আলোকচিত্র
+          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span>🏛️</span> ক্যাম্পাসের ঐতিহাসিক ও আধুনিক অবকাঠামো আলোকচিত্র ({toBn(campusPhotos.length)} টি)
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
-            {[
-              { title: 'সুবিশাল ৩-তলা একাডেমিক ভবন', url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80' },
-              { title: 'কেন্দ্রীয় সবুজ খেলার মাঠ ও বৃক্ষরাজি', url: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=800&q=80' },
-              { title: 'শহীদ মিনার ও মুক্তমঞ্চ প্রাঙ্গণ', url: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80' },
-              { title: 'শেখ রাসেল ডিজিটাল ল্যাব ও লাইব্রেরি', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80' }
-            ].map((cPhoto, idx) => (
-              <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
-                <img src={cPhoto.url} alt={cPhoto.title} style={{ width: '100%', height: '160px', objectFit: 'cover' }} />
-                <div style={{ padding: '10px 14px', fontSize: '13px', fontWeight: 700, color: '#1e293b' }}>
-                  {cPhoto.title}
+            {campusPhotos.map((cPhoto, idx) => (
+              <div 
+                key={cPhoto.id || idx} 
+                style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 6px rgba(0,0,0,0.03)', cursor: 'pointer' }}
+                onClick={() => setLightboxPhoto({ url: cPhoto.url, title: cPhoto.title, description: cPhoto.desc || '' })}
+                title="বড় করে দেখতে ক্লিক করুন"
+              >
+                <div style={{ position: 'relative', height: '160px', background: '#0f172a' }}>
+                  <img src={cPhoto.url} alt={cPhoto.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {cPhoto.category && (
+                    <span style={{ position: 'absolute', top: '8px', left: '8px', background: 'rgba(4,120,87,0.9)', color: '#ffffff', fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '4px' }}>
+                      {cPhoto.category}
+                    </span>
+                  )}
+                </div>
+                <div style={{ padding: '10px 14px' }}>
+                  <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#1e293b' }}>
+                    {cPhoto.title}
+                  </div>
+                  {cPhoto.desc && (
+                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px', lineHeight: '1.4' }}>
+                      {cPhoto.desc}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -2050,107 +2309,150 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
       {activeTab === 'audio' && (
         <div>
           <div style={{
-            background: '#ecfdf5',
+            background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
             border: '1.5px solid #a7f3d0',
             borderRadius: '12px',
             padding: '20px',
-            marginBottom: '20px'
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px'
           }}>
-            <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
-              🎵 অডিও আর্কাইভ ও সাংস্কৃতিক পরিবেশনা কর্নার
-            </h3>
-            <p style={{ margin: 0, fontSize: '13px', color: '#047857' }}>
-              বিদ্যালয়ের জাতীয় সংগীত, থিম সং, স্বরচিত আবৃত্তি ও ঐতিহাসিক ভাষণের ডিজিটাল অডিও প্লেয়ার।
-            </p>
+            <div>
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
+                🎵 অডিও আর্কাইভ ও সাংস্কৃতিক পরিবেশনা কর্নার
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#047857' }}>
+                বিদ্যালয়ের জাতীয় সংগীত, থিম সং, স্বরচিত আবৃত্তি ও ঐতিহাসিক ভাষণের ডিজিটাল অডিও হাব।
+              </p>
+            </div>
+            <div style={{ background: '#047857', color: '#ffffff', padding: '6px 14px', borderRadius: '20px', fontSize: '12px', fontWeight: 800 }}>
+              মোট ট্র্যাক: {toBn(audioTracks.length)} টি
+            </div>
           </div>
 
           {/* Audio Tracks List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[
-              { id: 'aud-1', title: 'গণপ্রজাতন্ত্রী বাংলাদেশের জাতীয় সংগীত (আমার সোনার বাংলা)', artist: 'বিদ্যালয়ের শিক্ষার্থীদের সম্মিলিত কণ্ঠ ও অর্কেস্ট্রা', duration: '০২:৪০ মিনিট' },
-              { id: 'aud-2', title: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের থিম সং', artist: 'বিদ্যালয় সাংস্কৃতিক পরিষদ ও শিক্ষকবৃন্দ', duration: '০৩:১৫ মিনিট' },
-              { id: 'aud-3', title: 'বিদ্রোহী কবিতা আবৃত্তি (কাজী নজরুল ইসলাম)', artist: 'তানভীর আহমেদ (১০ম শ্রেণি - ১ম স্থান অধিকারী)', duration: '০৪:১০ মিনিট' },
-              { id: 'aud-4', title: 'ঐতিহাসিক ৭ই মার্চের কালজয়ী ভাষণ (পুনঃপাঠ)', artist: 'মাহফুজ আহমেদ (৯ম শ্রেণি)', duration: '০৫:০৫ মিনিট' }
-            ].map(track => {
-              const isThisPlaying = currentPlayingAudio === track.id && isPlayingAudio;
-              return (
-                <div
-                  key={track.id}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '10px',
-                    padding: '14px 18px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '14px',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (isThisPlaying) {
-                          setIsPlayingAudio(false);
-                        } else {
-                          setCurrentPlayingAudio(track.id);
-                          setIsPlayingAudio(true);
-                        }
-                      }}
-                      style={{
-                        width: '42px',
-                        height: '42px',
-                        borderRadius: '50%',
-                        background: isThisPlaying ? '#dc2626' : '#047857',
-                        color: '#ffffff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                      }}
-                    >
-                      {isThisPlaying ? '⏸' : '▶'}
-                    </button>
+            {audioTracks.length === 0 ? (
+              <div style={{ padding: '30px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
+                কোনো অডিও ট্র্যাক পাওয়া যায়নি।
+              </div>
+            ) : (
+              audioTracks.map(track => {
+                const isThisPlaying = currentPlayingAudio === track.id && isPlayingAudio;
+                return (
+                  <div
+                    key={track.id}
+                    style={{
+                      background: isThisPlaying ? '#f0fdf4' : '#ffffff',
+                      border: isThisPlaying ? '1.5px solid #10b981' : '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '14px 18px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      transition: 'all 0.2s ease',
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1, minWidth: '240px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePlayAudio(track)}
+                        style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '50%',
+                          background: isThisPlaying ? '#dc2626' : '#047857',
+                          color: '#ffffff',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '17px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          flexShrink: 0
+                        }}
+                        title={isThisPlaying ? 'অডিও থামান' : 'অডিও শুনুন'}
+                      >
+                        {isThisPlaying ? '⏸' : '▶'}
+                      </button>
 
-                    <div>
-                      <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#0f172a' }}>
-                        {track.title}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        🎙️ {track.artist}
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '2px' }}>
+                          {track.title}
+                        </div>
+                        <div style={{ fontSize: '12.5px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span>🎙️ {track.artist}</span>
+                          {track.category && (
+                            <span style={{ background: '#f1f5f9', color: '#334155', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                              {track.category}
+                            </span>
+                          )}
+                          {track.audio_data && (
+                            <span style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                              ✓ আসল অডিও সংযুক্ত
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>
-                      ⏱️ {track.duration}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => alert(`✓ "${track.title}" এর এমপিথ্রি অডিও ডাউনলোড হয়েছে।`)}
-                      style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
-                        border: '1px solid #cbd5e1',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      📥 অডিও
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>
+                        ⏱️ {track.duration}
+                      </span>
+
+                      {track.lyrics && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveLyricsModal(track)}
+                          style={{
+                            background: '#eff6ff',
+                            color: '#2563eb',
+                            border: '1px solid #bfdbfe',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                          title="গানের লিরিক্স ও কথা পড়ুন"
+                        >
+                          📜 লিরিক্স
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAudioTrack(track)}
+                        style={{
+                          background: '#f1f5f9',
+                          color: '#334155',
+                          border: '1px solid #cbd5e1',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                        title="অডিও ফাইল ডাউনলোড করুন"
+                      >
+                        <span>📥</span> অডিও
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -3188,6 +3490,111 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
                   পিডিএফ ডকুমেন্ট প্রিভিউ উপলব্ধ নেই।
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LYRICS PREVIEW MODAL */}
+      {activeLyricsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          zIndex: 999999,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '20px',
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '14px',
+            maxWidth: '560px',
+            width: '100%',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            padding: '26px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#047857' }}>
+                  📜 {activeLyricsModal.title}
+                </h3>
+                <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                  🎙️ শিল্পী / আবৃত্তিশিল্পী: {activeLyricsModal.artist}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveLyricsModal(null)}
+                style={{
+                  background: '#f1f5f9',
+                  color: '#64748b',
+                  border: 'none',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  fontSize: '15px'
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              padding: '16px 20px',
+              fontSize: '14px',
+              lineHeight: '1.8',
+              color: '#1e293b',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'inherit'
+            }}>
+              {activeLyricsModal.lyrics}
+            </div>
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  handleTogglePlayAudio(activeLyricsModal);
+                }}
+                style={{
+                  background: (currentPlayingAudio === activeLyricsModal.id && isPlayingAudio) ? '#dc2626' : '#047857',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                {(currentPlayingAudio === activeLyricsModal.id && isPlayingAudio) ? '⏸ অডিও থামান' : '▶ অডিও শুনুন'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLyricsModal(null)}
+                style={{
+                  background: '#e2e8f0',
+                  color: '#475569',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>
