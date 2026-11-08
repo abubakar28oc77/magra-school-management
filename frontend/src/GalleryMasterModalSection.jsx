@@ -269,88 +269,9 @@ const TUTORIALS_DATA = [
 ];
 
 // -------------------------------------------------------------
-// ONLINE CLASSES DATA
+// ONLINE CLASSES DATA (DEFAULT EMPTY FOR LEAN PERFORMANCE)
 // -------------------------------------------------------------
-const DEFAULT_ONLINE_CLASSES = [
-  {
-    id: 'cls-01',
-    className: '১০ম শ্রেণি',
-    subject: 'সাধারণ গণিত',
-    topic: 'ত্রিকোণমিতিক অনুপাত ও বাস্তব সমস্যা সমাধান (অধ্যায় ৯)',
-    teacher: 'মোঃ হাবিবুর রহমান',
-    designation: 'সিনিয়র শিক্ষক (গণিত ও বিজ্ঞান)',
-    duration: '৪২ মিনিট',
-    date: '২০২৬-০২-০৩',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class10_math_trigonometry_notes.pdf'
-  },
-  {
-    id: 'cls-02',
-    className: '১০ম শ্রেণি',
-    subject: 'পদার্থবিজ্ঞান',
-    topic: 'গতির সমীকরণ, ত্বরণ ও মুক্তভাবে পড়ন্ত বস্তুর নিয়ম (অধ্যায় ২)',
-    teacher: 'মোঃ রফিকুল ইসলাম',
-    designation: 'সহকারী শিক্ষক (ভৌত বিজ্ঞান)',
-    duration: '৩৮ মিনিট',
-    date: '২০২৬-০১-২৯',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class10_physics_motion_notes.pdf'
-  },
-  {
-    id: 'cls-03',
-    className: '৯ম শ্রেণি',
-    subject: 'ইংরেজি (English Grammar)',
-    topic: 'Right Form of Verbs and Subject-Verb Agreement with Shortcuts',
-    teacher: 'মোঃ আশরাফুল আলম',
-    designation: 'সহকারী শিক্ষক (ইংরেজি)',
-    duration: '৩৫ মিনিট',
-    date: '২০২৬-০২-০১',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class9_english_right_form_of_verbs.pdf'
-  },
-  {
-    id: 'cls-04',
-    className: '৮ম শ্রেণি',
-    subject: 'বিজ্ঞান',
-    topic: 'পরমাণুর গঠন, আইসোটোপ ও ইলেকট্রন বিন্যাস (অধ্যায় ৬)',
-    teacher: 'মোঃ আব্দুর রহিম লিটন',
-    designation: 'সিনিয়র শিক্ষক (বিজ্ঞান)',
-    duration: '৪০ মিনিট',
-    date: '২০২৬-০১-২৫',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class8_science_atomic_structure.pdf'
-  },
-  {
-    id: 'cls-05',
-    className: '৭ম শ্রেণি',
-    subject: 'তথ্য ও যোগাযোগ প্রযুক্তি',
-    topic: 'কম্পিউটার ভাইরাস ও ম্যালওয়্যার থেকে ডাটা সুরক্ষার উপায়',
-    teacher: 'মোঃ আবুবকর সিদ্দিক',
-    designation: 'সহকারী শিক্ষক (আইসিটি)',
-    duration: '৩০ মিনিট',
-    date: '২০২৬-০১-২০',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class7_ict_cyber_security.pdf'
-  },
-  {
-    id: 'cls-06',
-    className: '৬ষ্ঠ শ্রেণি',
-    subject: 'বাংলা ১ম পত্র',
-    topic: 'সততার পুরস্কার — মুহম্মদ শহীদুল্লাহ্ (মূলভাব ও সৃজনশীল প্রশ্নোত্তর)',
-    teacher: 'মোঃ আব্দুল খালেক',
-    designation: 'সহকারী শিক্ষক (বাংলা)',
-    duration: '৩৩ মিনিট',
-    date: '২০২৬-০১-১৮',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80',
-    lectureNotes: 'class6_bangla_satatar_puroskar.pdf'
-  }
-];
+const DEFAULT_ONLINE_CLASSES = [];
 
 // -------------------------------------------------------------
 // HISTORIC CAMPUS MILESTONES
@@ -467,15 +388,28 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
 
       const storedClasses = localStorage.getItem(ONLINE_CLASSES_KEY);
       if (storedClasses) {
-        setOnlineClasses(JSON.parse(storedClasses));
+        try {
+          const parsed = JSON.parse(storedClasses);
+          if (Array.isArray(parsed)) {
+            // Filter out default mock classes (cls-01 to cls-06)
+            const userOnly = parsed.filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id));
+            setOnlineClasses(userOnly);
+            localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(userOnly));
+          } else {
+            setOnlineClasses([]);
+            localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify([]));
+          }
+        } catch {
+          setOnlineClasses([]);
+        }
       } else {
-        localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(DEFAULT_ONLINE_CLASSES));
-        setOnlineClasses(DEFAULT_ONLINE_CLASSES);
+        localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify([]));
+        setOnlineClasses([]);
       }
     } catch {
       setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);
       setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
-      setOnlineClasses(DEFAULT_ONLINE_CLASSES);
+      setOnlineClasses([]);
     }
   }, []);
 
@@ -1373,132 +1307,151 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
           </div>
 
           {/* Classes Cards Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px'
-          }}>
-            {filteredClasses.map(cls => (
-              <div
-                key={cls.id}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                {/* Thumbnail with Class Overlay */}
-                <div 
-                  style={{ position: 'relative', height: '160px', background: '#0f172a', cursor: 'pointer' }}
-                  onClick={() => setActiveVideoPlayer({
-                    title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
-                    videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
-                    host: cls.teacher,
-                    description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
-                  })}
-                  title="ক্লাস ভিডিও দেখতে ক্লিক করুন"
+          {filteredClasses.length === 0 ? (
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #cbd5e1',
+              borderRadius: '12px',
+              padding: '40px 20px',
+              textAlign: 'center',
+              color: '#64748b'
+            }}>
+              <div style={{ fontSize: '38px', marginBottom: '10px' }}>🎓</div>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#334155' }}>
+                কোনো অনলাইন ক্লাস পাওয়া যায়নি
+              </h4>
+              <p style={{ margin: 0, fontSize: '13px' }}>
+                নির্বাচিত ফিল্টারে কোনো ক্লাস নেই অথবা নতুন ক্লাস যুক্ত করতে লগইন পেজ বা অ্যাডমিন প্যানেল ব্যবহার করুন।
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '20px'
+            }}>
+              {filteredClasses.map(cls => (
+                <div
+                  key={cls.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
                 >
-                  <img
-                    src={cls.thumbnail}
-                    alt={cls.topic}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80';
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '8px',
-                    left: '8px',
-                    background: '#047857',
-                    color: '#ffffff',
-                    padding: '3px 10px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: 800
-                  }}>
-                    {cls.className} • {cls.subject}
+                  {/* Thumbnail with Class Overlay */}
+                  <div 
+                    style={{ position: 'relative', height: '160px', background: '#0f172a', cursor: 'pointer' }}
+                    onClick={() => setActiveVideoPlayer({
+                      title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
+                      videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
+                      host: cls.teacher,
+                      description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
+                    })}
+                    title="ক্লাস ভিডিও দেখতে ক্লিক করুন"
+                  >
+                    <img
+                      src={cls.thumbnail}
+                      alt={cls.topic}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      background: '#047857',
+                      color: '#ffffff',
+                      padding: '3px 10px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 800
+                    }}>
+                      {cls.className} • {cls.subject}
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      background: 'rgba(0,0,0,0.75)',
+                      color: '#ffffff',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700
+                    }}>
+                      ⏱️ {toBn(cls.duration)}
+                    </div>
                   </div>
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    right: '8px',
-                    background: 'rgba(0,0,0,0.75)',
-                    color: '#ffffff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: 700
-                  }}>
-                    ⏱️ {toBn(cls.duration)}
+
+                  {/* Content */}
+                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 800, color: '#0f172a', lineHeight: '1.4' }}>
+                      {cls.topic}
+                    </h4>
+                    <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+                      👨‍🏫 {cls.teacher} ({cls.designation})
+                    </div>
+
+                    <div style={{ marginTop: 'auto', display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveVideoPlayer({
+                          title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
+                          videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
+                          host: cls.teacher,
+                          description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
+                        })}
+                        style={{
+                          flex: 1,
+                          background: '#047857',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '8px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span>▶</span> ক্লাস দেখুন
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          alert(`✓ "${cls.topic}" এর লেকচার শিট ও অনুশীলন হ্যান্ডআউট সফলভাবে ডাউনলোড হয়েছে।`);
+                        }}
+                        title="লেকচার নোট ডাউনলোড করুন"
+                        style={{
+                          background: '#f1f5f9',
+                          color: '#334155',
+                          border: '1px solid #cbd5e1',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📥 শিট
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {/* Content */}
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: '14.5px', fontWeight: 800, color: '#0f172a', lineHeight: '1.4' }}>
-                    {cls.topic}
-                  </h4>
-                  <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
-                    👨‍🏫 {cls.teacher} ({cls.designation})
-                  </div>
-
-                  <div style={{ marginTop: 'auto', display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveVideoPlayer({
-                        title: `${cls.className} • ${cls.subject}: ${cls.topic}`,
-                        videoUrl: cls.videoUrl || cls.url || cls.video_url || '',
-                        host: cls.teacher,
-                        description: `শিক্ষক: ${cls.teacher} (${cls.designation})। শ্রেণি: ${cls.className} • বিষয়: ${cls.subject} • পাঠ: ${cls.topic}। তারিখ: ${toBn(cls.date)} খ্রি.`
-                      })}
-                      style={{
-                        flex: 1,
-                        background: '#047857',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span>▶</span> ক্লাস দেখুন
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        alert(`✓ "${cls.topic}" এর লেকচার শিট ও অনুশীলন হ্যান্ডআউট সফলভাবে ডাউনলোড হয়েছে।`);
-                      }}
-                      title="লেকচার নোট ডাউনলোড করুন"
-                      style={{
-                        background: '#f1f5f9',
-                        color: '#334155',
-                        border: '1px solid #cbd5e1',
-                        padding: '8px 10px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      📥 শিট
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

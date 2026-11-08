@@ -130,7 +130,21 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
       if (storedVideos) setVideoAlbums(JSON.parse(storedVideos));
 
       const storedClasses = localStorage.getItem(ONLINE_CLASSES_KEY);
-      if (storedClasses) setOnlineClasses(JSON.parse(storedClasses));
+      if (storedClasses) {
+        try {
+          const parsed = JSON.parse(storedClasses);
+          if (Array.isArray(parsed)) {
+            // Filter out default mock classes (cls-01 to cls-06)
+            const userOnly = parsed.filter(c => c && !['cls-01', 'cls-02', 'cls-03', 'cls-04', 'cls-05', 'cls-06'].includes(c.id));
+            setOnlineClasses(userOnly);
+            localStorage.setItem(ONLINE_CLASSES_KEY, JSON.stringify(userOnly));
+          } else {
+            setOnlineClasses([]);
+          }
+        } catch {
+          setOnlineClasses([]);
+        }
+      }
     } catch {}
   }, []);
 
@@ -1296,36 +1310,46 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 </tr>
               </thead>
               <tbody>
-                {onlineClasses.map(c => (
-                  <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 14px', fontWeight: 800, color: '#047857' }}>
-                      {c.className}
-                    </td>
-                    <td style={{ padding: '10px 14px', fontWeight: 700, color: '#1e293b' }}>
-                      {c.subject}
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <div style={{ fontWeight: 800, color: '#0f172a' }}>{c.topic}</div>
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#475569' }}>
-                      {c.teacher}
-                    </td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (window.confirm('আপনি কি এই ক্লাসটি মুছে ফেলতে চান?')) {
-                            saveOnlineClasses(onlineClasses.filter(x => x.id !== c.id));
-                            showToast('✓ ক্লাস মুছে ফেলা হয়েছে।');
-                          }
-                        }}
-                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
-                      >
-                        🗑️
-                      </button>
+                {onlineClasses.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '6px' }}>🎓</div>
+                      <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#334155' }}>বর্তমানে কোনো অনলাইন ক্লাস সংরক্ষিত নেই</div>
+                      <div style={{ fontSize: '12px', marginTop: '4px' }}>উপরের ফর্মটি পূরণ করে নতুন ক্লাস যোগ করুন।</div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  onlineClasses.map(c => (
+                    <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 14px', fontWeight: 800, color: '#047857' }}>
+                        {c.className}
+                      </td>
+                      <td style={{ padding: '10px 14px', fontWeight: 700, color: '#1e293b' }}>
+                        {c.subject}
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{c.topic}</div>
+                      </td>
+                      <td style={{ padding: '10px 14px', color: '#475569' }}>
+                        {c.teacher}
+                      </td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('আপনি কি এই ক্লাসটি মুছে ফেলতে চান?')) {
+                              saveOnlineClasses(onlineClasses.filter(x => x.id !== c.id));
+                              showToast('✓ ক্লাস মুছে ফেলা হয়েছে।');
+                            }
+                          }}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
