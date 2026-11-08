@@ -132,23 +132,30 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
         try {
           const parsed = JSON.parse(storedVideos);
           if (Array.isArray(parsed)) {
-            const normalized = parsed.map(v => {
-              const ytId = extractYouTubeId(v.videoUrl);
-              let updated = { ...v };
-              if (ytId) {
-                if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
-                  updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+            // Filter out default mock videos (vid-01 to vid-06) and normalize
+            const userOnly = parsed
+              .filter(v => v && !['vid-01', 'vid-02', 'vid-03', 'vid-04', 'vid-05', 'vid-06'].includes(v.id))
+              .map(v => {
+                const ytId = extractYouTubeId(v.videoUrl);
+                let updated = { ...v };
+                if (ytId) {
+                  if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
+                    updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                  }
+                  if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
+                    updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                  }
                 }
-                if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
-                  updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-                }
-              }
-              return updated;
-            });
-            setVideoAlbums(normalized);
-            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(normalized));
+                return updated;
+              });
+            setVideoAlbums(userOnly);
+            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(userOnly));
+          } else {
+            setVideoAlbums([]);
           }
-        } catch {}
+        } catch {
+          setVideoAlbums([]);
+        }
       }
 
       const storedClasses = localStorage.getItem(ONLINE_CLASSES_KEY);
@@ -1186,48 +1193,58 @@ export function GalleryMasterAdminPanel({ sub = 'photos', setSub }) {
                 </tr>
               </thead>
               <tbody>
-                {videoAlbums.map(v => (
-                  <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 14px' }}>
-                      <img 
-                        src={v.thumbnail && !v.thumbnail.includes('photo-1461896836934-ffe607ba8211')
-                          ? v.thumbnail
-                          : (extractYouTubeId(v.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(v.videoUrl)}/hqdefault.jpg` : v.thumbnail)} 
-                        alt={v.title} 
-                        style={{ width: '56px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} 
-                      />
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <div style={{ fontWeight: 800, color: '#0f172a' }}>{v.title}</div>
-                      <div style={{ fontSize: '11.5px', color: '#64748b' }}>🎙️ {v.host}</div>
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>
-                        {v.categoryLabel}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
-                      ⏱️ {toBn(v.duration)}
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
-                      📅 {toBn(v.eventDate)}
-                    </td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (window.confirm('আপনি কি এই ভিডিওটি মুছে ফেলতে চান?')) {
-                            saveVideoAlbums(videoAlbums.filter(x => x.id !== v.id));
-                            showToast('✓ ভিডিও মুছে ফেলা হয়েছে।');
-                          }
-                        }}
-                        style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
-                      >
-                        🗑️
-                      </button>
+                {videoAlbums.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '6px' }}>🎬</div>
+                      <div style={{ fontWeight: 700, fontSize: '13.5px', color: '#334155' }}>বর্তমানে কোনো ভিডিও সংরক্ষিত নেই</div>
+                      <div style={{ fontSize: '12px', marginTop: '4px' }}>উপরের ফর্মটি পূরণ করে নতুন ভিডিও যোগ করুন।</div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  videoAlbums.map(v => (
+                    <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 14px' }}>
+                        <img 
+                          src={v.thumbnail && !v.thumbnail.includes('photo-1461896836934-ffe607ba8211')
+                            ? v.thumbnail
+                            : (extractYouTubeId(v.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(v.videoUrl)}/hqdefault.jpg` : v.thumbnail)} 
+                          alt={v.title} 
+                          style={{ width: '56px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} 
+                        />
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{v.title}</div>
+                        <div style={{ fontSize: '11.5px', color: '#64748b' }}>🎙️ {v.host}</div>
+                      </td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>
+                          {v.categoryLabel}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
+                        ⏱️ {toBn(v.duration)}
+                      </td>
+                      <td style={{ padding: '10px 14px', color: '#64748b', fontSize: '12px' }}>
+                        📅 {toBn(v.eventDate)}
+                      </td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('আপনি কি এই ভিডিওটি মুছে ফেলতে চান?')) {
+                              saveVideoAlbums(videoAlbums.filter(x => x.id !== v.id));
+                              showToast('✓ ভিডিও মুছে ফেলা হয়েছে।');
+                            }
+                          }}
+                          style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '4px 8px', borderRadius: '4px', fontSize: '11.5px', cursor: 'pointer' }}
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

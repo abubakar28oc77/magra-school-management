@@ -132,88 +132,9 @@ const DEFAULT_PHOTO_ALBUMS = [
 ];
 
 // -------------------------------------------------------------
-// DEFAULT VIDEO ALBUMS
+// DEFAULT VIDEO ALBUMS (DEFAULT EMPTY FOR LEAN PERFORMANCE)
 // -------------------------------------------------------------
-const DEFAULT_VIDEO_ALBUMS = [
-  {
-    id: 'vid-01',
-    title: 'বার্ষিক ক্রীড়া প্রতিযোগিতা ২০২৬ এর মনোজ্ঞ উদ্বোধনী মার্চপাস্ট ও ডিসপ্লে',
-    category: 'sports',
-    categoryLabel: '🏆 ক্রীড়া ও উৎসব',
-    eventDate: '২০২৬-০২-১৫',
-    duration: '১৫:২০ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
-    host: 'শারীরিক শিক্ষা শিক্ষক ও স্কাউট লিডার',
-    description: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের চার সহস্রাধিক দর্শক ও অতিথিদের সামনে পরিবেশিত শিক্ষার্থীদের দৃষ্টিনন্দন শারীরিক কসরত ও দেশাত্মবোধক ডিসপ্লে।'
-  },
-  {
-    id: 'vid-02',
-    title: 'আন্তঃশ্রেণি বিতর্ক প্রতিযোগিতা ২০২৬ — চূড়ান্ত সংসদীয় বিতর্ক রাউন্ড',
-    category: 'debate',
-    categoryLabel: '⚔️ ডিবেট ও বক্তৃতা',
-    eventDate: '২০২৬-০২-০৪',
-    duration: '২৮:৪৫ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
-    host: 'মোঃ আশরাফুল আলম (সহকারী শিক্ষক ও বিতর্ক মডারেটর)',
-    description: 'বিষয়: "প্রযুক্তির অনিয়ন্ত্রিত ব্যবহার শিক্ষার মানকে ক্ষতিগ্রস্ত করছে।" ১০ম ও ৯ম শ্রেণির বিতার্কিকদের যুক্তিপূর্ণ চূড়ান্ত লড়াই।'
-  },
-  {
-    id: 'vid-03',
-    title: 'বিজ্ঞান মেলা ও খুদে রোবটিক্স উদ্ভাবন প্রদর্শনী ২০২৬',
-    category: 'science',
-    categoryLabel: '🔬 বিজ্ঞান উদ্ভাবন',
-    eventDate: '২০২৬-০১-২৮',
-    duration: '১২:১০ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-    host: 'মোঃ হাবিবুর রহমান (বিজ্ঞান ক্লাব সমন্বয়ক)',
-    description: 'শিক্ষার্থীদের তৈরি আগুন শনাক্তকরণ রোবট, স্মার্ট সড়ক বাতি ও জৈব বর্জ্য রিফাইনিং প্রজেক্টের সরাসরি কার্যপদ্ধতি।'
-  },
-  {
-    id: 'vid-04',
-    title: 'মহান শহীদ দিবস ও আন্তর্জাতিক মাতৃভাষা দিবসের সাংস্কৃতিক পরিবেশনা',
-    category: 'national',
-    categoryLabel: '🇧🇩 জাতীয় ও সংস্কৃতি',
-    eventDate: '২০২৬-০২-২১',
-    duration: '১৮:১৫ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
-    host: 'ভাষা ও সাহিত্য ক্লাব',
-    description: 'একুশের কালজয়ী গানের সঙ্গে নৃত্য, নজরুল-রবীন্দ্র আবৃত্তি ও দেশাত্মবোধক গান পরিবেশনা।'
-  },
-  {
-    id: 'vid-05',
-    title: 'শেখ রাসেল ডিজিটাল ল্যাবে স্ক্র্যাচ প্রোগ্রামিং ও অ্যানিমেশন মেকিং ক্লাস',
-    category: 'ict',
-    categoryLabel: '💻 আইসিটি ও কোডিং',
-    eventDate: '২০২৬-০১-১০',
-    duration: '২২:৩০ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
-    host: 'মোঃ আবুবকর সিদ্দিক (আইসিটি শিক্ষক)',
-    description: 'স্ক্র্যাচ ব্লক কোডিংয়ের মাধ্যমে কীভাবে ইন্টারেক্টিভ কার্টুন ও শিক্ষামূলক গেম তৈরি করতে হয় তার হাতে-কলমে প্রশিক্ষণ।'
-  },
-  {
-    id: 'vid-06',
-    title: 'মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়ের ঐতিহ্য ও ইতিহাস বিষয়ক প্রামাণ্যচিত্র',
-    category: 'documentary',
-    categoryLabel: '🏛️ ডকুমেন্টারি ও ইতিহাস',
-    eventDate: '২০২৫-১২-১৬',
-    duration: '২৫:০০ মি.',
-    videoType: 'youtube',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    thumbnail: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80',
-    host: 'বিদ্যালয় ব্যবস্থাপনা কমিটি ও মিডিয়া সেল',
-    description: '১৯৪৬ সালে প্রতিষ্ঠার পর থেকে অত্র অঞ্চলের নারী ও পুরুষ শিক্ষার আলো বিস্তারে বিদ্যালয়ের অবিস্মরণীয় অবদান।'
-  }
-];
+const DEFAULT_VIDEO_ALBUMS = [];
 
 // -------------------------------------------------------------
 // TUTORIALS DATA
@@ -416,32 +337,36 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
         try {
           const parsed = JSON.parse(storedVideos);
           if (Array.isArray(parsed)) {
-            const normalized = parsed.map(v => {
-              const ytId = extractYouTubeId(v.videoUrl);
-              let updated = { ...v };
-              if (ytId) {
-                // If the user's URL was a YouTube studio URL, normalize it
-                if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
-                  updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+            // Filter out default mock videos (vid-01 to vid-06) and normalize YouTube links
+            const userOnly = parsed
+              .filter(v => v && !['vid-01', 'vid-02', 'vid-03', 'vid-04', 'vid-05', 'vid-06'].includes(v.id))
+              .map(v => {
+                const ytId = extractYouTubeId(v.videoUrl);
+                let updated = { ...v };
+                if (ytId) {
+                  // If the user's URL was a YouTube studio URL, normalize it
+                  if (v.videoUrl && v.videoUrl.includes('studio.youtube.com')) {
+                    updated.videoUrl = `https://www.youtube.com/watch?v=${ytId}`;
+                  }
+                  // If thumbnail is missing or default runner, upgrade to YouTube thumbnail
+                  if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
+                    updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                  }
                 }
-                // If thumbnail is missing or default runner, upgrade to YouTube thumbnail
-                if (!updated.thumbnail || updated.thumbnail.includes('photo-1461896836934-ffe607ba8211')) {
-                  updated.thumbnail = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
-                }
-              }
-              return updated;
-            });
-            setVideoAlbums(normalized);
-            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(normalized));
+                return updated;
+              });
+            setVideoAlbums(userOnly);
+            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(userOnly));
           } else {
-            setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+            setVideoAlbums([]);
+            localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify([]));
           }
         } catch {
-          setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+          setVideoAlbums([]);
         }
       } else {
-        localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify(DEFAULT_VIDEO_ALBUMS));
-        setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+        localStorage.setItem(VIDEO_ALBUMS_KEY, JSON.stringify([]));
+        setVideoAlbums([]);
       }
 
       const storedClasses = localStorage.getItem(ONLINE_CLASSES_KEY);
@@ -480,7 +405,7 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
       }
     } catch {
       setPhotoAlbums(DEFAULT_PHOTO_ALBUMS);
-      setVideoAlbums(DEFAULT_VIDEO_ALBUMS);
+      setVideoAlbums([]);
       setOnlineClasses([]);
     }
   }, []);
@@ -1090,145 +1015,164 @@ export default function GalleryMasterModalSection({ initialSubmenuKey = 'photos'
           </div>
 
           {/* Videos Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px'
-          }}>
-            {filteredVideos.map(vid => (
-              <div
-                key={vid.id}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                {/* Video Thumbnail with Play Button */}
+          {filteredVideos.length === 0 ? (
+            <div style={{
+              background: '#f8fafc',
+              border: '2px dashed #cbd5e1',
+              borderRadius: '12px',
+              padding: '40px 20px',
+              textAlign: 'center',
+              color: '#64748b'
+            }}>
+              <div style={{ fontSize: '38px', marginBottom: '10px' }}>🎬</div>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: 700, color: '#334155' }}>
+                কোনো ভিডিও পাওয়া যায়নি
+              </h4>
+              <p style={{ margin: 0, fontSize: '13px' }}>
+                নতুন ভিডিও যোগ করতে উপরের "+ নতুন ভিডিও যুক্ত করুন" বাটনে ক্লিক করুন।
+              </p>
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+              gap: '20px'
+            }}>
+              {filteredVideos.map(vid => (
                 <div
-                  style={{ position: 'relative', height: '180px', background: '#020617', cursor: 'pointer', overflow: 'hidden' }}
-                  onClick={() => setActiveVideoPlayer(vid)}
-                >
-                  <img
-                    src={vid.thumbnail && !vid.thumbnail.includes('photo-1461896836934-ffe607ba8211')
-                      ? vid.thumbnail
-                      : (extractYouTubeId(vid.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(vid.videoUrl)}/hqdefault.jpg` : vid.thumbnail)}
-                    alt={vid.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
-                    onError={(e) => {
-                      e.target.src = 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '54px',
-                    height: '54px',
-                    background: 'rgba(239, 68, 68, 0.95)',
-                    borderRadius: '50%',
+                  key={vid.id}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#ffffff',
-                    fontSize: '22px',
-                    boxShadow: '0 4px 15px rgba(239,68,68,0.5)'
-                  }}>
-                    ▶
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '8px',
-                    right: '8px',
-                    background: 'rgba(0,0,0,0.75)',
-                    color: '#ffffff',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: 700
-                  }}>
-                    ⏱️ {toBn(vid.duration)}
-                  </div>
-                  <div style={{
-                    position: 'absolute',
-                    top: '8px',
-                    left: '8px',
-                    background: 'rgba(15,23,42,0.8)',
-                    color: '#38bdf8',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: 700
-                  }}>
-                    {vid.categoryLabel}
-                  </div>
-                </div>
-
-                {/* Info Container */}
-                <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div style={{ fontSize: '11.5px', color: '#64748b', marginBottom: '6px' }}>
-                    📅 {toBn(vid.eventDate)} • 🎙️ {vid.host}
-                  </div>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: 800, color: '#0f172a', lineHeight: '1.4' }}>
-                    {vid.title}
-                  </h3>
-                  <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#475569', lineHeight: '1.5', flex: 1 }}>
-                    {vid.description}
-                  </p>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setActiveVideoPlayer(vid)}
-                      style={{
-                        background: '#dc2626',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '7px 16px',
-                        borderRadius: '6px',
-                        fontSize: '12.5px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
+                    flexDirection: 'column'
+                  }}
+                >
+                  {/* Video Thumbnail with Play Button */}
+                  <div
+                    style={{ position: 'relative', height: '180px', background: '#020617', cursor: 'pointer', overflow: 'hidden' }}
+                    onClick={() => setActiveVideoPlayer(vid)}
+                  >
+                    <img
+                      src={vid.thumbnail && !vid.thumbnail.includes('photo-1461896836934-ffe607ba8211')
+                        ? vid.thumbnail
+                        : (extractYouTubeId(vid.videoUrl) ? `https://img.youtube.com/vi/${extractYouTubeId(vid.videoUrl)}/hqdefault.jpg` : vid.thumbnail)}
+                      alt={vid.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80';
                       }}
-                    >
-                      <span>▶</span> ভিডিও প্লে করুন
-                    </button>
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '54px',
+                      height: '54px',
+                      background: 'rgba(239, 68, 68, 0.95)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ffffff',
+                      fontSize: '22px',
+                      boxShadow: '0 4px 15px rgba(239,68,68,0.5)'
+                    }}>
+                      ▶
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      background: 'rgba(0,0,0,0.75)',
+                      color: '#ffffff',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700
+                    }}>
+                      ⏱️ {toBn(vid.duration)}
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      background: 'rgba(15,23,42,0.8)',
+                      color: '#38bdf8',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700
+                    }}>
+                      {vid.categoryLabel}
+                    </div>
+                  </div>
 
-                    {vid.isCustom && (
+                  {/* Info Container */}
+                  <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                    <div style={{ fontSize: '11.5px', color: '#64748b', marginBottom: '6px' }}>
+                      📅 {toBn(vid.eventDate)} • 🎙️ {vid.host}
+                    </div>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: 800, color: '#0f172a', lineHeight: '1.4' }}>
+                      {vid.title}
+                    </h3>
+                    <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#475569', lineHeight: '1.5', flex: 1 }}>
+                      {vid.description}
+                    </p>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm('আপনি কি এই ভিডিওটি তালিকা থেকে মুছে ফেলতে চান?')) {
-                            saveVideoAlbums(videoAlbums.filter(v => v.id !== vid.id));
-                          }
-                        }}
+                        onClick={() => setActiveVideoPlayer(vid)}
                         style={{
-                          background: '#fee2e2',
-                          color: '#dc2626',
+                          background: '#dc2626',
+                          color: '#ffffff',
                           border: 'none',
-                          padding: '6px 10px',
+                          padding: '7px 16px',
                           borderRadius: '6px',
-                          fontSize: '11.5px',
+                          fontSize: '12.5px',
                           fontWeight: 700,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
                         }}
                       >
-                        মুছুন
+                        <span>▶</span> ভিডিও প্লে করুন
                       </button>
-                    )}
+
+                      {vid.isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('আপনি কি এই ভিডিওটি তালিকা থেকে মুছে ফেলতে চান?')) {
+                              saveVideoAlbums(videoAlbums.filter(v => v.id !== vid.id));
+                            }
+                          }}
+                          style={{
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: 'none',
+                            padding: '6px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          মুছুন
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
