@@ -973,80 +973,105 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
       return <EServiceCenterModalSection initialSubmenuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
+    // Check if this is a personnel or contact submenu
+    const isPersonnelOrContact =
+      Boolean(
+        menuKey?.startsWith('public.nav.contact') ||
+        menuKey?.startsWith('public.nav.staff') ||
+        title?.includes('শিক্ষক') ||
+        title?.includes('কর্মচারী') ||
+        title?.includes('অফিস সহকারী') ||
+        title?.includes('যোগাযোগ')
+      );
+
     // Co-curricular & 4 Major Clubs (Literature, Debate, Science, ICT)
     if (
-      menuKey === 'public.nav.sport.clubs' || 
-      menuKey === 'public.nav.sport.debate' ||
-      menuKey === 'public.nav.sport.science' ||
-      menuKey === 'public.nav.sport.ict' ||
-      menuKey === 'public.nav.sport.literature' ||
-      menuKey?.includes('clubs') ||
-      menuKey?.includes('debate') ||
-      menuKey?.includes('science') ||
-      menuKey?.includes('ict') ||
-      menuKey?.includes('literature') ||
-      title?.includes('ভাষা ও সাহিত্য') || 
-      title?.includes('সাহিত্য ক্লাব') || 
-      title?.includes('ক্লাব ও সংগঠন') ||
-      title?.includes('ক্লাব') ||
-      title?.includes('ডিবেট') ||
-      title?.includes('বিতর্ক') ||
-      title?.includes('বিজ্ঞান') ||
-      title?.includes('আইসিটি')
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.clubs' || 
+        menuKey === 'public.nav.sport.debate' ||
+        menuKey === 'public.nav.sport.science' ||
+        menuKey === 'public.nav.sport.ict' ||
+        menuKey === 'public.nav.sport.literature' ||
+        menuKey?.includes('clubs') ||
+        menuKey === 'public.nav.co_curricular.ict' ||
+        menuKey === 'public.nav.co_curricular.science' ||
+        title?.includes('ভাষা ও সাহিত্য') || 
+        title?.includes('সাহিত্য ক্লাব') || 
+        title?.includes('ক্লাব ও সংগঠন') ||
+        title?.includes('ডিবেট ক্লাব') ||
+        title?.includes('বিতর্ক ক্লাব') ||
+        title?.includes('বিজ্ঞান ক্লাব') ||
+        title?.includes('আইসিটি ক্লাব') ||
+        title?.includes('কোডিং ক্লাব') ||
+        title?.includes('আইসিটি ও কোডিং') ||
+        (title?.includes('ক্লাব') && !title?.includes('শিক্ষক'))
+      )
     ) {
       return <LanguageLiteratureClubSection initialTitle={title} menuKey={menuKey} onClose={onClose} />;
     }
 
     // 1. Annual Sports (বার্ষিক ক্রীড়া) - Standalone
     if (
-      menuKey === 'public.nav.sport.sports' || 
-      menuKey === 'public.nav.sport.inter' ||
-      title?.includes('বার্ষিক ক্রীড়া') ||
-      (title?.includes('ক্রীড়া') && !title?.includes('সংস্কৃতি'))
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.sports' || 
+        menuKey === 'public.nav.sport.inter' ||
+        title?.includes('বার্ষিক ক্রীড়া') ||
+        (title?.includes('ক্রীড়া') && !title?.includes('সংস্কৃতি'))
+      )
     ) {
       return <SportsCultureModernSection category="sports" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // 2. Cultural Programs (সাংস্কৃতিক অনুষ্ঠান) - Standalone
     if (
-      menuKey === 'public.nav.sport.culture' ||
-      title?.includes('সাংস্কৃতিক') ||
-      (title?.includes('সংস্কৃতি') && !title?.includes('ক্রীড়া'))
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.culture' ||
+        title?.includes('সাংস্কৃতিক') ||
+        (title?.includes('সংস্কৃতি') && !title?.includes('ক্রীড়া'))
+      )
     ) {
       return <SportsCultureModernSection category="culture" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // 3. Achievements & Awards (অর্জন ও পুরস্কার) - Standalone
     if (
-      menuKey === 'public.nav.sport.achievements' ||
-      title?.includes('অর্জন') ||
-      title?.includes('পুরস্কার')
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.achievements' ||
+        title?.includes('অর্জন') ||
+        title?.includes('পুরস্কার')
+      )
     ) {
       return <SportsCultureModernSection category="achievements" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // 4. Educational Tour (শিক্ষা সফর) - Standalone
     if (
-      menuKey === 'public.nav.sport.tour' ||
-      title?.includes('শিক্ষা সফর') ||
-      title?.includes('ট্যুর')
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.tour' ||
+        title?.includes('শিক্ষা সফর') ||
+        title?.includes('ট্যুর')
+      )
     ) {
       return <SportsCultureModernSection category="tour" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // 5. Computer Lab (কম্পিউটার ল্যাব) - Standalone
     if (
-      menuKey === 'public.nav.sport.lab' || 
-      title?.includes('কম্পিউটার ল্যাব') ||
-      title?.includes('ল্যাব')
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.lab' || 
+        title?.includes('কম্পিউটার ল্যাব') ||
+        title?.includes('ল্যাব')
+      )
     ) {
       return <SportsCultureModernSection category="lab" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
 
     // 6. Multimedia Classroom (মাল্টিমিডিয়া ক্লাস) - Standalone
     if (
-      menuKey === 'public.nav.sport.multimedia' || 
-      title?.includes('মাল্টিমিডিয়া')
+      !isPersonnelOrContact && (
+        menuKey === 'public.nav.sport.multimedia' || 
+        title?.includes('মাল্টিমিডিয়া')
+      )
     ) {
       return <SportsCultureModernSection category="multimedia" menuKey={menuKey} initialTitle={title} onClose={onClose} />;
     }
