@@ -15,6 +15,10 @@ export function toBnDigits(n) {
   return String(n).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 }
 
+export function toBn(n) {
+  return String(n ?? 0).replace(/[0-9]/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+}
+
 export function sortPeopleByEmployeeId(list = []) {
   return [...(list || [])].sort((a, b) => {
     const na = parseEmployeeIdNum(a?.employee_id || a?.id);
@@ -734,7 +738,7 @@ function Home(){
  const[admissionMsg,setAdmissionMsg]=useState('');
  const[admissionReceipt,setAdmissionReceipt]=useState(null);
 
- const toBn=n=>String(n??0).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+
 
  const [photoUpdateVersion, setPhotoUpdateVersion] = useState(0);
  const [isTickerPaused, setIsTickerPaused] = useState(false);
