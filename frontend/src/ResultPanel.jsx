@@ -269,32 +269,14 @@ export function ResultPanel({ sub, userRole }) {
 
   // Filtered exams for Exam Names setup tab
   const filteredExamsForSetup = useMemo(() => {
-    const valid = exams.filter(e => {
-      if (!e) return false;
-      if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
-      const bn = e.name_bn || '';
-      const en = e.name_en || '';
-      const rem = e.remarks || '';
-      if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
-      if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
-      return true;
-    });
+    const valid = exams.filter(Boolean);
     if (examFilterYear === 'all') return valid;
     return valid.filter(e => String(e.academic_year) === String(examFilterYear));
   }, [exams, examFilterYear]);
 
-  // Filtered exams for toolbar
+  // Filtered exams for toolbar (All 2026 exams: Half-Yearly, Annual, Pre-Test, Test)
   const examsForSelectedYear = useMemo(() => {
-    const valid = exams.filter(e => {
-      if (!e) return false;
-      if (e.id === 'ex-annual-2026' || e.id === 'ex-test-2026') return false;
-      const bn = e.name_bn || '';
-      const en = e.name_en || '';
-      const rem = e.remarks || '';
-      if (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬') || en.includes('SSC Test Examination 2026') || rem.includes('১০ম শ্রেণির এসএসসি টেস্ট')) return false;
-      if (bn.includes('বার্ষিক পরীক্ষা ২০২৬') || en.includes('Annual Examination 2026') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা')) return false;
-      return true;
-    });
+    const valid = exams.filter(Boolean);
     if (!selectedYear || selectedYear === 'all') return valid;
     return valid.filter(e => String(e.academic_year) === String(selectedYear));
   }, [exams, selectedYear]);
@@ -307,6 +289,21 @@ export function ResultPanel({ sub, userRole }) {
       setSelectedExam('');
     }
   }, [selectedYear, examsForSelectedYear]);
+
+  // Auto-switch to Class 10 for SSC Test or Pre-Test exams
+  useEffect(() => {
+    if (selectedExam) {
+      const ex = exams.find(e => String(e.id) === String(selectedExam));
+      const bn = (ex?.name_bn || '').toLowerCase();
+      const rem = (ex?.remarks || '').toLowerCase();
+      const id = String(selectedExam).toLowerCase();
+      if (id.includes('test') || id.includes('pre-test') || bn.includes('নির্বাচন') || rem.includes('১০ম') || rem.includes('ssc')) {
+        if (className !== '10') {
+          setClassName('10');
+        }
+      }
+    }
+  }, [selectedExam]);
 
   const selectedExamObj = useMemo(() => {
     return exams.find(e => String(e.id) === String(selectedExam));
@@ -780,18 +777,6 @@ export function ResultPanel({ sub, userRole }) {
         return;
       }
 
-      // Ensure students list is available
-      let stList = students;
-      if (!Array.isArray(stList) || !stList.length) {
-        try {
-          const fetchedSt = await api('/students?class_name=' + className);
-          if (Array.isArray(fetchedSt) && fetchedSt.length) {
-            stList = fetchedSt;
-            setStudents(stList);
-          }
-        } catch (_) {}
-      }
-
       const rawHeaders = matrix[0].map(h => (h || '').trim());
       const cleanHeaders = rawHeaders.map(h => h.toLowerCase().replace(/[\s_\-]+/g, ''));
 
@@ -810,21 +795,60 @@ export function ResultPanel({ sub, userRole }) {
         return;
       }
 
-      // Filter subjects for current class
-      const classSubjects = subjects.filter(s => !s.class_name || String(s.class_name) === String(className));
+      // Smart Class Detection: If selected exam is SSC Test/Pre-Test, or CSV has Class 10/Science subjects
+      const isSscExam = String(selectedExam).toLowerCase().includes('test') ||
+                        (selectedExamObj?.name_bn || '').includes('নির্বাচন') ||
+                        (selectedExamObj?.remarks || '').includes('১০ম') ||
+                        cleanHeaders.some(h => ['136', '137', '138', '126', 'পদার্থ', 'রসায়ন', 'রসায়ন', 'জীববিজ্ঞান', 'উচ্চতর'].some(sub => h.includes(sub)));
 
-      // Build student lookup map
+      let effectiveClass = className;
+      if (isSscExam && effectiveClass !== '10') {
+        effectiveClass = '10';
+        setClassName('10');
+      }
+
+      // Always load the complete student roster for effectiveClass to ensure 100% match rate
+      let allClassStudents = [];
+      try {
+        const fetchedSt = await api('/students?class_name=' + effectiveClass);
+        if (Array.isArray(fetchedSt) && fetchedSt.length) {
+          allClassStudents = fetchedSt;
+        }
+      } catch (_) {}
+      if (!allClassStudents.length) {
+        allClassStudents = Array.isArray(students) && students.length ? students : [];
+      }
+
+      // Filter subjects for current class
+      const classSubjects = subjects.filter(s => !s.class_name || String(s.class_name) === String(effectiveClass));
+
+      // Build robust student lookup map
       const studentLookup = new Map();
-      (stList || []).forEach(st => {
+      allClassStudents.forEach(st => {
         if (st.id) studentLookup.set(`id:${st.id.toLowerCase()}`, st);
         if (st.student_id) studentLookup.set(`id:${st.student_id.toLowerCase()}`, st);
         if (st.student_code) studentLookup.set(`id:${st.student_code.toLowerCase()}`, st);
         if (st.roll_no !== undefined && st.roll_no !== null) {
-          studentLookup.set(`roll:${st.roll_no}`, st);
-          const dept = (st.department || st.group_name || '').toLowerCase();
-          if (dept) studentLookup.set(`dept_roll:${dept}_${st.roll_no}`, st);
+          const r = String(st.roll_no).trim();
+          studentLookup.set(`roll:${r}`, st);
+          const dept = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
+          if (dept) {
+            studentLookup.set(`dept_roll:${dept}_${r}`, st);
+            if (dept.includes('বিজ্ঞান') || dept.includes('sci')) {
+              studentLookup.set(`dept_roll:বিজ্ঞান_${r}`, st);
+              studentLookup.set(`dept_roll:বিজ্ঞান বিভাগ_${r}`, st);
+              studentLookup.set(`dept_roll:science_${r}`, st);
+              studentLookup.set(`dept_roll:sci_${r}`, st);
+            } else if (dept.includes('মানবিক') || dept.includes('hum') || dept.includes('arts')) {
+              studentLookup.set(`dept_roll:মানবিক_${r}`, st);
+              studentLookup.set(`dept_roll:humanities_${r}`, st);
+            } else if (dept.includes('ব্যবসায়') || dept.includes('com') || dept.includes('business')) {
+              studentLookup.set(`dept_roll:ব্যবসায় শিক্ষা_${r}`, st);
+              studentLookup.set(`dept_roll:commerce_${r}`, st);
+            }
+          }
           const deptPrio = getStudentGroupPriority({ department: st.department || st.group_name });
-          if (deptPrio < 4) studentLookup.set(`prio_roll:${deptPrio}_${st.roll_no}`, st);
+          if (deptPrio < 4) studentLookup.set(`prio_roll:${deptPrio}_${r}`, st);
         }
       });
 
@@ -913,7 +937,7 @@ export function ResultPanel({ sub, userRole }) {
             if (w !== '' || m !== '' || p !== '' || isAbsent) {
               recordsToSave.push({
                 exam_id: selectedExam,
-                class_name: className,
+                class_name: effectiveClass,
                 student_id: matchedStudent.id,
                 subject_id: sub.id,
                 subject_code: sub.code,
@@ -996,7 +1020,7 @@ export function ResultPanel({ sub, userRole }) {
 
           recordsToSave.push({
             exam_id: selectedExam,
-            class_name: className,
+            class_name: effectiveClass,
             student_id: matchedStudent.id,
             subject_id: rowSub.id,
             subject_code: rowSub.code,
@@ -1031,7 +1055,7 @@ export function ResultPanel({ sub, userRole }) {
       // 2. Immediately recalculate results via Dhaka Board Exam Engine
       const processRes = await api('/results/process', {
         method: 'POST',
-        body: JSON.stringify({ exam_id: selectedExam, class_name: className })
+        body: JSON.stringify({ exam_id: selectedExam, class_name: effectiveClass })
       });
 
       if (Array.isArray(processRes.summary)) {

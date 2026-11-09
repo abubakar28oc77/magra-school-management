@@ -191,24 +191,14 @@ try {
 } catch {}
 
 
-// Purge deleted/legacy exams from localStorage on startup
+// Ensure required 2026 exams persist in localStorage
 try {
   const rawExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
   if (Array.isArray(rawExams)) {
-    const cleaned = rawExams.filter(e => {
-      if (!e) return false;
-      const bn = e.name_bn || '';
-      const en = e.name_en || '';
-      const rem = e.remarks || '';
-      const isTarget = e.id === 'ex-annual-2026' || e.id === 'ex-test-2026' ||
-                       (!bn.includes('প্রাক') && (bn.includes('নির্বাচনি পরীক্ষা ২০২৬') || bn.includes('নির্বাচনী পরীক্ষা ২০২৬'))) ||
-                       bn.includes('বার্ষিক পরীক্ষা ২০২৬') ||
-                       en.includes('SSC Test Examination 2026') || en.includes('Annual Examination 2026') ||
-                       rem.includes('১০ম শ্রেণির এসএসসি টেস্ট') || rem.includes('বার্ষিক চূড়ান্ত ও প্রমোশন পরীক্ষা');
-      return !isTarget;
-    });
-    if (cleaned.length !== rawExams.length) {
-      localStorage.setItem('magra_db_exams', JSON.stringify(cleaned));
+    const test10Exists = rawExams.some(e => e && (e.id === 'ex-test-10' || (e.name_bn && e.name_bn.includes('নির্বাচন') && !e.name_bn.includes('প্রাক'))));
+    if (!test10Exists) {
+      rawExams.push({ id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' });
+      localStorage.setItem('magra_db_exams', JSON.stringify(rawExams));
     }
   }
 } catch {}
@@ -2600,10 +2590,23 @@ function handleMockRequest(path, opts = {}) {
 
   if (cleanPath === '/results/process' && method === 'POST') {
     const examId = body.exam_id;
-    const cls = body.class_name || '6';
+    let cls = body.class_name || '6';
     let exams = getLocalStore('exams', MOCK_EXAMS);
     exams = exams.map(e => String(e.id) === String(examId) ? { ...e, status: 'published' } : e);
     setLocalStore('exams', exams);
+
+    const examStr = String(examId).toLowerCase();
+    const examObj = exams.find(e => String(e.id) === String(examId));
+    const examName = (examObj?.name_bn || '').toLowerCase();
+    const isPreTest = examStr === 'ex-pre-test-10' || examStr.includes('pre-test') || examStr.includes('pre_test') || examName.includes('প্রাক-নির্বাচন');
+    const isTest = !isPreTest && (examStr === 'ex-test-10' || examStr.includes('test') || examName.includes('নির্বাচন'));
+    const isHalfYearly = examStr === 'ex-2' || examStr.includes('half') || examName.includes('অর্ধ');
+    const isAnnual = !isHalfYearly && (examStr === 'ex-3' || examStr.includes('annual') || examName.includes('বার্ষিক'));
+
+    // Test and Pre-Test are strictly Class 10 SSC exams
+    if ((isPreTest || isTest) && !['10', '১০', '১০ম'].includes(String(cls))) {
+      cls = '10';
+    }
 
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
@@ -2613,14 +2616,6 @@ function handleMockRequest(path, opts = {}) {
     // Compute real results via Dhaka Board Exam Engine
     const processed = processClassResults(students, subs, marks, cls, examId);
     setLocalStore(`results_${examId}_${cls}`, processed);
-
-    const examStr = String(examId).toLowerCase();
-    const examObj = exams.find(e => String(e.id) === String(examId));
-    const examName = (examObj?.name_bn || '').toLowerCase();
-    const isPreTest = examStr === 'ex-pre-test-10' || examStr.includes('pre-test') || examStr.includes('pre_test') || examName.includes('প্রাক-নির্বাচন');
-    const isTest = !isPreTest && (examStr === 'ex-test-10' || examStr.includes('test') || examName.includes('নির্বাচন'));
-    const isHalfYearly = examStr === 'ex-2' || examStr.includes('half') || examName.includes('অর্ধ');
-    const isAnnual = !isHalfYearly && (examStr === 'ex-3' || examStr.includes('annual') || examName.includes('বার্ষিক'));
 
     // 1. Auto-sync Pre-Test (Class 10)
     if (isPreTest && ['10', '১০', '১০ম'].includes(String(cls))) {
