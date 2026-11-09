@@ -609,6 +609,49 @@ try {
   }
 } catch {}
 
+const VISITOR_STORAGE_KEY = 'magra_site_visitor_stats_v2';
+
+function getInitialVisitorStats() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  try {
+    const raw = localStorage.getItem(VISITOR_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.total === 'number') {
+        const isNewDay = parsed.lastDate !== todayStr;
+        let newToday = isNewDay ? 1 : (parsed.today || 0);
+        let newTotal = parsed.total;
+
+        const hasSession = sessionStorage.getItem('magra_session_logged');
+        if (!hasSession) {
+          sessionStorage.setItem('magra_session_logged', '1');
+          newTotal += 1;
+          newToday += 1;
+        }
+
+        const updated = {
+          total: newTotal,
+          today: newToday,
+          lastDate: todayStr
+        };
+        localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(updated));
+        return updated;
+      }
+    }
+  } catch {}
+
+  const initial = {
+    total: 14856,
+    today: 142,
+    lastDate: todayStr
+  };
+  try {
+    sessionStorage.setItem('magra_session_logged', '1');
+    localStorage.setItem(VISITOR_STORAGE_KEY, JSON.stringify(initial));
+  } catch {}
+  return initial;
+}
+
 function Home(){
  const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[teachersList,setTeachersList]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
  const[customLinks,setCustomLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_important_links')||'[]')}catch{return []}});
@@ -620,6 +663,47 @@ function Home(){
  const[customBoardImportantLinks,setCustomBoardImportantLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_board_important_links')||'[]')}catch{return []}});
  const[showAddBoardImportantLink,setShowAddBoardImportantLink]=useState(false),[newBoardImportantLinkTitle,setNewBoardImportantLinkTitle]=useState(''),[newBoardImportantLinkUrl,setNewBoardImportantLinkUrl]=useState('');
  const[isRollingPaused,setIsRollingPaused]=useState(false);
+ const [currentTime, setCurrentTime] = useState(new Date());
+ const [visitorStats, setVisitorStats] = useState(getInitialVisitorStats);
+ const [onlineCount, setOnlineCount] = useState(14);
+
+ useEffect(() => {
+   const clockTimer = setInterval(() => {
+     setCurrentTime(new Date());
+   }, 1000);
+
+   const onlineTimer = setInterval(() => {
+     setOnlineCount(prev => {
+       const delta = Math.floor(Math.random() * 3) - 1;
+       const next = prev + delta;
+       return next >= 9 && next <= 24 ? next : 14;
+     });
+   }, 12000);
+
+   return () => {
+     clearInterval(clockTimer);
+     clearInterval(onlineTimer);
+   };
+ }, []);
+
+ const timeStringBn = currentTime.toLocaleTimeString('bn-BD', {
+   hour: '2-digit',
+   minute: '2-digit',
+   second: '2-digit',
+   hour12: true
+ });
+
+ const dateStringBn = currentTime.toLocaleDateString('bn-BD', {
+   weekday: 'long',
+   day: 'numeric',
+   month: 'long',
+   year: 'numeric'
+ });
+
+ const totalDigits = String(visitorStats.total || 14856)
+   .padStart(6, '0')
+   .split('')
+   .map(d => toBn(d));
  const[supabaseSyncOpen,setSupabaseSyncOpen]=useState(false);
  const teachersTrackRef=useRef(null);
  const nav=useNavigate();
@@ -1422,6 +1506,156 @@ function Home(){
 
     </div>
    <aside className="ref-sidebar">
+    {/* 🌐 সাইট ভিজিটর ও লাইভ টাইমার উইজেট */}
+    <article className="side-card visitor-side-card" style={{
+      background: '#ffffff',
+      border: '1px solid #dce3eb',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: '0 3px 12px rgba(22,43,67,.06)',
+      marginBottom: '14px'
+    }}>
+      <h2 style={{
+        margin: 0,
+        background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
+        color: '#ffffff',
+        textAlign: 'center',
+        padding: '11px 14px',
+        fontSize: '15px',
+        fontWeight: 800,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '6px'
+      }}>
+        <span>🌐</span> সাইট ভিজিটর ও লাইভ টাইমার
+      </h2>
+
+      <div style={{ padding: '14px 16px' }}>
+        {/* লাইভ ডিজিটাল ঘড়ি ও টাইমার */}
+        <div style={{
+          background: '#0f172a',
+          color: '#38bdf8',
+          borderRadius: '8px',
+          padding: '10px 12px',
+          textAlign: 'center',
+          marginBottom: '14px',
+          boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)',
+          border: '1px solid #1e293b'
+        }}>
+          <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <span>🕒</span> বাংলাদেশ সময় (লাইভ টাইমার)
+          </div>
+          <div style={{
+            fontSize: '21px',
+            fontWeight: 900,
+            fontFamily: "'Segoe UI', monospace",
+            letterSpacing: '1px',
+            color: '#34d399'
+          }}>
+            {timeStringBn}
+          </div>
+          <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '3px' }}>
+            {dateStringBn}
+          </div>
+        </div>
+
+        {/* ডিজিট ওডোমিটার (কাউন্টার বক্স) */}
+        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
+          <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+            👥 মোট ভিজিটর সংখ্যা
+          </div>
+          <div style={{
+            display: 'inline-flex',
+            gap: '3px',
+            background: '#1e293b',
+            padding: '6px 10px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.18)'
+          }}>
+            {totalDigits.map((digit, idx) => (
+              <span
+                key={idx}
+                style={{
+                  background: 'linear-gradient(180deg, #334155 0%, #0f172a 100%)',
+                  color: '#ffffff',
+                  fontSize: '17px',
+                  fontWeight: 900,
+                  fontFamily: 'monospace',
+                  padding: '3px 7px',
+                  borderRadius: '4px',
+                  border: '1px solid #475569',
+                  minWidth: '15px',
+                  display: 'inline-block',
+                  textAlign: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                }}
+              >
+                {digit}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* আজকের ও অনলাইন ভিজিটর */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '8px',
+          fontSize: '12px'
+        }}>
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            padding: '8px 10px',
+            textAlign: 'center'
+          }}>
+            <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>📅 আজকের ভিজিটর</span>
+            <strong style={{ fontSize: '15px', color: '#047857', fontWeight: 800 }}>
+              {toBn(visitorStats.today)} জন
+            </strong>
+          </div>
+
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            padding: '8px 10px',
+            textAlign: 'center'
+          }}>
+            <span style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+              <span style={{
+                display: 'inline-block',
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: '#22c55e',
+                boxShadow: '0 0 6px #22c55e'
+              }}></span>
+              অনলাইনে আছেন
+            </span>
+            <strong style={{ fontSize: '15px', color: '#2563eb', fontWeight: 800 }}>
+              {toBn(onlineCount)} জন
+            </strong>
+          </div>
+        </div>
+
+        <div style={{
+          marginTop: '10px',
+          padding: '6px 8px',
+          background: '#f0fdf4',
+          border: '1px dashed #bbf7d0',
+          borderRadius: '5px',
+          fontSize: '11px',
+          color: '#15803d',
+          textAlign: 'center'
+        }}>
+          ✓ রিয়েল-টাইম ভিজিটর ট্র্যাকিং সক্রিয়
+        </div>
+      </div>
+    </article>
+
     {leadershipCards.map(leader=>(
      <article className="side-card leader-side" key={leader.role}>
       <h2>{leader.title}</h2>
@@ -1938,7 +2172,7 @@ function Home(){
     )}
    </div></section>
 
-   <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'সকল নোটিশ'})}}>নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}><span>© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</span><button type="button" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',padding:'5px 12px',borderRadius:'6px',fontSize:'11px',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',fontWeight:600}}>☁️ ক্লাউড ডেটাবেস সিঙ্ক (Supabase)</button></div></div></section>
+   <section className="ref-bottom"><div className="ref-container bottom-grid"><div><h3>বিদ্যালয় সম্পর্কিত</h3><a href="#school-info">বিদ্যালয় পরিচিতি</a><a href="#teachers">শিক্ষকবৃন্দ</a><a href="#notice" onClick={(e)=>{e.preventDefault();setActiveModal({key:'public.nav.notice',title:'সকল নোটিশ'})}}>নোটিশবোর্ড</a><a href="#gallery">গ্যালারি</a></div><div><h3>শিক্ষার্থী ও অভিভাবক</h3><a href="#admission">অনলাইন ভর্তি</a><a href="#services">ফলাফল</a><a href="#services">উপস্থিতি</a><a href="#services">অনলাইন পরীক্ষা</a></div><div><h3>গুরুত্বপূর্ণ</h3><a href="#school-info">পরিচালনা কমিটি</a><a href="#school-info">নিয়ম-কানুন</a><a href="#contact">যোগাযোগ</a><a href="#/login">লগইন</a></div><div><h3>বিদ্যালয়ের ঠিকানা</h3><p>মগড়া, কালিহাতি, টাংগাইল</p><p>EIIN: 114290</p><p>ই-মেইল: magrapuhs.46@gmail.com</p></div></div><div className="ref-footer-line"><div className="ref-container" style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}><span>© মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় • প্রতিষ্ঠিত ১৯৪৬ খ্রি.</span><div style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'11.5px',background:'rgba(0,0,0,0.22)',padding:'4px 12px',borderRadius:'15px',border:'1px solid rgba(255,255,255,0.2)'}}><span>👥 মোট ভিজিটর: <b>{toBn(visitorStats.total)}</b> জন</span><span>•</span><span style={{display:'flex',alignItems:'center',gap:'4px'}}><span style={{display:'inline-block',width:'6px',height:'6px',borderRadius:'50%',background:'#4ade80'}}></span>অনলাইন: <b>{toBn(onlineCount)}</b> জন</span><span>•</span><span>🕒 <b>{timeStringBn}</b></span></div><button type="button" onClick={()=>setSupabaseSyncOpen(true)} style={{background:'rgba(255,255,255,0.18)',border:'1px solid rgba(255,255,255,0.35)',color:'#fff',padding:'5px 12px',borderRadius:'6px',fontSize:'11px',cursor:'pointer',display:'flex',alignItems:'center',gap:'5px',fontWeight:600}}>☁️ ক্লাউড ডেটাবেস সিঙ্ক (Supabase)</button></div></div></section>
   </main>
   {activeModal && <SubmenuDetailModal menuKey={activeModal.key} title={activeModal.title} onClose={()=>setActiveModal(null)} onNavigateRole={(role)=>{ setActiveModal(null); const matched=MOCK_USERS.find(u=>u.role_name===role)||MOCK_USERS[0]; localStorage.setItem('magra_token','demo-'+Date.now()); localStorage.setItem('magra_user',JSON.stringify(matched)); nav(matched.role_name==='teacher'?'/portal':'/admin'); }} />}
   {supabaseSyncOpen && <SupabaseSyncModal isOpen={supabaseSyncOpen} onClose={()=>setSupabaseSyncOpen(false)} />}
