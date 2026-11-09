@@ -241,9 +241,9 @@ export function ResultPanel({ sub, userRole }) {
         if (targetExam) {
           setSelectedExam(targetExam.id);
         } else if (cleanList.length && !selectedExam) {
-          const preTest = cleanList.find(e => e.id === 'ex-pre-test-10' || (e.name_bn && e.name_bn.includes('প্রাক')));
-          if (preTest) setSelectedExam(preTest.id); else
           setSelectedExam(cleanList[0].id);
+        } else if (!cleanList.length) {
+          setSelectedExam('');
         }
       }
 
@@ -813,36 +813,30 @@ export function ResultPanel({ sub, userRole }) {
         }
       }
 
-      // 2. Smart Exam Detection: Auto-detect exam from CSV column or filename
+      // 2. Exam ID: Use selectedExam from toolbar if set, or auto-detect from CSV if not selected
       let effectiveExamId = selectedExam;
-      let csvExamName = '';
-      if (examNameIdx !== -1 && matrix[1] && matrix[1][examNameIdx]) {
-        csvExamName = matrix[1][examNameIdx].trim();
-      }
-      if (csvExamName) {
-        const matchedEx = exams.find(e => e && (
-          e.name_bn === csvExamName ||
-          e.name_bn.includes(csvExamName) ||
-          csvExamName.includes(e.name_bn) ||
-          (csvExamName.includes('নির্বাচন') && (e.name_bn || '').includes('নির্বাচন') && !(e.name_bn || '').includes('প্রাক'))
-        ));
-        if (matchedEx) {
-          effectiveExamId = matchedEx.id;
-          if (selectedExam !== matchedEx.id) {
+      if (!effectiveExamId) {
+        let csvExamName = '';
+        if (examNameIdx !== -1 && matrix[1] && matrix[1][examNameIdx]) {
+          csvExamName = matrix[1][examNameIdx].trim();
+        }
+        if (csvExamName) {
+          const isPre = csvExamName.includes('প্রাক');
+          const matchedEx = exams.find(e => {
+            if (!e) return false;
+            const bn = e.name_bn || '';
+            if (isPre) return bn.includes('প্রাক');
+            return !bn.includes('প্রাক') && (bn === csvExamName || bn.includes(csvExamName) || csvExamName.includes(bn));
+          });
+          if (matchedEx) {
+            effectiveExamId = matchedEx.id;
             setSelectedExam(matchedEx.id);
           }
         }
-      } else if (!effectiveExamId && effectiveClass === '10') {
-        const testEx = exams.find(e => e && (e.id === 'ex-test-10' || ((e.name_bn || '').includes('নির্বাচন') && !(e.name_bn || '').includes('প্রাক'))));
-        if (testEx) {
-          effectiveExamId = testEx.id;
-          setSelectedExam(testEx.id);
+        if (!effectiveExamId && exams.length > 0) {
+          effectiveExamId = exams[0].id;
+          setSelectedExam(effectiveExamId);
         }
-      }
-
-      if (!effectiveExamId && exams.length > 0) {
-        effectiveExamId = exams[0].id;
-        setSelectedExam(effectiveExamId);
       }
 
       // 3. Smart Department Detection from CSV rows
@@ -1763,12 +1757,15 @@ export function ResultPanel({ sub, userRole }) {
         await api(`/exams/${editingExamId}`, { method: 'PUT', body: JSON.stringify(examForm) });
         showNotification('পরীক্ষার তথ্য সফলভাবে আপডেট হয়েছে।', 'success');
       } else {
-        await api('/exams', { method: 'POST', body: JSON.stringify(examForm) });
+        const created = await api('/exams', { method: 'POST', body: JSON.stringify(examForm) });
         showNotification('নতুন পরীক্ষা সফলভাবে তৈরি হয়েছে।', 'success');
+        if (created && created.id) {
+          setSelectedExam(created.id);
+        }
       }
       setEditingExamId(null);
       setExamForm({ academic_year: selectedYear, name_bn: '', name_en: '', exam_type: 'সাময়িক পরীক্ষা', status: 'active', remarks: '' });
-      loadMasterData();
+      await loadMasterData();
     } catch (err) {
       showNotification(err.message || 'পরীক্ষা সংরক্ষণ ব্যর্থ', 'error');
     }

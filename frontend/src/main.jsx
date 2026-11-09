@@ -4941,6 +4941,29 @@ function StaffPanel({sub, onLivePreview}){
  const [staffCertTab, setStaffCertTab] = useState('bonafide');
  const [staffActionMenu, setStaffActionMenu] = useState(null);
  const [selectedStaffIds, setSelectedStaffIds] = useState([]);
+
+ const isTeacher = tab === 'teachers';
+ const rawList = isTeacher ? teachers : staff;
+ const list = useMemo(() => sortPeopleByEmployeeId(rawList), [rawList]);
+ const blank = isTeacher ? emptyTeacher : emptyStaff;
+
+ const removePerson = (id) => {
+   if (isTeacher) {
+     setTeachers(prev => {
+       const next = (prev || []).filter(x => x.id !== id);
+       try { localStorage.setItem('magra_db_teachers', JSON.stringify(next)); } catch {}
+       return next;
+     });
+     setAllTeachers(prev => (prev || []).filter(x => x.id !== id));
+   } else {
+     setStaff(prev => {
+       const next = (prev || []).filter(x => x.id !== id);
+       try { localStorage.setItem('magra_db_staff', JSON.stringify(next)); } catch {}
+       return next;
+     });
+   }
+ };
+
  const toggleSelectAllStaff = () => {
    if (selectedStaffIds.length === (list||[]).length) {
      setSelectedStaffIds([]);
@@ -4955,7 +4978,7 @@ function StaffPanel({sub, onLivePreview}){
    if (!selectedStaffIds.length) return;
    if (!confirm(`আপনি কি নির্বাচিত ${selectedStaffIds.length} জন ${isTeacher ? 'শিক্ষকের' : 'কর্মচারীর'} তথ্য মুছে ফেলতে চান?`)) return;
    for (const id of selectedStaffIds) {
-     remove(id);
+     removePerson(id);
    }
    setMsg(`সফলভাবে নির্বাচিত ${selectedStaffIds.length} জন ${isTeacher ? 'শিক্ষক' : 'কর্মচারী'} মুছে ফেলা হয়েছে`);
    setSelectedStaffIds([]);
@@ -5262,11 +5285,6 @@ function StaffPanel({sub, onLivePreview}){
   }
  },[sub]);
 
- const isTeacher = tab === 'teachers';
-  const rawList = isTeacher ? teachers : staff;
-  const list = useMemo(() => sortPeopleByEmployeeId(rawList), [rawList]);
-  const blank = isTeacher ? emptyTeacher : emptyStaff;
- 
  const load=()=>{
   api(`/teachers?q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&custom_field_key=${encodeURIComponent(customFieldKey)}&custom_field_value=${encodeURIComponent(customFieldValue)}`)
     .then(data => setTeachers(deduplicateTeachers(Array.isArray(data) ? data : [])))

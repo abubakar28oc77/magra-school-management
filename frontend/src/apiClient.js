@@ -10,10 +10,6 @@ try {
     if (!Array.isArray(curTeachers) || curTeachers.length < 15) {
       localStorage.setItem('magra_db_teachers', JSON.stringify(MOCK_TEACHERS));
     }
-    const curMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
-    if (!Array.isArray(curMarks) || curMarks.length < 10) {
-      localStorage.setItem('magra_db_marks', JSON.stringify(MOCK_MARKS));
-    }
     try {
       const curFeatures = JSON.parse(localStorage.getItem('magra_db_features') || '[]');
       if (Array.isArray(curFeatures) && curFeatures.length > 0) {
@@ -51,24 +47,37 @@ try {
         }
       }
     } catch (_) {}
-    const curExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
-    const requiredExams = [
-      { id: 'ex-half-yearly-2026', academic_year: '2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', name_en: 'Half-Yearly Examination 2026', exam_type: 'অর্ধ-বার্ষিক', status: 'published', remarks: '৬ষ্ঠ-১০ম শ্রেণি' },
-      { id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক', status: 'active', remarks: '৬ষ্ঠ-৯ম শ্রেণি' },
-      { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: '১০ম শ্রেণি' },
-      { id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' }
-    ];
-    let examArr = Array.isArray(curExams) && curExams.length ? [...curExams] : [...MOCK_EXAMS];
-    let examChanged = false;
-    requiredExams.forEach(req => {
-      if (!examArr.some(e => e && (e.id === req.id || e.name_bn === req.name_bn))) {
-        examArr.push(req);
-        examChanged = true;
+    // Purge default mock exams as requested by user
+    try {
+      const defaultExamIds = new Set(['ex-pre-test-10', 'ex-test-10', 'ex-test-2026', 'ex-1', 'ex-2', 'ex-3', 'ex-half-yearly-2026', 'ex-annual-2026']);
+      const defaultNames = ['১ম সাময়িক পরীক্ষা', 'অর্ধবার্ষিক পরীক্ষা', 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', 'বার্ষিক পরীক্ষা ২০২৬', 'বার্ষিক পরীক্ষা', 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', 'প্রাক-নির্বাচনী পরীক্ষা ২০২৬', 'নির্বাচনী পরীক্ষা ২০২৬'];
+      const rawExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
+      if (Array.isArray(rawExams) && rawExams.length) {
+        const userOnlyExams = rawExams.filter(e => {
+          if (!e) return false;
+          if (defaultExamIds.has(e.id)) return false;
+          if (defaultNames.includes(e.name_bn)) return false;
+          return true;
+        });
+        localStorage.setItem('magra_db_exams', JSON.stringify(userOnlyExams));
       }
-    });
-    if (examChanged || !curExams || !curExams.length) {
-      localStorage.setItem('magra_db_exams', JSON.stringify(examArr));
-    }
+      // Purge stale marks associated with default mock exam IDs
+      const rawMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+      if (Array.isArray(rawMarks) && rawMarks.length) {
+        const userMarks = rawMarks.filter(m => m && !defaultExamIds.has(m.exam_id));
+        localStorage.setItem('magra_db_marks', JSON.stringify(userMarks));
+      }
+      // Purge cached result structures for default exams
+      defaultExamIds.forEach(id => {
+        Object.keys(localStorage).forEach(k => {
+          if (k.startsWith(`magra_db_results_${id}_`)) {
+            localStorage.removeItem(k);
+          }
+        });
+      });
+      localStorage.removeItem('magra_db_pre_test_results');
+      localStorage.removeItem('magra_db_test_results');
+    } catch (_) {}
   }
 } catch (_) {}
 
@@ -190,83 +199,6 @@ try {
   }
 } catch {}
 
-
-// Ensure required 2026 exams persist in localStorage
-try {
-  const rawExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
-  if (Array.isArray(rawExams) && rawExams.length) {
-    let modified = false;
-    const hasTest10 = rawExams.some(e => e && e.id === 'ex-test-10');
-    if (!hasTest10) {
-      rawExams.push({ id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' });
-      modified = true;
-    }
-    const hasPreTest = rawExams.some(e => e && e.id === 'ex-pre-test-10');
-    if (!hasPreTest) {
-      rawExams.push({ id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: '১০ম শ্রেণি (SSC)' });
-      modified = true;
-    }
-    if (modified) {
-      localStorage.setItem('magra_db_exams', JSON.stringify(rawExams));
-    }
-  }
-} catch {}
-
-// Helper to resolve all exam aliases (e.g. user-created test exam vs default ex-test-10)
-export function getExamAliases(examId) {
-  if (!examId) return [];
-  const list = [String(examId)];
-  const exams = getLocalStore('exams', MOCK_EXAMS);
-  const currentExam = exams.find(e => String(e.id) === String(examId));
-  const examName = (currentExam?.name_bn || '').toLowerCase();
-  const examIdStr = String(examId).toLowerCase();
-
-  const isPreTest = examIdStr === 'ex-pre-test-10' || examIdStr.includes('pre-test') || examName.includes('প্রাক-নির্বাচন');
-  const isTest = !isPreTest && (examIdStr === 'ex-test-10' || examIdStr === 'ex-test-2026' || examIdStr.includes('test') || examName.includes('নির্বাচন'));
-  const isAnnual = examIdStr === 'ex-annual-2026' || examIdStr === 'ex-3' || examName.includes('বার্ষিক');
-  const isHalfYearly = examIdStr === 'ex-2' || examName.includes('অর্ধ');
-
-  if (isTest) {
-    if (!list.includes('ex-test-10')) list.push('ex-test-10');
-    if (!list.includes('ex-test-2026')) list.push('ex-test-2026');
-    exams.forEach(e => {
-      if (!e) return;
-      const bn = (e.name_bn || '').toLowerCase();
-      if ((bn.includes('নির্বাচন') && !bn.includes('প্রাক')) || (e.name_en && e.name_en.toLowerCase().includes('test'))) {
-        if (!list.includes(String(e.id))) list.push(String(e.id));
-      }
-    });
-  } else if (isPreTest) {
-    if (!list.includes('ex-pre-test-10')) list.push('ex-pre-test-10');
-    exams.forEach(e => {
-      if (!e) return;
-      const bn = (e.name_bn || '').toLowerCase();
-      if (bn.includes('প্রাক')) {
-        if (!list.includes(String(e.id))) list.push(String(e.id));
-      }
-    });
-  } else if (isAnnual) {
-    if (!list.includes('ex-annual-2026')) list.push('ex-annual-2026');
-    if (!list.includes('ex-3')) list.push('ex-3');
-    exams.forEach(e => {
-      if (!e) return;
-      const bn = (e.name_bn || '').toLowerCase();
-      if (bn.includes('বার্ষিক')) {
-        if (!list.includes(String(e.id))) list.push(String(e.id));
-      }
-    });
-  } else if (isHalfYearly) {
-    if (!list.includes('ex-2')) list.push('ex-2');
-    exams.forEach(e => {
-      if (!e) return;
-      const bn = (e.name_bn || '').toLowerCase();
-      if (bn.includes('অর্ধ')) {
-        if (!list.includes(String(e.id))) list.push(String(e.id));
-      }
-    });
-  }
-  return list;
-}
 
 // Religion normalization helper
 export function normalizeReligion(raw) {
@@ -564,25 +496,6 @@ function getLocalStore(key, defaultVal = []) {
       return defaultVal;
     }
     const parsed = JSON.parse(raw);
-    if (key === 'exams' && Array.isArray(parsed)) {
-      const requiredExams = [
-        { id: 'ex-half-yearly-2026', academic_year: '2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', name_en: 'Half-Yearly Examination 2026', exam_type: 'অর্ধ-বার্ষিক', status: 'published', remarks: '৬ষ্ঠ-১০ম শ্রেণি' },
-        { id: 'ex-annual-2026', academic_year: '2026', name_bn: 'বার্ষিক পরীক্ষা ২০২৬', name_en: 'Annual Examination 2026', exam_type: 'বার্ষিক', status: 'active', remarks: '৬ষ্ঠ-৯ম শ্রেণি' },
-        { id: 'ex-pre-test-10', academic_year: '2026', name_bn: 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', name_en: 'Pre-Test Examination 2026', exam_type: 'প্রাক-নির্বাচনি', status: 'published', remarks: '১০ম শ্রেণি' },
-        { id: 'ex-test-10', academic_year: '2026', name_bn: 'নির্বাচনী পরীক্ষা ২০২৬', name_en: 'SSC Test Examination 2026', exam_type: 'নির্বাচনী', status: 'active', remarks: '১০ম শ্রেণি (SSC)' }
-      ];
-      let changed = false;
-      requiredExams.forEach(req => {
-        if (!parsed.some(e => e && (e.id === req.id || e.name_bn === req.name_bn))) {
-          parsed.push(req);
-          changed = true;
-        }
-      });
-      if (changed) {
-        try { localStorage.setItem('magra_db_exams', JSON.stringify(parsed)); } catch(e){}
-      }
-      return parsed;
-    }
     if (key === 'students' && Array.isArray(parsed)) {
       const seenIds = new Set();
       const seenClassRoll = new Set();
@@ -2603,12 +2516,10 @@ function handleMockRequest(path, opts = {}) {
     if (cleanPath === '/marks') {
     const examId = params.get('exam_id');
     const cls = params.get('class_name');
-    let marks = getLocalStore('marks', MOCK_MARKS);
-    if (!marks || !marks.length) marks = MOCK_MARKS;
+    let marks = getLocalStore('marks', []);
     let filtered = marks;
     if (examId) {
-      const aliases = getExamAliases(examId);
-      filtered = filtered.filter(m => aliases.includes(String(m.exam_id)));
+      filtered = filtered.filter(m => String(m.exam_id) === String(examId));
     }
     if (cls) {
       const isSSCClass = ['10', '১০', '১০ম'].includes(String(cls));
@@ -2624,11 +2535,9 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/marks/bulk' && method === 'POST') {
     const examId = body.exam_id;
     const records = Array.isArray(body.records) ? body.records : [];
-    let marks = getLocalStore('marks', MOCK_MARKS);
+    let marks = getLocalStore('marks', []);
     const map = new Map();
     marks.forEach(m => map.set(`${m.exam_id}_${m.student_id}_${m.subject_id}`, m));
-
-    const aliases = getExamAliases(examId);
 
     records.forEach(r => {
       const w = r.written !== '' && r.written !== undefined && r.written !== null ? Number(r.written) : null;
@@ -2636,30 +2545,26 @@ function handleMockRequest(path, opts = {}) {
       const p = r.practical !== '' && r.practical !== undefined && r.practical !== null ? Number(r.practical) : null;
       const tot = (w || 0) + (m || 0) + (p || 0);
 
-      aliases.forEach(exId => {
-        map.set(`${exId}_${r.student_id}_${r.subject_id}`, {
-          ...r,
-          exam_id: exId,
-          written: w,
-          mcq: m,
-          practical: p,
-          total: r.absent ? 0 : tot,
-          updated_at: new Date().toISOString()
-        });
+      map.set(`${examId}_${r.student_id}_${r.subject_id}`, {
+        ...r,
+        exam_id: examId,
+        written: w,
+        mcq: m,
+        practical: p,
+        total: r.absent ? 0 : tot,
+        updated_at: new Date().toISOString()
       });
     });
     const updatedList = Array.from(map.values());
     setLocalStore('marks', updatedList);
 
-    // Invalidate cached results for this exam across all aliases & classes so Tabulation & Merit lists immediately update
+    // Invalidate cached results for this exam & class so Tabulation & Merit lists immediately update
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        aliases.forEach(exId => {
-          Object.keys(window.localStorage).forEach(k => {
-            if (k.startsWith(`magra_db_results_${exId}_`)) {
-              window.localStorage.removeItem(k);
-            }
-          });
+        Object.keys(window.localStorage).forEach(k => {
+          if (k.startsWith(`magra_db_results_${examId}_`)) {
+            window.localStorage.removeItem(k);
+          }
         });
       }
     } catch (_) {}
@@ -2670,15 +2575,15 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath === '/results/process' && method === 'POST') {
     const examId = body.exam_id;
     let cls = body.class_name || '6';
-    let exams = getLocalStore('exams', MOCK_EXAMS);
+    let exams = getLocalStore('exams', []);
     exams = exams.map(e => String(e.id) === String(examId) ? { ...e, status: 'published' } : e);
     setLocalStore('exams', exams);
 
     const examStr = String(examId).toLowerCase();
     const examObj = exams.find(e => String(e.id) === String(examId));
     const examName = (examObj?.name_bn || '').toLowerCase();
-    const isPreTest = examStr === 'ex-pre-test-10' || examStr.includes('pre-test') || examStr.includes('pre_test') || examName.includes('প্রাক-নির্বাচন');
-    const isTest = !isPreTest && (examStr === 'ex-test-10' || examStr.includes('test') || examName.includes('নির্বাচন'));
+    const isPreTest = examStr === 'ex-pre-test-10' || examStr.includes('pre-test') || examStr.includes('pre_test') || (examName.includes('প্রাক') && examName.includes('নির্বাচন'));
+    const isTest = !isPreTest && (examStr === 'ex-test-10' || examStr.includes('test') || (examName.includes('নির্বাচন') && !examName.includes('প্রাক')));
     const isHalfYearly = examStr === 'ex-2' || examStr.includes('half') || examName.includes('অর্ধ');
     const isAnnual = !isHalfYearly && (examStr === 'ex-3' || examStr.includes('annual') || examName.includes('বার্ষিক'));
 
@@ -2690,18 +2595,16 @@ function handleMockRequest(path, opts = {}) {
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-    const marks = getLocalStore('marks', MOCK_MARKS);
+    const allMarks = getLocalStore('marks', []);
+    const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
 
     // Compute real results via Dhaka Board Exam Engine
-    const processed = processClassResults(students, subs, marks, cls, examId);
-    const aliases = getExamAliases(examId);
-    aliases.forEach(exId => {
-      setLocalStore(`results_${exId}_${cls}`, processed);
-      if (['10', '১০', '১০ম'].includes(String(cls))) {
-        setLocalStore(`results_${exId}_10`, processed);
-        setLocalStore(`results_${exId}_১০ম`, processed);
-      }
-    });
+    const processed = processClassResults(students, subs, examMarks, cls, examId);
+    setLocalStore(`results_${examId}_${cls}`, processed);
+    if (['10', '১০', '১০ম'].includes(String(cls))) {
+      setLocalStore(`results_${examId}_10`, processed);
+      setLocalStore(`results_${examId}_১০ম`, processed);
+    }
 
     // 1. Auto-sync Pre-Test (Class 10)
     if (isPreTest && ['10', '১০', '১০ম'].includes(String(cls))) {
@@ -2824,37 +2727,22 @@ function handleMockRequest(path, opts = {}) {
     const dept = params.get('department');
     const force = params.get('force') === '1' || params.get('force') === 'true';
     
-    const aliases = getExamAliases(examId);
-    let processed = null;
-    if (!force) {
-      for (const exId of aliases) {
-        const stored = getLocalStore(`results_${exId}_${cls}`, null);
-        if (stored && Array.isArray(stored) && stored.length) {
-          processed = stored;
-          break;
-        }
-        if (['10', '১০', '১০ম'].includes(String(cls))) {
-          const stored10 = getLocalStore(`results_${exId}_10`, null);
-          if (stored10 && Array.isArray(stored10) && stored10.length) {
-            processed = stored10;
-            break;
-          }
-        }
-      }
+    let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
+    if (!processed && ['10', '১০', '১০ম'].includes(String(cls))) {
+      processed = force ? null : getLocalStore(`results_${examId}_10`, null);
     }
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const marks = getLocalStore('marks', MOCK_MARKS);
-      processed = processClassResults(students, subs, marks, cls, examId);
-      aliases.forEach(exId => {
-        setLocalStore(`results_${exId}_${cls}`, processed);
-        if (['10', '১০', '১০ম'].includes(String(cls))) {
-          setLocalStore(`results_${exId}_10`, processed);
-          setLocalStore(`results_${exId}_১০ম`, processed);
-        }
-      });
+      const allMarks = getLocalStore('marks', []);
+      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
+      processed = processClassResults(students, subs, examMarks, cls, examId);
+      setLocalStore(`results_${examId}_${cls}`, processed);
+      if (['10', '১০', '১০ম'].includes(String(cls))) {
+        setLocalStore(`results_${examId}_10`, processed);
+        setLocalStore(`results_${examId}_১০ম`, processed);
+      }
     }
 
     if (dept && dept !== 'all' && dept !== 'সকল বিভাগ') {
@@ -2867,37 +2755,22 @@ function handleMockRequest(path, opts = {}) {
     const examId = params.get('exam_id');
     const cls = params.get('class_name') || '6';
     const force = params.get('force') === '1' || params.get('force') === 'true';
-    const aliases = getExamAliases(examId);
-    let processed = null;
-    if (!force) {
-      for (const exId of aliases) {
-        const stored = getLocalStore(`results_${exId}_${cls}`, null);
-        if (stored && Array.isArray(stored) && stored.length) {
-          processed = stored;
-          break;
-        }
-        if (['10', '১০', '১০ম'].includes(String(cls))) {
-          const stored10 = getLocalStore(`results_${exId}_10`, null);
-          if (stored10 && Array.isArray(stored10) && stored10.length) {
-            processed = stored10;
-            break;
-          }
-        }
-      }
+    let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
+    if (!processed && ['10', '১০', '১০ম'].includes(String(cls))) {
+      processed = force ? null : getLocalStore(`results_${examId}_10`, null);
     }
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const marks = getLocalStore('marks', MOCK_MARKS);
-      processed = processClassResults(students, subs, marks, cls, examId);
-      aliases.forEach(exId => {
-        setLocalStore(`results_${exId}_${cls}`, processed);
-        if (['10', '১০', '১০ম'].includes(String(cls))) {
-          setLocalStore(`results_${exId}_10`, processed);
-          setLocalStore(`results_${exId}_১০ম`, processed);
-        }
-      });
+      const allMarks = getLocalStore('marks', []);
+      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
+      processed = processClassResults(students, subs, examMarks, cls, examId);
+      setLocalStore(`results_${examId}_${cls}`, processed);
+      if (['10', '১০', '১০ম'].includes(String(cls))) {
+        setLocalStore(`results_${examId}_10`, processed);
+        setLocalStore(`results_${examId}_১০ম`, processed);
+      }
     }
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     return generateResultAnalytics(processed, subs);

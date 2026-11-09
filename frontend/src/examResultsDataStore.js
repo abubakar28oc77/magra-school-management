@@ -160,8 +160,8 @@ export const DEFAULT_PUBLIC_EXAM_RESULTS = [
   }
 ];
 
-// Helper to find exam by keywords
-function findExamId(keywords = [], fallbackId = '') {
+// Helper to find exam by keywords with optional exclude list
+function findExamId(keywords = [], fallbackId = '', excludeKeywords = []) {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       const raw = localStorage.getItem('magra_db_exams');
@@ -172,6 +172,9 @@ function findExamId(keywords = [], fallbackId = '') {
             const name = (e.name_bn || '').toLowerCase();
             const type = (e.exam_type || '').toLowerCase();
             const id = (e.id || '').toLowerCase();
+            if (excludeKeywords.some(ex => name.includes(ex) || type.includes(ex) || id.includes(ex))) {
+              return false;
+            }
             return keywords.some(kw => name.includes(kw) || type.includes(kw) || id.includes(kw));
           });
           if (match) return match.id;
@@ -191,7 +194,7 @@ export function getLivePreTestClassResults() {
     const examId = findExamId(['প্রাক-নির্বাচনী', 'প্রাক-নির্বাচনি', 'pre-test', 'pre_test'], 'ex-pre-test-10');
 
     let processed = null;
-    const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`, 'magra_db_results_ex-pre-test-10_10'];
+    const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`];
     for (const key of cacheKeys) {
       const raw = localStorage.getItem(key);
       if (raw) {
@@ -203,8 +206,8 @@ export function getLivePreTestClassResults() {
     }
 
     const rawMarks = localStorage.getItem('magra_db_marks');
-    const marksList = rawMarks ? JSON.parse(rawMarks) : (Array.isArray(MOCK_MARKS) ? MOCK_MARKS : []);
-    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId) || String(m.exam_id).includes('pre-test') || String(m.exam_id).includes('pre_test'));
+    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
+    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId));
 
     if (!processed && hasMarks) {
       const rawStudents = localStorage.getItem('magra_db_students');
@@ -306,10 +309,10 @@ export function saveStoredPreTestResults(data) {
 export function getLiveTestClassResults() {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
-    const examId = findExamId(['নির্বাচনী', 'নির্বাচনি', 'ssc test', 'ex-test-10'], 'ex-test-10');
+    const examId = findExamId(['নির্বাচনী', 'নির্বাচনি', 'ssc test', 'ex-test-10'], 'ex-test-10', ['প্রাক', 'pre']);
 
     let processed = null;
-    const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`, 'magra_db_results_ex-test-10_10'];
+    const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`];
     for (const key of cacheKeys) {
       const raw = localStorage.getItem(key);
       if (raw) {
@@ -321,8 +324,8 @@ export function getLiveTestClassResults() {
     }
 
     const rawMarks = localStorage.getItem('magra_db_marks');
-    const marksList = rawMarks ? JSON.parse(rawMarks) : (Array.isArray(MOCK_MARKS) ? MOCK_MARKS : []);
-    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId) || (!String(m.exam_id).includes('pre-test') && (String(m.exam_id).includes('test') || String(m.exam_id).includes('নির্বাচন'))));
+    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
+    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId));
 
     if (!processed && hasMarks) {
       const rawStudents = localStorage.getItem('magra_db_students');
