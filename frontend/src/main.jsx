@@ -613,6 +613,12 @@ function Home(){
  const[notices,setNotices]=useState([]),[items,setItems]=useState([]),[contacts,setContacts]=useState([]),[teachersList,setTeachersList]=useState([]),[stats,setStats]=useState(null),[activeModal,setActiveModal]=useState(null);
  const[customLinks,setCustomLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_important_links')||'[]')}catch{return []}});
  const[showAddLink,setShowAddLink]=useState(false),[newLinkTitle,setNewLinkTitle]=useState(''),[newLinkUrl,setNewLinkUrl]=useState('');
+
+ const[customBoardLinks,setCustomBoardLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_board_links')||'[]')}catch{return []}});
+ const[showAddBoardLink,setShowAddBoardLink]=useState(false),[newBoardLinkTitle,setNewBoardLinkTitle]=useState(''),[newBoardLinkUrl,setNewBoardLinkUrl]=useState('');
+
+ const[customBoardImportantLinks,setCustomBoardImportantLinks]=useState(()=>{try{return JSON.parse(localStorage.getItem('magra_board_important_links')||'[]')}catch{return []}});
+ const[showAddBoardImportantLink,setShowAddBoardImportantLink]=useState(false),[newBoardImportantLinkTitle,setNewBoardImportantLinkTitle]=useState(''),[newBoardImportantLinkUrl,setNewBoardImportantLinkUrl]=useState('');
  const[isRollingPaused,setIsRollingPaused]=useState(false);
  const[supabaseSyncOpen,setSupabaseSyncOpen]=useState(false);
  const teachersTrackRef=useRef(null);
@@ -990,7 +996,21 @@ function Home(){
   ['বাংলাদেশ জাতীয় তথ্য বাতায়ন','https://bangladesh.gov.bd/'],
   ['জাতীয় শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/']
  ];
- const boardLinks=[['ঢাকা শিক্ষা বোর্ড','https://www.dhakaeducationboard.gov.bd/'],['রাজশাহী শিক্ষা বোর্ড','https://rajshahieducationboard.gov.bd/'],['চট্টগ্রাম শিক্ষা বোর্ড','https://bise-ctg.portal.gov.bd/'],['কুমিল্লা শিক্ষা বোর্ড','https://comillaboard.portal.gov.bd/'],['যশোর শিক্ষা বোর্ড','https://www.jessoreboard.gov.bd/'],['ময়মনসিংহ শিক্ষা বোর্ড','https://mymensingheducationboard.gov.bd/']];
+ const defaultBoardLinks=[
+  ['ঢাকা শিক্ষা বোর্ড','https://www.dhakaeducationboard.gov.bd/'],
+  ['রাজশাহী শিক্ষা বোর্ড','https://rajshahieducationboard.gov.bd/'],
+  ['চট্টগ্রাম শিক্ষা বোর্ড','https://bise-ctg.portal.gov.bd/'],
+  ['কুমিল্লা শিক্ষা বোর্ড','https://comillaboard.portal.gov.bd/'],
+  ['যশোর শিক্ষা বোর্ড','https://www.jessoreboard.gov.bd/'],
+  ['ময়মনসিংহ শিক্ষা বোর্ড','https://mymensingheducationboard.gov.bd/']
+ ];
+ const defaultBoardImportantLinks=[
+  ['ভূমি মন্ত্রণালয়','https://land.gov.bd/'],
+  ['শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/'],
+  ['প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট','https://pmeat.gov.bd/'],
+  ['নৈমিত্তিক তথ্যসেবা','https://bangladesh.gov.bd/'],
+  ['MPO Teachers Verify','https://emis.gov.bd/']
+ ];
  
  const [leadershipVer, setLeadershipVer] = useState(0);
   const [teachersVer, setTeachersVer] = useState(0);
@@ -1054,6 +1074,52 @@ function Home(){
  };
 
  const allImportantLinks=[...defaultLinks,...customLinks];
+
+ const handleAddBoardLink=(e)=>{
+  e.preventDefault();
+  if(!newBoardLinkTitle.trim()||!newBoardLinkUrl.trim())return;
+  let url=newBoardLinkUrl.trim();
+  if(!url.startsWith('http://')&&!url.startsWith('https://')){
+   url='https://'+url;
+  }
+  const updated=[...customBoardLinks,[newBoardLinkTitle.trim(),url,true]];
+  setCustomBoardLinks(updated);
+  localStorage.setItem('magra_board_links',JSON.stringify(updated));
+  setNewBoardLinkTitle('');
+  setNewBoardLinkUrl('');
+  setShowAddBoardLink(false);
+ };
+
+ const handleDeleteBoardLink=(customIdx)=>{
+  const updated=customBoardLinks.filter((_,i)=>i!==customIdx);
+  setCustomBoardLinks(updated);
+  localStorage.setItem('magra_board_links',JSON.stringify(updated));
+ };
+
+ const allBoardLinks=[...defaultBoardLinks,...customBoardLinks];
+
+ const handleAddBoardImportantLink=(e)=>{
+  e.preventDefault();
+  if(!newBoardImportantLinkTitle.trim()||!newBoardImportantLinkUrl.trim())return;
+  let url=newBoardImportantLinkUrl.trim();
+  if(!url.startsWith('http://')&&!url.startsWith('https://')){
+   url='https://'+url;
+  }
+  const updated=[...customBoardImportantLinks,[newBoardImportantLinkTitle.trim(),url,true]];
+  setCustomBoardImportantLinks(updated);
+  localStorage.setItem('magra_board_important_links',JSON.stringify(updated));
+  setNewBoardImportantLinkTitle('');
+  setNewBoardImportantLinkUrl('');
+  setShowAddBoardImportantLink(false);
+ };
+
+ const handleDeleteBoardImportantLink=(customIdx)=>{
+  const updated=customBoardImportantLinks.filter((_,i)=>i!==customIdx);
+  setCustomBoardImportantLinks(updated);
+  localStorage.setItem('magra_board_important_links',JSON.stringify(updated));
+ };
+
+ const allBoardImportantLinks=[...defaultBoardImportantLinks,...customBoardImportantLinks];
 
  const handleServiceClick=(e, title)=>{
   if(title==='অনলাইন ভর্তি'){
@@ -1303,8 +1369,53 @@ function Home(){
        </div>
       ))}
      </div>
-     <div className="link-panel"><h2>শিক্ষা বোর্ডসমূহ</h2>{boardLinks.map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div>
-     <div className="link-panel"><h2>বোর্ড গুরুত্বপূর্ণ লিংকসমূহ</h2>{[['ভূমি মন্ত্রণালয়','https://land.gov.bd/'],['শিক্ষার্থী নিবন্ধন','https://www.educationboardresults.gov.bd/'],['প্রধানমন্ত্রীর শিক্ষা সহায়তা ট্রাস্ট','https://pmeat.gov.bd/'],['নৈমিত্তিক তথ্যসেবা','https://bangladesh.gov.bd/'],['MPO Teachers Verify','https://emis.gov.bd/']].map(([t,h])=><a key={t} href={h} target="_blank" rel="noopener noreferrer">🔗 {t}</a>)}</div>
+     {/* শিক্ষা বোর্ডসমূহ */}
+     <div className="link-panel">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#cfe3fb',padding:'11px 13px',borderBottom:'2px solid #2874c6'}}>
+       <h2 style={{margin:0,padding:0,background:'none',border:'none',fontSize:'16px'}}>শিক্ষা বোর্ডসমূহ</h2>
+       <button type="button" onClick={()=>setShowAddBoardLink(!showAddBoardLink)} style={{background:'#1d4ed8',color:'#fff',border:'none',borderRadius:'4px',padding:'3px 8px',fontSize:'11px',cursor:'pointer',fontWeight:'bold'}} title="নতুন শিক্ষা বোর্ড লিংক যুক্ত করুন">+ লিংক যোগ</button>
+      </div>
+      {showAddBoardLink && (
+       <form onSubmit={handleAddBoardLink} style={{background:'#f1f5f9',padding:'10px 12px',borderBottom:'1px solid #cbd5e1',display:'flex',flexDirection:'column',gap:'6px'}}>
+        <input type="text" placeholder="বোর্ডের নাম (যেমন: কারিগরি শিক্ষা বোর্ড)" value={newBoardLinkTitle} onChange={e=>setNewBoardLinkTitle(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <input type="text" placeholder="ওয়েব ঠিকানা (URL যেমন: https://...)" value={newBoardLinkUrl} onChange={e=>setNewBoardLinkUrl(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <div style={{display:'flex',gap:'6px',justifyContent:'flex-end',marginTop:'2px'}}>
+         <button type="button" onClick={()=>setShowAddBoardLink(false)} style={{background:'#64748b',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 10px',fontSize:'11px',cursor:'pointer'}}>বাতিল</button>
+         <button type="submit" style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 12px',fontSize:'11px',fontWeight:'bold',cursor:'pointer'}}>সেভ করুন</button>
+        </div>
+       </form>
+      )}
+      {allBoardLinks.map(([t,h,isCustom],idx)=>(
+       <div key={t+idx} style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:'8px'}}>
+        <a href={h} target="_blank" rel="noopener noreferrer" style={{flex:1}}>🔗 {t}</a>
+        {isCustom && <button type="button" onClick={()=>handleDeleteBoardLink(idx-defaultBoardLinks.length)} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'14px',padding:'0 4px'}} title="লিংকটি মুছে ফেলুন">✕</button>}
+       </div>
+      ))}
+     </div>
+
+     {/* বোর্ড গুরুত্বপূর্ণ লিংকসমূহ */}
+     <div className="link-panel">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'#cfe3fb',padding:'11px 13px',borderBottom:'2px solid #2874c6'}}>
+       <h2 style={{margin:0,padding:0,background:'none',border:'none',fontSize:'16px'}}>বোর্ড গুরুত্বপূর্ণ লিংকসমূহ</h2>
+       <button type="button" onClick={()=>setShowAddBoardImportantLink(!showAddBoardImportantLink)} style={{background:'#1d4ed8',color:'#fff',border:'none',borderRadius:'4px',padding:'3px 8px',fontSize:'11px',cursor:'pointer',fontWeight:'bold'}} title="নতুন লিংক যুক্ত করুন">+ লিংক যোগ</button>
+      </div>
+      {showAddBoardImportantLink && (
+       <form onSubmit={handleAddBoardImportantLink} style={{background:'#f1f5f9',padding:'10px 12px',borderBottom:'1px solid #cbd5e1',display:'flex',flexDirection:'column',gap:'6px'}}>
+        <input type="text" placeholder="লিংকের নাম (যেমন: জাতীয় শিক্ষাক্রম পোর্টাল)" value={newBoardImportantLinkTitle} onChange={e=>setNewBoardImportantLinkTitle(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <input type="text" placeholder="ওয়েব ঠিকানা (URL যেমন: https://...)" value={newBoardImportantLinkUrl} onChange={e=>setNewBoardImportantLinkUrl(e.target.value)} style={{padding:'6px 8px',fontSize:'12px',border:'1px solid #94a3b8',borderRadius:'4px'}} required/>
+        <div style={{display:'flex',gap:'6px',justifyContent:'flex-end',marginTop:'2px'}}>
+         <button type="button" onClick={()=>setShowAddBoardImportantLink(false)} style={{background:'#64748b',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 10px',fontSize:'11px',cursor:'pointer'}}>বাতিল</button>
+         <button type="submit" style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'4px',padding:'4px 12px',fontSize:'11px',fontWeight:'bold',cursor:'pointer'}}>সেভ করুন</button>
+        </div>
+       </form>
+      )}
+      {allBoardImportantLinks.map(([t,h,isCustom],idx)=>(
+       <div key={t+idx} style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingRight:'8px'}}>
+        <a href={h} target="_blank" rel="noopener noreferrer" style={{flex:1}}>🔗 {t}</a>
+        {isCustom && <button type="button" onClick={()=>handleDeleteBoardImportantLink(idx-defaultBoardImportantLinks.length)} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',fontSize:'14px',padding:'0 4px'}} title="লিংকটি মুছে ফেলুন">✕</button>}
+       </div>
+      ))}
+     </div>
     </section>
 
 
