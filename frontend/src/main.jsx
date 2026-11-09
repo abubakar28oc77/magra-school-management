@@ -1660,58 +1660,24 @@ function Home(){
       </div>
     </article>
 
+    {leadershipCards.map(leader=>(
+     <article className="side-card leader-side" key={leader.role}>
+      <h2>{leader.title}</h2>
+      <div className="side-avatar-wrap">
+       <img src={leader.photo} alt={leader.name} className="side-avatar-img"/>
+      </div>
+      <h3>{leader.name}</h3>
+      <b>{leader.role}</b>
+      <p>{leader.msg}</p>
+      <button className="mini" style={{cursor:'pointer'}} onClick={()=>setActiveModal({key:leader.key,title:leader.title})}>বিস্তারিত বাণী →</button>
+     </article>
+    ))}
     <article className="side-card quick-side"><h2>জরুরি ও গুরুত্বপূর্ণ সেবা</h2>{emergencyServices.map(([num,title,desc])=><a className="quick-service" href={`tel:${num}`} key={num}><b>📞 {num}</b><span>{title}</span><small>{desc}</small></a>)}</article><article className="side-card quick-side"><h2>বিদ্যালয়ের যোগাযোগ</h2><div className="quick-number"><b>✉️</b><span>ই-মেইল</span><strong>magrapuhs.46@gmail.com</strong></div><div className="quick-number"><b>📍</b><span>ঠিকানা</span><strong>মগড়া, কালিহাতি, টাংগাইল</strong></div></article>
    </aside></div>
 
    {/* নিচের সেকশনগুলো উভয় পাশে সমান্তরালভাবে পুরো পেজ জুড়ে বিস্তৃত (Full Width 100%) */}
    <div className="ref-fullwidth-sections" style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'24px'}}>
-    {/* ১. সম্মানিত সভাপতি, প্রধান শিক্ষক ও সহকারী প্রধান শিক্ষকের বাণী (একলাইনে বামে-ডানে) */}
-    <section className="ref-section" style={{marginBottom:0}}>
-     <div className="ref-title">
-      <h2>🏛️ বিদ্যালয়ের দিকনির্দেশনা ও সম্মানিত নেতৃবৃন্দের বাণী</h2>
-      <span></span>
-     </div>
-     <div className="leadership-grid">
-      {leadershipCards.map(leader=>(
-       <article className="leadership-card" key={leader.role}>
-        <div style={{
-          position:'absolute',top:0,left:0,right:0,height:'4px',
-          background: leader.role.includes('সভাপতি')
-            ? 'linear-gradient(90deg, #1e3a8a, #3b82f6)'
-            : leader.role.includes('সহকারী')
-            ? 'linear-gradient(90deg, #0d9488, #14b8a6)'
-            : 'linear-gradient(90deg, #065f46, #10b981)'
-        }}/>
-        <div style={{
-          background:'#ffffff',border:'1px solid #cbd5e1',borderRadius:'20px',
-          padding:'4px 14px',fontSize:'13px',fontWeight:800,color:'#1e293b',marginBottom:'14px',
-          display:'inline-flex',alignItems:'center',gap:'6px',boxShadow:'0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <span>{leader.role.includes('সভাপতি')?'🏛️':leader.role.includes('সহকারী')?'👩‍🏫':'🎓'}</span>
-          <span>{leader.title}</span>
-        </div>
-        <div className="side-avatar-wrap" style={{width:'96px',height:'96px',marginBottom:'12px',border:'3.5px solid #087b3d',boxShadow:'0 3px 12px rgba(8,123,61,0.22)'}}>
-         <img src={leader.photo} alt={leader.name} className="side-avatar-img"/>
-        </div>
-        <h3 style={{margin:'0 0 3px',fontSize:'15.5px',color:'#0f172a',fontWeight:800}}>{leader.name}</h3>
-        <b style={{fontSize:'12px',color:'#087b3d',fontWeight:700,marginBottom:'10px'}}>{leader.role}</b>
-        <p style={{fontSize:'12.5px',lineHeight:'1.65',color:'#475569',margin:'0 0 16px',flex:1,fontStyle:'italic',display:'-webkit-box',WebkitLineClamp:4,WebkitBoxOrient:'vertical',overflow:'hidden'}}>
-          "{leader.msg}"
-        </p>
-        <button
-          type="button"
-          className="mini"
-          style={{background:'linear-gradient(135deg, #065f46 0%, #047857 100%)',color:'#fff',border:'none',borderRadius:'6px',padding:'7px 18px',fontSize:'12px',fontWeight:700,cursor:'pointer',boxShadow:'0 2px 6px rgba(4,120,87,0.22)'}}
-          onClick={()=>setActiveModal({key:leader.key,title:leader.title})}
-        >
-          বিস্তারিত বাণী পড়ুন →
-        </button>
-       </article>
-      ))}
-     </div>
-    </section>
-
-    {/* ২. বিদ্যালয় সম্পর্কে (পুরো পেজের প্রস্থ জুড়ে সমান্তরাল) */}
+    {/* ১. বিদ্যালয় সম্পর্কে (পুরো পেজের প্রস্থ জুড়ে সমান্তরাল) */}
     <section id="school-info" className="ref-section about-panel" style={{marginBottom:0,borderRadius:'10px'}}>
      <div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div>
      <div>
