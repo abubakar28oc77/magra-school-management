@@ -763,13 +763,9 @@ export function ResultPanel({ sub, userRole }) {
     e.target.value = '';
     if (!file) return;
 
-    if (!selectedExam) {
-      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
-      return;
-    }
-
     try {
-      const text = await file.text();
+      const rawText = await file.text();
+      const text = rawText.replace(/^\uFEFF/, '');
       const matrix = parseCsvText(text);
 
       if (matrix.length < 2) {
@@ -787,6 +783,7 @@ export function ResultPanel({ sub, userRole }) {
       const rollIdx = findHeaderIdx(['roll', 'রোল', 'ক্লাসরোল', 'rollno', 'roll_no']);
       const idIdx = findHeaderIdx(['studentid', 'student_id', 'আইডি', 'স্টুডেন্টআইডি', 'id']);
       const deptIdx = findHeaderIdx(['department', 'dept', 'বিভাগ', 'শাখা', 'গ্রুপ', 'group']);
+      const examNameIdx = findHeaderIdx(['examname', 'exam_name', 'পরীক্ষা', 'পরীক্ষারনাম', 'exam']);
       const absentIdx = findHeaderIdx(['absent', 'অনুপস্থিত', 'abs']);
       const remarksIdx = findHeaderIdx(['remarks', 'মন্তব্য', 'remark']);
 
@@ -795,16 +792,73 @@ export function ResultPanel({ sub, userRole }) {
         return;
       }
 
-      // Smart Class Detection: If selected exam is SSC Test/Pre-Test, or CSV has Class 10/Science subjects
+      // 1. Smart Class Detection: Check filename, row IDs, codes, or selected exam
+      const fname = (file.name || '').toLowerCase();
+      const isClass10InFile = fname.includes('class_10') || fname.includes('class10') || fname.includes('১০ম') || fname.includes('ssc');
+      const isClass10InRows = matrix.slice(1, 15).some(row => {
+        const id = (idIdx !== -1 && row[idIdx] ? row[idIdx] : '').toLowerCase();
+        const code = row[5] ? String(row[5]).trim() : '';
+        return id.includes('-10-') || ['102', '136', '137', '138', '126', '150', '134', '140', '141', '142', '143', '146', '147', '152'].includes(code);
+      });
       const isSscExam = String(selectedExam).toLowerCase().includes('test') ||
                         (selectedExamObj?.name_bn || '').includes('নির্বাচন') ||
                         (selectedExamObj?.remarks || '').includes('১০ম') ||
                         cleanHeaders.some(h => ['136', '137', '138', '126', 'পদার্থ', 'রসায়ন', 'রসায়ন', 'জীববিজ্ঞান', 'উচ্চতর'].some(sub => h.includes(sub)));
 
       let effectiveClass = className;
-      if (isSscExam && effectiveClass !== '10') {
+      if (isClass10InFile || isClass10InRows || isSscExam) {
         effectiveClass = '10';
-        setClassName('10');
+        if (className !== '10') {
+          setClassName('10');
+        }
+      }
+
+      // 2. Smart Exam Detection: Auto-detect exam from CSV column or filename
+      let effectiveExamId = selectedExam;
+      let csvExamName = '';
+      if (examNameIdx !== -1 && matrix[1] && matrix[1][examNameIdx]) {
+        csvExamName = matrix[1][examNameIdx].trim();
+      }
+      if (csvExamName) {
+        const matchedEx = exams.find(e => e && (
+          e.name_bn === csvExamName ||
+          e.name_bn.includes(csvExamName) ||
+          csvExamName.includes(e.name_bn) ||
+          (csvExamName.includes('নির্বাচন') && (e.name_bn || '').includes('নির্বাচন') && !(e.name_bn || '').includes('প্রাক'))
+        ));
+        if (matchedEx) {
+          effectiveExamId = matchedEx.id;
+          if (selectedExam !== matchedEx.id) {
+            setSelectedExam(matchedEx.id);
+          }
+        }
+      } else if (!effectiveExamId && effectiveClass === '10') {
+        const testEx = exams.find(e => e && (e.id === 'ex-test-10' || ((e.name_bn || '').includes('নির্বাচন') && !(e.name_bn || '').includes('প্রাক'))));
+        if (testEx) {
+          effectiveExamId = testEx.id;
+          setSelectedExam(testEx.id);
+        }
+      }
+
+      if (!effectiveExamId && exams.length > 0) {
+        effectiveExamId = exams[0].id;
+        setSelectedExam(effectiveExamId);
+      }
+
+      // 3. Smart Department Detection from CSV rows
+      let effectiveDept = department;
+      if (deptIdx !== -1 && matrix[1] && matrix[1][deptIdx]) {
+        const rawDept = matrix[1][deptIdx].trim().toLowerCase();
+        if (rawDept.includes('বিজ্ঞান') || rawDept.includes('sci')) {
+          effectiveDept = 'বিজ্ঞান';
+          if (department !== 'বিজ্ঞান') setDepartment('বিজ্ঞান');
+        } else if (rawDept.includes('মানবিক') || rawDept.includes('hum') || rawDept.includes('arts')) {
+          effectiveDept = 'মানবিক';
+          if (department !== 'মানবিক') setDepartment('মানবিক');
+        } else if (rawDept.includes('ব্যবসায়') || rawDept.includes('com') || rawDept.includes('business')) {
+          effectiveDept = 'ব্যবসায় শিক্ষা';
+          if (department !== 'ব্যবসায় শিক্ষা') setDepartment('ব্যবসায় শিক্ষা');
+        }
       }
 
       // Always load the complete student roster for effectiveClass to ensure 100% match rate
@@ -898,10 +952,12 @@ export function ResultPanel({ sub, userRole }) {
       let recordsToSave = [];
       const matchedStudentIds = new Set();
       let detectedSubjectNames = [];
+      let effectiveSubject = currentSubjectObj;
 
       if (subjectColumnsMap.size >= 2) {
         // Multi-Subject CSV Matrix
         detectedSubjectNames = Array.from(subjectColumnsMap.values()).map(x => x.sub.name_bn);
+        effectiveSubject = Array.from(subjectColumnsMap.values())[0]?.sub || currentSubjectObj;
 
         for (let r = 1; r < matrix.length; r++) {
           const row = matrix[r];
@@ -936,7 +992,7 @@ export function ResultPanel({ sub, userRole }) {
 
             if (w !== '' || m !== '' || p !== '' || isAbsent) {
               recordsToSave.push({
-                exam_id: selectedExam,
+                exam_id: effectiveExamId,
                 class_name: effectiveClass,
                 student_id: matchedStudent.id,
                 subject_id: sub.id,
@@ -990,10 +1046,10 @@ export function ResultPanel({ sub, userRole }) {
           const rowSubName = subjectNameIdx !== -1 && row[subjectNameIdx] ? row[subjectNameIdx].trim() : '';
 
           if (rowCode) {
-            const found = classSubjects.find(s => String(s.code) === rowCode);
+            const found = classSubjects.find(s => String(s.code) === rowCode) || subjects.find(s => String(s.code) === rowCode && String(s.class_name) === effectiveClass);
             if (found) rowSub = found;
           } else if (rowSubName) {
-            const found = classSubjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn)));
+            const found = classSubjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn))) || subjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn)) && String(s.class_name) === effectiveClass);
             if (found) rowSub = found;
           }
 
@@ -1019,7 +1075,7 @@ export function ResultPanel({ sub, userRole }) {
           if (p !== '' && pMax > 0 && parseFloat(p) > pMax) p = String(pMax);
 
           recordsToSave.push({
-            exam_id: selectedExam,
+            exam_id: effectiveExamId,
             class_name: effectiveClass,
             student_id: matchedStudent.id,
             subject_id: rowSub.id,
@@ -1034,9 +1090,12 @@ export function ResultPanel({ sub, userRole }) {
 
         detectedSubjectNames = Array.from(rowSubjectsSet);
         if (rowSubjectsSet.size === 1) {
-          const singleSub = classSubjects.find(s => s.name_bn === detectedSubjectNames[0]);
-          if (singleSub && singleSub.id !== selectedSubjectId) {
-            setSelectedSubjectId(singleSub.id);
+          const singleSub = classSubjects.find(s => s.name_bn === detectedSubjectNames[0]) || subjects.find(s => s.name_bn === detectedSubjectNames[0] && String(s.class_name) === effectiveClass);
+          if (singleSub) {
+            effectiveSubject = singleSub;
+            if (singleSub.id !== selectedSubjectId) {
+              setSelectedSubjectId(singleSub.id);
+            }
           }
         }
       }
@@ -1046,33 +1105,72 @@ export function ResultPanel({ sub, userRole }) {
         return;
       }
 
-      // 1. Save records to backend store
+      // 4. Save records to backend store (persisted across aliases)
       await api('/marks/bulk', {
         method: 'POST',
-        body: JSON.stringify({ exam_id: selectedExam, records: recordsToSave })
+        body: JSON.stringify({ exam_id: effectiveExamId, records: recordsToSave })
       });
 
-      // 2. Immediately recalculate results via Dhaka Board Exam Engine
+      // 5. Immediately recalculate results via Dhaka Board Exam Engine
       const processRes = await api('/results/process', {
         method: 'POST',
-        body: JSON.stringify({ exam_id: selectedExam, class_name: effectiveClass })
+        body: JSON.stringify({ exam_id: effectiveExamId, class_name: effectiveClass })
       });
 
       if (Array.isArray(processRes.summary)) {
         setProcessedResults(processRes.summary);
       }
 
-      // 3. Refresh processed results state and marks roster
-      await loadProcessedResults(true);
-      if (tab === 'marks') {
-        handleLoadRoster();
+      // 6. Direct Marks Roster population for instantaneous UI update without waiting for async refetches
+      const targetSubObj = effectiveSubject || currentSubjectObj;
+      const filteredStudents = allClassStudents.filter(s => {
+        if (targetSubObj && !isSubjectApplicableToStudent(targetSubObj, s)) return false;
+        if (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ') {
+          if (!matchesStudentGroup(s, effectiveDept)) return false;
+        }
+        return true;
+      });
+      const sortedStudents = sortStudentsList(filteredStudents);
+      setStudents(sortedStudents);
+
+      const uploadedMarksMap = new Map();
+      recordsToSave.forEach(r => {
+        const sId = String(r.student_id).toLowerCase();
+        uploadedMarksMap.set(sId, r);
+        if (r.student_code) uploadedMarksMap.set(String(r.student_code).toLowerCase(), r);
+      });
+
+      if (targetSubObj) {
+        const newRoster = sortedStudents.map(s => {
+          const sId = String(s.id || '').toLowerCase();
+          const stCode = String(s.student_id || s.id || '').toLowerCase();
+          const m = uploadedMarksMap.get(sId) || uploadedMarksMap.get(stCode) || {};
+          return {
+            student_id: s.id,
+            student_code: s.student_id || s.id || ('STU-' + s.roll_no),
+            roll_no: s.roll_no !== undefined && s.roll_no !== null ? s.roll_no : '',
+            name_bn: s.name_bn || s.name_en || '',
+            department: s.department || s.group_name || s.group || 'সাধারণ',
+            subject_id: targetSubObj.id,
+            subject_code: targetSubObj.code,
+            written: m.written !== null && m.written !== undefined ? m.written : '',
+            mcq: m.mcq !== null && m.mcq !== undefined ? m.mcq : '',
+            practical: m.practical !== null && m.practical !== undefined ? m.practical : '',
+            absent: !!m.absent,
+            remarks: m.remarks || ''
+          };
+        });
+        setMarksRoster(newRoster);
       }
+
+      // 7. Refresh processed results state
+      await loadProcessedResults(true);
 
       const subjectsInfo = detectedSubjectNames.length > 1
         ? `${toBnDigits(detectedSubjectNames.length)}টি বিষয় (${detectedSubjectNames.slice(0, 3).join(', ')}${detectedSubjectNames.length > 3 ? '...' : ''})`
-        : `"${detectedSubjectNames[0] || currentSubjectObj?.name_bn || 'বিষয়'}"`;
+        : `"${targetSubObj?.name_bn || detectedSubjectNames[0] || 'বিষয়'}"`;
 
-      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${subjectsInfo} এর ${toBnDigits(matchedStudentIds.size)} জন শিক্ষার্থীর নম্বর সফলভাবে ইমপোর্ট ও মাস্টার শিটে প্রসেস করা হয়েছে! ✓`, 'success');
+      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${subjectsInfo} এর ${toBnDigits(matchedStudentIds.size)} জন শিক্ষার্থীর নম্বর সফলভাবে সেভ ও মাস্টার শিটে প্রসেস করা হয়েছে! ✓`, 'success');
     } catch (err) {
       console.error('CSV import error:', err);
       showNotification('CSV ফাইল আপলোড ব্যর্থ: ' + err.message, 'error');
