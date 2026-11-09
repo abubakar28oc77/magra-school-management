@@ -1508,75 +1508,6 @@ function Home(){
 
 
 
-
-
-    {/* ১. বিদ্যালয় সম্পর্কে (ref-primary তে স্থানান্তরিত) */}
-    <section id="school-info" className="ref-section about-panel" style={{marginTop:'22px',marginBottom:'22px',borderRadius:'10px'}}>
-     <div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div>
-     <div>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px',marginBottom:'6px'}}>
-       <h2 style={{margin:0}}>বিদ্যালয় সম্পর্কে</h2>
-       <button
-        type="button"
-        className="mini"
-        style={{background:'#0b8050',color:'#fff',border:'none',fontWeight:700,padding:'5px 12px',cursor:'pointer',borderRadius:'6px'}}
-        onClick={()=>setActiveModal({key:'public.nav.institution.about',title:'বিদ্যালয় পরিচিতি'})}
-       >
-        🏛️ বিস্তারিত পরিচিতি ও ইতিহাস →
-       </button>
-      </div>
-      <p style={{fontSize:'13px',lineHeight:'1.8',margin:0}}>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p>
-     </div>
-    </section>
-
-    {/* ২. জরুরি যোগাযোগ ও দায়িত্বপ্রাপ্ত কর্মকর্তা (ref-primary তে স্থানান্তরিত) */}
-    <section id="contact" className="ref-section contact-section">
-     <div className="ref-title">
-      <h2>📞 জরুরি যোগাযোগ ও দায়িত্বপ্রাপ্ত কর্মকর্তা</h2>
-      <span></span>
-     </div>
-     <div className="contact-grid">
-      {displayContacts.map(c=>{
-       const p=c.person;
-       const name=p?.name_bn||p?.name_en||'তথ্য সংযোজনযোগ্য';
-       const desig=p?.designation||c.role;
-       const phone=p?.phone||'';
-       const email=p?.email||'';
-       const photo=getTeacherPhoto(p);
-       const modalKeyMap = {
-        head: { key: 'public.nav.contact.head', title: 'প্রধান শিক্ষক' },
-        assistant: { key: 'public.nav.contact.assistant', title: 'সহকারী প্রধান শিক্ষক' },
-        ict: { key: 'public.nav.contact.ict', title: 'আইসিটি শিক্ষক' },
-        office: { key: 'public.nav.contact.office', title: 'অফিস সহকারী' },
-       };
-       const targetModal = modalKeyMap[c.key] || { key: 'public.nav.contact.all', title: 'যোগাযোগ ও ঠিকানা' };
-       return (
-        <article className="contact-card" id={'contact-'+c.key} key={c.key} onClick={()=>setActiveModal(targetModal)} title={`${name} — ${desig} (বিস্তারিত দেখতে ক্লিক করুন)`} style={{cursor:'pointer'}}>
-         <div className="contact-avatar-wrap">
-          <img src={photo} alt={name} className="contact-avatar-img"/>
-         </div>
-         <span className="contact-role-badge">{c.role}</span>
-         <h3>{name}</h3>
-         <p className="contact-desig">{desig}</p>
-         {phone&&(
-          <p className="contact-phone">
-           📱 <a href={`tel:${phone}`} onClick={e=>e.stopPropagation()}>{phone}</a>
-          </p>
-         )}
-         {email&&(
-          <p className="contact-email">
-           ✉️ <a href={`mailto:${email}`} onClick={e=>e.stopPropagation()}>{email}</a>
-          </p>
-         )}
-        </article>
-       );
-      })}
-     </div>
-     <div className="contact-note">
-      ℹ️ শিক্ষক ও কর্মচারী প্রোফাইল এবং লগইন তালিকা থেকে এই যোগাযোগ তথ্য সার্বক্ষণিক স্বয়ংক্রিয়ভাবে হালনাগাদ থাকে।
-     </div>
-    </section>
-
     </div>
    <aside className="ref-sidebar">
     {/* 🌐 সাইট ভিজিটর ও লাইভ টাইমার উইজেট */}
@@ -1747,7 +1678,23 @@ function Home(){
    {/* নিচের সেকশনগুলো উভয় পাশে সমান্তরালভাবে পুরো পেজ জুড়ে বিস্তৃত (Full Width 100%) */}
    <div className="ref-fullwidth-sections" style={{marginTop:'28px',display:'flex',flexDirection:'column',gap:'24px'}}>
     {/* ১. বিদ্যালয় সম্পর্কে (পুরো পেজের প্রস্থ জুড়ে সমান্তরাল) */}
-    {/* বিদ্যালয় সম্পর্কে সেকশনটি উপরে ref-primary তে স্থানান্তরিত হয়েছে */}
+    <section id="school-info" className="ref-section about-panel" style={{marginBottom:0,borderRadius:'10px'}}>
+     <div className="about-logo"><img src={logo} alt="বিদ্যালয়ের লোগো"/></div>
+     <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px',marginBottom:'6px'}}>
+       <h2 style={{margin:0}}>বিদ্যালয় সম্পর্কে</h2>
+       <button
+        type="button"
+        className="mini"
+        style={{background:'#0b8050',color:'#fff',border:'none',fontWeight:700,padding:'5px 12px',cursor:'pointer',borderRadius:'6px'}}
+        onClick={()=>setActiveModal({key:'public.nav.institution.about',title:'বিদ্যালয় পরিচিতি'})}
+       >
+        🏛️ বিস্তারিত পরিচিতি ও ইতিহাস →
+       </button>
+      </div>
+      <p style={{fontSize:'13px',lineHeight:'1.8',margin:0}}>মগড়া পালস্‌ ইউনিয়ন উচ্চ বিদ্যালয় মগড়া, কালিহাতি, টাংগাইলে অবস্থিত একটি ঐতিহ্যবাহী মাধ্যমিক শিক্ষা প্রতিষ্ঠান। ১৯৪৬ খ্রি. প্রতিষ্ঠিত এই বিদ্যালয়ের লক্ষ্য মানসম্মত শিক্ষা, শৃঙ্খলা, নৈতিকতা ও আধুনিক প্রযুক্তিনির্ভর শিক্ষার সমন্বয়ে শিক্ষার্থীদের প্রস্তুত করা। এই ডিজিটাল প্ল্যাটফর্মে বিদ্যালয়ের প্রশাসনিক তথ্য, শিক্ষা কার্যক্রম, ফলাফল, নোটিশ, শিক্ষক-শিক্ষার্থী তথ্য এবং অনলাইন সেবা পূর্ণাঙ্গভাবে পরিচালিত হচ্ছে।</p>
+     </div>
+    </section>
     {/* ৩. সক্রিয় সকল শিক্ষকের ছবিসহ নাম, পদবী, মোবাইলসহ রোলিং ক্যারোসেল (সভাপতি বাদ) */}
     <section id="teachers" className="ref-section rolling-teachers-section">
      <div className="rolling-teachers-header">
@@ -1820,7 +1767,52 @@ function Home(){
     </section>
 
     {/* ৪. যোগাযোগ অংশ — শিক্ষক ও কর্মচারী তালিকা থেকে স্বয়ংক্রিয়ভাবে যুক্ত */}
-    {/* জরুরি যোগাযোগ সেকশনটি উপরে ref-primary তে স্থানান্তরিত হয়েছে */}
+    <section id="contact" className="ref-section contact-section">
+     <div className="ref-title">
+      <h2>📞 জরুরি যোগাযোগ ও দায়িত্বপ্রাপ্ত কর্মকর্তা</h2>
+      <span></span>
+     </div>
+     <div className="contact-grid">
+      {displayContacts.map(c=>{
+       const p=c.person;
+       const name=p?.name_bn||p?.name_en||'তথ্য সংযোজনযোগ্য';
+       const desig=p?.designation||c.role;
+       const phone=p?.phone||'';
+       const email=p?.email||'';
+       const photo=getTeacherPhoto(p);
+       const modalKeyMap = {
+        head: { key: 'public.nav.contact.head', title: 'প্রধান শিক্ষক' },
+        assistant: { key: 'public.nav.contact.assistant', title: 'সহকারী প্রধান শিক্ষক' },
+        ict: { key: 'public.nav.contact.ict', title: 'আইসিটি শিক্ষক' },
+        office: { key: 'public.nav.contact.office', title: 'অফিস সহকারী' },
+       };
+       const targetModal = modalKeyMap[c.key] || { key: 'public.nav.contact.all', title: 'যোগাযোগ ও ঠিকানা' };
+       return (
+        <article className="contact-card" id={'contact-'+c.key} key={c.key} onClick={()=>setActiveModal(targetModal)} title={`${name} — ${desig} (বিস্তারিত দেখতে ক্লিক করুন)`} style={{cursor:'pointer'}}>
+         <div className="contact-avatar-wrap">
+          <img src={photo} alt={name} className="contact-avatar-img"/>
+         </div>
+         <span className="contact-role-badge">{c.role}</span>
+         <h3>{name}</h3>
+         <p className="contact-desig">{desig}</p>
+         {phone&&(
+          <p className="contact-phone">
+           📱 <a href={`tel:${phone}`} onClick={e=>e.stopPropagation()}>{phone}</a>
+          </p>
+         )}
+         {email&&(
+          <p className="contact-email">
+           ✉️ <a href={`mailto:${email}`} onClick={e=>e.stopPropagation()}>{email}</a>
+          </p>
+         )}
+        </article>
+       );
+      })}
+     </div>
+     <div className="contact-note">
+      ℹ️ শিক্ষক ও কর্মচারী প্রোফাইল এবং লগইন তালিকা থেকে এই যোগাযোগ তথ্য সার্বক্ষণিক স্বয়ংক্রিয়ভাবে হালনাগাদ থাকে।
+     </div>
+    </section>
 
     <section id="distinguished" className="ref-section distinguished">
      <div className="distinguished-head">
