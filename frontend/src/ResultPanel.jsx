@@ -68,6 +68,32 @@ export function isSubjectApplicableToStudent(subject, student) {
   if (!isSSC) return true;
 
   // 3. Classes 9-10 (SSC pattern)
+  // Check 4th subject choice for Science (126 vs 134)
+  const stDept = (student.department || student.group_name || student.group || 'বিজ্ঞান').trim();
+  const isHumanities = stDept.includes('মানবিক') || stDept.toLowerCase().includes('humanities') || stDept.includes('আর্টস');
+  const isBusiness = stDept.includes('ব্যবসায়') || stDept.toLowerCase().includes('commerce') || stDept.includes('বাণিজ্য');
+  const isScience = !isHumanities && !isBusiness;
+
+  if (isScience && (subCode === '126' || subCode === '134')) {
+    const explicit = (
+      student.fourth_subject || 
+      student.fourth_subject_code || 
+      student.optional_subject || 
+      student.optional_subject_name || 
+      student.elective_subject || 
+      ''
+    ).toString().toLowerCase();
+
+    if (explicit) {
+      if (explicit.includes('134') || explicit.includes('কৃষি') || explicit.includes('agri')) {
+        return subCode === '134';
+      }
+      if (explicit.includes('126') || explicit.includes('উচ্চতর') || explicit.includes('গণিত') || explicit.includes('higher') || explicit.includes('math')) {
+        return subCode === '126';
+      }
+    }
+  }
+
   const subDept = (subject.department || 'আবশ্যিক').trim();
   if (subDept === 'আবশ্যিক' || subDept === 'সাধারণ' || subDept === 'all' || !subDept) {
     return true;
@@ -320,6 +346,125 @@ export function ResultPanel({ sub, userRole }) {
       return s.department === 'আবশ্যিক' || matchesStudentGroup({ department: s.department }, department);
     });
   }, [subjects, className, department, isSSC]);
+
+  // Smart Columns for Tabulation Sheet:
+  // 1. Merging Religion: [111] ইসলাম ও নৈতিক শিক্ষা and [112] হিন্দুধর্ম into single column "[111/112] ইসলাম ধর্ম / হিন্দু ধর্ম"
+  // 2. Merging Science 4th Subject: [126] উচ্চতর গণিত and [134] কৃষি শিক্ষা into single column "[126/134] উচ্চতর গণিত / কৃষি শিক্ষা"
+  const tabulationColumns = useMemo(() => {
+    const cols = [];
+    const processedCodes = new Set();
+
+    const has111 = subjectsForClass.some(s => String(s.code) === '111');
+    const has112 = subjectsForClass.some(s => String(s.code) === '112');
+    const mergeReligion = has111 || has112;
+
+    const has126 = subjectsForClass.some(s => String(s.code) === '126');
+    const has134 = subjectsForClass.some(s => String(s.code) === '134');
+    const mergeFourthSubject = has126 && has134;
+
+    subjectsForClass.forEach(s => {
+      const code = String(s.code);
+      if (processedCodes.has(code)) return;
+
+      // Religion group merge (111, 112, 113, 114)
+      if (['111', '112', '113', '114'].includes(code) && mergeReligion) {
+        if (!processedCodes.has('rel_merged')) {
+          processedCodes.add('rel_merged');
+          processedCodes.add('111');
+          processedCodes.add('112');
+          processedCodes.add('113');
+          processedCodes.add('114');
+          cols.push({
+            isMerged: true,
+            type: 'religion',
+            code: '111/112',
+            codes: ['111', '112', '113', '114'],
+            name_bn: 'ইসলাম ধর্ম / হিন্দু ধর্ম',
+            headerTitle: '[111/112] ইসলাম ধর্ম / হিন্দু ধর্ম',
+            written_max: s.written_max || 70,
+            mcq_max: s.mcq_max || 30,
+            practical_max: s.practical_max || 0,
+            full_marks: 100
+          });
+        }
+        return;
+      }
+
+      // Science 4th subject merge (126 Higher Math & 134 Agriculture Studies)
+      if ((code === '126' || code === '134') && mergeFourthSubject) {
+        if (!processedCodes.has('fourth_merged')) {
+          processedCodes.add('fourth_merged');
+          processedCodes.add('126');
+          processedCodes.add('134');
+          cols.push({
+            isMerged: true,
+            type: 'fourth_subject',
+            code: '126/134',
+            codes: ['126', '134'],
+            name_bn: 'উচ্চতর গণিত / কৃষি শিক্ষা',
+            headerTitle: '[126/134] উচ্চতর গণিত / কৃষি শিক্ষা',
+            written_max: 50,
+            mcq_max: 25,
+            practical_max: 25,
+            full_marks: 100
+          });
+        }
+        return;
+      }
+
+      // Regular single subject
+      processedCodes.add(code);
+      cols.push({
+        isMerged: false,
+        id: s.id,
+        code: s.code,
+        codes: [code],
+        name_bn: s.name_bn,
+        headerTitle: `[${s.code}] ${s.name_bn}`,
+        written_max: s.written_max,
+        mcq_max: s.mcq_max,
+        practical_max: s.practical_max,
+        full_marks: s.full_marks
+      });
+    });
+
+    return cols;
+  }, [subjectsForClass]);
+
+  const getStudentMarkForColumn = (st, colDef) => {
+    if (!st || !st.subjects || !st.subjects.length) return null;
+
+    if (colDef.isMerged) {
+      for (const c of colDef.codes) {
+        const found = st.subjects.find(s => String(s.code) === String(c));
+        if (found) return found;
+      }
+      if (colDef.type === 'religion') {
+        const foundRel = st.subjects.find(s => 
+          ['111', '112', '113', '114'].includes(String(s.code)) ||
+          String(s.name_bn || '').includes('ধর্ম') ||
+          String(s.name_bn || '').includes('ইসলাম') ||
+          String(s.name_bn || '').includes('হিন্দু')
+        );
+        if (foundRel) return foundRel;
+      }
+      if (colDef.type === 'fourth_subject') {
+        const found4th = st.subjects.find(s => 
+          ['126', '134'].includes(String(s.code)) ||
+          String(s.name_bn || '').includes('উচ্চতর') ||
+          String(s.name_bn || '').includes('গণিত') ||
+          String(s.name_bn || '').includes('কৃষি')
+        );
+        if (found4th) return found4th;
+      }
+      return null;
+    }
+
+    return st.subjects.find(s => 
+      String(s.code) === String(colDef.code) || 
+      (colDef.id && String(s.subject_id) === String(colDef.id))
+    ) || null;
+  };
 
   // Auto-align selectedSubjectId for Mark Entry
   useEffect(() => {
@@ -695,7 +840,7 @@ export function ResultPanel({ sub, userRole }) {
       showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
       return;
     }
-    if (!subjectsForClass.length) {
+    if (!tabulationColumns.length) {
       showNotification('কোনো বিষয় পাওয়া যায়নি।', 'error');
       return;
     }
@@ -709,34 +854,44 @@ export function ResultPanel({ sub, userRole }) {
     };
 
     const headers = [
+      'Merit',
       'Roll',
-      'Student_ID',
-      'Student_Name',
-      'Department'
+      'Student_Name'
     ];
 
-    subjectsForClass.forEach(s => {
-      if (s.written_max > 0) headers.push(`[${s.code}] ${s.name_bn} (CQ max ${s.written_max})`);
-      if (s.mcq_max > 0) headers.push(`[${s.code}] ${s.name_bn} (MCQ max ${s.mcq_max})`);
-      if (s.practical_max > 0) headers.push(`[${s.code}] ${s.name_bn} (Prac max ${s.practical_max})`);
+    tabulationColumns.forEach(col => {
+      if (col.written_max > 0) headers.push(`${col.headerTitle} (CQ max ${col.written_max})`);
+      if (col.mcq_max > 0) headers.push(`${col.headerTitle} (MCQ max ${col.mcq_max})`);
+      if (col.practical_max > 0) headers.push(`${col.headerTitle} (Prac max ${col.practical_max})`);
+      headers.push(`${col.headerTitle} (Total)`);
+      headers.push(`${col.headerTitle} (Grade)`);
     });
+    headers.push('Total_Marks', 'GPA', 'Grade', 'Result');
 
     const studentList = filteredProcessedResults.length ? filteredProcessedResults : students;
 
-    const rows = studentList.map(st => {
+    const rows = studentList.map((st, idx) => {
       const row = [
+        escapeCsv(st.merit !== undefined ? st.merit : idx + 1),
         escapeCsv(st.roll_no !== undefined ? st.roll_no : ''),
-        escapeCsv(st.student_id || st.student_code || st.id || ''),
-        escapeCsv(st.name_bn || st.name_en || ''),
-        escapeCsv(st.department || 'সাধারণ')
+        escapeCsv(st.name_bn || st.name_en || '')
       ];
 
-      subjectsForClass.forEach(s => {
-        const subResult = (st.subjects || []).find(sub => sub.code === s.code || sub.subject_id === s.id);
-        if (s.written_max > 0) row.push(escapeCsv(subResult?.written !== undefined ? subResult.written : ''));
-        if (s.mcq_max > 0) row.push(escapeCsv(subResult?.mcq !== undefined ? subResult.mcq : ''));
-        if (s.practical_max > 0) row.push(escapeCsv(subResult?.practical !== undefined ? subResult.practical : ''));
+      tabulationColumns.forEach(col => {
+        const subResult = getStudentMarkForColumn(st, col);
+        if (col.written_max > 0) row.push(escapeCsv(subResult?.written !== undefined && subResult?.written !== null ? subResult.written : ''));
+        if (col.mcq_max > 0) row.push(escapeCsv(subResult?.mcq !== undefined && subResult?.mcq !== null ? subResult.mcq : ''));
+        if (col.practical_max > 0) row.push(escapeCsv(subResult?.practical !== undefined && subResult?.practical !== null ? subResult.practical : ''));
+        row.push(escapeCsv(subResult?.total !== undefined && subResult?.total !== null ? subResult.total : ''));
+        row.push(escapeCsv(subResult?.letter_grade || ''));
       });
+
+      row.push(
+        escapeCsv(st.total_marks !== undefined ? st.total_marks : ''),
+        escapeCsv(st.gpa !== undefined ? st.gpa : ''),
+        escapeCsv(st.final_grade || ''),
+        escapeCsv(st.result_status || (st.is_pass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'))
+      );
 
       return row;
     });
@@ -785,13 +940,13 @@ export function ResultPanel({ sub, userRole }) {
     const gpa5Count = filteredProcessedResults.filter(s => Number(s.gpa) >= 5.0 && s.is_pass).length;
     const passPercentage = totalStudents ? ((passedCount / totalStudents) * 100).toFixed(1) : '0';
 
-    const subjectsHtml = subjectsForClass.map(s => `
+    const subjectsHtml = tabulationColumns.map(col => `
       <th colspan="4" class="sub-head-cell">
-        [${s.code}] ${s.name_bn}
+        ${col.headerTitle}
       </th>
     `).join('');
 
-    const subColsHtml = subjectsForClass.map(() => `
+    const subColsHtml = tabulationColumns.map(() => `
       <th class="col-sub">CQ</th>
       <th class="col-sub">MCQ</th>
       <th class="col-sub">Prac</th>
@@ -802,12 +957,10 @@ export function ResultPanel({ sub, userRole }) {
       const isPass = st.is_pass;
       const meritBn = toBnDigits(st.merit || (idx + 1));
       const rollBn = toBnDigits(st.roll_no);
-      const studentId = st.student_id || st.student_code || st.id || '—';
       const nameBn = st.name_bn || '—';
-      const dept = st.department || 'সাধারণ';
 
-      const subjectCells = subjectsForClass.map(subDef => {
-        const found = (st.subjects || []).find(s => s.code === subDef.code || s.subject_id === subDef.id);
+      const subjectCells = tabulationColumns.map(colDef => {
+        const found = getStudentMarkForColumn(st, colDef);
         if (!found) {
           return `
             <td class="cell-muted">—</td>
@@ -823,11 +976,19 @@ export function ResultPanel({ sub, userRole }) {
         const grade = found.letter_grade || 'F';
         const passClass = found.is_pass ? 'cell-pass' : 'cell-fail';
 
+        let tag = '';
+        if (colDef.isMerged) {
+          if (String(found.code) === '111') tag = '<br><span style="font-size:7px;color:#047857;font-weight:600;">ইসলাম</span>';
+          else if (String(found.code) === '112') tag = '<br><span style="font-size:7px;color:#b45309;font-weight:600;">হিন্দু</span>';
+          else if (String(found.code) === '126') tag = '<br><span style="font-size:7px;color:#1d4ed8;font-weight:600;">উ: গণিত</span>';
+          else if (String(found.code) === '134') tag = '<br><span style="font-size:7px;color:#15803d;font-weight:600;">কৃষি</span>';
+        }
+
         return `
           <td>${cq}</td>
           <td>${mcq}</td>
           <td>${prac}</td>
-          <td class="${passClass}"><b>${tot}</b><br><small style="font-size:7.5px;">${grade}</small></td>
+          <td class="${passClass}"><b>${tot}</b><br><small style="font-size:7.5px;">${grade}</small>${tag}</td>
         `;
       }).join('');
 
@@ -841,9 +1002,7 @@ export function ResultPanel({ sub, userRole }) {
         <tr>
           <td><b>${meritBn}</b></td>
           <td><b>${rollBn}</b></td>
-          <td style="font-size:8px;font-family:monospace;">${studentId}</td>
           <td style="text-align:left;white-space:nowrap;padding-left:4px;"><b>${nameBn}</b></td>
-          <td style="font-size:8px;">${dept}</td>
           ${subjectCells}
           <td><b>${totalMarks}</b></td>
           <td style="font-weight:700;color:${isPass ? '#065f46' : '#dc2626'};">${gpa}</td>
@@ -1057,16 +1216,14 @@ export function ResultPanel({ sub, userRole }) {
   <table class="tab-matrix">
     <thead>
       <tr>
-        <th rowspan="2" style="width:26px;">মেধা</th>
-        <th rowspan="2" style="width:28px;">রোল</th>
-        <th rowspan="2" style="width:70px;">আইডি</th>
-        <th rowspan="2" style="width:125px;text-align:left;padding-left:4px;">শিক্ষার্থীর নাম</th>
-        <th rowspan="2" style="width:48px;">বিভাগ</th>
+        <th rowspan="2" style="width:30px;">মেধা</th>
+        <th rowspan="2" style="width:32px;">রোল</th>
+        <th rowspan="2" style="width:145px;text-align:left;padding-left:6px;">শিক্ষার্থীর নাম</th>
         ${subjectsHtml}
-        <th rowspan="2" style="width:36px;">সর্বমোট</th>
-        <th rowspan="2" style="width:30px;">GPA</th>
-        <th rowspan="2" style="width:26px;">গ্রেড</th>
-        <th rowspan="2" style="width:38px;">ফলাফল</th>
+        <th rowspan="2" style="width:38px;">সর্বমোট</th>
+        <th rowspan="2" style="width:32px;">GPA</th>
+        <th rowspan="2" style="width:28px;">গ্রেড</th>
+        <th rowspan="2" style="width:40px;">ফলাফল</th>
       </tr>
       <tr>
         ${subColsHtml}
@@ -3434,12 +3591,10 @@ export function ResultPanel({ sub, userRole }) {
                 <tr>
                   <th rowSpan="2" style={{ width: '40px' }}>মেধা</th>
                   <th rowSpan="2" style={{ width: '45px' }}>রোল</th>
-                  <th rowSpan="2">আইডি</th>
-                  <th rowSpan="2" style={{ minWidth: '130px' }}>শিক্ষার্থীর নাম</th>
-                  <th rowSpan="2">বিভাগ</th>
-                  {subjectsForClass.map(s => (
-                    <th key={s.code} colSpan="4" className="tab-sub-head">
-                      [{s.code}] {s.name_bn}
+                  <th rowSpan="2" style={{ minWidth: '150px' }}>শিক্ষার্থীর নাম</th>
+                  {tabulationColumns.map(col => (
+                    <th key={col.code} colSpan="4" className="tab-sub-head">
+                      {col.headerTitle}
                     </th>
                   ))}
                   <th rowSpan="2">সর্বমোট</th>
@@ -3448,8 +3603,8 @@ export function ResultPanel({ sub, userRole }) {
                   <th rowSpan="2">ফলাফল</th>
                 </tr>
                 <tr>
-                  {subjectsForClass.map(s => (
-                    <React.Fragment key={`${s.code}-heads`}>
+                  {tabulationColumns.map(col => (
+                    <React.Fragment key={`${col.code}-heads`}>
                       <th className="tab-sub-col">CQ</th>
                       <th className="tab-sub-col">MCQ</th>
                       <th className="tab-sub-col">Prac</th>
@@ -3463,14 +3618,12 @@ export function ResultPanel({ sub, userRole }) {
                   <tr key={st.id || st.student_id}>
                     <td><b>{toBnDigits(st.merit)}</b></td>
                     <td><span className="roll-pill">{toBnDigits(st.roll_no)}</span></td>
-                    <td><span className="code-pill">{st.student_id}</span></td>
                     <td style={{ textAlign: 'left' }}><b>{st.name_bn}</b></td>
-                    <td><span className="sub-tag-compulsory">{st.department || 'সাধারণ'}</span></td>
-                    {subjectsForClass.map(subDef => {
-                      const found = (st.subjects || []).find(s => s.code === subDef.code || s.subject_id === subDef.id);
+                    {tabulationColumns.map(colDef => {
+                      const found = getStudentMarkForColumn(st, colDef);
                       if (!found) {
                         return (
-                          <React.Fragment key={`${st.id}-${subDef.code}-na`}>
+                          <React.Fragment key={`${st.id}-${colDef.code}-na`}>
                             <td className="text-muted tab-sub-col">—</td>
                             <td className="text-muted tab-sub-col">—</td>
                             <td className="text-muted tab-sub-col">—</td>
@@ -3478,17 +3631,25 @@ export function ResultPanel({ sub, userRole }) {
                           </React.Fragment>
                         );
                       }
+                      let tag = null;
+                      if (colDef.isMerged) {
+                        if (String(found.code) === '111') tag = <span style={{ fontSize: '9px', color: '#047857', display: 'block', fontWeight: 600 }}>ইসলাম</span>;
+                        else if (String(found.code) === '112') tag = <span style={{ fontSize: '9px', color: '#b45309', display: 'block', fontWeight: 600 }}>হিন্দু</span>;
+                        else if (String(found.code) === '126') tag = <span style={{ fontSize: '9px', color: '#1d4ed8', display: 'block', fontWeight: 600 }}>উ: গণিত</span>;
+                        else if (String(found.code) === '134') tag = <span style={{ fontSize: '9px', color: '#15803d', display: 'block', fontWeight: 600 }}>কৃষি</span>;
+                      }
                       return (
-                        <React.Fragment key={`${st.id}-${subDef.code}`}>
-                          <td className="tab-sub-col">{found.written_max > 0 ? found.written : '—'}</td>
-                          <td className="tab-sub-col">{found.mcq_max > 0 ? found.mcq : '—'}</td>
-                          <td className="tab-sub-col">{found.practical_max > 0 ? found.practical : '—'}</td>
+                        <React.Fragment key={`${st.id}-${colDef.code}`}>
+                          <td className="tab-sub-col">{found.written_max > 0 ? (found.written !== null && found.written !== undefined ? found.written : '—') : '—'}</td>
+                          <td className="tab-sub-col">{found.mcq_max > 0 ? (found.mcq !== null && found.mcq !== undefined ? found.mcq : '—') : '—'}</td>
+                          <td className="tab-sub-col">{found.practical_max > 0 ? (found.practical !== null && found.practical !== undefined ? found.practical : '—') : '—'}</td>
                           <td
                             className={`tab-sub-col ${found.is_pass ? 'tab-pass-cell' : 'tab-fail-cell'}`}
                             title={found.is_combined ? `${found.combined_title}: মোট প্রাপ্ত ${found.combined_total}, গ্রেড ${found.letter_grade}` : ''}
                           >
                             <b>{found.total}</b>
                             <div style={{ fontSize: '10px' }}>{found.letter_grade}</div>
+                            {tag}
                           </td>
                         </React.Fragment>
                       );
@@ -3505,7 +3666,7 @@ export function ResultPanel({ sub, userRole }) {
                 ))}
                 {!filteredProcessedResults.length && (
                   <tr>
-                    <td colSpan={5 + (subjectsForClass.length * 4) + 4} className="empty-table-cell">
+                    <td colSpan={3 + (tabulationColumns.length * 4) + 4} className="empty-table-cell">
                       ট্যাবুলেশন শিট দেখতে আগে ফলাফল প্রসেস সম্পন্ন করুন।
                     </td>
                   </tr>
