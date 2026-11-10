@@ -757,6 +757,364 @@ export function ResultPanel({ sub, userRole }) {
     showNotification(`শ্রেণি ${toBnDigits(className)} এর মাস্টার ট্যাবুলেশন শিট CSV সফলভাবে ডাউনলোড হয়েছে! ✓`, 'success');
   };
 
+  // Dedicated Official Tabulation Sheet Print in Legal Landscape
+  const handlePrintTabulationSheet = () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!filteredProcessedResults.length) {
+      showNotification('ট্যাবুলেশন শিটে প্রদর্শনের মতো কোনো শিক্ষার্থীর ফলাফল নেই', 'error');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      window.print();
+      return;
+    }
+
+    const examTitle = selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা';
+    const deptTitle = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+      ? `${department} বিভাগ`
+      : 'সকল বিভাগ/শাখা';
+    const totalStudents = filteredProcessedResults.length;
+    const passedCount = filteredProcessedResults.filter(s => s.is_pass).length;
+    const failedCount = totalStudents - passedCount;
+    const gpa5Count = filteredProcessedResults.filter(s => Number(s.gpa) >= 5.0 && s.is_pass).length;
+    const passPercentage = totalStudents ? ((passedCount / totalStudents) * 100).toFixed(1) : '0';
+
+    const subjectsHtml = subjectsForClass.map(s => `
+      <th colspan="4" class="sub-head-cell">
+        [${s.code}] ${s.name_bn}
+      </th>
+    `).join('');
+
+    const subColsHtml = subjectsForClass.map(() => `
+      <th class="col-sub">CQ</th>
+      <th class="col-sub">MCQ</th>
+      <th class="col-sub">Prac</th>
+      <th class="col-sub">মোট</th>
+    `).join('');
+
+    const rowsHtml = filteredProcessedResults.map((st, idx) => {
+      const isPass = st.is_pass;
+      const meritBn = toBnDigits(st.merit || (idx + 1));
+      const rollBn = toBnDigits(st.roll_no);
+      const studentId = st.student_id || st.student_code || st.id || '—';
+      const nameBn = st.name_bn || '—';
+      const dept = st.department || 'সাধারণ';
+
+      const subjectCells = subjectsForClass.map(subDef => {
+        const found = (st.subjects || []).find(s => s.code === subDef.code || s.subject_id === subDef.id);
+        if (!found) {
+          return `
+            <td class="cell-muted">—</td>
+            <td class="cell-muted">—</td>
+            <td class="cell-muted">—</td>
+            <td class="cell-muted">—</td>
+          `;
+        }
+        const cq = found.written_max > 0 ? (found.written !== null && found.written !== undefined ? found.written : '—') : '—';
+        const mcq = found.mcq_max > 0 ? (found.mcq !== null && found.mcq !== undefined ? found.mcq : '—') : '—';
+        const prac = found.practical_max > 0 ? (found.practical !== null && found.practical !== undefined ? found.practical : '—') : '—';
+        const tot = found.total !== null && found.total !== undefined ? found.total : '—';
+        const grade = found.letter_grade || 'F';
+        const passClass = found.is_pass ? 'cell-pass' : 'cell-fail';
+
+        return `
+          <td>${cq}</td>
+          <td>${mcq}</td>
+          <td>${prac}</td>
+          <td class="${passClass}"><b>${tot}</b><br><small style="font-size:7.5px;">${grade}</small></td>
+        `;
+      }).join('');
+
+      const totalMarks = st.total_marks !== undefined ? st.total_marks : '—';
+      const gpa = st.gpa !== undefined ? st.gpa : '0.00';
+      const finalGrade = st.final_grade || 'F';
+      const statusText = isPass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ';
+      const statusClass = isPass ? 'badge-pass' : 'badge-fail';
+
+      return `
+        <tr>
+          <td><b>${meritBn}</b></td>
+          <td><b>${rollBn}</b></td>
+          <td style="font-size:8px;font-family:monospace;">${studentId}</td>
+          <td style="text-align:left;white-space:nowrap;padding-left:4px;"><b>${nameBn}</b></td>
+          <td style="font-size:8px;">${dept}</td>
+          ${subjectCells}
+          <td><b>${totalMarks}</b></td>
+          <td style="font-weight:700;color:${isPass ? '#065f46' : '#dc2626'};">${gpa}</td>
+          <td><b>${finalGrade}</b></td>
+          <td><span class="${statusClass}">${statusText}</span></td>
+        </tr>
+      `;
+    }).join('');
+
+    const content = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>মাস্টার ট্যাবুলেশন শিট — শ্রেণি ${toBnDigits(className)} (${examTitle})</title>
+  <style>
+    @page {
+      size: legal landscape;
+      margin: 5mm 6mm 6mm 6mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: 'SolaimanLipi', Arial, 'Noto Sans Bengali', sans-serif;
+      margin: 0;
+      padding: 4px;
+      color: #0f172a;
+      background: #ffffff;
+      font-size: 8.5px;
+      line-height: 1.15;
+    }
+    .no-print-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #064e3b;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .btn-action {
+      background: #ffffff;
+      color: #064e3b;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-action:hover { background: #e2e8f0; }
+    @media print {
+      .no-print-bar { display: none !important; }
+      body { margin: 0; padding: 0; }
+    }
+
+    /* Header */
+    .sheet-header {
+      text-align: center;
+      border-bottom: 2px solid #064e3b;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .school-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #064e3b;
+      margin: 0 0 2px 0;
+      letter-spacing: 0.5px;
+    }
+    .school-address {
+      font-size: 10px;
+      color: #334155;
+      margin: 0 0 3px 0;
+    }
+    .sheet-title-badge {
+      display: inline-block;
+      background: #f1f5f9;
+      border: 1.5px solid #065f46;
+      color: #064e3b;
+      padding: 2px 14px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .meta-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      color: #1e293b;
+      padding: 2px 4px;
+    }
+
+    /* Table Matrix */
+    table.tab-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+      margin-top: 4px;
+    }
+    table.tab-matrix th, table.tab-matrix td {
+      border: 1px solid #334155;
+      padding: 2px 1px;
+      text-align: center;
+      font-size: 8px;
+    }
+    table.tab-matrix th {
+      background: #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .sub-head-cell {
+      background: #cbd5e1 !important;
+      font-size: 8.5px;
+      padding: 3px 1px;
+    }
+    .col-sub {
+      width: 20px;
+      font-size: 7.5px;
+    }
+    .cell-pass {
+      color: #065f46;
+      font-weight: 700;
+      background: #f0fdf4;
+    }
+    .cell-fail {
+      color: #b91c1c;
+      font-weight: 800;
+      background: #fee2e2 !important;
+    }
+    .cell-muted {
+      color: #94a3b8;
+    }
+    .badge-pass {
+      display: inline-block;
+      padding: 1px 3px;
+      background: #dcfce7;
+      color: #15803d;
+      border-radius: 2px;
+      font-weight: 700;
+      font-size: 7.5px;
+    }
+    .badge-fail {
+      display: inline-block;
+      padding: 1px 3px;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 2px;
+      font-weight: 700;
+      font-size: 7.5px;
+    }
+
+    /* Signatures */
+    .signatures-grid {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 25px;
+      text-align: center;
+      font-size: 9px;
+      page-break-inside: avoid;
+    }
+    .signature-item {
+      border-top: 1px dashed #334155;
+      padding-top: 4px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .sheet-footer-line {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 7.5px;
+      color: #64748b;
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print-bar">
+    <div>
+      <b>📄 মাস্টার ট্যাবুলেশন শিট — Legal Landscape প্রিন্ট প্রিভিউ</b>
+      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(প্রিন্ট সেটিংসে Paper Size: <b>Legal</b> এবং Layout: <b>Landscape</b> নিশ্চিত করুন)</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn-action" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+      <button type="button" class="btn-action" onclick="window.close()" style="background:#e2e8f0;color:#0f172a;">✕ বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <div class="sheet-header">
+    <div class="school-title">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</div>
+    <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৪৬ • EIIN: 114290</div>
+    <div class="sheet-title-badge">মাস্টার ট্যাবুলেশন শিট — ${examTitle}</div>
+    <div class="meta-line">
+      <span><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)}</span>
+      <span><b>শ্রেণি:</b> শ্রেণি ${toBnDigits(className)}</span>
+      <span><b>বিভাগ/শাখা:</b> ${deptTitle}</span>
+      <span><b>মোট পরীক্ষার্থী:</b> ${toBnDigits(totalStudents)} জন</span>
+      <span><b>উত্তীর্ণ:</b> <span style="color:#059669">${toBnDigits(passedCount)} জন (${toBnDigits(passPercentage)}%)</span></span>
+      <span><b>অনুত্তীর্ণ:</b> <span style="color:#dc2626">${toBnDigits(failedCount)} জন</span></span>
+      <span><b>GPA-5:</b> <span style="color:#d97706">${toBnDigits(gpa5Count)} জন</span></span>
+    </div>
+  </div>
+
+  <table class="tab-matrix">
+    <thead>
+      <tr>
+        <th rowspan="2" style="width:26px;">মেধা</th>
+        <th rowspan="2" style="width:28px;">রোল</th>
+        <th rowspan="2" style="width:70px;">আইডি</th>
+        <th rowspan="2" style="width:125px;text-align:left;padding-left:4px;">শিক্ষার্থীর নাম</th>
+        <th rowspan="2" style="width:48px;">বিভাগ</th>
+        ${subjectsHtml}
+        <th rowspan="2" style="width:36px;">সর্বমোট</th>
+        <th rowspan="2" style="width:30px;">GPA</th>
+        <th rowspan="2" style="width:26px;">গ্রেড</th>
+        <th rowspan="2" style="width:38px;">ফলাফল</th>
+      </tr>
+      <tr>
+        ${subColsHtml}
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
+
+  <div class="signatures-grid">
+    <div>
+      <br><br>
+      <div class="signature-item">প্রস্তুতকারীর স্বাক্ষর</div>
+    </div>
+    <div>
+      <br><br>
+      <div class="signature-item">যাচাইকারীর স্বাক্ষর</div>
+    </div>
+    <div>
+      <br><br>
+      <div class="signature-item">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+    </div>
+    <div>
+      <br><br>
+      <div class="signature-item">প্রধান শিক্ষকের স্বাক্ষর ও সীল</div>
+    </div>
+  </div>
+
+  <div class="sheet-footer-line">
+    <span>সফটওয়্যার প্রস্তুতকারক: মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয় ডিজিটাল ম্যানেজমেন্ট সিস্টেম • প্রিন্টের তারিখ ও সময়: ${new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+    <span>পৃষ্ঠা সাইজ: Legal (8.5 × 14 ইঞ্চি) Landscape</span>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 350);
+    };
+  </script>
+</body>
+</html>`;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
   // CSV Upload (Import Marks - Smart Multi-Subject & Single-Subject Parser)
   const handleUploadMarksCsv = async (e) => {
     const file = e.target.files?.[0];
@@ -2021,10 +2379,22 @@ export function ResultPanel({ sub, userRole }) {
               </button>
             )}
 
-            {['merit', 'tabulation', 'marksheet'].includes(tab) && (
-              <button type="button" className="btn-modern-secondary" onClick={() => window.print()}>
-                🖨️ প্রিন্ট করুন
+            {tab === 'tabulation' ? (
+              <button
+                type="button"
+                className="btn-modern-primary"
+                style={{ background: '#047857', color: '#fff', borderColor: '#047857', fontWeight: 700 }}
+                onClick={handlePrintTabulationSheet}
+                title="Legal Landscape (লিগ্যাল পেজ ল্যান্ডস্কেপ) সাইজে প্রিন্ট করুন"
+              >
+                🖨️ প্রিন্ট শিট (Legal Landscape)
               </button>
+            ) : (
+              ['merit', 'marksheet'].includes(tab) && (
+                <button type="button" className="btn-modern-secondary" onClick={() => window.print()}>
+                  🖨️ প্রিন্ট করুন
+                </button>
+              )
             )}
           </div>
         </div>
@@ -3040,8 +3410,14 @@ export function ResultPanel({ sub, userRole }) {
               <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
                 🔄 রিফ্রেশ
               </button>
-              <button type="button" className="btn-modern-primary" onClick={() => window.print()}>
-                🖨️ প্রিন্ট মাস্টার শিট
+              <button
+                type="button"
+                className="btn-modern-primary"
+                style={{ background: '#047857', color: '#fff', borderColor: '#047857', fontWeight: 700 }}
+                onClick={handlePrintTabulationSheet}
+                title="Legal Landscape (লিগ্যাল পেজ ল্যান্ডস্কেপ) সাইজে প্রিন্ট করুন"
+              >
+                🖨️ প্রিন্ট মাস্টার শিট (Legal Landscape)
               </button>
             </div>
           </div>
