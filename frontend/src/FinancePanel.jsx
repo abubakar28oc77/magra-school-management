@@ -519,6 +519,7 @@ export function FinancePanel({ sub }) {
   const getInitialTab = (s) => {
     if (s === 'collect' || s === 'fees') return 'collect';
     if (s === 'receipts' || s === 'history') return 'receipts';
+    if (s === 'deposit_history' || s === 'deposit' || s === 'deposits') return 'deposit_history';
     if (s === 'income') return 'income';
     if (s === 'expense' || s === 'expenses') return 'expense';
     if (s === 'budget' || s === 'annual_budget') return 'budget';
@@ -622,6 +623,16 @@ export function FinancePanel({ sub }) {
   const [selectedReceiptIds, setSelectedReceiptIds] = useState([]);
   const [pairStudent1, setPairStudent1] = useState('');
   const [pairStudent2, setPairStudent2] = useState('');
+
+  // Deposit History States (ফি জমার হিসাব ও ইতিহাস)
+  const [depositFilterDateRange, setDepositFilterDateRange] = useState('all');
+  const [depositStartDate, setDepositStartDate] = useState('');
+  const [depositEndDate, setDepositEndDate] = useState('');
+  const [depositFilterClass, setDepositFilterClass] = useState('all');
+  const [depositFilterHead, setDepositFilterHead] = useState('all');
+  const [depositSearch, setDepositSearch] = useState('');
+  const [depositSuccessMsg, setDepositSuccessMsg] = useState('');
+  const [editingDepositRecord, setEditingDepositRecord] = useState(null);
 
   useEffect(() => {
     if (sub) setActiveTab(getInitialTab(sub));
@@ -3071,6 +3082,392 @@ export function FinancePanel({ sub }) {
     w.document.close();
   };
 
+  // =========================================================
+  // DEPOSIT HISTORY (ফি জমার হিসাব ও ইতিহাস) HELPERS & PRINT
+  // =========================================================
+  const allAvailableFeeHeads = useMemo(() => {
+    const set = new Set();
+    feeRecords.forEach(r => {
+      if (Array.isArray(r.items)) {
+        r.items.forEach(it => {
+          if (it.name) set.add(it.name.trim());
+        });
+      }
+    });
+    return Array.from(set);
+  }, [feeRecords]);
+
+  const displayedDeposits = useMemo(() => {
+    let list = [...feeRecords].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const curMonthPrefix = todayStr.slice(0, 7);
+
+    if (depositFilterDateRange === 'today') {
+      list = list.filter(r => (r.date || '').slice(0, 10) === todayStr);
+    } else if (depositFilterDateRange === 'last7') {
+      list = list.filter(r => (r.date || '').slice(0, 10) >= sevenDaysAgo && (r.date || '').slice(0, 10) <= todayStr);
+    } else if (depositFilterDateRange === 'month') {
+      list = list.filter(r => (r.date || '').startsWith(curMonthPrefix));
+    } else if (depositFilterDateRange === 'custom') {
+      if (depositStartDate) list = list.filter(r => (r.date || '').slice(0, 10) >= depositStartDate);
+      if (depositEndDate) list = list.filter(r => (r.date || '').slice(0, 10) <= depositEndDate);
+    }
+
+    if (depositFilterClass !== 'all') {
+      list = list.filter(r => normalizeClass(r.class_name) === depositFilterClass);
+    }
+
+    if (depositFilterHead !== 'all') {
+      list = list.filter(r => {
+        if (!Array.isArray(r.items) || r.items.length === 0) return false;
+        return r.items.some(it => (it.name || '').toLowerCase().includes(depositFilterHead.toLowerCase()));
+      });
+    }
+
+    if (depositSearch.trim()) {
+      const q = depositSearch.trim().toLowerCase();
+      list = list.filter(r => {
+        const sName = (r.student_name || '').toLowerCase();
+        const rNo = (r.receipt_no || '').toLowerCase();
+        const roll = String(r.roll_no || '');
+        const sid = (r.student_id || '').toLowerCase();
+        const recBy = (r.received_by || '').toLowerCase();
+        const itemsStr = (r.items || []).map(i => i.name).join(' ').toLowerCase();
+        return sName.includes(q) || rNo.includes(q) || roll.includes(q) || sid.includes(q) || recBy.includes(q) || itemsStr.includes(q);
+      });
+    }
+
+    return list;
+  }, [feeRecords, depositFilterDateRange, depositStartDate, depositEndDate, depositFilterClass, depositFilterHead, depositSearch]);
+
+  const depositStats = useMemo(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const curMonthPrefix = todayStr.slice(0, 7);
+
+    const totalDeposited = displayedDeposits.reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
+    const totalTransactions = displayedDeposits.length;
+
+    const todayTotal = feeRecords
+      .filter(r => (r.date || '').slice(0, 10) === todayStr)
+      .reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
+
+    const monthTotal = feeRecords
+      .filter(r => (r.date || '').startsWith(curMonthPrefix))
+      .reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
+
+    const headTotals = {};
+    displayedDeposits.forEach(r => {
+      if (Array.isArray(r.items) && r.items.length > 0) {
+        r.items.forEach(it => {
+          const hName = it.name || 'অন্যান্য';
+          headTotals[hName] = (headTotals[hName] || 0) + (Number(it.amount) || 0);
+        });
+      } else {
+        headTotals['মাসিক বেতন'] = (headTotals['মাসিক বেতন'] || 0) + (Number(r.paid_amount) || 0);
+      }
+    });
+
+    return { totalDeposited, totalTransactions, todayTotal, monthTotal, headTotals };
+  }, [displayedDeposits, feeRecords]);
+
+  // Print Official Deposit History Ledger Sheet
+  const handlePrintDepositLedger = () => {
+    const w = window.open('', '_blank', 'width=1150,height=850');
+    if (!w) {
+      alert('পপআপ ব্লক রয়েছে। অনুগ্রহ করে ব্রাউজারের পপআপ অনুমতি দিন।');
+      return;
+    }
+    const school = MOCK_SCHOOL;
+    const recordsToPrint = displayedDeposits;
+    const totalAmount = recordsToPrint.reduce((acc, r) => acc + (Number(r.paid_amount) || 0), 0);
+    const totalGross = recordsToPrint.reduce((acc, r) => acc + (Number(r.gross_total) || Number(r.paid_amount) || 0), 0);
+    const totalDiscount = recordsToPrint.reduce((acc, r) => acc + (Number(r.discount) || 0), 0);
+    const inWords = numberToWordsBn(totalAmount);
+    const printDate = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    let rangeLabel = 'সকল তারিখের জমার খতিয়ান হিসাব';
+    if (depositFilterDateRange === 'today') rangeLabel = 'আজকের জমার খতিয়ান বিবরণী';
+    else if (depositFilterDateRange === 'last7') rangeLabel = 'বিগত ৭ দিনের জমার খতিয়ান বিবরণী';
+    else if (depositFilterDateRange === 'month') rangeLabel = 'চলতি মাসের জমার খতিয়ান বিবরণী';
+    else if (depositFilterDateRange === 'custom') {
+      rangeLabel = `হিসাবের সময়কাল: ${formatDateBn(depositStartDate) || 'শুরু'} হতে ${formatDateBn(depositEndDate) || 'বর্তমান'} পর্যন্ত`;
+    }
+
+    const headTotals = {};
+    recordsToPrint.forEach(r => {
+      if (Array.isArray(r.items) && r.items.length > 0) {
+        r.items.forEach(it => {
+          const hName = it.name || 'অন্যান্য ফি';
+          headTotals[hName] = (headTotals[hName] || 0) + (Number(it.amount) || 0);
+        });
+      } else {
+        headTotals['মাসিক বেতন / বিবিধ'] = (headTotals['মাসিক বেতন / বিবিধ'] || 0) + (Number(r.paid_amount) || 0);
+      }
+    });
+
+    w.document.write(`
+      <!DOCTYPE html>
+      <html lang="bn">
+      <head>
+        <meta charset="utf-8">
+        <title>ফি জমার হিসাব ও ইতিহাস খতিয়ান - ${school.nameBn}</title>
+        <style>
+          @page { size: A4 landscape; margin: 10mm 12mm 10mm 12mm; }
+          *, *::before, *::after { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body { font-family: 'SolaimanLipi', Arial, sans-serif; margin: 0; padding: 10px; font-size: 11px; color: #0f172a; line-height: 1.35; }
+          .header-box { display: flex; align-items: center; justify-content: center; gap: 15px; border-bottom: 2.5px solid #047857; padding-bottom: 8px; margin-bottom: 12px; }
+          .header-logo { width: 55px; height: 55px; object-fit: contain; }
+          .header-text { text-align: center; }
+          .header-text h1 { margin: 0; font-size: 21px; color: #047857; font-weight: 800; letter-spacing: -0.2px; }
+          .header-text h3 { margin: 2px 0; font-size: 12px; color: #334155; font-weight: 600; }
+          .header-text p { margin: 1px 0; font-size: 10.5px; color: #64748b; }
+          
+          .report-banner { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 6px; padding: 7px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+          .report-banner h2 { margin: 0; font-size: 13.5px; color: #065f46; font-weight: 800; }
+          .report-banner .badge { background: #047857; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+          .summary-strip { display: flex; gap: 10px; margin-bottom: 12px; }
+          .stat-pill { flex: 1; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; text-align: center; }
+          .stat-pill .lbl { font-size: 10px; color: #64748b; font-weight: 600; display: block; }
+          .stat-pill .val { font-size: 14px; font-weight: 800; color: #047857; margin-top: 2px; display: block; }
+
+          .head-summary-box { background: #fafafa; border: 1px dashed #94a3b8; border-radius: 6px; padding: 6px 10px; margin-bottom: 12px; font-size: 10.5px; }
+          .head-summary-title { font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+          .head-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+          .head-tag { background: #fff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 7px; color: #1e293b; font-weight: 600; }
+          .head-tag b { color: #047857; margin-left: 4px; }
+
+          table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 10.5px; }
+          th, td { border: 1px solid #94a3b8; padding: 5px 6px; vertical-align: top; }
+          th { background: #f1f5f9; color: #0f172a; font-weight: 800; text-align: left; }
+          th.center, td.center { text-align: center; }
+          th.right, td.right { text-align: right; }
+          .receipt-mono { font-family: monospace; font-weight: 700; color: #0369a1; }
+          .item-line { margin: 1px 0; display: flex; justify-content: space-between; gap: 8px; font-size: 10px; border-bottom: 1px dotted #e2e8f0; padding-bottom: 1px; }
+          .item-line:last-child { border-bottom: none; }
+          .item-name { color: #334155; }
+          .item-amt { font-weight: 700; color: #047857; }
+
+          tfoot tr { background: #f8fafc; font-weight: bold; }
+          tfoot tr.highlight { background: #ecfdf5; font-size: 11.5px; }
+
+          .in-words-box { margin-top: 10px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; font-size: 11px; }
+
+          .signatures-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 45px; text-align: center; page-break-inside: avoid; }
+          .sig-box { border-top: 1.5px solid #0f172a; padding-top: 5px; font-size: 10.5px; }
+          .sig-name { font-weight: 800; color: #0f172a; }
+          .sig-desig { font-size: 9.5px; color: #475569; }
+        </style>
+      </head>
+      <body>
+        <div class="header-box">
+          <img src="${schoolLogo}" class="header-logo" alt="Logo" />
+          <div class="header-text">
+            <h1>${school.nameBn}</h1>
+            <h3>${school.nameEn} • EIIN: ${school.eiin}</h3>
+            <p>ডাকঘরঃ মগড়া, উপজেলাঃ কালিহাতি, জেলাঃ টাঙ্গাইল - স্থাপিত: ১৯৪৬</p>
+          </div>
+        </div>
+
+        <div class="report-banner">
+          <div>
+            <h2>🏦 অফিস সহকারীর নিকট শিক্ষার্থী ফি জমার তারিখওয়ারি খতিয়ান ও হিসাব বিবরণী</h2>
+            <div style="font-size: 10.5px; color: #475569; margin-top: 2px;">
+              ${rangeLabel} • <b>জমা গ্রহণকারী:</b> মোঃ আলমগীর হোসেন (অফিস সহকারী)
+            </div>
+          </div>
+          <div class="badge">
+            প্রিন্ট তারিখ: ${printDate}
+          </div>
+        </div>
+
+        <div class="summary-strip">
+          <div class="stat-pill">
+            <span class="lbl">মোট আদায়কৃত রসিদ/দাখিলা</span>
+            <span class="val">${toBnDigits(recordsToPrint.length)} টি</span>
+          </div>
+          <div class="stat-pill">
+            <span class="lbl">নির্ধারিত মোট পাওনা</span>
+            <span class="val" style="color:#0369a1">${formatMoney(totalGross)}</span>
+          </div>
+          <div class="stat-pill">
+            <span class="lbl">সর্বমোট ছাড়/মওকুফ</span>
+            <span class="val" style="color:#b45309">${formatMoney(totalDiscount)}</span>
+          </div>
+          <div class="stat-pill" style="background:#ecfdf5;border-color:#059669">
+            <span class="lbl" style="color:#065f46">অফিস সহকারীর নিকট সর্বমোট জমা</span>
+            <span class="val" style="color:#047857">${formatMoney(totalAmount)}</span>
+          </div>
+        </div>
+
+        <div class="head-summary-box">
+          <div class="head-summary-title">📊 খাতভিত্তিক জমার সারসংক্ষেপ (সংগৃহীত খতিয়ান অনুপুঙ্খ):</div>
+          <div class="head-tags">
+            ${Object.entries(headTotals).map(([hName, amt]) => `
+              <div class="head-tag">${hName}: <b>${formatMoney(amt)}</b></div>
+            `).join('')}
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th class="center" style="width: 32px;">ক্র.</th>
+              <th class="center" style="width: 72px;">তারিখ</th>
+              <th style="width: 130px;">রশিদ নং</th>
+              <th style="width: 150px;">শিক্ষার্থীর তথ্য</th>
+              <th style="width: 65px;" class="center">শ্রেণি ও রোল</th>
+              <th>খাতভিত্তিক টাকার বিস্তারিত বিবরণ</th>
+              <th class="right" style="width: 90px;">জমা টাকা</th>
+              <th class="center" style="width: 65px;">মাধ্যম</th>
+              <th style="width: 120px;">গ্রহণকারী অফিস সহকারী</th>
+              <th style="width: 95px;">মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${recordsToPrint.map((r, idx) => {
+              const itemsList = Array.isArray(r.items) && r.items.length > 0 ? r.items : [
+                { name: 'মাসিক বেতন / অন্যান্য', amount: r.paid_amount }
+              ];
+              const isSSC = ['9', '10'].includes(String(r.class_name));
+              const dept = isSSC ? (r.group || 'বিজ্ঞান') : (r.section ? `${r.section} শাখা` : 'সাধারণ');
+              return `
+                <tr>
+                  <td class="center" style="font-weight:600; color:#64748b;">${toBnDigits(idx + 1)}</td>
+                  <td class="center">${formatDateBn(r.date)}</td>
+                  <td class="receipt-mono">${r.receipt_no}</td>
+                  <td>
+                    <b>${r.student_name}</b>
+                    <small style="display:block; color:#64748b; font-size:9.5px;">ID: ${r.student_id || '—'}</small>
+                  </td>
+                  <td class="center">
+                    <b>${toBnDigits(r.class_name)}ম</b>
+                    <div style="font-size:9.5px; color:#475569;">রোল: ${toBnDigits(r.roll_no)}</div>
+                    <div style="font-size:9px; color:#64748b;">${dept}</div>
+                  </td>
+                  <td>
+                    ${itemsList.map(it => `
+                      <div class="item-line">
+                        <span class="item-name">${it.name}</span>
+                        <span class="item-amt">${formatMoney(it.amount)}</span>
+                      </div>
+                    `).join('')}
+                  </td>
+                  <td class="right" style="font-weight:800; color:#047857; font-size:11px;">
+                    ${formatMoney(r.paid_amount)}
+                  </td>
+                  <td class="center" style="font-size:10px;">
+                    ${r.payment_method === 'bkash' ? 'বিকাশ' : r.payment_method === 'bank' ? 'ব্যাংক' : 'ক্যাশ/নগদ'}
+                  </td>
+                  <td style="font-size:10px; color:#334155;">
+                    <b>${r.received_by || 'মোঃ আলমগীর হোসেন'}</b>
+                    <div style="font-size:9px; color:#64748b;">অফিস সহকারী</div>
+                  </td>
+                  <td style="font-size:9.5px; color:#475569;">${r.remarks || 'সম্পূর্ণ পরিশোধিত'}</td>
+                </tr>
+              `;
+            }).join('')}
+            ${recordsToPrint.length === 0 ? `
+              <tr>
+                <td colspan="10" class="center" style="padding: 20px; color: #64748b;">
+                  নির্বাচিত ফিল্টারে কোনো জমার রেকর্ড পাওয়া যায়নি।
+                </td>
+              </tr>
+            ` : ''}
+          </tbody>
+          <tfoot>
+            <tr class="highlight">
+              <td colspan="6" class="right" style="font-weight:800; padding: 7px 10px;">
+                সর্বমোট সংগৃহীত জমার পরিমাণ:
+              </td>
+              <td class="right" style="font-weight:800; color:#047857; font-size:12px;">
+                ${formatMoney(totalAmount)}
+              </td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="in-words-box">
+          <b>সর্বমোট জমার পরিমাণ (কথায়):</b> ${inWords} मात्र।
+        </div>
+
+        <div class="signatures-grid">
+          <div class="sig-box">
+            <div class="sig-name">আদায়কারী / শ্রেণি শিক্ষক</div>
+            <div class="sig-desig">স্বাক্ষর ও তারিখ</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-name">মোঃ আলমগীর হোসেন</div>
+            <div class="sig-desig">অফিস সহকারী (জমার হিসাবকারী)</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-name">হিসাবরক্ষক / অডিট আহ্বায়ক</div>
+            <div class="sig-desig">অর্থ ও হিসাব উপকমিটি</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-name">${school.headTeacher || 'মুহাম্মদ শফিকুল ইসলাম'}</div>
+            <div class="sig-desig">প্রধান শিক্ষক</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
+  // Save edited deposit record
+  const handleSaveEditedDeposit = (e) => {
+    e.preventDefault();
+    if (!editingDepositRecord) return;
+    const recId = editingDepositRecord.id;
+    const items = (editingDepositRecord.items || []).map(it => ({
+      name: it.name || 'ফি',
+      amount: Number(it.amount) || 0
+    }));
+    const grossTotal = items.reduce((sum, it) => sum + it.amount, 0);
+    const discount = Number(editingDepositRecord.discount) || 0;
+    const netPayable = Math.max(0, grossTotal - discount);
+    const paidAmount = Number(editingDepositRecord.paid_amount) || 0;
+    const dueAmount = Math.max(0, netPayable - paidAmount);
+
+    const updated = {
+      ...editingDepositRecord,
+      items,
+      gross_total: grossTotal,
+      discount,
+      net_payable: netPayable,
+      paid_amount: paidAmount,
+      due_amount: dueAmount,
+      received_by: editingDepositRecord.received_by || 'মোঃ আলমগীর হোসেন',
+      remarks: editingDepositRecord.remarks || (dueAmount === 0 ? 'সম্পূর্ণ পরিশোধিত' : `বকেয়া: ${formatMoney(dueAmount)}`)
+    };
+
+    setFeeRecords(prev => prev.map(r => r.id === recId ? updated : r));
+    setDepositSuccessMsg(`✓ রশিদ নং ${updated.receipt_no} এর জমার রেকর্ড সফলভাবে হালনাগাদ করা হয়েছে।`);
+    setEditingDepositRecord(null);
+    setTimeout(() => setDepositSuccessMsg(''), 4000);
+  };
+
+  // Delete deposit record
+  const handleDeleteDeposit = (rec) => {
+    if (!rec) return;
+    if (window.confirm(`আপনি কি নিশ্চিত যে রশিদ নং: "${rec.receipt_no}" - ${rec.student_name} (${formatMoney(rec.paid_amount)}) এর জমার এন্ট্রিটি সম্পূর্ণ মুছে ফেলতে চান? এটি মুছে ফেললে জমার হিসাব থেকে টাকা সমন্বয় হবে।`)) {
+      setFeeRecords(prev => prev.filter(r => r.id !== rec.id));
+      setDepositSuccessMsg(`✓ রশিদ নং ${rec.receipt_no} এর রেকর্ড সফলভাবে মুছে ফেলা হয়েছে।`);
+      setTimeout(() => setDepositSuccessMsg(''), 4000);
+    }
+  };
+
   return (
     <div className="finance-panel-container" style={{ padding: '4px 0 30px' }}>
       {/* Top Banner & KPI Stat Summary */}
@@ -3149,6 +3546,7 @@ export function FinancePanel({ sub }) {
         {[
           ['collect', '💵 শিক্ষার্থী ফি আদায় (Billing)'],
           ['receipts', '🧾 ফি আদায়ের ইতিহাস ও রশিদ'],
+          ['deposit_history', '🏦 ফি জমার হিসাব ও ইতিহাস'],
           ['income', '📥 প্রাতিষ্ঠানিক আয় খাতা'],
           ['expense', '📤 প্রাতিষ্ঠানিক ব্যয় খাতা'],
           ['budget', '📑 বার্ষিক বাজেট (Annual Budget)'],
@@ -3156,7 +3554,7 @@ export function FinancePanel({ sub }) {
           ['rates', '⚙️ ফি রেট সেটিংস'],
           ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
         ]
-        .filter(([tKey]) => !isCoAdmin || tKey === 'collect' || tKey === 'receipts')
+        .filter(([tKey]) => !isCoAdmin || tKey === 'collect' || tKey === 'receipts' || tKey === 'deposit_history')
         .map(([tKey, label]) => (
           <button
             key={tKey}
@@ -4239,6 +4637,760 @@ export function FinancePanel({ sub }) {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB: DEPOSIT HISTORY & LEDGER (ফি জমার হিসাব ও ইতিহাস)     */}
+      {/* ========================================================= */}
+      {activeTab === 'deposit_history' && (
+        <div style={{ background: '#fff', borderRadius: '12px', border: '1.5px solid #047857', padding: '20px', boxShadow: '0 3px 12px rgba(4,120,87,0.08)' }}>
+          {/* Header Banner */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '18px', borderBottom: '2px solid #e2e8f0', paddingBottom: '14px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🏦</span> ফি জমার হিসাব ও ইতিহাস (খাতভিত্তিক খতিয়ান)
+              </h3>
+              <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '12.5px' }}>
+                আদায়কৃত সকল শিক্ষার্থী ফি-এর মধ্য থেকে কোন শিক্ষার্থীর কোন কোন খাতভিত্তিক টাকা অফিস সহকারীর নিকট তারিখ ওয়ারি জমা হয়েছে তার পূর্ণাঙ্গ হিসাব
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '6px 14px', borderRadius: '20px', fontSize: '12.5px', fontWeight: 700 }}>
+                মোট দাখিলা: {toBnDigits(displayedDeposits.length)} টি
+              </span>
+              <button
+                type="button"
+                onClick={handlePrintDepositLedger}
+                style={{
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '8px 18px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(4,120,87,0.3)'
+                }}
+                title="A4 Landscape এ অফিস সহকারীর নিকট জমার খতিয়ান শিট প্রিন্ট করুন"
+              >
+                🖨️ জমার খতিয়ান প্রিন্ট (A4 Landscape)
+              </button>
+            </div>
+          </div>
+
+          {/* Success / Notification Alert */}
+          {depositSuccessMsg && (
+            <div style={{
+              background: '#dcfce7',
+              border: '1.5px solid #86efac',
+              color: '#166534',
+              padding: '10px 16px',
+              borderRadius: '8px',
+              fontSize: '13.5px',
+              fontWeight: 700,
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '16px' }}>✓</span>
+              <span>{depositSuccessMsg}</span>
+            </div>
+          )}
+
+          {/* 5 KPI Stat Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+            gap: '12px',
+            marginBottom: '18px'
+          }}>
+            <div style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)', border: '1.5px solid #86efac', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', color: '#166534', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px' }}>💵 সর্বমোট জমা (ফিল্টারকৃত)</span>
+              <div style={{ fontSize: '19px', fontWeight: 800, color: '#047857', marginTop: '4px' }}>
+                {formatMoney(depositStats.totalDeposited)}
+              </div>
+              <small style={{ color: '#059669', fontSize: '10.5px' }}>মোট {toBnDigits(displayedDeposits.length)}টি দাখিলা</small>
+            </div>
+
+            <div style={{ background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', border: '1.5px solid #93c5fd', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px' }}>📅 আজকের মোট জমা</span>
+              <div style={{ fontSize: '19px', fontWeight: 800, color: '#1d4ed8', marginTop: '4px' }}>
+                {formatMoney(depositStats.todayTotal)}
+              </div>
+              <small style={{ color: '#2563eb', fontSize: '10.5px' }}>আজকের ক্যাশ কালেকশন</small>
+            </div>
+
+            <div style={{ background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', border: '1.5px solid #d8b4fe', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', color: '#6b21a8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px' }}>🗓️ চলতি মাসের জমা</span>
+              <div style={{ fontSize: '19px', fontWeight: 800, color: '#7e22ce', marginTop: '4px' }}>
+                {formatMoney(depositStats.monthTotal)}
+              </div>
+              <small style={{ color: '#9333ea', fontSize: '10.5px' }}>চলতি মাসের মোট কালেকশন</small>
+            </div>
+
+            <div style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1.5px solid #fde68a', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', color: '#92400e', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px' }}>🧾 মোট রসিদ সংখ্যা</span>
+              <div style={{ fontSize: '19px', fontWeight: 800, color: '#b45309', marginTop: '4px' }}>
+                {toBnDigits(feeRecords.length)} টি
+              </div>
+              <small style={{ color: '#d97706', fontSize: '10.5px' }}>ডাটাবেজে মোট ট্রানজেকশন</small>
+            </div>
+
+            <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '12px 16px' }}>
+              <span style={{ fontSize: '11px', color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.3px' }}>🏢 জমা গ্রহণকারী সহকারী</span>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                মোঃ আলমগীর হোসেন
+              </div>
+              <small style={{ color: '#64748b', fontSize: '10.5px' }}>অফিস সহকারী (ক্যাশ কাউন্টার)</small>
+            </div>
+          </div>
+
+          {/* Head-wise Breakdown Strip (খাতভিত্তিক কালেকশন সারসংক্ষেপ) */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '12px 16px',
+            marginBottom: '18px'
+          }}>
+            <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🏷️</span> নির্বাচিত সময়ের খাতভিত্তিক আদায়ের মোট পরিমাণ (Head-wise Breakdown):
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {Object.entries(depositStats.headTotals).map(([hName, amt]) => (
+                <div
+                  key={hName}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '5px 11px',
+                    fontSize: '11.5px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <span style={{ color: '#475569', fontWeight: 600 }}>{hName}:</span>
+                  <b style={{ color: '#047857', fontWeight: 800 }}>{formatMoney(amt)}</b>
+                </div>
+              ))}
+              {Object.keys(depositStats.headTotals).length === 0 && (
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>কোনো খাতভিত্তিক তথ্য পাওয়া যায়নি।</span>
+              )}
+            </div>
+          </div>
+
+          {/* Filter & Search Toolbar */}
+          <div style={{
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '14px 16px',
+            marginBottom: '18px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            {/* Quick Date Range Buttons */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>তারিখ নির্বাচন:</span>
+              {[
+                ['all', 'সব তারিখ'],
+                ['today', 'আজকের জমা'],
+                ['last7', 'বিগত ৭ দিন'],
+                ['month', 'চলতি মাস'],
+                ['custom', 'কাস্টম রেঞ্জ...']
+              ].map(([rKey, rLabel]) => (
+                <button
+                  key={rKey}
+                  type="button"
+                  onClick={() => setDepositFilterDateRange(rKey)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: depositFilterDateRange === rKey ? '1.5px solid #047857' : '1px solid #cbd5e1',
+                    background: depositFilterDateRange === rKey ? '#ecfdf5' : '#f8fafc',
+                    color: depositFilterDateRange === rKey ? '#047857' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {rLabel}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Date Pickers, Class, Fee Head, and Search Inputs */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: depositFilterDateRange === 'custom' ? 'repeat(auto-fit, minmax(180px, 1fr))' : 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '10px',
+              alignItems: 'center'
+            }}>
+              {depositFilterDateRange === 'custom' && (
+                <>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>শুরুর তারিখ:</label>
+                    <input
+                      type="date"
+                      value={depositStartDate}
+                      onChange={e => setDepositStartDate(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>শেষ তারিখ:</label>
+                    <input
+                      type="date"
+                      value={depositEndDate}
+                      onChange={e => setDepositEndDate(e.target.value)}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>শ্রেণি ফিল্টার:</label>
+                <select
+                  value={depositFilterClass}
+                  onChange={e => setDepositFilterClass(e.target.value)}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                >
+                  <option value="all">সকল শ্রেণি (Class All)</option>
+                  <option value="6">৬ষ্ঠ শ্রেণি</option>
+                  <option value="7">৭ম শ্রেণি</option>
+                  <option value="8">৮ম শ্রেণি</option>
+                  <option value="9">৯ম শ্রেণি</option>
+                  <option value="10">১০ম শ্রেণি</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>ফি-এর খাত ফিল্টার:</label>
+                <select
+                  value={depositFilterHead}
+                  onChange={e => setDepositFilterHead(e.target.value)}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                >
+                  <option value="all">সকল খাত (All Fee Heads)</option>
+                  {allAvailableFeeHeads.map(h => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>অনুসন্ধান (Search):</label>
+                <input
+                  type="text"
+                  placeholder="নাম, রোল, রশিদ নং বা খাত..."
+                  value={depositSearch}
+                  onChange={e => setDepositSearch(e.target.value)}
+                  style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                />
+              </div>
+
+              {(depositFilterDateRange !== 'all' || depositFilterClass !== 'all' || depositFilterHead !== 'all' || depositSearch.trim() || depositStartDate || depositEndDate) && (
+                <div style={{ paddingTop: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDepositFilterDateRange('all');
+                      setDepositStartDate('');
+                      setDepositEndDate('');
+                      setDepositFilterClass('all');
+                      setDepositFilterHead('all');
+                      setDepositSearch('');
+                    }}
+                    style={{
+                      background: '#f1f5f9',
+                      color: '#475569',
+                      border: '1px solid #cbd5e1',
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🔄 ফিল্টার রিসেট
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Main Deposit History Table */}
+          <div className="table-wrap" style={{ overflowX: 'auto', border: '1.5px solid #cbd5e1', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '40px' }}>ক্র.</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '85px' }}>তারিখ</th>
+                  <th style={{ padding: '10px 10px', textAlign: 'left', width: '140px' }}>রশিদ নং</th>
+                  <th style={{ padding: '10px 10px', textAlign: 'left', minWidth: '150px' }}>শিক্ষার্থীর নাম ও আইডি</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '75px' }}>শ্রেণি ও রোল</th>
+                  <th style={{ padding: '10px 10px', textAlign: 'left', minWidth: '220px' }}>খাতভিত্তিক জমার বিস্তারিত বিবরণ</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', width: '100px' }}>মোট জমা টাকা</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '75px' }}>মাধ্যম</th>
+                  <th style={{ padding: '10px 10px', textAlign: 'left', width: '125px' }}>গ্রহণকারী সহকারী</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', width: '100px' }}>মন্তব্য</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '110px' }}>অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedDeposits.map((r, idx) => {
+                  const itemsList = Array.isArray(r.items) && r.items.length > 0 ? r.items : [
+                    { name: 'মাসিক বেতন / অন্যান্য', amount: r.paid_amount }
+                  ];
+                  const isSSC = ['9', '10'].includes(String(r.class_name));
+                  const dept = isSSC ? (r.group || 'বিজ্ঞান বিভাগ') : (r.section ? `${r.section} শাখা` : 'সাধারণ');
+                  return (
+                    <tr
+                      key={r.id}
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        background: idx % 2 === 0 ? '#ffffff' : '#fcfdfe'
+                      }}
+                    >
+                      <td style={{ textAlign: 'center', padding: '8px 4px', fontWeight: 600, color: '#64748b' }}>
+                        {toBnDigits(idx + 1)}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '8px 8px', fontWeight: 600, color: '#334155' }}>
+                        {formatDateBn(r.date)}
+                      </td>
+                      <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>
+                        {r.receipt_no}
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <strong style={{ color: '#0f172a', fontSize: '12.5px' }}>{r.student_name}</strong>
+                        {r.student_id && (
+                          <div style={{ fontSize: '10px', color: '#64748b', fontFamily: 'monospace' }}>
+                            ID: {r.student_id}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '8px 8px' }}>
+                        <div style={{ fontWeight: 700, color: '#047857' }}>{toBnDigits(r.class_name)}ম শ্রেণি</div>
+                        <div style={{ fontSize: '11px', color: '#475569' }}>রোল: <b>{toBnDigits(r.roll_no)}</b></div>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>{dept}</div>
+                      </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          {itemsList.map((it, iIdx) => (
+                            <div
+                              key={iIdx}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: '#f8fafc',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                border: '1px solid #e2e8f0',
+                                fontSize: '11px'
+                              }}
+                            >
+                              <span style={{ color: '#1e293b' }}>{it.name}</span>
+                              <b style={{ color: '#047857', whiteSpace: 'nowrap' }}>{formatMoney(it.amount)}</b>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right', padding: '8px 8px' }}>
+                        <div style={{ fontWeight: 800, fontSize: '13px', color: '#047857' }}>
+                          {formatMoney(r.paid_amount)}
+                        </div>
+                        {r.discount > 0 && (
+                          <small style={{ display: 'block', color: '#b45309', fontSize: '10px' }}>
+                            মওকুফ: {formatMoney(r.discount)}
+                          </small>
+                        )}
+                        {r.due_amount > 0 && (
+                          <small style={{ display: 'block', color: '#dc2626', fontSize: '10px', fontWeight: 700 }}>
+                            বকেয়া: {formatMoney(r.due_amount)}
+                          </small>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '8px 8px' }}>
+                        <span style={{
+                          background: r.payment_method === 'bkash' ? '#fdf2f8' : r.payment_method === 'bank' ? '#eff6ff' : '#ecfdf5',
+                          color: r.payment_method === 'bkash' ? '#be185d' : r.payment_method === 'bank' ? '#1d4ed8' : '#047857',
+                          border: `1px solid ${r.payment_method === 'bkash' ? '#fbcfe8' : r.payment_method === 'bank' ? '#bfdbfe' : '#a7f3d0'}`,
+                          padding: '2px 7px',
+                          borderRadius: '4px',
+                          fontSize: '10.5px',
+                          fontWeight: 700
+                        }}>
+                          {r.payment_method === 'bkash' ? 'বিকাশ' : r.payment_method === 'bank' ? 'ব্যাংক' : 'ক্যাশ'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 10px', fontSize: '11.5px', color: '#334155' }}>
+                        <b>{r.received_by || 'মোঃ আলমগীর হোসেন'}</b>
+                        <div style={{ fontSize: '10px', color: '#64748b' }}>অফিস সহকারী</div>
+                      </td>
+                      <td style={{ padding: '8px 8px', fontSize: '11px', color: '#64748b' }}>
+                        {r.remarks || 'সম্পূর্ণ পরিশোধিত'}
+                      </td>
+                      <td style={{ textAlign: 'center', padding: '8px 8px' }}>
+                        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => setEditingDepositRecord(JSON.parse(JSON.stringify(r)))}
+                            style={{
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              border: '1px solid #bfdbfe',
+                              padding: '4px 7px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="এই জমার হিসাব এডিট করুন"
+                          >
+                            ✏️ এডিট
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDeposit(r)}
+                            style={{
+                              background: '#fef2f2',
+                              color: '#dc2626',
+                              border: '1px solid #fecaca',
+                              padding: '4px 7px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="এই জমার হিসাব ডিলিট করুন"
+                          >
+                            🗑️ ডিলিট
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {displayedDeposits.length === 0 && (
+                  <tr>
+                    <td colSpan="11" style={{ textAlign: 'center', padding: '28px', color: '#64748b', fontSize: '13px' }}>
+                      🔍 কোনো ফি জমার রেকর্ড পাওয়া যায়নি।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              {displayedDeposits.length > 0 && (
+                <tfoot>
+                  <tr style={{ background: '#ecfdf5', borderTop: '2px solid #047857', fontWeight: 800 }}>
+                    <td colSpan="6" style={{ textAlign: 'right', padding: '10px 14px', fontSize: '13px', color: '#065f46' }}>
+                      সর্বমোট জমাকৃত কালেকশন ({toBnDigits(displayedDeposits.length)}টি রসিদ):
+                    </td>
+                    <td style={{ textAlign: 'right', padding: '10px 8px', fontSize: '14px', color: '#047857' }}>
+                      {formatMoney(depositStats.totalDeposited)}
+                    </td>
+                    <td colSpan="4"></td>
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
+
+          {/* Edit Deposit Modal */}
+          {editingDepositRecord && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+              backdropFilter: 'blur(3px)'
+            }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                border: '2px solid #047857',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+                width: '100%',
+                maxWidth: '680px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                padding: '22px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✏️</span> ফি জমার এন্ট্রি ও খাতভিত্তিক তথ্য সম্পাদনা
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingDepositRecord(null)}
+                    style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 800, color: '#64748b' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveEditedDeposit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Basic Metadata Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>জমার তারিখ *</label>
+                      <input
+                        type="date"
+                        value={editingDepositRecord.date || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, date: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>রশিদ নম্বর *</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.receipt_no || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, receipt_no: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>শিক্ষার্থীর নাম *</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.student_name || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, student_name: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>শ্রেণি *</label>
+                      <select
+                        value={editingDepositRecord.class_name || '10'}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, class_name: e.target.value })}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                      >
+                        <option value="6">৬ষ্ঠ শ্রেণি</option>
+                        <option value="7">৭ম শ্রেণি</option>
+                        <option value="8">৮ম শ্রেণি</option>
+                        <option value="9">৯ম শ্রেণি</option>
+                        <option value="10">১০ম শ্রেণি</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>রোল নম্বর *</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.roll_no || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, roll_no: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}> শাখা / বিভাগ</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.group || editingDepositRecord.section || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, group: e.target.value, section: e.target.value })}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Itemized Fee Heads Editor */}
+                  <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 800, color: '#1e293b' }}>
+                        📋 খাতভিত্তিক টাকার তালিকা (Fee Heads & Amounts):
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const curItems = Array.isArray(editingDepositRecord.items) ? [...editingDepositRecord.items] : [];
+                          curItems.push({ name: 'নতুন ফি', amount: 0 });
+                          setEditingDepositRecord({ ...editingDepositRecord, items: curItems });
+                        }}
+                        style={{
+                          background: '#047857',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ➕ নতুন খাত যোগ
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {(editingDepositRecord.items || []).map((it, itIdx) => (
+                        <div key={itIdx} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 32px', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="খাতের নাম (যেমন: মাসিক বেতন, পরীক্ষার ফি...)"
+                            value={it.name || ''}
+                            onChange={e => {
+                              const updatedItems = [...editingDepositRecord.items];
+                              updatedItems[itIdx].name = e.target.value;
+                              setEditingDepositRecord({ ...editingDepositRecord, items: updatedItems });
+                            }}
+                            style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                          />
+                          <input
+                            type="number"
+                            placeholder="টাকা"
+                            value={it.amount !== undefined ? it.amount : ''}
+                            onChange={e => {
+                              const updatedItems = [...editingDepositRecord.items];
+                              updatedItems[itIdx].amount = Number(e.target.value) || 0;
+                              setEditingDepositRecord({ ...editingDepositRecord, items: updatedItems });
+                            }}
+                            style={{ padding: '6px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '12px', textAlign: 'right', fontWeight: 700 }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedItems = editingDepositRecord.items.filter((_, i) => i !== itIdx);
+                              setEditingDepositRecord({ ...editingDepositRecord, items: updatedItems });
+                            }}
+                            style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '4px', height: '28px', cursor: 'pointer', fontWeight: 700 }}
+                            title="মুছে ফেলুন"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ textAlign: 'right', marginTop: '8px', fontSize: '12px', color: '#475569' }}>
+                      নির্ধারিত মোট পাওনা: <b>{formatMoney((editingDepositRecord.items || []).reduce((s, x) => s + (Number(x.amount) || 0), 0))}</b>
+                    </div>
+                  </div>
+
+                  {/* Financial Amounts & Office Assistant */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মওকুফ / বিশেষ ছাড় (টাকা)</label>
+                      <input
+                        type="number"
+                        value={editingDepositRecord.discount || 0}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, discount: Number(e.target.value) || 0 })}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মওকুফের কারণ</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.discount_reason || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, discount_reason: e.target.value })}
+                        placeholder="প্রধান শিক্ষকের বিশেষ অনুমোদন"
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>মোট জমাকৃত টাকা *</label>
+                      <input
+                        type="number"
+                        value={editingDepositRecord.paid_amount || 0}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, paid_amount: Number(e.target.value) || 0 })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1.5px solid #047857', fontSize: '13px', fontWeight: 800, color: '#047857' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>জমার মাধ্যম</label>
+                      <select
+                        value={editingDepositRecord.payment_method || 'cash'}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, payment_method: e.target.value })}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                      >
+                        <option value="cash">নগদ / ক্যাশ (Cash)</option>
+                        <option value="bkash">বিকাশ (bKash)</option>
+                        <option value="bank">ব্যাংক ড্রাফট / একাউন্ট</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>গ্রহণকারী অফিস সহকারী</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.received_by || 'মোঃ আলমগীর হোসেন'}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, received_by: e.target.value })}
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মন্তব্য</label>
+                      <input
+                        type="text"
+                        value={editingDepositRecord.remarks || ''}
+                        onChange={e => setEditingDepositRecord({ ...editingDepositRecord, remarks: e.target.value })}
+                        placeholder="সম্পূর্ণ পরিশোধিত"
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Modal Action Buttons */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingDepositRecord(null)}
+                      style={{
+                        background: '#f8fafc',
+                        color: '#64748b',
+                        border: '1px solid #cbd5e1',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      বাতিল
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
+                        background: '#047857',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px 22px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(4,120,87,0.3)'
+                      }}
+                    >
+                      💾 পরিবর্তন সংরক্ষণ করুন
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
