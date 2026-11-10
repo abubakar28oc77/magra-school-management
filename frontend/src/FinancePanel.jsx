@@ -3993,41 +3993,141 @@ export function FinancePanel({ sub }) {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div style={{
-        display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px',
-        marginBottom: '16px', borderBottom: '2px solid #e2e8f0'
-      }}>
-        {[
-          ['collect', '💵 শিক্ষার্থী ফি আদায় (Billing)'],
-          ['receipts', '🧾 ফি আদায়ের ইতিহাস ও রশিদ'],
-          ['deposit_history', '🏦 ফি জমার হিসাব ও ইতিহাস'],
-          ['income', '📥 প্রাতিষ্ঠানিক আয় খাতা'],
-          ['expense', '📤 প্রাতিষ্ঠানিক ব্যয় খাতা'],
-          ['budget', '📑 বার্ষিক বাজেট (Annual Budget)'],
-          ['cashbook', '📊 ক্যাশ বুক ও আর্থিক বিবরণী'],
-          ['rates', '⚙️ ফি রেট সেটিংস'],
-          ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
-        ]
-        .filter(([tKey]) => !isCoAdmin || tKey === 'collect' || tKey === 'receipts' || tKey === 'deposit_history')
-        .map(([tKey, label]) => (
-          <button
-            key={tKey}
-            type="button"
-            onClick={() => setActiveTab(tKey)}
-            style={{
-              padding: '9px 18px', borderRadius: '8px 8px 0 0', fontSize: '13px',
-              fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-              border: activeTab === tKey ? '2px solid #047857' : '1px solid #cbd5e1',
-              borderBottom: activeTab === tKey ? '2px solid #ffffff' : '1px solid #cbd5e1',
-              background: activeTab === tKey ? '#ffffff' : '#f8fafc',
-              color: activeTab === tKey ? '#047857' : '#475569',
-              marginBottom: '-2px', transition: 'all 0.15s ease'
-            }}
-          >
-            {label}
-          </button>
-        ))}
+      {/* ================= MODERN TAB NAVIGATION (TWO PARALLEL ROWS) ================= */}
+      <div className="finance-tab-bar" style={{ width: '100%', marginBottom: '18px' }}>
+        {(() => {
+          const allTabs = [
+            ['collect', '💵 শিক্ষার্থী ফি আদায় (Billing)'],
+            ['receipts', '🧾 ফি আদায়ের ইতিহাস ও রশিদ'],
+            ['deposit_history', '🏦 ফি জমার হিসাব ও ইতিহাস'],
+            ['income', '📥 প্রাতিষ্ঠানিক আয় খাতা'],
+            ['expense', '📤 প্রাতিষ্ঠানিক ব্যয় খাতা'],
+            ['budget', '📑 বার্ষিক বাজেট (Annual Budget)'],
+            ['cashbook', '📊 ক্যাশ বুক ও আর্থিক বিবরণী'],
+            ['rates', '⚙️ ফি রেট সেটিংস'],
+            ['teachers', '👨‍🏫 শ্রেণি শিক্ষক নির্ধারণ (Super Admin)']
+          ];
+          const availableTabs = isCoAdmin
+            ? allTabs.filter(([tKey]) => tKey === 'collect' || tKey === 'receipts' || tKey === 'deposit_history')
+            : allTabs;
+
+          if (availableTabs.length <= 4) {
+            return (
+              <div className="finance-tab-row" style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'stretch' }}>
+                {availableTabs.map(([key, label]) => {
+                  const isActive = activeTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`finance-tab-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveTab(key)}
+                      style={{
+                        flex: '1 1 0',
+                        border: isActive ? '1.5px solid #047857' : '1.5px solid #cbd5e1',
+                        background: isActive ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : '#ffffff',
+                        color: isActive ? '#ffffff' : '#334155',
+                        padding: '10px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: isActive ? '0 4px 12px rgba(4, 120, 87, 0.28)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                        transition: 'all 0.18s ease'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Split into two parallel rows: Row 1 (first 5 items), Row 2 (remaining 4 items)
+          const midPoint = Math.min(5, Math.ceil(availableTabs.length / 2));
+          const row1 = availableTabs.slice(0, midPoint);
+          const row2 = availableTabs.slice(midPoint);
+
+          return (
+            <div className="finance-tab-two-rows" style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+              <div className="finance-tab-row" style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'stretch' }}>
+                {row1.map(([key, label]) => {
+                  const isActive = activeTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`finance-tab-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveTab(key)}
+                      style={{
+                        flex: '1 1 0',
+                        border: isActive ? '1.5px solid #047857' : '1.5px solid #cbd5e1',
+                        background: isActive ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : '#ffffff',
+                        color: isActive ? '#ffffff' : '#334155',
+                        padding: '10px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: isActive ? '0 4px 12px rgba(4, 120, 87, 0.28)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                        transition: 'all 0.18s ease'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="finance-tab-row" style={{ display: 'flex', gap: '8px', width: '100%', alignItems: 'stretch' }}>
+                {row2.map(([key, label]) => {
+                  const isActive = activeTab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`finance-tab-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => setActiveTab(key)}
+                      style={{
+                        flex: '1 1 0',
+                        border: isActive ? '1.5px solid #047857' : '1.5px solid #cbd5e1',
+                        background: isActive ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : '#ffffff',
+                        color: isActive ? '#ffffff' : '#334155',
+                        padding: '10px 10px',
+                        borderRadius: '10px',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: isActive ? '0 4px 12px rgba(4, 120, 87, 0.28)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
+                        transition: 'all 0.18s ease'
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {submitMsg && (
