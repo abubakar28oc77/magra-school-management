@@ -231,6 +231,7 @@ export const MONTHS_LIST = [
 
 // Non-Government Secondary School Standard Income Categories
 export const INSTITUTIONAL_INCOME_HEADS = [
+  'শিক্ষার্থী ফি আদায় (অফিস সহকারীর নিকট জমাকৃত চালান)',
   'সরকারি অনুদান ও উন্নয়ন থোক বরাদ্দ',
   'ম্যানেজিং কমিটি ও দাতা সদস্যের অনুদান',
   'মার্কেট ও দোকান ভাড়া বাবদ আয়',
@@ -851,8 +852,21 @@ const SEED_FEE_DEPOSITS = [
 // Initial Sample Institutional Incomes
 const SEED_INCOMES = [
   {
-    id: 'INC-2026-001',
+    id: 'INC-DEP-DEP-2026-001',
+    deposit_id: 'DEP-2026-001',
     voucher_no: 'আয়-ভাউচার-২০২৬-১',
+    date: '2026-11-10',
+    category: 'শিক্ষার্থী ফি আদায় (অফিস সহকারীর নিকট জমাকৃত চালান)',
+    title: 'শিক্ষার্থী ফি জমা (চালান নং: মপাউবি/জমা-খতিয়ান/২০২৬/০০১)',
+    payer_name: 'মুহাম্মদ আবুবকর সিদ্দিক (শ্রেণি শিক্ষক) ➔ মোঃ আলমগীর হোসেন (অফিস সহকারী)',
+    amount: 21080,
+    method: 'cash',
+    note: '০৭/১১ হতে ১০/১১ তারিখের মোট ১১ জন শিক্ষার্থীর ফি আদায় অফিস সহকারীর নিকট জমা প্রদান (বেতন: ৳৮,৮০০, পরীক্ষা: ৳৫,৪৫০, জরিমানা: ৳২৩০, সেশন: ৳৬,৬০০)',
+    is_auto_deposit: true
+  },
+  {
+    id: 'INC-2026-001',
+    voucher_no: 'আয়-ভাউচার-২০২৬-২',
     date: '2026-10-05',
     category: 'মার্কেট ও দোকান ভাড়া বাবদ আয়',
     title: 'বিদ্যালয় মার্কেট দোকান নং ১ ও ২ এর মাসিক ভাড়া',
@@ -863,7 +877,7 @@ const SEED_INCOMES = [
   },
   {
     id: 'INC-2026-002',
-    voucher_no: 'আয়-ভাউচার-২০২৬-২',
+    voucher_no: 'আয়-ভাউচার-২০২৬-৩',
     date: '2026-10-10',
     category: 'ম্যানেজিং কমিটি ও দাতা সদস্যের অনুদান',
     title: 'সভাপতি মহোদয় কর্তৃক আইসিটি ল্যাব উন্নয়ন অনুদান',
@@ -874,7 +888,7 @@ const SEED_INCOMES = [
   },
   {
     id: 'INC-2026-003',
-    voucher_no: 'আয়-ভাউচার-২০২৬-৩',
+    voucher_no: 'আয়-ভাউচার-২০২৬-৪',
     date: '2026-10-14',
     category: 'ভর্তি ফরম ও প্রসপেক্টাস বিক্রয়',
     title: '২০২৬ শিক্ষাবর্ষের ভর্তি ফরম বিক্রয়লব্ধ অর্থ',
@@ -1107,7 +1121,17 @@ export function FinancePanel({ sub }) {
   const [incomes, setIncomes] = useState(() => {
     try {
       const saved = localStorage.getItem('magra_finance_incomes');
-      return saved ? JSON.parse(saved) : SEED_INCOMES;
+      let records = saved ? JSON.parse(saved) : null;
+      if (!Array.isArray(records) || records.length === 0) {
+        records = SEED_INCOMES;
+      } else {
+        const existingIds = new Set(records.map(r => r.id));
+        const missing = SEED_INCOMES.filter(s => !existingIds.has(s.id));
+        if (missing.length > 0) {
+          records = [...records, ...missing];
+        }
+      }
+      return records;
     } catch {
       return SEED_INCOMES;
     }
@@ -1194,6 +1218,58 @@ export function FinancePanel({ sub }) {
   useEffect(() => {
     try { localStorage.setItem('magra_finance_incomes', JSON.stringify(incomes)); } catch {}
   }, [incomes]);
+
+  // Auto-sync deposit batches into Institutional Income Ledger (📥 প্রাতিষ্ঠানিক আয় খাতা)
+  useEffect(() => {
+    setIncomes(prevIncomes => {
+      let changed = false;
+      let updated = [...prevIncomes];
+
+      feeDeposits.forEach((dep) => {
+        const existingIdx = updated.findIndex(inc => inc.deposit_id === dep.id);
+        const autoIncomeItem = {
+          id: `INC-DEP-${dep.id}`,
+          deposit_id: dep.id,
+          voucher_no: existingIdx >= 0 ? updated[existingIdx].voucher_no : `আয়-ভাউচার-${dep.deposit_no}`,
+          date: dep.deposit_date,
+          category: 'শিক্ষার্থী ফি আদায় (অফিস সহকারীর নিকট জমাকৃত চালান)',
+          title: `শিক্ষার্থী ফি জমা (চালান নং: ${dep.deposit_no})`,
+          payer_name: `${dep.deposited_by} ➔ ${dep.received_by}`,
+          amount: Number(dep.total_amount) || 0,
+          method: dep.payment_method || 'cash',
+          note: `চালান নং: ${dep.deposit_no} | অন্তর্ভুক্ত শিক্ষার্থী: ${toBnDigits(dep.student_count || (dep.receipt_ids || []).length)} জন | ${dep.remarks || ''}`,
+          is_auto_deposit: true
+        };
+
+        if (existingIdx === -1) {
+          updated.unshift(autoIncomeItem);
+          changed = true;
+        } else {
+          const cur = updated[existingIdx];
+          if (
+            cur.amount !== autoIncomeItem.amount ||
+            cur.date !== autoIncomeItem.date ||
+            cur.title !== autoIncomeItem.title ||
+            cur.payer_name !== autoIncomeItem.payer_name ||
+            cur.method !== autoIncomeItem.method ||
+            cur.note !== autoIncomeItem.note
+          ) {
+            updated[existingIdx] = { ...cur, ...autoIncomeItem };
+            changed = true;
+          }
+        }
+      });
+
+      // Clean up any orphan auto-deposit incomes whose deposit was deleted
+      const activeDepIds = new Set(feeDeposits.map(d => d.id));
+      const filtered = updated.filter(inc => !inc.is_auto_deposit || activeDepIds.has(inc.deposit_id));
+      if (filtered.length !== updated.length) {
+        return filtered;
+      }
+
+      return changed ? updated : prevIncomes;
+    });
+  }, [feeDeposits]);
 
   useEffect(() => {
     try { localStorage.setItem('magra_finance_expenses', JSON.stringify(expenses)); } catch {}
@@ -1621,11 +1697,16 @@ export function FinancePanel({ sub }) {
       received_by: receivedBy || curClassTeacher?.teacher_name || 'শ্রেণি শিক্ষক',
       class_teacher_name: curClassTeacher?.teacher_name || receivedBy,
       class_teacher_designation: `শ্রেণি শিক্ষক (${curClassTeacher?.class_name || `${toBnDigits(selectedStudent.class_name)}ম শ্রেণি`})`,
-      remarks: paymentRemarks || (dueAmount === 0 ? 'সম্পূর্ণ পরিশোধিত' : `বকেয়া: ${formatMoney(dueAmount)}`)
+      remarks: paymentRemarks || (dueAmount === 0 ? 'সম্পূর্ণ পরিশোধিত' : `বকেয়া: ${formatMoney(dueAmount)}`),
+      deposit_id: null,
+      deposited_at: null
     };
 
     setFeeRecords(prev => [newTransaction, ...prev]);
-    setSubmitMsg(`সফল! রসিদ নং: ${receiptNo} অনুযায়ী ${formatMoney(paidAmount)} আদায় সম্পন্ন হয়েছে।`);
+    // Ensure the new payment is immediately visible in "ফি জমার হিসাব ও ইতিহাস" (Pending list)
+    setDepositPendingFilterDate('all');
+    setDepositShowOnlyPending(true);
+    setSubmitMsg(`✓ সফল! রসিদ নং: ${receiptNo} অনুযায়ী ${formatMoney(paidAmount)} আদায় সম্পন্ন হয়েছে। এটি স্বয়ংক্রিয়ভাবে "ফি আদায়ের ইতিহাস ও রশিদ" এবং "ফি জমার হিসাব ও ইতিহাস" (অজমাকৃত তালিকা)-এ যুক্ত হয়েছে।`);
     setActiveReceipt(newTransaction);
 
     // Reset some fields
@@ -1892,6 +1973,28 @@ export function FinancePanel({ sub }) {
   // INCOME & EXPENSE EDIT & DELETE ACTIONS
   // ==========================================
   const handleDeleteIncome = (id, voucher) => {
+    const inc = incomes.find(x => x.id === id);
+    if (inc && (inc.is_auto_deposit || inc.deposit_id)) {
+      if (window.confirm(`মনোযোগ দিন: এই আয় ভাউচারটি ফি জমার চালান (${inc.title}) থেকে স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।\n\nএটি মুছে ফেললে "ফি জমার হিসাব ও ইতিহাস" থেকে সংশ্লিষ্ট চালানটিও মুছে যাবে এবং শিক্ষার্থীদের কালেকশন আবার অজমাকৃত তালিকায় ফেরত যাবে।\n\nআপনি কি নিশ্চিত যে এটি মুছে ফেলতে চান?`)) {
+        setIncomes(prev => prev.filter(x => x.id !== id));
+        if (inc.deposit_id) {
+          const linkedDep = feeDeposits.find(d => d.id === inc.deposit_id);
+          if (linkedDep) {
+            setFeeDeposits(prev => prev.filter(d => d.id !== linkedDep.id));
+            setFeeRecords(prev => prev.map(r => {
+              if (r.deposit_id === linkedDep.id || (linkedDep.receipt_ids && linkedDep.receipt_ids.includes(r.id))) {
+                return { ...r, deposit_id: null, deposited_at: null };
+              }
+              return r;
+            }));
+          }
+        }
+        setIncomeMsg('ফি জমার চালান ভাউচারটি সফলভাবে মোছা হয়েছে এবং শিক্ষার্থীদের কালেকশন অজমাকৃত তালিকায় ফেরত দেওয়া হয়েছে।');
+        setTimeout(() => setIncomeMsg(''), 3500);
+      }
+      return;
+    }
+
     if (!window.confirm(`আপনি কি নিশ্চিত যে ভাউচার নং "${voucher || 'চিহ্নিত'}" আয়ের রেকর্ডটি মুছে ফেলতে চান?`)) return;
     setIncomes(prev => prev.filter(x => x.id !== id));
     setIncomeMsg('আয়ের রেকর্ড সফলভাবে মুছে ফেলা হয়েছে।');
@@ -1908,6 +2011,16 @@ export function FinancePanel({ sub }) {
       ...editingIncome,
       amount: Number(editingIncome.amount) || 0
     } : x));
+
+    // If it is a deposit income, also sync to feeDeposits
+    if (editingIncome.deposit_id) {
+      setFeeDeposits(prev => prev.map(d => d.id === editingIncome.deposit_id ? {
+        ...d,
+        deposit_date: editingIncome.date || d.deposit_date,
+        remarks: editingIncome.note || d.remarks
+      } : d));
+    }
+
     setEditingIncome(null);
     setIncomeMsg('আয়ের রেকর্ড সফলভাবে হালনাগাদ (Edit) করা হয়েছে।');
     setTimeout(() => setIncomeMsg(''), 3500);
@@ -3689,7 +3802,7 @@ export function FinancePanel({ sub }) {
 
     // 3. Clear selection and show success toast
     setSelectedReceiptIdsForDeposit([]);
-    setDepositSuccessMsg(`✓ সফল! ${toBnDigits(newDepRecord.student_count)} জন শিক্ষার্থীর মোট ${formatMoney(newDepRecord.total_amount)} অফিস সহকারীর নিকট জমা সম্পন্ন হয়েছে। (চালান নং: ${newDepRecord.deposit_no})`);
+    setDepositSuccessMsg(`✓ সফল! ${toBnDigits(newDepRecord.student_count)} জন শিক্ষার্থীর মোট ${formatMoney(newDepRecord.total_amount)} অফিস সহকারীর নিকট জমা সম্পন্ন হয়েছে এবং "📥 প্রাতিষ্ঠানিক আয় খাতা"-য় অটোমেটিক যুক্ত হয়েছে। (চালান নং: ${newDepRecord.deposit_no})`);
     setDepositSubView('history');
     setTimeout(() => setDepositSuccessMsg(''), 5000);
   };
@@ -3697,8 +3810,9 @@ export function FinancePanel({ sub }) {
   // Delete Deposit Batch (Unlinks students so they become pending again!)
   const handleDeleteDepositBatch = (dep) => {
     if (!dep) return;
-    if (window.confirm(`আপনি কি নিশ্চিত যে চালান নং "${dep.deposit_no}" এর জমার খতিয়ানটি সম্পূর্ণ মুছে ফেলতে চান?\n\nএটি মুছে ফেললে এর অন্তর্ভুক্ত ${toBnDigits(dep.student_count)} জন শিক্ষার্থীর ফি কালেকশন আবার অবমুক্ত হয়ে "অজমাকৃত তালিকা"-তে ফিরে আসবে।`)) {
+    if (window.confirm(`আপনি কি নিশ্চিত যে চালান নং "${dep.deposit_no}" এর জমার খতিয়ানটি সম্পূর্ণ মুছে ফেলতে চান?\n\nএটি মুছে ফেললে:\n১. অন্তর্ভুক্ত ${toBnDigits(dep.student_count)} জন শিক্ষার্থীর ফি কালেকশন আবার অবমুক্ত হয়ে "অজমাকৃত তালিকা"-তে ফিরে আসবে।\n২. "📥 প্রাতিষ্ঠানিক আয় খাতা" থেকে এই চালানের সমপরিমাণ আয়ের ভাউচারটিও স্বয়ংক্রিয়ভাবে মুছে যাবে।`)) {
       setFeeDeposits(prev => prev.filter(d => d.id !== dep.id));
+      setIncomes(prev => prev.filter(inc => inc.deposit_id !== dep.id));
 
       setFeeRecords(prev => prev.map(r => {
         if (r.deposit_id === dep.id || (dep.receipt_ids && dep.receipt_ids.includes(r.id))) {
@@ -3711,7 +3825,7 @@ export function FinancePanel({ sub }) {
         return r;
       }));
 
-      setDepositSuccessMsg(`✓ চালান নং ${dep.deposit_no} সফলভাবে মোছা হয়েছে এবং অন্তর্ভুক্ত শিক্ষার্থীদের কালেকশন অজমাকৃত তালিকায় ফেরত দেওয়া হয়েছে।`);
+      setDepositSuccessMsg(`✓ চালান নং ${dep.deposit_no} সফলভাবে মোছা হয়েছে, শিক্ষার্থীদের কালেকশন অজমাকৃত তালিকায় ফেরত দেওয়া হয়েছে এবং প্রাতিষ্ঠানিক আয় খাতা থেকে ভাউচারটি অপসারিত হয়েছে।`);
       setTimeout(() => setDepositSuccessMsg(''), 4000);
     }
   };
@@ -5166,19 +5280,42 @@ export function FinancePanel({ sub }) {
                     <td style={{ textAlign: 'right', padding: '8px 8px', color: r.due_amount > 0 ? '#dc2626' : '#64748b', fontWeight: r.due_amount > 0 ? 700 : 400 }}>
                       {r.due_amount > 0 ? formatMoney(r.due_amount) : '০'}
                     </td>
-                    <td style={{ textAlign: 'center', padding: '8px 8px' }}>
+                    <td style={{ textAlign: 'center', padding: '8px 8px', whiteSpace: 'nowrap' }}>
                       <button
                         type="button"
                         onClick={() => handlePrintReceipt(r)}
                         style={{
                           background: '#047857', color: '#fff', border: 'none', padding: '4px 9px',
                           borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
-                          display: 'inline-flex', alignItems: 'center', gap: '3px'
+                          display: 'inline-flex', alignItems: 'center', gap: '3px', marginRight: '4px'
                         }}
                         title="A4 Landscape এ ডুপ্লিকেট ২ কপি প্রিন্ট করুন"
                       >
                         🖨️ প্রিন্ট
                       </button>
+                      {!r.deposit_id ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedReceiptIdsForDeposit([r.id]);
+                            setActiveTab('deposit_history');
+                            setDepositSubView('create');
+                            setDepositPendingFilterDate('all');
+                          }}
+                          style={{
+                            background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '4px 8px',
+                            borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                            display: 'inline-flex', alignItems: 'center', gap: '3px'
+                          }}
+                          title="এই রসিদের টাকা অফিস সহকারীর নিকট জমা প্রদান ফর্মে যুক্ত করুন"
+                        >
+                          🏦 জমা দিন
+                        </button>
+                      ) : (
+                        <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '3px 7px', borderRadius: '4px', fontSize: '10px', fontWeight: 700 }}>
+                          ✓ জমাকৃত
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -6397,11 +6534,11 @@ export function FinancePanel({ sub }) {
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0369a1' }}>
                   প্রাতিষ্ঠানিক আয়ের খাতা (Income Register)
                 </h3>
-                <small style={{ color: '#64748b' }}>শিক্ষার্থীদের নিয়মিত ফি বহির্ভূত অন্যান্য আয়সমূহ</small>
+                <small style={{ color: '#64748b' }}>অফিস সহকারীর নিকট জমাকৃত ফি চালান এবং বিদ্যালয়ের অন্যান্য সকল প্রাতিষ্ঠানিক আয়সমূহ</small>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '5px 12px', borderRadius: '15px', fontWeight: 700, fontSize: '12px' }}>
-                  মোট অন্যান্য আয়: {formatMoney(totalOtherIncome)}
+                  মোট প্রাতিষ্ঠানিক আয়: {formatMoney(totalOtherIncome)}
                 </span>
                 <button
                   type="button"
@@ -6430,7 +6567,7 @@ export function FinancePanel({ sub }) {
                     <th style={{ padding: '8px 10px', textAlign: 'left', width: '120px' }}>উৎস / প্রদাতা</th>
                     <th style={{ padding: '8px', textAlign: 'center', width: '70px' }}>মাধ্যম</th>
                     <th style={{ padding: '8px 10px', textAlign: 'right', width: '100px' }}>পরিমাণ</th>
-                    <th style={{ padding: '8px', textAlign: 'center', width: '100px' }}>অ্যাকশন</th>
+                    <th style={{ padding: '8px', textAlign: 'center', width: '125px' }}>অ্যাকশন</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -6440,16 +6577,57 @@ export function FinancePanel({ sub }) {
                       <td style={{ padding: '8px 10px', fontFamily: 'monospace', fontWeight: 700, color: '#0284c7' }}>{inc.voucher_no}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>{formatDateBn(inc.date)}</td>
                       <td style={{ padding: '8px 10px' }}>
-                        <strong style={{ color: '#0f172a' }}>{inc.title}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <strong style={{ color: '#0f172a' }}>{inc.title}</strong>
+                          {inc.is_auto_deposit && (
+                            <span style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>
+                              🏦 ফি জমার চালান
+                            </span>
+                          )}
+                        </div>
                         <small style={{ display: 'block', color: '#64748b', fontSize: '10.5px' }}>{inc.category}</small>
+                        {inc.note && (
+                          <small style={{ display: 'block', color: '#059669', fontSize: '10.5px', marginTop: '2px' }}>
+                            {inc.note}
+                          </small>
+                        )}
                       </td>
                       <td style={{ padding: '8px 10px', color: '#334155' }}>{inc.payer_name}</td>
                       <td style={{ textAlign: 'center', padding: '8px' }}>{inc.method}</td>
                       <td style={{ textAlign: 'right', padding: '8px 10px', fontWeight: 800, color: '#0369a1' }}>{formatMoney(inc.amount)}</td>
                       <td style={{ textAlign: 'center', padding: '6px 8px', whiteSpace: 'nowrap' }}>
+                        {inc.deposit_id && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const dep = feeDeposits.find(d => d.id === inc.deposit_id);
+                              if (dep) handlePrintDepositBatchStatement(dep);
+                              else alert('চালান রেকর্ডটি পাওয়া যায়নি।');
+                            }}
+                            style={{
+                              background: '#047857', color: '#fff', border: 'none',
+                              padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
+                              cursor: 'pointer', marginRight: '4px'
+                            }}
+                            title="অফিশিয়াল প্যাডে চালান বিবরণী প্রিন্ট করুন"
+                          >
+                            🖨️ চালান
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => setEditingIncome({ ...inc })}
+                          onClick={() => {
+                            if (inc.deposit_id) {
+                              const dep = feeDeposits.find(d => d.id === inc.deposit_id);
+                              if (dep) {
+                                setEditingDepositBatch(JSON.parse(JSON.stringify(dep)));
+                                setActiveTab('deposit_history');
+                                setDepositSubView('history');
+                                return;
+                              }
+                            }
+                            setEditingIncome({ ...inc });
+                          }}
                           style={{
                             background: '#e0f2fe', color: '#0284c7', border: '1px solid #7dd3fc',
                             padding: '3px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 700,
