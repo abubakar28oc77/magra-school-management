@@ -18,30 +18,12 @@ try {
         if (!resFeat) {
           curFeatures.push({ feature_key: 'public.nav.results', label_bn: 'পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true });
           changed = true;
-        } else if (resFeat.enabled === false) {
-          resFeat.enabled = true;
-          changed = true;
         }
-        curFeatures.forEach(f => {
-          if (f && f.feature_key && f.feature_key.startsWith('public.nav.results') && f.enabled === false) {
-            f.enabled = true;
-            changed = true;
-          }
-        });
         let guideFeat = curFeatures.find(f => f && f.feature_key === 'public.nav.guide');
         if (!guideFeat) {
           curFeatures.push({ feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true });
           changed = true;
-        } else if (guideFeat.enabled === false) {
-          guideFeat.enabled = true;
-          changed = true;
         }
-        curFeatures.forEach(f => {
-          if (f && f.feature_key && f.feature_key.startsWith('public.nav.guide') && f.enabled === false) {
-            f.enabled = true;
-            changed = true;
-          }
-        });
         if (changed) {
           localStorage.setItem('magra_db_features', JSON.stringify(curFeatures));
         }
@@ -569,16 +551,7 @@ function getLocalStore(key, defaultVal = []) {
       if (!resultsFeature) {
         parsed.push({ feature_key: 'public.nav.results', label_bn: 'পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true });
         changed = true;
-      } else if (resultsFeature.enabled === false) {
-        resultsFeature.enabled = true;
-        changed = true;
       }
-      parsed.forEach(f => {
-        if (f && f.feature_key && f.feature_key.startsWith('public.nav.results') && f.enabled === false) {
-          f.enabled = true;
-          changed = true;
-        }
-      });
       if (changed) {
         try { localStorage.setItem('magra_db_features', JSON.stringify(parsed)); } catch {}
       }
@@ -1069,8 +1042,22 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath.startsWith('/admin/features/') && method === 'PATCH') {
     const key = decodeURIComponent(cleanPath.replace('/admin/features/', ''));
     let features = getLocalStore('features', DEFAULT_FEATURES);
-    features = features.map(f => f.feature_key === key ? { ...f, enabled: body.enabled } : f);
+    features = features.map(f => {
+      if (f.feature_key === key) {
+        return { ...f, enabled: body.enabled };
+      }
+      // When toggling 'public.nav.results', cascade toggle to all its child result submenus
+      if (key === 'public.nav.results' && typeof f.feature_key === 'string' && f.feature_key.startsWith('public.nav.results.')) {
+        return { ...f, enabled: body.enabled };
+      }
+      return f;
+    });
     setLocalStore('features', features);
+    if (typeof window !== 'undefined') {
+      try {
+        window.dispatchEvent(new CustomEvent('magra_features_change', { detail: features }));
+      } catch {}
+    }
     return { success: true };
   }
 

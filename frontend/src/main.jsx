@@ -553,8 +553,40 @@ function Header({ onOpenSubmenu }) {
       window.removeEventListener('storage', syncSession);
     };
   }, []);
-  useEffect(() => { api('/public/features').then(d => { const map = {}; (d.features || []).forEach(f => { map[f.feature_key] = f.enabled !== false }); setEnabled(map); setCustom(d.custom || []) }).catch(() => setEnabled(null)); const onKey = e => { if (e.key === 'Escape') closeNav() }; const onPointer = e => { if (!e.target.closest('.reference-shell')) closeNav() }; window.addEventListener('keydown', onKey); document.addEventListener('pointerdown', onPointer); return () => { window.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onPointer) } }, []);
-  const isOn = (key) => { if (key === 'public.nav.results' || (typeof key === 'string' && key.startsWith('public.nav.results'))) return true; return enabled === null || enabled[key] !== false; };
+  useEffect(() => {
+    const syncFeatures = () => {
+      api('/public/features').then(d => {
+        const map = {};
+        (d.features || []).forEach(f => { map[f.feature_key] = f.enabled !== false });
+        setEnabled(map);
+        setCustom(d.custom || []);
+      }).catch(() => setEnabled(null));
+    };
+    syncFeatures();
+    window.addEventListener('magra_features_change', syncFeatures);
+    window.addEventListener('storage', syncFeatures);
+    const onKey = e => { if (e.key === 'Escape') closeNav() };
+    const onPointer = e => { if (!e.target.closest('.reference-shell')) closeNav() };
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointer);
+    return () => {
+      window.removeEventListener('magra_features_change', syncFeatures);
+      window.removeEventListener('storage', syncFeatures);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointer);
+    };
+  }, []);
+  const isOn = (key) => {
+    if (!enabled) return true;
+    if (enabled[key] === false) return false;
+    if (typeof key === 'string' && key.startsWith('public.nav.results') && (enabled['public.nav.results'] === false || enabled['admin.results'] === false)) {
+      return false;
+    }
+    if (typeof key === 'string' && key.startsWith('public.nav.guide') && (enabled['public.nav.guide'] === false || enabled['admin.guide'] === false)) {
+      return false;
+    }
+    return true;
+  };
   const nav = publicNavConfig.filter(item => isOn(item.key)).map(item => item.children ? { ...item, children: item.children.filter(([key]) => isOn(key)) } : item).filter(item => !item.children || item.children.length);
 
   const handleSubmenuClick = (e, key, text, href) => {

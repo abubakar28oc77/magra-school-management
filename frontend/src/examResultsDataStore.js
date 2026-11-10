@@ -193,6 +193,27 @@ export function getLivePreTestClassResults() {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const examId = findExamId(['প্রাক-নির্বাচনী', 'প্রাক-নির্বাচনি', 'pre-test', 'pre_test'], 'ex-pre-test-10');
 
+    // If exam is in active/upcoming (draft entry) and NOT published, do not expose partial marks
+    const examRaw = localStorage.getItem('magra_db_exams');
+    if (examRaw) {
+      try {
+        const exams = JSON.parse(examRaw);
+        if (Array.isArray(exams)) {
+          const ex = exams.find(e => String(e.id) === String(examId));
+          if (ex && ex.status && ex.status !== 'published') return null;
+        }
+      } catch {}
+    }
+
+    const rawMarks = localStorage.getItem('magra_db_marks');
+    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
+    const examMarks = marksList.filter(m => String(m.exam_id) === String(examId));
+    const uniqueSubjects = new Set(examMarks.map(m => String(m.subject_id || m.subject_code))).size;
+    // SSC requires evaluation across all core subjects; less than 6 unique subjects means partial draft
+    if (examMarks.length > 0 && uniqueSubjects < 6) {
+      return null;
+    }
+
     let processed = null;
     const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`];
     for (const key of cacheKeys) {
@@ -205,11 +226,9 @@ export function getLivePreTestClassResults() {
       }
     }
 
-    const rawMarks = localStorage.getItem('magra_db_marks');
-    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
-    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId));
+    const hasMarks = examMarks.length > 0;
 
-    if (!processed && hasMarks) {
+    if (!processed && hasMarks && uniqueSubjects >= 6) {
       const rawStudents = localStorage.getItem('magra_db_students');
       const students = rawStudents ? JSON.parse(rawStudents) : MOCK_STUDENTS;
       const rawSubjects = localStorage.getItem('magra_db_subjects');
@@ -311,6 +330,27 @@ export function getLiveTestClassResults() {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const examId = findExamId(['নির্বাচনী', 'নির্বাচনি', 'ssc test', 'ex-test-10'], 'ex-test-10', ['প্রাক', 'pre']);
 
+    // If exam is in active/upcoming (draft entry) and NOT published, do not expose partial marks
+    const examRaw = localStorage.getItem('magra_db_exams');
+    if (examRaw) {
+      try {
+        const exams = JSON.parse(examRaw);
+        if (Array.isArray(exams)) {
+          const ex = exams.find(e => String(e.id) === String(examId));
+          if (ex && ex.status && ex.status !== 'published') return null;
+        }
+      } catch {}
+    }
+
+    const rawMarks = localStorage.getItem('magra_db_marks');
+    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
+    const examMarks = marksList.filter(m => String(m.exam_id) === String(examId));
+    const uniqueSubjects = new Set(examMarks.map(m => String(m.subject_id || m.subject_code))).size;
+    // SSC requires evaluation across all core subjects; less than 6 unique subjects means partial draft
+    if (examMarks.length > 0 && uniqueSubjects < 6) {
+      return null;
+    }
+
     let processed = null;
     const cacheKeys = [`magra_db_results_${examId}_10`, `magra_db_results_${examId}_১০ম`];
     for (const key of cacheKeys) {
@@ -323,11 +363,9 @@ export function getLiveTestClassResults() {
       }
     }
 
-    const rawMarks = localStorage.getItem('magra_db_marks');
-    const marksList = rawMarks ? JSON.parse(rawMarks) : [];
-    const hasMarks = marksList.some(m => String(m.exam_id) === String(examId));
+    const hasMarks = examMarks.length > 0;
 
-    if (!processed && hasMarks) {
+    if (!processed && hasMarks && uniqueSubjects >= 6) {
       const rawStudents = localStorage.getItem('magra_db_students');
       const students = rawStudents ? JSON.parse(rawStudents) : MOCK_STUDENTS;
       const rawSubjects = localStorage.getItem('magra_db_subjects');
@@ -413,6 +451,17 @@ export function getLiveHalfYearlyClassResults() {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const examId = findExamId(['অর্ধবার্ষিক', 'অর্ধ-বার্ষিক', 'half_yearly', 'half-yearly'], 'ex-2');
+
+    const examRaw = localStorage.getItem('magra_db_exams');
+    if (examRaw) {
+      try {
+        const exams = JSON.parse(examRaw);
+        if (Array.isArray(exams)) {
+          const ex = exams.find(e => String(e.id) === String(examId));
+          if (ex && ex.status && ex.status !== 'published') return null;
+        }
+      } catch {}
+    }
 
     const rawStudents = localStorage.getItem('magra_db_students');
     const students = rawStudents ? JSON.parse(rawStudents) : MOCK_STUDENTS;
@@ -519,6 +568,17 @@ export function getLiveAnnualClassResults() {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     const examId = findExamId(['বার্ষিক', 'annual'], 'ex-3');
+
+    const examRaw = localStorage.getItem('magra_db_exams');
+    if (examRaw) {
+      try {
+        const exams = JSON.parse(examRaw);
+        if (Array.isArray(exams)) {
+          const ex = exams.find(e => String(e.id) === String(examId));
+          if (ex && ex.status && ex.status !== 'published') return null;
+        }
+      } catch {}
+    }
 
     const rawStudents = localStorage.getItem('magra_db_students');
     const students = rawStudents ? JSON.parse(rawStudents) : MOCK_STUDENTS;

@@ -520,6 +520,63 @@ export function SubmenuDetailModal({ menuKey, title, onClose, onNavigateRole }) 
     .replace(/\s*\((?:নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরির\s*সুবিধা\s*সহ|নতুন\s*(?:অ্যালবাম|এলবাম)\s*তৈরি\s*সহ)\)/gi, '')
     .trim() || title;
 
+  const isResultFeatureEnabled = (key) => {
+    try {
+      const raw = localStorage.getItem('magra_db_features');
+      if (raw) {
+        const list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          const parentPub = list.find(f => f && f.feature_key === 'public.nav.results');
+          if (parentPub && parentPub.enabled === false) return false;
+          const parentAdm = list.find(f => f && f.feature_key === 'admin.results');
+          if (parentAdm && parentAdm.enabled === false) return false;
+
+          if (key) {
+            const specific = list.find(f => f && f.feature_key === key);
+            if (specific && specific.enabled === false) return false;
+          }
+        }
+      }
+    } catch {}
+    return true;
+  };
+
+  const renderUnpublishedNotice = () => (
+    <div className="submenu-content" style={{ textAlign: 'center', padding: '40px 16px' }}>
+      <div style={{
+        maxWidth: '560px',
+        margin: '20px auto',
+        background: '#fffbeb',
+        border: '1.5px solid #fde68a',
+        borderRadius: '16px',
+        padding: '36px 28px',
+        boxShadow: '0 4px 16px rgba(245,158,11,0.08)'
+      }}>
+        <div style={{ fontSize: '56px', marginBottom: '12px' }}>🔒</div>
+        <h3 style={{ color: '#92400e', fontSize: '20px', fontWeight: 800, margin: '0 0 10px 0' }}>
+          ফলাফল এখনও প্রকাশিত হয়নি
+        </h3>
+        <p style={{ color: '#78350f', fontSize: '14.5px', lineHeight: 1.65, margin: '0 0 20px 0' }}>
+          <b>{cleanTitle}</b>-এর মূল্যায়ন ও ফলাফল প্রস্তুতকরণ কার্যক্রম বর্তমানে প্রক্রিয়াধীন রয়েছে। প্রতিষ্ঠান কর্তৃপক্ষ ও পরীক্ষা পরিচালনা কমিটি কর্তৃক চূড়ান্ত ফলাফল অনুমোদনের পর ভিউপেজে সকলের জন্য প্রকাশ করা হবে।
+        </p>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: '#fef3c7',
+          color: '#b45309',
+          padding: '8px 20px',
+          borderRadius: '24px',
+          fontWeight: 700,
+          fontSize: '13px',
+          border: '1px solid #fcd34d'
+        }}>
+          ⏳ ফলাফল প্রকাশের জন্য অনুগ্রহ করে অপেক্ষা করুন
+        </div>
+      </div>
+    </div>
+  );
+
   if (menuKey && (menuKey.includes('attendance') || menuKey.includes('উপস্থিতি'))) {
     return <PublicAttendancePortal isOpen={true} onClose={onClose} />;
   }
@@ -5439,11 +5496,17 @@ function renderTeacherEducationTable(teacher, themeColor = '#047857', badgeBg = 
       (typeof menuKey === 'string' && menuKey.includes('public_exam')) ||
       (typeof title === 'string' && title.includes('পাবলিক পরীক্ষা'))
     ) {
+      if (!isResultFeatureEnabled(menuKey)) {
+        return renderUnpublishedNotice();
+      }
       return <PublicExamResultsView />;
     }
 
     // 4. Results (Strictly mapped to the 6 submenus and class rules)
     if (menuKey.startsWith('public.nav.results')) {
+      if (!isResultFeatureEnabled(menuKey)) {
+        return renderUnpublishedNotice();
+      }
       // 4.1 ভর্তি পরীক্ষার ফলাফল
       if (menuKey === 'public.nav.results.admission') {
         const admList = getStoredAdmissionResults();
