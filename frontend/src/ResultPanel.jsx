@@ -1848,7 +1848,7 @@ export function ResultPanel({ sub, userRole }) {
         </div>
       )}
 
-      {/* ================= MODERN TAB NAVIGATION ================= */}
+      {/* ================= MODERN TAB NAVIGATION (TWO PARALLEL ROWS) ================= */}
       <div className="exam-tab-bar">
         {(() => {
           const allTabs = [
@@ -1870,16 +1870,56 @@ export function ResultPanel({ sub, userRole }) {
               ? allTabs.filter(([k]) => ['marks', 'merit', 'tabulation', 'marksheet'].includes(k))
               : allTabs;
 
-          return availableTabs.map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
-              onClick={() => setTab(key)}
-            >
-              {label}
-            </button>
-          ));
+          if (availableTabs.length <= 4) {
+            return (
+              <div className="exam-tab-row">
+                {availableTabs.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
+                    onClick={() => setTab(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            );
+          }
+
+          // Split into two parallel rows: Row 1 (first 6 items), Row 2 (remaining 5 items)
+          const midPoint = Math.min(6, Math.ceil(availableTabs.length / 2));
+          const row1 = availableTabs.slice(0, midPoint);
+          const row2 = availableTabs.slice(midPoint);
+
+          return (
+            <div className="exam-tab-two-rows">
+              <div className="exam-tab-row">
+                {row1.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
+                    onClick={() => setTab(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="exam-tab-row">
+                {row2.map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`exam-tab-btn ${tab === key ? 'active' : ''}`}
+                    onClick={() => setTab(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
         })()}
       </div>
 
