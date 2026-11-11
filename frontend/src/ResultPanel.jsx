@@ -2823,17 +2823,17 @@ export function ResultPanel({ sub, userRole }) {
             ['marks', '✍️ ৪. বিষয়ভিত্তিক মার্ক এন্ট্রি'],
             ['grading', '🎯 ৫. গ্রেডিং পলিসি'],
             ['processing', '⚙️ ৬. ফলাফল প্রসেসিং'],
-            ['merit', '🏆 ৭. মেধা তালিকা'],
-            ['failed_list', '⚠️ ৮. অকৃতকার্য তালিকা'],
-            ['tabulation', '📋 ৯. ট্যাবুলেশন শিট'],
-            ['marksheet', '📄 ১০. মার্কশিট ও প্রগ্রেস'],
+            ['tabulation', '📋 ৭. ট্যাবুলেশন শিট'],
+            ['marksheet', '📄 ৮. মার্কশিট ও প্রগ্রেস'],
+            ['merit', '🏆 ৯. মেধা তালিকা'],
+            ['failed_list', '⚠️ ১০. অকৃতকার্য তালিকা'],
             ['analysis', '📊 ১১. ফলাফল বিশ্লেষণ'],
             ['promotion', '🎓 ১২. শিক্ষার্থী প্রমোশন']
           ];
           const availableTabs = isSubjectTeacherOrLibrarian
             ? allTabs.filter(([k]) => k === 'marks')
             : (effectiveRole === 'co_admin')
-              ? allTabs.filter(([k]) => ['marks', 'merit', 'failed_list', 'tabulation', 'marksheet'].includes(k))
+              ? allTabs.filter(([k]) => ['marks', 'tabulation', 'marksheet', 'merit', 'failed_list'].includes(k))
               : allTabs;
 
           if (availableTabs.length <= 4) {
@@ -3889,24 +3889,24 @@ export function ResultPanel({ sub, userRole }) {
 
           <div className="preset-chip-shelf" style={{ marginTop: '20px' }}>
             <span className="preset-label">পরবর্তী ধাপে যান:</span>
-            <button type="button" className="preset-chip" onClick={() => setTab('merit')}>
-              🏆 মেধা তালিকা দেখুন ➜
-            </button>
-            <button type="button" className="preset-chip" style={{ color: '#b91c1c' }} onClick={() => setTab('failed_list')}>
-              ⚠️ অকৃতকার্য তালিকা দেখুন ➜
-            </button>
             <button type="button" className="preset-chip" onClick={() => setTab('tabulation')}>
               📋 ট্যাবুলেশন শিট দেখুন ➜
             </button>
             <button type="button" className="preset-chip" onClick={() => setTab('marksheet')}>
               📄 মার্কশিট ও প্রগ্রেস রিপোর্ট দেখুন ➜
             </button>
+            <button type="button" className="preset-chip" onClick={() => setTab('merit')}>
+              🏆 মেধা তালিকা দেখুন ➜
+            </button>
+            <button type="button" className="preset-chip" style={{ color: '#b91c1c' }} onClick={() => setTab('failed_list')}>
+              ⚠️ অকৃতকার্য তালিকা দেখুন ➜
+            </button>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 7. MERIT LIST TAB                                                         */}
+      {/* 9. MERIT LIST TAB                                                         */}
       {/* ========================================================================= */}
       {tab === 'merit' && (
         <div className="exam-card-table">
@@ -4005,7 +4005,7 @@ export function ResultPanel({ sub, userRole }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 8. FAILED STUDENTS LIST TAB (DEPARTMENT-WISE FAILED MATRIX)               */}
+      {/* 10. FAILED STUDENTS LIST TAB (DEPARTMENT-WISE FAILED MATRIX)              */}
       {/* ========================================================================= */}
       {tab === 'failed_list' && (
         <div className="exam-card-table">
@@ -4189,7 +4189,7 @@ export function ResultPanel({ sub, userRole }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 9. TABULATION SHEET TAB (MASTER TABULATION MATRIX)                        */}
+      {/* 7. TABULATION SHEET TAB (MASTER TABULATION MATRIX)                        */}
       {/* ========================================================================= */}
       {tab === 'tabulation' && (
         <div className="exam-card-table">
@@ -4335,7 +4335,7 @@ export function ResultPanel({ sub, userRole }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 9. MARKSHEET & PROGRESS REPORT TAB (OFFICIAL ACADEMIC TRANSCRIPT)          */}
+      {/* 8. MARKSHEET & PROGRESS REPORT TAB (OFFICIAL ACADEMIC TRANSCRIPT)          */}
       {/* ========================================================================= */}
       {tab === 'marksheet' && (
         <div className="marksheet-console-wrapper">
@@ -4800,7 +4800,7 @@ export function ResultPanel({ sub, userRole }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 10. RESULT ANALYSIS TAB                                                   */}
+      {/* 11. RESULT ANALYSIS TAB                                                   */}
       {/* ========================================================================= */}
       {tab === 'analysis' && (
         <div className="analysis-panel">
