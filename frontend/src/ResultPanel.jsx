@@ -854,7 +854,6 @@ export function ResultPanel({ sub, userRole }) {
     };
 
     const headers = [
-      'Merit',
       'Roll',
       'Student_Name'
     ];
@@ -868,11 +867,16 @@ export function ResultPanel({ sub, userRole }) {
     });
     headers.push('Total_Marks', 'GPA', 'Grade', 'Result');
 
-    const studentList = filteredProcessedResults.length ? filteredProcessedResults : students;
+    const rawList = filteredProcessedResults.length ? filteredProcessedResults : students;
+    const studentList = [...rawList].sort((a, b) => {
+      const rA = Number(a.roll_no) || 0;
+      const rB = Number(b.roll_no) || 0;
+      if (rA !== rB) return rA - rB;
+      return (a.student_id || '').localeCompare(b.student_id || '');
+    });
 
-    const rows = studentList.map((st, idx) => {
+    const rows = studentList.map((st) => {
       const row = [
-        escapeCsv(st.merit !== undefined ? st.merit : idx + 1),
         escapeCsv(st.roll_no !== undefined ? st.roll_no : ''),
         escapeCsv(st.name_bn || st.name_en || '')
       ];
@@ -953,9 +957,15 @@ export function ResultPanel({ sub, userRole }) {
       <th class="col-sub">মোট</th>
     `).join('');
 
-    const rowsHtml = filteredProcessedResults.map((st, idx) => {
+    const printStudentList = [...filteredProcessedResults].sort((a, b) => {
+      const rA = Number(a.roll_no) || 0;
+      const rB = Number(b.roll_no) || 0;
+      if (rA !== rB) return rA - rB;
+      return (a.student_id || '').localeCompare(b.student_id || '');
+    });
+
+    const rowsHtml = printStudentList.map((st) => {
       const isPass = st.is_pass;
-      const meritBn = toBnDigits(st.merit || (idx + 1));
       const rollBn = toBnDigits(st.roll_no);
       const nameBn = st.name_bn || '—';
 
@@ -1000,7 +1010,6 @@ export function ResultPanel({ sub, userRole }) {
 
       return `
         <tr>
-          <td><b>${meritBn}</b></td>
           <td><b>${rollBn}</b></td>
           <td style="text-align:left;white-space:nowrap;padding-left:4px;"><b>${nameBn}</b></td>
           ${subjectCells}
@@ -1216,8 +1225,7 @@ export function ResultPanel({ sub, userRole }) {
   <table class="tab-matrix">
     <thead>
       <tr>
-        <th rowspan="2" style="width:30px;">মেধা</th>
-        <th rowspan="2" style="width:32px;">রোল</th>
+        <th rowspan="2" style="width:36px;">রোল</th>
         <th rowspan="2" style="width:145px;text-align:left;padding-left:6px;">শিক্ষার্থীর নাম</th>
         ${subjectsHtml}
         <th rowspan="2" style="width:38px;">সর্বমোট</th>
@@ -1750,9 +1758,63 @@ export function ResultPanel({ sub, userRole }) {
 
   // Filtered processed results by Department (Group) for 9-10
   const filteredProcessedResults = useMemo(() => {
-    if (!isSSC || department === 'all' || department === 'সকল বিভাগ') return processedResults;
-    return processedResults.filter(r => matchesStudentGroup(r.student || r, department));
+    const isDeptFilter = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ';
+    let list = processedResults;
+    if (isDeptFilter) {
+      list = processedResults.filter(r => matchesStudentGroup(r.student || r, department));
+    }
+    const mapped = list.map(st => ({ ...st }));
+    if (isDeptFilter) {
+      // Re-rank within this department (1 to list.length) based on department's total students
+      const passed = mapped.filter(s => s.is_pass);
+      const failed = mapped.filter(s => !s.is_pass);
+
+      passed.sort((a, b) => {
+        const gpaDiff = Number(b.gpa) - Number(a.gpa);
+        if (Math.abs(gpaDiff) > 0.001) return gpaDiff;
+        const markDiff = (Number(b.total_marks) || 0) - (Number(a.total_marks) || 0);
+        if (markDiff !== 0) return markDiff;
+        return (Number(a.roll_no) || 0) - (Number(b.roll_no) || 0);
+      });
+
+      failed.sort((a, b) => {
+        const markDiff = (Number(b.total_marks) || 0) - (Number(a.total_marks) || 0);
+        if (markDiff !== 0) return markDiff;
+        return (Number(a.roll_no) || 0) - (Number(b.roll_no) || 0);
+      });
+
+      let r = 1;
+      passed.forEach(s => {
+        s.dept_merit = r;
+        s.display_merit = r;
+        s.dept_total = mapped.length;
+        r++;
+      });
+      failed.forEach(s => {
+        s.dept_merit = r;
+        s.display_merit = r;
+        s.dept_total = mapped.length;
+        r++;
+      });
+      return [...passed, ...failed];
+    } else {
+      mapped.forEach((s, idx) => {
+        s.display_merit = s.merit || (idx + 1);
+        s.dept_merit = s.merit || (idx + 1);
+      });
+      return mapped;
+    }
   }, [processedResults, isSSC, department]);
+
+  // Tabulation Sheet: strictly sorted by student's roll number ascending (no merit serial)
+  const tabulationResults = useMemo(() => {
+    return [...filteredProcessedResults].sort((a, b) => {
+      const rA = Number(a.roll_no) || 0;
+      const rB = Number(b.roll_no) || 0;
+      if (rA !== rB) return rA - rB;
+      return (a.student_id || '').localeCompare(b.student_id || '');
+    });
+  }, [filteredProcessedResults]);
 
   const currentStudentResult = useMemo(() => {
     if (!filteredProcessedResults.length) return null;
@@ -2041,8 +2103,8 @@ export function ResultPanel({ sub, userRole }) {
             <div class="summary-val green-text status-text">${st.result_status || 'অকৃতকার্য'}</div>
           </div>
           <div>
-            <div class="summary-label">শ্রেণি মেধা স্থান</div>
-            <div class="summary-val">${st.merit ? `${toBnDigits(st.merit)} তম` : '—'}</div>
+            <div class="summary-label">${isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `${department} মেধা স্থান` : 'শ্রেণি মেধা স্থান'}</div>
+            <div class="summary-val">${(st.display_merit || st.dept_merit || st.merit) ? `${toBnDigits(st.display_merit || st.dept_merit || st.merit)} তম` : '—'}</div>
           </div>
         </div>
 
@@ -3448,9 +3510,13 @@ export function ResultPanel({ sub, userRole }) {
         <div className="exam-card-table">
           <div className="card-header-styled">
             <div>
-              <span className="card-badge">চূড়ান্ত মেধা তালিকা</span>
+              <span className="card-badge">
+                {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+                  ? `${department} চূড়ান্ত মেধা তালিকা`
+                  : 'চূড়ান্ত মেধা তালিকা'}
+              </span>
               <h3>
-                🏆 মেধা ও ফলাফল তালিকা — শ্রেণি {toBnDigits(className)} ({selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'})
+                🏆 মেধা ও ফলাফল তালিকা — শ্রেণি {toBnDigits(className)} {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `(${department} — মোট ${toBnDigits(filteredProcessedResults.length)} জন)` : `(মোট ${toBnDigits(filteredProcessedResults.length)} জন)`} ({selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'})
               </h3>
             </div>
             <div className="table-action-group">
@@ -3467,7 +3533,11 @@ export function ResultPanel({ sub, userRole }) {
             <table className="modern-exam-table">
               <thead>
                 <tr>
-                  <th style={{ width: '70px' }}>মেধা স্থান</th>
+                  <th style={{ width: '85px' }}>
+                    {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+                      ? `${department} মেধা`
+                      : 'মেধা স্থান'}
+                  </th>
                   <th style={{ width: '60px' }}>রোল</th>
                   <th>Student ID</th>
                   <th>শিক্ষার্থীর নাম</th>
@@ -3481,13 +3551,15 @@ export function ResultPanel({ sub, userRole }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredProcessedResults.map((x) => (
-                  <tr key={x.id || x.student_id}>
-                    <td>
-                      <b className={`merit-badge ${x.merit === 1 ? 'merit-gold' : x.merit === 2 ? 'merit-silver' : x.merit === 3 ? 'merit-bronze' : ''}`}>
-                        {toBnDigits(x.merit)}
-                      </b>
-                    </td>
+                {filteredProcessedResults.map((x) => {
+                  const mRank = x.display_merit || x.dept_merit || x.merit;
+                  return (
+                    <tr key={x.id || x.student_id}>
+                      <td>
+                        <b className={`merit-badge ${mRank === 1 ? 'merit-gold' : mRank === 2 ? 'merit-silver' : mRank === 3 ? 'merit-bronze' : ''}`}>
+                          {toBnDigits(mRank)}
+                        </b>
+                      </td>
                     <td><span className="roll-pill">{toBnDigits(x.roll_no || '—')}</span></td>
                     <td><span className="code-pill">{x.student_id}</span></td>
                     <td><b>{x.name_bn}</b></td>
@@ -3515,8 +3587,9 @@ export function ResultPanel({ sub, userRole }) {
                       )}
                     </td>
                   </tr>
-                ))}
-                {!filteredProcessedResults.length && (
+                );
+              })}
+              {!filteredProcessedResults.length && (
                   <tr>
                     <td colSpan="11" className="empty-table-cell">
                       মেধা তালিকা প্রস্তুত করতে "ফলাফল প্রসেসিং" ট্যাবে গিয়ে প্রসেস সম্পন্ন করুন।
@@ -3589,8 +3662,7 @@ export function ResultPanel({ sub, userRole }) {
             <table className="tabulation-table">
               <thead>
                 <tr>
-                  <th rowSpan="2" style={{ width: '40px' }}>মেধা</th>
-                  <th rowSpan="2" style={{ width: '45px' }}>রোল</th>
+                  <th rowSpan="2" style={{ width: '50px' }}>রোল</th>
                   <th rowSpan="2" style={{ minWidth: '150px' }}>শিক্ষার্থীর নাম</th>
                   {tabulationColumns.map(col => (
                     <th key={col.code} colSpan="4" className="tab-sub-head">
@@ -3614,9 +3686,8 @@ export function ResultPanel({ sub, userRole }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredProcessedResults.map((st) => (
+                {tabulationResults.map((st) => (
                   <tr key={st.id || st.student_id}>
-                    <td><b>{toBnDigits(st.merit)}</b></td>
                     <td><span className="roll-pill">{toBnDigits(st.roll_no)}</span></td>
                     <td style={{ textAlign: 'left' }}><b>{st.name_bn}</b></td>
                     {tabulationColumns.map(colDef => {
@@ -3664,9 +3735,9 @@ export function ResultPanel({ sub, userRole }) {
                     </td>
                   </tr>
                 ))}
-                {!filteredProcessedResults.length && (
+                {!tabulationResults.length && (
                   <tr>
-                    <td colSpan={3 + (tabulationColumns.length * 4) + 4} className="empty-table-cell">
+                    <td colSpan={2 + (tabulationColumns.length * 4) + 4} className="empty-table-cell">
                       ট্যাবুলেশন শিট দেখতে আগে ফলাফল প্রসেস সম্পন্ন করুন।
                     </td>
                   </tr>
@@ -4099,9 +4170,11 @@ export function ResultPanel({ sub, userRole }) {
                   </div>
                 </div>
                 <div>
-                  <div className="summary-label">শ্রেণি মেধা স্থান</div>
+                  <div className="summary-label">
+                    {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `${department} মেধা স্থান` : 'শ্রেণি মেধা স্থান'}
+                  </div>
                   <div className="summary-val">
-                    {currentStudentResult.merit ? `${toBnDigits(currentStudentResult.merit)} তম` : '১ তম'}
+                    {(currentStudentResult.display_merit || currentStudentResult.dept_merit || currentStudentResult.merit) ? `${toBnDigits(currentStudentResult.display_merit || currentStudentResult.dept_merit || currentStudentResult.merit)} তম` : '—'}
                   </div>
                 </div>
               </div>
