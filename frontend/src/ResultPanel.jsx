@@ -1027,7 +1027,7 @@ export function ResultPanel({ sub, userRole }) {
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <title>মাস্টার ট্যাবুলেশন শিট — শ্রেণি ${toBnDigits(className)} (${examTitle})</title>
+  <title>ট্যাবুলেশন_শিট_${className}_${deptTitle}_${selectedYear}.pdf</title>
   <style>
     @page {
       size: legal landscape;
@@ -1200,11 +1200,12 @@ export function ResultPanel({ sub, userRole }) {
 <body>
   <div class="no-print-bar">
     <div>
-      <b>📄 মাস্টার ট্যাবুলেশন শিট — Legal Landscape প্রিন্ট প্রিভিউ</b>
-      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(প্রিন্ট সেটিংসে Paper Size: <b>Legal</b> এবং Layout: <b>Landscape</b> নিশ্চিত করুন)</span>
+      <b>📄 মাস্টার ট্যাবুলেশন শিট — Legal Landscape প্রিন্ট ও PDF প্রিভিউ</b>
+      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(📌 PDF হিসেবে সংরক্ষণ করতে Destination-এ <b>"Save as PDF"</b> এবং Paper Size: <b>Legal Landscape</b> নির্বাচন করুন)</span>
     </div>
     <div style="display:flex;gap:8px;">
-      <button type="button" class="btn-action" onclick="window.print()">🖨️ এখনই প্রিন্ট করুন</button>
+      <button type="button" class="btn-action" style="background:#0284c7;color:#fff;" onclick="window.print()">📥 PDF ডাউনলোড / সেভ করুন</button>
+      <button type="button" class="btn-action" style="background:#059669;color:#fff;" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
       <button type="button" class="btn-action" onclick="window.close()" style="background:#e2e8f0;color:#0f172a;">✕ বন্ধ করুন</button>
     </div>
   </div>
@@ -1348,7 +1349,7 @@ export function ResultPanel({ sub, userRole }) {
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <title>অকৃতকার্য শিক্ষার্থীর তালিকা — শ্রেণি ${toBnDigits(className)} (${deptTitle})</title>
+  <title>অকৃতকার্য_তালিকা_${className}_${deptTitle}_${selectedYear}.pdf</title>
   <style>
     @page {
       size: A4 portrait;
@@ -1476,15 +1477,48 @@ export function ResultPanel({ sub, userRole }) {
       font-weight: 600;
       color: #334155;
     }
+    .no-print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #0f172a;
+      color: #fff;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      margin-bottom: 12px;
+    }
+    .no-print-bar .btn-action {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+    }
     @media print {
       body { margin: 0; padding: 0; }
       thead { display: table-header-group; }
       tr { page-break-inside: avoid; }
       .no-print { display: none !important; }
+      .no-print-bar { display: none !important; }
     }
   </style>
 </head>
 <body>
+  <div class="no-print-bar">
+    <div>
+      <b>⚠️ অকৃতকার্য শিক্ষার্থীর তালিকা — PDF ও প্রিন্ট প্রিভিউ</b>
+      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(📌 PDF ডাউনলোড করতে Destination-এ <b>"Save as PDF"</b> নির্বাচন করুন)</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn-action" style="background:#0284c7;color:#fff;" onclick="window.print()">📥 PDF ডাউনলোড / সেভ করুন</button>
+      <button type="button" class="btn-action" style="background:#b91c1c;color:#fff;" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+      <button type="button" class="btn-action" onclick="window.close()" style="background:#e2e8f0;color:#0f172a;">✕ বন্ধ করুন</button>
+    </div>
+  </div>
   <div class="print-container">
     <div class="school-header">
       <h1>মাগড়া উচ্চ বিদ্যালয়</h1>
@@ -1611,6 +1645,362 @@ export function ResultPanel({ sub, userRole }) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     showNotification('অকৃতকার্য শিক্ষার্থীদের তালিকা CSV সফলভাবে ডাউনলোড হয়েছে! ✓', 'success');
+  };
+
+  // Dedicated Official Print and PDF for Merit List
+  const handlePrintMeritList = () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!filteredProcessedResults.length) {
+      showNotification('মেধা তালিকায় প্রদর্শনের মতো কোনো শিক্ষার্থীর ফলাফল নেই', 'error');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      window.print();
+      return;
+    }
+
+    const examTitle = selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা';
+    const deptTitle = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+      ? `${department} বিভাগ`
+      : 'সকল বিভাগ/শাখা';
+    const totalStudents = filteredProcessedResults.length;
+    const passedCount = filteredProcessedResults.filter(s => s.is_pass).length;
+    const failedCount = totalStudents - passedCount;
+    const gpa5Count = filteredProcessedResults.filter(s => Number(s.gpa) >= 5.0 && s.is_pass).length;
+    const passPercentage = totalStudents ? ((passedCount / totalStudents) * 100).toFixed(1) : '0';
+
+    const rowsHtml = filteredProcessedResults.map((x) => {
+      const mRank = x.display_merit || x.dept_merit || x.merit;
+      const mRankBn = toBnDigits(mRank);
+      const rollBn = toBnDigits(x.roll_no || '—');
+      const studentId = x.student_id || '—';
+      const nameBn = x.name_bn || '—';
+      const deptBn = x.department || 'সাধারণ';
+      const totalMarks = x.total_marks !== undefined ? x.total_marks : '—';
+      const pct = x.percentage !== undefined ? `${x.percentage}%` : '—';
+      const gpa = x.gpa !== undefined ? x.gpa : '0.00';
+      const grade = x.final_grade || 'F';
+      const statusText = x.result_status || (x.is_pass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ');
+      const failsText = x.failed_subjects && x.failed_subjects.length > 0 ? x.failed_subjects.join(', ') : 'সব পাস';
+      const rankBadgeClass = mRank === 1 ? 'rank-gold' : mRank === 2 ? 'rank-silver' : mRank === 3 ? 'rank-bronze' : '';
+
+      return `
+        <tr>
+          <td style="text-align:center;"><b class="rank-badge ${rankBadgeClass}">${mRankBn}</b></td>
+          <td style="text-align:center;"><b>${rollBn}</b></td>
+          <td style="text-align:center;font-size:10px;">${studentId}</td>
+          <td style="text-align:left;padding-left:6px;"><b>${nameBn}</b></td>
+          <td style="text-align:center;">${deptBn}</td>
+          <td style="text-align:center;"><b>${totalMarks}</b></td>
+          <td style="text-align:center;">${pct}</td>
+          <td style="text-align:center;font-weight:700;color:${x.is_pass ? '#047857' : '#dc2626'};">${gpa}</td>
+          <td style="text-align:center;"><b>${grade}</b></td>
+          <td style="text-align:center;"><span class="${x.is_pass ? 'badge-pass' : 'badge-fail'}">${statusText}</span></td>
+          <td style="text-align:left;padding-left:6px;font-size:10px;color:${x.is_pass ? '#475569' : '#dc2626'};">${failsText}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const content = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>মেধা_তালিকা_${className}_${deptTitle}_${selectedYear}.pdf</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm 10mm 12mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #0f172a;
+      background: #fff;
+      font-size: 11px;
+    }
+    .no-print-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #0f172a;
+      color: #fff;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      margin-bottom: 12px;
+    }
+    .no-print-bar .btn-action {
+      border: none;
+      padding: 6px 14px;
+      border-radius: 5px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .school-header {
+      text-align: center;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .school-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+    .school-header p {
+      margin: 2px 0 0 0;
+      font-size: 11px;
+      color: #475569;
+    }
+    .report-title-box {
+      text-align: center;
+      margin: 6px 0 10px 0;
+    }
+    .report-title {
+      display: inline-block;
+      background: #f0fdf4;
+      border: 1.5px solid #059669;
+      color: #065f46;
+      font-size: 13.5px;
+      font-weight: 700;
+      padding: 3px 20px;
+      border-radius: 4px;
+    }
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-around;
+      background: #f1f5f9;
+      border: 1px dashed #64748b;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      margin-bottom: 10px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+    .merit-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin-bottom: 20px;
+    }
+    .merit-table th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      border: 1px solid #64748b;
+      padding: 5px 4px;
+      text-align: center;
+    }
+    .merit-table td {
+      border: 1px solid #94a3b8;
+      padding: 4px 4px;
+      vertical-align: middle;
+    }
+    .rank-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+    .rank-gold { background: #fef08a; color: #854d0e; border: 1px solid #eab308; }
+    .rank-silver { background: #e2e8f0; color: #334155; border: 1px solid #94a3b8; }
+    .rank-bronze { background: #ffedd5; color: #9a3412; border: 1px solid #f97316; }
+    .badge-pass { color: #047857; font-weight: 700; }
+    .badge-fail { color: #dc2626; font-weight: 700; }
+    .signatures-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 35px;
+      padding: 0 15px;
+      page-break-inside: avoid;
+    }
+    .sig-col {
+      text-align: center;
+      width: 28%;
+    }
+    .sig-dots {
+      border-top: 1px dashed #64748b;
+      margin-bottom: 4px;
+    }
+    .sig-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
+    @media print {
+      body { margin: 0; padding: 0; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+      .no-print { display: none !important; }
+      .no-print-bar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print-bar">
+    <div>
+      <b>🏆 মেধা তালিকা ও ফলাফল বিবরণী — PDF ও প্রিন্ট প্রিভিউ</b>
+      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(📌 PDF ডাউনলোড করতে Destination-এ <b>"Save as PDF"</b> নির্বাচন করুন)</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn-action" style="background:#0284c7;color:#fff;" onclick="window.print()">📥 PDF ডাউনলোড / সেভ করুন</button>
+      <button type="button" class="btn-action" style="background:#059669;color:#fff;" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+      <button type="button" class="btn-action" onclick="window.close()" style="background:#e2e8f0;color:#0f172a;">✕ বন্ধ করুন</button>
+    </div>
+  </div>
+
+  <div class="print-container">
+    <div class="school-header">
+      <h1>মাগড়া উচ্চ বিদ্যালয়</h1>
+      <p>ডাকঘর: মাগড়া, উপজেলা: জুড়ী, জেলা: মৌলভীবাজার • EIIN: 114290 • স্থাপিত: ১৯৪৬</p>
+    </div>
+
+    <div class="report-title-box">
+      <div class="report-title">
+        🏆 চূড়ান্ত মেধা ও ফলাফল বিবরণী
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <span><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)}</span>
+      <span><b>শ্রেণি:</b> শ্রেণি ${toBnDigits(className)}</span>
+      <span><b>বিভাগ/শাখা:</b> ${deptTitle}</span>
+      <span><b>পরীক্ষা:</b> ${examTitle}</span>
+      <span><b>তারিখ:</b> ${toBnDigits(new Date().toLocaleDateString('bn-BD'))}</span>
+    </div>
+
+    <div class="stats-bar">
+      <span>মোট পরীক্ষার্থী: <b>${toBnDigits(totalStudents)} জন</b></span>
+      <span>উত্তীর্ণ: <b style="color:#047857;">${toBnDigits(passedCount)} জন (${toBnDigits(passPercentage)}%)</b></span>
+      <span>অনুত্তীর্ণ: <b style="color:#dc2626;">${toBnDigits(failedCount)} জন</b></span>
+      <span>GPA-5.0: <b style="color:#d97706;">${toBnDigits(gpa5Count)} জন</b></span>
+    </div>
+
+    <table class="merit-table">
+      <thead>
+        <tr>
+          <th style="width:50px;">মেধা স্থান</th>
+          <th style="width:40px;">রোল</th>
+          <th style="width:65px;">আইডি</th>
+          <th style="width:140px;text-align:left;padding-left:6px;">শিক্ষার্থীর নাম</th>
+          <th style="width:70px;">বিভাগ/গ্রুপ</th>
+          <th style="width:50px;">মোট নম্বর</th>
+          <th style="width:45px;">শতকরা</th>
+          <th style="width:38px;">GPA</th>
+          <th style="width:35px;">গ্রেড</th>
+          <th style="width:55px;">ফলাফল</th>
+          <th style="min-width:130px;text-align:left;padding-left:6px;">অকৃতকার্য বিষয়</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+
+    <div class="signatures-grid">
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 400);
+    };
+  </script>
+</body>
+</html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
+  // Download Merit List CSV
+  const handleDownloadMeritCsv = () => {
+    if (!filteredProcessedResults.length) {
+      showNotification('ডাউনলোড করার মতো কোনো মেধা তালিকা নেই', 'info');
+      return;
+    }
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    const headers = ['Merit_Rank', 'Roll', 'Student_ID', 'Student_Name', 'Department', 'Total_Marks', 'Percentage', 'GPA', 'Grade', 'Result', 'Failed_Subjects'];
+    const rows = filteredProcessedResults.map((st) => {
+      const mRank = st.display_merit || st.dept_merit || st.merit || '';
+      return [
+        escapeCsv(mRank),
+        escapeCsv(st.roll_no),
+        escapeCsv(st.student_id),
+        escapeCsv(st.name_bn || st.name_en),
+        escapeCsv(st.department || 'সাধারণ'),
+        escapeCsv(st.total_marks),
+        escapeCsv(st.percentage),
+        escapeCsv(st.gpa),
+        escapeCsv(st.final_grade || 'F'),
+        escapeCsv(st.result_status || ''),
+        escapeCsv((st.failed_subjects || []).join('; '))
+      ].join(',');
+    });
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const safeDept = (department && department !== 'all' && department !== 'সকল বিভাগ') ? department : 'All_Dept';
+    link.setAttribute('download', `merit_list_${className}_${safeDept}_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showNotification('মেধা তালিকা CSV সফলভাবে ডাউনলোড হয়েছে! ✓', 'success');
   };
 
   // CSV Upload (Import Marks - Smart Multi-Subject & Single-Subject Parser)
@@ -2539,7 +2929,7 @@ export function ResultPanel({ sub, userRole }) {
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <title>একাডেমিক ট্রান্সক্রিপ্ট ও প্রগ্রেস রিপোর্ট (${toBnDigits(list.length)} জন) — মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</title>
+  <title>মার্কশিট_ও_প্রোগ্রেস_রিপোর্ট_${className}_${selectedYear}.pdf</title>
   <style>
     @page { size: A4 portrait; margin: 5mm 8mm; }
     * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -2586,12 +2976,24 @@ export function ResultPanel({ sub, userRole }) {
     .transcript-footer-line { margin-top: 8px; display: flex; justify-content: space-between; font-size: 9.5px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 4px; }
     @media print {
       body { padding: 0; }
+      .no-print-bar { display: none !important; }
       .official-marksheet-wrapper { page-break-after: always !important; break-after: page !important; page-break-inside: avoid !important; }
       .official-marksheet-wrapper:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
   </style>
 </head>
 <body>
+  <div class="no-print-bar" style="position:sticky;top:0;z-index:1000;background:#0f172a;color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);margin-bottom:12px;">
+    <div>
+      <b>📄 মার্কশিট ও প্রোগ্রেস রিপোর্ট — প্রিন্ট ও PDF প্রিভিউ (${toBnDigits(list.length)} জন)</b>
+      <span style="font-size:11px;opacity:0.9;margin-left:10px;">(📌 PDF হিসেবে ডাউনলোড করতে Destination-এ <b>"Save as PDF"</b> নির্বাচন করুন)</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" style="background:#0284c7;color:#fff;border:none;padding:6px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:12px;" onclick="window.print()">📥 PDF ডাউনলোড / সেভ করুন</button>
+      <button type="button" style="background:#047857;color:#fff;border:none;padding:6px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:12px;" onclick="window.print()">🖨️ প্রিন্ট করুন</button>
+      <button type="button" onclick="window.close()" style="background:#e2e8f0;color:#0f172a;border:none;padding:6px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:12px;">✕ বন্ধ করুন</button>
+    </div>
+  </div>
   ${allMarkSheetsHtml}
   <script>
     window.onload = function() {
@@ -2988,32 +3390,87 @@ export function ResultPanel({ sub, userRole }) {
             )}
 
             {tab === 'failed_list' ? (
-              <button
-                type="button"
-                className="btn-modern-primary"
-                style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
-                onClick={handlePrintFailedList}
-                title="বিভাগভিত্তিক অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল ফরম্যাটে প্রিন্ট করুন"
-              >
-                🖨️ অকৃতকার্য তালিকা প্রিন্ট
-              </button>
-            ) : tab === 'tabulation' ? (
-              <button
-                type="button"
-                className="btn-modern-primary"
-                style={{ background: '#047857', color: '#fff', borderColor: '#047857', fontWeight: 700 }}
-                onClick={handlePrintTabulationSheet}
-                title="Legal Landscape (লিগ্যাল পেজ ল্যান্ডস্কেপ) সাইজে প্রিন্ট করুন"
-              >
-                🖨️ প্রিন্ট শিট (Legal Landscape)
-              </button>
-            ) : (
-              ['merit', 'marksheet'].includes(tab) && (
-                <button type="button" className="btn-modern-secondary" onClick={() => window.print()}>
-                  🖨️ প্রিন্ট করুন
+              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  className="btn-modern-primary"
+                  style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
+                  onClick={handlePrintFailedList}
+                  title="অকৃতকার্য শিক্ষার্থীদের তালিকা PDF ডাউনলোড করুন"
+                >
+                  📥 অকৃতকার্য PDF
                 </button>
-              )
-            )}
+                <button
+                  type="button"
+                  className="btn-modern-secondary"
+                  onClick={handlePrintFailedList}
+                  title="অকৃতকার্য শিক্ষার্থীদের তালিকা প্রিন্ট করুন"
+                >
+                  🖨️ প্রিন্ট
+                </button>
+              </div>
+            ) : tab === 'tabulation' ? (
+              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  className="btn-modern-primary"
+                  style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
+                  onClick={handlePrintTabulationSheet}
+                  title="ট্যাবুলেশন শিট PDF ডাউনলোড করুন (Legal Landscape)"
+                >
+                  📥 ট্যাবুলেশন PDF
+                </button>
+                <button
+                  type="button"
+                  className="btn-modern-primary"
+                  style={{ background: '#047857', color: '#fff', borderColor: '#047857', fontWeight: 700 }}
+                  onClick={handlePrintTabulationSheet}
+                  title="Legal Landscape (লিগ্যাল পেজ ল্যান্ডস্কেপ) সাইজে প্রিন্ট করুন"
+                >
+                  🖨️ প্রিন্ট শিট
+                </button>
+              </div>
+            ) : tab === 'merit' ? (
+              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  className="btn-modern-primary"
+                  style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
+                  onClick={handlePrintMeritList}
+                  title="মেধা তালিকা PDF ডাউনলোড করুন"
+                >
+                  📥 মেধা তালিকা PDF
+                </button>
+                <button
+                  type="button"
+                  className="btn-modern-secondary"
+                  onClick={handlePrintMeritList}
+                  title="অফিশিয়াল মেধা তালিকা প্রিন্ট করুন"
+                >
+                  🖨️ প্রিন্ট
+                </button>
+              </div>
+            ) : tab === 'marksheet' ? (
+              <div style={{ display: 'inline-flex', gap: '6px' }}>
+                <button
+                  type="button"
+                  className="btn-modern-primary"
+                  style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
+                  onClick={handlePrintMarksheet}
+                  title="নির্বাচিত শিক্ষার্থীর প্রোগ্রেস রিপোর্ট PDF ডাউনলোড করুন"
+                >
+                  📥 প্রোগ্রেস PDF
+                </button>
+                <button
+                  type="button"
+                  className="btn-modern-secondary"
+                  onClick={handlePrintMarksheet}
+                  title="প্রোগ্রেস রিপোর্ট প্রিন্ট করুন"
+                >
+                  🖨️ প্রিন্ট
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
@@ -3922,11 +4379,33 @@ export function ResultPanel({ sub, userRole }) {
               </h3>
             </div>
             <div className="table-action-group">
+              <button
+                type="button"
+                className="btn-modern-primary"
+                style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
+                onClick={handlePrintMeritList}
+                title="মেধা তালিকা অফিশিয়াল PDF ফরম্যাটে ডাউনলোড করুন"
+              >
+                📥 মেধা তালিকা PDF ডাউনলোড
+              </button>
+              <button
+                type="button"
+                className="btn-modern-secondary"
+                onClick={handlePrintMeritList}
+                title="অফিশিয়াল মেধা তালিকা প্রিন্ট করুন"
+              >
+                🖨️ মেধা তালিকা প্রিন্ট
+              </button>
+              <button
+                type="button"
+                className="btn-modern-action"
+                onClick={handleDownloadMeritCsv}
+                title="মেধা তালিকা CSV ফাইল ডাউনলোড করুন"
+              >
+                📥 মেধা তালিকা CSV
+              </button>
               <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
                 🔄 রিফ্রেশ
-              </button>
-              <button type="button" className="btn-modern-secondary" onClick={() => window.print()}>
-                🖨️ মেধা তালিকা প্রিন্ট
               </button>
             </div>
           </div>
@@ -4023,6 +4502,23 @@ export function ResultPanel({ sub, userRole }) {
             <div className="table-action-group">
               <button
                 type="button"
+                className="btn-modern-primary"
+                style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
+                onClick={handlePrintFailedList}
+                title="অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল PDF ফরম্যাটে ডাউনলোড করুন"
+              >
+                📥 অকৃতকার্য তালিকা PDF ডাউনলোড
+              </button>
+              <button
+                type="button"
+                className="btn-modern-secondary"
+                onClick={handlePrintFailedList}
+                title="বিভাগভিত্তিক অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল ফরম্যাটে প্রিন্ট করুন"
+              >
+                🖨️ অকৃতকার্য তালিকা প্রিন্ট
+              </button>
+              <button
+                type="button"
                 className="btn-modern-action"
                 style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 600 }}
                 onClick={handleDownloadFailedCsv}
@@ -4032,15 +4528,6 @@ export function ResultPanel({ sub, userRole }) {
               </button>
               <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
                 🔄 রিফ্রেশ
-              </button>
-              <button
-                type="button"
-                className="btn-modern-primary"
-                style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
-                onClick={handlePrintFailedList}
-                title="বিভাগভিত্তিক অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল ফরম্যাটে প্রিন্ট করুন"
-              >
-                🖨️ অকৃতকার্য তালিকা প্রিন্ট
               </button>
             </div>
           </div>
@@ -4229,6 +4716,15 @@ export function ResultPanel({ sub, userRole }) {
               <button
                 type="button"
                 className="btn-modern-primary"
+                style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
+                onClick={handlePrintTabulationSheet}
+                title="ট্যাবুলেশন শিট সরাসরি PDF ডাউনলোড ও সংরক্ষণ করুন (Legal Landscape)"
+              >
+                📥 ট্যাবুলেশন শিট PDF ডাউনলোড
+              </button>
+              <button
+                type="button"
+                className="btn-modern-primary"
                 style={{ background: '#047857', color: '#fff', borderColor: '#047857', fontWeight: 700 }}
                 onClick={handlePrintTabulationSheet}
                 title="Legal Landscape (লিগ্যাল পেজ ল্যান্ডস্কেপ) সাইজে প্রিন্ট করুন"
@@ -4374,12 +4870,21 @@ export function ResultPanel({ sub, userRole }) {
                 পরবর্তী ➜
               </button>
 
-              {/* Single Student Print Button */}
+              {/* Single Student Print & PDF Buttons */}
               <button
                 type="button"
                 className="btn-modern-primary"
                 onClick={handlePrintMarksheet}
-                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট প্রিন্ট করুন"
+                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট সরাসরি PDF ডাউনলোড ও সংরক্ষণ করুন"
+                style={{ background: '#0284c7', borderColor: '#0284c7', color: '#fff', padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
+              >
+                📥 এই মার্কশিট PDF ডাউনলোড
+              </button>
+              <button
+                type="button"
+                className="btn-modern-secondary"
+                onClick={handlePrintMarksheet}
+                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট প্রিন্ট করুন (A4)"
                 style={{ padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
               >
                 🖨️ এই প্রগ্রেস রিপোর্ট প্রিন্ট (A4)
@@ -4389,12 +4894,33 @@ export function ResultPanel({ sub, userRole }) {
               <button
                 type="button"
                 onClick={() => handleBatchPrintMarksheet(filteredProcessedResults)}
+                title="শ্রেণির সকল শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে PDF ডাউনলোড ও সেভ করুন"
+                style={{
+                  background: '#0284c7',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                }}
+              >
+                📥 সকল প্রোগ্রেস রিপোর্ট PDF ({toBnDigits(filteredProcessedResults.length)} জন)
+              </button>
+              <button
+                type="button"
+                onClick={() => handleBatchPrintMarksheet(filteredProcessedResults)}
                 title="শ্রেণির সকল শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে একের পর এক আলাদা পৃষ্ঠায় প্রিন্ট করুন"
                 style={{
                   background: '#047857',
                   color: '#fff',
                   border: 'none',
-                  padding: '6px 15px',
+                  padding: '6px 14px',
                   borderRadius: '6px',
                   fontWeight: 800,
                   cursor: 'pointer',
@@ -4405,7 +4931,7 @@ export function ResultPanel({ sub, userRole }) {
                   boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
                 }}
               >
-                📚 সকল প্রগ্রেস রিপোর্ট একসাথে প্রিন্ট ({toBnDigits(filteredProcessedResults.length)} জন)
+                🖨️ সকল প্রগ্রেস রিপোর্ট প্রিন্ট
               </button>
 
               {/* Advanced Batch Range Options */}
@@ -4514,24 +5040,44 @@ export function ResultPanel({ sub, userRole }) {
                   অনুত্তীর্ণ / ফেল ({toBnDigits(filteredProcessedResults.filter(s => s.result_status !== 'উত্তীর্ণ' && s.final_grade === 'F').length)} জন)
                 </label>
 
-                <button
-                  type="button"
-                  onClick={handleExecuteBatchPrint}
-                  style={{
-                    background: '#047857',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '7px 18px',
-                    borderRadius: '6px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    marginLeft: 'auto',
-                    boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
-                  }}
-                >
-                  🚀 নির্বাচিত শিক্ষার্থীদের প্রগ্রেস রিপোর্ট প্রিন্ট ({toBnDigits(getSelectedBatchStudents().length)} জন)
-                </button>
+                <div style={{ display: 'inline-flex', gap: '8px', marginLeft: 'auto' }}>
+                  <button
+                    type="button"
+                    onClick={handleExecuteBatchPrint}
+                    style={{
+                      background: '#0284c7',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '7px 16px',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                    }}
+                    title="নির্বাচিত শিক্ষার্থীদের প্রগ্রেস রিপোর্ট PDF হিসেবে সেভ করুন"
+                  >
+                    📥 নির্বাচিত প্রগ্রেস রিপোর্ট PDF ({toBnDigits(getSelectedBatchStudents().length)} জন)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExecuteBatchPrint}
+                    style={{
+                      background: '#047857',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '7px 16px',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
+                    }}
+                    title="নির্বাচিত শিক্ষার্থীদের প্রগ্রেস রিপোর্ট সরাসরি প্রিন্ট করুন"
+                  >
+                    🖨️ প্রিন্ট করুন
+                  </button>
+                </div>
               </div>
             </div>
           )}

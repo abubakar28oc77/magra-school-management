@@ -2222,7 +2222,7 @@ export function ResultMasterAdminPanel({
               onClick={() => handleTabChange('half_yearly')}
               style={{ background: '#047857', color: '#ffffff', fontWeight: 800, padding: '7px 14px', borderRadius: '6px' }}
             >
-              ⬅️ পরীক্ষার ফলাফল (৬টি সাবমেনু) ড্যাশবোর্ডে ফিরে যান
+              ⬅️ পরীক্ষার ফলাফল ড্যাশবোর্ডে ফিরে যান
             </button>
             <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: 700 }}>
               📈 বিষয়ভিত্তিক নম্বর এন্ট্রি ও মূল্যায়ন শিট
