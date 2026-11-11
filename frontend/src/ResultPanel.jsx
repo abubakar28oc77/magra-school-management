@@ -141,6 +141,7 @@ export function ResultPanel({ sub, userRole }) {
     if (s === 'grading') return 'grading';
     if (s === 'processing') return 'processing';
     if (s === 'merit') return 'merit';
+    if (s === 'failed_list' || s === 'failed') return 'failed_list';
     if (s === 'tabulation') return 'tabulation';
     if (s === 'marksheet' || s === 'progress') return 'marksheet';
     if (s === 'analysis') return 'analysis';
@@ -183,6 +184,7 @@ export function ResultPanel({ sub, userRole }) {
   const [batchPrintMode, setBatchPrintMode] = useState('all'); // 'all' | 'range' | 'passed' | 'failed'
   const [batchRollFrom, setBatchRollFrom] = useState('');
   const [batchRollTo, setBatchRollTo] = useState('');
+  const [failedFilterMode, setFailedFilterMode] = useState('all'); // 'all' | '1' | '2' | '3+'
 
   // Forms
   const [editingYearId, setEditingYearId] = useState(null);
@@ -1280,6 +1282,337 @@ export function ResultPanel({ sub, userRole }) {
     printWindow.document.close();
   };
 
+  // Dedicated Official Print for Department-wise Failed Students List
+  const handlePrintFailedList = () => {
+    if (!selectedExam) {
+      showNotification('অনুগ্রহ করে আগে পরীক্ষা নির্বাচন করুন', 'error');
+      return;
+    }
+    if (!failedStudentsList.length) {
+      showNotification('নির্বাচিত বিভাগ/শ্রেণিতে কোনো অকৃতকার্য শিক্ষার্থী নেই', 'info');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('পপ-আপ উইন্ডো ব্লক করা হয়েছে। দয়া করে ব্রাউজারের পপ-আপ অনুমোদন করুন।');
+      window.print();
+      return;
+    }
+
+    const examTitle = selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা';
+    const deptTitle = isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+      ? `${department} বিভাগ`
+      : 'সকল বিভাগ/শাখা';
+    const totalStudents = filteredProcessedResults.length;
+    const failedCount = failedStudentsList.length;
+    const failPercentage = totalStudents ? ((failedCount / totalStudents) * 100).toFixed(1) : '0';
+
+    const fail1Count = failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 1) === 1).length;
+    const fail2Count = failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) === 2).length;
+    const fail3PlusCount = failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) >= 3).length;
+
+    const rowsHtml = failedStudentsList.map((st, idx) => {
+      const slBn = toBnDigits(idx + 1);
+      const rollBn = toBnDigits(st.roll_no);
+      const nameBn = st.name_bn || '—';
+      const studentId = st.student_id || '—';
+      const deptBn = st.department || 'সাধারণ';
+      const phone = st.student?.guardian_phone || st.student?.phone || st.guardian_phone || '—';
+      const totalMarks = st.total_marks !== undefined ? st.total_marks : '—';
+      const gpa = st.gpa !== undefined ? st.gpa : '0.00';
+      const fails = getStudentFailedSubjectsSummary(st);
+      const failCountBn = toBnDigits(fails.length || st.failed_count || 1);
+      const failSubsText = fails.length
+        ? fails.map(f => `<b>${f.name}</b>` + (f.total !== '' ? ` (প্রাপ্ত: ${f.total})` : '') + (f.reason ? ` <small>[${f.reason}]</small>` : '')).join('<br>')
+        : (st.failed_subjects && st.failed_subjects.length ? st.failed_subjects.join(', ') : 'সকল বিষয়');
+
+      return `
+        <tr>
+          <td style="text-align:center;">${slBn}</td>
+          <td style="text-align:center;"><b>${rollBn}</b></td>
+          <td style="text-align:center;font-size:10px;">${studentId}</td>
+          <td style="text-align:left;padding-left:6px;"><b>${nameBn}</b></td>
+          <td style="text-align:center;">${deptBn}</td>
+          <td style="text-align:center;"><span class="badge-fail-count">${failCountBn}টি</span></td>
+          <td style="text-align:left;padding-left:6px;font-size:10px;line-height:1.4;">${failSubsText}</td>
+          <td style="text-align:center;"><b>${totalMarks}</b></td>
+          <td style="text-align:center;color:#dc2626;font-weight:700;">${gpa}</td>
+          <td style="text-align:center;font-size:10.5px;">${phone}</td>
+          <td style="min-width:65px;">&nbsp;</td>
+        </tr>
+      `;
+    }).join('');
+
+    const content = `<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <title>অকৃতকার্য শিক্ষার্থীর তালিকা — শ্রেণি ${toBnDigits(className)} (${deptTitle})</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 10mm 10mm 12mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: 'SolaimanLipi', 'Kalpurush', 'Nikosh', 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #0f172a;
+      background: #fff;
+      font-size: 11px;
+    }
+    .print-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .school-header {
+      text-align: center;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+    .school-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+    .school-header p {
+      margin: 2px 0 0 0;
+      font-size: 11px;
+      color: #475569;
+    }
+    .report-title-box {
+      text-align: center;
+      margin: 6px 0 10px 0;
+    }
+    .report-title {
+      display: inline-block;
+      background: #fee2e2;
+      border: 1.5px solid #dc2626;
+      color: #991b1b;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 18px;
+      border-radius: 4px;
+    }
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: space-around;
+      background: #fff1f2;
+      border: 1px dashed #f43f5e;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      margin-bottom: 10px;
+      color: #9f1239;
+      font-weight: 600;
+    }
+    .failed-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin-bottom: 20px;
+    }
+    .failed-table th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      border: 1px solid #64748b;
+      padding: 5px 4px;
+      text-align: center;
+    }
+    .failed-table td {
+      border: 1px solid #94a3b8;
+      padding: 4px 4px;
+      vertical-align: middle;
+    }
+    .badge-fail-count {
+      display: inline-block;
+      background: #dc2626;
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .signatures-grid {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 35px;
+      padding: 0 15px;
+      page-break-inside: avoid;
+    }
+    .sig-col {
+      text-align: center;
+      width: 28%;
+    }
+    .sig-dots {
+      border-top: 1px dashed #64748b;
+      margin-bottom: 4px;
+    }
+    .sig-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #334155;
+    }
+    @media print {
+      body { margin: 0; padding: 0; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-container">
+    <div class="school-header">
+      <h1>মাগড়া উচ্চ বিদ্যালয়</h1>
+      <p>ডাকঘর: মাগড়া, উপজেলা: জুড়ী, জেলা: মৌলভীবাজার • EIIN: 114290 • স্থাপিত: ১৯৪৬</p>
+    </div>
+
+    <div class="report-title-box">
+      <div class="report-title">
+        ⚠️ অকৃতকার্য শিক্ষার্থীদের তালিকা ও প্রতিকারমূলক মূল্যায়ন খতিয়ান
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <span><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)}</span>
+      <span><b>শ্রেণি:</b> ${toBnDigits(className)}</span>
+      <span><b>বিভাগ/শাখা:</b> ${deptTitle}</span>
+      <span><b>পরীক্ষা:</b> ${examTitle}</span>
+      <span><b>তারিখ:</b> ${toBnDigits(new Date().toLocaleDateString('bn-BD'))}</span>
+    </div>
+
+    <div class="stats-bar">
+      <span>মোট পরীক্ষার্থী: <b>${toBnDigits(totalStudents)} জন</b></span>
+      <span>মোট অকৃতকার্য: <b style="color:#b91c1c;">${toBnDigits(failedCount)} জন</b></span>
+      <span>অকৃতকার্যের হার: <b>${toBnDigits(failPercentage)}%</b></span>
+      <span>১ বিষয়ে ফেল: <b>${toBnDigits(fail1Count)} জন</b></span>
+      <span>২ বিষয়ে ফেল: <b>${toBnDigits(fail2Count)} জন</b></span>
+      <span>৩ বা ততোধিক বিষয়ে ফেল: <b>${toBnDigits(fail3PlusCount)} জন</b></span>
+    </div>
+
+    <table class="failed-table">
+      <thead>
+        <tr>
+          <th style="width:30px;">ক্র.</th>
+          <th style="width:38px;">রোল</th>
+          <th style="width:65px;">আইডি</th>
+          <th style="width:130px;text-align:left;padding-left:6px;">শিক্ষার্থীর নাম</th>
+          <th style="width:70px;">বিভাগ/গ্রুপ</th>
+          <th style="width:50px;">ফেল সংখ্যা</th>
+          <th style="min-width:160px;text-align:left;padding-left:6px;">অকৃতকার্য বিষয়ের বিবরণ ও নম্বর</th>
+          <th style="width:45px;">মোট নম্বর</th>
+          <th style="width:35px;">GPA</th>
+          <th style="width:75px;">অভিভাবকের ফোন</th>
+          <th style="width:65px;">মন্তব্য/স্বাক্ষর</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+
+    <div class="signatures-grid">
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
+        <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 500);
+    };
+  </script>
+</body>
+</html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
+  // Download Failed Students CSV
+  const handleDownloadFailedCsv = () => {
+    if (!failedStudentsList.length) {
+      showNotification('ডাউনলোড করার মতো কোনো অকৃতকার্য শিক্ষার্থী নেই', 'info');
+      return;
+    }
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    const headers = ['SL', 'Roll', 'Student_ID', 'Student_Name', 'Department', 'Failed_Count', 'Failed_Subjects', 'Total_Marks', 'GPA', 'Grade', 'Guardian_Phone'];
+    const rows = failedStudentsList.map((st, idx) => {
+      const fails = getStudentFailedSubjectsSummary(st);
+      const failSubsText = fails.length
+        ? fails.map(f => `${f.name}${f.total !== '' ? ` (${f.total})` : ''}`).join('; ')
+        : (st.failed_subjects || []).join('; ');
+      return [
+        idx + 1,
+        escapeCsv(st.roll_no),
+        escapeCsv(st.student_id),
+        escapeCsv(st.name_bn || st.name_en),
+        escapeCsv(st.department || 'সাধারণ'),
+        escapeCsv(fails.length || st.failed_count || 1),
+        escapeCsv(failSubsText),
+        escapeCsv(st.total_marks),
+        escapeCsv(st.gpa),
+        escapeCsv(st.final_grade || 'F'),
+        escapeCsv(st.student?.guardian_phone || st.student?.phone || st.guardian_phone || '')
+      ].join(',');
+    });
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const safeDept = (department && department !== 'all' && department !== 'সকল বিভাগ') ? department : 'All_Dept';
+    link.setAttribute('download', `failed_students_${className}_${safeDept}_${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showNotification('অকৃতকার্য শিক্ষার্থীদের তালিকা CSV সফলভাবে ডাউনলোড হয়েছে! ✓', 'success');
+  };
+
   // CSV Upload (Import Marks - Smart Multi-Subject & Single-Subject Parser)
   const handleUploadMarksCsv = async (e) => {
     const file = e.target.files?.[0];
@@ -1751,7 +2084,7 @@ export function ResultPanel({ sub, userRole }) {
   };
 
   useEffect(() => {
-    if (['merit', 'tabulation', 'marksheet', 'analysis', 'processing'].includes(tab) && selectedExam) {
+    if (['merit', 'failed_list', 'tabulation', 'marksheet', 'analysis', 'processing'].includes(tab) && selectedExam) {
       loadProcessedResults();
     }
   }, [tab, selectedExam, className]);
@@ -1815,6 +2148,61 @@ export function ResultPanel({ sub, userRole }) {
       return (a.student_id || '').localeCompare(b.student_id || '');
     });
   }, [filteredProcessedResults]);
+
+  // Failed Students List: filtered for failed/unsuccessful students
+  const failedStudentsList = useMemo(() => {
+    return filteredProcessedResults
+      .filter(s => !s.is_pass || s.final_grade === 'F' || s.result_status !== 'উত্তীর্ণ')
+      .sort((a, b) => {
+        const rA = Number(a.roll_no) || 0;
+        const rB = Number(b.roll_no) || 0;
+        if (rA !== rB) return rA - rB;
+        return (a.student_id || '').localeCompare(b.student_id || '');
+      });
+  }, [filteredProcessedResults]);
+
+  // Displayed Failed Students with sub-filter
+  const displayedFailedStudents = useMemo(() => {
+    if (failedFilterMode === '1') {
+      return failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 1) === 1);
+    }
+    if (failedFilterMode === '2') {
+      return failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) === 2);
+    }
+    if (failedFilterMode === '3+') {
+      return failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) >= 3);
+    }
+    return failedStudentsList;
+  }, [failedStudentsList, failedFilterMode]);
+
+  const getStudentFailedSubjectsSummary = (st) => {
+    if (!st) return [];
+    if (Array.isArray(st.subjects) && st.subjects.length > 0) {
+      const fails = st.subjects.filter(s => !s.is_pass || s.letter_grade === 'F');
+      if (fails.length > 0) {
+        return fails.map(f => ({
+          name: f.subject_name || f.code,
+          code: f.code,
+          total: f.total !== null && f.total !== undefined ? f.total : '',
+          grade: f.letter_grade || 'F',
+          written: f.written,
+          mcq: f.mcq,
+          practical: f.practical,
+          reason: f.fail_reason || ''
+        }));
+      }
+    }
+    if (Array.isArray(st.failed_subjects) && st.failed_subjects.length > 0) {
+      return st.failed_subjects.map(name => ({
+        name,
+        code: '',
+        total: '',
+        grade: 'F',
+        reason: ''
+      }));
+    }
+    return [];
+  };
 
   const currentStudentResult = useMemo(() => {
     if (!filteredProcessedResults.length) return null;
@@ -2436,15 +2824,16 @@ export function ResultPanel({ sub, userRole }) {
             ['grading', '🎯 ৫. গ্রেডিং পলিসি'],
             ['processing', '⚙️ ৬. ফলাফল প্রসেসিং'],
             ['merit', '🏆 ৭. মেধা তালিকা'],
-            ['tabulation', '📋 ৮. ট্যাবুলেশন শিট'],
-            ['marksheet', '📄 ৯. মার্কশিট ও প্রগ্রেস'],
-            ['analysis', '📊 ১০. ফলাফল বিশ্লেষণ'],
-            ['promotion', '🎓 ১১. শিক্ষার্থী প্রমোশন']
+            ['failed_list', '⚠️ ৮. অকৃতকার্য তালিকা'],
+            ['tabulation', '📋 ৯. ট্যাবুলেশন শিট'],
+            ['marksheet', '📄 ১০. মার্কশিট ও প্রগ্রেস'],
+            ['analysis', '📊 ১১. ফলাফল বিশ্লেষণ'],
+            ['promotion', '🎓 ১২. শিক্ষার্থী প্রমোশন']
           ];
           const availableTabs = isSubjectTeacherOrLibrarian
             ? allTabs.filter(([k]) => k === 'marks')
             : (effectiveRole === 'co_admin')
-              ? allTabs.filter(([k]) => ['marks', 'merit', 'tabulation', 'marksheet'].includes(k))
+              ? allTabs.filter(([k]) => ['marks', 'merit', 'failed_list', 'tabulation', 'marksheet'].includes(k))
               : allTabs;
 
           if (availableTabs.length <= 4) {
@@ -2501,7 +2890,7 @@ export function ResultPanel({ sub, userRole }) {
       </div>
 
       {/* ================= GLOBAL CONTEXT TOOLBAR ================= */}
-      {['subjects', 'marks', 'processing', 'merit', 'tabulation', 'marksheet', 'analysis'].includes(tab) && (
+      {['subjects', 'marks', 'processing', 'merit', 'failed_list', 'tabulation', 'marksheet', 'analysis'].includes(tab) && (
         <div className="exam-context-toolbar">
           <div className="toolbar-group">
             <label>শিক্ষাবর্ষ:</label>
@@ -2598,7 +2987,17 @@ export function ResultPanel({ sub, userRole }) {
               </button>
             )}
 
-            {tab === 'tabulation' ? (
+            {tab === 'failed_list' ? (
+              <button
+                type="button"
+                className="btn-modern-primary"
+                style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
+                onClick={handlePrintFailedList}
+                title="বিভাগভিত্তিক অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল ফরম্যাটে প্রিন্ট করুন"
+              >
+                🖨️ অকৃতকার্য তালিকা প্রিন্ট
+              </button>
+            ) : tab === 'tabulation' ? (
               <button
                 type="button"
                 className="btn-modern-primary"
@@ -3493,6 +3892,9 @@ export function ResultPanel({ sub, userRole }) {
             <button type="button" className="preset-chip" onClick={() => setTab('merit')}>
               🏆 মেধা তালিকা দেখুন ➜
             </button>
+            <button type="button" className="preset-chip" style={{ color: '#b91c1c' }} onClick={() => setTab('failed_list')}>
+              ⚠️ অকৃতকার্য তালিকা দেখুন ➜
+            </button>
             <button type="button" className="preset-chip" onClick={() => setTab('tabulation')}>
               📋 ট্যাবুলেশন শিট দেখুন ➜
             </button>
@@ -3603,7 +4005,191 @@ export function ResultPanel({ sub, userRole }) {
       )}
 
       {/* ========================================================================= */}
-      {/* 8. TABULATION SHEET TAB (MASTER TABULATION MATRIX)                        */}
+      {/* 8. FAILED STUDENTS LIST TAB (DEPARTMENT-WISE FAILED MATRIX)               */}
+      {/* ========================================================================= */}
+      {tab === 'failed_list' && (
+        <div className="exam-card-table">
+          <div className="card-header-styled">
+            <div>
+              <span className="card-badge" style={{ background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ'
+                  ? `${department} অকৃতকার্য তালিকা`
+                  : 'অকৃতকার্য শিক্ষার্থী তালিকা'}
+              </span>
+              <h3>
+                ⚠️ অকৃতকার্য শিক্ষার্থীর তালিকা — শ্রেণি {toBnDigits(className)} {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `(${department} — মোট ${toBnDigits(failedStudentsList.length)} জন)` : `(মোট ${toBnDigits(failedStudentsList.length)} জন)`} ({selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'})
+              </h3>
+            </div>
+            <div className="table-action-group">
+              <button
+                type="button"
+                className="btn-modern-action"
+                style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 600 }}
+                onClick={handleDownloadFailedCsv}
+                title="অকৃতকার্য শিক্ষার্থীদের তালিকা CSV ফাইল ডাউনলোড করুন"
+              >
+                📥 অকৃতকার্য তালিকা CSV
+              </button>
+              <button type="button" className="btn-modern-action" onClick={() => loadProcessedResults(true)} title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন">
+                🔄 রিফ্রেশ
+              </button>
+              <button
+                type="button"
+                className="btn-modern-primary"
+                style={{ background: '#b91c1c', color: '#fff', borderColor: '#b91c1c', fontWeight: 700 }}
+                onClick={handlePrintFailedList}
+                title="বিভাগভিত্তিক অকৃতকার্য শিক্ষার্থীদের তালিকা অফিশিয়াল ফরম্যাটে প্রিন্ট করুন"
+              >
+                🖨️ অকৃতকার্য তালিকা প্রিন্ট
+              </button>
+            </div>
+          </div>
+
+          {/* Summary KPI Badges */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+            <div style={{ flex: '1 1 130px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>মোট পরীক্ষার্থী</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{toBnDigits(filteredProcessedResults.length)} জন</div>
+            </div>
+            <div style={{ flex: '1 1 130px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#991b1b', fontWeight: 600 }}>মোট অকৃতকার্য</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#dc2626' }}>{toBnDigits(failedStudentsList.length)} জন</div>
+            </div>
+            <div style={{ flex: '1 1 130px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>অকৃতকার্যের হার</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#b91c1c' }}>
+                {toBnDigits(filteredProcessedResults.length ? ((failedStudentsList.length / filteredProcessedResults.length) * 100).toFixed(1) : '0')}%
+              </div>
+            </div>
+            <div style={{ flex: '1 1 130px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>১ বিষয়ে ফেল</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#d97706' }}>
+                {toBnDigits(failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 1) === 1).length)} জন
+              </div>
+            </div>
+            <div style={{ flex: '1 1 130px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>২ বিষয়ে ফেল</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#ea580c' }}>
+                {toBnDigits(failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) === 2).length)} জন
+              </div>
+            </div>
+            <div style={{ flex: '1 1 130px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>৩+ বিষয়ে ফেল</div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: '#dc2626' }}>
+                {toBnDigits(failedStudentsList.filter(s => (s.failed_count || (s.failed_subjects && s.failed_subjects.length) || 0) >= 3).length)} জন
+              </div>
+            </div>
+          </div>
+
+          {/* Sub-filter Bar */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', background: '#fff', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>🔍 ফিল্টার:</span>
+              <select
+                value={failedFilterMode}
+                onChange={(e) => setFailedFilterMode(e.target.value)}
+                style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+              >
+                <option value="all">সকল অকৃতকার্য শিক্ষার্থী ({toBnDigits(failedStudentsList.length)} জন)</option>
+                <option value="1">শুধুমাত্র ১ বিষয়ে ফেল</option>
+                <option value="2">শুধুমাত্র ২ বিষয়ে ফেল</option>
+                <option value="3+">৩ বা ততোধিক বিষয়ে ফেল</option>
+              </select>
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b' }}>
+              প্রদর্শিত হচ্ছে: <b>{toBnDigits(displayedFailedStudents.length)}</b> জন
+            </div>
+          </div>
+
+          <div className="table-responsive-wrapper">
+            <table className="modern-exam-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '45px' }}>ক্র.</th>
+                  <th style={{ width: '55px' }}>রোল</th>
+                  <th style={{ width: '90px' }}>Student ID</th>
+                  <th>শিক্ষার্থীর নাম</th>
+                  <th>বিভাগ/গ্রুপ</th>
+                  <th style={{ width: '85px' }}>ফেল সংখ্যা</th>
+                  <th style={{ minWidth: '220px' }}>অকৃতকার্য বিষয় ও বিবরণ</th>
+                  <th style={{ width: '80px' }}>মোট নম্বর</th>
+                  <th style={{ width: '60px' }}>GPA</th>
+                  <th style={{ width: '60px' }}>গ্রেড</th>
+                  <th>অভিভাবকের ফোন</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedFailedStudents.map((x, idx) => {
+                  const fails = getStudentFailedSubjectsSummary(x);
+                  const failCount = fails.length || x.failed_count || 1;
+                  const phone = x.student?.guardian_phone || x.student?.phone || x.guardian_phone || '';
+                  return (
+                    <tr key={x.id || x.student_id}>
+                      <td><span className="text-muted">{toBnDigits(idx + 1)}</span></td>
+                      <td><span className="roll-pill">{toBnDigits(x.roll_no || '—')}</span></td>
+                      <td><span className="code-pill">{x.student_id}</span></td>
+                      <td><b>{x.name_bn}</b></td>
+                      <td><span className="sub-tag-compulsory">{x.department || 'সাধারণ'}</span></td>
+                      <td>
+                        <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, background: '#fee2e2', color: '#991b1b', border: '1px solid #fecaca' }}>
+                          {toBnDigits(failCount)}টি বিষয়
+                        </span>
+                      </td>
+                      <td>
+                        {fails.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {fails.map((f, i) => (
+                              <div key={i} style={{ fontSize: '11px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '4px', padding: '3px 6px', color: '#991b1b', textAlign: 'left' }}>
+                                <b>{f.name}</b> {f.total !== '' && <span style={{ color: '#b91c1c', fontWeight: 600 }}>({f.total} নম্বর, {f.grade})</span>}
+                                {f.reason && <small style={{ display: 'block', color: '#7f1d1d' }}>{f.reason}</small>}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="tab-fail-cell" style={{ padding: '2px 6px', borderRadius: '4px' }}>
+                            {x.failed_subjects && x.failed_subjects.length ? x.failed_subjects.join(', ') : 'সকল বিষয়'}
+                          </span>
+                        )}
+                      </td>
+                      <td><b>{x.total_marks}</b> <small className="text-muted">/ {x.total_full_marks}</small></td>
+                      <td><b style={{ fontSize: '15px', color: '#dc2626' }}>{x.gpa}</b></td>
+                      <td><span className="grade-pill grade-fail">{x.final_grade || 'F'}</span></td>
+                      <td>
+                        {phone ? (
+                          <a href={`tel:${phone}`} style={{ color: '#0369a1', textDecoration: 'none', fontWeight: 600, fontSize: '12px' }}>
+                            📞 {phone}
+                          </a>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!failedStudentsList.length && (
+                  <tr>
+                    <td colSpan="11" className="empty-table-cell" style={{ padding: '32px 16px', background: '#f0fdf4', color: '#166534' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎉</div>
+                      <b>অভিনন্দন! নির্বাচিত শ্রেণি ও বিভাগে কোনো অকৃতকার্য শিক্ষার্থী নেই।</b>
+                      <div style={{ fontSize: '12px', color: '#15803d', marginTop: '4px' }}>শতভাগ (১০০%) শিক্ষার্থী সফলভাবে উত্তীর্ণ হয়েছে।</div>
+                    </td>
+                  </tr>
+                )}
+                {failedStudentsList.length > 0 && !displayedFailedStudents.length && (
+                  <tr>
+                    <td colSpan="11" className="empty-table-cell">
+                      নির্বাচিত ফিল্টারে কোনো অকৃতকার্য শিক্ষার্থী পাওয়া যায়নি।
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9. TABULATION SHEET TAB (MASTER TABULATION MATRIX)                        */}
       {/* ========================================================================= */}
       {tab === 'tabulation' && (
         <div className="exam-card-table">

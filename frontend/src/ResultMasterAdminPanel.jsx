@@ -38,7 +38,7 @@ export function ResultMasterAdminPanel({
     if (['test'].includes(s)) return 'test';
     if (['public_exams', 'ssc', 'analysis'].includes(s)) return 'public_exams';
     // If navigating to legacy mark entry, keep tab
-    if (['marks', 'academic_year', 'exam_names', 'subjects', 'grading', 'processing', 'marksheet', 'tabulation', 'merit', 'promotion'].includes(s)) {
+    if (['marks', 'academic_year', 'exam_names', 'subjects', 'grading', 'processing', 'marksheet', 'tabulation', 'merit', 'failed_list', 'promotion'].includes(s)) {
       return 'advanced_system';
     }
     return 'half_yearly';

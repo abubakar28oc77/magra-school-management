@@ -3066,7 +3066,7 @@ function Admin() {
       const r = u?.role_name || u?.role;
       const savedSub = localStorage.getItem('magra_admin_active_sub');
       if (r === 'teacher') return 'marks';
-      if (r === 'co_admin') return (savedSub && ['daily', 'reports', 'teacher_enrollment', 'admitted_list', 'marks', 'marksheet', 'tabulation', 'merit', 'class_routine', 'exam_routine', 'collect', 'receipts', 'deposit_history'].includes(savedSub)) ? savedSub : 'daily';
+      if (r === 'co_admin') return (savedSub && ['daily', 'reports', 'teacher_enrollment', 'admitted_list', 'marks', 'marksheet', 'tabulation', 'merit', 'failed_list', 'class_routine', 'exam_routine', 'collect', 'receipts', 'deposit_history'].includes(savedSub)) ? savedSub : 'daily';
       if (r === 'staff') return (savedSub && ['fees', 'admission', 'docs', 'idcards', 'voters', 'applications', 'teacher_enrollment', 'admitted_list', 'collect', 'receipts', 'deposit_history', 'id', 'commendation_certificate', 'transfer_certificate', 'bonafide_certificate', 'marksheet', 'admit', 'list', 'new', 'csv'].includes(savedSub)) ? savedSub : 'fees';
       if (r === 'librarian') return (savedSub && ['catalog', 'issue', 'overdue', 'reports', 'damaged', 'marks'].includes(savedSub)) ? savedSub : 'catalog';
       return savedSub || null;
@@ -3177,7 +3177,7 @@ function Admin() {
     attendance: ['daily', 'reports'],
     admission: ['teacher_enrollment', 'admitted_list'],
     finance: ['collect', 'receipts', 'deposit_history'],
-    results: ['admission', 'half_yearly', 'annual', 'pre_test', 'test', 'public_exams', 'marks', 'marksheet', 'tabulation', 'merit'],
+    results: ['admission', 'half_yearly', 'annual', 'pre_test', 'test', 'public_exams', 'marks', 'marksheet', 'tabulation', 'merit', 'failed_list'],
     routine: ['class_routine', 'exam_routine'],
     ai: ['assistant', 'tutor', 'analytics']
   };
