@@ -2824,7 +2824,7 @@ export function ResultPanel({ sub, userRole }) {
             ['grading', '🎯 ৫. গ্রেডিং পলিসি'],
             ['processing', '⚙️ ৬. ফলাফল প্রসেসিং'],
             ['tabulation', '📋 ৭. ট্যাবুলেশন শিট'],
-            ['marksheet', '📄 ৮. মার্কশিট ও প্রগ্রেস'],
+            ['marksheet', '📄 ৮. মার্কশিট ও প্রোগ্রেস রিপোর্ট'],
             ['merit', '🏆 ৯. মেধা তালিকা'],
             ['failed_list', '⚠️ ১০. অকৃতকার্য তালিকা'],
             ['analysis', '📊 ১১. ফলাফল বিশ্লেষণ'],
@@ -3893,7 +3893,7 @@ export function ResultPanel({ sub, userRole }) {
               📋 ট্যাবুলেশন শিট দেখুন ➜
             </button>
             <button type="button" className="preset-chip" onClick={() => setTab('marksheet')}>
-              📄 মার্কশিট ও প্রগ্রেস রিপোর্ট দেখুন ➜
+              📄 মার্কশিট ও প্রোগ্রেস রিপোর্ট দেখুন ➜
             </button>
             <button type="button" className="preset-chip" onClick={() => setTab('merit')}>
               🏆 মেধা তালিকা দেখুন ➜
