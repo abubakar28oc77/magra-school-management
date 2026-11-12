@@ -475,6 +475,23 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
     // 4. Humanities Group: only chosen 4th subject (either 134 or 151)
     if (isHumanities) {
       if (s.department !== 'মানবিক') return false;
+      // Exclude 140 (Civics & Citizenship) so Humanities group has exactly 3 elective subjects: History (153), Geography (110), Economics (141)
+      if (String(s.code) === '140') {
+        const sId = String(student.id || '').toLowerCase();
+        const stRollId = String(student.student_id || '').toLowerCase();
+        const sRoll = String(student.roll_no !== undefined && student.roll_no !== null ? student.roll_no : '');
+        const rec140 = marksMap && (
+          marksMap.get(`${sId}_140`) || 
+          marksMap.get(`${stRollId}_140`) ||
+          marksMap.get(`${sId}_sub-10-140`) ||
+          marksMap.get(`${stRollId}_sub-10-140`) ||
+          marksMap.get(`${sId}_sub-9-140`) ||
+          marksMap.get(`${stRollId}_sub-9-140`) ||
+          (sRoll ? marksMap.get(`${sRoll}_140`) : null)
+        );
+        const has140Marks = rec140 && !rec140.absent && (Number(rec140.total) > 0 || Number(rec140.written) > 0 || Number(rec140.mcq) > 0 || Number(rec140.practical) > 0);
+        if (!has140Marks) return false;
+      }
       if (String(s.code) === '134' || String(s.code) === '151') {
         return String(s.code) === chosenHumanitiesFourthCode;
       }

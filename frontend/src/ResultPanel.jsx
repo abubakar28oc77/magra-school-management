@@ -344,6 +344,8 @@ export function ResultPanel({ sub, userRole }) {
       if (!isSSC) return true;
       // In Humanities & Business Studies: 4th subject is always 134 (Agriculture Studies). Exclude 151 (Home Science).
       if (String(s.code) === '151') return false;
+      // In Humanities: 140 is Civics & Citizenship, not taken in this school (group has 153 History, 110 Geography, 141 Economics)
+      if (department && (department.includes('মানবিক') || department.includes('humanities')) && String(s.code) === '140') return false;
       if (department === 'all' || department === 'সকল বিভাগ') return true;
       return s.department === 'আবশ্যিক' || matchesStudentGroup({ department: s.department }, department);
     });
@@ -2691,6 +2693,19 @@ export function ResultPanel({ sub, userRole }) {
       subs = subs.filter(s => {
         const code = String(s.code);
         if (code === '134' || code === '151') return code === keepCode;
+        return true;
+      });
+    }
+
+    // 3. For Humanities: Exclude 140 (Civics & Citizenship) so group subjects are strictly 3:
+    // 153 (History), 110 (Geography), 141 (Economics)
+    const stGroup = (st.department || st.student?.department || '').toLowerCase();
+    if (stGroup.includes('মানবিক') || stGroup.includes('humanities') || stGroup.includes('arts') || stGroup.includes('আর্টস')) {
+      subs = subs.filter(s => {
+        if (String(s.code) === '140') {
+          const hasMarks = !s.absent && (Number(s.total) > 0 || Number(s.written) > 0 || Number(s.mcq) > 0 || Number(s.practical) > 0);
+          return hasMarks;
+        }
         return true;
       });
     }
