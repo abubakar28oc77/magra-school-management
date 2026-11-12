@@ -47,6 +47,9 @@ export function calculateSubjectGrade(subject, markRecord = {}) {
       department: subject.department || 'সাধারণ',
       is_optional: !!subject.is_optional,
       full_marks: full,
+      written_max: subject.written_max || 0,
+      mcq_max: subject.mcq_max || 0,
+      practical_max: subject.practical_max || 0,
       written: 0,
       mcq: 0,
       practical: 0,
@@ -148,7 +151,13 @@ export function calculateSubjectGrade(subject, markRecord = {}) {
  *  - Overall GPA = Sum(GP) / Subjects Count.
  */
 export function calculateOverallResult(studentClass, subjectResults) {
-  const isSSC = ['9', '10', '৯', '১০'].includes(String(studentClass));
+  const normCls = (c) => {
+    if (!c) return '';
+    return String(c).replace(/^(class|শ্রেণি|শ্রেণী)\s*/i, '').replace(/[thstndrdমষ্ঠর্থ]/gi, '').trim()
+      .replace(/০/g, '0').replace(/১/g, '1').replace(/২/g, '2').replace(/৩/g, '3').replace(/৪/g, '4')
+      .replace(/৫/g, '5').replace(/৬/g, '6').replace(/৭/g, '7').replace(/৮/g, '8').replace(/৯/g, '9');
+  };
+  const isSSC = ['9', '10'].includes(normCls(studentClass));
 
   let totalObtained = 0;
   let totalFull = 0;
@@ -331,10 +340,16 @@ export function calculateOverallResult(studentClass, subjectResults) {
  * and 4th Subject rules (Science: either 126 or 134; Humanities & Business Studies: always 134).
  */
 export function getStudentApplicableSubjects(student, allSubjects, marksMap = null) {
-  const cls = String(student.class_name || '6');
-  const isSSC = ['9', '10', '৯', '১০'].includes(cls);
+  const normCls = (c) => {
+    if (!c) return '';
+    return String(c).replace(/^(class|শ্রেণি|শ্রেণী)\s*/i, '').replace(/[thstndrdমষ্ঠর্থ]/gi, '').trim()
+      .replace(/০/g, '0').replace(/১/g, '1').replace(/২/g, '2').replace(/৩/g, '3').replace(/৪/g, '4')
+      .replace(/৫/g, '5').replace(/৬/g, '6').replace(/৭/g, '7').replace(/৮/g, '8').replace(/৯/g, '9');
+  };
+  const clsNorm = normCls(student.class_name || '6');
+  const isSSC = ['9', '10'].includes(clsNorm);
 
-  const classSubs = allSubjects.filter(s => !s.class_name || String(s.class_name) === cls);
+  const classSubs = allSubjects.filter(s => !s.class_name || normCls(s.class_name) === clsNorm);
 
   if (!isSSC) {
     // Classes 6-8 (JSC Pattern)
@@ -359,8 +374,7 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
   const isScience = !isHumanities && !isBusiness; // Default is Science
 
   // Determine student's 4th subject:
-  // 1. Humanities & Business Studies: 4th subject is ALWAYS Agriculture Studies (134)
-  // 2. Science: 4th subject is EITHER Higher Mathematics (126) OR Agriculture Studies (134) - never both!
+  // 1. Science: 4th subject is EITHER Higher Mathematics (126) OR Agriculture Studies (134) - never both!
   let chosenScienceFourthCode = '126'; // Standard Science default
 
   if (isScience) {
@@ -408,6 +422,34 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
     }
   }
 
+  // 2. Humanities: 4th subject is EITHER Agriculture Studies (134) OR Home Science (151)
+  let chosenHumanitiesFourthCode = '134'; // Default Agriculture Studies
+  if (isHumanities) {
+    const explicit = (
+      student.fourth_subject || 
+      student.fourth_subject_code || 
+      student.optional_subject || 
+      student.optional_subject_name || 
+      student.elective_subject || 
+      ''
+    ).toString().toLowerCase();
+
+    if (explicit.includes('151') || explicit.includes('গার্হস্থ্য') || explicit.includes('home')) {
+      chosenHumanitiesFourthCode = '151';
+    } else if (marksMap) {
+      const sId = student.id;
+      const stRollId = student.student_id;
+      const rec151 = (sId && marksMap.get(`${sId}_151`)) || 
+                     (stRollId && marksMap.get(`${stRollId}_151`)) ||
+                     (sId && marksMap.get(`${sId}_sub-10-151-hum`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-10-151-hum`)) ||
+                     (sId && marksMap.get(`${sId}_sub-9-151-hum`)) ||
+                     (stRollId && marksMap.get(`${stRollId}_sub-9-151-hum`));
+      const has151 = rec151 && !rec151.absent && (Number(rec151.total) > 0 || Number(rec151.written) > 0 || Number(rec151.mcq) > 0 || Number(rec151.practical) > 0);
+      if (has151) chosenHumanitiesFourthCode = '151';
+    }
+  }
+
   return classSubs.filter(s => {
     // 1. Religion check
     const isRel = ['111', '112', '113', '114'].includes(String(s.code));
@@ -430,10 +472,12 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
       return true;
     }
 
-    // 4. Humanities Group: 4th subject is ALWAYS 134 (Agriculture Studies). Exclude 151 (Home Science).
+    // 4. Humanities Group: only chosen 4th subject (either 134 or 151)
     if (isHumanities) {
       if (s.department !== 'মানবিক') return false;
-      if (String(s.code) === '151') return false;
+      if (String(s.code) === '134' || String(s.code) === '151') {
+        return String(s.code) === chosenHumanitiesFourthCode;
+      }
       return true;
     }
 
@@ -466,8 +510,12 @@ export function processClassResults(students, subjects, marksList, className, ex
   const marksMap = new Map();
   (marksList || []).forEach(m => {
     if (String(m.exam_id) === String(examId)) {
-      marksMap.set(`${m.student_id}_${m.subject_id}`, m);
-      marksMap.set(`${m.student_id}_${m.subject_code}`, m);
+      const sId = String(m.student_id || '').toLowerCase();
+      const sCode = String(m.subject_code || '').trim();
+      const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+      if (m.subject_id) marksMap.set(`${sId}_${m.subject_id}`, m);
+      if (sCode) marksMap.set(`${sId}_${sCode}`, m);
+      if (sCodeNorm && sCodeNorm !== sCode) marksMap.set(`${sId}_${sCodeNorm}`, m);
     }
   });
 
@@ -476,10 +524,21 @@ export function processClassResults(students, subjects, marksList, className, ex
 
     const getRec = (sub) => {
       if (!sub) return null;
-      return marksMap.get(`${student.id}_${sub.id}`) || 
-             marksMap.get(`${student.student_id}_${sub.id}`) ||
-             marksMap.get(`${student.id}_${sub.code}`) ||
-             marksMap.get(`${student.student_id}_${sub.code}`) || null;
+      const sCode = String(sub.code || '').trim();
+      const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+      const sId = String(student.id || '').toLowerCase();
+      const stRollId = String(student.student_id || '').toLowerCase();
+      const sRoll = String(student.roll_no !== undefined && student.roll_no !== null ? student.roll_no : '');
+
+      return marksMap.get(`${sId}_${sub.id}`) || 
+             marksMap.get(`${stRollId}_${sub.id}`) ||
+             marksMap.get(`${sId}_${sCode}`) ||
+             marksMap.get(`${stRollId}_${sCode}`) ||
+             marksMap.get(`${sId}_${sCodeNorm}`) ||
+             marksMap.get(`${stRollId}_${sCodeNorm}`) ||
+             (sRoll ? marksMap.get(`${sRoll}_${sub.id}`) : null) ||
+             (sRoll ? marksMap.get(`${sRoll}_${sCode}`) : null) ||
+             (sRoll ? marksMap.get(`${sRoll}_${sCodeNorm}`) : null) || null;
     };
 
     let subjectEvals = [];

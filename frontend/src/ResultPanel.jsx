@@ -2605,31 +2605,35 @@ export function ResultPanel({ sub, userRole }) {
     '102': 'BANGLA-II',
     '107': 'ENGLISH-I',
     '108': 'ENGLISH-II',
-    '109': 'METHMATICS',
-    '111': 'ISLAM RELIGION AND MORAL EDUCATION',
+    '109': 'MATHEMATICS',
+    '110': 'GEOGRAPHY AND ENVIRONMENT',
+    '111': 'ISLAM AND MORAL EDUCATION',
     '112': 'HINDU RELIGION AND MORAL EDUCATION',
     '113': 'BUDDHIST RELIGION AND MORAL EDUCATION',
     '114': 'CHRISTIAN RELIGION AND MORAL EDUCATION',
-    '154': 'INFORMATION AND COMMUNICATION TECHNOLOGY',
+    '126': 'HIGHER MATHEMATICS',
+    '127': 'GENERAL SCIENCE',
+    '134': 'AGRICULTURE STUDIES',
     '136': 'PHYSICS',
     '137': 'CHEMISTRY',
     '138': 'BIOLOGY',
-    '150': 'BANGLADESH AND GLOBAL STUDIES',
-    '126': 'HIGHER METHMATICS',
-    '134': 'AGRICULTURE STUDIES',
-    '127': 'GENERAL SCIENCE',
-    '146': 'ACCOUNTING',
-    '147': 'FINANCE AND BANKING',
-    '152': 'BUSINESS ENTREPRENEURSHIP',
-    '140': 'GEOGRAPHY AND ENVIRONMENT',
+    '140': 'CIVICS AND CITIZENSHIP',
     '141': 'ECONOMICS',
     '142': 'CIVICS AND CITIZENSHIP',
-    '143': 'HISTORY OF BANGLADESH AND WORLD CIVILIZATION'
+    '143': 'HISTORY OF BANGLADESH AND WORLD CIVILIZATION',
+    '146': 'ACCOUNTING',
+    '147': 'FINANCE AND BANKING',
+    '150': 'BANGLADESH AND GLOBAL STUDIES',
+    '151': 'HOME SCIENCE',
+    '152': 'BUSINESS ENTREPRENEURSHIP',
+    '153': 'HISTORY OF BANGLADESH AND WORLD CIVILIZATION',
+    '154': 'INFORMATION AND COMMUNICATION TECHNOLOGY'
   };
 
   const getSubjectEnName = (sub) => {
     if (!sub) return '';
-    const code = String(sub.code || '');
+    const rawCode = String(sub.code || '').trim();
+    const code = rawCode.replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d));
     if (standardEnNames[code]) return standardEnNames[code];
     if (sub.name_en && sub.name_en.trim()) return sub.name_en.trim().toUpperCase();
     return sub.name_bn || '';
@@ -2640,7 +2644,7 @@ export function ResultPanel({ sub, userRole }) {
     let subs = [...st.subjects];
 
     // Ensure only 1 4th subject appears on transcript:
-    // For Science: either 126 or 134 (never both)
+    // 1. For Science: either 126 or 134 (never both)
     const has126 = subs.some(s => String(s.code) === '126');
     const has134 = subs.some(s => String(s.code) === '134');
     if (has126 && has134) {
@@ -2667,16 +2671,36 @@ export function ResultPanel({ sub, userRole }) {
       });
     }
 
-    // For Humanities & Business Studies: 4th subject is always 134 (Agriculture Studies). Exclude 151 (Home Science).
-    const stGroup = (st.department || st.student?.department || '').toLowerCase();
-    if (stGroup.includes('মানবিক') || stGroup.includes('ব্যবসায়') || stGroup.includes('commerce') || stGroup.includes('business')) {
-      subs = subs.filter(s => String(s.code) !== '151');
+    // 2. For Humanities & Business Studies: 4th subject is either 134 (Agriculture Studies) or 151 (Home Science)
+    const has151 = subs.some(s => String(s.code) === '151');
+    if (has134 && has151) {
+      const sub134 = subs.find(s => String(s.code) === '134');
+      const sub151 = subs.find(s => String(s.code) === '151');
+      const studentObj = st.student || st;
+      const explicit = (studentObj.fourth_subject || studentObj.fourth_subject_code || studentObj.optional_subject || '').toString().toLowerCase();
+
+      let keepCode = '134';
+      if (explicit.includes('151') || explicit.includes('গার্হস্থ্য') || explicit.includes('home')) {
+        keepCode = '151';
+      } else {
+        const m134 = !sub134?.absent && (Number(sub134?.total) > 0 || Number(sub134?.written) > 0 || Number(sub134?.mcq) > 0 || Number(sub134?.practical) > 0);
+        const m151 = !sub151?.absent && (Number(sub151?.total) > 0 || Number(sub151?.written) > 0 || Number(sub151?.mcq) > 0 || Number(sub151?.practical) > 0);
+        if (m151 && !m134) keepCode = '151';
+        else keepCode = '134';
+      }
+      subs = subs.filter(s => {
+        const code = String(s.code);
+        if (code === '134' || code === '151') return code === keepCode;
+        return true;
+      });
     }
 
     return subs.sort((a, b) => {
       if (a.is_optional && !b.is_optional) return 1;
       if (!a.is_optional && b.is_optional) return -1;
-      return (Number(a.code) || 999) - (Number(b.code) || 999);
+      const codeA = Number(String(a.code || '').replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d))) || 999;
+      const codeB = Number(String(b.code || '').replace(/[০-৯]/g, (d) => '০১২৩৪৫৬৭৮৯'.indexOf(d))) || 999;
+      return codeA - codeB;
     });
   };
 
@@ -2722,7 +2746,10 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>101</b></td>
-            <td class="text-left"><b>BANGLA-I</b></td>
+            <td class="text-left">
+              <b>BANGLA-I</b>
+              <div style="font-size: 11px; color: #475569; font-weight: normal;">বাংলা ১ম পত্র</div>
+            </td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
             <td rowspan="${hasBp ? 2 : 1}">—</td>
@@ -2739,7 +2766,10 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>102</b></td>
-            <td class="text-left"><b>BANGLA-II</b></td>
+            <td class="text-left">
+              <b>BANGLA-II</b>
+              <div style="font-size: 11px; color: #475569; font-weight: normal;">বাংলা ২য় পত্র</div>
+            </td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
             ${!hasBp ? `
@@ -2758,7 +2788,10 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>107</b></td>
-            <td class="text-left"><b>ENGLISH-I</b></td>
+            <td class="text-left">
+              <b>ENGLISH-I</b>
+              <div style="font-size: 11px; color: #475569; font-weight: normal;">ইংরেজি ১ম পত্র</div>
+            </td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
             <td rowspan="${hasEp ? 2 : 1}">—</td>
             <td rowspan="${hasEp ? 2 : 1}">—</td>
@@ -2775,7 +2808,10 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>108</b></td>
-            <td class="text-left"><b>ENGLISH-II</b></td>
+            <td class="text-left">
+              <b>ENGLISH-II</b>
+              <div style="font-size: 11px; color: #475569; font-weight: normal;">ইংরেজি ২য় পত্র</div>
+            </td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
             ${!hasEp ? `
               <td>—</td>
@@ -2798,7 +2834,10 @@ export function ResultPanel({ sub, userRole }) {
       return `
         <tr>
           <td><b>${sub.code}</b></td>
-          <td class="text-left"><b>${getSubjectEnName(sub)}</b></td>
+          <td class="text-left">
+            <b>${getSubjectEnName(sub)}</b>
+            ${sub.name_bn ? `<div style="font-size: 11px; color: #475569; font-weight: normal;">${sub.name_bn}</div>` : ''}
+          </td>
           <td>${wVal}</td>
           <td>${mVal}</td>
           <td>${pVal}</td>
@@ -5167,6 +5206,7 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>101</b></td>
                           <td className="text-left">
                             <b>BANGLA-I</b>
+                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'normal' }}>বাংলা ১ম পত্র</div>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
@@ -5186,6 +5226,7 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>102</b></td>
                           <td className="text-left">
                             <b>BANGLA-II</b>
+                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'normal' }}>বাংলা ২য় পত্র</div>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
@@ -5211,6 +5252,7 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>107</b></td>
                           <td className="text-left">
                             <b>ENGLISH-I</b>
+                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'normal' }}>ইংরেজি ১ম পত্র</div>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
                           <td rowSpan={hasEnglishPair ? 2 : 1}>—</td>
@@ -5230,6 +5272,7 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>108</b></td>
                           <td className="text-left">
                             <b>ENGLISH-II</b>
+                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'normal' }}>ইংরেজি ২য় পত্র</div>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
                           {!hasEnglishPair && (
@@ -5258,6 +5301,11 @@ export function ResultPanel({ sub, userRole }) {
                         <td><b>{sub.code}</b></td>
                         <td className="text-left">
                           <b>{getSubjectEnName(sub)}</b>
+                          {sub.name_bn && (
+                            <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'normal' }}>
+                              {sub.name_bn}
+                            </div>
+                          )}
                         </td>
                         <td>{wVal}</td>
                         <td>{mVal}</td>
