@@ -3088,26 +3088,27 @@ export function ResultPanel({ sub, userRole }) {
     .marksheet-subjects-table { 
       width: 100%; 
       border-collapse: collapse; 
-      margin: 6px 0; 
-      font-size: 11px; 
+      margin: 8px 0; 
+      font-size: 11.5px; 
       border: 1px solid #000; 
     }
     .marksheet-subjects-table th, .marksheet-subjects-table td { 
       border: 1px solid #000; 
-      padding: 3.5px 5px; 
+      padding: 7px 6px; 
       text-align: center; 
-      line-height: 1.25; 
+      line-height: 1.35; 
     }
     .marksheet-subjects-table th { 
       background: #fff; 
       color: #000; 
       font-weight: 700; 
-      font-size: 11px; 
+      font-size: 11.5px; 
+      padding: 6.5px 6px;
     }
     .marksheet-subjects-table td.text-left { 
       text-align: left; 
-      padding-left: 6px; 
-      font-weight: 600; 
+      padding-left: 8px; 
+      font-weight: 700; 
     }
     .transcript-grade-cell { 
       vertical-align: middle; 

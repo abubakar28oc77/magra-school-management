@@ -1898,11 +1898,27 @@ button,.btn{touch-action:manipulation}
     font-size: 11px !important;
   }
 
+  .official-marksheet-wrapper .marksheet-subjects-table {
+    margin: 8px 0 !important;
+    font-size: 11.5px !important;
+  }
+
   .official-marksheet-wrapper .marksheet-subjects-table th,
   .official-marksheet-wrapper .marksheet-subjects-table td {
-    padding: 3.5px 5px !important;
+    padding: 7px 6px !important;
     border: 1px solid #000000 !important;
-    line-height: 1.25 !important;
+    line-height: 1.35 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-subjects-table th {
+    padding: 6.5px 6px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-subjects-table td.text-left {
+    padding-left: 8px !important;
+    font-weight: 700 !important;
   }
 
   .official-marksheet-wrapper .transcript-summary-box {
