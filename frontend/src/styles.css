@@ -1791,7 +1791,7 @@ button,.btn{touch-action:manipulation}
 @media print {
   @page {
     size: A4 portrait;
-    margin: 6mm 8mm;
+    margin: 5mm 6mm;
   }
   
   html, body {
@@ -1828,13 +1828,16 @@ button,.btn{touch-action:manipulation}
     box-shadow: none !important;
     border: 1.5px solid #000000 !important;
     border-radius: 4px !important;
-    padding: 6mm 8mm !important;
+    padding: 5mm 8mm !important;
     margin: 0 auto !important;
     width: 100% !important;
     max-width: 194mm !important;
-    height: auto !important;
-    min-height: auto !important;
-    max-height: 282mm !important;
+    height: 284mm !important;
+    min-height: 284mm !important;
+    max-height: 284mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: avoid !important;
@@ -1844,7 +1847,8 @@ button,.btn{touch-action:manipulation}
   }
 
   .transcript-top-content {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   .official-marksheet-wrapper .transcript-official-header {
@@ -1917,8 +1921,8 @@ button,.btn{touch-action:manipulation}
   }
 
   .transcript-bottom-content {
-    margin-top: 55px !important; /* Exactly 1/3 of previous gap */
-    padding-top: 0 !important;
+    margin-top: auto !important;
+    padding-top: 10px !important;
   }
 
   .official-marksheet-wrapper .transcript-signatures-zone {

@@ -2943,6 +2943,13 @@ export function ResultPanel({ sub, userRole }) {
             </div>
           </div>
 
+          <!-- স্বাক্ষরের নিচে সিলদেয়ার জায়গা (Space for Official Seal below Signature) -->
+          <div class="transcript-seal-space" style="height: 52px; display: flex; align-items: center; justify-content: flex-end; padding-right: 30px; margin: 6px 0 8px 0;">
+            <div style="border: 1px dashed #94a3b8; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b; font-weight: 700;">
+              সিলমোহর
+            </div>
+          </div>
+
           <div class="transcript-footer-line">
             <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
             <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
@@ -2976,7 +2983,7 @@ export function ResultPanel({ sub, userRole }) {
   <style>
     @page { 
       size: A4 portrait; 
-      margin: 6mm 8mm; 
+      margin: 5mm 6mm; 
     }
     * { 
       box-sizing: border-box; 
@@ -2993,15 +3000,18 @@ export function ResultPanel({ sub, userRole }) {
     .official-marksheet-wrapper { 
       width: 100%; 
       max-width: 194mm; 
-      height: auto; 
-      min-height: auto; 
-      max-height: 282mm; 
+      height: 284mm; 
+      min-height: 284mm; 
+      max-height: 284mm; 
       margin: 0 auto; 
       background: #fff; 
       border: 1.5px solid #000; 
       border-radius: 4px; 
-      padding: 6mm 8mm; 
+      padding: 5mm 8mm; 
       box-sizing: border-box; 
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       page-break-inside: avoid !important; 
       break-inside: avoid !important; 
       page-break-after: always; 
@@ -3014,7 +3024,8 @@ export function ResultPanel({ sub, userRole }) {
       margin-bottom: 0; 
     }
     .transcript-top-content {
-      display: block;
+      display: flex;
+      flex-direction: column;
     }
     .transcript-official-header { 
       text-align: center; 
@@ -3144,8 +3155,8 @@ export function ResultPanel({ sub, userRole }) {
       font-size: 14.5px; 
     }
     .transcript-bottom-content {
-      margin-top: 55px; /* Exactly 1/3 of the previous ~170-180px gap */
-      padding-top: 0;
+      margin-top: auto;
+      padding-top: 10px;
     }
     .transcript-signatures-zone { 
       display: flex; 
@@ -3153,7 +3164,7 @@ export function ResultPanel({ sub, userRole }) {
       font-size: 11px; 
       color: #334155; 
       text-align: center; 
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
     .transcript-signatures-zone .sig-column { 
       min-width: 140px; 
@@ -3183,14 +3194,10 @@ export function ResultPanel({ sub, userRole }) {
         break-after: page !important; 
         page-break-inside: avoid !important; 
         break-inside: avoid !important; 
-        height: auto !important;
-        min-height: auto !important;
-        max-height: 282mm !important;
+        height: 284mm !important;
+        min-height: 284mm !important;
+        max-height: 284mm !important;
         overflow: hidden !important;
-      }
-      .transcript-bottom-content {
-        margin-top: 55px !important;
-        padding-top: 0 !important;
       }
       .official-marksheet-wrapper:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
@@ -5541,6 +5548,13 @@ export function ResultPanel({ sub, userRole }) {
                   <div className="sig-column">
                     <div className="sig-dots">...........................................</div>
                     <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+                  </div>
+                </div>
+
+                {/* স্বাক্ষরের নিচে সিলদেয়ার জায়গা (Space for Official Seal below Signature) */}
+                <div className="transcript-seal-space" style={{ height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '30px', margin: '6px 0 8px 0' }}>
+                  <div style={{ border: '1px dashed #94a3b8', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#64748b', fontWeight: 700 }}>
+                    সিলমোহর
                   </div>
                 </div>
 
