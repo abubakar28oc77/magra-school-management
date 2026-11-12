@@ -33,6 +33,70 @@ export const normalizeClass = (val) => {
   return m ? String(parseInt(m[0], 10)) : str;
 };
 
+// Bengali Class Ordinal (যেমন: ৬ষ্ঠ, ৭ম, ৮ম, ৯ম, ১০ম)
+export const getClassBnOrdinal = (val) => {
+  const c = normalizeClass(val);
+  if (c === '6') return '৬ষ্ঠ';
+  if (c === '7') return '৭ম';
+  if (c === '8') return '৮ম';
+  if (c === '9') return '৯ম';
+  if (c === '10') return '১০ম';
+  return c ? `${toBnDigits(c)}ম` : '৮ম';
+};
+
+// Generate Independent Per-Class Receipt Number (যেমন: মপাইউবি/৮ম/২০২৬/০০১)
+export const generateClassReceiptNo = (className, feeRecordsList, year = null) => {
+  const normClass = normalizeClass(className);
+  const classLabel = getClassBnOrdinal(className);
+  const yearBn = toBnDigits(year || new Date().getFullYear());
+
+  let maxSeq = 0;
+  (feeRecordsList || []).forEach(r => {
+    if (normalizeClass(r.class_name) === normClass) {
+      const str = String(r.receipt_no || '');
+      const parts = str.split('/');
+      const lastPart = parts[parts.length - 1];
+      const num = parseRollNumber(lastPart);
+      if (num && num > maxSeq) {
+        maxSeq = num;
+      }
+    }
+  });
+
+  const count = (feeRecordsList || []).filter(r => normalizeClass(r.class_name) === normClass).length;
+  const nextSeq = Math.max(maxSeq, count) + 1;
+  const paddedSeq = toBnDigits(String(nextSeq).padStart(3, '0'));
+
+  return `মপাইউবি/${classLabel}/${yearBn}/${paddedSeq}`;
+};
+
+// Generate Independent Per-Class Deposit Challan Number (যেমন: মপাইউবি/৮ম/২০২৬/০০১)
+export const generateClassDepositNo = (className, feeDepositsList, year = null) => {
+  const normClass = normalizeClass(className);
+  const classLabel = getClassBnOrdinal(className);
+  const yearBn = toBnDigits(year || new Date().getFullYear());
+
+  let maxSeq = 0;
+  (feeDepositsList || []).forEach(d => {
+    const isThisClass = (d.class_name && normalizeClass(d.class_name) === normClass) ||
+                        (d.deposit_no && (d.deposit_no.includes(`/${classLabel}/`) || d.deposit_no.includes(`/${normClass}/`)));
+    if (isThisClass) {
+      const parts = String(d.deposit_no || '').split('/');
+      const lastPart = parts[parts.length - 1];
+      const num = parseRollNumber(lastPart);
+      if (num && num > maxSeq) {
+        maxSeq = num;
+      }
+    }
+  });
+
+  const nextSeq = maxSeq + 1;
+  const paddedSeq = toBnDigits(String(nextSeq).padStart(3, '0'));
+
+  return `মপাইউবি/${classLabel}/${yearBn}/${paddedSeq}`;
+};
+
+
 export const getStudentDepartment = (s) => {
   if (!s) return 'সাধারণ';
   const c = normalizeClass(s.class_name);
@@ -1161,7 +1225,7 @@ export function FinancePanel({ sub }) {
       return;
     }
 
-    const receiptNo = `মপাউবি/রশিদ/${new Date().getFullYear()}/${String(feeRecords.length + 1).padStart(3, '0')}`;
+    const receiptNo = generateClassReceiptNo(selectedStudent.class_name, feeRecords);
 
     const newTransaction = {
       id: `FEE-${Date.now()}`,
@@ -3355,6 +3419,13 @@ export function FinancePanel({ sub }) {
     return { selectedRecs, breakdown, total };
   }, [feeRecords, selectedReceiptIdsForDeposit]);
 
+  // Auto-calculated per-class deposit challan number for currently selected records
+  const suggestedDepositNo = useMemo(() => {
+    const classesInDeposit = Array.from(new Set(liveDepositBreakdown.selectedRecs.map(r => normalizeClass(r.class_name)).filter(Boolean)));
+    const targetClass = classesInDeposit.length === 1 ? classesInDeposit[0] : (depositPendingClass !== 'all' ? depositPendingClass : (classesInDeposit[0] || '8'));
+    return generateClassDepositNo(targetClass, feeDeposits);
+  }, [liveDepositBreakdown.selectedRecs, depositPendingClass, feeDeposits]);
+
   // Filtered Deposit Batches in History
   const displayedDepositBatches = useMemo(() => {
     let list = [...feeDeposits].sort((a, b) => new Date(b.deposit_date || 0) - new Date(a.deposit_date || 0));
@@ -3392,10 +3463,14 @@ export function FinancePanel({ sub }) {
     }
 
     const newDepId = 'DEP-' + Date.now();
-    const generatedNo = newDepositNo.trim() || `মপাউবি/জমা-খতিয়ান/২০২৬/${toBnDigits(feeDeposits.length + 1)}`;
+    const classesInDeposit = Array.from(new Set(liveDepositBreakdown.selectedRecs.map(r => normalizeClass(r.class_name)).filter(Boolean)));
+    const targetClass = classesInDeposit.length === 1 ? classesInDeposit[0] : (depositPendingClass !== 'all' ? depositPendingClass : (classesInDeposit[0] || '8'));
+    const autoDepositNo = generateClassDepositNo(targetClass, feeDeposits);
+    const generatedNo = newDepositNo.trim() || autoDepositNo;
     const newDepRecord = {
       id: newDepId,
       deposit_no: generatedNo,
+      class_name: targetClass,
       deposit_date: newDepositDate || new Date().toISOString().slice(0, 10),
       deposited_by: newDepositedBy || 'শ্রেণি শিক্ষক / ফি আদায়কারী',
       received_by: newReceivedBy || 'মোঃ আলমগীর হোসেন (অফিস সহকারী)',
@@ -4660,8 +4735,14 @@ export function FinancePanel({ sub }) {
                 </div>
               </div>
 
-              {/* Submit Payment Button */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              {/* Submit Payment Button & Next Receipt No Badge */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', padding: '6px 14px', borderRadius: '8px', border: '1.5px solid #a7f3d0' }}>
+                  <span style={{ fontSize: '12px', color: '#065f46', fontWeight: 700 }}>🧾 প্রস্তুতকৃত রশিদ নং:</span>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 900, color: '#047857', fontSize: '13.5px' }}>
+                    {generateClassReceiptNo(selectedStudent ? selectedStudent.class_name : selectedClass, feeRecords)}
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={handleCollectPayment}
@@ -5899,9 +5980,12 @@ export function FinancePanel({ sub }) {
                             type="text"
                             value={newDepositNo}
                             onChange={e => setNewDepositNo(e.target.value)}
-                            placeholder={`মপাউবি/জমা/${toBnDigits(feeDeposits.length + 1)}`}
-                            style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', fontWeight: 600 }}
+                            placeholder={suggestedDepositNo}
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px', fontWeight: 700, fontFamily: 'monospace', color: '#047857' }}
                           />
+                          <small style={{ fontSize: '10.5px', color: '#047857', display: 'block', marginTop: '2px', fontWeight: 600 }}>
+                            শ্রেণিভিত্তিক অটো চালান: <b>{suggestedDepositNo}</b>
+                          </small>
                         </div>
                       </div>
 
