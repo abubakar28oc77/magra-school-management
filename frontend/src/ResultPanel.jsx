@@ -2761,10 +2761,7 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>101</b></td>
-            <td class="text-left">
-              <span style="font-weight: 700;">BANGLA-I</span>
-              <span style="font-size: 10px; color: #475569; font-weight: normal; margin-left: 4px;">(বাংলা ১ম পত্র)</span>
-            </td>
+            <td class="text-left"><b>BANGLA-I</b></td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
             <td rowspan="${hasBp ? 2 : 1}">—</td>
@@ -2781,10 +2778,7 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>102</b></td>
-            <td class="text-left">
-              <span style="font-weight: 700;">BANGLA-II</span>
-              <span style="font-size: 10px; color: #475569; font-weight: normal; margin-left: 4px;">(বাংলা ২য় পত্র)</span>
-            </td>
+            <td class="text-left"><b>BANGLA-II</b></td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
             ${!hasBp ? `
@@ -2803,10 +2797,7 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>107</b></td>
-            <td class="text-left">
-              <span style="font-weight: 700;">ENGLISH-I</span>
-              <span style="font-size: 10px; color: #475569; font-weight: normal; margin-left: 4px;">(ইংরেজি ১ম পত্র)</span>
-            </td>
+            <td class="text-left"><b>ENGLISH-I</b></td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
             <td rowspan="${hasEp ? 2 : 1}">—</td>
             <td rowspan="${hasEp ? 2 : 1}">—</td>
@@ -2823,10 +2814,7 @@ export function ResultPanel({ sub, userRole }) {
         return `
           <tr>
             <td><b>108</b></td>
-            <td class="text-left">
-              <span style="font-weight: 700;">ENGLISH-II</span>
-              <span style="font-size: 10px; color: #475569; font-weight: normal; margin-left: 4px;">(ইংরেজি ২য় পত্র)</span>
-            </td>
+            <td class="text-left"><b>ENGLISH-II</b></td>
             <td>${sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
             ${!hasEp ? `
               <td>—</td>
@@ -2849,10 +2837,7 @@ export function ResultPanel({ sub, userRole }) {
       return `
         <tr>
           <td><b>${sub.code}</b></td>
-          <td class="text-left">
-            <span style="font-weight: 700;">${getSubjectEnName(sub)}</span>
-            ${sub.name_bn ? `<span style="font-size: 10px; color: #475569; font-weight: normal; margin-left: 4px;">(${sub.name_bn})</span>` : ''}
-          </td>
+          <td class="text-left"><b>${getSubjectEnName(sub)}</b></td>
           <td>${wVal}</td>
           <td>${mVal}</td>
           <td>${pVal}</td>
@@ -3008,18 +2993,15 @@ export function ResultPanel({ sub, userRole }) {
     .official-marksheet-wrapper { 
       width: 100%; 
       max-width: 194mm; 
-      height: 276mm; 
-      min-height: 276mm; 
-      max-height: 276mm; 
+      height: auto; 
+      min-height: auto; 
+      max-height: 282mm; 
       margin: 0 auto; 
       background: #fff; 
       border: 1.5px solid #000; 
       border-radius: 4px; 
       padding: 6mm 8mm; 
       box-sizing: border-box; 
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
       page-break-inside: avoid !important; 
       break-inside: avoid !important; 
       page-break-after: always; 
@@ -3032,8 +3014,7 @@ export function ResultPanel({ sub, userRole }) {
       margin-bottom: 0; 
     }
     .transcript-top-content {
-      display: flex;
-      flex-direction: column;
+      display: block;
     }
     .transcript-official-header { 
       text-align: center; 
@@ -3163,8 +3144,8 @@ export function ResultPanel({ sub, userRole }) {
       font-size: 14.5px; 
     }
     .transcript-bottom-content {
-      margin-top: auto;
-      padding-top: 18px;
+      margin-top: 55px; /* Exactly 1/3 of the previous ~170-180px gap */
+      padding-top: 0;
     }
     .transcript-signatures-zone { 
       display: flex; 
@@ -3202,10 +3183,14 @@ export function ResultPanel({ sub, userRole }) {
         break-after: page !important; 
         page-break-inside: avoid !important; 
         break-inside: avoid !important; 
-        height: 276mm !important;
-        min-height: 276mm !important;
-        max-height: 276mm !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: 282mm !important;
         overflow: hidden !important;
+      }
+      .transcript-bottom-content {
+        margin-top: 55px !important;
+        padding-top: 0 !important;
       }
       .official-marksheet-wrapper:last-child { page-break-after: auto !important; break-after: auto !important; }
     }
@@ -5397,7 +5382,6 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>101</b></td>
                           <td className="text-left">
                             <b>BANGLA-I</b>
-                            <span style={{ fontSize: '10px', color: '#475569', fontWeight: 'normal', marginLeft: '4px' }}>(বাংলা ১ম পত্র)</span>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
@@ -5417,7 +5401,6 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>102</b></td>
                           <td className="text-left">
                             <b>BANGLA-II</b>
-                            <span style={{ fontSize: '10px', color: '#475569', fontWeight: 'normal', marginLeft: '4px' }}>(বাংলা ২য় পত্র)</span>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : 0)}</td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.mcq !== '' && sub.mcq !== null && sub.mcq !== undefined ? sub.mcq : 0)}</td>
@@ -5443,7 +5426,6 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>107</b></td>
                           <td className="text-left">
                             <b>ENGLISH-I</b>
-                            <span style={{ fontSize: '10px', color: '#475569', fontWeight: 'normal', marginLeft: '4px' }}>(ইংরেজি ১ম পত্র)</span>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
                           <td rowSpan={hasEnglishPair ? 2 : 1}>—</td>
@@ -5463,7 +5445,6 @@ export function ResultPanel({ sub, userRole }) {
                           <td><b>108</b></td>
                           <td className="text-left">
                             <b>ENGLISH-II</b>
-                            <span style={{ fontSize: '10px', color: '#475569', fontWeight: 'normal', marginLeft: '4px' }}>(ইংরেজি ২য় পত্র)</span>
                           </td>
                           <td>{sub.absent ? 'অনুপস্থিত' : (sub.written !== '' && sub.written !== null && sub.written !== undefined ? sub.written : sub.total)}</td>
                           {!hasEnglishPair && (
@@ -5492,11 +5473,6 @@ export function ResultPanel({ sub, userRole }) {
                         <td><b>{sub.code}</b></td>
                         <td className="text-left">
                           <b>{getSubjectEnName(sub)}</b>
-                          {sub.name_bn && (
-                            <span style={{ fontSize: '10px', color: '#475569', fontWeight: 'normal', marginLeft: '4px' }}>
-                              ({sub.name_bn})
-                            </span>
-                          )}
                         </td>
                         <td>{wVal}</td>
                         <td>{mVal}</td>

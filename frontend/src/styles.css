@@ -1768,13 +1768,11 @@ button,.btn{touch-action:manipulation}
 }
 
 .transcript-top-content {
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 .transcript-bottom-content {
-  margin-top: auto;
-  padding-top: 18px;
+  margin-top: 55px;
 }
 
 .transcript-footer-line {
@@ -1834,12 +1832,9 @@ button,.btn{touch-action:manipulation}
     margin: 0 auto !important;
     width: 100% !important;
     max-width: 194mm !important;
-    height: 276mm !important;
-    min-height: 276mm !important;
-    max-height: 276mm !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: 282mm !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: avoid !important;
@@ -1849,8 +1844,7 @@ button,.btn{touch-action:manipulation}
   }
 
   .transcript-top-content {
-    display: flex !important;
-    flex-direction: column !important;
+    display: block !important;
   }
 
   .official-marksheet-wrapper .transcript-official-header {
@@ -1923,8 +1917,8 @@ button,.btn{touch-action:manipulation}
   }
 
   .transcript-bottom-content {
-    margin-top: auto !important;
-    padding-top: 18px !important;
+    margin-top: 55px !important; /* Exactly 1/3 of previous gap */
+    padding-top: 0 !important;
   }
 
   .official-marksheet-wrapper .transcript-signatures-zone {
