@@ -2867,97 +2867,101 @@ export function ResultPanel({ sub, userRole }) {
 
     return `
       <div class="official-marksheet-wrapper">
-        <div class="transcript-official-header">
-          <h1 class="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
-          <div class="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
-          <div class="transcript-school-line">স্থাপিত: ১৯৪৬</div>
-          <div class="transcript-school-eiin">EIIN: 114290</div>
-        </div>
+        <div class="transcript-top-content">
+          <div class="transcript-official-header">
+            <h1 class="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+            <div class="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
+            <div class="transcript-school-line">স্থাপিত: ১৯৪৬</div>
+            <div class="transcript-school-eiin">EIIN: 114290</div>
+          </div>
 
-        <div class="marksheet-exam-title-badge">
-          <span>একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} ${toBnDigits(selectedYear)}</span>
-        </div>
+          <div class="marksheet-exam-title-badge">
+            <span>একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} ${toBnDigits(selectedYear)}</span>
+          </div>
 
-        <div class="marksheet-top-info-grid">
-          <div class="marksheet-student-card">
-            <div class="info-row"><b>শিক্ষার্থীর নাম:</b> ${st.name_bn} ${st.name_en ? `(${st.name_en.toUpperCase()})` : ''}</div>
-            <div class="info-row"><b>Student ID:</b> ${st.student_id} | <b>রোল নম্বর:</b> ${toBnDigits(st.roll_no)}</div>
-            <div class="info-row"><b>শ্রেণি:</b> শ্রেণি ${toBnDigits(className)} | <b> শাখা:</b> ${st.section || (isSSC ? 'বিজ্ঞান বিভাগ' : 'A')}</div>
-            <div class="info-row"><b>বিভাগ / গ্রুপ:</b> ${st.department || (isSSC ? 'বিজ্ঞান' : 'সাধারণ')}</div>
+          <div class="marksheet-top-info-grid">
+            <div class="marksheet-student-card">
+              <div class="info-row"><b>শিক্ষার্থীর নাম:</b> ${st.name_bn} ${st.name_en ? `(${st.name_en.toUpperCase()})` : ''}</div>
+              <div class="info-row"><b>Student ID:</b> ${st.student_id} | <b>রোল নম্বর:</b> ${toBnDigits(st.roll_no)}</div>
+              <div class="info-row"><b>শ্রেণি:</b> শ্রেণি ${toBnDigits(className)} | <b>শাখা:</b> ${st.section || (isSSC ? 'বিজ্ঞান বিভাগ' : 'A')}</div>
+              <div class="info-row"><b>বিভাগ / গ্রুপ:</b> ${st.department || (isSSC ? 'বিজ্ঞান' : 'সাধারণ')}</div>
+            </div>
+            <div class="marksheet-student-card">
+              <div class="info-row"><b>পিতার নাম:</b> ${st.student?.father_name || st.father_name || 'মুহাম্মদ আবুবকর সিদ্দিক'}</div>
+              <div class="info-row"><b>মাতার নাম:</b> ${st.student?.mother_name || st.mother_name || 'তাহমিনা'}</div>
+              <div class="info-row"><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)} খ্রি.</div>
+              <div class="info-row"><b>পরীক্ষার নাম:</b> ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}</div>
+            </div>
           </div>
-          <div class="marksheet-student-card">
-            <div class="info-row"><b>পিতার নাম:</b> ${st.student?.father_name || st.father_name || 'মুহাম্মদ আবুবকর সিদ্দিক'}</div>
-            <div class="info-row"><b>মাতার নাম:</b> ${st.student?.mother_name || st.mother_name || 'তাহমিনা'}</div>
-            <div class="info-row"><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)} খ্রি.</div>
-            <div class="info-row"><b>পরীক্ষার নাম:</b> ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}</div>
-          </div>
-        </div>
 
-        <table class="marksheet-subjects-table marksheet-board-table">
-          <thead>
-            <tr>
-              <th rowspan="2" style="width: 75px;">Subject Code</th>
-              <th rowspan="2" style="text-align: center;">Subject Name</th>
-              <th colspan="4">Marks</th>
-              <th rowspan="2" style="width: 80px;">Grade</th>
-            </tr>
-            <tr>
-              <th style="width: 75px;">CQ/Theory</th>
-              <th style="width: 65px;">MCQ</th>
-              <th style="width: 65px;">Practical</th>
-              <th style="width: 70px;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
+          <table class="marksheet-subjects-table marksheet-board-table">
+            <thead>
+              <tr>
+                <th rowspan="2" style="width: 75px;">Subject Code</th>
+                <th rowspan="2" style="text-align: center;">Subject Name</th>
+                <th colspan="4">Marks</th>
+                <th rowspan="2" style="width: 80px;">Grade</th>
+              </tr>
+              <tr>
+                <th style="width: 75px;">CQ/Theory</th>
+                <th style="width: 65px;">MCQ</th>
+                <th style="width: 65px;">Practical</th>
+                <th style="width: 70px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
 
-        <div class="transcript-summary-box">
-          <div>
-            <div class="summary-label">সর্বমোট প্রাপ্ত নম্বর</div>
-            <div class="summary-val">${st.total_marks || 0}</div>
-          </div>
-          <div>
-            <div class="summary-label">প্রাপ্ত শতকরা (%)</div>
-            <div class="summary-val">${st.percentage || 0}%</div>
-          </div>
-          <div>
-            <div class="summary-label">গ্রেড পয়েন্ট (GPA)</div>
-            <div class="summary-val green-text">${st.gpa || '0.00'}</div>
-          </div>
-          <div>
-            <div class="summary-label">চূড়ান্ত লেটার গ্রেড</div>
-            <div class="summary-val green-text">${st.final_grade || 'F'}</div>
-          </div>
-          <div>
-            <div class="summary-label">ফলাফল স্ট্যাটাস</div>
-            <div class="summary-val green-text status-text">${st.result_status || 'অকৃতকার্য'}</div>
-          </div>
-          <div>
-            <div class="summary-label">${isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `${department} মেধা স্থান` : 'শ্রেণি মেধা স্থান'}</div>
-            <div class="summary-val">${(st.display_merit || st.dept_merit || st.merit) ? `${toBnDigits(st.display_merit || st.dept_merit || st.merit)} তম` : '—'}</div>
-          </div>
-        </div>
-
-        <div class="transcript-signatures-zone">
-          <div class="sig-column">
-            <div class="sig-dots">...........................................</div>
-            <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
-          </div>
-          <div class="sig-column">
-            <div class="sig-dots">...........................................</div>
-            <div class="sig-title">অভিভাবকের স্বাক্ষর</div>
-          </div>
-          <div class="sig-column">
-            <div class="sig-dots">...........................................</div>
-            <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+          <div class="transcript-summary-box">
+            <div>
+              <div class="summary-label">সর্বমোট প্রাপ্ত নম্বর</div>
+              <div class="summary-val">${st.total_marks || 0}</div>
+            </div>
+            <div>
+              <div class="summary-label">প্রাপ্ত শতকরা (%)</div>
+              <div class="summary-val">${st.percentage || 0}%</div>
+            </div>
+            <div>
+              <div class="summary-label">গ্রেড পয়েন্ট (GPA)</div>
+              <div class="summary-val green-text">${st.gpa || '0.00'}</div>
+            </div>
+            <div>
+              <div class="summary-label">চূড়ান্ত লেটার গ্রেড</div>
+              <div class="summary-val green-text">${st.final_grade || 'F'}</div>
+            </div>
+            <div>
+              <div class="summary-label">ফলাফল স্ট্যাটাস</div>
+              <div class="summary-val green-text status-text">${st.result_status || 'অকৃতকার্য'}</div>
+            </div>
+            <div>
+              <div class="summary-label">${isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `${department} মেধা স্থান` : 'শ্রেণি মেধা স্থান'}</div>
+              <div class="summary-val">${(st.display_merit || st.dept_merit || st.merit) ? `${toBnDigits(st.display_merit || st.dept_merit || st.merit)} তম` : '—'}</div>
+            </div>
           </div>
         </div>
 
-        <div class="transcript-footer-line">
-          <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
-          <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+        <div class="transcript-bottom-content">
+          <div class="transcript-signatures-zone">
+            <div class="sig-column">
+              <div class="sig-dots">...........................................</div>
+              <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            </div>
+            <div class="sig-column">
+              <div class="sig-dots">...........................................</div>
+              <div class="sig-title">অভিভাবকের স্বাক্ষর</div>
+            </div>
+            <div class="sig-column">
+              <div class="sig-dots">...........................................</div>
+              <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+            </div>
+          </div>
+
+          <div class="transcript-footer-line">
+            <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
+            <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+          </div>
         </div>
       </div>
     `;
@@ -2985,52 +2989,211 @@ export function ResultPanel({ sub, userRole }) {
   <meta charset="utf-8">
   <title>মার্কশিট_ও_প্রোগ্রেস_রিপোর্ট_${className}_${selectedYear}.pdf</title>
   <style>
-    @page { size: A4 portrait; margin: 4mm 6mm; }
-    * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 0; font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; background: #fff; color: #000; }
+    @page { 
+      size: A4 portrait; 
+      margin: 6mm 8mm; 
+    }
+    * { 
+      box-sizing: border-box; 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+    }
+    body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif; 
+      background: #fff; 
+      color: #000; 
+    }
     .official-marksheet-wrapper { 
       width: 100%; 
-      max-width: 195mm; 
-      max-height: 285mm; 
+      max-width: 194mm; 
+      height: 276mm; 
+      min-height: 276mm; 
+      max-height: 276mm; 
       margin: 0 auto; 
       background: #fff; 
       border: 1.5px solid #000; 
       border-radius: 4px; 
-      padding: 4mm 7mm; 
+      padding: 6mm 8mm; 
       box-sizing: border-box; 
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
       page-break-inside: avoid !important; 
       break-inside: avoid !important; 
       page-break-after: always; 
       break-after: page; 
       overflow: hidden;
     }
-    .official-marksheet-wrapper:last-child { page-break-after: auto; break-after: auto; margin-bottom: 0; }
-    .transcript-official-header { text-align: center; margin-bottom: 4px; }
-    .transcript-school-name { margin: 0 0 1px 0; font-size: 20px; color: #0b8050; font-weight: 800; letter-spacing: 0.3px; line-height: 1.15; }
-    .transcript-school-line { margin: 1px 0; font-size: 11px; color: #1e293b; font-weight: 500; line-height: 1.2; }
-    .transcript-school-eiin { margin: 1px 0 0 0; font-size: 11px; color: #1e293b; font-weight: 700; line-height: 1.2; }
-    .marksheet-exam-title-badge { text-align: center; margin: 4px 0 6px 0; }
-    .marksheet-exam-title-badge span { display: inline-block; background: #1e293b; color: #fff; padding: 3px 20px; border-radius: 9999px; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
-    .marksheet-top-info-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 8px; margin-bottom: 6px; }
-    .marksheet-student-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 10px; font-size: 11px; line-height: 1.4; color: #0f172a; }
-    .marksheet-student-card .info-row { margin: 1px 0; }
-    .marksheet-subjects-table { width: 100%; border-collapse: collapse; margin: 5px 0; font-size: 10.5px; border: 1px solid #000; }
-    .marksheet-subjects-table th, .marksheet-subjects-table td { border: 1px solid #000; padding: 2.5px 4.5px; text-align: center; line-height: 1.2; }
-    .marksheet-subjects-table th { background: #fff; color: #000; font-weight: 700; font-size: 10.5px; }
-    .marksheet-subjects-table td.text-left { text-align: left; padding-left: 6px; font-weight: 600; }
-    .transcript-grade-cell { vertical-align: middle; text-align: center; background: #fff; }
-    .grade-letter { font-size: 12.5px; font-weight: 800; color: #0b8050; line-height: 1.1; }
-    .grade-gp { font-size: 9.5px; font-weight: 700; color: #000; margin-top: 1px; }
-    .transcript-summary-box { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 5px; padding: 4px 4px; margin-top: 5px; text-align: center; }
-    .transcript-summary-box .summary-label { font-size: 9.5px; color: #64748b; font-weight: 600; margin-bottom: 1px; }
-    .transcript-summary-box .summary-val { font-size: 13.5px; font-weight: 800; color: #000; }
-    .transcript-summary-box .summary-val.green-text { color: #0b8050; }
-    .transcript-summary-box .summary-val.status-text { font-size: 13.5px; }
-    .transcript-signatures-zone { display: flex; justify-content: space-between; margin-top: 10px; font-size: 10.5px; color: #334155; text-align: center; }
-    .transcript-signatures-zone .sig-column { min-width: 130px; }
-    .transcript-signatures-zone .sig-dots { letter-spacing: 1px; color: #94a3b8; margin-bottom: 3px; }
-    .transcript-signatures-zone .sig-title { font-weight: 600; color: #1e293b; }
-    .transcript-footer-line { margin-top: 5px; display: flex; justify-content: space-between; font-size: 9px; color: #64748b; border-top: 1px dotted #cbd5e1; padding-top: 3px; }
+    .official-marksheet-wrapper:last-child { 
+      page-break-after: auto; 
+      break-after: auto; 
+      margin-bottom: 0; 
+    }
+    .transcript-top-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .transcript-official-header { 
+      text-align: center; 
+      margin-bottom: 6px; 
+    }
+    .transcript-school-name { 
+      margin: 0 0 2px 0; 
+      font-size: 22px; 
+      color: #0b8050; 
+      font-weight: 800; 
+      letter-spacing: 0.3px; 
+      line-height: 1.2; 
+    }
+    .transcript-school-line { 
+      margin: 1.5px 0; 
+      font-size: 11.5px; 
+      color: #1e293b; 
+      font-weight: 500; 
+      line-height: 1.25; 
+    }
+    .transcript-school-eiin { 
+      margin: 1.5px 0 0 0; 
+      font-size: 11.5px; 
+      color: #1e293b; 
+      font-weight: 700; 
+      line-height: 1.25; 
+    }
+    .marksheet-exam-title-badge { 
+      text-align: center; 
+      margin: 6px 0 8px 0; 
+    }
+    .marksheet-exam-title-badge span { 
+      display: inline-block; 
+      background: #1e293b; 
+      color: #fff; 
+      padding: 4px 22px; 
+      border-radius: 9999px; 
+      font-size: 12.5px; 
+      font-weight: 700; 
+      letter-spacing: 0.4px; 
+    }
+    .marksheet-top-info-grid { 
+      display: grid; 
+      grid-template-columns: 1.15fr 0.85fr; 
+      gap: 10px; 
+      margin-bottom: 8px; 
+    }
+    .marksheet-student-card { 
+      background: #f8fafc; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 5px; 
+      padding: 6px 12px; 
+      font-size: 11.5px; 
+      line-height: 1.55; 
+      color: #0f172a; 
+    }
+    .marksheet-student-card .info-row { 
+      margin: 1px 0; 
+    }
+    .marksheet-subjects-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 6px 0; 
+      font-size: 11px; 
+      border: 1px solid #000; 
+    }
+    .marksheet-subjects-table th, .marksheet-subjects-table td { 
+      border: 1px solid #000; 
+      padding: 3.5px 5px; 
+      text-align: center; 
+      line-height: 1.25; 
+    }
+    .marksheet-subjects-table th { 
+      background: #fff; 
+      color: #000; 
+      font-weight: 700; 
+      font-size: 11px; 
+    }
+    .marksheet-subjects-table td.text-left { 
+      text-align: left; 
+      padding-left: 6px; 
+      font-weight: 600; 
+    }
+    .transcript-grade-cell { 
+      vertical-align: middle; 
+      text-align: center; 
+      background: #fff; 
+    }
+    .grade-letter { 
+      font-size: 13px; 
+      font-weight: 800; 
+      color: #0b8050; 
+      line-height: 1.15; 
+    }
+    .grade-gp { 
+      font-size: 10px; 
+      font-weight: 700; 
+      color: #000; 
+      margin-top: 1px; 
+    }
+    .transcript-summary-box { 
+      display: grid; 
+      grid-template-columns: repeat(6, 1fr); 
+      gap: 5px; 
+      background: #f8fafc; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 5px; 
+      padding: 6px 5px; 
+      margin-top: 8px; 
+      text-align: center; 
+    }
+    .transcript-summary-box .summary-label { 
+      font-size: 10px; 
+      color: #64748b; 
+      font-weight: 600; 
+      margin-bottom: 2px; 
+    }
+    .transcript-summary-box .summary-val { 
+      font-size: 14.5px; 
+      font-weight: 800; 
+      color: #000; 
+    }
+    .transcript-summary-box .summary-val.green-text { 
+      color: #0b8050; 
+    }
+    .transcript-summary-box .summary-val.status-text { 
+      font-size: 14.5px; 
+    }
+    .transcript-bottom-content {
+      margin-top: auto;
+      padding-top: 18px;
+    }
+    .transcript-signatures-zone { 
+      display: flex; 
+      justify-content: space-between; 
+      font-size: 11px; 
+      color: #334155; 
+      text-align: center; 
+      margin-bottom: 8px;
+    }
+    .transcript-signatures-zone .sig-column { 
+      min-width: 140px; 
+    }
+    .transcript-signatures-zone .sig-dots { 
+      letter-spacing: 1px; 
+      color: #94a3b8; 
+      margin-bottom: 5px; 
+    }
+    .transcript-signatures-zone .sig-title { 
+      font-weight: 600; 
+      color: #1e293b; 
+    }
+    .transcript-footer-line { 
+      display: flex; 
+      justify-content: space-between; 
+      font-size: 9px; 
+      color: #64748b; 
+      border-top: 1px dotted #cbd5e1; 
+      padding-top: 4px; 
+    }
     @media print {
       body { padding: 0; }
       .no-print-bar { display: none !important; }
@@ -3039,7 +3202,9 @@ export function ResultPanel({ sub, userRole }) {
         break-after: page !important; 
         page-break-inside: avoid !important; 
         break-inside: avoid !important; 
-        max-height: 285mm !important;
+        height: 276mm !important;
+        min-height: 276mm !important;
+        max-height: 276mm !important;
         overflow: hidden !important;
       }
       .official-marksheet-wrapper:last-child { page-break-after: auto !important; break-after: auto !important; }
@@ -5148,9 +5313,10 @@ export function ResultPanel({ sub, userRole }) {
 
           {currentStudentResult ? (
             <div className="official-marksheet-wrapper" id="official-academic-transcript">
-              {/* ========================================================= */}
-              {/* SECTION 1: TOP SECTION (Centered School Header - User Mockup) */}
-              {/* ========================================================= */}
+              <div className="transcript-top-content">
+                {/* ========================================================= */}
+                {/* SECTION 1: TOP SECTION (Centered School Header - User Mockup) */}
+                {/* ========================================================= */}
               <div className="transcript-official-header">
                 <h1 className="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
                 <div className="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
@@ -5383,27 +5549,30 @@ export function ResultPanel({ sub, userRole }) {
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Signature Zone */}
-              <div className="transcript-signatures-zone">
-                <div className="sig-column">
-                  <div className="sig-dots">...........................................</div>
-                  <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            <div className="transcript-bottom-content">
+                {/* Signature Zone */}
+                <div className="transcript-signatures-zone">
+                  <div className="sig-column">
+                    <div className="sig-dots">...........................................</div>
+                    <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
+                  </div>
+                  <div className="sig-column">
+                    <div className="sig-dots">...........................................</div>
+                    <div>অভিভাবকের স্বাক্ষর</div>
+                  </div>
+                  <div className="sig-column">
+                    <div className="sig-dots">...........................................</div>
+                    <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+                  </div>
                 </div>
-                <div className="sig-column">
-                  <div className="sig-dots">...........................................</div>
-                  <div>অভিভাবকের স্বাক্ষর</div>
-                </div>
-                <div className="sig-column">
-                  <div className="sig-dots">...........................................</div>
-                  <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
-                </div>
-              </div>
 
-              {/* Footer info */}
-              <div className="transcript-footer-line">
-                <span>ফলাফল প্রকাশের তারিখ: {toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
-                <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+                {/* Footer info */}
+                <div className="transcript-footer-line">
+                  <span>ফলাফল প্রকাশের তারিখ: {toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
+                  <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+                </div>
               </div>
             </div>
           ) : (

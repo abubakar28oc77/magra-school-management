@@ -1767,6 +1767,16 @@ button,.btn{touch-action:manipulation}
   color: #1e293b;
 }
 
+.transcript-top-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.transcript-bottom-content {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
 .transcript-footer-line {
   margin-top: 18px;
   display: flex;
@@ -1783,7 +1793,7 @@ button,.btn{touch-action:manipulation}
 @media print {
   @page {
     size: A4 portrait;
-    margin: 4mm 6mm;
+    margin: 6mm 8mm;
   }
   
   html, body {
@@ -1820,99 +1830,116 @@ button,.btn{touch-action:manipulation}
     box-shadow: none !important;
     border: 1.5px solid #000000 !important;
     border-radius: 4px !important;
-    padding: 4mm 7mm !important;
+    padding: 6mm 8mm !important;
     margin: 0 auto !important;
     width: 100% !important;
-    max-width: 195mm !important;
-    max-height: 285mm !important;
-    overflow: hidden !important;
+    max-width: 194mm !important;
+    height: 276mm !important;
+    min-height: 276mm !important;
+    max-height: 276mm !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: avoid !important;
     break-after: avoid !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .transcript-top-content {
+    display: flex !important;
+    flex-direction: column !important;
   }
 
   .official-marksheet-wrapper .transcript-official-header {
-    margin-bottom: 4px !important;
-  }
-
-  .official-marksheet-wrapper .transcript-school-name {
-    font-size: 20px !important;
-    margin-bottom: 1px !important;
-    line-height: 1.15 !important;
-  }
-
-  .official-marksheet-wrapper .transcript-school-line {
-    font-size: 11px !important;
-    margin: 1px 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  .official-marksheet-wrapper .transcript-school-eiin {
-    font-size: 11px !important;
-    margin: 1px 0 0 0 !important;
-  }
-
-  .official-marksheet-wrapper .marksheet-exam-title-badge {
-    margin: 4px 0 6px 0 !important;
-  }
-
-  .official-marksheet-wrapper .marksheet-exam-title-badge span {
-    padding: 3px 20px !important;
-    font-size: 12px !important;
-  }
-
-  .official-marksheet-wrapper .marksheet-top-info-grid {
-    gap: 8px !important;
     margin-bottom: 6px !important;
   }
 
+  .official-marksheet-wrapper .transcript-school-name {
+    font-size: 22px !important;
+    margin-bottom: 2px !important;
+    line-height: 1.2 !important;
+  }
+
+  .official-marksheet-wrapper .transcript-school-line {
+    font-size: 11.5px !important;
+    margin: 1.5px 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  .official-marksheet-wrapper .transcript-school-eiin {
+    font-size: 11.5px !important;
+    margin: 1.5px 0 0 0 !important;
+    line-height: 1.25 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-exam-title-badge {
+    margin: 6px 0 8px 0 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-exam-title-badge span {
+    padding: 4px 22px !important;
+    font-size: 12.5px !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-top-info-grid {
+    gap: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
   .official-marksheet-wrapper .marksheet-student-card {
-    padding: 4px 10px !important;
-    font-size: 11px !important;
-    line-height: 1.4 !important;
+    padding: 6px 12px !important;
+    font-size: 11.5px !important;
+    line-height: 1.55 !important;
   }
 
   .official-marksheet-wrapper .marksheet-subjects-table {
-    margin: 5px 0 !important;
-    font-size: 10.5px !important;
+    margin: 6px 0 !important;
+    font-size: 11px !important;
   }
 
   .official-marksheet-wrapper .marksheet-subjects-table th,
   .official-marksheet-wrapper .marksheet-subjects-table td {
-    padding: 2.5px 4.5px !important;
+    padding: 3.5px 5px !important;
     border: 1px solid #000000 !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
   }
 
   .official-marksheet-wrapper .transcript-summary-box {
-    padding: 4px 4px !important;
-    margin-top: 5px !important;
-    gap: 4px !important;
+    padding: 6px 5px !important;
+    margin-top: 8px !important;
+    gap: 5px !important;
   }
 
   .official-marksheet-wrapper .transcript-summary-box .summary-label {
-    font-size: 9.5px !important;
-    margin-bottom: 1px !important;
+    font-size: 10px !important;
+    margin-bottom: 2px !important;
   }
 
   .official-marksheet-wrapper .transcript-summary-box .summary-val {
-    font-size: 13.5px !important;
+    font-size: 14.5px !important;
+  }
+
+  .transcript-bottom-content {
+    margin-top: auto !important;
+    padding-top: 18px !important;
   }
 
   .official-marksheet-wrapper .transcript-signatures-zone {
-    margin-top: 10px !important;
-    font-size: 10.5px !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    font-size: 11px !important;
   }
 
   .official-marksheet-wrapper .transcript-signatures-zone .sig-dots {
-    margin-bottom: 3px !important;
+    margin-bottom: 5px !important;
   }
 
   .official-marksheet-wrapper .transcript-footer-line {
-    margin-top: 5px !important;
-    padding-top: 3px !important;
+    margin-top: 0 !important;
+    padding-top: 4px !important;
     font-size: 9px !important;
   }
 
