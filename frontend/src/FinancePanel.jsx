@@ -306,508 +306,8 @@ const DEFAULT_CLASS_RATES = {
   '10': { tuition: 250, admission: 600, session: 1000, exam: 500, ssc_fee: 1950 }
 };
 
-// Initial Sample Fee Transactions
-const SEED_FEE_TRANSACTIONS = [
-  {
-    id: 'FEE-2026-005',
-    receipt_no: 'মপাউবি/রশিদ/2026/005',
-    date: '2026-10-18',
-    student_id: 'STU-10-SCI-01',
-    student_name: 'আহসানাফ সিদ্দিক',
-    class_name: '10',
-    roll_no: '1',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    is_stipend: false,
-    is_scholarship: false,
-    tuition_months: ['আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'],
-    tuition_amount: 1000,
-    items: [
-      { name: 'মাসিক বেতন (আগস্ট, সেপ্টেম্বর, অক্টোবর, নভেম্বর, ডিসেম্বর)', amount: 1000 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 40 },
-      { name: 'পরীক্ষার ফি (অর্ধ-বার্ষিক পরীক্ষা)', amount: 650 }
-    ],
-    gross_total: 1690,
-    discount: 190,
-    discount_reason: 'প্রধান শিক্ষক কর্তৃক বিশেষ মওকুফ',
-    net_payable: 1500,
-    paid_amount: 1500,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'মোঃ আলমগীর হোসেন',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-006',
-    receipt_no: 'মপাউবি/রশিদ/2026/006',
-    date: '2026-10-18',
-    student_id: 'STU-10-SCI-02',
-    student_name: 'তানজিলা আক্তার',
-    class_name: '10',
-    roll_no: '2',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    is_stipend: false,
-    is_scholarship: false,
-    tuition_months: ['আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'],
-    tuition_amount: 1000,
-    items: [
-      { name: 'মাসিক বেতন (আগস্ট, সেপ্টেম্বর, অক্টোবর, নভেম্বর, ডিসেম্বর)', amount: 1000 },
-      { name: 'বার্ষিক চাঁদা / সেশন ফি', amount: 800 },
-      { name: 'পরীক্ষার ফি (অর্ধ-বার্ষিক পরীক্ষা)', amount: 650 }
-    ],
-    gross_total: 2450,
-    discount: 250,
-    discount_reason: 'প্রধান শিক্ষক কর্তৃক বিশেষ মওকুফ',
-    net_payable: 2200,
-    paid_amount: 2200,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'মোঃ আলমগীর হোসেন',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-001',
-    receipt_no: 'মপাউবি/রশিদ/২০২৬/০০১',
-    date: '2026-10-15',
-    student_id: 's-601',
-    student_name: 'আহনাফ সিদ্দিক',
-    class_name: '6',
-    roll_no: '1',
-    section: 'ক',
-    is_stipend: false,
-    is_scholarship: false,
-    tuition_months: ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর'],
-    tuition_amount: 1500,
-    items: [
-      { name: 'মাসিক বেতন (১০ মাস)', amount: 1500, note: 'জানু - অক্টো' },
-      { name: 'বার্ষিক চাঁদা ও সেশন ফি', amount: 800 },
-      { name: 'অর্ধ-বার্ষিক পরীক্ষার ফি', amount: 350 },
-      { name: 'স্কাউট ফি', amount: 100 }
-    ],
-    gross_total: 2750,
-    discount: 250,
-    discount_reason: 'প্রধান শিক্ষকের সুপারিশে বিশেষ ছাড়',
-    net_payable: 2500,
-    paid_amount: 2500,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'মোঃ আলমগীর হোসেন',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-002',
-    receipt_no: 'মপাউবি/রশিদ/২০২৬/০০২',
-    date: '2026-10-16',
-    student_id: 's-801',
-    student_name: 'জান্নাতুল ফেরদৌস',
-    class_name: '8',
-    roll_no: '2',
-    section: 'ক',
-    is_stipend: true,
-    is_scholarship: false,
-    tuition_months: ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন'],
-    tuition_amount: 0, // Stipend recipient = 0 tuition fee!
-    items: [
-      { name: 'মাসিক বেতন (৬ মাস) [উপবৃত্তি প্রাপ্ত - ১০০% মওকুফ]', amount: 0, note: 'উপবৃত্তি ভাতাভুক্ত' },
-      { name: 'রেজিষ্ট্রেশন ফি (৮ম শ্রেণি)', amount: 350 },
-      { name: 'বার্ষিক মিলাদ মাহফিল', amount: 100 },
-      { name: 'স্কাউট ও গার্ল গাইড ফি', amount: 100 }
-    ],
-    gross_total: 550,
-    discount: 50,
-    discount_reason: 'দরিদ্র কল্যাণ তহবিল ছাড়',
-    net_payable: 500,
-    paid_amount: 500,
-    due_amount: 0,
-    payment_method: 'bkash',
-    received_by: 'মোঃ আলমগীর হোসেন',
-    remarks: 'উপবৃত্তি সুবিধাভোগী'
-  },
-  // 14 Sample Fee Collections for 07/11, 08/11, 09/11, 10/11
-  // 07/11/2026: 3 students
-  {
-    id: 'FEE-2026-101',
-    receipt_no: 'মপাউবি/রশিদ/2026/101',
-    date: '2026-11-07',
-    student_id: 'STU-10-SCI-01',
-    student_name: 'আহসানাফ সিদ্দিক',
-    class_name: '10',
-    roll_no: '1',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 1000,
-    items: [
-      { name: 'মাসিক বেতন', amount: 1000 },
-      { name: 'পরীক্ষার ফি', amount: 650 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 40 },
-      { name: 'সেশন চার্জ', amount: 800 }
-    ],
-    gross_total: 2490,
-    discount: 0,
-    paid_amount: 2490,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-102',
-    receipt_no: 'মপাউবি/রশিদ/2026/102',
-    date: '2026-11-07',
-    student_id: 'STU-10-SCI-02',
-    student_name: 'তানজিলা আক্তার',
-    class_name: '10',
-    roll_no: '2',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 1000,
-    items: [
-      { name: 'মাসিক বেতন', amount: 1000 },
-      { name: 'পরীক্ষার ফি', amount: 650 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 800 }
-    ],
-    gross_total: 2450,
-    discount: 0,
-    paid_amount: 2450,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-103',
-    receipt_no: 'মপাউবি/রশিদ/2026/103',
-    date: '2026-11-07',
-    student_id: 'STU-10-SCI-03',
-    student_name: 'মোছাঃ মরিয়ম খাতুন',
-    class_name: '10',
-    roll_no: '3',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 1000,
-    items: [
-      { name: 'মাসিক বেতন', amount: 1000 },
-      { name: 'পরীক্ষার ফি', amount: 650 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 40 },
-      { name: 'সেশন চার্জ', amount: 800 }
-    ],
-    gross_total: 2490,
-    discount: 0,
-    paid_amount: 2490,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  // 08/11/2026: 4 students
-  {
-    id: 'FEE-2026-104',
-    receipt_no: 'মপাউবি/রশিদ/2026/104',
-    date: '2026-11-08',
-    student_id: 'STU-09-SCI-01',
-    student_name: 'মোঃ রাফি হাসান',
-    class_name: '9',
-    roll_no: '1',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 800,
-    items: [
-      { name: 'মাসিক বেতন', amount: 800 },
-      { name: 'পরীক্ষার ফি', amount: 500 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 50 },
-      { name: 'সেশন চার্জ', amount: 600 }
-    ],
-    gross_total: 1950,
-    discount: 0,
-    paid_amount: 1950,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-105',
-    receipt_no: 'মপাউবি/রশিদ/2026/105',
-    date: '2026-11-08',
-    student_id: 'STU-09-SCI-02',
-    student_name: 'সামিয়া সুলতানা',
-    class_name: '9',
-    roll_no: '2',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 800,
-    items: [
-      { name: 'মাসিক বেতন', amount: 800 },
-      { name: 'পরীক্ষার ফি', amount: 500 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 600 }
-    ],
-    gross_total: 1900,
-    discount: 0,
-    paid_amount: 1900,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-106',
-    receipt_no: 'মপাউবি/রশিদ/2026/106',
-    date: '2026-11-08',
-    student_id: 'STU-09-SCI-03',
-    student_name: 'নাঈম ইসলাম',
-    class_name: '9',
-    roll_no: '3',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 800,
-    items: [
-      { name: 'মাসিক বেতন', amount: 800 },
-      { name: 'পরীক্ষার ফি', amount: 500 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 50 },
-      { name: 'সেশন চার্জ', amount: 600 }
-    ],
-    gross_total: 1950,
-    discount: 0,
-    paid_amount: 1950,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-107',
-    receipt_no: 'মপাউবি/রশিদ/2026/107',
-    date: '2026-11-08',
-    student_id: 'STU-09-SCI-04',
-    student_name: 'ফাতেমা আক্তার',
-    class_name: '9',
-    roll_no: '4',
-    section: 'ক',
-    group: 'বিজ্ঞান বিভাগ',
-    tuition_amount: 800,
-    items: [
-      { name: 'মাসিক বেতন', amount: 800 },
-      { name: 'পরীক্ষার ফি', amount: 500 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 600 }
-    ],
-    gross_total: 1900,
-    discount: 0,
-    paid_amount: 1900,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  // 09/11/2026: 2 students
-  {
-    id: 'FEE-2026-108',
-    receipt_no: 'মপাউবি/রশিদ/2026/108',
-    date: '2026-11-09',
-    student_id: 's-801',
-    student_name: 'সাকিব আল হাসান',
-    class_name: '8',
-    roll_no: '1',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 700,
-    items: [
-      { name: 'মাসিক বেতন', amount: 700 },
-      { name: 'পরীক্ষার ফি', amount: 400 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 30 },
-      { name: 'সেশন চার্জ', amount: 500 }
-    ],
-    gross_total: 1630,
-    discount: 0,
-    paid_amount: 1630,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-109',
-    receipt_no: 'মপাউবি/রশিদ/2026/109',
-    date: '2026-11-09',
-    student_id: 's-802',
-    student_name: 'নুসরাত জাহান',
-    class_name: '8',
-    roll_no: '2',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 700,
-    items: [
-      { name: 'মাসিক বেতন', amount: 700 },
-      { name: 'পরীক্ষার ফি', amount: 400 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 500 }
-    ],
-    gross_total: 1600,
-    discount: 0,
-    paid_amount: 1600,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  // 10/11/2026: 5 students (2 in deposit DEP-2026-001, 3 pending!)
-  {
-    id: 'FEE-2026-110',
-    receipt_no: 'মপাউবি/রশিদ/2026/110',
-    date: '2026-11-10',
-    student_id: 's-701',
-    student_name: 'মোঃ আব্দুল্লাহ',
-    class_name: '7',
-    roll_no: '1',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 600,
-    items: [
-      { name: 'মাসিক বেতন', amount: 600 },
-      { name: 'পরীক্ষার ফি', amount: 350 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 20 },
-      { name: 'সেশন চার্জ', amount: 400 }
-    ],
-    gross_total: 1370,
-    discount: 0,
-    paid_amount: 1370,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-111',
-    receipt_no: 'মপাউবি/রশিদ/2026/111',
-    date: '2026-11-10',
-    student_id: 's-702',
-    student_name: 'আয়েশা খাতুন',
-    class_name: '7',
-    roll_no: '2',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 600,
-    items: [
-      { name: 'মাসিক বেতন', amount: 600 },
-      { name: 'পরীক্ষার ফি', amount: 350 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 400 }
-    ],
-    gross_total: 1350,
-    discount: 0,
-    paid_amount: 1350,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: 'DEP-2026-001',
-    deposited_at: '2026-11-10',
-    remarks: 'সম্পূর্ণ পরিশোধিত'
-  },
-  {
-    id: 'FEE-2026-112',
-    receipt_no: 'মপাউবি/রশিদ/2026/112',
-    date: '2026-11-10',
-    student_id: 's-601',
-    student_name: 'মোঃ রায়হান কবির',
-    class_name: '6',
-    roll_no: '1',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 500,
-    items: [
-      { name: 'মাসিক বেতন', amount: 500 },
-      { name: 'পরীক্ষার ফি', amount: 300 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 20 },
-      { name: 'সেশন চার্জ', amount: 400 }
-    ],
-    gross_total: 1220,
-    discount: 0,
-    paid_amount: 1220,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: null,
-    deposited_at: null,
-    remarks: 'অপেক্ষমাণ জমা'
-  },
-  {
-    id: 'FEE-2026-113',
-    receipt_no: 'মপাউবি/রশিদ/2026/113',
-    date: '2026-11-10',
-    student_id: 's-602',
-    student_name: 'খাদিজা আক্তার',
-    class_name: '6',
-    roll_no: '2',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 500,
-    items: [
-      { name: 'মাসিক বেতন', amount: 500 },
-      { name: 'পরীক্ষার ফি', amount: 300 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 0 },
-      { name: 'সেশন চার্জ', amount: 400 }
-    ],
-    gross_total: 1200,
-    discount: 0,
-    paid_amount: 1200,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: null,
-    deposited_at: null,
-    remarks: 'অপেক্ষমাণ জমা'
-  },
-  {
-    id: 'FEE-2026-114',
-    receipt_no: 'মপাউবি/রশিদ/2026/114',
-    date: '2026-11-10',
-    student_id: 's-603',
-    student_name: 'মোঃ মাহিন হাসান',
-    class_name: '6',
-    roll_no: '3',
-    section: 'ক',
-    group: 'সাধারণ',
-    tuition_amount: 500,
-    items: [
-      { name: 'মাসিক বেতন', amount: 500 },
-      { name: 'পরীক্ষার ফি', amount: 300 },
-      { name: 'বিলম্ব ফি / জরিমানা', amount: 20 },
-      { name: 'সেশন চার্জ', amount: 400 }
-    ],
-    gross_total: 1220,
-    discount: 0,
-    paid_amount: 1220,
-    due_amount: 0,
-    payment_method: 'cash',
-    received_by: 'শ্রেণি শিক্ষক',
-    deposit_id: null,
-    deposited_at: null,
-    remarks: 'অপেক্ষমাণ জমা'
-  }
-];
+// Initial Sample Fee Transactions (Cleared for original collections)
+const SEED_FEE_TRANSACTIONS = [];
 
 // Helper to categorize fee items into primary heads
 export function categorizeFeeHead(headName = '') {
@@ -819,51 +319,11 @@ export function categorizeFeeHead(headName = '') {
   return 'অন্যান্য খাত';
 }
 
-// Initial Sample Fee Deposits to Office Assistant (ফি জমার খতিয়ান ও দাখিলা)
-const SEED_FEE_DEPOSITS = [
-  {
-    id: 'DEP-2026-001',
-    deposit_no: 'মপাউবি/জমা-খতিয়ান/২০২৬/০০১',
-    deposit_date: '2026-11-10',
-    deposited_by: 'মুহাম্মদ আবুবকর সিদ্দিক (শ্রেণি শিক্ষক)',
-    received_by: 'মোঃ আলমগীর হোসেন (অফিস সহকারী)',
-    student_count: 11,
-    receipt_ids: [
-      'FEE-2026-101', 'FEE-2026-102', 'FEE-2026-103',
-      'FEE-2026-104', 'FEE-2026-105', 'FEE-2026-106', 'FEE-2026-107',
-      'FEE-2026-108', 'FEE-2026-109',
-      'FEE-2026-110', 'FEE-2026-111'
-    ],
-    head_breakdown: {
-      'বেতন খাত': 8800,
-      'পরীক্ষার ফি খাত': 5450,
-      'জরিমানা খাত': 230,
-      'সেশন চার্জ খাত': 6600,
-      'অন্যান্য খাত': 0
-    },
-    total_amount: 21080,
-    payment_method: 'cash',
-    remarks: '০৭/১১ হতে ১০/১১ তারিখের মোট ১১ জন শিক্ষার্থীর ফি আদায় অফিস সহকারীর নিকট জমা প্রদান',
-    status: 'deposited',
-    created_at: '2026-11-10T14:30:00'
-  }
-];
+// Initial Sample Fee Deposits to Office Assistant (Cleared for original collections)
+const SEED_FEE_DEPOSITS = [];
 
 // Initial Sample Institutional Incomes
 const SEED_INCOMES = [
-  {
-    id: 'INC-DEP-DEP-2026-001',
-    deposit_id: 'DEP-2026-001',
-    voucher_no: 'আয়-ভাউচার-২০২৬-১',
-    date: '2026-11-10',
-    category: 'শিক্ষার্থী ফি আদায় (অফিস সহকারীর নিকট জমাকৃত চালান)',
-    title: 'শিক্ষার্থী ফি জমা (চালান নং: মপাউবি/জমা-খতিয়ান/২০২৬/০০১)',
-    payer_name: 'মুহাম্মদ আবুবকর সিদ্দিক (শ্রেণি শিক্ষক) ➔ মোঃ আলমগীর হোসেন (অফিস সহকারী)',
-    amount: 21080,
-    method: 'cash',
-    note: '০৭/১১ হতে ১০/১১ তারিখের মোট ১১ জন শিক্ষার্থীর ফি আদায় অফিস সহকারীর নিকট জমা প্রদান (বেতন: ৳৮,৮০০, পরীক্ষা: ৳৫,৪৫০, জরিমানা: ৳২৩০, সেশন: ৳৬,৬০০)',
-    is_auto_deposit: true
-  },
   {
     id: 'INC-2026-001',
     voucher_no: 'আয়-ভাউচার-২০২৬-২',
@@ -1080,6 +540,9 @@ export function FinancePanel({ sub }) {
   // Modals & History Filters
   const [viewingDepositDetails, setViewingDepositDetails] = useState(null);
   const [editingDepositBatch, setEditingDepositBatch] = useState(null);
+  const [editingReceipt, setEditingReceipt] = useState(null);
+  const [receiptSearchQuery, setReceiptSearchQuery] = useState('');
+  const [receiptFilterClass, setReceiptFilterClass] = useState('all');
   const [depositHistorySearch, setDepositHistorySearch] = useState('');
   const [depositHistoryDateFilter, setDepositHistoryDateFilter] = useState('all');
   const [depositSuccessMsg, setDepositSuccessMsg] = useState('');
@@ -1091,30 +554,38 @@ export function FinancePanel({ sub }) {
   // Persistent Stores
   const [feeRecords, setFeeRecords] = useState(() => {
     try {
-      const saved = localStorage.getItem('magra_finance_fees');
-      let records = saved ? JSON.parse(saved) : null;
-      if (!Array.isArray(records) || records.length === 0) {
-        records = SEED_FEE_TRANSACTIONS;
-      } else {
-        // Ensure the sample 14 records for 07/11-10/11 exist if missing
-        const existingIds = new Set(records.map(r => r.id));
-        const missing = SEED_FEE_TRANSACTIONS.filter(s => !existingIds.has(s.id));
-        if (missing.length > 0) {
-          records = [...records, ...missing];
+      const cleanKey = 'magra_finance_clean_defaults_v4';
+      if (!localStorage.getItem(cleanKey)) {
+        localStorage.removeItem('magra_finance_fees');
+        localStorage.removeItem('magra_finance_deposits');
+        const savedIncomes = localStorage.getItem('magra_finance_incomes');
+        if (savedIncomes) {
+          try {
+            const parsedInc = JSON.parse(savedIncomes);
+            const cleanedInc = parsedInc.filter(x => !x.is_auto_deposit && x.id !== 'INC-DEP-DEP-2026-001');
+            localStorage.setItem('magra_finance_incomes', JSON.stringify(cleanedInc));
+          } catch {}
         }
+        localStorage.setItem(cleanKey, 'true');
+        return [];
       }
-      return records;
+      const saved = localStorage.getItem('magra_finance_fees');
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return SEED_FEE_TRANSACTIONS;
+      return [];
     }
   });
 
   const [feeDeposits, setFeeDeposits] = useState(() => {
     try {
+      const cleanKey = 'magra_finance_clean_defaults_v4';
+      if (!localStorage.getItem(cleanKey)) {
+        return [];
+      }
       const saved = localStorage.getItem('magra_finance_deposits');
-      return saved ? JSON.parse(saved) : SEED_FEE_DEPOSITS;
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return SEED_FEE_DEPOSITS;
+      return [];
     }
   });
 
@@ -1125,6 +596,7 @@ export function FinancePanel({ sub }) {
       if (!Array.isArray(records) || records.length === 0) {
         records = SEED_INCOMES;
       } else {
+        records = records.filter(r => r.id !== 'INC-DEP-DEP-2026-001');
         const existingIds = new Set(records.map(r => r.id));
         const missing = SEED_INCOMES.filter(s => !existingIds.has(s.id));
         if (missing.length > 0) {
@@ -1332,6 +804,25 @@ export function FinancePanel({ sub }) {
     }
     return feeRecords;
   }, [feeRecords, assignedClass]);
+
+  // Filtered fee records for search & class filter
+  const filteredReceipts = useMemo(() => {
+    let list = displayedFeeRecords;
+    if (receiptFilterClass && receiptFilterClass !== 'all') {
+      list = list.filter(r => normalizeClass(r.class_name) === receiptFilterClass);
+    }
+    if (receiptSearchQuery && receiptSearchQuery.trim()) {
+      const q = receiptSearchQuery.trim().toLowerCase();
+      list = list.filter(r => {
+        const name = String(r.student_name || '').toLowerCase();
+        const rno = String(r.receipt_no || '').toLowerCase();
+        const roll = String(r.roll_no || '');
+        const bnRoll = toBnDigits(roll);
+        return name.includes(q) || rno.includes(q) || roll.includes(q) || bnRoll.includes(q);
+      });
+    }
+    return list;
+  }, [displayedFeeRecords, receiptFilterClass, receiptSearchQuery]);
   // Group selection for Class 9 and 10 ('science' | 'humanities' | 'business')
   const [selectedGroup, setSelectedGroup] = useState('science');
   // Roll number input for search
@@ -3150,6 +2641,139 @@ export function FinancePanel({ sub }) {
   const totalStudentDue = useMemo(() => {
     return feeRecords.reduce((acc, r) => acc + (Number(r.due_amount) || 0), 0);
   }, [feeRecords]);
+
+  // Delete Receipt Handler with full synchronization
+  const handleDeleteReceipt = (receipt) => {
+    if (!receipt) return;
+    const confirmMsg = `আপনি কি নিশ্চিতভাবে এই রসিদটি ডিলিট করতে চান?\n\n• রশিদ নং: ${receipt.receipt_no}\n• শিক্ষার্থী: ${receipt.student_name} (${toBnDigits(receipt.class_name)}ম শ্রেণি, রোল: ${toBnDigits(receipt.roll_no)})\n• তারিখ: ${formatDateBn(receipt.date)}\n• আদায়কৃত টাকা: ${formatMoney(receipt.paid_amount)}`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    // If this receipt is already part of a deposit batch, warn and update/remove from deposit
+    if (receipt.deposit_id) {
+      const confirmDep = window.confirm(`⚠️ সতর্কতা:\nএই রসিদটি ইতিমধ্যে "ফি জমার হিসাব ও ইতিহাস"-এর একটি জমা চালানে অন্তর্ভুক্ত রয়েছে।\n\nআপনি যদি এটি ডিলিট করেন, তবে উক্ত জমা চালান থেকেও এই রসিদ ও তার টাকার হিসাব স্বয়ংক্রিয়ভাবে সমন্বয় করা হবে।\n\nআপনি কি এগিয়ে যেতে চান?`);
+      if (!confirmDep) return;
+
+      setFeeDeposits(prevDeps => {
+        return prevDeps.map(dep => {
+          if (dep.id === receipt.deposit_id || (dep.receipt_ids || []).includes(receipt.id)) {
+            const newReceiptIds = (dep.receipt_ids || []).filter(rid => rid !== receipt.id);
+            const remainingRecords = feeRecords.filter(r => newReceiptIds.includes(r.id) && r.id !== receipt.id);
+            const newTotal = remainingRecords.reduce((sum, r) => sum + (Number(r.paid_amount) || 0), 0);
+            const newHeads = {
+              'বেতন খাত': 0,
+              'পরীক্ষার ফি খাত': 0,
+              'জরিমানা খাত': 0,
+              'সেশন চার্জ খাত': 0,
+              'অন্যান্য খাত': 0
+            };
+            remainingRecords.forEach(r => {
+              (r.items || []).forEach(it => {
+                const iname = it.name || '';
+                const iamt = Number(it.amount) || 0;
+                if (iname.includes('বেতন') || iname.includes('টিউশন')) newHeads['বেতন খাত'] += iamt;
+                else if (iname.includes('পরীক্ষা')) newHeads['পরীক্ষার ফি খাত'] += iamt;
+                else if (iname.includes('জরিমানা') || iname.includes('বিলম্ব')) newHeads['জরিমানা খাত'] += iamt;
+                else if (iname.includes('সেশন') || iname.includes('ভর্তি')) newHeads['সেশন চার্জ খাত'] += iamt;
+                else newHeads['অন্যান্য খাত'] += iamt;
+              });
+            });
+
+            return {
+              ...dep,
+              receipt_ids: newReceiptIds,
+              student_count: newReceiptIds.length,
+              head_breakdown: newHeads,
+              total_amount: newTotal
+            };
+          }
+          return dep;
+        }).filter(dep => dep.student_count > 0);
+      });
+    }
+
+    setFeeRecords(prev => prev.filter(r => r.id !== receipt.id));
+    setSelectedReceiptIds(prev => prev.filter(id => id !== receipt.id));
+    setSelectedReceiptIdsForDeposit(prev => prev.filter(id => id !== receipt.id));
+
+    setSubmitMsg(`✓ রসিদ নং "${receipt.receipt_no}" সফলভাবে ডিলিট করা হয়েছে।`);
+    setTimeout(() => setSubmitMsg(''), 4500);
+  };
+
+  // Open Edit Receipt Modal
+  const handleEditReceipt = (receipt) => {
+    if (!receipt) return;
+    setEditingReceipt({
+      ...receipt,
+      items: receipt.items && Array.isArray(receipt.items) ? receipt.items.map(it => ({ ...it })) : []
+    });
+  };
+
+  // Save Edited Receipt Handler
+  const handleSaveEditedReceipt = (e) => {
+    e.preventDefault();
+    if (!editingReceipt) return;
+
+    const itemsGross = (editingReceipt.items || []).reduce((sum, it) => sum + (Number(it.amount) || 0), 0);
+    const grossTotal = itemsGross > 0 ? itemsGross : (Number(editingReceipt.gross_total) || 0);
+    const discount = Number(editingReceipt.discount) || 0;
+    const netPayable = Math.max(0, grossTotal - discount);
+    const paidAmount = Number(editingReceipt.paid_amount) || 0;
+    const dueAmount = Math.max(0, netPayable - paidAmount);
+
+    const updatedReceipt = {
+      ...editingReceipt,
+      gross_total: grossTotal,
+      discount: discount,
+      net_payable: netPayable,
+      paid_amount: paidAmount,
+      due_amount: dueAmount
+    };
+
+    setFeeRecords(prev => prev.map(r => r.id === updatedReceipt.id ? updatedReceipt : r));
+
+    // If this receipt is in a deposit batch, synchronize the deposit's head breakdown & total
+    if (updatedReceipt.deposit_id) {
+      setFeeDeposits(prevDeps => {
+        return prevDeps.map(dep => {
+          if (dep.id === updatedReceipt.deposit_id || (dep.receipt_ids || []).includes(updatedReceipt.id)) {
+            const depReceipts = feeRecords.map(r => r.id === updatedReceipt.id ? updatedReceipt : r)
+                                          .filter(r => (dep.receipt_ids || []).includes(r.id));
+            const newTotal = depReceipts.reduce((sum, r) => sum + (Number(r.paid_amount) || 0), 0);
+            const newHeads = {
+              'বেতন খাত': 0,
+              'পরীক্ষার ফি খাত': 0,
+              'জরিমানা খাত': 0,
+              'সেশন চার্জ খাত': 0,
+              'অন্যান্য খাত': 0
+            };
+            depReceipts.forEach(r => {
+              (r.items || []).forEach(it => {
+                const iname = it.name || '';
+                const iamt = Number(it.amount) || 0;
+                if (iname.includes('বেতন') || iname.includes('টিউশন')) newHeads['বেতন খাত'] += iamt;
+                else if (iname.includes('পরীক্ষা')) newHeads['পরীক্ষার ফি খাত'] += iamt;
+                else if (iname.includes('জরিমানা') || iname.includes('বিলম্ব')) newHeads['জরিমানা খাত'] += iamt;
+                else if (iname.includes('সেশন') || iname.includes('ভর্তি')) newHeads['সেশন চার্জ খাত'] += iamt;
+                else newHeads['অন্যান্য খাত'] += iamt;
+              });
+            });
+
+            return {
+              ...dep,
+              head_breakdown: newHeads,
+              total_amount: newTotal
+            };
+          }
+          return dep;
+        });
+      });
+    }
+
+    setSubmitMsg(`✓ রসিদ নং "${updatedReceipt.receipt_no}" এর সংশোধিত তথ্য সফলভাবে সংরক্ষিত হয়েছে।`);
+    setEditingReceipt(null);
+    setTimeout(() => setSubmitMsg(''), 4500);
+  };
 
   // Print Cash Receipt Function (Dual-Slip A4 Landscape Setup)
   const handlePrintReceipt = (r1, r2 = null) => {
@@ -5221,6 +4845,113 @@ export function FinancePanel({ sub }) {
             )}
           </div>
 
+          {/* Search, Filter & Management Bar */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px',
+            marginBottom: '14px',
+            background: '#f8fafc',
+            padding: '10px 14px',
+            borderRadius: '8px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', flex: '1 1 320px' }}>
+              <div style={{ position: 'relative', flex: '1 1 220px' }}>
+                <input
+                  type="text"
+                  placeholder="🔍 শিক্ষার্থী নাম, রোল বা রশিদ নং দিয়ে খুঁজুন..."
+                  value={receiptSearchQuery}
+                  onChange={e => setReceiptSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '7px 12px 7px 30px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '12px'
+                  }}
+                />
+                <span style={{ position: 'absolute', left: '10px', top: '7px', fontSize: '12px', color: '#94a3b8' }}>🔍</span>
+              </div>
+
+              <select
+                value={receiptFilterClass}
+                onChange={e => setReceiptFilterClass(e.target.value)}
+                style={{
+                  padding: '7px 10px',
+                  borderRadius: '6px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '12px',
+                  background: '#fff',
+                  fontWeight: 600
+                }}
+              >
+                <option value="all">সকল শ্রেণির রসিদ</option>
+                <option value="6">৬ষ্ঠ শ্রেণি</option>
+                <option value="7">৭ম শ্রেণি</option>
+                <option value="8">৮ম শ্রেণি</option>
+                <option value="9">৯ম শ্রেণি</option>
+                <option value="10">১০ম শ্রেণি</option>
+              </select>
+
+              {(receiptSearchQuery || receiptFilterClass !== 'all') && (
+                <button
+                  type="button"
+                  onClick={() => { setReceiptSearchQuery(''); setReceiptFilterClass('all'); }}
+                  style={{
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    padding: '6px 10px',
+                    borderRadius: '5px',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    color: '#64748b'
+                  }}
+                >
+                  রিসেট ফিল্টার
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (feeRecords.length === 0) {
+                    alert('বর্তমানে কোনো রসিদ নেই। তালিকা ইতিমধ্যে সম্পূর্ণ খালি।');
+                    return;
+                  }
+                  if (window.confirm('⚠️ সতর্কতা:\nআপনি কি সকল আদায়ের রসিদ ও জমা খতিয়ান মুছে সম্পূর্ণ নতুন করে শুরু করতে চান?\n\n(এর ফলে বিদ্যমান সকল ফি রসিদ ও জমা চালান মুছে যাবে)')) {
+                    setFeeRecords([]);
+                    setFeeDeposits([]);
+                    setSelectedReceiptIds([]);
+                    setSelectedReceiptIdsForDeposit([]);
+                    localStorage.removeItem('magra_finance_fees');
+                    localStorage.removeItem('magra_finance_deposits');
+                    setIncomes(prev => prev.filter(x => !x.is_auto_deposit));
+                    setSubmitMsg('✓ সকল ডিফল্ট ও টেস্ট আদায় মুছে ফেলা হয়েছে। এখন আপনি নতুন করে রসিদ এন্ট্রি করতে পারেন।');
+                    setTimeout(() => setSubmitMsg(''), 4500);
+                  }
+                }}
+                style={{
+                  background: '#fee2e2',
+                  color: '#b91c1c',
+                  border: '1px solid #fca5a5',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+                title="ভুলবশত তৈরি হওয়া সকল টেস্ট রসিদ একসাথে পরিষ্কার করুন"
+              >
+                🗑️ সকল আদায় খতিয়ান পরিষ্কার করুন
+              </button>
+            </div>
+          </div>
+
           <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
@@ -5238,11 +4969,11 @@ export function FinancePanel({ sub }) {
                   <th style={{ padding: '10px 8px', textAlign: 'right', width: '80px' }}>মওকুফ</th>
                   <th style={{ padding: '10px 8px', textAlign: 'right', width: '95px' }}>আদায়কৃত টাকা</th>
                   <th style={{ padding: '10px 8px', textAlign: 'right', width: '80px' }}>বকেয়া</th>
-                  <th style={{ padding: '10px 8px', textAlign: 'center', width: '110px' }}>কাজ / রসিদ</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'center', minWidth: '190px' }}>কাজ / রসিদ</th>
                 </tr>
               </thead>
               <tbody>
-                {feeRecords.map((r, idx) => (
+                {filteredReceipts.map((r, idx) => (
                   <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: selectedReceiptIds.includes(r.id) ? '#ecfdf5' : (idx % 2 === 0 ? '#fff' : '#fcfdfe') }}>
                     <td style={{ textAlign: 'center', padding: '8px 4px' }}>
                       <input
@@ -5285,7 +5016,7 @@ export function FinancePanel({ sub }) {
                         type="button"
                         onClick={() => handlePrintReceipt(r)}
                         style={{
-                          background: '#047857', color: '#fff', border: 'none', padding: '4px 9px',
+                          background: '#047857', color: '#fff', border: 'none', padding: '4px 8px',
                           borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                           display: 'inline-flex', alignItems: 'center', gap: '3px', marginRight: '4px'
                         }}
@@ -5293,6 +5024,33 @@ export function FinancePanel({ sub }) {
                       >
                         🖨️ প্রিন্ট
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleEditReceipt(r)}
+                        style={{
+                          background: '#0284c7', color: '#fff', border: 'none', padding: '4px 8px',
+                          borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                          display: 'inline-flex', alignItems: 'center', gap: '3px', marginRight: '4px'
+                        }}
+                        title="রশিদ ও আদায়ের তথ্য সম্পাদনা / সংশোধন করুন"
+                      >
+                        ✏️ এডিট
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteReceipt(r)}
+                        style={{
+                          background: '#dc2626', color: '#fff', border: 'none', padding: '4px 8px',
+                          borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                          display: 'inline-flex', alignItems: 'center', gap: '3px', marginRight: '4px'
+                        }}
+                        title="ভুল এন্ট্রি হলে এই রসিদটি সম্পূর্ণ মুছে ফেলুন"
+                      >
+                        🗑️ ডিলিট
+                      </button>
+
                       {!r.deposit_id ? (
                         <button
                           type="button"
@@ -5319,21 +5077,385 @@ export function FinancePanel({ sub }) {
                     </td>
                   </tr>
                 ))}
-                {!feeRecords.length && (
+                {!filteredReceipts.length && (
                   <tr>
-                    <td colSpan="11" style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                      এখনো কোনো ফি আদায়ের রেকর্ড নেই।
+                    <td colSpan="12" style={{ textAlign: 'center', padding: '32px 16px', color: '#64748b' }}>
+                      <div style={{ fontSize: '14.5px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                        {receiptSearchQuery || receiptFilterClass !== 'all' ? '🔍 অনুসন্ধানে কোনো রসিদ পাওয়া যায়নি।' : '🧾 এখনো কোনো শিক্ষার্থী ফি আদায়ের রেকর্ড নেই।'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>
+                        {receiptSearchQuery || receiptFilterClass !== 'all' ? 'অনুগ্রহ করে অনুসন্ধানের শব্দ বা শ্রেণি ফিল্টার পরিবর্তন করুন।' : 'উপরে "💵 শিক্ষার্থী ফি আদায় (Billing)" ফিচারে গিয়ে ফি আদায় সম্পন্ন করলে এখানে নতুন রসিদ যুক্ত হবে। ভুল হলে আপনি যেকোনো সময় এডিট বা ডিলিট করতে পারবেন।'}
+                      </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
+
+          {/* ========================================================= */}
+          {/* MODAL: EDIT FEE RECEIPT (রশিদ ও আদায় তথ্য সম্পাদনা)       */}
+          {/* ========================================================= */}
+          {editingReceipt && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+              backdropFilter: 'blur(3px)',
+              overflowY: 'auto'
+            }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                border: '2px solid #047857',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
+                width: '100%',
+                maxWidth: '680px',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                padding: '20px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #e2e8f0', paddingBottom: '10px', marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✏️</span> শিক্ষার্থী ফি আদায় ও রসিদ তথ্য সংশোধন
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingReceipt(null)}
+                    style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', fontWeight: 800, color: '#64748b' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveEditedReceipt} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {/* Row 1: Receipt Number, Date, Payment Method */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>রশিদ নং *</label>
+                      <input
+                        type="text"
+                        value={editingReceipt.receipt_no || ''}
+                        onChange={e => setEditingReceipt({ ...editingReceipt, receipt_no: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>আদায়ের তারিখ *</label>
+                      <input
+                        type="date"
+                        value={editingReceipt.date || ''}
+                        onChange={e => setEditingReceipt({ ...editingReceipt, date: e.target.value })}
+                        required
+                        style={{ width: '100%', padding: '7px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>পরিশোধ মাধ্যম</label>
+                      <select
+                        value={editingReceipt.payment_method || 'cash'}
+                        onChange={e => setEditingReceipt({ ...editingReceipt, payment_method: e.target.value })}
+                        style={{ width: '100%', padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: '#fff' }}
+                      >
+                        <option value="cash">নগদ ক্যাশ (Cash)</option>
+                        <option value="bkash">বিকাশ (bKash)</option>
+                        <option value="nagad">নগদ (Nagad)</option>
+                        <option value="rocket">রকেট (Rocket)</option>
+                        <option value="bank">ব্যাংক (Bank)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Student Details */}
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11.5px', fontWeight: 700, color: '#047857', marginBottom: '8px' }}>👨‍🎓 শিক্ষার্থীর পরিচিতি</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>শিক্ষার্থীর নাম *</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.student_name || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, student_name: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '6px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>শ্রেণি *</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.class_name || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, class_name: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '6px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>রোল নম্বর *</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.roll_no || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, roll_no: e.target.value })}
+                          required
+                          style={{ width: '100%', padding: '6px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: 700 }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>শাখা</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.section || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, section: e.target.value })}
+                          style={{ width: '100%', padding: '6px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>বিভাগ / গ্রুপ</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.group || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, group: e.target.value })}
+                          placeholder="যেমন: বিজ্ঞান / সাধারণ"
+                          style={{ width: '100%', padding: '6px 9px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 3: Fee Items List */}
+                  <div style={{ background: '#fdfefe', padding: '12px', borderRadius: '8px', border: '1.5px solid #cbd5e1' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#047857' }}>📋 আদায়কৃত ফি-এর খাত ও টাকার পরিমাণ:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newItems = [...(editingReceipt.items || []), { name: 'নতুন খাত', amount: 0 }];
+                          const newGross = newItems.reduce((s, it) => s + (Number(it.amount) || 0), 0);
+                          const disc = Number(editingReceipt.discount) || 0;
+                          const net = Math.max(0, newGross - disc);
+                          setEditingReceipt({
+                            ...editingReceipt,
+                            items: newItems,
+                            gross_total: newGross,
+                            net_payable: net,
+                            paid_amount: net,
+                            due_amount: 0
+                          });
+                        }}
+                        style={{ background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '3px 8px', borderRadius: '5px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        + নতুন খাত যোগ করুন
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {(editingReceipt.items || []).map((it, idx) => (
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 32px', gap: '6px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={it.name || ''}
+                            onChange={e => {
+                              const newItems = [...editingReceipt.items];
+                              newItems[idx] = { ...newItems[idx], name: e.target.value };
+                              setEditingReceipt({ ...editingReceipt, items: newItems });
+                            }}
+                            placeholder="খাতের নাম (যেমন: মাসিক বেতন / পরীক্ষার ফি)"
+                            style={{ padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                          />
+                          <input
+                            type="number"
+                            value={it.amount !== undefined ? it.amount : ''}
+                            onChange={e => {
+                              const newItems = [...editingReceipt.items];
+                              newItems[idx] = { ...newItems[idx], amount: Number(e.target.value) || 0 };
+                              const newGross = newItems.reduce((s, itm) => s + (Number(itm.amount) || 0), 0);
+                              const disc = Number(editingReceipt.discount) || 0;
+                              const net = Math.max(0, newGross - disc);
+                              const paid = Number(editingReceipt.paid_amount) || 0;
+                              const due = Math.max(0, net - paid);
+                              setEditingReceipt({
+                                ...editingReceipt,
+                                items: newItems,
+                                gross_total: newGross,
+                                net_payable: net,
+                                due_amount: due
+                              });
+                            }}
+                            placeholder="টাকা"
+                            style={{ padding: '5px 8px', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '11.5px', textAlign: 'right', fontWeight: 700 }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newItems = editingReceipt.items.filter((_, i) => i !== idx);
+                              const newGross = newItems.reduce((s, itm) => s + (Number(itm.amount) || 0), 0);
+                              const disc = Number(editingReceipt.discount) || 0;
+                              const net = Math.max(0, newGross - disc);
+                              const paid = Number(editingReceipt.paid_amount) || 0;
+                              const due = Math.max(0, net - paid);
+                              setEditingReceipt({
+                                ...editingReceipt,
+                                items: newItems,
+                                gross_total: newGross,
+                                net_payable: net,
+                                due_amount: due
+                              });
+                            }}
+                            style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', height: '28px', cursor: 'pointer', fontWeight: 800, fontSize: '12px' }}
+                            title="এই খাতটি বাদ দিন"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      {(!editingReceipt.items || editingReceipt.items.length === 0) && (
+                        <div style={{ color: '#64748b', fontSize: '11.5px', fontStyle: 'italic', textAlign: 'center', padding: '6px' }}>
+                          খাত ভিত্তিক কোনো এন্ট্রি নেই। নিচে মোট টাকার পরিমাণ নির্ধারণ করুন।
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 4: Totals, Discount & Payment breakdown */}
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', alignItems: 'flex-end' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '3px' }}>মোট পাওনা (Gross ৳)</label>
+                        <input
+                          type="number"
+                          value={editingReceipt.gross_total !== undefined ? editingReceipt.gross_total : ''}
+                          onChange={e => {
+                            const val = Number(e.target.value) || 0;
+                            const disc = Number(editingReceipt.discount) || 0;
+                            const net = Math.max(0, val - disc);
+                            const paid = Number(editingReceipt.paid_amount) || 0;
+                            const due = Math.max(0, net - paid);
+                            setEditingReceipt({
+                              ...editingReceipt,
+                              gross_total: val,
+                              net_payable: net,
+                              due_amount: due
+                            });
+                          }}
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', textAlign: 'right', fontWeight: 700 }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#b45309', display: 'block', marginBottom: '3px' }}>মওকুফ / ছাড় (৳)</label>
+                        <input
+                          type="number"
+                          value={editingReceipt.discount !== undefined ? editingReceipt.discount : ''}
+                          onChange={e => {
+                            const disc = Number(e.target.value) || 0;
+                            const gross = Number(editingReceipt.gross_total) || 0;
+                            const net = Math.max(0, gross - disc);
+                            const paid = Number(editingReceipt.paid_amount) || 0;
+                            const due = Math.max(0, net - paid);
+                            setEditingReceipt({
+                              ...editingReceipt,
+                              discount: disc,
+                              net_payable: net,
+                              due_amount: due
+                            });
+                          }}
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', textAlign: 'right', color: '#b45309', fontWeight: 700 }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>আদায়কৃত টাকা (Paid ৳) *</label>
+                        <input
+                          type="number"
+                          value={editingReceipt.paid_amount !== undefined ? editingReceipt.paid_amount : ''}
+                          onChange={e => {
+                            const paid = Number(e.target.value) || 0;
+                            const net = Number(editingReceipt.net_payable) || 0;
+                            const due = Math.max(0, net - paid);
+                            setEditingReceipt({
+                              ...editingReceipt,
+                              paid_amount: paid,
+                              due_amount: due
+                            });
+                          }}
+                          required
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1.5px solid #047857', fontSize: '12px', textAlign: 'right', color: '#047857', fontWeight: 800 }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', display: 'block', marginBottom: '3px' }}>বকেয়া (Due ৳)</label>
+                        <input
+                          type="number"
+                          value={editingReceipt.due_amount !== undefined ? editingReceipt.due_amount : 0}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, due_amount: Number(e.target.value) || 0 })}
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '12px', textAlign: 'right', color: '#dc2626', fontWeight: 700 }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>মওকুফের কারণ / অনুমোদন</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.discount_reason || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, discount_reason: e.target.value })}
+                          placeholder="যেমন: প্রধান শিক্ষক কর্তৃক বিশেষ মওকুফ"
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>আদায়কারী শিক্ষক / কর্মচারী</label>
+                        <input
+                          type="text"
+                          value={editingReceipt.received_by || ''}
+                          onChange={e => setEditingReceipt({ ...editingReceipt, received_by: e.target.value })}
+                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '8px' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '3px' }}>মন্তব্য (রসিদের নিচে মুদ্রিত)</label>
+                      <input
+                        type="text"
+                        value={editingReceipt.remarks || ''}
+                        onChange={e => setEditingReceipt({ ...editingReceipt, remarks: e.target.value })}
+                        placeholder="যেমন: সম্পূর্ণ পরিশোধিত"
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1px solid #cbd5e1', fontSize: '11.5px' }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingReceipt(null)}
+                      style={{ background: '#f8fafc', color: '#64748b', border: '1px solid #cbd5e1', padding: '7px 16px', borderRadius: '5px', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      বাতিল
+                    </button>
+                    <button
+                      type="submit"
+                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '7px 20px', borderRadius: '5px', fontSize: '12px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 2px 6px rgba(4,120,87,0.3)' }}
+                    >
+                      💾 সংশোধন সংরক্ষণ করুন
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* ========================================================= */}
       {/* TAB: DEPOSIT HISTORY & LEDGER (ফি জমার হিসাব ও ইতিহাস)     */}
       {/* ========================================================= */}
       {activeTab === 'deposit_history' && (
