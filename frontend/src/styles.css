@@ -1783,7 +1783,7 @@ button,.btn{touch-action:manipulation}
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm;
+    margin: 4mm 6mm;
   }
   
   html, body {
@@ -1791,6 +1791,8 @@ button,.btn{touch-action:manipulation}
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   header, nav, aside, .admin aside, main, #main-content, .reference-public > header, .reference-public > main, .ref-section, .ref-bottom, .ref-hero-wrap, .ref-stats, .ref-demographic-stats, .ref-main, .ref-footer-line, .top, .admin .top, .admin-role-banner, .admin-top-actions, .no-print, .marksheet-nav-toolbar, .btn, .btn-modern-action, .btn-modern-primary, .btn-modern-secondary, .exam-tab-bar, .sub-nav, .tabs {
@@ -1818,16 +1820,100 @@ button,.btn{touch-action:manipulation}
     box-shadow: none !important;
     border: 1.5px solid #000000 !important;
     border-radius: 4px !important;
-    padding: 8mm 10mm !important;
+    padding: 4mm 7mm !important;
     margin: 0 auto !important;
     width: 100% !important;
-    max-width: 190mm !important;
+    max-width: 195mm !important;
+    max-height: 285mm !important;
+    overflow: hidden !important;
     page-break-inside: avoid !important;
+    break-inside: avoid !important;
     page-break-after: avoid !important;
+    break-after: avoid !important;
+    box-sizing: border-box !important;
   }
 
-  .marksheet-subjects-table th, .marksheet-subjects-table td {
+  .official-marksheet-wrapper .transcript-official-header {
+    margin-bottom: 4px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-school-name {
+    font-size: 20px !important;
+    margin-bottom: 1px !important;
+    line-height: 1.15 !important;
+  }
+
+  .official-marksheet-wrapper .transcript-school-line {
+    font-size: 11px !important;
+    margin: 1px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .official-marksheet-wrapper .transcript-school-eiin {
+    font-size: 11px !important;
+    margin: 1px 0 0 0 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-exam-title-badge {
+    margin: 4px 0 6px 0 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-exam-title-badge span {
+    padding: 3px 20px !important;
+    font-size: 12px !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-top-info-grid {
+    gap: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-student-card {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-subjects-table {
+    margin: 5px 0 !important;
+    font-size: 10.5px !important;
+  }
+
+  .official-marksheet-wrapper .marksheet-subjects-table th,
+  .official-marksheet-wrapper .marksheet-subjects-table td {
+    padding: 2.5px 4.5px !important;
     border: 1px solid #000000 !important;
+    line-height: 1.2 !important;
+  }
+
+  .official-marksheet-wrapper .transcript-summary-box {
+    padding: 4px 4px !important;
+    margin-top: 5px !important;
+    gap: 4px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-summary-box .summary-label {
+    font-size: 9.5px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-summary-box .summary-val {
+    font-size: 13.5px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-signatures-zone {
+    margin-top: 10px !important;
+    font-size: 10.5px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-signatures-zone .sig-dots {
+    margin-bottom: 3px !important;
+  }
+
+  .official-marksheet-wrapper .transcript-footer-line {
+    margin-top: 5px !important;
+    padding-top: 3px !important;
+    font-size: 9px !important;
   }
 
   /* Dedicated Legal Landscape for Tabulation Matrix */
