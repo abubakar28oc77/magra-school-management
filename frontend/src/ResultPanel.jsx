@@ -2944,11 +2944,7 @@ export function ResultPanel({ sub, userRole }) {
           </div>
 
           <!-- স্বাক্ষরের নিচে সিলদেয়ার জায়গা (Space for Official Seal below Signature) -->
-          <div class="transcript-seal-space" style="height: 52px; display: flex; align-items: center; justify-content: flex-end; padding-right: 30px; margin: 6px 0 8px 0;">
-            <div style="border: 1px dashed #94a3b8; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b; font-weight: 700;">
-              সিলমোহর
-            </div>
-          </div>
+          <div class="transcript-seal-space" style="height: 52px; margin: 6px 0 8px 0;"></div>
 
           <div class="transcript-footer-line">
             <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
@@ -5553,11 +5549,7 @@ export function ResultPanel({ sub, userRole }) {
                 </div>
 
                 {/* স্বাক্ষরের নিচে সিলদেয়ার জায়গা (Space for Official Seal below Signature) */}
-                <div className="transcript-seal-space" style={{ height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '30px', margin: '6px 0 8px 0' }}>
-                  <div style={{ border: '1px dashed #94a3b8', borderRadius: '50%', width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#64748b', fontWeight: 700 }}>
-                    সিলমোহর
-                  </div>
-                </div>
+                <div className="transcript-seal-space" style={{ height: '52px', margin: '6px 0 8px 0' }}></div>
 
                 {/* Footer info */}
                 <div className="transcript-footer-line">
