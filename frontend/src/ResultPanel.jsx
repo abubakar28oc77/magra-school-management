@@ -185,7 +185,7 @@ export function ResultPanel({ sub, userRole }) {
   const [batchRollFrom, setBatchRollFrom] = useState('');
   const [batchRollTo, setBatchRollTo] = useState('');
   const [failedFilterMode, setFailedFilterMode] = useState('all'); // 'all' | '1' | '2' | '3+'
-  const [centerSigOption, setCenterSigOption] = useState('preparer'); // 'preparer' | 'guardian' | 'both'
+  const [signatureLayout, setSignatureLayout] = useState('auto'); // 'auto' | 'both' | 'preparer' | 'guardian'
 
   // Forms
   const [editingYearId, setEditingYearId] = useState(null);
@@ -373,14 +373,22 @@ export function ResultPanel({ sub, userRole }) {
     );
   }, [isProgressReportExam, selectedExamObj]);
 
+  // When 'auto': Progress Reports (অর্ধ-বার্ষিক, প্রাক-নির্বাচনী) automatically get BOTH (৪টি স্বাক্ষর: শ্রেণি শিক্ষক, প্রস্তুতকারী, অভিভাবক, প্রধান শিক্ষক)
+  // Academic Transcripts (নির্বাচনী, বার্ষিক) get ৩টি স্বাক্ষর (শ্রেণি শিক্ষক, প্রস্তুতকারী, প্রধান শিক্ষক)
+  const isFourSignatures = useMemo(() => {
+    if (signatureLayout === 'both') return true;
+    if (signatureLayout === 'preparer' || signatureLayout === 'guardian') return false;
+    return isProgressReportExam;
+  }, [signatureLayout, isProgressReportExam]);
+
   const activeCenterSig = useMemo(() => {
-    if (centerSigOption === 'guardian') return 'অভিভাবকের স্বাক্ষর';
+    if (signatureLayout === 'guardian') return 'অভিভাবকের স্বাক্ষর';
     return 'প্রস্তুতকারীর স্বাক্ষর';
-  }, [centerSigOption]);
+  }, [signatureLayout]);
 
   const sigDotsText = useMemo(() => {
-    return centerSigOption === 'both' ? '..............................' : '...........................................';
-  }, [centerSigOption]);
+    return isFourSignatures ? '..............................' : '...........................................';
+  }, [isFourSignatures]);
 
   const marksheetDocTitle = useMemo(() => {
     const examDisplayName = selectedExamObj ? selectedExamObj.name_bn : (isTranscriptExam ? 'নির্বাচনী পরীক্ষা' : 'অর্ধ-বার্ষিক পরীক্ষা');
@@ -2985,12 +2993,12 @@ export function ResultPanel({ sub, userRole }) {
         </div>
 
         <div class="transcript-bottom-content">
-          <div class="transcript-signatures-zone ${centerSigOption === 'both' ? 'four-columns' : 'three-columns'}">
+          <div class="transcript-signatures-zone ${isFourSignatures ? 'four-columns' : 'three-columns'}">
             <div class="sig-column">
               <div class="sig-dots">${sigDotsText}</div>
               <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
             </div>
-            ${centerSigOption === 'both' ? `
+            ${isFourSignatures ? `
               <div class="sig-column">
                 <div class="sig-dots">${sigDotsText}</div>
                 <div class="sig-title">প্রস্তুতকারীর স্বাক্ষর</div>
@@ -5143,64 +5151,82 @@ export function ResultPanel({ sub, userRole }) {
               </select>
             </div>
 
-            {/* Signature Option Selector (প্রস্তুতকারী / অভিভাবক / উভয়ই) */}
-            <div className="signature-type-selector-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+            {/* Signature Option Selector */}
+            <div className="signature-type-selector-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
               <span style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '12px', color: '#334155' }}>
-                ✍️ স্বাক্ষর অপশন:
+                ✍️ স্বাক্ষর:
               </span>
               <button
                 type="button"
-                onClick={() => setCenterSigOption('preparer')}
+                onClick={() => setSignatureLayout('auto')}
                 style={{
                   padding: '3px 8px',
                   fontSize: '11px',
-                  fontWeight: centerSigOption === 'preparer' ? 700 : 500,
-                  background: centerSigOption === 'preparer' ? '#0284c7' : '#f1f5f9',
-                  color: centerSigOption === 'preparer' ? '#fff' : '#475569',
+                  fontWeight: signatureLayout === 'auto' ? 700 : 500,
+                  background: signatureLayout === 'auto' ? '#0284c7' : '#f1f5f9',
+                  color: signatureLayout === 'auto' ? '#fff' : '#475569',
                   border: '1px solid',
-                  borderColor: centerSigOption === 'preparer' ? '#0284c7' : '#cbd5e1',
+                  borderColor: signatureLayout === 'auto' ? '#0284c7' : '#cbd5e1',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                title="ফলাফল প্রস্তুতকারী / আইসিটি শিক্ষক (সুপার এডমিন)-এর স্বাক্ষর (৩ কলাম)"
+                title="স্বয়ংক্রিয় প্রমিত নিয়ম: প্রোগ্রেস রিপোর্টে ৪টি স্বাক্ষর (প্রস্তুতকারী ও অভিভাবক উভয়ই), একাডেমিক ট্রান্সক্রিপ্টে ৩টি স্বাক্ষর (প্রস্তুতকারী)"
               >
-                প্রস্তুতকারী
+                স্বয়ংক্রিয় ({isFourSignatures ? '৪টি' : '৩টি'})
               </button>
               <button
                 type="button"
-                onClick={() => setCenterSigOption('guardian')}
+                onClick={() => setSignatureLayout('both')}
                 style={{
                   padding: '3px 8px',
                   fontSize: '11px',
-                  fontWeight: centerSigOption === 'guardian' ? 700 : 500,
-                  background: centerSigOption === 'guardian' ? '#0284c7' : '#f1f5f9',
-                  color: centerSigOption === 'guardian' ? '#fff' : '#475569',
+                  fontWeight: signatureLayout === 'both' ? 700 : 500,
+                  background: signatureLayout === 'both' ? '#0284c7' : '#f1f5f9',
+                  color: signatureLayout === 'both' ? '#fff' : '#475569',
                   border: '1px solid',
-                  borderColor: centerSigOption === 'guardian' ? '#0284c7' : '#cbd5e1',
+                  borderColor: signatureLayout === 'both' ? '#0284c7' : '#cbd5e1',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                title="অভিভাবকের স্বাক্ষর (৩ কলাম)"
+                title="শ্রেণি শিক্ষক | প্রস্তুতকারী | অভিভাবক | প্রধান শিক্ষক (৪ কলাম)"
               >
-                অভিভাবক
+                ৪টি স্বাক্ষর (উভয়ই)
               </button>
               <button
                 type="button"
-                onClick={() => setCenterSigOption('both')}
+                onClick={() => setSignatureLayout('preparer')}
                 style={{
                   padding: '3px 8px',
                   fontSize: '11px',
-                  fontWeight: centerSigOption === 'both' ? 700 : 500,
-                  background: centerSigOption === 'both' ? '#0284c7' : '#f1f5f9',
-                  color: centerSigOption === 'both' ? '#fff' : '#475569',
+                  fontWeight: signatureLayout === 'preparer' ? 700 : 500,
+                  background: signatureLayout === 'preparer' ? '#0284c7' : '#f1f5f9',
+                  color: signatureLayout === 'preparer' ? '#fff' : '#475569',
                   border: '1px solid',
-                  borderColor: centerSigOption === 'both' ? '#0284c7' : '#cbd5e1',
+                  borderColor: signatureLayout === 'preparer' ? '#0284c7' : '#cbd5e1',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                title="প্রস্তুতকারী ও অভিভাবক উভয়ের স্বাক্ষর (৪ কলাম)"
+                title="শ্রেণি শিক্ষক | প্রস্তুতকারী | প্রধান শিক্ষক (৩ কলাম)"
               >
-                উভয়ই (৪টি)
+                প্রস্তুতকারী (৩টি)
+              </button>
+              <button
+                type="button"
+                onClick={() => setSignatureLayout('guardian')}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: '11px',
+                  fontWeight: signatureLayout === 'guardian' ? 700 : 500,
+                  background: signatureLayout === 'guardian' ? '#0284c7' : '#f1f5f9',
+                  color: signatureLayout === 'guardian' ? '#fff' : '#475569',
+                  border: '1px solid',
+                  borderColor: signatureLayout === 'guardian' ? '#0284c7' : '#cbd5e1',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                title="শ্রেণি শিক্ষক | অভিভাবক | প্রধান শিক্ষক (৩ কলাম)"
+              >
+                অভিভাবক (৩টি)
               </button>
             </div>
 
@@ -5667,12 +5693,12 @@ export function ResultPanel({ sub, userRole }) {
 
             <div className="transcript-bottom-content">
                 {/* Signature Zone */}
-                <div className={`transcript-signatures-zone ${centerSigOption === 'both' ? 'four-columns' : 'three-columns'}`}>
+                <div className={`transcript-signatures-zone ${isFourSignatures ? 'four-columns' : 'three-columns'}`}>
                   <div className="sig-column">
                     <div className="sig-dots">{sigDotsText}</div>
                     <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
                   </div>
-                  {centerSigOption === 'both' ? (
+                  {isFourSignatures ? (
                     <>
                       <div className="sig-column">
                         <div className="sig-dots">{sigDotsText}</div>
