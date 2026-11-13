@@ -12454,7 +12454,35 @@ export const DEFAULT_ACADEMIC_YEARS = [
   { id: 'ay-2024', year: '2024', title_bn: '২০২৪ শিক্ষাবর্ষ', is_current: false, status: 'completed', remarks: 'আর্কাইভ শিক্ষাবর্ষ' }
 ];
 
-export const MOCK_EXAMS = [];
+export const MOCK_EXAMS = [
+  {
+    id: 'ex-half-yearly-2026',
+    academic_year: '2026',
+    name_bn: 'অর্ধ-বার্ষিক পরীক্ষা',
+    name_en: 'Half Yearly Examination',
+    exam_type: 'সাময়িক পরীক্ষা',
+    status: 'active',
+    remarks: 'চলমান শিক্ষাবর্ষের অর্ধ-বার্ষিক পরীক্ষা'
+  },
+  {
+    id: 'ex-annual-2026',
+    academic_year: '2026',
+    name_bn: 'বার্ষিক পরীক্ষা',
+    name_en: 'Annual Examination',
+    exam_type: 'চূড়ান্ত পরীক্ষা',
+    status: 'active',
+    remarks: 'চলমান শিক্ষাবর্ষের বার্ষিক পরীক্ষা'
+  },
+  {
+    id: 'ex-test-2026',
+    academic_year: '2026',
+    name_bn: 'নির্বাচনী পরীক্ষা',
+    name_en: 'Test Examination',
+    exam_type: 'নির্বাচনী পরীক্ষা',
+    status: 'active',
+    remarks: 'চলমান শিক্ষাবর্ষের নির্বাচনী পরীক্ষা'
+  }
+];
 
 export const MOCK_SUBJECTS = [
   {

@@ -107,12 +107,12 @@ const classes = ['6', '7', '8', '9', '10'];
 
 const STANDARD_EXAM_PRESETS = [
   { name_bn: '১ম সাময়িক পরীক্ষা', name_en: '1st Terminal Examination', exam_type: 'সাময়িক পরীক্ষা' },
-  { name_bn: 'অর্ধবার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'অর্ধবার্ষিক পরীক্ষা' },
+  { name_bn: 'অর্ধ-বার্ষিক পরীক্ষা', name_en: 'Half Yearly Examination', exam_type: 'সাময়িক পরীক্ষা' },
   { name_bn: '২য় সাময়িক পরীক্ষা', name_en: '2nd Terminal Examination', exam_type: 'সাময়িক পরীক্ষা' },
-  { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা', name_en: 'Pre-Test Examination', exam_type: 'প্রাক-নির্বাচনী পরীক্ষা' },
-  { name_bn: 'নির্বাচনী পরীক্ষা (Test)', name_en: 'Test Examination (SSC Candidate)', exam_type: 'নির্বাচনী পরীক্ষা (Test)' },
-  { name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'বার্ষিক পরীক্ষা' },
-  { name_bn: 'মডেল টেস্ট / ক্লাস টেস্ট', name_en: 'Model Test / Class Assessment', exam_type: 'মডেল টেস্ট / ক্লাস টেস্ট' }
+  { name_bn: 'প্রাক-নির্বাচনী পরীক্ষা', name_en: 'Pre-Test Examination', exam_type: 'নির্বাচনী পরীক্ষা' },
+  { name_bn: 'নির্বাচনী পরীক্ষা', name_en: 'Test Examination', exam_type: 'নির্বাচনী পরীক্ষা' },
+  { name_bn: 'বার্ষিক পরীক্ষা', name_en: 'Annual Examination', exam_type: 'চূড়ান্ত পরীক্ষা' },
+  { name_bn: 'মডেল টেস্ট / ক্লাস টেস্ট', name_en: 'Model Test / Class Assessment', exam_type: 'সাময়িক পরীক্ষা' }
 ];
 
 const STANDARD_YEAR_PRESETS = [
@@ -3517,9 +3517,9 @@ export function ResultPanel({ sub, userRole }) {
         <div className="exam-kpi-card">
           <div className="kpi-icon">📊</div>
           <div className="kpi-body">
-            <span className="kpi-label">মডেল কাঠামো</span>
-            <div className="kpi-val">{isSSC ? 'এসএসসি মডেল' : 'জেএসসি মডেল'}</div>
-            <span className="kpi-badge badge-pub">{isSSC ? '৯ম-১০ম (বিভাগভিত্তিক)' : '৬ষ্ঠ-৮ম (প্রমিত)'}</span>
+            <span className="kpi-label">শ্রেণি স্তর</span>
+            <div className="kpi-val">{isSSC ? '৯ম-১০ম শ্রেণি' : '৬ষ্ঠ-৮ম শ্রেণি'}</div>
+            <span className="kpi-badge badge-pub">{isSSC ? 'বিভাগভিত্তিক' : 'সাধারণ প্রমিত'}</span>
           </div>
         </div>
       </div>
@@ -3652,7 +3652,7 @@ export function ResultPanel({ sub, userRole }) {
             <select value={className} onChange={(e) => setClassName(e.target.value)}>
               {classes.map(c => (
                 <option key={c} value={c}>
-                  শ্রেণি {toBnDigits(c)} ({['9','10'].includes(c) ? 'এসএসসি' : 'জেএসসি'})
+                  শ্রেণি {toBnDigits(c)}
                 </option>
               ))}
             </select>
@@ -4208,7 +4208,7 @@ export function ResultPanel({ sub, userRole }) {
           <div className="board-pattern-banner">
             <div>
               <span className="pattern-badge-pill">
-                {isSSC ? '🏛️ ঢাকা শিক্ষা বোর্ড এসএসসি প্রমিত কাঠামো' : '📋 ঢাকা শিক্ষা বোর্ড জেএসসি প্রমিত কাঠামো'}
+                {isSSC ? '🏛️ ঢাকা শিক্ষা বোর্ড প্রমিত কাঠামো (৯ম ও ১০ম শ্রেণি)' : '📋 ঢাকা শিক্ষা বোর্ড প্রমিত কাঠামো (৬ষ্ঠ - ৮ম শ্রেণি)'}
               </span>
               <p className="pattern-desc">
                 {isSSC
@@ -4590,7 +4590,7 @@ export function ResultPanel({ sub, userRole }) {
 
             {/* SSC Rules Card */}
             <div className="grading-policy-card">
-              <h4>🏛️ এসএসসি পরীক্ষা মূল্যায়ন নীতি (৯ম ও ১০ম শ্রেণি)</h4>
+              <h4>🏛️ মূল্যায়ন নীতি (৯ম ও ১০ম শ্রেণি)</h4>
               <ul className="policy-list">
                 <li><b>বিভাগভিত্তিক ৩টি মূল বিষয়:</b> বিজ্ঞান, মানবিক ও ব্যবসায় শিক্ষা শাখার নির্দিষ্ট ৩টি মূল বিষয়ে পৃথকভাবে পাস বাধ্যতামূলক।</li>
                 <li><b>৪র্থ বিষয় (ঐচ্ছিক) নিয়ম:</b> ৪র্থ বিষয়ে প্রাপ্ত জিপিএ থেকে ২.০০ বাদ দিয়ে অতিরিক্ত পয়েন্ট (সর্বোচ্চ ৩.০০) মূল জিপিএ-তে যোগ হবে।</li>
@@ -4602,7 +4602,7 @@ export function ResultPanel({ sub, userRole }) {
 
             {/* JSC Rules Card */}
             <div className="grading-policy-card">
-              <h4>📋 জেএসসি পরীক্ষা মূল্যায়ন নীতি (৬ষ্ঠ - ৮ম শ্রেণি)</h4>
+              <h4>📋 মূল্যায়ন নীতি (৬ষ্ঠ - ৮ম শ্রেণি)</h4>
               <ul className="policy-list">
                 <li><b>সকল বিষয়ে পাস:</b> সকল আবশ্যিক বিষয়ে পৃথকভাবে ন্যূনতম ৩৩% নম্বর পেয়ে উত্তীর্ণ হওয়া বাধ্যতামূলক।</li>
                 <li><b>সামগ্রিক জিপিএ:</b> <code>জিপিএ = সকল বিষয়ের গ্রেড পয়েন্ট যোগফল ÷ মোট বিষয়ের সংখ্যা</code>।</li>
@@ -4634,7 +4634,7 @@ export function ResultPanel({ sub, userRole }) {
               <b>নির্বাচিত পরীক্ষা:</b> {selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা নির্বাচিত নেই'}
             </div>
             <div className="proc-info-line">
-              <b>শিক্ষাবর্ষ:</b> {toBnDigits(selectedYear)} | <b>শ্রেণি:</b> শ্রেণি {toBnDigits(className)} ({isSSC ? 'এসএসসি মডেল' : 'জেএসসি মডেল'})
+              <b>শিক্ষাবর্ষ:</b> {toBnDigits(selectedYear)} | <b>শ্রেণি:</b> শ্রেণি {toBnDigits(className)}
             </div>
             <div className="proc-info-line">
               <b>মূল্যায়ন নীতি:</b> {isSSC ? '৪র্থ বিষয়ের অতিরিক্ত পয়েন্ট বোনাস প্রযোজ্য' : 'সকল আবশ্যিক বিষয়ে পৃথক পাস প্রযোজ্য'}

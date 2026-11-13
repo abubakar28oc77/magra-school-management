@@ -29,36 +29,58 @@ try {
         }
       }
     } catch (_) {}
-    // Purge default mock exams as requested by user
+    // Ensure essential standard exams (অর্ধ-বার্ষিক পরীক্ষা, বার্ষিক পরীক্ষা, নির্বাচনী পরীক্ষা) are preserved and NEVER purged on refresh
     try {
-      const defaultExamIds = new Set(['ex-pre-test-10', 'ex-test-10', 'ex-test-2026', 'ex-1', 'ex-2', 'ex-3', 'ex-half-yearly-2026', 'ex-annual-2026']);
-      const defaultNames = ['১ম সাময়িক পরীক্ষা', 'অর্ধবার্ষিক পরীক্ষা', 'অর্ধ-বার্ষিক পরীক্ষা ২০২৬', 'বার্ষিক পরীক্ষা ২০২৬', 'বার্ষিক পরীক্ষা', 'প্রাক-নির্বাচনি পরীক্ষা ২০২৬', 'প্রাক-নির্বাচনী পরীক্ষা ২০২৬', 'নির্বাচনী পরীক্ষা ২০২৬'];
-      const rawExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
-      if (Array.isArray(rawExams) && rawExams.length) {
-        const userOnlyExams = rawExams.filter(e => {
-          if (!e) return false;
-          if (defaultExamIds.has(e.id)) return false;
-          if (defaultNames.includes(e.name_bn)) return false;
-          return true;
+      const existingExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
+      const hasHalfYearly = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('অর্ধ') || (e.name_en && e.name_en.toLowerCase().includes('half'))));
+      const hasAnnual = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('বার্ষিক') || (e.name_en && e.name_en.toLowerCase().includes('annual'))));
+      const hasTest = existingExams.some(e => e && e.name_bn && (e.name_bn.includes('নির্বাচনী') || (e.name_en && e.name_en.toLowerCase().includes('test'))));
+
+      let updatedExams = [...existingExams];
+      let needsUpdate = false;
+
+      if (!hasHalfYearly) {
+        updatedExams.push({
+          id: 'ex-half-yearly-2026',
+          academic_year: '2026',
+          name_bn: 'অর্ধ-বার্ষিক পরীক্ষা',
+          name_en: 'Half Yearly Examination',
+          exam_type: 'সাময়িক পরীক্ষা',
+          status: 'active',
+          remarks: 'চলমান শিক্ষাবর্ষের অর্ধ-বার্ষিক পরীক্ষা',
+          created_at: new Date().toISOString()
         });
-        localStorage.setItem('magra_db_exams', JSON.stringify(userOnlyExams));
+        needsUpdate = true;
       }
-      // Purge stale marks associated with default mock exam IDs
-      const rawMarks = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
-      if (Array.isArray(rawMarks) && rawMarks.length) {
-        const userMarks = rawMarks.filter(m => m && !defaultExamIds.has(m.exam_id));
-        localStorage.setItem('magra_db_marks', JSON.stringify(userMarks));
-      }
-      // Purge cached result structures for default exams
-      defaultExamIds.forEach(id => {
-        Object.keys(localStorage).forEach(k => {
-          if (k.startsWith(`magra_db_results_${id}_`)) {
-            localStorage.removeItem(k);
-          }
+      if (!hasAnnual) {
+        updatedExams.push({
+          id: 'ex-annual-2026',
+          academic_year: '2026',
+          name_bn: 'বার্ষিক পরীক্ষা',
+          name_en: 'Annual Examination',
+          exam_type: 'চূড়ান্ত পরীক্ষা',
+          status: 'active',
+          remarks: 'চলমান শিক্ষাবর্ষের বার্ষিক পরীক্ষা',
+          created_at: new Date().toISOString()
         });
-      });
-      localStorage.removeItem('magra_db_pre_test_results');
-      localStorage.removeItem('magra_db_test_results');
+        needsUpdate = true;
+      }
+      if (!hasTest) {
+        updatedExams.push({
+          id: 'ex-test-2026',
+          academic_year: '2026',
+          name_bn: 'নির্বাচনী পরীক্ষা',
+          name_en: 'Test Examination',
+          exam_type: 'নির্বাচনী পরীক্ষা',
+          status: 'active',
+          remarks: 'চলমান শিক্ষাবর্ষের নির্বাচনী পরীক্ষা',
+          created_at: new Date().toISOString()
+        });
+        needsUpdate = true;
+      }
+      if (needsUpdate) {
+        localStorage.setItem('magra_db_exams', JSON.stringify(updatedExams));
+      }
     } catch (_) {}
   }
 } catch (_) {}
