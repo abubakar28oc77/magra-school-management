@@ -1278,8 +1278,8 @@ export function ResultPanel({ sub, userRole }) {
   </div>
 
   <div class="sheet-header">
-    <div class="school-title">মগড়া পালস ইউনিয়ন উচ্চ বিদ্যালয়</div>
-    <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতি, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৪৬ • EIIN: 114290</div>
+    <div class="school-title">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</div>
+    <div class="school-sub">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল • স্থাপিত: ১৯৪৬ • EIIN: 114290</div>
     <div class="sheet-title-badge">মাস্টার ট্যাবুলেশন শিট — ${examTitle}</div>
     <div class="meta-line">
       <span><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)}</span>
@@ -1440,37 +1440,46 @@ export function ResultPanel({ sub, userRole }) {
       max-width: 100%;
       margin: 0 auto;
     }
-    .school-header {
+    .transcript-official-header {
       text-align: center;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-    .school-header h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
+    .transcript-school-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: #0b8050;
+      margin: 0 0 2px 0;
       letter-spacing: 0.5px;
+      line-height: 1.15;
     }
-    .school-header p {
-      margin: 2px 0 0 0;
-      font-size: 11px;
-      color: #475569;
+    .transcript-school-line {
+      font-size: 12px;
+      color: #334155;
+      font-weight: 600;
+      line-height: 1.35;
+      margin: 0;
     }
-    .report-title-box {
+    .transcript-school-eiin {
+      font-size: 11.5px;
+      color: #0f172a;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .marksheet-exam-title-badge {
       text-align: center;
       margin: 6px 0 10px 0;
     }
-    .report-title {
+    .marksheet-exam-title-badge span {
       display: inline-block;
-      background: #fee2e2;
-      border: 1.5px solid #dc2626;
-      color: #991b1b;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 3px 18px;
-      border-radius: 4px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 4px 22px;
+      border-radius: 9999px;
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
     .meta-bar {
       display: flex;
@@ -1587,15 +1596,15 @@ export function ResultPanel({ sub, userRole }) {
     </div>
   </div>
   <div class="print-container">
-    <div class="school-header">
-      <h1>মাগড়া উচ্চ বিদ্যালয়</h1>
-      <p>ডাকঘর: মাগড়া, উপজেলা: জুড়ী, জেলা: মৌলভীবাজার • EIIN: 114290 • স্থাপিত: ১৯৪৬</p>
+    <div class="transcript-official-header">
+      <h1 class="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+      <div class="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
+      <div class="transcript-school-line">স্থাপিত: ১৯৪৬</div>
+      <div class="transcript-school-eiin">EIIN: 114290</div>
     </div>
 
-    <div class="report-title-box">
-      <div class="report-title">
-        ⚠️ অকৃতকার্য শিক্ষার্থীদের তালিকা ও প্রতিকারমূলক মূল্যায়ন খতিয়ান
-      </div>
+    <div class="marksheet-exam-title-badge">
+      <span>⚠️ অকৃতকার্য শিক্ষার্থীদের তালিকা ও প্রতিকারমূলক মূল্যায়ন খতিয়ান</span>
     </div>
 
     <div class="meta-bar">
@@ -1818,37 +1827,46 @@ export function ResultPanel({ sub, userRole }) {
       cursor: pointer;
       font-size: 12px;
     }
-    .school-header {
+    .transcript-official-header {
       text-align: center;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-    .school-header h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
+    .transcript-school-name {
+      font-size: 24px;
+      font-weight: 900;
+      color: #0b8050;
+      margin: 0 0 2px 0;
       letter-spacing: 0.5px;
+      line-height: 1.15;
     }
-    .school-header p {
-      margin: 2px 0 0 0;
-      font-size: 11px;
-      color: #475569;
+    .transcript-school-line {
+      font-size: 12px;
+      color: #334155;
+      font-weight: 600;
+      line-height: 1.35;
+      margin: 0;
     }
-    .report-title-box {
+    .transcript-school-eiin {
+      font-size: 11.5px;
+      color: #0f172a;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .marksheet-exam-title-badge {
       text-align: center;
       margin: 6px 0 10px 0;
     }
-    .report-title {
+    .marksheet-exam-title-badge span {
       display: inline-block;
-      background: #f0fdf4;
-      border: 1.5px solid #059669;
-      color: #065f46;
-      font-size: 13.5px;
-      font-weight: 700;
-      padding: 3px 20px;
-      border-radius: 4px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 4px 22px;
+      border-radius: 9999px;
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
     .meta-bar {
       display: flex;
@@ -1947,15 +1965,15 @@ export function ResultPanel({ sub, userRole }) {
   </div>
 
   <div class="print-container">
-    <div class="school-header">
-      <h1>মাগড়া উচ্চ বিদ্যালয়</h1>
-      <p>ডাকঘর: মাগড়া, উপজেলা: জুড়ী, জেলা: মৌলভীবাজার • EIIN: 114290 • স্থাপিত: ১৯৪৬</p>
+    <div class="transcript-official-header">
+      <h1 class="transcript-school-name">মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়</h1>
+      <div class="transcript-school-line">ডাকঘর: মগড়া, উপজেলা: কালিহাতী, জেলা: টাঙ্গাইল</div>
+      <div class="transcript-school-line">স্থাপিত: ১৯৪৬</div>
+      <div class="transcript-school-eiin">EIIN: 114290</div>
     </div>
 
-    <div class="report-title-box">
-      <div class="report-title">
-        🏆 চূড়ান্ত মেধা ও ফলাফল বিবরণী
-      </div>
+    <div class="marksheet-exam-title-badge">
+      <span>🏆 চূড়ান্ত মেধা ও ফলাফল বিবরণী — ${examTitle}</span>
     </div>
 
     <div class="meta-bar">
