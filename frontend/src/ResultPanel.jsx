@@ -185,6 +185,7 @@ export function ResultPanel({ sub, userRole }) {
   const [batchRollFrom, setBatchRollFrom] = useState('');
   const [batchRollTo, setBatchRollTo] = useState('');
   const [failedFilterMode, setFailedFilterMode] = useState('all'); // 'all' | '1' | '2' | '3+'
+  const [centerSigOption, setCenterSigOption] = useState('auto'); // 'auto' | 'preparer' | 'guardian'
 
   // Forms
   const [editingYearId, setEditingYearId] = useState(null);
@@ -336,6 +337,59 @@ export function ResultPanel({ sub, userRole }) {
   const selectedExamObj = useMemo(() => {
     return exams.find(e => String(e.id) === String(selectedExam));
   }, [exams, selectedExam]);
+
+  // Smart determination of Exam Document Category (Academic Transcript vs Progress Report)
+  const isProgressReportExam = useMemo(() => {
+    const examName = (selectedExamObj?.name_bn || '').trim();
+    const examType = (selectedExamObj?.exam_type || '').trim().toLowerCase();
+    return (
+      examName.includes('অর্ধ') || 
+      examName.includes('প্রাক') || 
+      examName.includes('সাময়িক') || 
+      examName.includes('সাময়িক') || 
+      examName.includes('টিউটোরিয়াল') || 
+      examName.includes('টিউটোরিয়াল') || 
+      examName.includes('মাসিক') ||
+      examType.includes('half') ||
+      examType.includes('mid') ||
+      examType.includes('pre')
+    );
+  }, [selectedExamObj]);
+
+  const isTranscriptExam = useMemo(() => {
+    if (isProgressReportExam) return false;
+    const examName = (selectedExamObj?.name_bn || '').trim();
+    const examType = (selectedExamObj?.exam_type || '').trim().toLowerCase();
+    return (
+      examName.includes('বার্ষিক') ||
+      examName.includes('নির্বাচন') ||
+      examName.includes('টেস্ট') ||
+      examName.includes('test') ||
+      examName.includes('মডেল') ||
+      examName.includes('সমাপনী') ||
+      examType.includes('annual') ||
+      examType.includes('final') ||
+      true // Default to transcript if not explicitly a progress report exam
+    );
+  }, [isProgressReportExam, selectedExamObj]);
+
+  const activeCenterSig = useMemo(() => {
+    if (centerSigOption === 'preparer') return 'প্রস্তুতকারীর স্বাক্ষর';
+    if (centerSigOption === 'guardian') return 'অভিভাবকের স্বাক্ষর';
+    return isTranscriptExam ? 'প্রস্তুতকারীর স্বাক্ষর' : 'অভিভাবকের স্বাক্ষর';
+  }, [centerSigOption, isTranscriptExam]);
+
+  const marksheetDocTitle = useMemo(() => {
+    const examDisplayName = selectedExamObj ? selectedExamObj.name_bn : (isTranscriptExam ? 'নির্বাচনী পরীক্ষা' : 'অর্ধ-বার্ষিক পরীক্ষা');
+    if (isTranscriptExam) {
+      return `একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — ${examDisplayName} ${toBnDigits(selectedYear)}`;
+    }
+    return `শিক্ষার্থীর প্রোগ্রেস রিপোর্ট (STUDENT PROGRESS REPORT) — ${examDisplayName} ${toBnDigits(selectedYear)}`;
+  }, [selectedExamObj, isTranscriptExam, selectedYear]);
+
+  const marksheetFooterDocType = useMemo(() => {
+    return isTranscriptExam ? 'একাডেমিক ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট';
+  }, [isTranscriptExam]);
 
   // Subjects applicable to current Class & Department
   const subjectsForClass = useMemo(() => {
@@ -2861,7 +2915,7 @@ export function ResultPanel({ sub, userRole }) {
           </div>
 
           <div class="marksheet-exam-title-badge">
-            <span>একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} ${toBnDigits(selectedYear)}</span>
+            <span>${marksheetDocTitle}</span>
           </div>
 
           <div class="marksheet-top-info-grid">
@@ -2875,7 +2929,7 @@ export function ResultPanel({ sub, userRole }) {
               <div class="info-row"><b>পিতার নাম:</b> ${st.student?.father_name || st.father_name || 'মুহাম্মদ আবুবকর সিদ্দিক'}</div>
               <div class="info-row"><b>মাতার নাম:</b> ${st.student?.mother_name || st.mother_name || 'তাহমিনা'}</div>
               <div class="info-row"><b>শিক্ষাবর্ষ:</b> ${toBnDigits(selectedYear)} খ্রি.</div>
-              <div class="info-row"><b>পরীক্ষার নাম:</b> ${selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}</div>
+              <div class="info-row"><b>পরীক্ষার নাম:</b> ${selectedExamObj ? selectedExamObj.name_bn : (isTranscriptExam ? 'নির্বাচনী পরীক্ষা' : 'অর্ধ-বার্ষিক পরীক্ষা')}</div>
             </div>
           </div>
 
@@ -2935,7 +2989,7 @@ export function ResultPanel({ sub, userRole }) {
             </div>
             <div class="sig-column">
               <div class="sig-dots">...........................................</div>
-              <div class="sig-title">অভিভাবকের স্বাক্ষর</div>
+              <div class="sig-title">${activeCenterSig}</div>
             </div>
             <div class="sig-column">
               <div class="sig-dots">...........................................</div>
@@ -2948,7 +3002,7 @@ export function ResultPanel({ sub, userRole }) {
 
           <div class="transcript-footer-line">
             <span>ফলাফল প্রকাশের তারিখ: ${toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
-            <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+            <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত ${marksheetFooterDocType}</span>
           </div>
         </div>
       </div>
@@ -2975,7 +3029,7 @@ export function ResultPanel({ sub, userRole }) {
 <html lang="bn">
 <head>
   <meta charset="utf-8">
-  <title>মার্কশিট_ও_প্রোগ্রেস_রিপোর্ট_${className}_${selectedYear}.pdf</title>
+  <title>${isTranscriptExam ? 'একাডেমিক_ট্রান্সক্রিপ্ট' : 'মার্কশিট_ও_প্রোগ্রেস_রিপোর্ট'}_${className}_${selectedYear}.pdf</title>
   <style>
     @page { 
       size: A4 portrait; 
@@ -3203,7 +3257,7 @@ export function ResultPanel({ sub, userRole }) {
 <body>
   <div class="no-print-bar" style="position:sticky;top:0;z-index:1000;background:#0f172a;color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);margin-bottom:12px;">
     <div>
-      <b>📄 মার্কশিট ও প্রোগ্রেস রিপোর্ট — প্রিন্ট ও PDF প্রিভিউ (${toBnDigits(list.length)} জন)</b>
+      <b>📄 ${isTranscriptExam ? 'একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট' : 'মার্কশিট ও প্রোগ্রেস রিপোর্ট'} — প্রিন্ট ও PDF প্রিভিউ (${toBnDigits(list.length)} জন)</b>
       <span style="font-size:11px;opacity:0.9;margin-left:10px;">(📌 PDF হিসেবে ডাউনলোড করতে Destination-এ <b>"Save as PDF"</b> নির্বাচন করুন)</span>
     </div>
     <div style="display:flex;gap:8px;">
@@ -3675,15 +3729,15 @@ export function ResultPanel({ sub, userRole }) {
                   className="btn-modern-primary"
                   style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7', fontWeight: 700 }}
                   onClick={handlePrintMarksheet}
-                  title="নির্বাচিত শিক্ষার্থীর প্রোগ্রেস রিপোর্ট PDF ডাউনলোড করুন"
+                  title={`নির্বাচিত শিক্ষার্থীর ${marksheetFooterDocType} PDF ডাউনলোড করুন`}
                 >
-                  📥 প্রোগ্রেস PDF
+                  📥 {isTranscriptExam ? 'ট্রান্সক্রিপ্ট PDF' : 'প্রোগ্রেস PDF'}
                 </button>
                 <button
                   type="button"
                   className="btn-modern-secondary"
                   onClick={handlePrintMarksheet}
-                  title="প্রোগ্রেস রিপোর্ট প্রিন্ট করুন"
+                  title={`${marksheetFooterDocType} প্রিন্ট করুন`}
                 >
                   🖨️ প্রিন্ট
                 </button>
@@ -5070,6 +5124,49 @@ export function ResultPanel({ sub, userRole }) {
               </select>
             </div>
 
+            {/* Middle Signature Option Selector (প্রস্তুতকারী / অভিভাবক) */}
+            <div className="signature-type-selector-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+              <span style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '12px', color: '#334155' }}>
+                ✍️ মাঝের স্বাক্ষর:
+              </span>
+              <button
+                type="button"
+                onClick={() => setCenterSigOption(prev => prev === 'preparer' ? 'auto' : 'preparer')}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: '11px',
+                  fontWeight: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? 700 : 500,
+                  background: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#0284c7' : '#f1f5f9',
+                  color: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#fff' : '#475569',
+                  border: '1px solid',
+                  borderColor: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#0284c7' : '#cbd5e1',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                title="ফলাফল প্রস্তুতকারী / আইসিটি শিক্ষক (সুপার এডমিন)-এর স্বাক্ষর"
+              >
+                প্রস্তুতকারী
+              </button>
+              <button
+                type="button"
+                onClick={() => setCenterSigOption(prev => prev === 'guardian' ? 'auto' : 'guardian')}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: '11px',
+                  fontWeight: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? 700 : 500,
+                  background: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#0284c7' : '#f1f5f9',
+                  color: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#fff' : '#475569',
+                  border: '1px solid',
+                  borderColor: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#0284c7' : '#cbd5e1',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                title="অভিভাবকের স্বাক্ষর"
+              >
+                অভিভাবক
+              </button>
+            </div>
+
             <div className="nav-buttons-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
               <button
                 type="button"
@@ -5093,26 +5190,26 @@ export function ResultPanel({ sub, userRole }) {
                 type="button"
                 className="btn-modern-primary"
                 onClick={handlePrintMarksheet}
-                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট সরাসরি PDF ডাউনলোড ও সংরক্ষণ করুন"
+                title={`বর্তমানে নির্বাচিত একক শিক্ষার্থীর ${marksheetFooterDocType} সরাসরি PDF ডাউনলোড ও সংরক্ষণ করুন`}
                 style={{ background: '#0284c7', borderColor: '#0284c7', color: '#fff', padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
               >
-                📥 এই মার্কশিট PDF ডাউনলোড
+                📥 এই {isTranscriptExam ? 'ট্রান্সক্রিপ্ট' : 'মার্কশিট'} PDF ডাউনলোড
               </button>
               <button
                 type="button"
                 className="btn-modern-secondary"
                 onClick={handlePrintMarksheet}
-                title="বর্তমানে নির্বাচিত একক শিক্ষার্থীর প্রগ্রেস রিপোর্ট প্রিন্ট করুন (A4)"
+                title={`বর্তমানে নির্বাচিত একক শিক্ষার্থীর ${marksheetFooterDocType} প্রিন্ট করুন (A4)`}
                 style={{ padding: '6px 14px', borderRadius: '6px', fontWeight: 700, fontSize: '13px' }}
               >
-                🖨️ এই প্রগ্রেস রিপোর্ট প্রিন্ট (A4)
+                🖨️ এই {isTranscriptExam ? 'ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} প্রিন্ট (A4)
               </button>
 
               {/* Batch Print All Students in 1-click */}
               <button
                 type="button"
                 onClick={() => handleBatchPrintMarksheet(filteredProcessedResults)}
-                title="শ্রেণির সকল শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে PDF ডাউনলোড ও সেভ করুন"
+                title={`শ্রেণির সকল শিক্ষার্থীর ${marksheetFooterDocType} একসাথে PDF ডাউনলোড ও সেভ করুন`}
                 style={{
                   background: '#0284c7',
                   color: '#fff',
@@ -5128,12 +5225,12 @@ export function ResultPanel({ sub, userRole }) {
                   boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
                 }}
               >
-                📥 সকল প্রোগ্রেস রিপোর্ট PDF ({toBnDigits(filteredProcessedResults.length)} জন)
+                📥 সকল {isTranscriptExam ? 'একাডেমিক ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} PDF ({toBnDigits(filteredProcessedResults.length)} জন)
               </button>
               <button
                 type="button"
                 onClick={() => handleBatchPrintMarksheet(filteredProcessedResults)}
-                title="শ্রেণির সকল শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে একের পর এক আলাদা পৃষ্ঠায় প্রিন্ট করুন"
+                title={`শ্রেণির সকল শিক্ষার্থীর ${marksheetFooterDocType} একসাথে একের পর এক আলাদা পৃষ্ঠায় প্রিন্ট করুন`}
                 style={{
                   background: '#047857',
                   color: '#fff',
@@ -5149,7 +5246,7 @@ export function ResultPanel({ sub, userRole }) {
                   boxShadow: '0 2px 4px rgba(4, 120, 87, 0.25)'
                 }}
               >
-                🖨️ সকল প্রগ্রেস রিপোর্ট প্রিন্ট
+                🖨️ সকল {isTranscriptExam ? 'একাডেমিক ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} প্রিন্ট
               </button>
 
               {/* Advanced Batch Range Options */}
@@ -5185,10 +5282,10 @@ export function ResultPanel({ sub, userRole }) {
             }} className="no-print">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px dashed #a7f3d0', paddingBottom: '6px' }}>
                 <b style={{ color: '#065f46', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  📑 একাধিক শিক্ষার্থীর প্রগ্রেস রিপোর্ট একসাথে প্রিন্ট অপশন (ব্যাচ প্রিন্ট)
+                  📑 একাধিক শিক্ষার্থীর {isTranscriptExam ? 'একাডেমিক ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} একসাথে প্রিন্ট অপশন (ব্যাচ প্রিন্ট)
                 </b>
                 <span style={{ fontSize: '12px', color: '#047857' }}>
-                  * প্রতিটি শিক্ষার্থীর প্রগ্রেস রিপোর্ট স্বয়ংক্রিয়ভাবে আলাদা আলাদা A4 পেজে প্রিন্ট হবে
+                  * প্রতিটি শিক্ষার্থীর {isTranscriptExam ? 'ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} স্বয়ংক্রিয়ভাবে আলাদা আলাদা A4 পেজে প্রিন্ট হবে
                 </span>
               </div>
 
@@ -5273,9 +5370,9 @@ export function ResultPanel({ sub, userRole }) {
                       fontSize: '13px',
                       boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
                     }}
-                    title="নির্বাচিত শিক্ষার্থীদের প্রগ্রেস রিপোর্ট PDF হিসেবে সেভ করুন"
+                    title={`নির্বাচিত শিক্ষার্থীদের ${marksheetFooterDocType} PDF হিসেবে সেভ করুন`}
                   >
-                    📥 নির্বাচিত প্রগ্রেস রিপোর্ট PDF ({toBnDigits(getSelectedBatchStudents().length)} জন)
+                    📥 নির্বাচিত {isTranscriptExam ? 'ট্রান্সক্রিপ্ট' : 'প্রোগ্রেস রিপোর্ট'} PDF ({toBnDigits(getSelectedBatchStudents().length)} জন)
                   </button>
                   <button
                     type="button"
@@ -5318,7 +5415,7 @@ export function ResultPanel({ sub, userRole }) {
               {/* ========================================================= */}
               <div className="marksheet-exam-title-badge">
                 <span>
-                  একাডেমিক ট্রান্সক্রিপ্ট / মার্কশিট (ACADEMIC TRANSCRIPT) — {selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'} {toBnDigits(selectedYear)}
+                  {marksheetDocTitle}
                 </span>
               </div>
 
@@ -5352,7 +5449,7 @@ export function ResultPanel({ sub, userRole }) {
                     <b>শিক্ষাবর্ষ:</b> {toBnDigits(selectedYear)} খ্রি.
                   </div>
                   <div className="info-row">
-                    <b>পরীক্ষার নাম:</b> {selectedExamObj ? selectedExamObj.name_bn : 'প্রাক-নির্বাচনী পরীক্ষা'}
+                    <b>পরীক্ষার নাম:</b> {selectedExamObj ? selectedExamObj.name_bn : (isTranscriptExam ? 'নির্বাচনী পরীক্ষা' : 'অর্ধ-বার্ষিক পরীক্ষা')}
                   </div>
                 </div>
               </div>
@@ -5540,7 +5637,7 @@ export function ResultPanel({ sub, userRole }) {
                   </div>
                   <div className="sig-column">
                     <div className="sig-dots">...........................................</div>
-                    <div>অভিভাবকের স্বাক্ষর</div>
+                    <div>{activeCenterSig}</div>
                   </div>
                   <div className="sig-column">
                     <div className="sig-dots">...........................................</div>
@@ -5554,7 +5651,7 @@ export function ResultPanel({ sub, userRole }) {
                 {/* Footer info */}
                 <div className="transcript-footer-line">
                   <span>ফলাফল প্রকাশের তারিখ: {toBnDigits(new Date().toLocaleDateString('bn-BD'))} খ্রি.</span>
-                  <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত একাডেমিক ট্রান্সক্রিপ্ট</span>
+                  <span>মগড়া পালস্ ইউনিয়ন উচ্চ বিদ্যালয়, কালিহাতী, টাঙ্গাইল — কম্পিউটার প্রস্তুতকৃত {marksheetFooterDocType}</span>
                 </div>
               </div>
             </div>
