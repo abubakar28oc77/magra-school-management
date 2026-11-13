@@ -185,7 +185,7 @@ export function ResultPanel({ sub, userRole }) {
   const [batchRollFrom, setBatchRollFrom] = useState('');
   const [batchRollTo, setBatchRollTo] = useState('');
   const [failedFilterMode, setFailedFilterMode] = useState('all'); // 'all' | '1' | '2' | '3+'
-  const [centerSigOption, setCenterSigOption] = useState('auto'); // 'auto' | 'preparer' | 'guardian'
+  const [centerSigOption, setCenterSigOption] = useState('preparer'); // 'preparer' | 'guardian' | 'both'
 
   // Forms
   const [editingYearId, setEditingYearId] = useState(null);
@@ -374,10 +374,13 @@ export function ResultPanel({ sub, userRole }) {
   }, [isProgressReportExam, selectedExamObj]);
 
   const activeCenterSig = useMemo(() => {
-    if (centerSigOption === 'preparer') return 'প্রস্তুতকারীর স্বাক্ষর';
     if (centerSigOption === 'guardian') return 'অভিভাবকের স্বাক্ষর';
-    return isTranscriptExam ? 'প্রস্তুতকারীর স্বাক্ষর' : 'অভিভাবকের স্বাক্ষর';
-  }, [centerSigOption, isTranscriptExam]);
+    return 'প্রস্তুতকারীর স্বাক্ষর';
+  }, [centerSigOption]);
+
+  const sigDotsText = useMemo(() => {
+    return centerSigOption === 'both' ? '..............................' : '...........................................';
+  }, [centerSigOption]);
 
   const marksheetDocTitle = useMemo(() => {
     const examDisplayName = selectedExamObj ? selectedExamObj.name_bn : (isTranscriptExam ? 'নির্বাচনী পরীক্ষা' : 'অর্ধ-বার্ষিক পরীক্ষা');
@@ -2982,17 +2985,28 @@ export function ResultPanel({ sub, userRole }) {
         </div>
 
         <div class="transcript-bottom-content">
-          <div class="transcript-signatures-zone">
+          <div class="transcript-signatures-zone ${centerSigOption === 'both' ? 'four-columns' : 'three-columns'}">
             <div class="sig-column">
-              <div class="sig-dots">...........................................</div>
+              <div class="sig-dots">${sigDotsText}</div>
               <div class="sig-title">শ্রেণি শিক্ষকের স্বাক্ষর</div>
             </div>
+            ${centerSigOption === 'both' ? `
+              <div class="sig-column">
+                <div class="sig-dots">${sigDotsText}</div>
+                <div class="sig-title">প্রস্তুতকারীর স্বাক্ষর</div>
+              </div>
+              <div class="sig-column">
+                <div class="sig-dots">${sigDotsText}</div>
+                <div class="sig-title">অভিভাবকের স্বাক্ষর</div>
+              </div>
+            ` : `
+              <div class="sig-column">
+                <div class="sig-dots">${sigDotsText}</div>
+                <div class="sig-title">${activeCenterSig}</div>
+              </div>
+            `}
             <div class="sig-column">
-              <div class="sig-dots">...........................................</div>
-              <div class="sig-title">${activeCenterSig}</div>
-            </div>
-            <div class="sig-column">
-              <div class="sig-dots">...........................................</div>
+              <div class="sig-dots">${sigDotsText}</div>
               <div class="sig-title">প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
             </div>
           </div>
@@ -3219,6 +3233,11 @@ export function ResultPanel({ sub, userRole }) {
     }
     .transcript-signatures-zone .sig-column { 
       min-width: 140px; 
+    }
+    .transcript-signatures-zone.four-columns .sig-column { 
+      min-width: 105px; 
+      flex: 1;
+      padding: 0 4px;
     }
     .transcript-signatures-zone .sig-dots { 
       letter-spacing: 1px; 
@@ -5124,46 +5143,64 @@ export function ResultPanel({ sub, userRole }) {
               </select>
             </div>
 
-            {/* Middle Signature Option Selector (প্রস্তুতকারী / অভিভাবক) */}
+            {/* Signature Option Selector (প্রস্তুতকারী / অভিভাবক / উভয়ই) */}
             <div className="signature-type-selector-box" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#fff', padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
               <span style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '12px', color: '#334155' }}>
-                ✍️ মাঝের স্বাক্ষর:
+                ✍️ স্বাক্ষর অপশন:
               </span>
               <button
                 type="button"
-                onClick={() => setCenterSigOption(prev => prev === 'preparer' ? 'auto' : 'preparer')}
+                onClick={() => setCenterSigOption('preparer')}
                 style={{
                   padding: '3px 8px',
                   fontSize: '11px',
-                  fontWeight: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? 700 : 500,
-                  background: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#0284c7' : '#f1f5f9',
-                  color: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#fff' : '#475569',
+                  fontWeight: centerSigOption === 'preparer' ? 700 : 500,
+                  background: centerSigOption === 'preparer' ? '#0284c7' : '#f1f5f9',
+                  color: centerSigOption === 'preparer' ? '#fff' : '#475569',
                   border: '1px solid',
-                  borderColor: activeCenterSig === 'প্রস্তুতকারীর স্বাক্ষর' ? '#0284c7' : '#cbd5e1',
+                  borderColor: centerSigOption === 'preparer' ? '#0284c7' : '#cbd5e1',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                title="ফলাফল প্রস্তুতকারী / আইসিটি শিক্ষক (সুপার এডমিন)-এর স্বাক্ষর"
+                title="ফলাফল প্রস্তুতকারী / আইসিটি শিক্ষক (সুপার এডমিন)-এর স্বাক্ষর (৩ কলাম)"
               >
                 প্রস্তুতকারী
               </button>
               <button
                 type="button"
-                onClick={() => setCenterSigOption(prev => prev === 'guardian' ? 'auto' : 'guardian')}
+                onClick={() => setCenterSigOption('guardian')}
                 style={{
                   padding: '3px 8px',
                   fontSize: '11px',
-                  fontWeight: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? 700 : 500,
-                  background: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#0284c7' : '#f1f5f9',
-                  color: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#fff' : '#475569',
+                  fontWeight: centerSigOption === 'guardian' ? 700 : 500,
+                  background: centerSigOption === 'guardian' ? '#0284c7' : '#f1f5f9',
+                  color: centerSigOption === 'guardian' ? '#fff' : '#475569',
                   border: '1px solid',
-                  borderColor: activeCenterSig === 'অভিভাবকের স্বাক্ষর' ? '#0284c7' : '#cbd5e1',
+                  borderColor: centerSigOption === 'guardian' ? '#0284c7' : '#cbd5e1',
                   borderRadius: '4px',
                   cursor: 'pointer'
                 }}
-                title="অভিভাবকের স্বাক্ষর"
+                title="অভিভাবকের স্বাক্ষর (৩ কলাম)"
               >
                 অভিভাবক
+              </button>
+              <button
+                type="button"
+                onClick={() => setCenterSigOption('both')}
+                style={{
+                  padding: '3px 8px',
+                  fontSize: '11px',
+                  fontWeight: centerSigOption === 'both' ? 700 : 500,
+                  background: centerSigOption === 'both' ? '#0284c7' : '#f1f5f9',
+                  color: centerSigOption === 'both' ? '#fff' : '#475569',
+                  border: '1px solid',
+                  borderColor: centerSigOption === 'both' ? '#0284c7' : '#cbd5e1',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                title="প্রস্তুতকারী ও অভিভাবক উভয়ের স্বাক্ষর (৪ কলাম)"
+              >
+                উভয়ই (৪টি)
               </button>
             </div>
 
@@ -5630,17 +5667,30 @@ export function ResultPanel({ sub, userRole }) {
 
             <div className="transcript-bottom-content">
                 {/* Signature Zone */}
-                <div className="transcript-signatures-zone">
+                <div className={`transcript-signatures-zone ${centerSigOption === 'both' ? 'four-columns' : 'three-columns'}`}>
                   <div className="sig-column">
-                    <div className="sig-dots">...........................................</div>
+                    <div className="sig-dots">{sigDotsText}</div>
                     <div>শ্রেণি শিক্ষকের স্বাক্ষর</div>
                   </div>
+                  {centerSigOption === 'both' ? (
+                    <>
+                      <div className="sig-column">
+                        <div className="sig-dots">{sigDotsText}</div>
+                        <div>প্রস্তুতকারীর স্বাক্ষর</div>
+                      </div>
+                      <div className="sig-column">
+                        <div className="sig-dots">{sigDotsText}</div>
+                        <div>অভিভাবকের স্বাক্ষর</div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="sig-column">
+                      <div className="sig-dots">{sigDotsText}</div>
+                      <div>{activeCenterSig}</div>
+                    </div>
+                  )}
                   <div className="sig-column">
-                    <div className="sig-dots">...........................................</div>
-                    <div>{activeCenterSig}</div>
-                  </div>
-                  <div className="sig-column">
-                    <div className="sig-dots">...........................................</div>
+                    <div className="sig-dots">{sigDotsText}</div>
                     <div>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
                   </div>
                 </div>

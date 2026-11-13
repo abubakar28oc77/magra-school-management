@@ -1756,6 +1756,12 @@ button,.btn{touch-action:manipulation}
   min-width: 160px;
 }
 
+.transcript-signatures-zone.four-columns .sig-column {
+  min-width: 105px;
+  flex: 1;
+  padding: 0 4px;
+}
+
 .transcript-signatures-zone .sig-dots {
   letter-spacing: 1px;
   color: #94a3b8;
