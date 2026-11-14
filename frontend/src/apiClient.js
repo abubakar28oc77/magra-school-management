@@ -180,7 +180,7 @@ import {
 } from './mockData.js';
 import { saveTeacherCustomPhoto } from './photoStorage.js';
 import { getSupabaseConfig, supabaseRequest } from './supabaseClient.js';
-import { processClassResults, generateResultAnalytics, toBnDigits } from './boardExamEngine.js';
+import { processClassResults, generateResultAnalytics, toBnDigits, areExamsEquivalent } from './boardExamEngine.js';
 import { DEFAULT_CLASS_ROUTINES, DEFAULT_EXAM_ROUTINES, DEFAULT_PERIODS } from './routineData.js';
 import { SEED_BOOKS, SEED_LOANS, SEED_DAMAGED } from './libraryData.js';
 
@@ -2527,14 +2527,15 @@ function handleMockRequest(path, opts = {}) {
     const cls = params.get('class_name');
     let marks = getLocalStore('marks', []);
     const studentsList = getLocalStore('students', MOCK_STUDENTS);
-    const repaired = sanitizeAndRepairMarks(marks, studentsList);
+    const examsList = getLocalStore('exams', []);
+    const repaired = sanitizeAndRepairMarks(marks, studentsList, examsList);
     if (repaired.length !== marks.length || JSON.stringify(repaired) !== JSON.stringify(marks)) {
       setLocalStore('marks', repaired);
       marks = repaired;
     }
     let filtered = marks;
     if (examId) {
-      filtered = filtered.filter(m => String(m.exam_id) === String(examId));
+      filtered = filtered.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, examsList));
     }
     if (cls) {
       const isSSCClass = ['10', '১০', '১০ম'].includes(String(cls));
@@ -2559,20 +2560,33 @@ function handleMockRequest(path, opts = {}) {
       const m = r.mcq !== '' && r.mcq !== undefined && r.mcq !== null ? Number(r.mcq) : null;
       const p = r.practical !== '' && r.practical !== undefined && r.practical !== null ? Number(r.practical) : null;
       const tot = (w || 0) + (m || 0) + (p || 0);
+      const isAbsent = Boolean(r.absent === true || r.absent === 'true' || r.absent === 1 || r.absent === '1');
+      const hasNewMarks = !isAbsent && (tot > 0 || (w !== null && w > 0) || (m !== null && m > 0) || (p !== null && p > 0));
 
-      map.set(`${examId}_${r.student_id}_${r.subject_id}`, {
+      const key = `${examId}_${r.student_id}_${r.subject_id}`;
+      const existing = map.get(key);
+      const existingHasMarks = existing && !existing.absent && ((Number(existing.total) || 0) > 0 || Number(existing.written) > 0 || Number(existing.mcq) > 0 || Number(existing.practical) > 0);
+
+      // Guard: Never overwrite positive existing marks with blank/zero entry
+      if (existingHasMarks && !hasNewMarks && !isAbsent) {
+        return;
+      }
+
+      map.set(key, {
         ...r,
         exam_id: examId,
         written: w,
         mcq: m,
         practical: p,
-        total: r.absent ? 0 : tot,
+        total: isAbsent ? 0 : tot,
+        absent: isAbsent,
         updated_at: new Date().toISOString()
       });
     });
     const updatedList = Array.from(map.values());
     const studentsList = getLocalStore('students', MOCK_STUDENTS);
-    const sanitizedList = sanitizeAndRepairMarks(updatedList, studentsList);
+    const examsList = getLocalStore('exams', []);
+    const sanitizedList = sanitizeAndRepairMarks(updatedList, studentsList, examsList);
     setLocalStore('marks', sanitizedList);
 
     // Invalidate cached results for this exam & class so Tabulation & Merit lists immediately update
@@ -2589,7 +2603,7 @@ function handleMockRequest(path, opts = {}) {
     return { ok: true, count: records.length };
   }
 
-function sanitizeAndRepairMarks(marksList, studentsList) {
+function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
   if (!Array.isArray(marksList) || !marksList.length) return marksList;
   const c10Students = (studentsList || []).filter(s => ['10', '১০', '১০ম'].includes(String(s.class_name)));
   if (!c10Students.length) return marksList;
@@ -2658,7 +2672,24 @@ function sanitizeAndRepairMarks(marksList, studentsList) {
       }
     }
 
-    const key = `${rec.exam_id}_${rec.student_id}_${rec.subject_id || rec.subject_code}`;
+    // Normalize exam ID for equivalent exams to deduplicate cleanly
+    let normExamId = String(rec.exam_id);
+    if (areExamsEquivalent(normExamId, 'ex-test-2026', exams)) {
+      normExamId = 'ex-test-2026';
+    } else if (areExamsEquivalent(normExamId, 'ex-pre-test-10', exams)) {
+      normExamId = 'ex-pre-test-10';
+    } else if (areExamsEquivalent(normExamId, 'ex-2', exams)) {
+      normExamId = 'ex-2';
+    } else if (areExamsEquivalent(normExamId, 'ex-3', exams)) {
+      normExamId = 'ex-3';
+    }
+
+    const normSubCode = String(rec.subject_code || rec.subject_id || '')
+      .replace(/^sub-10-|^sub-9-|^sub-/, '')
+      .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
+      .trim();
+
+    const key = `${normExamId}_${rec.student_id}_${normSubCode}`;
     const existing = dedupeMap.get(key);
     if (!existing) {
       dedupeMap.set(key, rec);
@@ -2667,13 +2698,33 @@ function sanitizeAndRepairMarks(marksList, studentsList) {
       const exHasMarks = Number(existing.written) > 0 || Number(existing.mcq) > 0 || Number(existing.practical) > 0 || Number(existing.total) > 0;
       if (recHasMarks && !exHasMarks) {
         dedupeMap.set(key, rec);
+      } else if (recHasMarks && exHasMarks) {
+        if ((Number(rec.total) || 0) >= (Number(existing.total) || 0)) {
+          dedupeMap.set(key, rec);
+        }
       } else if (!rec.absent && existing.absent) {
         dedupeMap.set(key, rec);
       }
     }
   });
 
-  return Array.from(dedupeMap.values());
+  // Expand so that records are accessible under all equivalent exam IDs
+  const resultList = [];
+  dedupeMap.forEach(rec => {
+    resultList.push(rec);
+    if (Array.isArray(exams) && exams.length) {
+      exams.forEach(ex => {
+        if (ex && ex.id && areExamsEquivalent(rec.exam_id, ex.id, exams) && String(rec.exam_id) !== String(ex.id)) {
+          resultList.push({
+            ...rec,
+            exam_id: ex.id
+          });
+        }
+      });
+    }
+  });
+
+  return resultList;
 }
 
   if (cleanPath === '/results/process' && method === 'POST') {
@@ -2699,9 +2750,9 @@ function sanitizeAndRepairMarks(marksList, studentsList) {
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-    const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+    const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
     setLocalStore('marks', allMarks);
-    const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
+    const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
 
     // Compute real results via Dhaka Board Exam Engine
     const processed = processClassResults(students, subs, examMarks, cls, examId);
@@ -2840,9 +2891,10 @@ function sanitizeAndRepairMarks(marksList, studentsList) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+      let exams = getLocalStore('exams', []);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
       setLocalStore('marks', allMarks);
-      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
+      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
       processed = processClassResults(students, subs, examMarks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);
       if (['10', '১০', '১০ম'].includes(String(cls))) {
@@ -2869,9 +2921,10 @@ function sanitizeAndRepairMarks(marksList, studentsList) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+      let exams = getLocalStore('exams', []);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
       setLocalStore('marks', allMarks);
-      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
+      const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
       processed = processClassResults(students, subs, examMarks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);
       if (['10', '১০', '১০ম'].includes(String(cls))) {

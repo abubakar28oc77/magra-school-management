@@ -2105,10 +2105,21 @@ export function ResultPanel({ sub, userRole }) {
       }
 
       const rawHeaders = matrix[0].map(h => (h || '').trim());
-      const cleanHeaders = rawHeaders.map(h => h.toLowerCase().replace(/[\s_\-]+/g, ''));
+      const normBn = (str) => (str || '')
+        .toLowerCase()
+        .replace(/[\u09AF][\u09BC]/g, '\u09DF')
+        .replace(/[\u09DF]/g, 'য়')
+        .replace(/[\u09A1][\u09BC]/g, '\u09DC')
+        .replace(/[\u09A2][\u09BC]/g, '\u09DD')
+        .replace(/ী/g, 'ি')
+        .replace(/[\s_\-\/\(\)\.]+/g, '');
+      const cleanHeaders = rawHeaders.map(h => normBn(h));
 
       const findHeaderIdx = (aliases) => {
-        return cleanHeaders.findIndex(h => aliases.some(alias => h.includes(alias)));
+        return cleanHeaders.findIndex(h => aliases.some(alias => {
+          const normAlias = normBn(alias);
+          return h.includes(normAlias) || (normAlias.length >= 4 && normAlias.includes(h));
+        }));
       };
 
       const rollIdx = findHeaderIdx(['roll', 'রোল', 'ক্লাসরোল', 'rollno', 'roll_no']);
@@ -2256,12 +2267,12 @@ export function ResultPanel({ sub, userRole }) {
         let wCol = -1, mCol = -1, pCol = -1;
 
         cleanHeaders.forEach((h, colIdx) => {
-          const hasSubRef = h.includes(code) || (subCleanName.length >= 4 && h.includes(subCleanName));
+          const hasSubRef = h.includes(code) || (subCleanName.length >= 4 && (h.includes(normBn(subCleanName)) || normBn(subCleanName).includes(h)));
           if (!hasSubRef) return;
 
-          const isPrac = h.includes('practical') || h.includes('prac') || h.includes('ব্যবহারিক');
-          const isMcq = h.includes('mcq') || h.includes('এমসিকিউ') || h.includes('বহুনির্বাচনি') || h.includes('বহুনির্বাচনী') || h.includes('নৈর্ব্যক্তিক');
-          const isWritten = h.includes('cq') || h.includes('written') || h.includes('লিখিত') || h.includes('সৃজনশীল') || h.includes('রচনামূলক') || h.includes('তত্ত্বীয়');
+          const isPrac = h.includes('practical') || h.includes('prac') || h.includes(normBn('ব্যবহারিক'));
+          const isMcq = h.includes('mcq') || h.includes(normBn('এমসিকিউ')) || h.includes(normBn('বহুনির্বাচনি')) || h.includes(normBn('বহুনির্বাচনী')) || h.includes(normBn('নৈর্ব্যক্তিক'));
+          const isWritten = h.includes('cq') || h.includes('written') || h.includes(normBn('লিখিত')) || h.includes(normBn('সৃজনশীল')) || h.includes(normBn('রচনামূলক')) || h.includes(normBn('তত্ত্বীয়')) || h.includes(normBn('তত্ত্বীয়'));
 
           if (isPrac) {
             pCol = colIdx;
@@ -2359,7 +2370,7 @@ export function ResultPanel({ sub, userRole }) {
 
         // Comprehensive alias detection for Bangladeshi mark sheets
         const writtenIdx = findHeaderIdx([
-          'writtencq', 'written', 'cq', 'লিখিত', 'সৃজনশীল', 'রচনামূলক', 'বর্ণনামূলক', 'তত্ত্বীয়', 'theory', 'sub1', 'mark', 'marks', 'নম্বর', 'প্রাপ্তনম্বর', 'প্রাপ্ত_নম্বর', 'obttotal', 'total'
+          'writtencq', 'written', 'cq', 'লিখিত', 'সৃজনশীল', 'রচনামূলক', 'বর্ণনামূলক', 'তত্ত্বীয়', 'তত্ত্বীয়', 'theory', 'sub1', 'mark', 'marks', 'নম্বর', 'প্রাপ্তনম্বর', 'প্রাপ্ত_নম্বর', 'obttotal', 'total'
         ]);
         const mcqIdx = findHeaderIdx([
           'mcq', 'এমসিকিউ', 'বহুনির্বাচনি', 'বহুনির্বাচনী', 'নৈর্ব্যক্তিক', 'নৈর্ব্যক্তিক_নম্বর', 'objective'
@@ -2479,15 +2490,30 @@ export function ResultPanel({ sub, userRole }) {
         body: JSON.stringify({ exam_id: effectiveExamId, records: recordsToSave })
       });
 
+      if (selectedExam && String(selectedExam) !== String(effectiveExamId)) {
+        await api('/marks/bulk', {
+          method: 'POST',
+          body: JSON.stringify({ exam_id: selectedExam, records: recordsToSave.map(r => ({ ...r, exam_id: selectedExam })) })
+        });
+      }
+
       // 5. Immediately recalculate results via Dhaka Board Exam Engine
       const processRes = await api('/results/process', {
         method: 'POST',
         body: JSON.stringify({ exam_id: effectiveExamId, class_name: effectiveClass })
       });
 
+      if (selectedExam && String(selectedExam) !== String(effectiveExamId)) {
+        await api('/results/process', {
+          method: 'POST',
+          body: JSON.stringify({ exam_id: selectedExam, class_name: effectiveClass })
+        });
+      }
+
       if (Array.isArray(processRes.summary)) {
         setProcessedResults(processRes.summary);
       }
+      await loadProcessedResults(true);
 
       // 6. Direct Marks Roster population for instantaneous UI update without waiting for async refetches
       const targetSubObj = effectiveSubject || currentSubjectObj;

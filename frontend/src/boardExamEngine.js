@@ -1,6 +1,39 @@
 // Dhaka Education Board JSC & SSC Standard Examination and Grading Engine
 // Covers: Classes 6-8 (JSC Pattern) & Classes 9-10 (SSC Pattern: Science, Humanities, Business Studies)
 
+export function areExamsEquivalent(id1, id2, exams = []) {
+  if (!id1 || !id2) return false;
+  const s1 = String(id1).trim().toLowerCase();
+  const s2 = String(id2).trim().toLowerCase();
+  if (s1 === s2) return true;
+
+  const ex1 = (exams || []).find(e => String(e.id).toLowerCase() === s1);
+  const ex2 = (exams || []).find(e => String(e.id).toLowerCase() === s2);
+
+  const name1 = (ex1?.name_bn || s1).toLowerCase();
+  const name2 = (ex2?.name_bn || s2).toLowerCase();
+
+  const isPre1 = name1.includes('প্রাক') || s1.includes('pre');
+  const isPre2 = name2.includes('প্রাক') || s2.includes('pre');
+  if (isPre1 !== isPre2) return false;
+
+  const isTest1 = (name1.includes('নির্বাচন') || name1.includes('টেস্ট') || s1.includes('test')) && !isPre1;
+  const isTest2 = (name2.includes('নির্বাচন') || name2.includes('টেস্ট') || s2.includes('test')) && !isPre2;
+  if (isTest1 && isTest2) return true;
+
+  if (isPre1 && isPre2) return true;
+
+  const isHalf1 = name1.includes('অর্ধ') || s1.includes('half');
+  const isHalf2 = name2.includes('অর্ধ') || s2.includes('half');
+  if (isHalf1 && isHalf2) return true;
+
+  const isAnn1 = name1.includes('বার্ষিক') || s1.includes('annual');
+  const isAnn2 = name2.includes('বার্ষিক') || s2.includes('annual');
+  if (isAnn1 && isAnn2) return true;
+
+  return false;
+}
+
 export const DHAKA_BOARD_GRADING_SCALE = [
   { min_pct: 80, max_pct: 100, letter_grade: 'A+', gpa: 5.0, label_bn: 'অসাধারণ (Outstanding)' },
   { min_pct: 70, max_pct: 79.99, letter_grade: 'A', gpa: 4.0, label_bn: 'চমৎকার (Excellent)' },
@@ -535,20 +568,48 @@ export function processClassResults(students, subjects, marksList, className, ex
   
   // Build lookup map for marks: `${exam_id}_${student_id}_${subject_id}`
   const marksMap = new Map();
+  const hasValidMarks = (r) => r && !r.absent && (Number(r.total) > 0 || Number(r.written) > 0 || Number(r.mcq) > 0 || Number(r.practical) > 0);
+  const putMark = (key, rec) => {
+    if (!key || !rec) return;
+    const existing = marksMap.get(key);
+    if (!existing) {
+      marksMap.set(key, rec);
+      return;
+    }
+    if (hasValidMarks(existing) && !hasValidMarks(rec)) {
+      return; // Do not overwrite valid marks with empty/zero
+    }
+    if (hasValidMarks(rec) && !hasValidMarks(existing)) {
+      marksMap.set(key, rec);
+      return;
+    }
+    if (hasValidMarks(rec) && hasValidMarks(existing)) {
+      if ((Number(rec.total) || 0) >= (Number(existing.total) || 0)) {
+        marksMap.set(key, rec);
+      }
+      return;
+    }
+    if (!rec.absent && existing.absent) {
+      marksMap.set(key, rec);
+      return;
+    }
+    marksMap.set(key, rec);
+  };
+
   (marksList || []).forEach(m => {
-    if (String(m.exam_id) === String(examId)) {
+    if (String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId)) {
       const sId = String(m.student_id || '').toLowerCase();
       const sCode = String(m.subject_code || '').trim();
       const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
-      if (m.subject_id) marksMap.set(`${sId}_${m.subject_id}`, m);
-      if (sCode) marksMap.set(`${sId}_${sCode}`, m);
-      if (sCodeNorm && sCodeNorm !== sCode) marksMap.set(`${sId}_${sCodeNorm}`, m);
+      if (m.subject_id) putMark(`${sId}_${m.subject_id}`, m);
+      if (sCode) putMark(`${sId}_${sCode}`, m);
+      if (sCodeNorm && sCodeNorm !== sCode) putMark(`${sId}_${sCodeNorm}`, m);
 
       if (m.student_code) {
         const sCodeId = String(m.student_code).toLowerCase();
-        if (m.subject_id) marksMap.set(`${sCodeId}_${m.subject_id}`, m);
-        if (sCode) marksMap.set(`${sCodeId}_${sCode}`, m);
-        if (sCodeNorm && sCodeNorm !== sCode) marksMap.set(`${sCodeId}_${sCodeNorm}`, m);
+        if (m.subject_id) putMark(`${sCodeId}_${m.subject_id}`, m);
+        if (sCode) putMark(`${sCodeId}_${sCode}`, m);
+        if (sCodeNorm && sCodeNorm !== sCode) putMark(`${sCodeId}_${sCodeNorm}`, m);
       }
     }
   });
