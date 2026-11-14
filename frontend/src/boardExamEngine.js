@@ -7,12 +7,34 @@ export function areExamsEquivalent(id1, id2, exams = []) {
   const s2 = String(id2).trim().toLowerCase();
   if (s1 === s2) return true;
 
-  let allExams = Array.isArray(exams) && exams.length ? exams : [];
-  if (!allExams.length && typeof window !== 'undefined' && window.localStorage) {
+  const STANDARD_FALLBACK_EXAMS = [
+    { id: 'ex-test-2026', name_bn: 'নির্বাচনী পরীক্ষা' },
+    { id: 'ex-test-10', name_bn: 'নির্বাচনী পরীক্ষা' },
+    { id: 'ex-pre-test-10', name_bn: 'প্রাক-নির্বাচনী পরীক্ষা' },
+    { id: 'ex-half-yearly-2026', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা' },
+    { id: 'ex-annual-2026', name_bn: 'বার্ষিক পরীক্ষা' },
+    { id: 'ex-2', name_bn: 'অর্ধ-বার্ষিক পরীক্ষা' },
+    { id: 'ex-3', name_bn: 'বার্ষিক পরীক্ষা' }
+  ];
+
+  let allExams = Array.isArray(exams) && exams.length ? [...exams] : [];
+  if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      allExams = JSON.parse(window.localStorage.getItem('magra_db_exams') || window.localStorage.getItem('magra_exams') || '[]');
+      const stored = JSON.parse(window.localStorage.getItem('magra_db_exams') || window.localStorage.getItem('magra_exams') || '[]');
+      if (Array.isArray(stored) && stored.length) {
+        stored.forEach(se => {
+          if (!allExams.some(e => e && String(e.id).toLowerCase() === String(se.id).toLowerCase())) {
+            allExams.push(se);
+          }
+        });
+      }
     } catch (_) {}
   }
+  STANDARD_FALLBACK_EXAMS.forEach(fe => {
+    if (!allExams.some(e => e && String(e.id).toLowerCase() === String(fe.id).toLowerCase())) {
+      allExams.push(fe);
+    }
+  });
 
   const ex1 = allExams.find(e => String(e.id).toLowerCase() === s1);
   const ex2 = allExams.find(e => String(e.id).toLowerCase() === s2);
@@ -116,9 +138,34 @@ export function calculateSubjectGrade(subject, markRecord = {}) {
   const mcq = markRecord.mcq !== '' && markRecord.mcq !== null && markRecord.mcq !== undefined ? Number(markRecord.mcq) : null;
   const practical = markRecord.practical !== '' && markRecord.practical !== null && markRecord.practical !== undefined ? Number(markRecord.practical) : null;
 
-  const wVal = written || 0;
-  const mVal = mcq || 0;
-  const pVal = practical || 0;
+  let wVal = written || 0;
+  let mVal = mcq || 0;
+  let pVal = practical || 0;
+
+  // Smart healing for subjects with no written exam (e.g. ICT Code 154: written_max = 0, mcq_max = 25, practical_max = 25):
+  // If marks were imported into written or stored in total, map them to MCQ and Practical
+  if ((subject.written_max || 0) === 0 && (subject.mcq_max || 0) > 0) {
+    if (mVal === 0 && pVal === 0 && (wVal > 0 || Number(markRecord.total) > 0)) {
+      const tot = wVal > 0 ? wVal : Number(markRecord.total) || 0;
+      if ((subject.practical_max || 0) === 0) {
+        mVal = Math.min(subject.mcq_max, tot);
+        wVal = 0;
+      } else {
+        if (tot <= subject.mcq_max) {
+          mVal = tot;
+          wVal = 0;
+        } else {
+          mVal = subject.mcq_max;
+          pVal = Math.min(subject.practical_max, tot - subject.mcq_max);
+          wVal = 0;
+        }
+      }
+    } else if (wVal > 0 && mVal > 0 && pVal === 0 && (subject.practical_max || 0) > 0) {
+      pVal = Math.min(subject.practical_max, wVal);
+      wVal = 0;
+    }
+  }
+
   const total = wVal + mVal + pVal;
 
   let passWritten = true;
@@ -608,6 +655,9 @@ export function processClassResults(students, subjects, marksList, className, ex
       const sId = String(m.student_id || '').toLowerCase();
       const sCode = String(m.subject_code || '').trim();
       const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+      const sDept = String(m.department || '').toLowerCase();
+      const sRoll = String(m.roll_no !== undefined && m.roll_no !== null ? m.roll_no : '').trim();
+
       if (m.subject_id) putMark(`${sId}_${m.subject_id}`, m);
       if (sCode) putMark(`${sId}_${sCode}`, m);
       if (sCodeNorm && sCodeNorm !== sCode) putMark(`${sId}_${sCodeNorm}`, m);
@@ -617,6 +667,22 @@ export function processClassResults(students, subjects, marksList, className, ex
         if (m.subject_id) putMark(`${sCodeId}_${m.subject_id}`, m);
         if (sCode) putMark(`${sCodeId}_${sCode}`, m);
         if (sCodeNorm && sCodeNorm !== sCode) putMark(`${sCodeId}_${sCodeNorm}`, m);
+      }
+
+      if (sRoll && sDept) {
+        if (sDept.includes('বিজ্ঞান') || sDept.includes('sci')) {
+          if (m.subject_id) putMark(`sci_${sRoll}_${m.subject_id}`, m);
+          if (sCode) putMark(`sci_${sRoll}_${sCode}`, m);
+          if (sCodeNorm && sCodeNorm !== sCode) putMark(`sci_${sRoll}_${sCodeNorm}`, m);
+        } else if (sDept.includes('মানবিক') || sDept.includes('hum') || sDept.includes('arts')) {
+          if (m.subject_id) putMark(`hum_${sRoll}_${m.subject_id}`, m);
+          if (sCode) putMark(`hum_${sRoll}_${sCode}`, m);
+          if (sCodeNorm && sCodeNorm !== sCode) putMark(`hum_${sRoll}_${sCodeNorm}`, m);
+        } else if (sDept.includes('ব্যবসায়') || sDept.includes('ব্যবসা') || sDept.includes('com') || sDept.includes('bs')) {
+          if (m.subject_id) putMark(`bs_${sRoll}_${m.subject_id}`, m);
+          if (sCode) putMark(`bs_${sRoll}_${sCode}`, m);
+          if (sCodeNorm && sCodeNorm !== sCode) putMark(`bs_${sRoll}_${sCodeNorm}`, m);
+        }
       }
     }
   });
@@ -631,6 +697,11 @@ export function processClassResults(students, subjects, marksList, className, ex
       const sId = String(student.id || '').toLowerCase();
       const stRollId = String(student.student_id || '').toLowerCase();
       const sRoll = String(student.roll_no !== undefined && student.roll_no !== null ? student.roll_no : '');
+      const rawDept = String(student.department || student.group_name || student.group || student.section || '').toLowerCase();
+      const isHum = rawDept.includes('মানবিক') || rawDept.includes('hum') || rawDept.includes('arts') || sId.includes('hum') || stRollId.includes('hum');
+      const isSci = (rawDept.includes('বিজ্ঞান') || rawDept.includes('sci') || sId.includes('sci') || stRollId.includes('sci')) && !isHum;
+      const isBs = (rawDept.includes('ব্যবসায়') || rawDept.includes('ব্যবসা') || rawDept.includes('com') || rawDept.includes('bs') || sId.includes('bs') || stRollId.includes('bs')) && !isHum && !isSci;
+      const deptPrefix = isHum ? 'hum' : (isSci ? 'sci' : (isBs ? 'bs' : ''));
 
       return marksMap.get(`${sId}_${sub.id}`) || 
              marksMap.get(`${stRollId}_${sub.id}`) ||
@@ -638,9 +709,12 @@ export function processClassResults(students, subjects, marksList, className, ex
              marksMap.get(`${stRollId}_${sCode}`) ||
              marksMap.get(`${sId}_${sCodeNorm}`) ||
              marksMap.get(`${stRollId}_${sCodeNorm}`) ||
-             (sRoll ? marksMap.get(`${sRoll}_${sub.id}`) : null) ||
-             (sRoll ? marksMap.get(`${sRoll}_${sCode}`) : null) ||
-             (sRoll ? marksMap.get(`${sRoll}_${sCodeNorm}`) : null) || null;
+             (deptPrefix && sRoll ? marksMap.get(`${deptPrefix}_${sRoll}_${sub.id}`) : null) ||
+             (deptPrefix && sRoll ? marksMap.get(`${deptPrefix}_${sRoll}_${sCode}`) : null) ||
+             (deptPrefix && sRoll ? marksMap.get(`${deptPrefix}_${sRoll}_${sCodeNorm}`) : null) ||
+             (!isHum && !isBs && sRoll ? marksMap.get(`${sRoll}_${sub.id}`) : null) ||
+             (!isHum && !isBs && sRoll ? marksMap.get(`${sRoll}_${sCode}`) : null) ||
+             (!isHum && !isBs && sRoll ? marksMap.get(`${sRoll}_${sCodeNorm}`) : null) || null;
     };
 
     let subjectEvals = [];

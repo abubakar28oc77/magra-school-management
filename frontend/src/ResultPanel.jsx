@@ -741,6 +741,9 @@ export function ResultPanel({ sub, userRole }) {
         exam_id: selectedExam,
         class_name: className,
         student_id: r.student_id,
+        student_code: r.student_code || r.student_id,
+        roll_no: r.roll_no,
+        department: r.department || department,
         subject_id: currentSubjectObj?.id || r.subject_id,
         subject_code: currentSubjectObj?.code || r.subject_code,
         written: r.written,
@@ -2341,10 +2344,10 @@ export function ResultPanel({ sub, userRole }) {
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
                                  (nameVal && studentLookup.get(`name:${nameVal}`)) ||
                                  (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
-                                 (rollVal && normDeptKey && studentLookup.get(`roll_${normDeptKey}_${rollVal}`)) ||
+                                 (rollVal && normDeptKey && (studentLookup.get(`roll_${normDeptKey}_${rollVal}`) || studentLookup.get(`roll_${normDeptKey}_${Number(rollVal)}`))) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
-                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+                                 (!normDeptKey && rollVal && studentLookup.get(`roll:${rollVal}`));
 
           if (!matchedStudent) continue;
           matchedStudentIds.add(matchedStudent.id);
@@ -2357,6 +2360,29 @@ export function ResultPanel({ sub, userRole }) {
             let w = wIdx !== -1 && row[wIdx] !== undefined ? normalizeMarkDigits(row[wIdx]) : '';
             let m = mIdx !== -1 && row[mIdx] !== undefined ? normalizeMarkDigits(row[mIdx]) : '';
             let p = pIdx !== -1 && row[pIdx] !== undefined ? normalizeMarkDigits(row[pIdx]) : '';
+
+            // Smart mapping for subjects without written component (e.g. ICT Code 154: written_max = 0, mcq_max = 25, practical_max = 25)
+            if (sub.written_max === 0 && sub.mcq_max > 0) {
+              if (w !== '' && (m === '' || m === null || m === undefined)) {
+                const numW = parseFloat(w) || 0;
+                if (p !== '' && p !== null && p !== undefined) {
+                  m = String(Math.min(numW, sub.mcq_max));
+                  w = '0';
+                } else if (numW > sub.mcq_max) {
+                  const pVal = sub.practical_max > 0 ? Math.min(sub.practical_max, 25) : 0;
+                  const mVal = Math.min(sub.mcq_max, Math.max(0, numW - pVal));
+                  m = String(mVal);
+                  p = String(numW - mVal);
+                  w = '0';
+                } else {
+                  m = String(numW);
+                  w = '0';
+                }
+              } else if (w !== '' && (p === '' || p === null || p === undefined) && m !== '') {
+                p = String(Math.min(parseFloat(w) || 0, sub.practical_max || 0));
+                w = '0';
+              }
+            }
 
             // Validation against maximums
             if (w !== '' && sub.written_max > 0 && parseFloat(w) > sub.written_max) w = String(sub.written_max);
@@ -2451,10 +2477,10 @@ export function ResultPanel({ sub, userRole }) {
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
                                  (nameVal && studentLookup.get(`name:${nameVal}`)) ||
                                  (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
-                                 (rollVal && normDeptKey && studentLookup.get(`roll_${normDeptKey}_${rollVal}`)) ||
+                                 (rollVal && normDeptKey && (studentLookup.get(`roll_${normDeptKey}_${rollVal}`) || studentLookup.get(`roll_${normDeptKey}_${Number(rollVal)}`))) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
-                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+                                 (!normDeptKey && rollVal && studentLookup.get(`roll:${rollVal}`));
 
           if (!matchedStudent) continue;
           matchedStudentIds.add(matchedStudent.id);
@@ -2470,6 +2496,29 @@ export function ResultPanel({ sub, userRole }) {
           const wMax = Number(rowSub.written_max) || 0;
           const mMax = Number(rowSub.mcq_max) || 0;
           const pMax = Number(rowSub.practical_max) || 0;
+
+          // Smart healing for subjects with no written exam (e.g. ICT Code 154: written_max = 0, mcq_max = 25, practical_max = 25)
+          if (wMax === 0 && mMax > 0) {
+            if (w !== '' && (m === '' || m === null || m === undefined)) {
+              const numW = parseFloat(w) || 0;
+              if (p !== '' && p !== null && p !== undefined) {
+                m = String(Math.min(numW, mMax));
+                w = '0';
+              } else if (numW > mMax) {
+                const pVal = pMax > 0 ? Math.min(pMax, 25) : 0;
+                const mVal = Math.min(mMax, Math.max(0, numW - pVal));
+                m = String(mVal);
+                p = String(numW - mVal);
+                w = '0';
+              } else {
+                m = String(numW);
+                w = '0';
+              }
+            } else if (w !== '' && (p === '' || p === null || p === undefined) && m !== '') {
+              p = String(Math.min(parseFloat(w) || 0, pMax));
+              w = '0';
+            }
+          }
 
           if (w !== '' && wMax > 0 && parseFloat(w) > wMax) w = String(wMax);
           if (m !== '' && mMax > 0 && parseFloat(m) > mMax) m = String(mMax);
@@ -2655,7 +2704,11 @@ export function ResultPanel({ sub, userRole }) {
     if (['merit', 'failed_list', 'tabulation', 'marksheet', 'analysis', 'processing'].includes(tab) && selectedExam) {
       loadProcessedResults(true);
     }
-  }, [tab, selectedExam, className]);
+  }, [tab, selectedExam, className, department]);
+
+  useEffect(() => {
+    setSelectedStudentIndex(0);
+  }, [department, className, selectedExam]);
 
   // Filtered processed results by Department (Group) for 9-10
   const filteredProcessedResults = useMemo(() => {

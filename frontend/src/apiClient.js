@@ -494,12 +494,28 @@ function getLocalStore(key, defaultVal = []) {
   try {
     const raw = localStorage.getItem('magra_db_' + key);
     if (raw === null || raw === undefined) {
-      if (defaultVal !== undefined) {
-        localStorage.setItem('magra_db_' + key, JSON.stringify(defaultVal));
+      const effectiveDefault = (key === 'exams' && (!defaultVal || (Array.isArray(defaultVal) && !defaultVal.length))) ? MOCK_EXAMS : defaultVal;
+      if (effectiveDefault !== undefined) {
+        localStorage.setItem('magra_db_' + key, JSON.stringify(effectiveDefault));
       }
-      return defaultVal;
+      return effectiveDefault;
     }
     const parsed = JSON.parse(raw);
+    if (key === 'exams') {
+      let examsList = Array.isArray(parsed) && parsed.length ? parsed : MOCK_EXAMS;
+      let changed = false;
+      const combined = [...examsList];
+      MOCK_EXAMS.forEach(mockEx => {
+        if (!combined.some(e => e && (String(e.id).toLowerCase() === String(mockEx.id).toLowerCase() || e.name_bn === mockEx.name_bn))) {
+          combined.push(mockEx);
+          changed = true;
+        }
+      });
+      if (changed || !Array.isArray(parsed) || parsed.length === 0) {
+        try { localStorage.setItem('magra_db_exams', JSON.stringify(combined)); } catch (e) {}
+      }
+      return combined;
+    }
     if (key === 'students' && Array.isArray(parsed)) {
       const seenIds = new Set();
       const seenClassRoll = new Set();
@@ -2527,7 +2543,7 @@ function handleMockRequest(path, opts = {}) {
     const cls = params.get('class_name');
     let marks = getLocalStore('marks', []);
     const studentsList = getLocalStore('students', MOCK_STUDENTS);
-    const examsList = getLocalStore('exams', []);
+    const examsList = getLocalStore('exams', MOCK_EXAMS);
     const repaired = sanitizeAndRepairMarks(marks, studentsList, examsList);
     if (repaired.length !== marks.length || JSON.stringify(repaired) !== JSON.stringify(marks)) {
       setLocalStore('marks', repaired);
@@ -2585,7 +2601,7 @@ function handleMockRequest(path, opts = {}) {
     });
     const updatedList = Array.from(map.values());
     const studentsList = getLocalStore('students', MOCK_STUDENTS);
-    const examsList = getLocalStore('exams', []);
+    const examsList = getLocalStore('exams', MOCK_EXAMS);
     const sanitizedList = sanitizeAndRepairMarks(updatedList, studentsList, examsList);
     setLocalStore('marks', sanitizedList);
 
@@ -2593,7 +2609,7 @@ function handleMockRequest(path, opts = {}) {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         Object.keys(window.localStorage).forEach(k => {
-          if (k.startsWith(`magra_db_results_${examId}_`)) {
+          if (k.startsWith('magra_db_results_')) {
             window.localStorage.removeItem(k);
           }
         });
@@ -2683,6 +2699,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     } else if (areExamsEquivalent(normExamId, 'ex-3', exams)) {
       normExamId = 'ex-3';
     }
+    rec.exam_id = normExamId;
 
     const normSubCode = String(rec.subject_code || rec.subject_id || '')
       .replace(/^sub-10-|^sub-9-|^sub-/, '')
@@ -2709,12 +2726,13 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
   });
 
   // Expand so that records are accessible under all equivalent exam IDs
+  const allKnownExams = Array.isArray(exams) && exams.length ? exams : getLocalStore('exams', MOCK_EXAMS);
   const resultList = [];
   dedupeMap.forEach(rec => {
     resultList.push(rec);
-    if (Array.isArray(exams) && exams.length) {
-      exams.forEach(ex => {
-        if (ex && ex.id && areExamsEquivalent(rec.exam_id, ex.id, exams) && String(rec.exam_id) !== String(ex.id)) {
+    if (Array.isArray(allKnownExams) && allKnownExams.length) {
+      allKnownExams.forEach(ex => {
+        if (ex && ex.id && areExamsEquivalent(rec.exam_id, ex.id, allKnownExams) && String(rec.exam_id) !== String(ex.id)) {
           resultList.push({
             ...rec,
             exam_id: ex.id
@@ -2730,7 +2748,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
   if (cleanPath === '/results/process' && method === 'POST') {
     const examId = body.exam_id;
     let cls = body.class_name || '6';
-    let exams = getLocalStore('exams', []);
+    let exams = getLocalStore('exams', MOCK_EXAMS);
     exams = exams.map(e => String(e.id) === String(examId) ? { ...e, status: 'published' } : e);
     setLocalStore('exams', exams);
 
@@ -2891,11 +2909,11 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      let exams = getLocalStore('exams', []);
+      let exams = getLocalStore('exams', MOCK_EXAMS);
       const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
       setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
-      processed = processClassResults(students, subs, examMarks, cls, examId);
+      processed = processClassResults(students, subs, examMarks, cls, examId, exams);
       setLocalStore(`results_${examId}_${cls}`, processed);
       if (['10', '১০', '১০ম'].includes(String(cls))) {
         setLocalStore(`results_${examId}_10`, processed);
@@ -2921,11 +2939,11 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      let exams = getLocalStore('exams', []);
+      let exams = getLocalStore('exams', MOCK_EXAMS);
       const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students, exams);
       setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
-      processed = processClassResults(students, subs, examMarks, cls, examId);
+      processed = processClassResults(students, subs, examMarks, cls, examId, exams);
       setLocalStore(`results_${examId}_${cls}`, processed);
       if (['10', '১০', '১০ম'].includes(String(cls))) {
         setLocalStore(`results_${examId}_10`, processed);
