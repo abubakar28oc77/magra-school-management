@@ -2522,10 +2522,16 @@ function handleMockRequest(path, opts = {}) {
     }
   }
 
-    if (cleanPath === '/marks') {
+  if (cleanPath === '/marks') {
     const examId = params.get('exam_id');
     const cls = params.get('class_name');
     let marks = getLocalStore('marks', []);
+    const studentsList = getLocalStore('students', MOCK_STUDENTS);
+    const repaired = sanitizeAndRepairMarks(marks, studentsList);
+    if (repaired.length !== marks.length || JSON.stringify(repaired) !== JSON.stringify(marks)) {
+      setLocalStore('marks', repaired);
+      marks = repaired;
+    }
     let filtered = marks;
     if (examId) {
       filtered = filtered.filter(m => String(m.exam_id) === String(examId));
@@ -2565,7 +2571,9 @@ function handleMockRequest(path, opts = {}) {
       });
     });
     const updatedList = Array.from(map.values());
-    setLocalStore('marks', updatedList);
+    const studentsList = getLocalStore('students', MOCK_STUDENTS);
+    const sanitizedList = sanitizeAndRepairMarks(updatedList, studentsList);
+    setLocalStore('marks', sanitizedList);
 
     // Invalidate cached results for this exam & class so Tabulation & Merit lists immediately update
     try {
@@ -2580,6 +2588,93 @@ function handleMockRequest(path, opts = {}) {
 
     return { ok: true, count: records.length };
   }
+
+function sanitizeAndRepairMarks(marksList, studentsList) {
+  if (!Array.isArray(marksList) || !marksList.length) return marksList;
+  const c10Students = (studentsList || []).filter(s => ['10', '১০', '১০ম'].includes(String(s.class_name)));
+  if (!c10Students.length) return marksList;
+
+  const sciByRoll = new Map();
+  const humByRoll = new Map();
+  const bsByRoll = new Map();
+  const studentById = new Map();
+
+  c10Students.forEach(s => {
+    const r = Number(s.roll_no);
+    studentById.set(s.id, s);
+    if (s.student_id) studentById.set(s.student_id, s);
+    if (s.student_code) studentById.set(s.student_code, s);
+    const d = (s.department || '').toLowerCase();
+    if (d.includes('বিজ্ঞান') || d.includes('sci')) sciByRoll.set(r, s);
+    else if (d.includes('মানবিক') || d.includes('hum')) humByRoll.set(r, s);
+    else if (d.includes('ব্যবসায়') || d.includes('com') || d.includes('bs')) bsByRoll.set(r, s);
+  });
+
+  const sciCodes = new Set(['136', '137', '138', '126', 'sub-10-136', 'sub-10-137', 'sub-10-138', 'sub-10-126', 'sub-9-136', 'sub-9-137', 'sub-9-138', 'sub-9-126']);
+  const humCodes = new Set(['153', '110', '141', '140', '151', 'sub-10-153', 'sub-10-110', 'sub-10-141', 'sub-10-140', 'sub-10-151']);
+  const bsCodes = new Set(['146', '152', '143', 'sub-10-146', 'sub-10-152', 'sub-10-143']);
+
+  const dedupeMap = new Map();
+
+  marksList.forEach(m => {
+    if (!m) return;
+    let rec = { ...m };
+    const code = String(rec.subject_code || rec.subject_id || '').trim();
+    const subName = String(rec.subject_name || '').toLowerCase();
+    const currSt = studentById.get(rec.student_id) || studentById.get(rec.student_code);
+
+    if (currSt) {
+      const r = Number(currSt.roll_no);
+      const d = (currSt.department || '').toLowerCase();
+
+      const isSci = sciCodes.has(code) || subName.includes('জীববিজ্ঞান') || subName.includes('biology') || subName.includes('পদার্থ') || subName.includes('রসায়ন') || subName.includes('রসায়ন') || subName.includes('উচ্চতর');
+      const isBs = bsCodes.has(code) || subName.includes('হিসাববিজ্ঞান') || subName.includes('ব্যবসায়') || subName.includes('ফিন্যান্স');
+      const isHum = humCodes.has(code) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
+
+      if (isSci && !d.includes('বিজ্ঞান') && !d.includes('sci')) {
+        const realSciSt = sciByRoll.get(r);
+        if (realSciSt) {
+          rec.student_id = realSciSt.id;
+          rec.student_code = realSciSt.student_id || realSciSt.id;
+          rec.department = 'বিজ্ঞান';
+          rec.class_name = '10';
+        }
+      } else if (isBs && !d.includes('ব্যবসায়') && !d.includes('bs') && !d.includes('com')) {
+        const realBsSt = bsByRoll.get(r);
+        if (realBsSt) {
+          rec.student_id = realBsSt.id;
+          rec.student_code = realBsSt.student_id || realBsSt.id;
+          rec.department = 'ব্যবসায় শিক্ষা';
+          rec.class_name = '10';
+        }
+      } else if (isHum && !d.includes('মানবিক') && !d.includes('hum')) {
+        const realHumSt = humByRoll.get(r);
+        if (realHumSt) {
+          rec.student_id = realHumSt.id;
+          rec.student_code = realHumSt.student_id || realHumSt.id;
+          rec.department = 'মানবিক';
+          rec.class_name = '10';
+        }
+      }
+    }
+
+    const key = `${rec.exam_id}_${rec.student_id}_${rec.subject_id || rec.subject_code}`;
+    const existing = dedupeMap.get(key);
+    if (!existing) {
+      dedupeMap.set(key, rec);
+    } else {
+      const recHasMarks = Number(rec.written) > 0 || Number(rec.mcq) > 0 || Number(rec.practical) > 0 || Number(rec.total) > 0;
+      const exHasMarks = Number(existing.written) > 0 || Number(existing.mcq) > 0 || Number(existing.practical) > 0 || Number(existing.total) > 0;
+      if (recHasMarks && !exHasMarks) {
+        dedupeMap.set(key, rec);
+      } else if (!rec.absent && existing.absent) {
+        dedupeMap.set(key, rec);
+      }
+    }
+  });
+
+  return Array.from(dedupeMap.values());
+}
 
   if (cleanPath === '/results/process' && method === 'POST') {
     const examId = body.exam_id;
@@ -2604,7 +2699,8 @@ function handleMockRequest(path, opts = {}) {
     const students = getLocalStore('students', MOCK_STUDENTS);
     let subs = getLocalStore('subjects', MOCK_SUBJECTS);
     if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-    const allMarks = getLocalStore('marks', []);
+    const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+    setLocalStore('marks', allMarks);
     const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
 
     // Compute real results via Dhaka Board Exam Engine
@@ -2744,7 +2840,8 @@ function handleMockRequest(path, opts = {}) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const allMarks = getLocalStore('marks', []);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+      setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
       processed = processClassResults(students, subs, examMarks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);
@@ -2772,7 +2869,8 @@ function handleMockRequest(path, opts = {}) {
       const students = getLocalStore('students', MOCK_STUDENTS);
       let subs = getLocalStore('subjects', MOCK_SUBJECTS);
       if (!Array.isArray(subs) || subs.length < 20) subs = MOCK_SUBJECTS;
-      const allMarks = getLocalStore('marks', []);
+      const allMarks = sanitizeAndRepairMarks(getLocalStore('marks', []), students);
+      setLocalStore('marks', allMarks);
       const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId));
       processed = processClassResults(students, subs, examMarks, cls, examId);
       setLocalStore(`results_${examId}_${cls}`, processed);

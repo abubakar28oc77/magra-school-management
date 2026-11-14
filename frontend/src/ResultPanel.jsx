@@ -2113,6 +2113,7 @@ export function ResultPanel({ sub, userRole }) {
 
       const rollIdx = findHeaderIdx(['roll', 'রোল', 'ক্লাসরোল', 'rollno', 'roll_no']);
       const idIdx = findHeaderIdx(['studentid', 'student_id', 'আইডি', 'স্টুডেন্টআইডি', 'id']);
+      const nameIdx = findHeaderIdx(['studentname', 'name', 'নাম', 'শিক্ষার্থীরনাম', 'student_name']);
       const deptIdx = findHeaderIdx(['department', 'dept', 'বিভাগ', 'শাখা', 'গ্রুপ', 'group']);
       const examNameIdx = findHeaderIdx(['examname', 'exam_name', 'পরীক্ষা', 'পরীক্ষারনাম', 'exam']);
       const absentIdx = findHeaderIdx(['absent', 'অনুপস্থিত', 'abs']);
@@ -2207,9 +2208,18 @@ export function ResultPanel({ sub, userRole }) {
         if (st.id) studentLookup.set(`id:${st.id.toLowerCase()}`, st);
         if (st.student_id) studentLookup.set(`id:${st.student_id.toLowerCase()}`, st);
         if (st.student_code) studentLookup.set(`id:${st.student_code.toLowerCase()}`, st);
+
+        if (st.name_bn) {
+          studentLookup.set(`name:${st.name_bn.trim().toLowerCase()}`, st);
+          studentLookup.set(`name_clean:${st.name_bn.replace(/\s+/g, '').toLowerCase()}`, st);
+        }
+        if (st.name_en) {
+          studentLookup.set(`name:${st.name_en.trim().toLowerCase()}`, st);
+          studentLookup.set(`name_clean:${st.name_en.replace(/\s+/g, '').toLowerCase()}`, st);
+        }
+
         if (st.roll_no !== undefined && st.roll_no !== null) {
           const r = String(st.roll_no).trim();
-          studentLookup.set(`roll:${r}`, st);
           const dept = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
           if (dept) {
             studentLookup.set(`dept_roll:${dept}_${r}`, st);
@@ -2221,13 +2231,17 @@ export function ResultPanel({ sub, userRole }) {
             } else if (dept.includes('মানবিক') || dept.includes('hum') || dept.includes('arts')) {
               studentLookup.set(`dept_roll:মানবিক_${r}`, st);
               studentLookup.set(`dept_roll:humanities_${r}`, st);
-            } else if (dept.includes('ব্যবসায়') || dept.includes('com') || dept.includes('business')) {
+            } else if (dept.includes('ব্যবসায়') || dept.includes('com') || dept.includes('business') || dept.includes('bs')) {
               studentLookup.set(`dept_roll:ব্যবসায় শিক্ষা_${r}`, st);
               studentLookup.set(`dept_roll:commerce_${r}`, st);
             }
           }
           const deptPrio = getStudentGroupPriority({ department: st.department || st.group_name });
           if (deptPrio < 4) studentLookup.set(`prio_roll:${deptPrio}_${r}`, st);
+
+          if (!studentLookup.has(`roll:${r}`) || dept.includes('বিজ্ঞান') || dept.includes('sci')) {
+            studentLookup.set(`roll:${r}`, st);
+          }
         }
       });
 
@@ -2290,11 +2304,16 @@ export function ResultPanel({ sub, userRole }) {
 
           const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
           const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim().toLowerCase() : '';
+          const nameVal = nameIdx !== -1 && row[nameIdx] ? row[nameIdx].trim().toLowerCase() : '';
+          const nameClean = nameVal.replace(/\s+/g, '');
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
-          const deptPrio = deptVal ? getStudentGroupPriority({ department: deptVal }) : 99;
+          const targetDept = deptVal || (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ' ? effectiveDept.toLowerCase() : '');
+          const deptPrio = targetDept ? getStudentGroupPriority({ department: targetDept }) : 99;
 
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
-                                 (rollVal && deptVal && studentLookup.get(`dept_roll:${deptVal}_${rollVal}`)) ||
+                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
+                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
+                                 (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
                                  (rollVal && studentLookup.get(`roll:${rollVal}`));
 
@@ -2320,6 +2339,8 @@ export function ResultPanel({ sub, userRole }) {
                 exam_id: effectiveExamId,
                 class_name: effectiveClass,
                 student_id: matchedStudent.id,
+                student_code: matchedStudent.student_id || matchedStudent.id,
+                department: matchedStudent.department || targetDept,
                 subject_id: sub.id,
                 subject_code: sub.code,
                 written: w,
@@ -2352,20 +2373,7 @@ export function ResultPanel({ sub, userRole }) {
           const row = matrix[r];
           if (!row || !row.length || row.every(c => !c.trim())) continue;
 
-          const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
-          const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim().toLowerCase() : '';
-          const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
-          const deptPrio = deptVal ? getStudentGroupPriority({ department: deptVal }) : 99;
-
-          const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
-                                 (rollVal && deptVal && studentLookup.get(`dept_roll:${deptVal}_${rollVal}`)) ||
-                                 (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
-                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
-
-          if (!matchedStudent) continue;
-          matchedStudentIds.add(matchedStudent.id);
-
-          // Detect row subject if subject column exists
+          // 1. Detect row subject first so department context is 100% accurate!
           let rowSub = targetSubject;
           const rowCode = subjectCodeIdx !== -1 && row[subjectCodeIdx] ? row[subjectCodeIdx].trim() : '';
           const rowSubName = subjectNameIdx !== -1 && row[subjectNameIdx] ? row[subjectNameIdx].trim() : '';
@@ -2382,6 +2390,39 @@ export function ResultPanel({ sub, userRole }) {
           if (!rowSub) continue;
 
           rowSubjectsSet.add(rowSub.name_bn);
+
+          const rollVal = rollIdx !== -1 && row[rollIdx] ? normalizeMarkDigits(row[rollIdx].trim()) : '';
+          const idVal = idIdx !== -1 && row[idIdx] ? row[idIdx].trim().toLowerCase() : '';
+          const nameVal = nameIdx !== -1 && row[nameIdx] ? row[nameIdx].trim().toLowerCase() : '';
+          const nameClean = nameVal.replace(/\s+/g, '');
+          const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
+
+          // Determine department context from CSV row, subject department, or subject code
+          let targetDept = deptVal;
+          if (!targetDept && rowSub?.department && !['আবশ্যিক', 'সাধারণ'].includes(rowSub.department)) {
+            targetDept = rowSub.department.toLowerCase();
+          }
+          if (!targetDept && rowSub?.code) {
+            const c = String(rowSub.code);
+            if (['136', '137', '138', '126'].includes(c)) targetDept = 'বিজ্ঞান';
+            else if (['146', '152', '143'].includes(c)) targetDept = 'ব্যবসায় শিক্ষা';
+            else if (['153', '110', '141', '140', '151'].includes(c)) targetDept = 'মানবিক';
+          }
+          if (!targetDept && effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ') {
+            targetDept = effectiveDept.toLowerCase();
+          }
+
+          const deptPrio = targetDept ? getStudentGroupPriority({ department: targetDept }) : 99;
+
+          const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
+                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
+                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
+                                 (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
+                                 (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
+                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+
+          if (!matchedStudent) continue;
+          matchedStudentIds.add(matchedStudent.id);
 
           const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
           const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
@@ -2403,6 +2444,8 @@ export function ResultPanel({ sub, userRole }) {
             exam_id: effectiveExamId,
             class_name: effectiveClass,
             student_id: matchedStudent.id,
+            student_code: matchedStudent.student_id || matchedStudent.id,
+            department: matchedStudent.department || targetDept,
             subject_id: rowSub.id,
             subject_code: rowSub.code,
             written: w,
@@ -2560,7 +2603,7 @@ export function ResultPanel({ sub, userRole }) {
 
   useEffect(() => {
     if (['merit', 'failed_list', 'tabulation', 'marksheet', 'analysis', 'processing'].includes(tab) && selectedExam) {
-      loadProcessedResults();
+      loadProcessedResults(true);
     }
   }, [tab, selectedExam, className]);
 
@@ -5249,6 +5292,15 @@ export function ResultPanel({ sub, userRole }) {
             </div>
 
             <div className="nav-buttons-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn-modern-action"
+                onClick={() => loadProcessedResults(true)}
+                title="সর্বশেষ সংরক্ষিত নম্বর থেকে ফলাফল রিফ্রেশ করুন"
+                style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 600 }}
+              >
+                🔄 রিফ্রেশ
+              </button>
               <button
                 type="button"
                 className="btn-modern-action"

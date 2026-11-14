@@ -38,7 +38,17 @@ export function getFinalGradeFromGpa(gpaNum) {
 export function calculateSubjectGrade(subject, markRecord = {}) {
   const full = Number(subject.full_marks) || 100;
   
-  if (!markRecord || markRecord.absent) {
+  const hasMarks = Number(markRecord?.written) > 0 || Number(markRecord?.mcq) > 0 || Number(markRecord?.practical) > 0 || Number(markRecord?.total) > 0;
+  const isExplicitAbsent = !hasMarks && markRecord && (
+    markRecord.absent === true || 
+    markRecord.absent === 'true' || 
+    markRecord.absent === 'yes' || 
+    markRecord.absent === 'হ্যাঁ' || 
+    markRecord.absent === 1 || 
+    markRecord.absent === '1'
+  );
+
+  if (!markRecord || isExplicitAbsent) {
     return {
       subject_id: subject.id,
       code: subject.code || '—',
@@ -57,8 +67,8 @@ export function calculateSubjectGrade(subject, markRecord = {}) {
       letter_grade: 'F',
       gp: 0.0,
       is_pass: false,
-      absent: true,
-      fail_reason: 'অনুপস্থিত'
+      absent: !!isExplicitAbsent,
+      fail_reason: isExplicitAbsent ? 'অনুপস্থিত' : ''
     };
   }
 
@@ -533,6 +543,13 @@ export function processClassResults(students, subjects, marksList, className, ex
       if (m.subject_id) marksMap.set(`${sId}_${m.subject_id}`, m);
       if (sCode) marksMap.set(`${sId}_${sCode}`, m);
       if (sCodeNorm && sCodeNorm !== sCode) marksMap.set(`${sId}_${sCodeNorm}`, m);
+
+      if (m.student_code) {
+        const sCodeId = String(m.student_code).toLowerCase();
+        if (m.subject_id) marksMap.set(`${sCodeId}_${m.subject_id}`, m);
+        if (sCode) marksMap.set(`${sCodeId}_${sCode}`, m);
+        if (sCodeNorm && sCodeNorm !== sCode) marksMap.set(`${sCodeId}_${sCodeNorm}`, m);
+      }
     }
   });
 
