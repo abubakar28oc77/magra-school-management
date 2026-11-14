@@ -2182,19 +2182,22 @@ export function ResultPanel({ sub, userRole }) {
         }
       }
 
-      // 3. Smart Department Detection from CSV rows
+      // 3. Smart Department Detection from CSV rows across entire file
       let effectiveDept = department;
-      if (deptIdx !== -1 && matrix[1] && matrix[1][deptIdx]) {
-        const rawDept = matrix[1][deptIdx].trim().toLowerCase();
-        if (rawDept.includes('বিজ্ঞান') || rawDept.includes('sci')) {
-          effectiveDept = 'বিজ্ঞান';
-          if (department !== 'বিজ্ঞান') setDepartment('বিজ্ঞান');
-        } else if (rawDept.includes('মানবিক') || rawDept.includes('hum') || rawDept.includes('arts')) {
-          effectiveDept = 'মানবিক';
-          if (department !== 'মানবিক') setDepartment('মানবিক');
-        } else if (rawDept.includes('ব্যবসায়') || rawDept.includes('com') || rawDept.includes('business')) {
-          effectiveDept = 'ব্যবসায় শিক্ষা';
-          if (department !== 'ব্যবসায় শিক্ষা') setDepartment('ব্যবসায় শিক্ষা');
+      if (deptIdx !== -1 && matrix.length > 1) {
+        const fileDepts = new Set();
+        for (let r = 1; r < matrix.length; r++) {
+          const val = (matrix[r][deptIdx] || '').trim().toLowerCase();
+          if (val.includes('বিজ্ঞান') || val.includes('sci')) fileDepts.add('বিজ্ঞান');
+          else if (val.includes('মানবিক') || val.includes('hum') || val.includes('arts')) fileDepts.add('মানবিক');
+          else if (val.includes('ব্যবসায়') || val.includes('com') || val.includes('business') || val.includes('bs')) fileDepts.add('ব্যবসায় শিক্ষা');
+        }
+        if (fileDepts.size > 1) {
+          effectiveDept = 'all';
+          setDepartment('all');
+        } else if (fileDepts.size === 1) {
+          effectiveDept = Array.from(fileDepts)[0];
+          setDepartment(effectiveDept);
         }
       }
 
@@ -2250,7 +2253,7 @@ export function ResultPanel({ sub, userRole }) {
           const deptPrio = getStudentGroupPriority({ department: st.department || st.group_name });
           if (deptPrio < 4) studentLookup.set(`prio_roll:${deptPrio}_${r}`, st);
 
-          if (!studentLookup.has(`roll:${r}`) || dept.includes('বিজ্ঞান') || dept.includes('sci')) {
+          if (!studentLookup.has(`roll:${r}`)) {
             studentLookup.set(`roll:${r}`, st);
           }
         }
@@ -2318,15 +2321,21 @@ export function ResultPanel({ sub, userRole }) {
           const nameVal = nameIdx !== -1 && row[nameIdx] ? row[nameIdx].trim().toLowerCase() : '';
           const nameClean = nameVal.replace(/\s+/g, '');
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
-          const targetDept = deptVal || (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ' ? effectiveDept.toLowerCase() : '');
+          let targetDept = '';
+          if (deptVal.includes('বিজ্ঞান') || deptVal.includes('sci')) targetDept = 'বিজ্ঞান';
+          else if (deptVal.includes('মানবিক') || deptVal.includes('hum') || deptVal.includes('arts')) targetDept = 'মানবিক';
+          else if (deptVal.includes('ব্যবসায়') || deptVal.includes('com') || deptVal.includes('business') || deptVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
+          else if (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ') targetDept = effectiveDept;
+
           const deptPrio = targetDept ? getStudentGroupPriority({ department: targetDept }) : 99;
 
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
                                  (nameVal && studentLookup.get(`name:${nameVal}`)) ||
                                  (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
+                                 (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept.toLowerCase()}_${rollVal}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
-                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+                                 (rollVal && !targetDept && studentLookup.get(`roll:${rollVal}`));
 
           if (!matchedStudent) continue;
           matchedStudentIds.add(matchedStudent.id);
@@ -2409,9 +2418,13 @@ export function ResultPanel({ sub, userRole }) {
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
 
           // Determine department context from CSV row, subject department, or subject code
-          let targetDept = deptVal;
+          let targetDept = '';
+          if (deptVal.includes('বিজ্ঞান') || deptVal.includes('sci')) targetDept = 'বিজ্ঞান';
+          else if (deptVal.includes('মানবিক') || deptVal.includes('hum') || deptVal.includes('arts')) targetDept = 'মানবিক';
+          else if (deptVal.includes('ব্যবসায়') || deptVal.includes('com') || deptVal.includes('business') || deptVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
+
           if (!targetDept && rowSub?.department && !['আবশ্যিক', 'সাধারণ'].includes(rowSub.department)) {
-            targetDept = rowSub.department.toLowerCase();
+            targetDept = rowSub.department;
           }
           if (!targetDept && rowSub?.code) {
             const c = String(rowSub.code);
@@ -2420,7 +2433,7 @@ export function ResultPanel({ sub, userRole }) {
             else if (['153', '110', '141', '140', '151'].includes(c)) targetDept = 'মানবিক';
           }
           if (!targetDept && effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ') {
-            targetDept = effectiveDept.toLowerCase();
+            targetDept = effectiveDept;
           }
 
           const deptPrio = targetDept ? getStudentGroupPriority({ department: targetDept }) : 99;
@@ -2429,8 +2442,9 @@ export function ResultPanel({ sub, userRole }) {
                                  (nameVal && studentLookup.get(`name:${nameVal}`)) ||
                                  (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
+                                 (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept.toLowerCase()}_${rollVal}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
-                                 (rollVal && studentLookup.get(`roll:${rollVal}`));
+                                 (rollVal && !targetDept && studentLookup.get(`roll:${rollVal}`));
 
           if (!matchedStudent) continue;
           matchedStudentIds.add(matchedStudent.id);
@@ -2564,7 +2578,34 @@ export function ResultPanel({ sub, userRole }) {
         ? `${toBnDigits(detectedSubjectNames.length)}টি বিষয় (${detectedSubjectNames.slice(0, 3).join(', ')}${detectedSubjectNames.length > 3 ? '...' : ''})`
         : `"${targetSubObj?.name_bn || detectedSubjectNames[0] || 'বিষয়'}"`;
 
-      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${subjectsInfo} এর ${toBnDigits(matchedStudentIds.size)} জন শিক্ষার্থীর নম্বর সফলভাবে সেভ ও মাস্টার শিটে প্রসেস করা হয়েছে! ✓`, 'success');
+      // Department breakdown for clear feedback
+      const sciCount = Array.from(matchedStudentIds).filter(id => {
+        const s = allClassStudents.find(x => x.id === id);
+        return s && matchesStudentGroup(s, 'বিজ্ঞান');
+      }).length;
+      const humCount = Array.from(matchedStudentIds).filter(id => {
+        const s = allClassStudents.find(x => x.id === id);
+        return s && matchesStudentGroup(s, 'মানবিক');
+      }).length;
+      const busCount = Array.from(matchedStudentIds).filter(id => {
+        const s = allClassStudents.find(x => x.id === id);
+        return s && matchesStudentGroup(s, 'ব্যবসায় শিক্ষা');
+      }).length;
+
+      let deptSummary = '';
+      if (sciCount && humCount) {
+        deptSummary = ` (বিজ্ঞান: ${toBnDigits(sciCount)} জন, মানবিক: ${toBnDigits(humCount)} জন${busCount ? `, ব্যবসায় শিক্ষা: ${toBnDigits(busCount)} জন` : ''} — মোট ${toBnDigits(matchedStudentIds.size)} জন)`;
+      } else if (humCount) {
+        deptSummary = ` (মানবিক বিভাগ — ${toBnDigits(humCount)} জন)`;
+      } else if (sciCount) {
+        deptSummary = ` (বিজ্ঞান বিভাগ — ${toBnDigits(sciCount)} জন)`;
+      } else if (busCount) {
+        deptSummary = ` (ব্যবসায় শিক্ষা — ${toBnDigits(busCount)} জন)`;
+      } else {
+        deptSummary = ` (${toBnDigits(matchedStudentIds.size)} জন)`;
+      }
+
+      showNotification(`🎉 অভিনন্দন! CSV ফাইল থেকে ${subjectsInfo} এর${deptSummary} নম্বর সফলভাবে সেভ ও মাস্টার শিটে প্রসেস করা হয়েছে! ✓`, 'success');
     } catch (err) {
       console.error('CSV import error:', err);
       showNotification('CSV ফাইল আপলোড ব্যর্থ: ' + err.message, 'error');
@@ -4447,6 +4488,84 @@ export function ResultPanel({ sub, userRole }) {
             </div>
           )}
 
+          {/* 1-Click Department Quick Switcher for Classes 9 & 10 */}
+          {isSSC && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                🏷️ দ্রুত বিভাগ পরিবর্তন:
+              </span>
+              <button
+                type="button"
+                onClick={() => setDepartment('all')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: department === 'all' || department === 'সকল বিভাগ' ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                  background: department === 'all' || department === 'সকল বিভাগ' ? '#e0f2fe' : '#fff',
+                  color: department === 'all' || department === 'সকল বিভাগ' ? '#0369a1' : '#475569'
+                }}
+              >
+                🌐 সকল বিভাগ (একসাথে)
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepartment('বিজ্ঞান')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: department === 'বিজ্ঞান' ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                  background: department === 'বিজ্ঞান' ? '#dcfce7' : '#fff',
+                  color: department === 'বিজ্ঞান' ? '#15803d' : '#475569'
+                }}
+              >
+                🔬 বিজ্ঞান বিভাগ
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepartment('মানবিক')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: department === 'মানবিক' ? '2px solid #ea580c' : '1px solid #cbd5e1',
+                  background: department === 'মানবিক' ? '#ffedd5' : '#fff',
+                  color: department === 'মানবিক' ? '#c2410c' : '#475569'
+                }}
+              >
+                📖 মানবিক বিভাগ
+              </button>
+              <button
+                type="button"
+                onClick={() => setDepartment('ব্যবসায় শিক্ষা')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: department === 'ব্যবসায় শিক্ষা' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
+                  background: department === 'ব্যবসায় শিক্ষা' ? '#f3e8ff' : '#fff',
+                  color: department === 'ব্যবসায় শিক্ষা' ? '#6d28d9' : '#475569'
+                }}
+              >
+                💼 ব্যবসায় শিক্ষা
+              </button>
+              {currentSubjectObj && (currentSubjectObj.department === 'আবশ্যিক' || ['101', '102', '107', '108', '109', '111', '112', '154'].includes(String(currentSubjectObj.code))) && (
+                <span style={{ fontSize: '12px', color: '#047857', background: '#ecfdf5', padding: '4px 10px', borderRadius: '6px', fontWeight: 600, border: '1px solid #a7f3d0', marginLeft: 'auto' }}>
+                  ✓ এটি আবশ্যিক বিষয় — "সকল বিভাগ" নির্বাচন করে এক পেজেই সব বিভাগের নম্বর এন্ট্রি ও CSV ডাউনলোড করা যায়
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="marks-quick-tip-banner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <span>⚡ <b>সরাসরি দ্রুত মার্ক এন্ট্রি:</b> সরাসরি কীবোর্ডে নম্বর লিখুন (Enter বা ↓ চাপলে পরের ঘরে যাবে)। অথবা <b>CSV Download</b> করে অফলাইনে এক্সেলে নম্বর বসিয়ে <b>CSV Upload</b> করতে পারেন।</span>
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -5223,7 +5342,7 @@ export function ResultPanel({ sub, userRole }) {
         <div className="marksheet-console-wrapper">
           {/* Controls */}
           <div className="marksheet-nav-toolbar no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-            <div className="student-selector-box" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="student-selector-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <label style={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '13px' }}>শিক্ষার্থী নির্বাচন:</label>
               <select
                 value={selectedStudentIndex}
@@ -5232,10 +5351,79 @@ export function ResultPanel({ sub, userRole }) {
               >
                 {filteredProcessedResults.map((st, idx) => (
                   <option key={st.id || idx} value={idx}>
-                    রোল: {toBnDigits(st.roll_no)} — {st.name_bn} ({st.student_id}) — জিপিএ: {toBnDigits(st.gpa)}
+                    রোল: {toBnDigits(st.roll_no)} [{st.department || 'সাধারণ'}] — {st.name_bn} ({st.student_id}) — জিপিএ: {toBnDigits(st.gpa)}
                   </option>
                 ))}
               </select>
+
+              {isSSC && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginLeft: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => { setDepartment('all'); setSelectedStudentIndex(0); }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: department === 'all' || department === 'সকল বিভাগ' ? 700 : 500,
+                      cursor: 'pointer',
+                      border: '1px solid #cbd5e1',
+                      background: department === 'all' || department === 'সকল বিভাগ' ? '#0284c7' : '#fff',
+                      color: department === 'all' || department === 'সকল বিভাগ' ? '#fff' : '#475569'
+                    }}
+                  >
+                    সকল বিভাগ
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDepartment('বিজ্ঞান'); setSelectedStudentIndex(0); }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: department === 'বিজ্ঞান' ? 700 : 500,
+                      cursor: 'pointer',
+                      border: '1px solid #cbd5e1',
+                      background: department === 'বিজ্ঞান' ? '#16a34a' : '#fff',
+                      color: department === 'বিজ্ঞান' ? '#fff' : '#475569'
+                    }}
+                  >
+                    বিজ্ঞান
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDepartment('মানবিক'); setSelectedStudentIndex(0); }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: department === 'মানবিক' ? 700 : 500,
+                      cursor: 'pointer',
+                      border: '1px solid #cbd5e1',
+                      background: department === 'মানবিক' ? '#ea580c' : '#fff',
+                      color: department === 'মানবিক' ? '#fff' : '#475569'
+                    }}
+                  >
+                    মানবিক
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDepartment('ব্যবসায় শিক্ষা'); setSelectedStudentIndex(0); }}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      fontWeight: department === 'ব্যবসায় শিক্ষা' ? 700 : 500,
+                      cursor: 'pointer',
+                      border: '1px solid #cbd5e1',
+                      background: department === 'ব্যবসায় শিক্ষা' ? '#7c3aed' : '#fff',
+                      color: department === 'ব্যবসায় শিক্ষা' ? '#fff' : '#475569'
+                    }}
+                  >
+                    ব্যবসায় শিক্ষা
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Signature Option Selector */}
