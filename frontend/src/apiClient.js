@@ -2755,7 +2755,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     const examMarks = allMarks.filter(m => String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams));
 
     // Compute real results via Dhaka Board Exam Engine
-    const processed = processClassResults(students, subs, examMarks, cls, examId);
+    const processed = processClassResults(students, subs, examMarks, cls, examId, exams);
     setLocalStore(`results_${examId}_${cls}`, processed);
     if (['10', '১০', '১০ম'].includes(String(cls))) {
       setLocalStore(`results_${examId}_10`, processed);

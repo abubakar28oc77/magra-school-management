@@ -7,8 +7,15 @@ export function areExamsEquivalent(id1, id2, exams = []) {
   const s2 = String(id2).trim().toLowerCase();
   if (s1 === s2) return true;
 
-  const ex1 = (exams || []).find(e => String(e.id).toLowerCase() === s1);
-  const ex2 = (exams || []).find(e => String(e.id).toLowerCase() === s2);
+  let allExams = Array.isArray(exams) && exams.length ? exams : [];
+  if (!allExams.length && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      allExams = JSON.parse(window.localStorage.getItem('magra_db_exams') || window.localStorage.getItem('magra_exams') || '[]');
+    } catch (_) {}
+  }
+
+  const ex1 = allExams.find(e => String(e.id).toLowerCase() === s1);
+  const ex2 = allExams.find(e => String(e.id).toLowerCase() === s2);
 
   const name1 = (ex1?.name_bn || s1).toLowerCase();
   const name2 = (ex2?.name_bn || s2).toLowerCase();
@@ -555,7 +562,7 @@ export function getStudentApplicableSubjects(student, allSubjects, marksMap = nu
  * Process entire class result matrix, assign Merit Positions (মেধা স্থান)
  * Fully supports Dhaka Board Combined Bangla (101+102) & English (107+108) for Classes 9 & 10.
  */
-export function processClassResults(students, subjects, marksList, className, examId) {
+export function processClassResults(students, subjects, marksList, className, examId, exams = []) {
   const normCls = (c) => {
     if (!c) return '';
     return String(c).replace(/^(class|শ্রেণি|শ্রেণী)\s*/i, '').replace(/[thstndrdমষ্ঠর্থ]/gi, '').trim()
@@ -597,7 +604,7 @@ export function processClassResults(students, subjects, marksList, className, ex
   };
 
   (marksList || []).forEach(m => {
-    if (String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId)) {
+    if (String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams)) {
       const sId = String(m.student_id || '').toLowerCase();
       const sCode = String(m.subject_code || '').trim();
       const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
