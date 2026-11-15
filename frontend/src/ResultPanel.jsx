@@ -1541,12 +1541,12 @@ export function ResultPanel({ sub, userRole }) {
       display: flex;
       justify-content: space-between;
       margin-top: 35px;
-      padding: 0 15px;
+      padding: 0 10px;
       page-break-inside: avoid;
     }
     .sig-col {
       text-align: center;
-      width: 28%;
+      width: 23%;
     }
     .sig-dots {
       border-top: 1px dashed #64748b;
@@ -1656,6 +1656,10 @@ export function ResultPanel({ sub, userRole }) {
       </div>
       <div class="sig-col">
         <div class="sig-dots"></div>
+        <div class="sig-title">প্রস্তুতকারীর স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
         <div class="sig-title">পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
       </div>
       <div class="sig-col">
@@ -1755,8 +1759,10 @@ export function ResultPanel({ sub, userRole }) {
     const gpa5Count = filteredProcessedResults.filter(s => Number(s.gpa) >= 5.0 && s.is_pass).length;
     const passPercentage = totalStudents ? ((passedCount / totalStudents) * 100).toFixed(1) : '0';
 
-    const rowsHtml = filteredProcessedResults.map((x) => {
-      const mRank = x.display_merit || x.dept_merit || x.merit;
+    const passedStudentsList = filteredProcessedResults.filter(s => s.is_pass && s.final_grade !== 'F' && s.result_status === 'উত্তীর্ণ');
+
+    const rowsHtml = passedStudentsList.length ? passedStudentsList.map((x, idx) => {
+      const mRank = x.display_merit || x.dept_merit || x.merit || (idx + 1);
       const mRankBn = toBnDigits(mRank);
       const rollBn = toBnDigits(x.roll_no || '—');
       const studentId = x.student_id || '—';
@@ -1766,7 +1772,7 @@ export function ResultPanel({ sub, userRole }) {
       const pct = x.percentage !== undefined ? `${x.percentage}%` : '—';
       const gpa = x.gpa !== undefined ? x.gpa : '0.00';
       const grade = x.final_grade || 'F';
-      const statusText = x.result_status || (x.is_pass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ');
+      const statusText = x.result_status || 'উত্তীর্ণ';
       const failsText = x.failed_subjects && x.failed_subjects.length > 0 ? x.failed_subjects.join(', ') : 'সব পাস';
       const rankBadgeClass = mRank === 1 ? 'rank-gold' : mRank === 2 ? 'rank-silver' : mRank === 3 ? 'rank-bronze' : '';
 
@@ -1779,13 +1785,13 @@ export function ResultPanel({ sub, userRole }) {
           <td style="text-align:center;">${deptBn}</td>
           <td style="text-align:center;"><b>${totalMarks}</b></td>
           <td style="text-align:center;">${pct}</td>
-          <td style="text-align:center;font-weight:700;color:${x.is_pass ? '#047857' : '#dc2626'};">${gpa}</td>
+          <td style="text-align:center;font-weight:700;color:#047857;">${gpa}</td>
           <td style="text-align:center;"><b>${grade}</b></td>
-          <td style="text-align:center;"><span class="${x.is_pass ? 'badge-pass' : 'badge-fail'}">${statusText}</span></td>
-          <td style="text-align:left;padding-left:6px;font-size:10px;color:${x.is_pass ? '#475569' : '#dc2626'};">${failsText}</td>
+          <td style="text-align:center;"><span class="badge-pass">${statusText}</span></td>
+          <td style="text-align:left;padding-left:6px;font-size:10px;color:#475569;">${failsText}</td>
         </tr>
       `;
-    }).join('');
+    }).join('') : `<tr><td colspan="11" style="text-align:center;padding:16px;color:#dc2626;font-weight:700;">মেধা তালিকায় প্রদর্শনের মতো কোনো উত্তীর্ণ শিক্ষার্থী পাওয়া যায়নি।</td></tr>`;
 
     const content = `<!DOCTYPE html>
 <html lang="bn">
@@ -1930,12 +1936,12 @@ export function ResultPanel({ sub, userRole }) {
       display: flex;
       justify-content: space-between;
       margin-top: 35px;
-      padding: 0 15px;
+      padding: 0 10px;
       page-break-inside: avoid;
     }
     .sig-col {
       text-align: center;
-      width: 28%;
+      width: 23%;
     }
     .sig-dots {
       border-top: 1px dashed #64748b;
@@ -2023,6 +2029,10 @@ export function ResultPanel({ sub, userRole }) {
       </div>
       <div class="sig-col">
         <div class="sig-dots"></div>
+        <div class="sig-title">প্রস্তুতকারীর স্বাক্ষর</div>
+      </div>
+      <div class="sig-col">
+        <div class="sig-dots"></div>
         <div class="sig-title">পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
       </div>
       <div class="sig-col">
@@ -2049,8 +2059,9 @@ export function ResultPanel({ sub, userRole }) {
 
   // Download Merit List CSV
   const handleDownloadMeritCsv = () => {
-    if (!filteredProcessedResults.length) {
-      showNotification('ডাউনলোড করার মতো কোনো মেধা তালিকা নেই', 'info');
+    const passedList = filteredProcessedResults.filter(s => s.is_pass && s.final_grade !== 'F' && s.result_status === 'উত্তীর্ণ');
+    if (!passedList.length) {
+      showNotification('ডাউনলোড করার মতো কোনো উত্তীর্ণ শিক্ষার্থীর মেধা তালিকা নেই', 'info');
       return;
     }
     const escapeCsv = (val) => {
@@ -2062,8 +2073,8 @@ export function ResultPanel({ sub, userRole }) {
       return str;
     };
     const headers = ['Merit_Rank', 'Roll', 'Student_ID', 'Student_Name', 'Department', 'Total_Marks', 'Percentage', 'GPA', 'Grade', 'Result', 'Failed_Subjects'];
-    const rows = filteredProcessedResults.map((st) => {
-      const mRank = st.display_merit || st.dept_merit || st.merit || '';
+    const rows = passedList.map((st, idx) => {
+      const mRank = st.display_merit || st.dept_merit || st.merit || (idx + 1);
       return [
         escapeCsv(mRank),
         escapeCsv(st.roll_no),
@@ -2073,8 +2084,8 @@ export function ResultPanel({ sub, userRole }) {
         escapeCsv(st.total_marks),
         escapeCsv(st.percentage),
         escapeCsv(st.gpa),
-        escapeCsv(st.final_grade || 'F'),
-        escapeCsv(st.result_status || ''),
+        escapeCsv(st.final_grade || 'A+'),
+        escapeCsv(st.result_status || 'উত্তীর্ণ'),
         escapeCsv((st.failed_subjects || []).join('; '))
       ].join(',');
     });
@@ -2745,16 +2756,22 @@ export function ResultPanel({ sub, userRole }) {
         r++;
       });
       failed.forEach(s => {
-        s.dept_merit = r;
-        s.display_merit = r;
+        s.dept_merit = null;
+        s.display_merit = null;
         s.dept_total = mapped.length;
-        r++;
       });
       return [...passed, ...failed];
     } else {
-      mapped.forEach((s, idx) => {
-        s.display_merit = s.merit || (idx + 1);
-        s.dept_merit = s.merit || (idx + 1);
+      let r = 1;
+      mapped.forEach((s) => {
+        if (s.is_pass) {
+          s.display_merit = s.merit || r;
+          s.dept_merit = s.merit || r;
+          r++;
+        } else {
+          s.display_merit = null;
+          s.dept_merit = null;
+        }
       });
       return mapped;
     }
@@ -2768,6 +2785,11 @@ export function ResultPanel({ sub, userRole }) {
       if (rA !== rB) return rA - rB;
       return (a.student_id || '').localeCompare(b.student_id || '');
     });
+  }, [filteredProcessedResults]);
+
+  // Merit List: strictly filtered for passed students only (only passed students have a merit rank)
+  const meritStudentsList = useMemo(() => {
+    return filteredProcessedResults.filter(s => s.is_pass && s.final_grade !== 'F' && s.result_status === 'উত্তীর্ণ');
   }, [filteredProcessedResults]);
 
   // Failed Students List: filtered for failed/unsuccessful students
@@ -4838,7 +4860,7 @@ export function ResultPanel({ sub, userRole }) {
                   : 'চূড়ান্ত মেধা তালিকা'}
               </span>
               <h3>
-                🏆 মেধা ও ফলাফল তালিকা — শ্রেণি {toBnDigits(className)} {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `(${department} — মোট ${toBnDigits(filteredProcessedResults.length)} জন)` : `(মোট ${toBnDigits(filteredProcessedResults.length)} জন)`} ({selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'})
+                🏆 মেধা ও ফলাফল তালিকা — শ্রেণি {toBnDigits(className)} {isSSC && department && department !== 'all' && department !== 'সকল বিভাগ' ? `(${department} — উত্তীর্ণ ${toBnDigits(meritStudentsList.length)} জন)` : `(উত্তীর্ণ ${toBnDigits(meritStudentsList.length)} জন)`} ({selectedExamObj ? selectedExamObj.name_bn : 'পরীক্ষা'})
               </h3>
             </div>
             <div className="table-action-group">
@@ -4895,7 +4917,7 @@ export function ResultPanel({ sub, userRole }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredProcessedResults.map((x) => {
+                {meritStudentsList.map((x) => {
                   const mRank = x.display_merit || x.dept_merit || x.merit;
                   return (
                     <tr key={x.id || x.student_id}>
@@ -4910,14 +4932,14 @@ export function ResultPanel({ sub, userRole }) {
                     <td><span className="sub-tag-compulsory">{x.department || 'সাধারণ'}</span></td>
                     <td><b>{x.total_marks}</b> <small className="text-muted">/ {x.total_full_marks}</small></td>
                     <td>{x.percentage}%</td>
-                    <td><b style={{ fontSize: '15px', color: x.is_pass ? '#0b8050' : '#dc2626' }}>{x.gpa}</b></td>
+                    <td><b style={{ fontSize: '15px', color: '#0b8050' }}>{x.gpa}</b></td>
                     <td>
-                      <span className={`grade-pill ${x.is_pass ? 'grade-pass' : 'grade-fail'}`}>
+                      <span className="grade-pill grade-pass">
                         {x.final_grade}
                       </span>
                     </td>
                     <td>
-                      <span className={`status-pill ${x.is_pass ? 'status-active' : 'status-completed'}`}>
+                      <span className="status-pill status-active">
                         {x.result_status}
                       </span>
                     </td>
@@ -4933,15 +4955,44 @@ export function ResultPanel({ sub, userRole }) {
                   </tr>
                 );
               })}
-              {!filteredProcessedResults.length && (
+              {!meritStudentsList.length && (
                   <tr>
                     <td colSpan="11" className="empty-table-cell">
-                      মেধা তালিকা প্রস্তুত করতে "ফলাফল প্রসেসিং" ট্যাবে গিয়ে প্রসেস সম্পন্ন করুন।
+                      মেধা তালিকায় প্রদর্শনের মতো কোনো উত্তীর্ণ শিক্ষার্থী পাওয়া যায়নি।
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Official 4-signature strip for Merit List card view */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '16px',
+            padding: '24px 20px 16px 20px',
+            borderTop: '1px solid #e2e8f0',
+            marginTop: '16px',
+            textAlign: 'center',
+            background: '#fafafa'
+          }}>
+            <div>
+              <div style={{ borderTop: '1px dashed #94a3b8', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #94a3b8', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>প্রস্তুতকারীর স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #94a3b8', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #94a3b8', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#334155' }}>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+            </div>
           </div>
         </div>
       )}
@@ -5134,6 +5185,35 @@ export function ResultPanel({ sub, userRole }) {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Official 4-signature strip for Failed List card view */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '16px',
+            padding: '24px 20px 16px 20px',
+            borderTop: '1px solid #fee2e2',
+            marginTop: '16px',
+            textAlign: 'center',
+            background: '#fef2f2'
+          }}>
+            <div>
+              <div style={{ borderTop: '1px dashed #b91c1c', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#991b1b' }}>শ্রেণি শিক্ষকের স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #b91c1c', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#991b1b' }}>প্রস্তুতকারীর স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #b91c1c', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#991b1b' }}>পরীক্ষা কমিটির আহ্বায়কের স্বাক্ষর</div>
+            </div>
+            <div>
+              <div style={{ borderTop: '1px dashed #b91c1c', width: '80%', margin: '0 auto 6px auto' }}></div>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: '#991b1b' }}>প্রধান শিক্ষকের স্বাক্ষর ও সিলমোহর</div>
+            </div>
           </div>
         </div>
       )}

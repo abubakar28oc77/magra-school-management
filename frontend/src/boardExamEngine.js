@@ -953,8 +953,8 @@ export function processClassResults(students, subjects, marksList, className, ex
   });
 
   failedStudents.forEach((s) => {
-    s.merit = currentRank++;
-    s.merit_bn = toBnDigits(s.merit);
+    s.merit = null;
+    s.merit_bn = '—';
   });
 
   return [...passedStudents, ...failedStudents];
