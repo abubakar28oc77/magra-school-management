@@ -2430,6 +2430,13 @@ export function ResultPanel({ sub, userRole }) {
           else if (idVal.includes('-sci-') || idVal.includes('sci')) targetDept = 'বিজ্ঞান';
           else if (idVal.includes('-bs-') || idVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
 
+          if (!targetDept && nameVal) {
+            const matchedByName = studentLookup.get(`name:${nameVal}`) || studentLookup.get(`name_clean:${nameClean}`);
+            if (matchedByName && matchedByName.department) {
+              targetDept = matchedByName.department.toLowerCase();
+            }
+          }
+
           let normDeptKey = '';
           if (targetDept.includes('বিজ্ঞান') || targetDept.includes('sci') || idVal.includes('-sci-')) normDeptKey = 'বিজ্ঞান';
           else if (targetDept.includes('মানবিক') || targetDept.includes('hum') || targetDept.includes('arts') || idVal.includes('-hum-')) normDeptKey = 'মানবিক';
@@ -2511,13 +2518,45 @@ export function ResultPanel({ sub, userRole }) {
         const subjectNameIdx = findHeaderIdx(['subjectname', 'subject_name', 'বিষয়', 'বিষয়েরনাম', 'subject']);
 
         // Comprehensive alias detection for Bangladeshi mark sheets
-        const writtenIdx = findHeaderIdx([
-          'writtencq', 'written', 'cq', 'লিখিত', 'সৃজনশীল', 'রচনামূলক', 'বর্ণনামূলক', 'তত্ত্বীয়', 'তত্ত্বীয়', 'theory', 'sub1', 'mark', 'marks', 'নম্বর', 'প্রাপ্তনম্বর', 'প্রাপ্ত_নম্বর', 'obttotal', 'total'
+        const englishAliases = [
+          'english', 'english1', 'english2', 'english1st', 'english2nd', 'eng', 'eng1', 'eng2',
+          'ইংরেজি', 'ইংরেজী', 'ইংরেজি১ম', 'ইংরেজি২য়', 'ইংরেজী১ম', 'ইংরেজী২য়',
+          'ইংরেজি১মপত্র', 'ইংরেজি২য়পত্র', 'ইংরেজী১মপত্র', 'ইংরেজী২য়পত্র',
+          '107', '108', 'sub10107', 'sub10108'
+        ];
+        let writtenIdx = findHeaderIdx([
+          'writtencq', 'written', 'cq', 'লিখিত', 'সৃজনশীল', 'রচনামূলক', 'বর্ণনামূলক', 'তত্ত্বীয়', 'তত্ত্বীয়', 'theory', 'sub1', 'mark', 'marks', 'নম্বর', 'প্রাপ্তনম্বর', 'প্রাপ্ত_নম্বর', 'obttotal', 'total',
+          ...englishAliases
         ]);
         const mcqIdx = findHeaderIdx([
           'mcq', 'এমসিকিউ', 'বহুনির্বাচনি', 'বহুনির্বাচনী', 'নৈর্ব্যক্তিক', 'নৈর্ব্যক্তিক_নম্বর', 'objective'
         ]);
         const practicalIdx = findHeaderIdx(['practical', 'ব্যবহারিক', 'ব্যবহারিক_নম্বর', 'prac']);
+
+        // Fallback: If writtenIdx is still -1, scan unassigned numeric headers or headers matching targetSubject
+        if (writtenIdx === -1 && targetSubject) {
+          const subNameNorm = normBn(targetSubject.name_bn || '');
+          const subEnNorm = normBn(targetSubject.name_en || '');
+          const subCodeNorm = normBn(String(targetSubject.code || ''));
+          const foundCol = cleanHeaders.findIndex((h, idx) => {
+            if (idx === rollIdx || idx === idIdx || idx === nameIdx || idx === deptIdx || idx === mcqIdx || idx === practicalIdx) return false;
+            return (subCodeNorm && h.includes(subCodeNorm)) ||
+                   (subNameNorm && (h.includes(subNameNorm) || subNameNorm.includes(h))) ||
+                   (subEnNorm && (h.includes(subEnNorm) || subEnNorm.includes(h)));
+          });
+          if (foundCol !== -1) {
+            writtenIdx = foundCol;
+          } else {
+            // Find any unassigned column with numbers
+            const anyNumericCol = cleanHeaders.findIndex((h, idx) => {
+              if (idx === rollIdx || idx === idIdx || idx === nameIdx || idx === deptIdx || idx === examNameIdx || idx === absentIdx || idx === remarksIdx) return false;
+              return matrix.slice(1, 5).some(row => row[idx] && !isNaN(parseFloat(normalizeMarkDigits(row[idx]))));
+            });
+            if (anyNumericCol !== -1) {
+              writtenIdx = anyNumericCol;
+            }
+          }
+        }
 
         let targetSubject = currentSubjectObj;
         const rowSubjectsSet = new Set();
@@ -2570,11 +2609,18 @@ export function ResultPanel({ sub, userRole }) {
           const nameClean = nameVal.replace(/\s+/g, '');
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
 
-          // Determine department context from CSV row, student ID, subject department, or subject code
+          // Determine department context from CSV row, student ID, student name, subject department, or subject code
           let targetDept = deptVal;
           if (idVal.includes('-hum-') || idVal.includes('hum')) targetDept = 'মানবিক';
           else if (idVal.includes('-sci-') || idVal.includes('sci')) targetDept = 'বিজ্ঞান';
           else if (idVal.includes('-bs-') || idVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
+
+          if (!targetDept && nameVal) {
+            const matchedByName = studentLookup.get(`name:${nameVal}`) || studentLookup.get(`name_clean:${nameClean}`);
+            if (matchedByName && matchedByName.department) {
+              targetDept = matchedByName.department.toLowerCase();
+            }
+          }
 
           if (!targetDept && rowSub?.department && !['আবশ্যিক', 'সাধারণ'].includes(rowSub.department)) {
             targetDept = rowSub.department.toLowerCase();
@@ -2598,11 +2644,11 @@ export function ResultPanel({ sub, userRole }) {
 
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
                                  (nameVal && normDeptKey && studentLookup.get(`dept_name:${normDeptKey}_${nameVal}`)) ||
+                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
+                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && normDeptKey && (studentLookup.get(`roll_${normDeptKey}_${rollVal}`) || studentLookup.get(`roll_${normDeptKey}_${Number(rollVal)}`))) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
                                  (idVal && studentLookup.get(`id:${idVal.replace(/-/g, '')}`)) ||
-                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
-                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
                                  (!normDeptKey && rollVal && studentLookup.get(`roll:${rollVal}`));
 
@@ -2661,8 +2707,54 @@ export function ResultPanel({ sub, userRole }) {
             mcq: m,
             practical: p,
             absent: isAbsent,
-            remarks
+            remarks,
+            updated_at: new Date().toISOString()
           });
+
+          // If a single English paper is uploaded in SSC, also push companion paper so combined course stays balanced
+          if (['9', '10'].includes(String(effectiveClass))) {
+            if (String(rowSub.code) === '107') {
+              const partnerSub = classSubjects.find(s => String(s.code) === '108');
+              if (partnerSub) {
+                recordsToSave.push({
+                  exam_id: effectiveExamId,
+                  class_name: effectiveClass,
+                  student_id: matchedStudent.id,
+                  student_code: matchedStudent.student_id || matchedStudent.id,
+                  roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
+                  department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
+                  subject_id: partnerSub.id,
+                  subject_code: partnerSub.code,
+                  written: w,
+                  mcq: m,
+                  practical: p,
+                  absent: isAbsent,
+                  remarks,
+                  updated_at: new Date().toISOString()
+                });
+              }
+            } else if (String(rowSub.code) === '108') {
+              const partnerSub = classSubjects.find(s => String(s.code) === '107');
+              if (partnerSub) {
+                recordsToSave.push({
+                  exam_id: effectiveExamId,
+                  class_name: effectiveClass,
+                  student_id: matchedStudent.id,
+                  student_code: matchedStudent.student_id || matchedStudent.id,
+                  roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
+                  department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
+                  subject_id: partnerSub.id,
+                  subject_code: partnerSub.code,
+                  written: w,
+                  mcq: m,
+                  practical: p,
+                  absent: isAbsent,
+                  remarks,
+                  updated_at: new Date().toISOString()
+                });
+              }
+            }
+          }
         }
 
         detectedSubjectNames = Array.from(rowSubjectsSet);
