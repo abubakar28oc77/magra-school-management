@@ -2650,40 +2650,61 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     if (!m) return;
     let rec = { ...m };
     const code = String(rec.subject_code || rec.subject_id || '').trim();
+    const normSubCode = code
+      .replace(/^sub-10-|^sub-9-|^sub-/, '')
+      .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
+      .trim();
+
+    rec.subject_code = rec.subject_code || normSubCode;
+    if (!rec.subject_id || !rec.subject_id.startsWith('sub-')) {
+      rec.subject_id = `sub-10-${normSubCode}`;
+    }
+
     const subName = String(rec.subject_name || '').toLowerCase();
     const currSt = studentById.get(rec.student_id) || studentById.get(rec.student_code);
 
-    if (currSt) {
-      const r = Number(currSt.roll_no);
-      const d = (currSt.department || '').toLowerCase();
+    const recDept = String(rec.department || '').toLowerCase();
+    const recCode = String(rec.student_code || '').toLowerCase();
+    const recId = String(rec.student_id || '').toLowerCase();
 
-      const isSci = sciCodes.has(code) || subName.includes('জীববিজ্ঞান') || subName.includes('biology') || subName.includes('পদার্থ') || subName.includes('রসায়ন') || subName.includes('রসায়ন') || subName.includes('উচ্চতর');
-      const isBs = bsCodes.has(code) || subName.includes('হিসাববিজ্ঞান') || subName.includes('ব্যবসায়') || subName.includes('ফিন্যান্স');
-      const isHum = humCodes.has(code) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
+    const recExplicitHum = recDept.includes('মানবিক') || recDept.includes('hum') || recDept.includes('arts') || recCode.includes('hum') || recId.includes('hum');
+    const recExplicitSci = (recDept.includes('বিজ্ঞান') || recDept.includes('sci') || recCode.includes('sci') || recId.includes('sci')) && !recExplicitHum;
+    const recExplicitBs = (recDept.includes('ব্যবসায়') || recDept.includes('ব্যবসা') || recDept.includes('com') || recDept.includes('bs') || recCode.includes('bs') || recId.includes('bs')) && !recExplicitHum && !recExplicitSci;
 
-      if (isSci && !d.includes('বিজ্ঞান') && !d.includes('sci')) {
-        const realSciSt = sciByRoll.get(r);
-        if (realSciSt) {
-          rec.student_id = realSciSt.id;
-          rec.student_code = realSciSt.student_id || realSciSt.id;
-          rec.department = 'বিজ্ঞান';
-          rec.class_name = '10';
-        }
-      } else if (isBs && !d.includes('ব্যবসায়') && !d.includes('bs') && !d.includes('com')) {
-        const realBsSt = bsByRoll.get(r);
-        if (realBsSt) {
-          rec.student_id = realBsSt.id;
-          rec.student_code = realBsSt.student_id || realBsSt.id;
-          rec.department = 'ব্যবসায় শিক্ষা';
-          rec.class_name = '10';
-        }
-      } else if (isHum && !d.includes('মানবিক') && !d.includes('hum')) {
-        const realHumSt = humByRoll.get(r);
+    const isSci = sciCodes.has(code) || sciCodes.has(normSubCode) || subName.includes('জীববিজ্ঞান') || subName.includes('biology') || subName.includes('পদার্থ') || subName.includes('রসায়ন') || subName.includes('রসায়ন') || subName.includes('উচ্চতর');
+    const isBs = bsCodes.has(code) || bsCodes.has(normSubCode) || subName.includes('হিসাববিজ্ঞান') || subName.includes('ব্যবসায়') || subName.includes('ফিন্যান্স');
+    const isHum = humCodes.has(code) || humCodes.has(normSubCode) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
+
+    const rollNum = currSt ? Number(currSt.roll_no) : (Number(rec.roll_no) || 0);
+
+    if (rollNum > 0) {
+      const d = currSt ? (currSt.department || '').toLowerCase() : '';
+      if ((isHum || recExplicitHum) && !d.includes('মানবিক') && !d.includes('hum')) {
+        const realHumSt = humByRoll.get(rollNum);
         if (realHumSt) {
           rec.student_id = realHumSt.id;
           rec.student_code = realHumSt.student_id || realHumSt.id;
           rec.department = 'মানবিক';
           rec.class_name = '10';
+          rec.roll_no = realHumSt.roll_no;
+        }
+      } else if ((isSci || recExplicitSci) && !d.includes('বিজ্ঞান') && !d.includes('sci')) {
+        const realSciSt = sciByRoll.get(rollNum);
+        if (realSciSt) {
+          rec.student_id = realSciSt.id;
+          rec.student_code = realSciSt.student_id || realSciSt.id;
+          rec.department = 'বিজ্ঞান';
+          rec.class_name = '10';
+          rec.roll_no = realSciSt.roll_no;
+        }
+      } else if ((isBs || recExplicitBs) && !d.includes('ব্যবসায়') && !d.includes('bs') && !d.includes('com')) {
+        const realBsSt = bsByRoll.get(rollNum);
+        if (realBsSt) {
+          rec.student_id = realBsSt.id;
+          rec.student_code = realBsSt.student_id || realBsSt.id;
+          rec.department = 'ব্যবসায় শিক্ষা';
+          rec.class_name = '10';
+          rec.roll_no = realBsSt.roll_no;
         }
       }
     }
@@ -2700,11 +2721,6 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
       normExamId = 'ex-3';
     }
     rec.exam_id = normExamId;
-
-    const normSubCode = String(rec.subject_code || rec.subject_id || '')
-      .replace(/^sub-10-|^sub-9-|^sub-/, '')
-      .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
-      .trim();
 
     const key = `${normExamId}_${rec.student_id}_${normSubCode}`;
     const existing = dedupeMap.get(key);

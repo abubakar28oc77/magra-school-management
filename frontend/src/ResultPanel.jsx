@@ -2127,8 +2127,33 @@ export function ResultPanel({ sub, userRole }) {
         .replace(/[\u09A1][\u09BC]/g, '\u09DC')
         .replace(/[\u09A2][\u09BC]/g, '\u09DD')
         .replace(/ী/g, 'ি')
+        .replace(/ূ/g, 'ু')
+        .replace(/ণ/g, 'ন')
+        .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
         .replace(/[\s_\-\/\(\)\.]+/g, '');
       const cleanHeaders = rawHeaders.map(h => normBn(h));
+
+      // English subject matcher helpers for Dhaka Board (107 = English 1st, 108 = English 2nd)
+      const isEnglish1st = (s) => {
+        if (!s) return false;
+        const raw = String(s).toLowerCase();
+        const n = normBn(raw);
+        if (n.includes('107') || n.includes('sub10107') || n.includes('sub9107')) return true;
+        const hasEng = n.includes('ইংরেজি') || n.includes('english') || n.includes('eng');
+        if (!hasEng) return false;
+        if (n.includes('2nd') || n.includes('২য়') || n.includes('2') || n.includes('ii')) return false;
+        return n.includes('1st') || n.includes('১ম') || n.includes('1') || n.includes('i') || n.includes('পত্র') || true;
+      };
+
+      const isEnglish2nd = (s) => {
+        if (!s) return false;
+        const raw = String(s).toLowerCase();
+        const n = normBn(raw);
+        if (n.includes('108') || n.includes('sub10108') || n.includes('sub9108')) return true;
+        const hasEng = n.includes('ইংরেজি') || n.includes('english') || n.includes('eng');
+        if (!hasEng) return false;
+        return n.includes('2nd') || n.includes('২য়') || n.includes('2') || n.includes('ii');
+      };
 
       const findHeaderIdx = (aliases) => {
         return cleanHeaders.findIndex(h => aliases.some(alias => {
@@ -2197,8 +2222,22 @@ export function ResultPanel({ sub, userRole }) {
         }
       }
 
-      // 3. Smart Department Detection from CSV rows
-      let effectiveDept = department;
+      // 3. Smart Department Detection from CSV rows, filename, or currently active department
+      let effectiveDept = department && department !== 'all' && department !== 'সকল বিভাগ' ? department : '';
+
+      // Check filename
+      if (fname.includes('মানবিক') || fname.includes('hum') || fname.includes('arts')) {
+        effectiveDept = 'মানবিক';
+        if (department !== 'মানবিক') setDepartment('মানবিক');
+      } else if (fname.includes('বিজ্ঞান') || fname.includes('sci')) {
+        effectiveDept = 'বিজ্ঞান';
+        if (department !== 'বিজ্ঞান') setDepartment('বিজ্ঞান');
+      } else if (fname.includes('ব্যবসায়') || fname.includes('ব্যবসা') || fname.includes('com') || fname.includes('bs')) {
+        effectiveDept = 'ব্যবসায় শিক্ষা';
+        if (department !== 'ব্যবসায় শিক্ষা') setDepartment('ব্যবসায় শিক্ষা');
+      }
+
+      // Check CSV rows for department
       if (deptIdx !== -1 && matrix[1] && matrix[1][deptIdx]) {
         const rawDept = matrix[1][deptIdx].trim().toLowerCase();
         if (rawDept.includes('বিজ্ঞান') || rawDept.includes('sci')) {
@@ -2207,10 +2246,29 @@ export function ResultPanel({ sub, userRole }) {
         } else if (rawDept.includes('মানবিক') || rawDept.includes('hum') || rawDept.includes('arts')) {
           effectiveDept = 'মানবিক';
           if (department !== 'মানবিক') setDepartment('মানবিক');
-        } else if (rawDept.includes('ব্যবসায়') || rawDept.includes('com') || rawDept.includes('business')) {
+        } else if (rawDept.includes('ব্যবসায়') || rawDept.includes('com') || rawDept.includes('business') || rawDept.includes('bs')) {
           effectiveDept = 'ব্যবসায় শিক্ষা';
           if (department !== 'ব্যবসায় শিক্ষা') setDepartment('ব্যবসায় শিক্ষা');
         }
+      }
+
+      // Also check student ID column in rows for department indicators (e.g. STU-10-HUM-01)
+      if (!effectiveDept || effectiveDept === 'all') {
+        const sampleIds = matrix.slice(1, 15).map(r => (idIdx !== -1 && r[idIdx] ? r[idIdx] : '').toLowerCase()).join(' ');
+        if (sampleIds.includes('-hum-') || sampleIds.includes('hum')) {
+          effectiveDept = 'মানবিক';
+          if (department !== 'মানবিক') setDepartment('মানবিক');
+        } else if (sampleIds.includes('-sci-') || sampleIds.includes('sci')) {
+          effectiveDept = 'বিজ্ঞান';
+          if (department !== 'বিজ্ঞান') setDepartment('বিজ্ঞান');
+        } else if (sampleIds.includes('-bs-') || sampleIds.includes('bs') || sampleIds.includes('com')) {
+          effectiveDept = 'ব্যবসায় শিক্ষা';
+          if (department !== 'ব্যবসায় শিক্ষা') setDepartment('ব্যবসায় শিক্ষা');
+        }
+      }
+
+      if (!effectiveDept && department && department !== 'all' && department !== 'সকল বিভাগ') {
+        effectiveDept = department;
       }
 
       // Always load the complete student roster for effectiveClass to ensure 100% match rate
@@ -2235,18 +2293,23 @@ export function ResultPanel({ sub, userRole }) {
         if (st.student_id) studentLookup.set(`id:${st.student_id.toLowerCase()}`, st);
         if (st.student_code) studentLookup.set(`id:${st.student_code.toLowerCase()}`, st);
 
+        const dept = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
+
         if (st.name_bn) {
-          studentLookup.set(`name:${st.name_bn.trim().toLowerCase()}`, st);
+          const nBn = st.name_bn.trim().toLowerCase();
+          studentLookup.set(`name:${nBn}`, st);
           studentLookup.set(`name_clean:${st.name_bn.replace(/\s+/g, '').toLowerCase()}`, st);
+          if (dept) studentLookup.set(`dept_name:${dept}_${nBn}`, st);
         }
         if (st.name_en) {
-          studentLookup.set(`name:${st.name_en.trim().toLowerCase()}`, st);
+          const nEn = st.name_en.trim().toLowerCase();
+          studentLookup.set(`name:${nEn}`, st);
           studentLookup.set(`name_clean:${st.name_en.replace(/\s+/g, '').toLowerCase()}`, st);
+          if (dept) studentLookup.set(`dept_name:${dept}_${nEn}`, st);
         }
 
         if (st.roll_no !== undefined && st.roll_no !== null) {
           const r = String(st.roll_no).trim();
-          const dept = (st.department || st.group_name || st.group || st.section || '').toLowerCase();
           if (dept) {
             studentLookup.set(`dept_roll:${dept}_${r}`, st);
             if (dept.includes('বিজ্ঞান') || dept.includes('sci')) {
@@ -2256,6 +2319,8 @@ export function ResultPanel({ sub, userRole }) {
               studentLookup.set(`dept_roll:sci_${r}`, st);
               studentLookup.set(`roll_বিজ্ঞান_${r}`, st);
               studentLookup.set(`roll_sci_${r}`, st);
+              studentLookup.set(`roll_বিজ্ঞান_${Number(r)}`, st);
+              studentLookup.set(`roll_sci_${Number(r)}`, st);
             } else if (dept.includes('মানবিক') || dept.includes('hum') || dept.includes('arts')) {
               studentLookup.set(`dept_roll:মানবিক_${r}`, st);
               studentLookup.set(`dept_roll:মানবিক বিভাগ_${r}`, st);
@@ -2264,6 +2329,8 @@ export function ResultPanel({ sub, userRole }) {
               studentLookup.set(`dept_roll:arts_${r}`, st);
               studentLookup.set(`roll_মানবিক_${r}`, st);
               studentLookup.set(`roll_hum_${r}`, st);
+              studentLookup.set(`roll_মানবিক_${Number(r)}`, st);
+              studentLookup.set(`roll_hum_${Number(r)}`, st);
             } else if (dept.includes('ব্যবসায়') || dept.includes('ব্যবসা') || dept.includes('com') || dept.includes('business') || dept.includes('bs')) {
               studentLookup.set(`dept_roll:ব্যবসায় শিক্ষা_${r}`, st);
               studentLookup.set(`dept_roll:ব্যবসায় শিক্ষা বিভাগ_${r}`, st);
@@ -2272,6 +2339,8 @@ export function ResultPanel({ sub, userRole }) {
               studentLookup.set(`dept_roll:business_${r}`, st);
               studentLookup.set(`roll_ব্যবসায় শিক্ষা_${r}`, st);
               studentLookup.set(`roll_bs_${r}`, st);
+              studentLookup.set(`roll_ব্যবসায় শিক্ষা_${Number(r)}`, st);
+              studentLookup.set(`roll_bs_${Number(r)}`, st);
             }
           }
           const deptPrio = getStudentGroupPriority({ department: st.department || st.group_name });
@@ -2289,12 +2358,23 @@ export function ResultPanel({ sub, userRole }) {
 
       classSubjects.forEach(sub => {
         const code = String(sub.code);
+        const codeBn = toBnDigits(code);
         const subCleanName = (sub.name_bn || '').toLowerCase().replace(/[\s_\-]+/g, '');
+        const subCleanEn = (sub.name_en || '').toLowerCase().replace(/[\s_\-]+/g, '');
 
         let wCol = -1, mCol = -1, pCol = -1;
 
         cleanHeaders.forEach((h, colIdx) => {
-          const hasSubRef = h.includes(code) || (subCleanName.length >= 4 && (h.includes(normBn(subCleanName)) || normBn(subCleanName).includes(h)));
+          let hasSubRef = false;
+          if (sub.code === '107') {
+            hasSubRef = isEnglish1st(rawHeaders[colIdx]) || isEnglish1st(h);
+          } else if (sub.code === '108') {
+            hasSubRef = isEnglish2nd(rawHeaders[colIdx]) || isEnglish2nd(h);
+          } else {
+            hasSubRef = h.includes(code) || h.includes(codeBn) ||
+              (subCleanName.length >= 4 && (h.includes(normBn(subCleanName)) || normBn(subCleanName).includes(h))) ||
+              (subCleanEn.length >= 4 && (h.includes(normBn(subCleanEn)) || normBn(subCleanEn).includes(h)));
+          }
           if (!hasSubRef) return;
 
           const isPrac = h.includes('practical') || h.includes('prac') || h.includes(normBn('ব্যবহারিক'));
@@ -2345,18 +2425,24 @@ export function ResultPanel({ sub, userRole }) {
           const nameVal = nameIdx !== -1 && row[nameIdx] ? row[nameIdx].trim().toLowerCase() : '';
           const nameClean = nameVal.replace(/\s+/g, '');
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
-          const targetDept = deptVal || (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ' ? effectiveDept.toLowerCase() : '');
+          let targetDept = deptVal || (effectiveDept && effectiveDept !== 'all' && effectiveDept !== 'সকল বিভাগ' ? effectiveDept.toLowerCase() : '');
+          if (idVal.includes('-hum-') || idVal.includes('hum')) targetDept = 'মানবিক';
+          else if (idVal.includes('-sci-') || idVal.includes('sci')) targetDept = 'বিজ্ঞান';
+          else if (idVal.includes('-bs-') || idVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
+
           let normDeptKey = '';
-          if (targetDept.includes('বিজ্ঞান') || targetDept.includes('sci')) normDeptKey = 'বিজ্ঞান';
-          else if (targetDept.includes('মানবিক') || targetDept.includes('hum') || targetDept.includes('arts')) normDeptKey = 'মানবিক';
-          else if (targetDept.includes('ব্যবসায়') || targetDept.includes('ব্যবসা') || targetDept.includes('com') || targetDept.includes('bs')) normDeptKey = 'ব্যবসায় শিক্ষা';
+          if (targetDept.includes('বিজ্ঞান') || targetDept.includes('sci') || idVal.includes('-sci-')) normDeptKey = 'বিজ্ঞান';
+          else if (targetDept.includes('মানবিক') || targetDept.includes('hum') || targetDept.includes('arts') || idVal.includes('-hum-')) normDeptKey = 'মানবিক';
+          else if (targetDept.includes('ব্যবসায়') || targetDept.includes('ব্যবসা') || targetDept.includes('com') || targetDept.includes('bs') || idVal.includes('-bs-')) normDeptKey = 'ব্যবসায় শিক্ষা';
           const deptPrio = normDeptKey ? getStudentGroupPriority({ department: normDeptKey }) : (targetDept ? getStudentGroupPriority({ department: targetDept }) : 99);
 
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
-                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
-                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
+                                 (nameVal && normDeptKey && studentLookup.get(`dept_name:${normDeptKey}_${nameVal}`)) ||
                                  (rollVal && normDeptKey && (studentLookup.get(`roll_${normDeptKey}_${rollVal}`) || studentLookup.get(`roll_${normDeptKey}_${Number(rollVal)}`))) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
+                                 (idVal && studentLookup.get(`id:${idVal.replace(/-/g, '')}`)) ||
+                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
+                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
                                  (!normDeptKey && rollVal && studentLookup.get(`roll:${rollVal}`));
 
@@ -2406,7 +2492,8 @@ export function ResultPanel({ sub, userRole }) {
                 class_name: effectiveClass,
                 student_id: matchedStudent.id,
                 student_code: matchedStudent.student_id || matchedStudent.id,
-                department: matchedStudent.department || targetDept,
+                roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
+                department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
                 subject_id: sub.id,
                 subject_code: sub.code,
                 written: w,
@@ -2441,15 +2528,35 @@ export function ResultPanel({ sub, userRole }) {
 
           // 1. Detect row subject first so department context is 100% accurate!
           let rowSub = targetSubject;
-          const rowCode = subjectCodeIdx !== -1 && row[subjectCodeIdx] ? row[subjectCodeIdx].trim() : '';
-          const rowSubName = subjectNameIdx !== -1 && row[subjectNameIdx] ? row[subjectNameIdx].trim() : '';
+          const rawRowCode = subjectCodeIdx !== -1 && row[subjectCodeIdx] ? String(row[subjectCodeIdx]).trim() : '';
+          const rowCode = rawRowCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)).trim();
+          const rowSubName = subjectNameIdx !== -1 && row[subjectNameIdx] ? String(row[subjectNameIdx]).trim() : '';
+          const normRowSubName = normBn(rowSubName);
 
           if (rowCode) {
-            const found = classSubjects.find(s => String(s.code) === rowCode) || subjects.find(s => String(s.code) === rowCode && String(s.class_name) === effectiveClass);
+            const found = classSubjects.find(s => String(s.code) === rowCode || String(s.code).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)) === rowCode) ||
+                          subjects.find(s => (String(s.code) === rowCode || String(s.code).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)) === rowCode) && String(s.class_name) === effectiveClass);
             if (found) rowSub = found;
           } else if (rowSubName) {
-            const found = classSubjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn))) || subjects.find(s => s.name_bn && (s.name_bn.includes(rowSubName) || rowSubName.includes(s.name_bn)) && String(s.class_name) === effectiveClass);
-            if (found) rowSub = found;
+            if (isEnglish2nd(rowSubName)) {
+              rowSub = classSubjects.find(s => String(s.code) === '108') || subjects.find(s => String(s.code) === '108' && String(s.class_name) === effectiveClass) || rowSub;
+            } else if (isEnglish1st(rowSubName)) {
+              rowSub = classSubjects.find(s => String(s.code) === '107') || subjects.find(s => String(s.code) === '107' && String(s.class_name) === effectiveClass) || rowSub;
+            } else {
+              const found = classSubjects.find(s => {
+                const sBn = normBn(s.name_bn || '');
+                const sEn = normBn(s.name_en || '');
+                return (sBn && (sBn.includes(normRowSubName) || normRowSubName.includes(sBn))) ||
+                       (sEn && (sEn.includes(normRowSubName) || normRowSubName.includes(sEn)));
+              }) || subjects.find(s => {
+                if (String(s.class_name) !== effectiveClass) return false;
+                const sBn = normBn(s.name_bn || '');
+                const sEn = normBn(s.name_en || '');
+                return (sBn && (sBn.includes(normRowSubName) || normRowSubName.includes(sBn))) ||
+                       (sEn && (sEn.includes(normRowSubName) || normRowSubName.includes(sEn)));
+              });
+              if (found) rowSub = found;
+            }
           }
 
           if (!rowSub) rowSub = currentSubjectObj;
@@ -2463,8 +2570,12 @@ export function ResultPanel({ sub, userRole }) {
           const nameClean = nameVal.replace(/\s+/g, '');
           const deptVal = deptIdx !== -1 && row[deptIdx] ? row[deptIdx].trim().toLowerCase() : '';
 
-          // Determine department context from CSV row, subject department, or subject code
+          // Determine department context from CSV row, student ID, subject department, or subject code
           let targetDept = deptVal;
+          if (idVal.includes('-hum-') || idVal.includes('hum')) targetDept = 'মানবিক';
+          else if (idVal.includes('-sci-') || idVal.includes('sci')) targetDept = 'বিজ্ঞান';
+          else if (idVal.includes('-bs-') || idVal.includes('bs')) targetDept = 'ব্যবসায় শিক্ষা';
+
           if (!targetDept && rowSub?.department && !['আবশ্যিক', 'সাধারণ'].includes(rowSub.department)) {
             targetDept = rowSub.department.toLowerCase();
           }
@@ -2479,17 +2590,19 @@ export function ResultPanel({ sub, userRole }) {
           }
 
           let normDeptKey = '';
-          if (targetDept.includes('বিজ্ঞান') || targetDept.includes('sci')) normDeptKey = 'বিজ্ঞান';
-          else if (targetDept.includes('মানবিক') || targetDept.includes('hum') || targetDept.includes('arts')) normDeptKey = 'মানবিক';
-          else if (targetDept.includes('ব্যবসায়') || targetDept.includes('ব্যবসা') || targetDept.includes('com') || targetDept.includes('bs')) normDeptKey = 'ব্যবসায় শিক্ষা';
+          if (targetDept.includes('বিজ্ঞান') || targetDept.includes('sci') || idVal.includes('-sci-')) normDeptKey = 'বিজ্ঞান';
+          else if (targetDept.includes('মানবিক') || targetDept.includes('hum') || targetDept.includes('arts') || idVal.includes('-hum-')) normDeptKey = 'মানবিক';
+          else if (targetDept.includes('ব্যবসায়') || targetDept.includes('ব্যবসা') || targetDept.includes('com') || targetDept.includes('bs') || idVal.includes('-bs-')) normDeptKey = 'ব্যবসায় শিক্ষা';
 
           const deptPrio = normDeptKey ? getStudentGroupPriority({ department: normDeptKey }) : (targetDept ? getStudentGroupPriority({ department: targetDept }) : 99);
 
           const matchedStudent = (idVal && studentLookup.get(`id:${idVal}`)) ||
-                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
-                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
+                                 (nameVal && normDeptKey && studentLookup.get(`dept_name:${normDeptKey}_${nameVal}`)) ||
                                  (rollVal && normDeptKey && (studentLookup.get(`roll_${normDeptKey}_${rollVal}`) || studentLookup.get(`roll_${normDeptKey}_${Number(rollVal)}`))) ||
                                  (rollVal && targetDept && studentLookup.get(`dept_roll:${targetDept}_${rollVal}`)) ||
+                                 (idVal && studentLookup.get(`id:${idVal.replace(/-/g, '')}`)) ||
+                                 (nameVal && studentLookup.get(`name:${nameVal}`)) ||
+                                 (nameClean && studentLookup.get(`name_clean:${nameClean}`)) ||
                                  (rollVal && deptPrio < 4 && studentLookup.get(`prio_roll:${deptPrio}_${rollVal}`)) ||
                                  (!normDeptKey && rollVal && studentLookup.get(`roll:${rollVal}`));
 
@@ -2540,7 +2653,8 @@ export function ResultPanel({ sub, userRole }) {
             class_name: effectiveClass,
             student_id: matchedStudent.id,
             student_code: matchedStudent.student_id || matchedStudent.id,
-            department: matchedStudent.department || targetDept,
+            roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
+            department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
             subject_id: rowSub.id,
             subject_code: rowSub.code,
             written: w,

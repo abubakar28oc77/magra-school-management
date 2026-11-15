@@ -653,10 +653,24 @@ export function processClassResults(students, subjects, marksList, className, ex
   (marksList || []).forEach(m => {
     if (String(m.exam_id) === String(examId) || areExamsEquivalent(m.exam_id, examId, exams)) {
       const sId = String(m.student_id || '').toLowerCase();
-      const sCode = String(m.subject_code || '').trim();
+      let sCode = String(m.subject_code || '').trim();
+      if (!sCode && m.subject_id) {
+        sCode = String(m.subject_id).replace(/^sub-10-|^sub-9-|^sub-/, '');
+      }
       const sCodeNorm = sCode.replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
-      const sDept = String(m.department || '').toLowerCase();
-      const sRoll = String(m.roll_no !== undefined && m.roll_no !== null ? m.roll_no : '').trim();
+      let sDept = String(m.department || '').toLowerCase();
+      let sRoll = String(m.roll_no !== undefined && m.roll_no !== null ? m.roll_no : '').trim();
+
+      if (!sRoll || !sDept) {
+        const foundSt = classStudents.find(st => 
+          String(st.id || '').toLowerCase() === sId || 
+          (m.student_code && String(st.student_id || '').toLowerCase() === String(m.student_code).toLowerCase())
+        );
+        if (foundSt) {
+          if (!sRoll && foundSt.roll_no !== undefined && foundSt.roll_no !== null) sRoll = String(foundSt.roll_no).trim();
+          if (!sDept) sDept = String(foundSt.department || foundSt.group_name || '').toLowerCase();
+        }
+      }
 
       if (m.subject_id) putMark(`${sId}_${m.subject_id}`, m);
       if (sCode) putMark(`${sId}_${sCode}`, m);
