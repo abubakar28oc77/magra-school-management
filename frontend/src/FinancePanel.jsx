@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, getStudentPhoto } from './mockData';
+import { MOCK_SCHOOL, MOCK_STUDENTS, MOCK_TEACHERS, MOCK_STAFF, getStudentPhoto } from './mockData';
 import schoolLogo from '../public/school-logo.png';
 
 // Bengali Digits & Helpers
@@ -217,6 +217,116 @@ export const CONFIGURABLE_CLASSES = [
   { key: '9', name: '৯ম শ্রেণি', en: 'Class 9', group: 'সাধারণ' },
   { key: '10', name: '১০ম শ্রেণি', en: 'Class 10', group: 'সাধারণ' }
 ];
+
+// Discover active office assistant personnel from staff store
+export const getAvailableOfficeAssistants = () => {
+  let list = [];
+  try {
+    const raw = localStorage.getItem('magra_db_staff');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) list = [...parsed];
+    }
+  } catch (e) {}
+
+  if (!list.length && Array.isArray(MOCK_STAFF)) {
+    list = [...MOCK_STAFF];
+  }
+
+  try {
+    const rawT = localStorage.getItem('magra_db_teachers');
+    if (rawT) {
+      const parsedT = JSON.parse(rawT);
+      if (Array.isArray(parsedT)) {
+        parsedT.forEach(t => {
+          if (t && (t.public_contact_role === 'office_assistant' || (t.designation && t.designation.includes('অফিস')))) {
+            list.push(t);
+          }
+        });
+      }
+    }
+  } catch (e) {}
+
+  const active = list.filter(s => {
+    if (!s) return false;
+    const st = (s.status || 'active').trim().toLowerCase();
+    return st === 'active' || st === 'সক্রিয়' || !st;
+  });
+
+  const isOfficeMatch = (s) => {
+    const role = (s.public_contact_role || '').toLowerCase();
+    const desig = (s.designation || '').toLowerCase();
+    const sub = (s.subject || '').toLowerCase();
+    return role === 'office_assistant' ||
+           desig.includes('অফিস সহকারী') ||
+           desig.includes('অফিস') ||
+           desig.includes('সহকারী কাম') ||
+           desig.includes('হিসাব সহকারী') ||
+           desig.includes('সহকারী') ||
+           sub.includes('অফিস') ||
+           sub.includes('হিসাব');
+  };
+
+  const officeMatches = active.filter(isOfficeMatch);
+  return officeMatches.length > 0 ? officeMatches : active;
+};
+
+// Intelligently resolve the default office assistant (prioritizing user-entered staff)
+export const resolveDefaultOfficeAssistant = () => {
+  // 1. Explicitly chosen / saved receiver in fee deposit module
+  try {
+    const saved = localStorage.getItem('magra_fee_received_by');
+    if (saved && saved.trim() && !saved.includes('আলমগীর')) {
+      const clean = saved.replace(/\s*\([^)]*\)/g, '').trim();
+      const match = saved.match(/\(([^)]+)\)/);
+      return {
+        fullNameWithDesig: saved.trim(),
+        name: clean || saved.trim(),
+        designation: match ? match[1] : 'অফিস সহকারী'
+      };
+    }
+  } catch (e) {}
+
+  const staffList = getAvailableOfficeAssistants();
+
+  // 2. Staff from magra_db_staff entered or customized by the user (non-mock / not Alamgir)
+  const userStaff = staffList.find(s => {
+    const n = (s.name_bn || s.name_en || '').trim();
+    return n && !n.includes('আলমগীর');
+  });
+
+  // 3. Check leadership settings
+  let leadershipOffice = null;
+  try {
+    const ls = JSON.parse(localStorage.getItem('magra_db_leadership_settings') || '{}');
+    const n = ls.office?.name || ls.officeAssistant || '';
+    if (n && !n.includes('আলমগীর')) {
+      leadershipOffice = { name_bn: n, designation: 'অফিস সহকারী' };
+    }
+  } catch (e) {}
+
+  // 4. Check logged in user
+  let sessionStaff = null;
+  try {
+    const u = JSON.parse(localStorage.getItem('magra_user') || '{}');
+    if ((u.role_name === 'staff' || u.login_id === 'office') && u.full_name && !u.full_name.includes('আলমগীর')) {
+      sessionStaff = { name_bn: u.full_name, designation: u.role_label || 'অফিস সহকারী' };
+    }
+  } catch (e) {}
+
+  const chosen = userStaff || leadershipOffice || sessionStaff || staffList[0] || (Array.isArray(MOCK_STAFF) ? MOCK_STAFF[0] : null) || { name_bn: 'অফিস সহকারী', designation: 'অফিস সহকারী' };
+  const rawName = (chosen.name_bn || chosen.name_en || 'অফিস সহকারী').trim();
+  const cleanName = rawName.replace(/\s*\([^)]*\)/g, '').trim();
+  const desig = (chosen.designation || 'অফিস সহকারী').trim();
+  const fullNameWithDesig = rawName.includes('(') ? rawName : `${cleanName} (${desig})`;
+
+  return {
+    person: chosen,
+    name: cleanName,
+    designation: desig,
+    fullNameWithDesig
+  };
+};
 
 export function getClassTeacher(className, groupName, config = null) {
   let cfg = config;
@@ -593,13 +703,49 @@ export function FinancePanel({ sub }) {
   const [depositPendingSearch, setDepositPendingSearch] = useState('');
   const [depositShowOnlyPending, setDepositShowOnlyPending] = useState(true);
 
-  // New Deposit Form inputs
+  // New Deposit Form inputs & Dynamic Office Assistant Resolution
   const [newDepositDate, setNewDepositDate] = useState('2026-11-10');
   const [newDepositNo, setNewDepositNo] = useState('');
   const [newDepositedBy, setNewDepositedBy] = useState('মুহাম্মদ আবুবকর সিদ্দিক (শ্রেণি শিক্ষক)');
-  const [newReceivedBy, setNewReceivedBy] = useState('মোঃ আলমগীর হোসেন (অফিস সহকারী)');
+  const [availableOfficeStaff, setAvailableOfficeStaff] = useState(() => getAvailableOfficeAssistants());
+  const initialOfficeAssistant = useMemo(() => resolveDefaultOfficeAssistant(), []);
+  const [newReceivedBy, setNewReceivedBy] = useState(() => initialOfficeAssistant.fullNameWithDesig);
   const [newPaymentMethod, setNewPaymentMethod] = useState('cash');
   const [newDepositRemarks, setNewDepositRemarks] = useState('১১ জন শিক্ষার্থীর ফি আদায় অফিস সহকারীর নিকট জমা');
+
+  // Dynamically sync office assistant on mount, staff changes, or storage updates
+  useEffect(() => {
+    const refreshStaff = () => {
+      const updatedStaff = getAvailableOfficeAssistants();
+      setAvailableOfficeStaff(updatedStaff);
+      const def = resolveDefaultOfficeAssistant();
+      const curSaved = localStorage.getItem('magra_fee_received_by');
+      if (!curSaved || curSaved.includes('আলমগীর') || !newReceivedBy || newReceivedBy.includes('আলমগীর')) {
+        setNewReceivedBy(def.fullNameWithDesig);
+      }
+    };
+    window.addEventListener('storage', refreshStaff);
+    window.addEventListener('magra_leadership_updated', refreshStaff);
+    window.addEventListener('magra_teachers_updated', refreshStaff);
+    return () => {
+      window.removeEventListener('storage', refreshStaff);
+      window.removeEventListener('magra_leadership_updated', refreshStaff);
+      window.removeEventListener('magra_teachers_updated', refreshStaff);
+    };
+  }, [newReceivedBy]);
+
+  const liveOfficePerson = useMemo(() => {
+    if (newReceivedBy && newReceivedBy.trim()) {
+      const clean = newReceivedBy.replace(/\s*\([^)]*\)/g, '').trim();
+      const match = newReceivedBy.match(/\(([^)]+)\)/);
+      return {
+        name: clean || newReceivedBy.trim(),
+        designation: match ? match[1] : (initialOfficeAssistant.designation || 'অফিস সহকারী'),
+        fullNameWithDesig: newReceivedBy
+      };
+    }
+    return initialOfficeAssistant;
+  }, [newReceivedBy, initialOfficeAssistant]);
 
   // Modals & History Filters
   const [viewingDepositDetails, setViewingDepositDetails] = useState(null);
@@ -3473,7 +3619,7 @@ export function FinancePanel({ sub }) {
       class_name: targetClass,
       deposit_date: newDepositDate || new Date().toISOString().slice(0, 10),
       deposited_by: newDepositedBy || 'শ্রেণি শিক্ষক / ফি আদায়কারী',
-      received_by: newReceivedBy || 'মোঃ আলমগীর হোসেন (অফিস সহকারী)',
+      received_by: newReceivedBy || liveOfficePerson.fullNameWithDesig,
       student_count: liveDepositBreakdown.selectedRecs.length,
       receipt_ids: [...selectedReceiptIdsForDeposit],
       head_breakdown: { ...liveDepositBreakdown.breakdown },
@@ -3552,6 +3698,11 @@ export function FinancePanel({ sub }) {
     const includedRecords = feeRecords.filter(r => (dep.receipt_ids || []).includes(r.id));
     const inWords = numberToWordsBn(dep.total_amount);
     const printDate = new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' });
+    const effectiveReceivedBy = ((!dep.received_by || dep.received_by.includes('আলমগীর')) && !liveOfficePerson.name.includes('আলমগীর'))
+      ? liveOfficePerson.fullNameWithDesig
+      : (dep.received_by || liveOfficePerson.fullNameWithDesig);
+    const receiverName = effectiveReceivedBy.replace(/\s*\([^)]*\)/g, '').trim() || effectiveReceivedBy;
+    const receiverDesig = effectiveReceivedBy.match(/\(([^)]+)\)/)?.[1] || liveOfficePerson.designation || 'অফিস সহকারী (জমার হিসাবকারী)';
 
     w.document.write(`
       <!DOCTYPE html>
@@ -3619,7 +3770,7 @@ export function FinancePanel({ sub }) {
 
         <div class="meta-grid">
           <div class="meta-item"><b>জমা প্রদানকারী:</b> <span>${dep.deposited_by}</span></div>
-          <div class="meta-item"><b>জমা গ্রহণকারী:</b> <span>${dep.received_by}</span></div>
+          <div class="meta-item"><b>জমা গ্রহণকারী:</b> <span>${effectiveReceivedBy}</span></div>
           <div class="meta-item"><b>অন্তর্ভুক্ত শিক্ষার্থী:</b> <span>${toBnDigits(dep.student_count)} জন</span></div>
           <div class="meta-item"><b>পরিশোধের মাধ্যম:</b> <span>${dep.payment_method === 'bkash' ? 'বিকাশ' : dep.payment_method === 'bank' ? 'ব্যাংক' : 'নগদ / ক্যাশ'}</span></div>
           <div class="meta-item" style="grid-column: span 2;"><b>মন্তব্য:</b> <span>${dep.remarks || '—'}</span></div>
@@ -3714,8 +3865,8 @@ export function FinancePanel({ sub }) {
             <div class="sig-desig">${dep.deposited_by}</div>
           </div>
           <div class="sig-box">
-            <div class="sig-name">মোঃ আলমগীর হোসেন</div>
-            <div class="sig-desig">অফিস সহকারী (জমার হিসাবকারী)</div>
+            <div class="sig-name">${receiverName}</div>
+            <div class="sig-desig">${receiverDesig}</div>
           </div>
           <div class="sig-box">
             <div class="sig-name">হিসাব সহকারী / নিরীক্ষক</div>
@@ -5635,7 +5786,7 @@ export function FinancePanel({ sub }) {
                   <span style={{ fontSize: '20px' }}>💡</span>
                   <div style={{ fontSize: '12.5px', color: '#065f46', lineHeight: 1.5 }}>
                     <b>ব্যবহার পদ্ধতি (ব্যবহারকারীর উদাহরণ অনুযায়ী):</b><br />
-                    আপনি প্রতিদিনের আদায়কৃত ফি প্রতিদিন অথবা একাধিক দিনের আদায় করা ফি একত্রিত করে অফিস সহকারী (মোঃ আলমগীর হোসেন)-এর নিকট জমা দিতে পারেন।
+                    আপনি প্রতিদিনের আদায়কৃত ফি প্রতিদিন অথবা একাধিক দিনের আদায় করা ফি একত্রিত করে অফিস সহকারী ({liveOfficePerson.name})-এর নিকট জমা দিতে পারেন।
                     যেমন: ১০/১১ (৫ জন), ০৯/১১ (২ জন), ০৮/১১ (৪ জন), ০৭/১১ (৩ জন) মোট ১৪ জনের মধ্যে থেকে আপনি যতজন খুশি (যেমন ১১ জন) টিক দিয়ে সিলেক্ট করুন।
                     ডানপাশের স্বয়ংক্রিয় ক্যালকুলেটরে তাঁদের <b>বেতন খাত</b>, <b>পরীক্ষার ফি খাত</b>, <b>জরিমানা খাত</b>, <b>সেশন চার্জ খাত</b> ও অন্যান্য খাতের মোট যোগফল হিসাব হয়ে যাবে এবং অফিস সহকারীর নিকট জমার অফিশিয়াল চালান প্রস্তুত হবে!
                   </div>
@@ -6001,14 +6152,35 @@ export function FinancePanel({ sub }) {
                       </div>
 
                       <div>
-                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>জমা গ্রহণকারী (অফিস সহকারী) *</label>
-                        <input
-                          type="text"
-                          value={newReceivedBy}
-                          onChange={e => setNewReceivedBy(e.target.value)}
-                          required
-                          style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1.5px solid #047857', fontSize: '11.5px', fontWeight: 700 }}
-                        />
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                          <span>জমা গ্রহণকারী (অফিস সহকারী) *</span>
+                          {availableOfficeStaff.length > 1 && (
+                            <span style={{ fontSize: '10px', color: '#059669', fontWeight: 600 }}>তালিকা থেকে নির্বাচন বা পরিবর্তন করতে পারেন</span>
+                          )}
+                        </label>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="text"
+                            list="magra-office-staff-datalist"
+                            value={newReceivedBy}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setNewReceivedBy(val);
+                              try { localStorage.setItem('magra_fee_received_by', val); } catch (_) {}
+                            }}
+                            required
+                            placeholder="অফিস সহকারীর নাম ও পদবি লিখুন বা সিলেক্ট করুন..."
+                            style={{ width: '100%', padding: '6px 8px', borderRadius: '5px', border: '1.5px solid #047857', fontSize: '11.5px', fontWeight: 700 }}
+                          />
+                          <datalist id="magra-office-staff-datalist">
+                            {availableOfficeStaff.map((st, i) => {
+                              const nameStr = st.name_bn || st.name_en || '';
+                              const desigStr = st.designation || 'অফিস সহকারী';
+                              const formatted = nameStr.includes('(') ? nameStr : `${nameStr} (${desigStr})`;
+                              return <option key={st.id || i} value={formatted} />;
+                            })}
+                          </datalist>
+                        </div>
                       </div>
 
                       <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '8px' }}>
@@ -6103,9 +6275,9 @@ export function FinancePanel({ sub }) {
                 <div style={{ background: '#fdf4ff', border: '1px solid #f5d0fe', borderRadius: '8px', padding: '12px 14px' }}>
                   <div style={{ fontSize: '11px', fontWeight: 800, color: '#86198f' }}>👤 প্রধান গ্রহণকারী</div>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: '#a21caf', marginTop: '3px' }}>
-                    মোঃ আলমগীর হোসেন
+                    {liveOfficePerson.name || 'অফিস সহকারী'}
                   </div>
-                  <div style={{ fontSize: '10.5px', color: '#86198f' }}>অফিস সহকারী কাম কম্পিউটার অপারেটর</div>
+                  <div style={{ fontSize: '10.5px', color: '#86198f' }}>{liveOfficePerson.designation || 'অফিস সহকারী কাম কম্পিউটার অপারেটর'}</div>
                 </div>
               </div>
 
@@ -6219,7 +6391,7 @@ export function FinancePanel({ sub }) {
                             প্রদানকারী: <span style={{ color: '#0369a1' }}>{dep.deposited_by}</span>
                           </div>
                           <div style={{ fontSize: '10.5px', color: '#047857', fontWeight: 600 }}>
-                            গ্রহণকারী: <b>{dep.received_by}</b>
+                            গ্রহণকারী: <b>{(!dep.received_by || dep.received_by.includes('আলমগীর')) && !liveOfficePerson.name.includes('আলমগীর') ? liveOfficePerson.fullNameWithDesig : dep.received_by}</b>
                           </div>
                         </td>
                         <td style={{ textAlign: 'center', padding: '9px 10px' }}>
@@ -6400,7 +6572,9 @@ export function FinancePanel({ sub }) {
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: '#64748b' }}>গ্রহণকারী অফিস সহকারী:</div>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>{viewingDepositDetails.received_by}</div>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#047857' }}>
+                      {(!viewingDepositDetails.received_by || viewingDepositDetails.received_by.includes('আলমগীর')) && !liveOfficePerson.name.includes('আলমগীর') ? liveOfficePerson.fullNameWithDesig : viewingDepositDetails.received_by}
+                    </div>
                   </div>
                   <div>
                     <div style={{ fontSize: '11px', color: '#64748b' }}>সর্বমোট টাকা:</div>
@@ -6521,6 +6695,7 @@ export function FinancePanel({ sub }) {
                     <label style={{ fontSize: '11px', fontWeight: 700, color: '#047857', display: 'block', marginBottom: '3px' }}>গ্রহণকারী অফিস সহকারী *</label>
                     <input
                       type="text"
+                      list="magra-office-staff-datalist"
                       value={editingDepositBatch.received_by || ''}
                       onChange={e => setEditingDepositBatch({ ...editingDepositBatch, received_by: e.target.value })}
                       required

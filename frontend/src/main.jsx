@@ -1286,8 +1286,13 @@ function Home() {
     const head = tList.find(t => t.public_contact_role === 'head_teacher' || (t.designation && t.designation.includes('প্রধান শিক্ষক') && !t.designation.includes('সহকারী'))) || tList[0] || MOCK_TEACHERS[0];
     const asst = tList.find(t => t.public_contact_role === 'assistant_head_teacher' || (t.designation && t.designation.includes('সহকারী প্রধান শিক্ষক'))) || tList[1] || MOCK_TEACHERS[1];
     const ict = tList.find(t => t.public_contact_role === 'ict_teacher' || (t.subject && (t.subject.includes('আইসিটি') || t.subject.includes('ICT'))) || (t.designation && (t.designation.includes('আইসিটি') || t.designation.includes('ICT')))) || tList.find(t => (t.name_bn || '').includes('আবুবকর')) || tList[2] || MOCK_TEACHERS[2];
-    const office = (sList && sList.find(s => s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস')))) || sList[0] || tList.find(t => t.designation && t.designation.includes('অফিস')) || {
-      name_bn: 'মো: আলমগীর হোসেন',
+    const office = (sList && (
+      sList.find(s => s && !s.name_bn?.includes('আলমগীর') && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস')))) ||
+      sList.find(s => s && !s.name_bn?.includes('আলমগীর')) ||
+      sList.find(s => s && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস')))) ||
+      sList[0]
+    )) || tList.find(t => t.designation && t.designation.includes('অফিস')) || {
+      name_bn: 'অফিস সহকারী',
       designation: 'অফিস সহকারী কাম কম্পিউটার অপারেটর',
       phone: '01722-345678',
       email: 'office.magra@gmail.com',
@@ -3005,13 +3010,33 @@ function OfficeAssistantPanel({ sub, setSub }) {
   const [tab, setTab] = useState(sub === 'admission' ? 'admission' : sub === 'docs' ? 'docs' : sub === 'idcards' ? 'idcards' : sub === 'voters' ? 'voters' : 'fees');
   useEffect(() => { if (sub) setTab(sub === 'admission' ? 'admission' : sub === 'docs' ? 'docs' : sub === 'idcards' ? 'idcards' : sub === 'voters' ? 'voters' : 'fees') }, [sub]);
   const chooseTab = (t) => { setTab(t); if (setSub) setSub(t); };
+
+  const officeAssistantName = useMemo(() => {
+    try {
+      const savedReceiver = localStorage.getItem('magra_fee_received_by');
+      if (savedReceiver && !savedReceiver.includes('আলমগীর')) {
+        return savedReceiver.replace(/\s*\([^)]*\)/g, '').trim();
+      }
+      const rawStaff = localStorage.getItem('magra_db_staff');
+      if (rawStaff) {
+        const staff = JSON.parse(rawStaff);
+        if (Array.isArray(staff)) {
+          const match = staff.find(s => s && !s.name_bn?.includes('আলমগীর') && (s.public_contact_role === 'office_assistant' || (s.designation && s.designation.includes('অফিস')))) ||
+                        staff.find(s => s && !s.name_bn?.includes('আলমগীর'));
+          if (match?.name_bn) return match.name_bn;
+        }
+      }
+    } catch {}
+    return 'অফিস সহকারী';
+  }, []);
+
   return <div className="office-assistant-panel">
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)', color: '#ffffff', padding: '16px 20px', borderRadius: '12px', marginBottom: '18px', boxShadow: '0 4px 12px rgba(30,41,59,0.15)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span style={{ fontSize: '32px' }}>🏢</span>
         <div>
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>অফিস সহকারী ফ্রন্ট ডেস্ক ও রেজিস্টার</h2>
-          <p style={{ margin: '3px 0 0', fontSize: '12.5px', opacity: 0.85 }}>মোঃ আলমগীর হোসেন • ক্যাশ কাউন্টার ফি আদায় ও মানি রসিদ, ভর্তি ফরম স্ক্রুটিনি, প্রত্যয়ন ও প্রশংসাপত্র প্রিন্ট</p>
+          <p style={{ margin: '3px 0 0', fontSize: '12.5px', opacity: 0.85 }}>{officeAssistantName} • ক্যাশ কাউন্টার ফি আদায় ও মানি রসিদ, ভর্তি ফরম স্ক্রুটিনি, প্রত্যয়ন ও প্রশংসাপত্র প্রিন্ট</p>
         </div>
       </div>
       <div className="tabs" style={{ margin: 0 }}>

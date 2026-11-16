@@ -1443,7 +1443,11 @@ function handleMockRequest(path, opts = {}) {
     const head = teachers.find(t => t && (t.public_contact_role === 'head_teacher' || t.designation?.includes('প্রধান শিক্ষক'))) || { name_bn: 'মুহাম্মদ শফিকুল ইসলাম', phone: '01712-345678', email: 'headteacher.magra@gmail.com', designation: 'প্রধান শিক্ষক' };
     const assistant = teachers.find(t => t && (t.public_contact_role === 'assistant_head_teacher' || t.designation?.includes('সহকারী প্রধান শিক্ষক'))) || { name_bn: 'তাপসী সরকার', phone: '01713-456789', email: 'assthead.magra@gmail.com', designation: 'সহকারী প্রধান শিক্ষক' };
     const ict = teachers.find(t => t && (t.public_contact_role === 'ict_teacher' || t.subject?.includes('আইসিটি') || t.designation?.includes('আইসিটি'))) || { name_bn: 'মুহাম্মদ আবুবকর সিদ্দিক', phone: '01714-567890', email: 'ict.magra@gmail.com', designation: 'সহকারী শিক্ষক (আইসিটি)' };
-    const office = staff.find(s => s && (s.public_contact_role === 'office_assistant' || s.designation?.includes('অফিস'))) || { name_bn: 'মোঃ আলমগীর হোসেন', phone: '01722-345678', email: 'office.magra@gmail.com', designation: 'অফিস সহকারী' };
+    const office = staff.find(s => s && !s.name_bn?.includes('আলমগীর') && (s.public_contact_role === 'office_assistant' || s.designation?.includes('অফিস'))) ||
+      staff.find(s => s && !s.name_bn?.includes('আলমগীর')) ||
+      staff.find(s => s && (s.public_contact_role === 'office_assistant' || s.designation?.includes('অফিস'))) ||
+      staff[0] ||
+      { name_bn: 'অফিস সহকারী', phone: '01722-345678', email: 'office.magra@gmail.com', designation: 'অফিস সহকারী' };
     return {
       contacts: [
         { key: 'head', role: 'প্রধান শিক্ষক', person: head },
