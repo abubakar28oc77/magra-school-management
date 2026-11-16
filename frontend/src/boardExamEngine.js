@@ -752,12 +752,17 @@ export function processClassResults(students, subjects, marksList, className, ex
       const rec101 = getRec(sub101);
       const rec102 = getRec(sub102);
 
-      const w1 = rec101?.written !== '' && rec101?.written !== null && rec101?.written !== undefined ? Number(rec101.written) : 0;
-      const m1 = rec101?.mcq !== '' && rec101?.mcq !== null && rec101?.mcq !== undefined ? Number(rec101.mcq) : 0;
+      const is101Absent = !!(rec101?.absent === true || rec101?.absent === 'true' || rec101?.absent === 1 || rec101?.absent === '1');
+      const is102Absent = !!(rec102?.absent === true || rec102?.absent === 'true' || rec102?.absent === 1 || rec102?.absent === '1');
+      const anyBanglaAbsent = is101Absent || is102Absent;
+      const isBanglaAbsent = is101Absent && is102Absent;
+
+      const w1 = is101Absent ? 0 : (rec101?.written !== '' && rec101?.written !== null && rec101?.written !== undefined ? Number(rec101.written) : 0);
+      const m1 = is101Absent ? 0 : (rec101?.mcq !== '' && rec101?.mcq !== null && rec101?.mcq !== undefined ? Number(rec101.mcq) : 0);
       const t1 = w1 + m1;
 
-      const w2 = rec102?.written !== '' && rec102?.written !== null && rec102?.written !== undefined ? Number(rec102.written) : 0;
-      const m2 = rec102?.mcq !== '' && rec102?.mcq !== null && rec102?.mcq !== undefined ? Number(rec102.mcq) : 0;
+      const w2 = is102Absent ? 0 : (rec102?.written !== '' && rec102?.written !== null && rec102?.written !== undefined ? Number(rec102.written) : 0);
+      const m2 = is102Absent ? 0 : (rec102?.mcq !== '' && rec102?.mcq !== null && rec102?.mcq !== undefined ? Number(rec102.mcq) : 0);
       const t2 = w2 + m2;
 
       const banglaCombinedCQ = w1 + w2;
@@ -769,8 +774,7 @@ export function processClassResults(students, subjects, marksList, className, ex
       const passBanglaMCQ = banglaCombinedMCQ >= 20;
       const passBanglaTotal = banglaCombinedTotal >= 66;
 
-      const isBanglaAbsent = !!(rec101?.absent && rec102?.absent);
-      const isBanglaPass = !isBanglaAbsent && passBanglaCQ && passBanglaMCQ && passBanglaTotal;
+      const isBanglaPass = !anyBanglaAbsent && passBanglaCQ && passBanglaMCQ && passBanglaTotal;
 
       const banglaPct = (banglaCombinedTotal / 200) * 100;
       const banglaGradeObj = isBanglaPass ? getLetterAndPoint(banglaPct) : { letter: 'F', gp: 0.0 };
@@ -778,22 +782,32 @@ export function processClassResults(students, subjects, marksList, className, ex
       const banglaGp = banglaGradeObj.gp;
 
       const banglaFailReasons = [];
-      if (!passBanglaCQ) banglaFailReasons.push(`বাংলা CQ (${banglaCombinedCQ} < ৪৬)`);
-      if (!passBanglaMCQ) banglaFailReasons.push(`বাংলা MCQ (${banglaCombinedMCQ} < ২০)`);
-      if (!passBanglaTotal) banglaFailReasons.push(`বাংলা মোট (${banglaCombinedTotal} < ৬৬)`);
+      if (anyBanglaAbsent) {
+        if (is101Absent && is102Absent) banglaFailReasons.push('বাংলা অনুপস্থিত');
+        else if (is101Absent) banglaFailReasons.push('বাংলা ১ম পত্রে অনুপস্থিত');
+        else if (is102Absent) banglaFailReasons.push('বাংলা ২য় পত্রে অনুপস্থিত');
+      } else {
+        if (!passBanglaCQ) banglaFailReasons.push(`বাংলা CQ (${banglaCombinedCQ} < ৪৬)`);
+        if (!passBanglaMCQ) banglaFailReasons.push(`বাংলা MCQ (${banglaCombinedMCQ} < ২০)`);
+        if (!passBanglaTotal) banglaFailReasons.push(`বাংলা মোট (${banglaCombinedTotal} < ৬৬)`);
+      }
 
       // 2. Evaluate Combined English
       const rec107 = getRec(sub107);
       const rec108 = getRec(sub108);
 
-      const w107 = rec107?.written !== '' && rec107?.written !== null && rec107?.written !== undefined ? Number(rec107.written) : 0;
-      const w108 = rec108?.written !== '' && rec108?.written !== null && rec108?.written !== undefined ? Number(rec108.written) : 0;
+      const is107Absent = !!(rec107?.absent === true || rec107?.absent === 'true' || rec107?.absent === 1 || rec107?.absent === '1');
+      const is108Absent = !!(rec108?.absent === true || rec108?.absent === 'true' || rec108?.absent === 1 || rec108?.absent === '1');
+      const anyEnglishAbsent = is107Absent || is108Absent;
+      const isEnglishAbsent = is107Absent && is108Absent;
+
+      const w107 = is107Absent ? 0 : (rec107?.written !== '' && rec107?.written !== null && rec107?.written !== undefined ? Number(rec107.written) : 0);
+      const w108 = is108Absent ? 0 : (rec108?.written !== '' && rec108?.written !== null && rec108?.written !== undefined ? Number(rec108.written) : 0);
       const englishCombinedTotal = w107 + w108;
 
       // Board rules: English Combined Total pass 66
       const passEnglishTotal = englishCombinedTotal >= 66;
-      const isEnglishAbsent = !!(rec107?.absent && rec108?.absent);
-      const isEnglishPass = !isEnglishAbsent && passEnglishTotal;
+      const isEnglishPass = !anyEnglishAbsent && passEnglishTotal;
 
       const englishPct = (englishCombinedTotal / 200) * 100;
       const englishGradeObj = isEnglishPass ? getLetterAndPoint(englishPct) : { letter: 'F', gp: 0.0 };
@@ -801,7 +815,13 @@ export function processClassResults(students, subjects, marksList, className, ex
       const englishGp = englishGradeObj.gp;
 
       const englishFailReasons = [];
-      if (!passEnglishTotal) englishFailReasons.push(`ইংরেজি মোট (${englishCombinedTotal} < ৬৬)`);
+      if (anyEnglishAbsent) {
+        if (is107Absent && is108Absent) englishFailReasons.push('ইংরেজি অনুপস্থিত');
+        else if (is107Absent) englishFailReasons.push('ইংরেজি ১ম পত্রে অনুপস্থিত');
+        else if (is108Absent) englishFailReasons.push('ইংরেজি ২য় পত্রে অনুপস্থিত');
+      } else if (!passEnglishTotal) {
+        englishFailReasons.push(`ইংরেজি মোট (${englishCombinedTotal} < ৬৬)`);
+      }
 
       subjectEvals = applicableSubjects.map(sub => {
         if (sub.code === '101') {
@@ -816,16 +836,16 @@ export function processClassResults(students, subjects, marksList, className, ex
             written_max: 70,
             mcq_max: 30,
             practical_max: 0,
-            written: w1,
-            mcq: m1,
+            written: is101Absent ? 0 : w1,
+            mcq: is101Absent ? 0 : m1,
             practical: 0,
-            total: t1,
-            percentage: Number(((t1 / 100) * 100).toFixed(1)),
-            letter_grade: banglaLetter,
-            gp: banglaGp,
+            total: is101Absent ? 0 : t1,
+            percentage: is101Absent ? 0 : Number(((t1 / 100) * 100).toFixed(1)),
+            letter_grade: is101Absent ? 'F' : banglaLetter,
+            gp: is101Absent ? 0.0 : banglaGp,
             is_pass: isBanglaPass,
-            absent: !!rec101?.absent,
-            fail_reason: banglaFailReasons.join(', '),
+            absent: is101Absent,
+            fail_reason: is101Absent ? 'অনুপস্থিত' : banglaFailReasons.join(', '),
             is_combined: true,
             combined_title: 'বাংলা (১ম ও ২য় পত্র)',
             combined_total: banglaCombinedTotal,
@@ -845,16 +865,16 @@ export function processClassResults(students, subjects, marksList, className, ex
             written_max: 70,
             mcq_max: 30,
             practical_max: 0,
-            written: w2,
-            mcq: m2,
+            written: is102Absent ? 0 : w2,
+            mcq: is102Absent ? 0 : m2,
             practical: 0,
-            total: t2,
-            percentage: Number(((t2 / 100) * 100).toFixed(1)),
-            letter_grade: banglaLetter,
-            gp: banglaGp,
+            total: is102Absent ? 0 : t2,
+            percentage: is102Absent ? 0 : Number(((t2 / 100) * 100).toFixed(1)),
+            letter_grade: is102Absent ? 'F' : banglaLetter,
+            gp: is102Absent ? 0.0 : banglaGp,
             is_pass: isBanglaPass,
-            absent: !!rec102?.absent,
-            fail_reason: banglaFailReasons.join(', '),
+            absent: is102Absent,
+            fail_reason: is102Absent ? 'অনুপস্থিত' : banglaFailReasons.join(', '),
             is_combined: true,
             combined_title: 'বাংলা (১ম ও ২য় পত্র)',
             combined_total: banglaCombinedTotal,
@@ -874,16 +894,16 @@ export function processClassResults(students, subjects, marksList, className, ex
             written_max: 100,
             mcq_max: 0,
             practical_max: 0,
-            written: w107,
+            written: is107Absent ? 0 : w107,
             mcq: 0,
             practical: 0,
-            total: w107,
-            percentage: Number(((w107 / 100) * 100).toFixed(1)),
-            letter_grade: englishLetter,
-            gp: englishGp,
+            total: is107Absent ? 0 : w107,
+            percentage: is107Absent ? 0 : Number(((w107 / 100) * 100).toFixed(1)),
+            letter_grade: is107Absent ? 'F' : englishLetter,
+            gp: is107Absent ? 0.0 : englishGp,
             is_pass: isEnglishPass,
-            absent: !!rec107?.absent,
-            fail_reason: englishFailReasons.join(', '),
+            absent: is107Absent,
+            fail_reason: is107Absent ? 'অনুপস্থিত' : englishFailReasons.join(', '),
             is_combined: true,
             combined_title: 'ইংরেজি (১ম ও ২য় পত্র)',
             combined_total: englishCombinedTotal
@@ -901,16 +921,16 @@ export function processClassResults(students, subjects, marksList, className, ex
             written_max: 100,
             mcq_max: 0,
             practical_max: 0,
-            written: w108,
+            written: is108Absent ? 0 : w108,
             mcq: 0,
             practical: 0,
-            total: w108,
-            percentage: Number(((w108 / 100) * 100).toFixed(1)),
-            letter_grade: englishLetter,
-            gp: englishGp,
+            total: is108Absent ? 0 : w108,
+            percentage: is108Absent ? 0 : Number(((w108 / 100) * 100).toFixed(1)),
+            letter_grade: is108Absent ? 'F' : englishLetter,
+            gp: is108Absent ? 0.0 : englishGp,
             is_pass: isEnglishPass,
-            absent: !!rec108?.absent,
-            fail_reason: englishFailReasons.join(', '),
+            absent: is108Absent,
+            fail_reason: is108Absent ? 'অনুপস্থিত' : englishFailReasons.join(', '),
             is_combined: true,
             combined_title: 'ইংরেজি (১ম ও ২য় পত্র)',
             combined_total: englishCombinedTotal

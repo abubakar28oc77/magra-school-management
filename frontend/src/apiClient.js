@@ -28,7 +28,7 @@ try {
           localStorage.setItem('magra_db_features', JSON.stringify(curFeatures));
         }
       }
-    } catch (_) {}
+    } catch (_) { }
     // Ensure essential standard exams (অর্ধ-বার্ষিক পরীক্ষা, বার্ষিক পরীক্ষা, নির্বাচনী পরীক্ষা) are preserved and NEVER purged on refresh
     try {
       const existingExams = JSON.parse(localStorage.getItem('magra_db_exams') || '[]');
@@ -81,9 +81,9 @@ try {
       if (needsUpdate) {
         localStorage.setItem('magra_db_exams', JSON.stringify(updatedExams));
       }
-    } catch (_) {}
+    } catch (_) { }
   }
-} catch (_) {}
+} catch (_) { }
 
 export function parseEmployeeIdNum(empId, fallback = 999999) {
   if (empId === null || empId === undefined || empId === '') return fallback;
@@ -192,16 +192,16 @@ try {
   if (Array.isArray(rawStaff)) {
     const cleaned = rawStaff.filter(s => {
       if (!s) return false;
-      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' || 
-                     s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
-                     (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
+      const isMock = s.id === 's-1' || s.id === 's-2' || s.id === 's-3' ||
+        s.employee_id === 'STF-2001' || s.employee_id === 'STF-2002' || s.employee_id === 'STF-2003' ||
+        (s.name_bn && (s.name_bn.includes('জালাল উদ্দিন') || s.name_bn.includes('জহিরুল ইসলাম')));
       return !isMock;
     });
     if (cleaned.length !== rawStaff.length) {
       localStorage.setItem('magra_db_staff', JSON.stringify(cleaned));
     }
   }
-} catch {}
+} catch { }
 
 
 // Religion normalization helper
@@ -209,7 +209,7 @@ export function normalizeReligion(raw) {
   if (!raw || typeof raw !== 'string') return 'ইসলাম';
   const val = raw.trim().toLowerCase();
   if (!val) return 'ইসলাম';
-  
+
   if (val.includes('ইসলাম') || val.includes('islam') || val.includes('মুসলিম') || val.includes('muslim') || val.includes('mus')) {
     return 'ইসলাম';
   }
@@ -244,7 +244,7 @@ MOCK_STUDENTS.forEach(s => {
 
 export function enrichStudentProfile(s) {
   if (!s || typeof s !== 'object') return s;
-  
+
   const currentVill = s.current_village !== undefined ? s.current_village : '';
   const currentPost = s.current_post_office !== undefined ? s.current_post_office : '';
   const currentUp = s.current_upazila !== undefined ? s.current_upazila : '';
@@ -253,7 +253,7 @@ export function enrichStudentProfile(s) {
   const permPost = s.permanent_post_office !== undefined ? s.permanent_post_office : currentPost;
   const permUp = s.permanent_upazila !== undefined ? s.permanent_upazila : currentUp;
   const permDist = s.permanent_district !== undefined ? s.permanent_district : currentDist;
-  
+
   const addressParts = [
     currentVill ? `গ্রাম: ${currentVill}` : '',
     currentPost ? `ডাকঘর: ${currentPost}` : '',
@@ -262,7 +262,7 @@ export function enrichStudentProfile(s) {
   ].filter(Boolean);
   const defaultAddress = addressParts.length ? addressParts.join(', ') : (s.address || '');
 
-  const c = s.class_name ? String(s.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '10';
+  const c = s.class_name ? String(s.class_name).replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d) : '10';
   const isSSC = ['9', '10'].includes(c);
 
   let canonicalDept = 'সাধারণ';
@@ -361,12 +361,12 @@ try {
         for (const s of parsed) {
           if (!s) continue;
           const sid = String(s.student_id || s.id || '').toUpperCase().trim();
-          const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
+          const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
           const dept = String(s.department || s.group_name || s.group || '').trim();
           const sec = String(s.section || '').trim();
 
-          const classRollKey = (parseInt(c, 10) >= 9) 
+          const classRollKey = (parseInt(c, 10) >= 9)
             ? (c + '_' + dept + '_' + r).toLowerCase()
             : (c + '_' + sec + '_' + r).toLowerCase();
 
@@ -382,11 +382,11 @@ try {
         // Restore missing default seed students (e.g. Class 8 Roll 1 or overwritten Humanities/Commerce students)
         for (const m of MOCK_STUDENTS) {
           const msid = String(m.student_id || m.id || '').toUpperCase().trim();
-          const mc = String(m.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-          const mr = String(m.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+          const mc = String(m.class_name || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
+          const mr = String(m.roll_no || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
           const mdept = String(m.department || m.group_name || m.group || '').trim();
           const msec = String(m.section || '').trim();
-          const mkey = (parseInt(mc, 10) >= 9) 
+          const mkey = (parseInt(mc, 10) >= 9)
             ? (mc + '_' + mdept + '_' + mr).toLowerCase()
             : (mc + '_' + msec + '_' + mr).toLowerCase();
 
@@ -405,10 +405,10 @@ try {
             const { photo_url, photo, image, ...rest } = s;
             return rest;
           });
-          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch {}
+          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch { }
         }
       }
-    } catch {}
+    } catch { }
   }
 } catch (e) {
   console.warn('LocalStorage student check error:', e);
@@ -473,7 +473,7 @@ try {
       }
     }
   }
-} catch (e) {}
+} catch (e) { }
 
 // Startup purge of duplicate teachers in localStorage
 try {
@@ -483,11 +483,11 @@ try {
     if (Array.isArray(parsedT) && parsedT.length > 0) {
       const cleanedT = deduplicateTeachers(parsedT);
       if (cleanedT.length !== parsedT.length) {
-        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleanedT)); } catch {}
+        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleanedT)); } catch { }
       }
     }
   }
-} catch (e) {}
+} catch (e) { }
 
 // Local storage database helpers (preserves user data completely)
 function getLocalStore(key, defaultVal = []) {
@@ -512,7 +512,7 @@ function getLocalStore(key, defaultVal = []) {
         }
       });
       if (changed || !Array.isArray(parsed) || parsed.length === 0) {
-        try { localStorage.setItem('magra_db_exams', JSON.stringify(combined)); } catch (e) {}
+        try { localStorage.setItem('magra_db_exams', JSON.stringify(combined)); } catch (e) { }
       }
       return combined;
     }
@@ -525,12 +525,12 @@ function getLocalStore(key, defaultVal = []) {
       for (const s of parsed) {
         if (!s) continue;
         const sid = String(s.student_id || s.id || '').toUpperCase().trim();
-        const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
-        const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d).trim();
+        const c = String(s.class_name || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
+        const r = String(s.roll_no || '').replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d).trim();
         const dept = String(s.department || s.group_name || s.group || '').trim();
         const sec = String(s.section || '').trim();
 
-        const classRollKey = (parseInt(c, 10) >= 9) 
+        const classRollKey = (parseInt(c, 10) >= 9)
           ? (c + '_' + dept + '_' + r).toLowerCase()
           : (c + '_' + sec + '_' + r).toLowerCase();
 
@@ -556,17 +556,17 @@ function getLocalStore(key, defaultVal = []) {
             const { photo_url, photo, image, ...rest } = s;
             return rest;
           });
-          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch {}
+          try { localStorage.setItem('magra_db_students', JSON.stringify(light)); } catch { }
         }
       }
 
       return deduplicated;
     }
-        if (key === 'users' && Array.isArray(parsed)) {
+    if (key === 'users' && Array.isArray(parsed)) {
       const hasDummy = parsed.some(u => u && (u.login_id === 'pilot-teacher-01' || u.login_id === 'accountant' || u.login_id === 'Co-Admin'));
       const isMissingTeachers = parsed.length < 15 || !parsed.some(u => u && u.login_id === 'class7_teacher') || !parsed.some(u => u && (u.login_id === 'teacher_12' || u.login_id === 'teacher_ashraful'));
       if (hasDummy || isMissingTeachers) {
-        try { localStorage.setItem('magra_db_users', JSON.stringify(MOCK_USERS)); } catch (e) {}
+        try { localStorage.setItem('magra_db_users', JSON.stringify(MOCK_USERS)); } catch (e) { }
         return MOCK_USERS;
       }
       return parsed;
@@ -574,7 +574,7 @@ function getLocalStore(key, defaultVal = []) {
     if (key === 'teachers' && Array.isArray(parsed)) {
       const cleaned = deduplicateTeachers(parsed);
       if (cleaned.length !== parsed.length) {
-        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch {}
+        try { localStorage.setItem('magra_db_teachers', JSON.stringify(cleaned)); } catch { }
       }
       return cleaned;
     }
@@ -591,7 +591,7 @@ function getLocalStore(key, defaultVal = []) {
         changed = true;
       }
       if (changed) {
-        try { localStorage.setItem('magra_db_features', JSON.stringify(parsed)); } catch {}
+        try { localStorage.setItem('magra_db_features', JSON.stringify(parsed)); } catch { }
       }
       return parsed;
     }
@@ -673,7 +673,7 @@ export async function requestApi(path, opts = {}) {
           return parsed;
         }
       }
-    } catch {}
+    } catch { }
     return null;
   }
 
@@ -798,9 +798,9 @@ function handleMockRequest(path, opts = {}) {
     const { loginId } = body;
     const cleanId = (loginId || '').trim().toLowerCase();
     const users = getLocalStore('users', MOCK_USERS);
-    
+
     let matched = users.find(u => u.login_id.toLowerCase() === cleanId);
-    
+
     if (!matched) {
       if (cleanId.startsWith('class') || cleanId.includes('co_admin')) {
         const clsNum = cleanId.match(/\d+/)?.[0];
@@ -822,12 +822,12 @@ function handleMockRequest(path, opts = {}) {
           specificT = allTeachers.find(t => {
             const tName = String(t.name_bn || t.name_en || '').toLowerCase();
             return (cleanId.includes('anower') && tName.includes('আনোয়ার')) ||
-                   (cleanId.includes('sanwar') && tName.includes('ছানোয়ার')) ||
-                   (cleanId.includes('khalidur') && tName.includes('খালিদুর')) ||
-                   (cleanId.includes('ashraful') && tName.includes('আশরাফুল')) ||
-                   (cleanId.includes('kanta') && tName.includes('কান্তা')) ||
-                   (cleanId.includes('rafiqul') && tName.includes('রফিকুল')) ||
-                   (cleanId.includes('aroti') && tName.includes('আরতী'));
+              (cleanId.includes('sanwar') && tName.includes('ছানোয়ার')) ||
+              (cleanId.includes('khalidur') && tName.includes('খালিদুর')) ||
+              (cleanId.includes('ashraful') && tName.includes('আশরাফুল')) ||
+              (cleanId.includes('kanta') && tName.includes('কান্তা')) ||
+              (cleanId.includes('rafiqul') && tName.includes('রফিকুল')) ||
+              (cleanId.includes('aroti') && tName.includes('আরতী'));
           });
         }
         if (specificT) {
@@ -899,7 +899,7 @@ function handleMockRequest(path, opts = {}) {
           return sanitized;
         }
       }
-    } catch {}
+    } catch { }
     return null;
   }
 
@@ -910,7 +910,7 @@ function handleMockRequest(path, opts = {}) {
       if (rawUser && rawUser !== 'undefined' && rawUser !== 'null') {
         user = JSON.parse(rawUser);
       }
-    } catch {}
+    } catch { }
     if (!user || (!user.login_id && !user.id)) {
       user = MOCK_USERS[0];
     }
@@ -1007,7 +1007,7 @@ function handleMockRequest(path, opts = {}) {
     { feature_key: 'public.nav.results.pre_test', label_bn: 'প্রাক-নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.results.test', label_bn: 'নির্বাচনী পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.results.public_exams', label_bn: 'পাবলিক পরীক্ষার ফলাফল', scope: 'public', group_name: 'মূল মেনু', enabled: true },
-        { feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true },
+    { feature_key: 'public.nav.guide', label_bn: 'শিক্ষার্থীর গাইড', scope: 'public', group_name: 'মূল মেনু', enabled: true },
     { feature_key: 'public.nav.guide.class_routine', label_bn: 'ক্লাস রুটিন', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
     { feature_key: 'public.nav.guide.exam_routine', label_bn: 'পরীক্ষার রুটিন', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
     { feature_key: 'public.nav.guide.syllabus', label_bn: 'সিলেবাস', scope: 'public', group_name: 'শিক্ষার্থীর গাইড', enabled: true },
@@ -1094,7 +1094,7 @@ function handleMockRequest(path, opts = {}) {
     if (typeof window !== 'undefined') {
       try {
         window.dispatchEvent(new CustomEvent('magra_features_change', { detail: features }));
-      } catch {}
+      } catch { }
     }
     return { success: true };
   }
@@ -1576,7 +1576,7 @@ function handleMockRequest(path, opts = {}) {
   if (cleanPath.startsWith('/admissions/')) {
     let admissions = getLocalStore('admissions', MOCK_ADMISSIONS);
     const subRoute = cleanPath.replace('/admissions/', '');
-    
+
     // 1. Headmaster Approval Action
     if (subRoute.includes('/head_approve')) {
       const id = subRoute.replace('/head_approve', '');
@@ -1611,7 +1611,7 @@ function handleMockRequest(path, opts = {}) {
       const targetClass = body.class_name || app.applied_class || '৬';
       const targetSection = body.section || app.section || 'পদ্মা';
       const targetDept = body.department || app.department || (['9', '10'].includes(String(targetClass)) ? 'বিজ্ঞান' : 'সাধারণ');
-      
+
       // Auto Roll resolution
       let assignedRoll = Number(body.roll_no);
       if (!assignedRoll) {
@@ -1696,8 +1696,8 @@ function handleMockRequest(path, opts = {}) {
       let allStudents = getLocalStore('students', MOCK_STUDENTS);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
-      const c = body.class_name ? String(body.class_name).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '6';
-      const r = body.roll_no ? String(body.roll_no).replace(/[০-৯]/g, d => ({ '০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9' })[d] || d) : '1';
+      const c = body.class_name ? String(body.class_name).replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d) : '6';
+      const r = body.roll_no ? String(body.roll_no).replace(/[০-৯]/g, d => ({ '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' })[d] || d) : '1';
       const defaultSid = 'STU-' + String(c).padStart(2, '0') + '-' + String(r).padStart(2, '0');
       const targetSid = (body.student_id || defaultSid).toUpperCase().trim();
 
@@ -1721,10 +1721,10 @@ function handleMockRequest(path, opts = {}) {
         return merged;
       }
 
-      const newSt = { 
+      const newSt = {
         ...body,
-        id: body.id || ('std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)), 
-        student_id: targetSid, 
+        id: body.id || ('std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7)),
+        student_id: targetSid,
         religion: normalizeReligion(body.religion),
         status: st
       };
@@ -1842,7 +1842,7 @@ function handleMockRequest(path, opts = {}) {
       let updatedObj = null;
       students = students.map(s => {
         const match = (s.id && String(s.id).toLowerCase() === id.toLowerCase()) ||
-                      (s.student_id && String(s.student_id).toLowerCase() === id.toLowerCase());
+          (s.student_id && String(s.student_id).toLowerCase() === id.toLowerCase());
         if (match) {
           const merged = { ...s, ...body, religion: normalizeReligion(body.religion || s.religion) };
           if (body.photo_url || body.photo) {
@@ -1968,10 +1968,10 @@ function handleMockRequest(path, opts = {}) {
       const allTeachers = getLocalStore('teachers', MOCK_TEACHERS);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
-      const newT = { 
+      const newT = {
         ...body,
-        id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
-        employee_id: body.employee_id || String(allTeachers.length + 1), 
+        id: 'tch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        employee_id: body.employee_id || String(allTeachers.length + 1),
         status: st
       };
       allTeachers.push(newT);
@@ -2060,7 +2060,7 @@ function handleMockRequest(path, opts = {}) {
         try {
           const parsed = JSON.parse(p.extended_profile_json);
           extProfile = { ...extProfile, ...parsed };
-        } catch {}
+        } catch { }
       }
       if (p.dob && !extProfile.dob) {
         extProfile.dob = p.dob;
@@ -2105,10 +2105,10 @@ function handleMockRequest(path, opts = {}) {
       const allStaff = getLocalStore('staff', MOCK_STAFF);
       const rawStatus = (body.status || '').trim().toLowerCase();
       const st = (!rawStatus || rawStatus === 'active' || rawStatus === 'সক্রিয়') ? 'active' : rawStatus;
-      const newStf = { 
+      const newStf = {
         ...body,
-        id: 'stf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7), 
-        employee_id: body.employee_id || String(allStaff.length + 1), 
+        id: 'stf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        employee_id: body.employee_id || String(allStaff.length + 1),
         status: st
       };
       allStaff.unshift(newStf);
@@ -2191,7 +2191,7 @@ function handleMockRequest(path, opts = {}) {
         try {
           const parsed = JSON.parse(p.extended_profile_json);
           extProfile = { ...extProfile, ...parsed };
-        } catch {}
+        } catch { }
       }
       if (p.dob && !extProfile.dob) {
         extProfile.dob = p.dob;
@@ -2546,6 +2546,10 @@ function handleMockRequest(path, opts = {}) {
     const examId = params.get('exam_id');
     const cls = params.get('class_name');
     let marks = getLocalStore('marks', []);
+    if (marks.some(m => m && m.is_auto_seed)) {
+      marks = marks.filter(m => !m || !m.is_auto_seed);
+      setLocalStore('marks', marks);
+    }
     const studentsList = getLocalStore('students', MOCK_STUDENTS);
     const examsList = getLocalStore('exams', MOCK_EXAMS);
     const repaired = sanitizeAndRepairMarks(marks, studentsList, examsList);
@@ -2618,321 +2622,210 @@ function handleMockRequest(path, opts = {}) {
           }
         });
       }
-    } catch (_) {}
+    } catch (_) { }
 
     return { ok: true, count: records.length };
   }
 
-function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
-  if (!Array.isArray(marksList)) marksList = [];
-  const c10Students = (studentsList || []).filter(s => ['10', '১০', '১০ম'].includes(String(s.class_name)));
-  if (!c10Students.length) return marksList;
+  function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
+    if (!Array.isArray(marksList)) marksList = [];
+    const c10Students = (studentsList || []).filter(s => ['10', '১০', '১০ম'].includes(String(s.class_name)));
+    if (!c10Students.length) return marksList;
 
-  const sciByRoll = new Map();
-  const humByRoll = new Map();
-  const bsByRoll = new Map();
-  const studentById = new Map();
+    const sciByRoll = new Map();
+    const humByRoll = new Map();
+    const bsByRoll = new Map();
+    const studentById = new Map();
 
-  c10Students.forEach(s => {
-    const r = Number(s.roll_no);
-    studentById.set(s.id, s);
-    if (s.student_id) studentById.set(s.student_id, s);
-    if (s.student_code) studentById.set(s.student_code, s);
-    const d = (s.department || '').toLowerCase();
-    if (d.includes('বিজ্ঞান') || d.includes('sci')) sciByRoll.set(r, s);
-    else if (d.includes('মানবিক') || d.includes('hum')) humByRoll.set(r, s);
-    else if (d.includes('ব্যবসায়') || d.includes('com') || d.includes('bs')) bsByRoll.set(r, s);
-  });
+    c10Students.forEach(s => {
+      const r = Number(s.roll_no);
+      studentById.set(s.id, s);
+      if (s.student_id) studentById.set(s.student_id, s);
+      if (s.student_code) studentById.set(s.student_code, s);
+      const d = (s.department || '').toLowerCase();
+      if (d.includes('বিজ্ঞান') || d.includes('sci')) sciByRoll.set(r, s);
+      else if (d.includes('মানবিক') || d.includes('hum')) humByRoll.set(r, s);
+      else if (d.includes('ব্যবসায়') || d.includes('com') || d.includes('bs')) bsByRoll.set(r, s);
+    });
 
-  const sciCodes = new Set(['136', '137', '138', '126', 'sub-10-136', 'sub-10-137', 'sub-10-138', 'sub-10-126', 'sub-9-136', 'sub-9-137', 'sub-9-138', 'sub-9-126']);
-  const humCodes = new Set(['153', '110', '141', '140', '151', 'sub-10-153', 'sub-10-110', 'sub-10-141', 'sub-10-140', 'sub-10-151']);
-  const bsCodes = new Set(['146', '152', '143', 'sub-10-146', 'sub-10-152', 'sub-10-143']);
+    const sciCodes = new Set(['136', '137', '138', '126', 'sub-10-136', 'sub-10-137', 'sub-10-138', 'sub-10-126', 'sub-9-136', 'sub-9-137', 'sub-9-138', 'sub-9-126']);
+    const humCodes = new Set(['153', '110', '141', '140', '151', 'sub-10-153', 'sub-10-110', 'sub-10-141', 'sub-10-140', 'sub-10-151']);
+    const bsCodes = new Set(['146', '152', '143', 'sub-10-146', 'sub-10-152', 'sub-10-143']);
 
-  const dedupeMap = new Map();
+    const dedupeMap = new Map();
 
-  marksList.forEach(m => {
-    if (!m) return;
-    let rec = { ...m };
-    const code = String(rec.subject_code || rec.subject_id || '').trim();
-    const normSubCode = code
-      .replace(/^sub-10-|^sub-9-|^sub-/, '')
-      .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
-      .trim();
+    marksList.forEach(m => {
+      if (!m) return;
+      let rec = { ...m };
+      const code = String(rec.subject_code || rec.subject_id || '').trim();
+      const normSubCode = code
+        .replace(/^sub-10-|^sub-9-|^sub-/, '')
+        .replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d))
+        .trim();
 
-    rec.subject_code = rec.subject_code || normSubCode;
-    if (!rec.subject_id || !rec.subject_id.startsWith('sub-')) {
-      rec.subject_id = `sub-10-${normSubCode}`;
-    }
+      rec.subject_code = rec.subject_code || normSubCode;
+      if (!rec.subject_id || !rec.subject_id.startsWith('sub-')) {
+        rec.subject_id = `sub-10-${normSubCode}`;
+      }
 
-    const subName = String(rec.subject_name || '').toLowerCase();
-    const currSt = studentById.get(rec.student_id) || studentById.get(rec.student_code);
+      const subName = String(rec.subject_name || '').toLowerCase();
+      const currSt = studentById.get(rec.student_id) || studentById.get(rec.student_code);
 
-    const recDept = String(rec.department || '').toLowerCase();
-    const recCode = String(rec.student_code || '').toLowerCase();
-    const recId = String(rec.student_id || '').toLowerCase();
+      const recDept = String(rec.department || '').toLowerCase();
+      const recCode = String(rec.student_code || '').toLowerCase();
+      const recId = String(rec.student_id || '').toLowerCase();
 
-    const recExplicitHum = recDept.includes('মানবিক') || recDept.includes('hum') || recDept.includes('arts') || recCode.includes('hum') || recId.includes('hum');
-    const recExplicitSci = (recDept.includes('বিজ্ঞান') || recDept.includes('sci') || recCode.includes('sci') || recId.includes('sci')) && !recExplicitHum;
-    const recExplicitBs = (recDept.includes('ব্যবসায়') || recDept.includes('ব্যবসা') || recDept.includes('com') || recDept.includes('bs') || recCode.includes('bs') || recId.includes('bs')) && !recExplicitHum && !recExplicitSci;
+      const recExplicitHum = recDept.includes('মানবিক') || recDept.includes('hum') || recDept.includes('arts') || recCode.includes('hum') || recId.includes('hum');
+      const recExplicitSci = (recDept.includes('বিজ্ঞান') || recDept.includes('sci') || recCode.includes('sci') || recId.includes('sci')) && !recExplicitHum;
+      const recExplicitBs = (recDept.includes('ব্যবসায়') || recDept.includes('ব্যবসা') || recDept.includes('com') || recDept.includes('bs') || recCode.includes('bs') || recId.includes('bs')) && !recExplicitHum && !recExplicitSci;
 
-    const isSci = sciCodes.has(code) || sciCodes.has(normSubCode) || subName.includes('জীববিজ্ঞান') || subName.includes('biology') || subName.includes('পদার্থ') || subName.includes('রসায়ন') || subName.includes('রসায়ন') || subName.includes('উচ্চতর');
-    const isBs = bsCodes.has(code) || bsCodes.has(normSubCode) || subName.includes('হিসাববিজ্ঞান') || subName.includes('ব্যবসায়') || subName.includes('ফিন্যান্স');
-    const isHum = humCodes.has(code) || humCodes.has(normSubCode) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
-    const isEnglish = normSubCode === '107' || normSubCode === '108';
+      const isSci = sciCodes.has(code) || sciCodes.has(normSubCode) || subName.includes('জীববিজ্ঞান') || subName.includes('biology') || subName.includes('পদার্থ') || subName.includes('রসায়ন') || subName.includes('রসায়ন') || subName.includes('উচ্চতর');
+      const isBs = bsCodes.has(code) || bsCodes.has(normSubCode) || subName.includes('হিসাববিজ্ঞান') || subName.includes('ব্যবসায়') || subName.includes('ফিন্যান্স');
+      const isHum = humCodes.has(code) || humCodes.has(normSubCode) || subName.includes('ইতিহাস') || subName.includes('ভূগোল') || subName.includes('পৌরনীতি') || subName.includes('অর্থনীতি');
+      const isEnglish = normSubCode === '107' || normSubCode === '108';
 
-    const rollNum = currSt ? Number(currSt.roll_no) : (Number(rec.roll_no) || 0);
+      const rollNum = currSt ? Number(currSt.roll_no) : (Number(rec.roll_no) || 0);
 
-    if (rollNum > 0) {
-      const d = currSt ? (currSt.department || '').toLowerCase() : '';
-      if ((isHum || recExplicitHum) && !d.includes('মানবিক') && !d.includes('hum')) {
-        const realHumSt = humByRoll.get(rollNum);
-        if (realHumSt) {
-          rec.student_id = realHumSt.id;
-          rec.student_code = realHumSt.student_id || realHumSt.id;
-          rec.department = 'মানবিক';
-          rec.class_name = '10';
-          rec.roll_no = realHumSt.roll_no;
-        }
-      } else if (isEnglish && rollNum > 37 && !d.includes('মানবিক') && !d.includes('hum')) {
-        // Roll > 37 cannot belong to Science (Science has max 37 students) -> Reassign to Humanities!
-        const realHumSt = humByRoll.get(rollNum);
-        if (realHumSt) {
-          rec.student_id = realHumSt.id;
-          rec.student_code = realHumSt.student_id || realHumSt.id;
-          rec.department = 'মানবিক';
-          rec.class_name = '10';
-          rec.roll_no = realHumSt.roll_no;
-        }
-      } else if ((isSci || recExplicitSci) && !d.includes('বিজ্ঞান') && !d.includes('sci')) {
-        const realSciSt = sciByRoll.get(rollNum);
-        if (realSciSt) {
-          rec.student_id = realSciSt.id;
-          rec.student_code = realSciSt.student_id || realSciSt.id;
-          rec.department = 'বিজ্ঞান';
-          rec.class_name = '10';
-          rec.roll_no = realSciSt.roll_no;
-        }
-      } else if ((isBs || recExplicitBs) && !d.includes('ব্যবসায়') && !d.includes('bs') && !d.includes('com')) {
-        const realBsSt = bsByRoll.get(rollNum);
-        if (realBsSt) {
-          rec.student_id = realBsSt.id;
-          rec.student_code = realBsSt.student_id || realBsSt.id;
-          rec.department = 'ব্যবসায় শিক্ষা';
-          rec.class_name = '10';
-          rec.roll_no = realBsSt.roll_no;
+      if (rollNum > 0) {
+        const d = currSt ? (currSt.department || '').toLowerCase() : '';
+        if ((isHum || recExplicitHum) && !d.includes('মানবিক') && !d.includes('hum')) {
+          const realHumSt = humByRoll.get(rollNum);
+          if (realHumSt) {
+            rec.student_id = realHumSt.id;
+            rec.student_code = realHumSt.student_id || realHumSt.id;
+            rec.department = 'মানবিক';
+            rec.class_name = '10';
+            rec.roll_no = realHumSt.roll_no;
+          }
+        } else if (isEnglish && rollNum > 37 && !d.includes('মানবিক') && !d.includes('hum')) {
+          // Roll > 37 cannot belong to Science (Science has max 37 students) -> Reassign to Humanities!
+          const realHumSt = humByRoll.get(rollNum);
+          if (realHumSt) {
+            rec.student_id = realHumSt.id;
+            rec.student_code = realHumSt.student_id || realHumSt.id;
+            rec.department = 'মানবিক';
+            rec.class_name = '10';
+            rec.roll_no = realHumSt.roll_no;
+          }
+        } else if ((isSci || recExplicitSci) && !d.includes('বিজ্ঞান') && !d.includes('sci')) {
+          const realSciSt = sciByRoll.get(rollNum);
+          if (realSciSt) {
+            rec.student_id = realSciSt.id;
+            rec.student_code = realSciSt.student_id || realSciSt.id;
+            rec.department = 'বিজ্ঞান';
+            rec.class_name = '10';
+            rec.roll_no = realSciSt.roll_no;
+          }
+        } else if ((isBs || recExplicitBs) && !d.includes('ব্যবসায়') && !d.includes('bs') && !d.includes('com')) {
+          const realBsSt = bsByRoll.get(rollNum);
+          if (realBsSt) {
+            rec.student_id = realBsSt.id;
+            rec.student_code = realBsSt.student_id || realBsSt.id;
+            rec.department = 'ব্যবসায় শিক্ষা';
+            rec.class_name = '10';
+            rec.roll_no = realBsSt.roll_no;
+          }
         }
       }
-    }
 
-    // Normalize exam ID for equivalent exams to deduplicate cleanly
-    let normExamId = String(rec.exam_id);
-    if (areExamsEquivalent(normExamId, 'ex-test-2026', exams)) {
-      normExamId = 'ex-test-2026';
-    } else if (areExamsEquivalent(normExamId, 'ex-pre-test-10', exams)) {
-      normExamId = 'ex-pre-test-10';
-    } else if (areExamsEquivalent(normExamId, 'ex-2', exams)) {
-      normExamId = 'ex-2';
-    } else if (areExamsEquivalent(normExamId, 'ex-3', exams)) {
-      normExamId = 'ex-3';
-    }
-    rec.exam_id = normExamId;
+      // Normalize exam ID for equivalent exams to deduplicate cleanly
+      let normExamId = String(rec.exam_id);
+      if (areExamsEquivalent(normExamId, 'ex-test-2026', exams)) {
+        normExamId = 'ex-test-2026';
+      } else if (areExamsEquivalent(normExamId, 'ex-pre-test-10', exams)) {
+        normExamId = 'ex-pre-test-10';
+      } else if (areExamsEquivalent(normExamId, 'ex-2', exams)) {
+        normExamId = 'ex-2';
+      } else if (areExamsEquivalent(normExamId, 'ex-3', exams)) {
+        normExamId = 'ex-3';
+      }
+      rec.exam_id = normExamId;
 
-    const key = `${normExamId}_${rec.student_id}_${normSubCode}`;
-    const existing = dedupeMap.get(key);
-    if (!existing) {
-      dedupeMap.set(key, rec);
-    } else {
-      // Precedence: User-entered or explicit update beats auto-seeded entry
-      if (existing.is_auto_seed && !rec.is_auto_seed) {
-        dedupeMap.set(key, rec);
-      } else if (!existing.is_auto_seed && rec.is_auto_seed) {
-        // Keep existing user entry
-      } else if (rec.updated_at && (!existing.updated_at || new Date(rec.updated_at) >= new Date(existing.updated_at))) {
+      const key = `${normExamId}_${rec.student_id}_${normSubCode}`;
+      const existing = dedupeMap.get(key);
+      if (!existing) {
         dedupeMap.set(key, rec);
       } else {
-        const recHasMarks = Number(rec.written) > 0 || Number(rec.mcq) > 0 || Number(rec.practical) > 0 || Number(rec.total) > 0;
-        const exHasMarks = Number(existing.written) > 0 || Number(existing.mcq) > 0 || Number(existing.practical) > 0 || Number(existing.total) > 0;
-        if (recHasMarks && !exHasMarks) {
+        // Precedence: User-entered or explicit update beats auto-seeded entry
+        if (existing.is_auto_seed && !rec.is_auto_seed) {
           dedupeMap.set(key, rec);
-        } else if (recHasMarks && exHasMarks) {
-          if ((Number(rec.total) || 0) >= (Number(existing.total) || 0)) {
+        } else if (!existing.is_auto_seed && rec.is_auto_seed) {
+          // Keep existing user entry
+        } else if (rec.updated_at && (!existing.updated_at || new Date(rec.updated_at) >= new Date(existing.updated_at))) {
+          dedupeMap.set(key, rec);
+        } else {
+          const recHasMarks = Number(rec.written) > 0 || Number(rec.mcq) > 0 || Number(rec.practical) > 0 || Number(rec.total) > 0;
+          const exHasMarks = Number(existing.written) > 0 || Number(existing.mcq) > 0 || Number(existing.practical) > 0 || Number(existing.total) > 0;
+          if (recHasMarks && !exHasMarks) {
+            dedupeMap.set(key, rec);
+          } else if (recHasMarks && exHasMarks) {
+            if ((Number(rec.total) || 0) >= (Number(existing.total) || 0)) {
+              dedupeMap.set(key, rec);
+            }
+          } else if (!rec.absent && existing.absent) {
             dedupeMap.set(key, rec);
           }
-        } else if (!rec.absent && existing.absent) {
-          dedupeMap.set(key, rec);
         }
       }
-    }
-  });
+    });
 
-  // ========== HEALING PASS: Auto-seed English marks for any Class 10 student missing them ==========
-  const relevantExamIds = ['ex-test-2026'];
-  exams.forEach(ex => {
-    if (ex && ex.id && areExamsEquivalent(ex.id, 'ex-test-2026', exams)) {
-      if (!relevantExamIds.includes(ex.id)) relevantExamIds.push(ex.id);
-    }
-  });
+    // 1. Purge any auto-seeded synthetic records permanently
+    dedupeMap.forEach((rec, key) => {
+      if (rec.is_auto_seed) {
+        dedupeMap.delete(key);
+      }
+    });
 
-  relevantExamIds.forEach(targetExamId => {
-    let normTargetId = targetExamId;
-    if (areExamsEquivalent(normTargetId, 'ex-test-2026', exams)) normTargetId = 'ex-test-2026';
+    // 2. Strict absent consistency: If a student is absent across all regular subjects, their English marks must be absent
+    const studentRecordsMap = new Map();
+    dedupeMap.forEach(rec => {
+      const sId = String(rec.student_id || rec.student_code || '');
+      if (!sId) return;
+      if (!studentRecordsMap.has(sId)) {
+        studentRecordsMap.set(sId, []);
+      }
+      studentRecordsMap.get(sId).push(rec);
+    });
 
-    // 1. Heal Humanities students
-    humByRoll.forEach((humSt, rollNum) => {
-      let studentHasAnyMarks = false;
-      let banglaWritten = 0;
-      let banglaCount = 0;
-
-      dedupeMap.forEach(rec => {
-        if (rec.exam_id === normTargetId && (rec.student_id === humSt.id || rec.student_code === humSt.student_id)) {
-          studentHasAnyMarks = true;
-          if (rec.subject_code === '101' || rec.subject_code === '102') {
-            banglaWritten += Number(rec.written || 0);
-            banglaCount++;
+    studentRecordsMap.forEach((studentRecs) => {
+      const nonEnglishRecs = studentRecs.filter(r => {
+        const c = String(r.subject_code || r.subject_id || '').replace(/^sub-10-|^sub-9-|^sub-/, '');
+        return c !== '107' && c !== '108';
+      });
+      const allOthersAbsent = nonEnglishRecs.length >= 3 && nonEnglishRecs.every(r => r.absent === true || r.absent === 'true' || r.absent === 1 || r.absent === '1');
+      if (allOthersAbsent) {
+        studentRecs.forEach(r => {
+          const c = String(r.subject_code || r.subject_id || '').replace(/^sub-10-|^sub-9-|^sub-/, '');
+          if (c === '107' || c === '108') {
+            r.absent = true;
+            r.written = 0;
+            r.mcq = 0;
+            r.practical = 0;
+            r.total = 0;
           }
-        }
-      });
-
-      if (!studentHasAnyMarks) return;
-
-      const key107 = `${normTargetId}_${humSt.id}_107`;
-      const key108 = `${normTargetId}_${humSt.id}_108`;
-      const rec107 = dedupeMap.get(key107);
-      const rec108 = dedupeMap.get(key108);
-
-      const hasValid107 = rec107 && !rec107.absent && Number(rec107.written || rec107.total || 0) > 0 && !rec107.is_auto_seed;
-      const hasValid108 = rec108 && !rec108.absent && Number(rec108.written || rec108.total || 0) > 0 && !rec108.is_auto_seed;
-
-      let w107 = 68;
-      let w108 = 65;
-      if (banglaCount > 0) {
-        const avgBanglaW = banglaWritten / banglaCount;
-        const perf = Math.max(0.48, Math.min(0.85, avgBanglaW / 70));
-        w107 = Math.round(100 * perf);
-        w108 = Math.round(100 * (perf * 0.96));
-      } else {
-        w107 = rollNum <= 10 ? 70 : rollNum <= 30 ? 62 : 55;
-        w108 = rollNum <= 10 ? 68 : rollNum <= 30 ? 60 : 53;
-      }
-
-      if (!hasValid107 && (!rec107 || Number(rec107.written || 0) === 0)) {
-        dedupeMap.set(key107, {
-          exam_id: normTargetId,
-          class_name: '10',
-          student_id: humSt.id,
-          student_code: humSt.student_id || humSt.id,
-          roll_no: humSt.roll_no,
-          department: 'মানবিক',
-          subject_id: 'sub-10-107',
-          subject_code: '107',
-          written: w107,
-          mcq: 0,
-          practical: 0,
-          total: w107,
-          absent: false,
-          is_auto_seed: true
-        });
-      }
-
-      if (!hasValid108 && (!rec108 || Number(rec108.written || 0) === 0)) {
-        dedupeMap.set(key108, {
-          exam_id: normTargetId,
-          class_name: '10',
-          student_id: humSt.id,
-          student_code: humSt.student_id || humSt.id,
-          roll_no: humSt.roll_no,
-          department: 'মানবিক',
-          subject_id: 'sub-10-108',
-          subject_code: '108',
-          written: w108,
-          mcq: 0,
-          practical: 0,
-          total: w108,
-          absent: false,
-          is_auto_seed: true
         });
       }
     });
 
-    // 2. Heal Science students if missing
-    sciByRoll.forEach((sciSt, rollNum) => {
-      let studentHasAnyMarks = false;
-      dedupeMap.forEach(rec => {
-        if (rec.exam_id === normTargetId && (rec.student_id === sciSt.id || rec.student_code === sciSt.student_id)) {
-          studentHasAnyMarks = true;
-        }
-      });
-      if (!studentHasAnyMarks) return;
-
-      const key107 = `${normTargetId}_${sciSt.id}_107`;
-      const key108 = `${normTargetId}_${sciSt.id}_108`;
-      const rec107 = dedupeMap.get(key107);
-      const rec108 = dedupeMap.get(key108);
-
-      const hasValid107 = rec107 && !rec107.absent && Number(rec107.written || rec107.total || 0) > 0 && !rec107.is_auto_seed;
-      const hasValid108 = rec108 && !rec108.absent && Number(rec108.written || rec108.total || 0) > 0 && !rec108.is_auto_seed;
-
-      const w107 = rollNum <= 10 ? 75 : rollNum <= 25 ? 68 : 60;
-      const w108 = rollNum <= 10 ? 72 : rollNum <= 25 ? 65 : 58;
-
-      if (!hasValid107 && (!rec107 || Number(rec107.written || 0) === 0)) {
-        dedupeMap.set(key107, {
-          exam_id: normTargetId,
-          class_name: '10',
-          student_id: sciSt.id,
-          student_code: sciSt.student_id || sciSt.id,
-          roll_no: sciSt.roll_no,
-          department: 'বিজ্ঞান',
-          subject_id: 'sub-10-107',
-          subject_code: '107',
-          written: w107,
-          mcq: 0,
-          practical: 0,
-          total: w107,
-          absent: false,
-          is_auto_seed: true
-        });
-      }
-      if (!hasValid108 && (!rec108 || Number(rec108.written || 0) === 0)) {
-        dedupeMap.set(key108, {
-          exam_id: normTargetId,
-          class_name: '10',
-          student_id: sciSt.id,
-          student_code: sciSt.student_id || sciSt.id,
-          roll_no: sciSt.roll_no,
-          department: 'বিজ্ঞান',
-          subject_id: 'sub-10-108',
-          subject_code: '108',
-          written: w108,
-          mcq: 0,
-          practical: 0,
-          total: w108,
-          absent: false,
-          is_auto_seed: true
+    // Expand so that records are accessible under all equivalent exam IDs
+    const allKnownExams = Array.isArray(exams) && exams.length ? exams : getLocalStore('exams', MOCK_EXAMS);
+    const resultList = [];
+    dedupeMap.forEach(rec => {
+      resultList.push(rec);
+      if (Array.isArray(allKnownExams) && allKnownExams.length) {
+        allKnownExams.forEach(ex => {
+          if (ex && ex.id && areExamsEquivalent(rec.exam_id, ex.id, allKnownExams) && String(rec.exam_id) !== String(ex.id)) {
+            resultList.push({
+              ...rec,
+              exam_id: ex.id
+            });
+          }
         });
       }
     });
-  });
 
-  // Expand so that records are accessible under all equivalent exam IDs
-  const allKnownExams = Array.isArray(exams) && exams.length ? exams : getLocalStore('exams', MOCK_EXAMS);
-  const resultList = [];
-  dedupeMap.forEach(rec => {
-    resultList.push(rec);
-    if (Array.isArray(allKnownExams) && allKnownExams.length) {
-      allKnownExams.forEach(ex => {
-        if (ex && ex.id && areExamsEquivalent(rec.exam_id, ex.id, allKnownExams) && String(rec.exam_id) !== String(ex.id)) {
-          resultList.push({
-            ...rec,
-            exam_id: ex.id
-          });
-        }
-      });
-    }
-  });
-
-  return resultList;
-}
+    return resultList;
+  }
 
   if (cleanPath === '/results/process' && method === 'POST') {
     const examId = body.exam_id;
@@ -3089,20 +2982,10 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     const cls = params.get('class_name') || '6';
     const dept = params.get('department');
     const force = params.get('force') === '1' || params.get('force') === 'true';
-    
+
     let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
     if (!processed && ['10', '১০', '১০ম'].includes(String(cls))) {
       processed = force ? null : getLocalStore(`results_${examId}_10`, null);
-    }
-    const hasZeroEnglishBugSummary = processed && Array.isArray(processed) && processed.some(p => {
-      if (!p || !p.subjects) return false;
-      const s107 = p.subjects.find(s => String(s.code) === '107');
-      const s108 = p.subjects.find(s => String(s.code) === '108');
-      const otherSubsHaveMarks = p.subjects.some(s => !['107', '108'].includes(String(s.code)) && Number(s.total) > 0);
-      return otherSubsHaveMarks && s107 && s108 && Number(s107.total) === 0 && Number(s108.total) === 0;
-    });
-    if (hasZeroEnglishBugSummary) {
-      processed = null;
     }
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
@@ -3133,16 +3016,6 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     let processed = force ? null : getLocalStore(`results_${examId}_${cls}`, null);
     if (!processed && ['10', '১০', '১০ম'].includes(String(cls))) {
       processed = force ? null : getLocalStore(`results_${examId}_10`, null);
-    }
-    const hasZeroEnglishBugAna = processed && Array.isArray(processed) && processed.some(p => {
-      if (!p || !p.subjects) return false;
-      const s107 = p.subjects.find(s => String(s.code) === '107');
-      const s108 = p.subjects.find(s => String(s.code) === '108');
-      const otherSubsHaveMarks = p.subjects.some(s => !['107', '108'].includes(String(s.code)) && Number(s.total) > 0);
-      return otherSubsHaveMarks && s107 && s108 && Number(s107.total) === 0 && Number(s108.total) === 0;
-    });
-    if (hasZeroEnglishBugAna) {
-      processed = null;
     }
     if (!processed || !Array.isArray(processed) || !processed.length) {
       const students = getLocalStore('students', MOCK_STUDENTS);
@@ -3486,7 +3359,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
   if (cleanPath === '/users') {
     let users = getLocalStore('users', MOCK_USERS);
     if (method === 'POST') {
-            const roleLabels = {
+      const roleLabels = {
         super_admin: 'সুপার অ্যাডমিন',
         admin: 'অ্যাডমিন',
         co_admin: 'কো-অ্যাডমিন (শ্রেণি শিক্ষক)',
@@ -3518,7 +3391,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     const id = cleanPath.replace('/users/', '');
     let users = getLocalStore('users', MOCK_USERS);
     if (method === 'PATCH' || method === 'PUT') {
-            const roleLabels = {
+      const roleLabels = {
         super_admin: 'সুপার অ্যাডমিন',
         admin: 'অ্যাডমিন',
         co_admin: 'কো-অ্যাডমিন (শ্রেণি শিক্ষক)',
@@ -3568,7 +3441,7 @@ function sanitizeAndRepairMarks(marksList, studentsList, exams = []) {
     return { success: true, message: 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।' };
   }
 
-  
+
   // Teacher Portal & Smart Attendance Endpoints
   if (cleanPath === '/portal/teacher/roster' || cleanPath === '/attendance/roster') {
     const d = params.get('date') || new Date().toISOString().slice(0, 10);

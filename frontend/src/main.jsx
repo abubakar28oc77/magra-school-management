@@ -646,6 +646,22 @@ try {
   }
 } catch { }
 
+// Purge any stale synthetic auto-seeded marks and invalidate stale results caches
+try {
+  const rawM = JSON.parse(localStorage.getItem('magra_db_marks') || '[]');
+  if (Array.isArray(rawM)) {
+    const cleanedM = rawM.filter(m => !m || !m.is_auto_seed);
+    if (cleanedM.length !== rawM.length) {
+      localStorage.setItem('magra_db_marks', JSON.stringify(cleanedM));
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('magra_db_results_')) {
+          localStorage.removeItem(k);
+        }
+      });
+    }
+  }
+} catch { }
+
 const VISITOR_STORAGE_KEY = 'magra_site_visitor_stats_v2';
 
 function getInitialVisitorStats() {

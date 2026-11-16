@@ -2134,17 +2134,6 @@ export function ResultPanel({ sub, userRole }) {
       const cleanHeaders = rawHeaders.map(h => normBn(h));
 
       // English subject matcher helpers for Dhaka Board (107 = English 1st, 108 = English 2nd)
-      const isEnglish1st = (s) => {
-        if (!s) return false;
-        const raw = String(s).toLowerCase();
-        const n = normBn(raw);
-        if (n.includes('107') || n.includes('sub10107') || n.includes('sub9107')) return true;
-        const hasEng = n.includes('ইংরেজি') || n.includes('english') || n.includes('eng');
-        if (!hasEng) return false;
-        if (n.includes('2nd') || n.includes('২য়') || n.includes('2') || n.includes('ii')) return false;
-        return n.includes('1st') || n.includes('১ম') || n.includes('1') || n.includes('i') || n.includes('পত্র') || true;
-      };
-
       const isEnglish2nd = (s) => {
         if (!s) return false;
         const raw = String(s).toLowerCase();
@@ -2152,7 +2141,18 @@ export function ResultPanel({ sub, userRole }) {
         if (n.includes('108') || n.includes('sub10108') || n.includes('sub9108')) return true;
         const hasEng = n.includes('ইংরেজি') || n.includes('english') || n.includes('eng');
         if (!hasEng) return false;
-        return n.includes('2nd') || n.includes('২য়') || n.includes('2') || n.includes('ii');
+        return n.includes('2nd') || n.includes('২য়') || n.includes('২') || n.includes('2') || n.includes('ii') || n.includes('second');
+      };
+
+      const isEnglish1st = (s) => {
+        if (!s) return false;
+        if (isEnglish2nd(s)) return false;
+        const raw = String(s).toLowerCase();
+        const n = normBn(raw);
+        if (n.includes('107') || n.includes('sub10107') || n.includes('sub9107')) return true;
+        const hasEng = n.includes('ইংরেজি') || n.includes('english') || n.includes('eng');
+        if (!hasEng) return false;
+        return n.includes('1st') || n.includes('১ম') || n.includes('১') || n.includes('1') || n.includes('i') || n.includes('first') || !n.includes('2');
       };
 
       const findHeaderIdx = (aliases) => {
@@ -2457,10 +2457,13 @@ export function ResultPanel({ sub, userRole }) {
           matchedStudentIds.add(matchedStudent.id);
 
           const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
-          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
+          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent', 'অনুপস্থিত', 'অনু'].some(k => absentRaw.includes(k));
           const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
 
           subjectColumnsMap.forEach(({ sub, writtenIdx: wIdx, mcqIdx: mIdx, practicalIdx: pIdx }) => {
+            const rawW = wIdx !== -1 && row[wIdx] !== undefined ? String(row[wIdx]).trim().toLowerCase() : '';
+            const isSubAbsent = isAbsent || rawW.includes('অনু') || rawW.includes('অনুপস্থিত') || rawW.includes('abs');
+
             let w = wIdx !== -1 && row[wIdx] !== undefined ? normalizeMarkDigits(row[wIdx]) : '';
             let m = mIdx !== -1 && row[mIdx] !== undefined ? normalizeMarkDigits(row[mIdx]) : '';
             let p = pIdx !== -1 && row[pIdx] !== undefined ? normalizeMarkDigits(row[pIdx]) : '';
@@ -2493,7 +2496,7 @@ export function ResultPanel({ sub, userRole }) {
             if (m !== '' && sub.mcq_max > 0 && parseFloat(m) > sub.mcq_max) m = String(sub.mcq_max);
             if (p !== '' && sub.practical_max > 0 && parseFloat(p) > sub.practical_max) p = String(sub.practical_max);
 
-            if (w !== '' || m !== '' || p !== '' || isAbsent) {
+            if (w !== '' || m !== '' || p !== '' || isSubAbsent) {
               recordsToSave.push({
                 exam_id: effectiveExamId,
                 class_name: effectiveClass,
@@ -2503,10 +2506,10 @@ export function ResultPanel({ sub, userRole }) {
                 department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
                 subject_id: sub.id,
                 subject_code: sub.code,
-                written: w,
-                mcq: m,
-                practical: p,
-                absent: isAbsent,
+                written: isSubAbsent ? 0 : w,
+                mcq: isSubAbsent ? 0 : m,
+                practical: isSubAbsent ? 0 : p,
+                absent: isSubAbsent,
                 remarks
               });
             }
@@ -2656,19 +2659,21 @@ export function ResultPanel({ sub, userRole }) {
           matchedStudentIds.add(matchedStudent.id);
 
           const absentRaw = absentIdx !== -1 && row[absentIdx] ? row[absentIdx].trim().toLowerCase() : '';
-          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent'].includes(absentRaw);
+          const rawW = writtenIdx !== -1 && row[writtenIdx] !== undefined ? String(row[writtenIdx]).trim().toLowerCase() : '';
+          const isAbsent = ['yes', 'হ্যাঁ', '1', 'true', 'abs', 'absent', 'অনুপস্থিত', 'অনু'].some(k => absentRaw.includes(k)) ||
+                           rawW.includes('অনু') || rawW.includes('অনুপস্থিত') || rawW.includes('abs');
           const remarks = remarksIdx !== -1 && row[remarksIdx] ? row[remarksIdx].trim() : '';
 
-          let w = writtenIdx !== -1 && row[writtenIdx] !== undefined ? normalizeMarkDigits(row[writtenIdx]) : '';
-          let m = mcqIdx !== -1 && row[mcqIdx] !== undefined ? normalizeMarkDigits(row[mcqIdx]) : '';
-          let p = practicalIdx !== -1 && row[practicalIdx] !== undefined ? normalizeMarkDigits(row[practicalIdx]) : '';
+          let w = isAbsent ? '0' : (writtenIdx !== -1 && row[writtenIdx] !== undefined ? normalizeMarkDigits(row[writtenIdx]) : '');
+          let m = isAbsent ? '0' : (mcqIdx !== -1 && row[mcqIdx] !== undefined ? normalizeMarkDigits(row[mcqIdx]) : '');
+          let p = isAbsent ? '0' : (practicalIdx !== -1 && row[practicalIdx] !== undefined ? normalizeMarkDigits(row[practicalIdx]) : '');
 
           const wMax = Number(rowSub.written_max) || 0;
           const mMax = Number(rowSub.mcq_max) || 0;
           const pMax = Number(rowSub.practical_max) || 0;
 
           // Smart healing for subjects with no written exam (e.g. ICT Code 154: written_max = 0, mcq_max = 25, practical_max = 25)
-          if (wMax === 0 && mMax > 0) {
+          if (!isAbsent && wMax === 0 && mMax > 0) {
             if (w !== '' && (m === '' || m === null || m === undefined)) {
               const numW = parseFloat(w) || 0;
               if (p !== '' && p !== null && p !== undefined) {
@@ -2703,58 +2708,13 @@ export function ResultPanel({ sub, userRole }) {
             department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
             subject_id: rowSub.id,
             subject_code: rowSub.code,
-            written: w,
-            mcq: m,
-            practical: p,
+            written: isAbsent ? 0 : w,
+            mcq: isAbsent ? 0 : m,
+            practical: isAbsent ? 0 : p,
             absent: isAbsent,
             remarks,
             updated_at: new Date().toISOString()
           });
-
-          // If a single English paper is uploaded in SSC, also push companion paper so combined course stays balanced
-          if (['9', '10'].includes(String(effectiveClass))) {
-            if (String(rowSub.code) === '107') {
-              const partnerSub = classSubjects.find(s => String(s.code) === '108');
-              if (partnerSub) {
-                recordsToSave.push({
-                  exam_id: effectiveExamId,
-                  class_name: effectiveClass,
-                  student_id: matchedStudent.id,
-                  student_code: matchedStudent.student_id || matchedStudent.id,
-                  roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
-                  department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
-                  subject_id: partnerSub.id,
-                  subject_code: partnerSub.code,
-                  written: w,
-                  mcq: m,
-                  practical: p,
-                  absent: isAbsent,
-                  remarks,
-                  updated_at: new Date().toISOString()
-                });
-              }
-            } else if (String(rowSub.code) === '108') {
-              const partnerSub = classSubjects.find(s => String(s.code) === '107');
-              if (partnerSub) {
-                recordsToSave.push({
-                  exam_id: effectiveExamId,
-                  class_name: effectiveClass,
-                  student_id: matchedStudent.id,
-                  student_code: matchedStudent.student_id || matchedStudent.id,
-                  roll_no: matchedStudent.roll_no !== undefined && matchedStudent.roll_no !== null ? matchedStudent.roll_no : rollVal,
-                  department: matchedStudent.department || targetDept || normDeptKey || 'মানবিক',
-                  subject_id: partnerSub.id,
-                  subject_code: partnerSub.code,
-                  written: w,
-                  mcq: m,
-                  practical: p,
-                  absent: isAbsent,
-                  remarks,
-                  updated_at: new Date().toISOString()
-                });
-              }
-            }
-          }
         }
 
         detectedSubjectNames = Array.from(rowSubjectsSet);
